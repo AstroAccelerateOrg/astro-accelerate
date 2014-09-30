@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "params.h"
-#include "device_bin.h"
+#include "AstroAccelerate/params.h"
+#include "AstroAccelerate/device_bin.h"
 
 //{{{ dedisperse 
 

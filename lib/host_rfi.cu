@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "params.h"
+#include "AstroAccelerate/params.h"
 
 void rfi(int nsamp, int nchans, float **input_buffer) {
 

@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "params.h"
+#include "AstroAccelerate/params.h"
 
 // CUDA-C includes
 #include <cuda.h>

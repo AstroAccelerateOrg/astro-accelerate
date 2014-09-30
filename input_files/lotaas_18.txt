@@ -1,0 +1,11 @@
+range	0    60    0.050 1  1
+range	60   120   0.050 2  1
+range	120  240   0.100 4  1
+range	240  480   0.200 8  1
+sigma_cutoff	6
+-power		2
+analysis
+-output_dmt
+debug
+periodicity
+file /home/wa78/lotaas_18.125_1.dat

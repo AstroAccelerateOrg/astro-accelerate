@@ -7,7 +7,7 @@
 
 //#include <cuda.h>
 //#include <cuda_runtime.h>
-#include "params.h"
+#include "AstroAccelerate/params.h"
 
 // Stores temporary shift values
 __device__ __constant__ float dm_shifts[15500];

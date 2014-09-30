@@ -12,6 +12,6 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#include "params.h"
+#include "AstroAccelerate/params.h"
 
 #endif

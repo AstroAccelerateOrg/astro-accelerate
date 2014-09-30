@@ -3,8 +3,8 @@
  */
 
 #include <stdio.h>
-#include "params.h"
-#include "host_help.h"
+#include "AstroAccelerate/params.h"
+#include "AstroAccelerate/host_help.h"
 
 void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *enable_debug, int *enable_analysis, int *enable_periodicity, int *output_dmt, int *nboots, int *ntrial_bins, int *navdms, float *narrow, float *wide, float *aggression, int *nsearch, int **inBin, int **outBin, float *power, float *sigma_cutoff, int *range, float **user_dm_low, float **user_dm_high, float **user_dm_step) {
 

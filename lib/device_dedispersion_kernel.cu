@@ -39,8 +39,11 @@ __global__ void shared_dedisperse_kernel(float *d_input, float *d_output, cudaTe
 		
 		#pragma unroll
 		for(int i = 0; i < SNUMREG; i++) {
-			//local_kernel_t[i] += d_input[shift + (i * SDIVINT) ];
+#ifdef SM_35
 			local_kernel_t[i] += __ldg(d_input + shift + (i * SDIVINT));
+#else
+			local_kernel_t[i] += d_input[shift + (i * SDIVINT) ];
+#endif			
 		}
 	}
 
