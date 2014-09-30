@@ -15,13 +15,15 @@ ifeq ($(gpu),sm_35)
 endif
 
 
-all:	$(BUILD_DIR)/dedisperse-gpu
+all:	${BUILD_DIR} $(BUILD_DIR)/dedisperse-gpu
 
 $(BUILD_DIR)/%.o : %.cu
 	nvcc -o $@ -c $(NVCCFLAGS) $< 
 
-#$(BUILD_DIR)/host_main.o:	host_main.cu AstroAccelerate/headers_mains.h 
-#	nvcc -c $(NVCCFLAGS) host_main.cu 
+${BUILD_DIR}:
+	mkdir -p ${BUILD_DIR}
+
+$(BUILD_DIR)/host_main.o:	AstroAccelerate/headers_mains.h 
 
 $(BUILD_DIR)/host_allocate_memory.o:	AstroAccelerate/host_allocate_memory.h
 
