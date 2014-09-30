@@ -1,88 +1,66 @@
-
-#define NOPSMIN 3.6
-#define NOPSMAX 4.6
-
-extern "C" void dedisperse(size_t inputsize, float *d_input, size_t outputsize, float *d_output, int nchans, int nsamp, int maxshift, float dm_low, int ndms, int kernel_type, float tsamp, float dm_step);
+#include <stdio.h>
+#include "params.h"
+#include "device_bin.h"
 
 //{{{ dedisperse 
 
-void dedisperse(size_t inputsize, float *d_input, size_t outputsize, float *d_output, int nchans, int nsamp, int maxshift, float dm_low, int ndms, int kernel_type, float tsamp, float dm_step) {
+void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, float *d_input, cudaTextureObject_t tex, float *d_output, int nchans, int nsamp, int maxshift, float *tsamp, float *dm_low, float *dm_high, float *dm_step, int *ndms) {
 
-	//{{{ Set the timing parameters
 
-//	cudaEvent_t start, stop;
-//	float time[10], sum;
-//	int i;
+	// FOR KEPLER SMEM....
+	float shift_one = (SDIVINDM-1)*(dm_step[i]/(*tsamp));	
+	int shifta = (int)floorf(shift_one*dmshifts[nchans-1]) + (SDIVINT-1)*2;
+//	int lineshift = shifta+((SNUMREG-1)*2*SDIVINT);
+//	printf("\n%f",dm_step[i]/(*tsamp));
+//	printf("\n%f",dmshifts[nchans-1]);
+//	printf("\n%d",shifta);
+//	printf("\nlineshift:\t%d", lineshift);
 
-//	for(i = 0; i < 10; i++) time[i] = 0.0;
+	// Check to see if the threadblock will load a shared memory line that
+	// is long enough for the algorithm to run without an out of bounds
+	// access...
+//	if(((SDIVINT-1)+((SDIVINDM-1)*SDIVINT) - 1) > lineshift) {
 
-//	i = 0;
-	
-//	cudaEventCreate(&start);
-//	cudaEventCreate(&stop);
+	/* FOR FERMI SMEM....
+	float shift_one = (SDIVINDM-1)*(dm_step[i]/(*tsamp));	
+	int shift = (int)floorf(shift_one*dmshifts[nchans-1]);
+	int lineshift = shift+((SNUMREG-1)*SDIVINT);
+	//printf("\n%f",dm_step[i]/(*tsamp));
+	//printf("\n%f",dmshifts[nchans-1]);
+	//printf("\n%d",shift);
+	//printf("\nlineshift:\t%d", lineshift);
+	*/
+		printf("\nUsing fast shared memory kernel");
 
-	//}}}
-	
-	//{{{ Dedisperse data on the GPU 
+		//{{{ Dedisperse data on the GPU 
+		float startdm = dm_low[i];
 
-	float startdm = dm_low;
+		int divisions_in_t  = SDIVINT;
+		int divisions_in_dm = SDIVINDM;
+		int num_blocks_t    = t_processed/(divisions_in_t*SNUMREG);
+		int num_blocks_dm   = ndms[i]/divisions_in_dm;
 
-	int num_reg         = NUMREG;
-	int divisions_in_t  = DIVINT;
-	int divisions_in_dm = DIVINDM;
-	int num_blocks_t    = (nsamp-maxshift)/(divisions_in_t * num_reg);
-	int num_blocks_dm   = ndms/divisions_in_dm;
+//		printf("\ntpro:\t%d, numb:\t%d", t_processed, num_blocks_t), fflush(stdout);
 
-	dim3 threads_per_block(divisions_in_t, divisions_in_dm);
-	dim3 num_blocks(num_blocks_t,num_blocks_dm);
+//		if(ndms[i]%divisions_in_dm !=0) {
+//			printf("\nERROR: dm block size is not a divisor of the dm range!!");
+//			exit(0);
+//		} 
+		
+		dim3 threads_per_block(divisions_in_t, divisions_in_dm);
+		dim3 num_blocks(num_blocks_t,num_blocks_dm);
 
-//	printf("\n\tndms:\t\t%d", ndms);
-//	printf("\n\tdm_step:\t%f", dm_step);
-//	printf("\n\tnsamp:\t\t%d", nsamp);
-//	printf("\n\ttsamp:\t\t%lf", tsamp);
-//	printf("\n\tnum_acc:\t%d", num_reg);
-//	printf("\n\tBlocksize(x,y):\t%d,%d",  divisions_in_t, divisions_in_dm);
-//	printf("\n\tGridsize(x,y):\t%d,%d\n", num_blocks_t, num_blocks_dm);
-
-//	printf("\n\tkernelStart"), fflush(stdout);
-//	cudaEventRecord(start,0);
-
-	if(kernel_type == 0) {
-		printf("\n\tUsing Shared Memory Algorithm");
-		cudaFuncSetCacheConfig(shared_dedisperse_loop, cudaFuncCachePreferShared);
-		shared_dedisperse_loop<<< num_blocks, threads_per_block >>>(d_output, d_input, (float)(startdm/tsamp), (float)(dm_step/tsamp));
-	} else if(kernel_type == 1) {
-		printf("\n\tUsing L1 cache Algorithm");
-		cudaFuncSetCacheConfig(cache_dedisperse_loop, cudaFuncCachePreferL1);
-		cache_dedisperse_loop<<<  num_blocks, threads_per_block >>>(d_output, d_input, (float)(startdm/tsamp), (float)(dm_step/tsamp));
-	} else if(kernel_type == 2) {
-		printf("\n\tUsing contiguous L1 cache Algorithm");
-		cudaFuncSetCacheConfig(cache_contiguous_loop, cudaFuncCachePreferL1);
-		cache_contiguous_loop<<<  num_blocks, threads_per_block >>>(d_output, d_input, (float)(startdm/tsamp), (float)(dm_step/tsamp));
-	}  else if(kernel_type == 3) {
-		printf("\n\tUsing contiguous Shared Memory Algorithm");
-		cudaFuncSetCacheConfig(shared_contiguous_loop, cudaFuncCachePreferShared);
-		shared_contiguous_loop<<< num_blocks, threads_per_block >>>(d_output, d_input, (float)(startdm/tsamp), (float)(dm_step/tsamp));
-	}
-
-//	cudaEventRecord(stop, 0);
-//	cudaEventSynchronize(stop);
-//	cudaEventElapsedTime(&time[i], start, stop);
-//	printf("\n\tkernelStop"), fflush(stdout);
-//	printf("\n\tPerformed Brute-Force Dedispersion:\t\t%f ms (GPU estimate)", time[i]);
-
-//	printf("\n\n\tReal-time speedup factor:\t\t\t%f", ((nsamp - maxshift)*tsamp)/(time[i]/1000));
-//	printf("\n\tGops based on %.2f ops per channel per tsamp:\t%f",NOPSMIN,((1.0*NOPSMIN*ndms*nchans*(nsamp - maxshift))/(time[i]/1000))/1000000000);
-//	printf("\n\tGops based on %.2f ops per channel per tsamp:\t%f",NOPSMAX,((1.0*NOPSMAX*ndms*nchans*(nsamp - maxshift))/(time[i]/1000))/1000000000);
-//	i++;
+		cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeEightByte);
+		cudaFuncSetCacheConfig(shared_dedisperse_kernel, cudaFuncCachePreferShared);
+		shared_dedisperse_kernel<<< num_blocks, threads_per_block >>>(d_input, d_output, tex, (float)(startdm/(*tsamp)), (float)(dm_step[i]/(*tsamp)));
+//	} else {
+//		printf("\nERROR: smem line length is too short.\nRun the auto tuner again!\n");
+//		exit(0);
+//	}
 
 	//}}}
-
-
-//	for(i = 0; i < 10; i++) sum += time[i];
-
-//	printf("\n\n\tGPU total time:\t\t\t\t\t%lf s", sum/1000);
-
+	//cudaUnbindTexture(inTex);
+	//cudaDestroyTextureObject(tex);
 }
 
 //}}}

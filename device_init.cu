@@ -1,99 +1,92 @@
-#include <cutil_inline.h>
+#include <stdio.h>
+#include "params.h"
 
-extern "C" void init_gpu(int nchans, float *dmshifts);
+// CUDA-C includes
+#include <cuda.h>
+#include <cuda_runtime.h>
+
+//extern "C" void init_gpu(int argc, char **argv, int enable_debug, size_t *gpu_memory);
 
 //{{{ init_gpu
 
-void init_gpu(int nchans, float *dmshifts) {
+void init_gpu(int argc, char **arg, int enable_debug, size_t *gpu_memory) {
 
-	int i, devCount, device;
+	int deviceCount = 0;
+    	cudaError_t error_id = cudaGetDeviceCount(&deviceCount);
 
-	//{{{ Determine what GPUs are availible
-	
-	cudaGetDeviceCount(&devCount);
-	printf("\n\nCUDA Device Query...");
-	printf("\nThere are %d CUDA devices.", devCount);
-	/*
-	for(i = 0; i < devCount; ++i) {
-		
-		// Get device properties
-		printf("\n\nCUDA Device #%d\n", i);
+    	if (error_id != cudaSuccess) {
+	        printf("cudaGetDeviceCount returned %d\n-> %s\n", (int)error_id, cudaGetErrorString(error_id));
+        	printf("Result = FAIL\n");
+	        exit(EXIT_FAILURE);
+    	}
 
-		cudaDeviceProp devProp;
-	        cudaGetDeviceProperties(&devProp, i);
-		printf("\nMajor revision number:         %d",  devProp.major);
-		printf("\nMinor revision number:         %d",  devProp.minor);
-		printf("\nName:                          %s",  devProp.name);
-		printf("\nTotal global memory:           %u",  devProp.totalGlobalMem);
-		printf("\nTotal shared memory per block: %u",  devProp.sharedMemPerBlock);
-		printf("\nTotal registers per block:     %d",  devProp.regsPerBlock);
-		printf("\nWarp size:                     %d",  devProp.warpSize);
-		printf("\nMaximum memory pitch:          %u",  devProp.memPitch);
-		printf("\nMaximum threads per block:     %d",  devProp.maxThreadsPerBlock);
-		for (int i = 0; i < 3; ++i) printf("\nMaximum dimension %d of block:  %d", i, devProp.maxThreadsDim[i]);
-		for (int i = 0; i < 3; ++i) printf("\nMaximum dimension %d of grid:   %d", i, devProp.maxGridSize[i]);
-		printf("\nClock rate:                    %d",  devProp.clockRate);
-		printf("\nTotal constant memory:         %u",  devProp.totalConstMem);
-		printf("\nTexture alignment:             %u",  devProp.textureAlignment);
-		printf("\nConcurrent copy and execution: %s",  (devProp.deviceOverlap ? "Yes" : "No"));
-		printf("\nNumber of multiprocessors:     %d",  devProp.multiProcessorCount);
-		printf("\nKernel execution timeout:      %s",  (devProp.kernelExecTimeoutEnabled ? "Yes" : "No"));
-	}
-	*/
+	// This function call returns 0 if there are no CUDA capable devices.
+    	if(deviceCount == 0) {
+		printf("There are no available device(s) that support CUDA\n");
+	} else {
+        	printf("Detected %d CUDA Capable device(s)\n", deviceCount);
+    	}
 
-	//}}}
+    int dev, driverVersion = 0, runtimeVersion = 0;
+	dev=CARD;
 
-	//{{{ Pick a Tesla GPU card and set the device flags
+	cudaSetDevice(dev);
+        cudaDeviceProp deviceProp;
+        cudaGetDeviceProperties(&deviceProp, dev);
 
-	printf("\n\n\tinitStart"),fflush(stdout);
+        printf("\nDevice %d: \"%s\"\n", dev, deviceProp.name);
 
-	for(i = 0; i < devCount; ++i) {
+        // Console log
+        cudaDriverGetVersion(&driverVersion);
+        cudaRuntimeGetVersion(&runtimeVersion);
+        printf("  CUDA Driver Version / Runtime Version          %d.%d / %d.%d\n", driverVersion/1000, (driverVersion%100)/10, runtimeVersion/1000, (runtimeVersion%100)/10);
+        printf("  CUDA Capability Major/Minor version number:    %d.%d\n", deviceProp.major, deviceProp.minor);
+        printf("  Total amount of global memory:                 %.0f MBytes (%llu bytes)\n",
+                (float)deviceProp.totalGlobalMem/1048576.0f, (unsigned long long) deviceProp.totalGlobalMem);
+        printf("  GPU Clock rate:                                %.0f MHz (%0.2f GHz)\n", deviceProp.clockRate * 1e-3f, deviceProp.clockRate * 1e-6f);
+        printf("  Memory Clock rate:                             %.0f Mhz\n", deviceProp.memoryClockRate * 1e-3f);
+        printf("  Memory Bus Width:                              %d-bit\n",   deviceProp.memoryBusWidth);
+        if (deviceProp.l2CacheSize)
+        {
+            printf("  L2 Cache Size:                                 %d bytes\n", deviceProp.l2CacheSize);
+        }
+        printf("  Maximum Texture Dimension Size (x,y,z)         1D=(%d), 2D=(%d, %d), 3D=(%d, %d, %d)\n",
+               deviceProp.maxTexture1D   , deviceProp.maxTexture2D[0], deviceProp.maxTexture2D[1],
+               deviceProp.maxTexture3D[0], deviceProp.maxTexture3D[1], deviceProp.maxTexture3D[2]);
+        printf("  Maximum Layered 1D Texture Size, (num) layers  1D=(%d), %d layers\n",
+               deviceProp.maxTexture1DLayered[0], deviceProp.maxTexture1DLayered[1]);
+        printf("  Maximum Layered 2D Texture Size, (num) layers  2D=(%d, %d), %d layers\n",
+               deviceProp.maxTexture2DLayered[0], deviceProp.maxTexture2DLayered[1], deviceProp.maxTexture2DLayered[2]);
+        printf("  Total amount of constant memory:               %lu bytes\n", deviceProp.totalConstMem);
+        printf("  Total amount of shared memory per block:       %lu bytes\n", deviceProp.sharedMemPerBlock);
+        printf("  Total number of registers available per block: %d\n", deviceProp.regsPerBlock);
+        printf("  Warp size:                                     %d\n", deviceProp.warpSize);
+        printf("  Maximum number of threads per multiprocessor:  %d\n", deviceProp.maxThreadsPerMultiProcessor);
+        printf("  Maximum number of threads per block:           %d\n", deviceProp.maxThreadsPerBlock);
+        printf("  Max dimension size of a thread block (x,y,z): (%d, %d, %d)\n",
+               deviceProp.maxThreadsDim[0],
+               deviceProp.maxThreadsDim[1],
+               deviceProp.maxThreadsDim[2]);
+        printf("  Max dimension size of a grid size    (x,y,z): (%d, %d, %d)\n",
+               deviceProp.maxGridSize[0],
+               deviceProp.maxGridSize[1],
+               deviceProp.maxGridSize[2]);
+        printf("  Maximum memory pitch:                          %lu bytes\n", deviceProp.memPitch);
+        printf("  Texture alignment:                             %lu bytes\n", deviceProp.textureAlignment);
+        printf("  Concurrent copy and kernel execution:          %s with %d copy engine(s)\n", (deviceProp.deviceOverlap ? "Yes" : "No"), deviceProp.asyncEngineCount);
+        printf("  Run time limit on kernels:                     %s\n", deviceProp.kernelExecTimeoutEnabled ? "Yes" : "No");
+        printf("  Integrated GPU sharing Host Memory:            %s\n", deviceProp.integrated ? "Yes" : "No");
+        printf("  Support host page-locked memory mapping:       %s\n", deviceProp.canMapHostMemory ? "Yes" : "No");
+        printf("  Alignment requirement for Surfaces:            %s\n", deviceProp.surfaceAlignment ? "Yes" : "No");
+        printf("  Device has ECC support:                        %s\n", deviceProp.ECCEnabled ? "Enabled" : "Disabled");
+        printf("  CUDA Device Driver Mode (TCC or WDDM):         %s\n", deviceProp.tccDriver ? "TCC (Tesla Compute Cluster Driver)" : "WDDM (Windows Display Driver Model)");
+        printf("  Device supports Unified Addressing (UVA):      %s\n", deviceProp.unifiedAddressing ? "Yes" : "No");
+        printf("  Device PCI Bus ID / PCI location ID:           %d / %d\n", deviceProp.pciBusID, deviceProp.pciDeviceID);
 
-		cudaDeviceProp devProp;
-	        cudaGetDeviceProperties(&devProp, i);
+	size_t free, total;
 
-		if(!strncmp("Tesla", devProp.name, 5)) device = i;
-	}
-
-	printf("\n\tUsing device:\t\t\t%d", device);
-	
-	cudaEvent_t start, stop;
-	float time;
-	
-	cudaEventCreate(&start);
-	cudaEventCreate(&stop);
-
-	cudaEventRecord(start,0);
-
-	cudaSetDevice(device);
-	cudaSetDeviceFlags(cudaDeviceScheduleBlockingSync);
-
-	cudaEventRecord(stop, 0);
-	cudaEventSynchronize(stop);
-	cudaEventElapsedTime(&time, start, stop);
-	printf("\n\tinitStop"),fflush(stdout);
-	printf("\n\tInitialised GPU:\t\t%lf ms\n", time);    
-
-	//}}}
-
-	//{{{ Copy data and set up the GPU constants/variables.
-	
-	printf("\n\tnchans:\t\t\t\t%d", nchans);
-	printf("\n\tmemStart"),fflush(stdout);
-	cudaEventRecord(start,0);
-	
-	cutilSafeCall( cudaMemcpyToSymbol(dm_shifts, dmshifts,nchans * sizeof(float)) );
-	cutilSafeCall( cudaMemcpyToSymbol("i_nchans", &nchans, sizeof(int)) );
-
-
-	cudaEventRecord(stop, 0);
-	cudaEventSynchronize(stop);
-	cudaEventElapsedTime(&time, start, stop);
-	printf("\n\tmemStop"),fflush(stdout);
-	printf("\n\tCopied data to GPU:\t\t%lf ms", time);    
-
-	//}}}
-	
+	cudaMemGetInfo(&free, &total);
+	*gpu_memory=free;
 }
 
 //}}}

@@ -1,34 +1,26 @@
-#include <cutil_inline.h>
+//#include "device_dedispersion_kernel.h"
 
-extern "C" void load_data(float *device_pointer, float *host_pointer, size_t size, int nsamp, int maxshift);
+//extern "C" void load_data(int i, float *device_pointer, float *host_pointer, size_t size, int nsamp, int maxshift, int nchans, int t_processed_s, int t_processed_c, float *dmshifts);
 
 //{{{ load_data_from_host_to_device
 
-void load_data(float *device_pointer, float *host_pointer, size_t size, int nsamp, int maxshift) {
+void load_data(int i, int *inBin, float *device_pointer, float *host_pointer, int t_processed, int maxshift, int nchans, float *dmshifts) {
 
 	//{{{ Copy data and set up the GPU constants/variables.
-
-	//cudaEvent_t start, stop;
-	//float time;
-	//cudaEventCreate(&start);
-	//cudaEventCreate(&stop);
-
-	//printf("\n\tmemStart"),fflush(stdout);
-	//cudaEventRecord(start,0);
-	
-	cutilSafeCall( cudaMemcpy(device_pointer, host_pointer, size, cudaMemcpyHostToDevice) );
-	cutilSafeCall( cudaMemcpyToSymbol("i_nsamp", &nsamp, sizeof(int)) );
-	cutilSafeCall( cudaMemcpyToSymbol("i_maxshift", &maxshift, sizeof(int)) );
-
-	//cudaEventRecord(stop, 0);
-	//cudaEventSynchronize(stop);
-	//cudaEventElapsedTime(&time, start, stop);
-	//printf("\n\tmemStop"),fflush(stdout);
-	//printf("\n\tCopied data to GPU:\t\t\t\t%lf ms", time);    
-	//printf("\n\n\tEffective bandwidth in GB per second (input):\t%f\n", (((float)size)/1000000000)/(time/1000));
-
+	if(i==-1) {
+		int length=(t_processed+maxshift);
+		size_t size=nchans*length*sizeof(float);
+		cudaMemcpyToSymbol(dm_shifts, dmshifts, nchans * sizeof(float));
+		cudaMemcpy(device_pointer, host_pointer, size, cudaMemcpyHostToDevice);
+		cudaMemcpyToSymbol(i_nchans, &nchans, sizeof(int));
+		cudaMemcpyToSymbol(i_nsamp, &length, sizeof(int));
+		cudaMemcpyToSymbol(i_t_processed_s, &t_processed, sizeof(int));
+	} else if (i > 0) {
+		int length=(t_processed+maxshift);
+		cudaMemcpyToSymbol(i_nsamp, &length, sizeof(int));
+		cudaMemcpyToSymbol(i_t_processed_s, &t_processed, sizeof(int));
+	}
 	//}}}
-	
 }
 
 //}}}
