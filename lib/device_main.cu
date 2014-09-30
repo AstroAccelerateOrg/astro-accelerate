@@ -6,7 +6,6 @@
 #include "device_dedisperse.cu"
 #include "device_corner_turn.cu"
 #include "device_init.cu"
-#include "device_inference.cu"
 #include "device_load_data.cu"
 #include "device_save_data.cu"
 
