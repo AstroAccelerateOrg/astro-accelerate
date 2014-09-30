@@ -2,8 +2,7 @@
 
 
 job_name=$(basename "$1" .txt)
-project_top="`dirname \"$0\"`"
-project_top="`( cd \"../$project_top\" && pwd )`"
+project_top=$(readlink -f $( dirname $(dirname "$0")))
 output_dir="$project_top/output"
 job_dir=$output_dir/$job_name
 build_dir=$project_top/build
