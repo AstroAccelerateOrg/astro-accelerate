@@ -1,8 +1,14 @@
 #!/bin/bash
 
-
 job_name=$(basename "$1" .txt)
-project_top=$(readlink -f $( dirname $(dirname "$0")))
+
+# find out where this script is running from
+scripts_dir=$(dirname "$0");
+cd $scripts_dir;
+scripts_dir=$PWD
+
+# define where to place output and find out executables
+project_top=$(dirname "$scripts_dir")
 output_dir="$project_top/output"
 job_dir=$output_dir/$job_name
 build_dir=$project_top/build
