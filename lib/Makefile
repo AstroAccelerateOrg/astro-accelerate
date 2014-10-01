@@ -27,6 +27,8 @@ $(BUILD_DIR)/host_main.o:	AstroAccelerate/headers_mains.h
 
 $(BUILD_DIR)/host_allocate_memory.o:	AstroAccelerate/host_allocate_memory.h
 
+$(BUILD_DIR)/host_acceleration.o:	AstroAccelerate/host_acceleration.h
+
 $(BUILD_DIR)/host_analysis.o:	 AstroAccelerate/host_analysis.h 
 
 $(BUILD_DIR)/host_periods.o:	 AstroAccelerate/host_periods.h 
@@ -52,8 +54,8 @@ $(BUILD_DIR)/host_write_file.o:	 AstroAccelerate/host_write_file.h
 #$(BUILD_DIR)/device_main.o:	device_main.cu
 #	nvcc -c $(NVCCFLAGS) device_main.cu
 
-$(BUILD_DIR)/dedisperse-gpu:	$(BUILD_DIR)/host_main.o $(BUILD_DIR)/host_allocate_memory.o $(BUILD_DIR)/host_analysis.o $(BUILD_DIR)/host_periods.o $(BUILD_DIR)/host_debug.o $(BUILD_DIR)/host_get_file_data.o $(BUILD_DIR)/host_get_user_input.o $(BUILD_DIR)/host_get_recorded_data.o $(BUILD_DIR)/host_help.o $(BUILD_DIR)/host_rfi.o $(BUILD_DIR)/host_stratagy.o $(BUILD_DIR)/host_statistics.o $(BUILD_DIR)/host_write_file.o $(BUILD_DIR)/device_main.o
-	nvcc -o $(BUILD_DIR)/dedisperse-gpu $(NVCCFLAGS) $(BUILD_DIR)/host_main.o $(BUILD_DIR)/host_allocate_memory.o $(BUILD_DIR)/host_analysis.o $(BUILD_DIR)/host_periods.o $(BUILD_DIR)/host_debug.o $(BUILD_DIR)/host_get_file_data.o $(BUILD_DIR)/host_get_user_input.o $(BUILD_DIR)/host_get_recorded_data.o $(BUILD_DIR)/host_help.o $(BUILD_DIR)/host_rfi.o $(BUILD_DIR)/host_stratagy.o $(BUILD_DIR)/host_statistics.o $(BUILD_DIR)/host_write_file.o $(BUILD_DIR)/device_main.o
+$(BUILD_DIR)/dedisperse-gpu:	$(BUILD_DIR)/host_main.o $(BUILD_DIR)/host_allocate_memory.o $(BUILD_DIR)/host_acceleration.o $(BUILD_DIR)/host_analysis.o $(BUILD_DIR)/host_periods.o $(BUILD_DIR)/host_debug.o $(BUILD_DIR)/host_get_file_data.o $(BUILD_DIR)/host_get_user_input.o $(BUILD_DIR)/host_get_recorded_data.o $(BUILD_DIR)/host_help.o $(BUILD_DIR)/host_rfi.o $(BUILD_DIR)/host_stratagy.o $(BUILD_DIR)/host_statistics.o $(BUILD_DIR)/host_write_file.o $(BUILD_DIR)/device_main.o
+	nvcc -o $(BUILD_DIR)/dedisperse-gpu $(NVCCFLAGS) $(BUILD_DIR)/host_main.o $(BUILD_DIR)/host_allocate_memory.o $(BUILD_DIR)/host_acceleration.o $(BUILD_DIR)/host_analysis.o $(BUILD_DIR)/host_periods.o $(BUILD_DIR)/host_debug.o $(BUILD_DIR)/host_get_file_data.o $(BUILD_DIR)/host_get_user_input.o $(BUILD_DIR)/host_get_recorded_data.o $(BUILD_DIR)/host_help.o $(BUILD_DIR)/host_rfi.o $(BUILD_DIR)/host_stratagy.o $(BUILD_DIR)/host_statistics.o $(BUILD_DIR)/host_write_file.o $(BUILD_DIR)/device_main.o
 
 clean:
 	rm -f $(BUILD_DIR)/dedisperse-gpu $(BUILD_DIR)/*.a $(BUILD_DIR)/*.o

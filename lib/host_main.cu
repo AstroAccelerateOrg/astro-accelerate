@@ -6,6 +6,7 @@
 #include "AstroAccelerate/device_load_data.h"
 #include "AstroAccelerate/device_corner_turn.h"
 #include "AstroAccelerate/device_save_data.h"
+#include "AstroAccelerate/host_acceleration.h"
 #include "AstroAccelerate/host_allocate_memory.h"
 #include "AstroAccelerate/host_analysis.h"
 #include "AstroAccelerate/host_periods.h"
@@ -32,6 +33,7 @@ int main(int argc, char *argv[])
 	int range=0;
 	int enable_debug=0;	
 	int enable_analysis=0;	
+	int enable_acceleration=0;	
 	int enable_periodicity=0;	
 	int output_dmt=0;	
 	int *inBin=NULL;
@@ -104,8 +106,7 @@ int main(int argc, char *argv[])
 	double start_time = omp_get_wtime();
 
 	// Users desired de-dispersion strategy. Pick up user defined values from the CLI.
-	get_user_input(&fp, argc, argv, &multi_file, &enable_debug, &enable_analysis, &enable_periodicity, &output_dmt, &nboots, &ntrial_bins, &navdms, &narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff, &range, 
-                       &user_dm_low, &user_dm_high, &user_dm_step);
+	get_user_input(&fp, argc, argv, &multi_file, &enable_debug, &enable_analysis, &enable_periodicity, &enable_acceleration, &output_dmt, &nboots, &ntrial_bins, &navdms, &narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power,	     &sigma_cutoff, &range, &user_dm_low, &user_dm_high, &user_dm_step);
 	if(enable_debug == 1) debug(1, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high, 
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
@@ -272,6 +273,7 @@ int main(int argc, char *argv[])
 
 	start_t=omp_get_wtime();
 	if(enable_periodicity == 1) periodicity(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
+	if(enable_acceleration == 1) acceleration(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
 	end_t=omp_get_wtime();
 	time = (float)(end_t-start_t);
 
