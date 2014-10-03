@@ -28,6 +28,8 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 		cufftComplex* h_signal = (cufftComplex*)malloc((samps/2 + 1)*sizeof(cufftComplex));
 		float* h_signal_x = (float*)malloc(sizeof(float) * (samps/2 + 1) * ndms[i]);
 		float* h_signal_y = (float*)malloc(sizeof(float) * (samps/2 + 1) * ndms[i]);
+		float* h_signal_inter_x = (float*)malloc(sizeof(float) * 2*(samps/2 + 1) * ndms[i]);
+		float* h_signal_inter_y = (float*)malloc(sizeof(float) * 2*(samps/2 + 1) * ndms[i]);
 		
 		// CUFFT plan
 		cufftHandle plan;
@@ -59,6 +61,10 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 			//	h_signal[j].y = h_signal[j].y-h_signal[0].y;
 				h_signal_x[j+dm_count*(samps/2)] = h_signal[j].x;
 				h_signal_y[j+dm_count*(samps/2)] = h_signal[j].y;
+				h_signal_inter_x[2*j+dm_count*samps]= h_signal[j+dm_count*(samps/2)].x;
+				h_signal_inter_x[2*j+1+dm_count*samps]=0.785398163*((h_signal[j].x-h_signal[j+1].x));
+				h_signal_inter_y[2*j+dm_count*samps]= h_signal[j+dm_count*(samps/2)].y;
+				h_signal_inter_y[2*j+1+dm_count*samps]=0.785398163*((h_signal[j].y-h_signal[j+1].y));
 			}
 			int acc_max=0;
 			for(int acc=0; acc < acc_max; acc++) {
@@ -79,6 +85,8 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 		free(h_signal);
 		free(h_signal_x);
 		free(h_signal_y);
+		free(h_signal_inter_x);
+		free(h_signal_inter_y);
 		cudaFree(d_signal_in);
 		cudaFree(d_signal_out);
 	}
