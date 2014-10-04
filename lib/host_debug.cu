@@ -8,6 +8,11 @@ void debug(int test, double start_time, int range, int *outBin, int enable_debug
         
 	now = omp_get_wtime();
 
+#ifdef SM_35
+	printf("\n Using GPU __ldg() code (version: sm_35)");
+#else
+	printf("\n Using standard GPU code");
+#endif
 	if(test == 1) {
 		printf("\nrange:\t\t%d", range);
 		printf("\ndebug:\t\t%d", enable_debug);
