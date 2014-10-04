@@ -41,11 +41,10 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 	for(i=0; i<range; i++) {
 		modff((((int)((user_dm_high[i] - user_dm_low[i])/user_dm_step[i]) + DIVINDM) / DIVINDM), &n);
 		(*ndms)[i] = (int)((int)n * DIVINDM);
-		//printf("\nn:\t%d,ndms:\t%d", (int)n, (*ndms)[i]);
 		if(*max_ndms < (*ndms)[i]) *max_ndms = (*ndms)[i];
 		*total_ndms=*total_ndms+(*ndms)[i];
 	}
-	printf("\nMax:\t%d", *max_ndms);
+	printf("\nMaximum number of dm trials in any of the range steps:\t%d", *max_ndms);
 	
 	(*dm_low)[0] = user_dm_low[0];
 	(*dm_high)[0] = (*ndms)[0]*(user_dm_step[0]);
@@ -56,7 +55,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 		(*dm_step)[i] = user_dm_step[i]; 
 	
 		if(inBin[i-1] > 1) {
-			*maxshift = (int)ceil((((*dm_low)[i-1] + (*dm_step)[i-1] * (*ndms)[i-1]) * (*dmshifts)[nchans-1])/(tsamp*inBin[i-1]));
+			*maxshift = (int)ceil((((*dm_low)[i-1] + (*dm_step)[i-1] * (*ndms)[i-1]) * (*dmshifts)[nchans-1])/(tsamp));
 			*maxshift = (int)ceil((float)(*maxshift+((float)(SDIVINT * (SNUMREG))))/(float)inBin[i-1])/(float)(SDIVINT * (SNUMREG));
 			*maxshift = (*maxshift)*(SDIVINT * (SNUMREG))*inBin[i-1];
 			if((*maxshift) > maxshift_high) maxshift_high = (*maxshift);
@@ -64,7 +63,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 	}
 
 	if(inBin[range-1] > 1) {
-		*maxshift = (int)ceil((((*dm_low)[range-1] + (*dm_step)[range-1] * (*ndms)[range-1]) * (*dmshifts)[nchans-1])/(tsamp*inBin[range-1]));
+		*maxshift = (int)ceil((((*dm_low)[range-1] + (*dm_step)[range-1] * (*ndms)[range-1]) * (*dmshifts)[nchans-1])/(tsamp));
 		*maxshift = (int)ceil((float)(*maxshift+((float)(SDIVINT * (SNUMREG))))/(float)inBin[range-1])/(float)(SDIVINT * (SNUMREG));
 		*maxshift = *maxshift*(SDIVINT * (SNUMREG))*inBin[range-1];
 		if((*maxshift) > maxshift_high) maxshift_high = (*maxshift);
@@ -76,15 +75,19 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 	*max_dm = ceil((*dm_high)[range-1]);
 	
 	*maxshift=(maxshift_high+2*(SNUMREG*SDIVINT));
-	//*maxshift=(maxshift_high);
-	//printf("\n%d MAXSHIFT:\t%d", range-1, *maxshift);
+	printf("\nRange:\t%d, MAXSHIFT:\t%d, Scrunch value:\t%d", range-1, *maxshift, inBin[range-1]);
+	printf("\nMaximum dispersive delay:\t%.2f (s)", *maxshift*tsamp);
+
+	if(*maxshift >= nsamp) {
+		printf("\n\nERROR!! Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial\n\n");
+		exit(1);
+	}
+
 	printf("\nDiagonal DM:\t%f", (tsamp*nchans*0.0001205*powf((fch1+(foff*(nchans/2))),3.0))/(-foff*nchans));
 	if(*maxshift >= nsamp) {
 		printf("ERROR!! Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial");
 		exit(1);
 	}
-
-	
 
 	/* Four cases:
 	 * 1) nchans < max_ndms & nsamp fits in GPU RAM
@@ -133,8 +136,6 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 				
 			// Work out how many blocks of time samples we need to complete the processing
 			// upto nsamp-maxshift
-			//int num_blocks = (int)floor(((float)nsamp)/((float)samp_block_size))+1;
-			//int num_blocks = (int)floor(((float)nsamp)/((float)(samp_block_size-(*maxshift))))+1;
 			int num_blocks = (int)floor(((float)nsamp-(*maxshift)))/((float)(samp_block_size))+1;
 
 			// Find the common integer amount of samples between all bins
@@ -197,7 +198,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 				
 			// Work out how many blocks of time samples we need to complete the processing
 			// upto nsamp-maxshift
-			int num_blocks = (int)floor(((float)nsamp)/((float)samp_block_size));
+			int num_blocks = (int)floor(((float)nsamp-(float)(*maxshift))/((float)samp_block_size));
 
 			// Find the common integer amount of samples between all bins
 			int local_t_processed = (int)floor(((float)(samp_block_size)/(float)inBin[range-1])/(float)(SDIVINT * (SNUMREG)));
