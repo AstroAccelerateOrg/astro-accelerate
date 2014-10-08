@@ -73,7 +73,7 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 
 			}
 			for(int j=0;j< samps/2; j++){
-				fprintf(fp_c, "\n%f\t%f\t%f", j, h_signal[j].x, h_signal[j].y);
+				fprintf(fp_c, "\n%d\t%f\t%f", j, h_signal[j].x, h_signal[j].y);
 			}
 			fprintf(fp_c, "\n");
 		}

@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
 		memset(out_tmp,0.0f,t_processed[0][0]+maxshift*max_ndms*sizeof(float));
 
 		inc=inc+t_processed[0][t];
-		printf("\nINC:\t%d", inc);
+		printf("\nINC:\t%ld", inc);
 		tstart_local=(tsamp_original*inc);
 		tsamp=tsamp_original;
 		maxshift=maxshift_original;
@@ -250,7 +250,7 @@ int main(int argc, char *argv[])
 	float time = (float)(end_t-start_t);
 	printf("\nPerformed Brute-Force Dedispersion: %f (GPU estimate)", time);
 	printf("\nAmount of telescope time processed: %f", tstart_local);
-	printf("\nNumber of samples processed: %d", inc);
+	printf("\nNumber of samples processed: %ld", inc);
 	printf("\nReal-time speedup factor: %f", (tstart_local)/(time));
 
 	cudaFree(d_input);
@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
 
 		printf("\nPerformed Acceleration Location: %f (GPU estimate)", time);
 		printf("\nAmount of telescope time processed: %f", tstart_local);
-		printf("\nNumber of samples processed: %d", inc);
+		printf("\nNumber of samples processed: %ld", inc);
 		printf("\nReal-time speedup factor: %f", (tstart_local)/(time));
 	}
 
