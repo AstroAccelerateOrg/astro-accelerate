@@ -1,19 +1,13 @@
-#define NUMREG 14
-#define DIVINT 12
-#define DIVINDM 40
-#define FDIVINDM 40.0f
-#define SNUMREG 14
-#define SDIVINT 12
-#define SDIVINDM 40
-#define SFDIVINDM 40.0f
+#define SNUMREG 12
+#define SDIVINT 10
+#define SDIVINDM 72
+#define SFDIVINDM 72.0f
 #define CARD 0
 #define NOPSSHIFT 5
 #define NOPSLOOP 3
 #define NDATAPERLOOP 1
-#define BINDIVINT 64
-#define BINDIVINF 5
-#define CT 32
-#define CF 8
+#define BINDIVINT 6
+#define BINDIVINF 32
+#define CT 256
+#define CF 2
 #define NOPS 4.0
-#define NUM_GPUS 2
-

@@ -39,8 +39,8 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 	}
 
 	for(i=0; i<range; i++) {
-		modff((((int)((user_dm_high[i] - user_dm_low[i])/user_dm_step[i]) + DIVINDM) / DIVINDM), &n);
-		(*ndms)[i] = (int)((int)n * DIVINDM);
+		modff((((int)((user_dm_high[i] - user_dm_low[i])/user_dm_step[i]) + SDIVINDM) / SDIVINDM), &n);
+		(*ndms)[i] = (int)((int)n * SDIVINDM);
 		if(*max_ndms < (*ndms)[i]) *max_ndms = (*ndms)[i];
 		*total_ndms=*total_ndms+(*ndms)[i];
 	}

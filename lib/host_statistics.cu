@@ -6,9 +6,9 @@
 
 void statistics(char *string, int i, cudaStream_t stream, double *in_time, double *out_time, int maxshift, int total_ndms, int nchans, int nsamp, float tsamp, float *dm_low, float *dm_high, float *dm_step, int *ndms) {
 
-	int num_reg         = NUMREG;		
-	int divisions_in_t  = DIVINT;
-	int divisions_in_dm = DIVINDM;
+	int num_reg         = SNUMREG;		
+	int divisions_in_t  = SDIVINT;
+	int divisions_in_dm = SDIVINDM;
 	int num_blocks_t    = (nsamp-maxshift)/(divisions_in_t * num_reg);
 	int num_blocks_dm   = total_ndms/divisions_in_dm;
 
