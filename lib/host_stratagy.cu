@@ -74,7 +74,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 	}
 	*max_dm = ceil((*dm_high)[range-1]);
 	
-	*maxshift=(maxshift_high+2*(SNUMREG*SDIVINT));
+	*maxshift=(maxshift_high+(SNUMREG*SDIVINT));
 	printf("\nRange:\t%d, MAXSHIFT:\t%d, Scrunch value:\t%d", range-1, *maxshift, inBin[range-1]);
 	printf("\nMaximum dispersive delay:\t%.2f (s)", *maxshift*tsamp);
 
@@ -124,7 +124,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 			for(i = 0; i < range; i++) {
 				(*t_processed)[i]    = (int *)malloc(sizeof(int));
 				(*t_processed)[i][0] = (int)floor(((float)(local_t_processed)/(float)inBin[i])/(float)(SDIVINT * (SNUMREG)));
-				(*t_processed)[i][0] = (*t_processed)[i][0]*(SDIVINT * (SNUMREG));
+				(*t_processed)[i][0] = (*t_processed)[i][0]*(SDIVINT * (SNUMREG))-(SDIVINT * (SNUMREG));
 			}
 			(*num_tchunks)=1;
 			printf("\nIn 1\n");
@@ -145,7 +145,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 			// Work out the remaining fraction to be processed
 			int remainder = (nsamp-((num_blocks-1)*local_t_processed)-(*maxshift));
 			remainder = (int)floor((float)remainder/(float)inBin[range-1])/(float)(SDIVINT * (SNUMREG));
-			remainder = remainder*(SDIVINT * (SNUMREG))*inBin[range-1];
+			remainder = remainder*(SDIVINT * (SNUMREG))*inBin[range-1]-(SDIVINT * (SNUMREG));
 
 
 			for(i = 0; i < range; i++) {
@@ -154,11 +154,11 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 				// Remember the last block holds less!
 				for(j = 0; j < num_blocks-1; j++ ){
 					(*t_processed)[i][j] = (int)floor(((float)(local_t_processed)/(float)inBin[i])/(float)(SDIVINT * (SNUMREG)));
-					(*t_processed)[i][j] = (*t_processed)[i][j]*(SDIVINT * (SNUMREG));
+					(*t_processed)[i][j] = (*t_processed)[i][j]*(SDIVINT * (SNUMREG))-(SDIVINT * (SNUMREG));
 				}
 				// fractional bit
 				(*t_processed)[i][num_blocks-1] = (int)floor(((float)(remainder)/(float)inBin[i])/(float)(SDIVINT * (SNUMREG)));
-				(*t_processed)[i][num_blocks-1] = (*t_processed)[i][num_blocks-1]*(SDIVINT * (SNUMREG));
+				(*t_processed)[i][num_blocks-1] = (*t_processed)[i][num_blocks-1]*(SDIVINT * (SNUMREG))-(SDIVINT * (SNUMREG));
 			}
 			(*num_tchunks)=num_blocks;
 			printf("\nIn 3\n");
@@ -187,7 +187,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 			for(i = 0; i < range; i++) {
 				(*t_processed)[i] = (int *)malloc(sizeof(int));
 				(*t_processed)[i][0] = (int)floor(((float)(local_t_processed)/(float)inBin[i])/(float)(SDIVINT * (SNUMREG)));
-				(*t_processed)[i][0] = (*t_processed)[i][0]*(SDIVINT * (SNUMREG));
+				(*t_processed)[i][0] = (*t_processed)[i][0]*(SDIVINT * (SNUMREG))-(SDIVINT * (SNUMREG));
 			}
 			(*num_tchunks)=1;
 			printf("\nIn 2\n");
@@ -205,7 +205,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 			local_t_processed = local_t_processed*(SDIVINT * (SNUMREG))*inBin[range-1];
 
 			// Work out the remaining fraction to be processed
-			int remainder = nsamp-(num_blocks*local_t_processed)-(*maxshift);
+			int remainder = nsamp-(num_blocks*local_t_processed)-(*maxshift)-(SDIVINT * (SNUMREG));
 
 			for(i = 0; i < range; i++) {
 				// Allocate memory to hold the values of nsamps to be processed
@@ -213,11 +213,11 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 				// Remember the last block holds less!
 				for(j = 0; j < num_blocks; j++ ){
 					(*t_processed)[i][j] = (int)floor(((float)(local_t_processed)/(float)inBin[i])/(float)(SDIVINT * (SNUMREG)));
-					(*t_processed)[i][j] = (*t_processed)[i][j]*(SDIVINT * (SNUMREG));
+					(*t_processed)[i][j] = (*t_processed)[i][j]*(SDIVINT * (SNUMREG))-(SDIVINT * (SNUMREG));
 				}
 				// fractional bit
 				(*t_processed)[i][num_blocks] = (int)floor(((float)(remainder)/(float)inBin[i])/(float)(SDIVINT * (SNUMREG)));
-				(*t_processed)[i][num_blocks] = (*t_processed)[i][num_blocks]*(SDIVINT * (SNUMREG));
+				(*t_processed)[i][num_blocks] = (*t_processed)[i][num_blocks]*(SDIVINT * (SNUMREG))-(SDIVINT * (SNUMREG));
 			}
 			(*num_tchunks)=num_blocks+1;
 			printf("\nIn 4\n");
