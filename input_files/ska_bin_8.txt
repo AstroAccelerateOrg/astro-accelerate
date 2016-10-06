@@ -1,0 +1,21 @@
+range	0    575  0.3211 1 1
+-range	450  1060 0.5 2 2
+-range	1060 2070 0.75 4 4 
+-range	2070 2950 1.44 8 8
+sigma_cutoff	6
+-power		2
+-analysis
+-output_dmt
+-rfi_clipping
+debug
+-acceleration
+-periodicity
+-narrow	0.005
+-wide	0.1
+-nwindows 4
+-nsearch 8
+-aggression 1.41
+-navdms 1
+-nboots 512
+file /home/wa78/filterbank/ska_4000.fil
+#file /home/wa78/filterbank/ska_short.fil

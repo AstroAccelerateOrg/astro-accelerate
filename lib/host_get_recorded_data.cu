@@ -7,6 +7,7 @@
  * (*input_buffer_odd)[(c*(*nsamp))  + total_data] = (float)temp_buffer[c];
  */
 
+<<<<<<< HEAD
 void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned short **input_buffer, size_t *inputsize)
 {
 
@@ -36,4 +37,56 @@ void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned sho
 	printf(" This is a SKA prototype code and only runs with 8 bit data\n");
 	printf("\n=========================================================\n");
     }
+=======
+void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, float **input_buffer, size_t *inputsize) {
+
+	int	c;
+
+	unsigned long int total_data;
+
+        //{{{ Load in the raw data from the input file and transpose
+        if (nbits==8) {
+
+                // Allocate a tempory buffer to store a line of frequency data
+                unsigned char *temp_buffer = (unsigned char *) malloc(nchans * sizeof(unsigned char));
+
+                // Read in the data, transpose it and store it in the input buffer
+                total_data = 0;
+                while(!feof(*fp)) {
+                        //if(fread((*input_buffer), sizeof(unsigned char), nchans*nsamp, *fp) != nchans*nsamp) break;
+			
+                        if(fread(temp_buffer, sizeof(unsigned char), nchans, *fp) != nchans) break;
+                        for(c = 0; c < nchans; c++) {
+				(*input_buffer)[c + total_data*(nchans)] = temp_buffer[c];
+				//(*input_buffer)[c* (nsamp) + total_data] = (float)temp_buffer[c];				
+                        }
+                        total_data++;
+			
+                }
+        } else if (nbits==32) {
+
+                // Allocate a tempory buffer to store a line of frequency data
+                float *temp_buffer = (float *) malloc(nchans * sizeof(float));
+
+                // Read in the data, transpose it and store it in the input buffer
+                total_data = 0;
+                while(!feof(*fp)) {
+                        //if(fread((*input_buffer), sizeof(unsigned char), nchans*nsamp, *fp) != nchans*nsamp) break;
+			
+                        if(fread(temp_buffer, sizeof(float), nchans, *fp) != nchans) break;
+                        for(c = 0; c < nchans; c++) {
+				(*input_buffer)[c + total_data*(nchans)] = temp_buffer[c];
+				//(*input_buffer)[c* (nsamp) + total_data] = (float)temp_buffer[c];				
+                        }
+                        total_data++;
+			
+                }
+	}else { 
+		printf("\n\n========================= ERROR =========================\n");
+		printf(" This is a SKA prototype code and only runs with 8 bit data\n");
+		printf("\n=========================================================\n");
+	}
+
+        //}}}
+>>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 }
