@@ -1,0 +1,12 @@
+range	0    120   0.050 1  1
+range	120  240   0.050 2  2
+range	240  480   0.100 4  4
+sigma_cutoff	6
+-power		2
+-rfi_clipping
+analysis
+-output_dmt
+debug
+-periodicity
+-acceleration
+file /home/wa78/filterbank/lotaas_long.dat

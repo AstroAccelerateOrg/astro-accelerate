@@ -4,14 +4,20 @@
 #include <stdlib.h>
 #include "AstroAccelerate/headers_mains.h"
 
+<<<<<<< HEAD
 void statistics(char *string, int i, cudaStream_t stream, double *in_time, double *out_time, int maxshift, int total_ndms, int nchans, int nsamp, float tsamp, float *dm_low, float *dm_high, float *dm_step, int *ndms)
 {
+=======
+void statistics(char *string, int i, cudaStream_t stream, double *in_time, double *out_time, int maxshift, int total_ndms, int nchans, int nsamp, float tsamp, float *dm_low, float *dm_high, float *dm_step, int *ndms) {
+
+>>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 	int num_reg         = SNUMREG;		
 	int divisions_in_t  = SDIVINT;
 	int divisions_in_dm = SDIVINDM;
 	int num_blocks_t    = (nsamp-maxshift)/(divisions_in_t * num_reg);
 	int num_blocks_dm   = total_ndms/divisions_in_dm;
 
+<<<<<<< HEAD
 	double time = 0.0;
 
 	if(strcmp(string,"dedisperse in") == 0)
@@ -21,6 +27,14 @@ void statistics(char *string, int i, cudaStream_t stream, double *in_time, doubl
 	}
 	else if(strcmp(string,"dedisperse out") == 0)
 	{
+=======
+	double time=0.0;
+
+	if(strcmp(string,"dedisperse in") == 0) {
+		*in_time = omp_get_wtime();
+
+	} else if(strcmp(string,"dedisperse out") == 0) {
+>>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 		*out_time = omp_get_wtime();
 		time =  (*out_time - *in_time);
 
@@ -49,6 +63,7 @@ void statistics(char *string, int i, cudaStream_t stream, double *in_time, doubl
 		float size_gb = (nchans*(nsamp-maxshift))/1000000000.0;
 		printf("\nTelescope data throughput in Gb/s: %f", size_gb/time);
 
+<<<<<<< HEAD
 	}
 	else if(strcmp(string,"save in") == 0)
 	{
@@ -61,6 +76,15 @@ void statistics(char *string, int i, cudaStream_t stream, double *in_time, doubl
 
 	} else if(strcmp(string,"analyse out") == 0)
 	{
+=======
+	} else if(strcmp(string,"save in") == 0) {
+
+	} else if(strcmp(string,"save out") == 0) {
+
+	} else if(strcmp(string,"analyse in") == 0) {
+
+	} else if(strcmp(string,"analyse out") == 0) {
+>>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 
 	}
 }

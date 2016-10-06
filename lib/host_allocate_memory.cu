@@ -15,6 +15,7 @@
 #include <cuda.h>
 #include "AstroAccelerate/params.h"
 
+<<<<<<< HEAD
 void allocate_memory_cpu_input(FILE **fp, size_t  gpu_memory, int maxshift, int num_tchunks, 
 						 int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, 
 						 int range, int *ndms, int **t_processed, unsigned short **input_buffer, 
@@ -72,5 +73,47 @@ void allocate_memory_gpu(FILE **fp, size_t  gpu_memory, int maxshift, int num_tc
 
 	(cudaMalloc((void **)d_output, *gpu_outputsize));
 	
+=======
+void allocate_memory(FILE **fp, size_t  gpu_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, float **input_buffer, float ****output_buffer, float **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize) {
+
+	//double start_t, end_t;
+	//start_t = omp_get_wtime();
+	
+	*inputsize =  nsamp * (size_t) nchans * sizeof(float);
+	*input_buffer = (float *) malloc(*inputsize);
+
+	*output_buffer = (float ***) malloc(range*sizeof(float **));
+	for(int i = 0; i < range; i++) {
+		int total_samps=0;
+		for(int k = 0; k < num_tchunks; k++) total_samps += t_processed[i][k]; 
+		//printf("\nTOTSAMPS:\t%d %d", total_samps, i);		
+		(*output_buffer)[i] = (float **) malloc(ndms[i]*sizeof(float *));
+		for(int j = 0; j < ndms[i]; j++) {
+			(*output_buffer)[i][j] = (float *) malloc((total_samps)*sizeof(float));
+//			memset((*output_buffer)[i][j],0.0f,(total_samps)*sizeof(float));
+		}
+		*outputsize += (total_samps) * ndms[i] * sizeof(float);
+	}
+
+	//end_t=omp_get_wtime();
+	//float time = (float)(end_t-start_t);
+	//printf("\nCPU Malloc in: %f ", time);
+
+	int time_samps = t_processed[0][0]+maxshift;
+	*gpu_inputsize = time_samps*(size_t)nchans*sizeof(float);
+	(cudaMalloc((void **)d_input, *gpu_inputsize));
+
+	if(nchans < max_ndms) {	
+		*gpu_outputsize = time_samps*max_ndms*sizeof(float);
+	} else {
+		*gpu_outputsize = time_samps*nchans*sizeof(float);
+	}
+	(cudaMalloc((void **)d_output, *gpu_outputsize));
+	
+	//end_t=omp_get_wtime();
+	//time = (float)(end_t-start_t);
+	//printf("\nGPU Malloc in: %f ", time);
+
+>>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 	(cudaMemset(*d_output, 0, *gpu_outputsize));
 }

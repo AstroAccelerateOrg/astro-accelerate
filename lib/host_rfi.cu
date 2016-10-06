@@ -2,13 +2,24 @@
 #include <stdlib.h>
 #include "AstroAccelerate/params.h"
 
+<<<<<<< HEAD
 void rfi(int nsamp, int nchans, unsigned short **input_buffer)
 {
 /*
+=======
+void rfi(int nsamp, int nchans, float **input_buffer) {
+
+	// Zero dm 
+
+	int counter;
+
+	double mean, total;
+>>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 	int chan_counter=0;
 	int good=-1;
 	int flag=-1;
 
+<<<<<<< HEAD
 	for(int t=0; t<nsamp; t++) {
 		for(int c = 0; c < nchans-30; c++) {
 			float running_mean=0.0f;
@@ -30,10 +41,40 @@ void rfi(int nsamp, int nchans, unsigned short **input_buffer)
 				if(good==-1) {
 					for(int j=0; j<nchans; j++) {
 						(*input_buffer)[j + nchans*t]=127;
+=======
+/*
+	chan_counter=0;
+	for(int t=0; t<nsamp; t++) {
+		for(int c = 0; c < nchans-100; c++) {
+			float running_mean=0.0f;
+			for(int w=0; w<100; w++) {
+				running_mean+=(*input_buffer)[c + w + nchans*(t)];
+			}
+			running_mean=running_mean/100.0f;
+			float sd_sum=0.0f;
+			for(int w=0; w<100; w++) {
+				sd_sum+=(((*input_buffer)[c + w+ nchans*(t)]-running_mean)*((*input_buffer)[c + w+ nchans*(t)]-running_mean));
+			}
+			sd_sum=sqrt(sd_sum/100.0f);
+			float test_mean=0.0f;
+			for(int w=0; w<10; w++) {
+				test_mean+=(*input_buffer)[c + w+ nchans*(t)];
+			}
+			test_mean=test_mean/10.0f;
+			if((test_mean-running_mean) > 2.5*sd_sum) {
+				if(good==-1) {
+					for(int j=0; j<nchans; j++) {
+						(*input_buffer)[j + nchans*t]=127.3858f;
+>>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 					}
 				} else {
 					for(int j=0; j<nchans; j++) {
 						(*input_buffer)[j + nchans*t]=(*input_buffer)[good*nchans +(int)((rand()/((float)RAND_MAX))*nchans)];
+<<<<<<< HEAD
+=======
+						//printf("\n%d", (int)((rand()/(float)RAND_MAX)*(nsamp-1)));
+						//(*input_buffer)[c*nsamp + j]=127.3858f;
+>>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 					}
 				}
 				printf("\nclipping:\t%d, %d, %d\t %f %f %f", c, good, t, test_mean, running_mean, sd_sum);
@@ -46,10 +87,14 @@ void rfi(int nsamp, int nchans, unsigned short **input_buffer)
 		flag = -1;
 	}
 	printf("\nClipped %lf percent of spectra", ((double)chan_counter/(double)nchans)*100.0);
+<<<<<<< HEAD
 
 	chan_counter=0;
 	good=-1;
 	flag=-1;
+=======
+*/
+>>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 	for(int c = 0; c < nchans; c++) {
 		for(int t=0; t<nsamp-300; t++) {
 			float running_mean=0.0f;
@@ -89,6 +134,7 @@ void rfi(int nsamp, int nchans, unsigned short **input_buffer)
 		flag = -1;
 	}
 	printf("\nClipped %lf percent of channels", ((double)chan_counter/(double)nchans)*100.0);
+<<<<<<< HEAD
 */
 	// Zero dm 
 	#pragma omp parallel for 
@@ -105,6 +151,23 @@ void rfi(int nsamp, int nchans, unsigned short **input_buffer)
 
 /*
 	
+=======
+
+	for(int t=0; t<nsamp; t++) {
+		total  = 0.0;
+		counter = 0;
+		for(int c = 0; c < nchans; c++) {
+			total += (*input_buffer)[t*nchans + c];
+			counter++;
+		}
+		mean = ((double)total)/((double)counter);  // Mean for data sample
+		for(int c = 0; c < nchans; c++) {
+			(*input_buffer)[t*nchans + c] = (float)(((double)(*input_buffer)[t*nchans + c]-mean));
+		}
+	}
+
+	/*	
+>>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 	int chan_counter=0;
 	int good=-1;
 	int flag=-1;
@@ -260,7 +323,11 @@ void rfi(int nsamp, int nchans, unsigned short **input_buffer)
 		if(abs(mean_per_channel - mean) > 2*stddev) {
 			printf("\n Striking out channnel:\t%d", c);
 			for(int t=0; t<nsamp; t++) {
+<<<<<<< HEAD
 				(*input_buffer)[c*nsamp+t] = (unsigned short)mean;
+=======
+				(*input_buffer)[c*nsamp+t] = (unsigned char)mean;
+>>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 			}
 		}
 	}
@@ -288,8 +355,13 @@ void rfi(int nsamp, int nchans, unsigned short **input_buffer)
 	printf("\nMean: %lf, Stddev: %lf", mean, stddev_orig), fflush(stdout);
 
 
+<<<<<<< HEAD
 	unsigned short sd_h=(unsigned short)10*stddev_orig;
 	unsigned short sd_l=(unsigned short)4*stddev_orig;
+=======
+	unsigned char sd_h=(unsigned char)10*stddev_orig;
+	unsigned char sd_l=(unsigned char)4*stddev_orig;
+>>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 
 	#pragma omp parallel for 
 	for(j = 0; j < vals; j++) {
