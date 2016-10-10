@@ -9,33 +9,8 @@
 
 __shared__ float f_line_bin[BINARRAYSIZE];
 
-<<<<<<< HEAD
 __global__ void bin(unsigned short *d_input, float *d_output, int in_nsamp)
 {
-=======
-//{{{ bin
-/*
-__global__ void bin(float *bin_buffer, float *input_buffer, int in_nsamp) {
-	
-	int	idx = (threadIdx.x + (threadIdx.y * BINDIVINT));
-	int	c = ((blockIdx.y * BINDIVINF) + threadIdx.y);
-	
-	f_line_bin[idx] = input_buffer[(c*in_nsamp)+(blockIdx.x * BINDIVINT*2)+idx];
-	f_line_bin[idx+(BINDIVINT*BINDIVINF)] = input_buffer[(c*in_nsamp)+(blockIdx.x * BINDIVINT*2)+idx+(BINDIVINT*BINDIVINF)];
-	__syncthreads();
-
-	int	out_nsamp = in_nsamp / 2;
-	int	t_out =  ( (blockIdx.x * BINDIVINT) + threadIdx.x);
-	
-	int	shift_one = ((c*out_nsamp) + t_out);
-	int	shift_three = (2*threadIdx.x);
-
-	bin_buffer[(shift_one)] = (f_line_bin[(shift_three)] + f_line_bin[shift_three + 1])/2;
-}
-*/
-
-__global__ void bin(float *d_input, float *d_output, int in_nsamp) {
->>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 	
 	int	c = ((blockIdx.y*BINDIVINF) + threadIdx.y);
 	int	out_nsamp = (in_nsamp) / 2;
@@ -45,17 +20,8 @@ __global__ void bin(float *d_input, float *d_output, int in_nsamp) {
 	int	shift_one = ((c*out_nsamp) + t_out);
 	int	shift_two = ((c*in_nsamp)  + t_in);
 
-<<<<<<< HEAD
 	d_output[(shift_one)] = (float)((d_input[(shift_two)] + d_input[shift_two + 1]));
-=======
-	d_output[(shift_one)] = (float)((d_input[(shift_two)] + d_input[shift_two + 1])/2);
->>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 
 }
 
 #endif
-<<<<<<< HEAD
-=======
-
-//}}}
->>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229

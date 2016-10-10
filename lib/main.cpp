@@ -71,11 +71,10 @@ int main(int argc, char* argv[])
     unsigned short  *input_buffer = NULL;
 	float ***output_buffer = NULL;
 /***************************************/
-	// float **output_sps = NULL;
+	float **output_sps = NULL;
 	// this pointer will be pass to the library, and then
 	// to the SPS analysis call
 	// analysis will allocate mem and send it back to host
-
 
 	unsigned short  *d_input = NULL;
 	float *d_output = NULL;
@@ -179,7 +178,8 @@ int main(int argc, char* argv[])
 				  gpu_outputsize,
 				  gpu_memory,
 				  input_buffer,
-				  output_buffer, // pointer *output_buffer
+				  output_buffer, 
+				  output_sps,
 				  d_input,
 				  d_output,
 				  dmshifts,
@@ -218,6 +218,7 @@ int main(int argc, char* argv[])
 
 	// exports should be done here, not in the library
 
+	export_sps();
 	return 0;
 
 }

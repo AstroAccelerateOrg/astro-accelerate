@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #define ACCMAX 350
 #define ACCSTEP 11
 #define UNROLLS 16
@@ -6,12 +5,6 @@
 #define SDIVINT 8
 #define SDIVINDM 40
 #define SFDIVINDM 40.0f
-=======
-#define SNUMREG 12
-#define SDIVINT 10
-#define SDIVINDM 72
-#define SFDIVINDM 72.0f
->>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 #define CARD 0
 #define NOPSSHIFT 5
 #define NOPSLOOP 3
@@ -21,7 +14,6 @@
 #define CT 256
 #define CF 2
 #define NOPS 4.0
-<<<<<<< HEAD
 #define STATST 128
 #define STATSLOOP 8
 
@@ -41,5 +33,3 @@
 #define PD_SMEM_SIZE 1280
 #define PD_FIR_ACTIVE_WARPS 2
 #define PD_FIR_NWINDOWS 2
-=======
->>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
