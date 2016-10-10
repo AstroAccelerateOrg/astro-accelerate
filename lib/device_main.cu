@@ -2,7 +2,6 @@
 #include "device_dedispersion_kernel.cu"
 #include "device_corner_turn_kernel.cu"
 #include "device_binning_kernel.cu"
-<<<<<<< HEAD
 
 #include "device_single_pulse_search_kernel.cu" //Added by KA
 #include "device_MSD_grid_kernel.cu" //Added by KA
@@ -28,12 +27,6 @@
 #include "device_power.cu"
 #include "device_init.cu"
 #include "device_inference.cu"
-=======
-#include "device_bin.cu"
-#include "device_dedisperse.cu"
-#include "device_corner_turn.cu"
-#include "device_init.cu"
->>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 #include "device_load_data.cu"
 #include "device_save_data.cu"
 

@@ -3,7 +3,6 @@
 
 #define ARRAYSIZE SDIVINT * SDIVINDM
 
-<<<<<<< HEAD
 #include "float.h"
 
 // Stores temporary shift values
@@ -64,54 +63,10 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 			}
 			local_kernel_one[i] += ((ushort2*)(&local))->x;
 			local_kernel_two[i] += ((ushort2*)(&local))->y;
-=======
-// Stores temporary shift values
-__device__ __constant__ float dm_shifts[15500];
-__device__ __constant__ int   i_nsamp, i_nchans, i_t_processed_s;
-__device__ __shared__ float2 fa_line[ARRAYSIZE+1];
-__device__ __shared__ float2 fb_line[ARRAYSIZE+1];
-__device__ __shared__ float2 fc_line[ARRAYSIZE+1];
-__device__ __shared__ float2 fd_line[ARRAYSIZE+1];
-
-//{{{ shared_dedisperse_loop
-
-__global__ void shared_dedisperse_kernel(float *d_input, float *d_output, cudaTextureObject_t tex, float mstartdm, float mdmstep)
-{
-	// NOTE: inshift AND outshift are set to 0 (zero) in the kernel call and so is
-	// removed from this kernel.
-	
-	int   shift;	
-	float local_kernel_t[SNUMREG];
-
-	int t  = blockIdx.x * SNUMREG * SDIVINT  + threadIdx.x;
-	
-	// Initialise the time accumulators
-	for(int i = 0; i < SNUMREG; i++) local_kernel_t[i] = 0.0f;
-
-	float shift_temp = mstartdm + ((blockIdx.y * SDIVINDM + threadIdx.y) * mdmstep);
-	
-	// Loop over the frequency channels.
-        for(int c = 0; c < i_nchans; c++) {
-
-
-		// Calculate the initial shift for this given frequency
-		// channel (c) at the current despersion measure (dm) 
-		// ** dm is constant for this thread!!**
-		shift = (c * (i_nsamp) + t) + __float2int_rz (dm_shifts[c] * shift_temp);
-		
-		#pragma unroll
-		for(int i = 0; i < SNUMREG; i++) {
-#ifdef SM_35
-			local_kernel_t[i] += __ldg(d_input + shift + (i * SDIVINT));
-#else
-			local_kernel_t[i] += d_input[shift + (i * SDIVINT) ];
-#endif			
->>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 		}
 	}
 
 	// Write the accumulators to the output array. 
-<<<<<<< HEAD
 	local = ((((blockIdx.y*SDIVINDM) + threadIdx.y)*(i_t_processed_s)) + (blockIdx.x*2*SNUMREG*SDIVINT)) + 2*threadIdx.x;
 
 	#pragma unroll
@@ -121,12 +76,5 @@ __global__ void shared_dedisperse_kernel(float *d_input, float *d_output, cudaTe
 	}
 }
 
-=======
-	#pragma unroll
-	for(int i = 0; i < SNUMREG; i++) {
-		d_output[((blockIdx.y * SDIVINDM) + threadIdx.y)*(i_t_processed_s) + (i * SDIVINT) + (SNUMREG * SDIVINT * blockIdx.x) + threadIdx.x] = local_kernel_t[i]/i_nchans;
-	}
-}
->>>>>>> 0ec19baf405fa311d6a7ea91dbb146bcccf88229
 #endif
 
