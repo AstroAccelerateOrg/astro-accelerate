@@ -5,8 +5,8 @@
 #include "AstroAccelerate/device_dedisperse.h"
 #include "AstroAccelerate/device_dedispersion_kernel.h"
 
-#include "AstroAccelerate/device_single_pulse_search_kernel.h" //Added by KA
-#include "AstroAccelerate/device_single_pulse_search.h" //Added by KA
+#include "AstroAccelerate/device_SPS_inplace_kernel.h" //Added by KA
+#include "AstroAccelerate/device_SPS_inplace.h" //Added by KA
 #include "AstroAccelerate/device_MSD_grid.h" //Added by KA
 #include "AstroAccelerate/device_MSD_plane.h" //Added by KA
 #include "AstroAccelerate/device_MSD_limited.h" //Added by KA
@@ -217,8 +217,6 @@ int main(int argc, char* argv[])
 				  );
 
 	// exports should be done here, not in the library
-
-	export_sps();
 	return 0;
 
 }

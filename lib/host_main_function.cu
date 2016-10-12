@@ -4,8 +4,8 @@
 #include "AstroAccelerate/device_dedisperse.h"
 #include "AstroAccelerate/device_dedispersion_kernel.h"
 
-#include "AstroAccelerate/device_single_pulse_search_kernel.h" //Added by KA
-#include "AstroAccelerate/device_single_pulse_search.h" //Added by KA
+#include "AstroAccelerate/device_SPS_inplace_kernel.h" //Added by KA
+#include "AstroAccelerate/device_SPS_inplace.h" //Added by KA
 #include "AstroAccelerate/device_MSD_grid.h" //Added by KA
 #include "AstroAccelerate/device_MSD_plane.h" //Added by KA
 #include "AstroAccelerate/device_MSD_limited.h" //Added by KA
@@ -148,8 +148,6 @@ void main_function( int argc,
 	tsamp_original=tsamp;
 	maxshift_original=maxshift;
 
-	unsigned short *tmp;
-	tmp = (unsigned short *)malloc((t_processed[0][0]+maxshift)*nchans*sizeof(unsigned short));
 
 	float *out_tmp;
 	out_tmp = (float *)malloc((t_processed[0][0]+maxshift)*max_ndms*sizeof(float));
@@ -157,18 +155,8 @@ void main_function( int argc,
 
 	for(t=0; t < num_tchunks; t++) {
 		printf("\nt_processed:\t%d, %d", t_processed[0][t], t);
-//		memcpy(tmp, &input_buffer[(long int)(inc*nchans)], (t_processed[0][t]+maxshift)*nchans*sizeof(unsigned short));
-		//#pragma omp parallel for
-		//for(i=0; i < (t_processed[0][t]+maxshift)*nchans; i=i+4) {
-		//	tmp[i  ] = input_buffer[(long int)(inc*nchans)+i];
-		//	tmp[i+1] = input_buffer[(long int)(inc*nchans)+i+1];
-		//	tmp[i+2] = input_buffer[(long int)(inc*nchans)+i+2];
-		//	tmp[i+3] = input_buffer[(long int)(inc*nchans)+i+3];
-		//}
 		//rfi((t_processed[0][t]+maxshift), nchans, &tmp);
 
-		
-		//load_data(-1, inBin, d_input, tmp, t_processed[0][t], maxshift, nchans, dmshifts);
 		load_data(-1, inBin, d_input, &input_buffer[(long int)(inc*nchans)], t_processed[0][t], maxshift, nchans, dmshifts);
 		corner_turn(d_input, d_output, nchans, t_processed[0][t]+maxshift); 
   		int oldBin = 1; 
@@ -178,7 +166,7 @@ void main_function( int argc,
 			maxshift=maxshift_original/inBin[dm_range];
 
 			cudaDeviceSynchronize();
-			load_data(dm_range, inBin, d_input, tmp, t_processed[dm_range][t], maxshift, nchans, dmshifts);
+			load_data(dm_range, inBin, d_input,  &input_buffer[(long int)(inc*nchans)], t_processed[dm_range][t], maxshift, nchans, dmshifts);
 
 			if(inBin[dm_range] > oldBin) {
 				bin_gpu(d_input, d_output, nchans, t_processed[dm_range-1][t]+maxshift*inBin[dm_range]);
@@ -191,17 +179,14 @@ void main_function( int argc,
 			//cudaDeviceSynchronize();
 
 			save_data(d_output, out_tmp, gpu_outputsize);
+		//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
 
 			#pragma omp parallel for
 			for(int k = 0; k < ndms[dm_range]; k++) {
-				//for(int l = 0; l < t_processed[dm_range][t]; l++) {
-				//	output_buffer[dm_range][k][l+inc/inBin[dm_range]] = out_tmp[k*t_processed[dm_range][t]+l];
-				//}					
 				memcpy(&output_buffer[dm_range][k][inc/inBin[dm_range]], &out_tmp[k*t_processed[dm_range][t]], sizeof(float)*t_processed[dm_range][t]);
 			}
+
 			if(output_dmt == 1) write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);		
-//			if(enable_analysis == 1) analysis(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,
-  //                                                        dm_low, dm_high, dm_step, tsamp);
 			if(enable_analysis == 1) analysis(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, d_output,
                                                           dm_low, dm_high, dm_step, tsamp);
 			oldBin = inBin[dm_range];
@@ -227,7 +212,6 @@ void main_function( int argc,
 
 	cudaFree(d_input);
 	cudaFree(d_output);
-	free(tmp);
 	free(out_tmp);
 	free(input_buffer);
 
