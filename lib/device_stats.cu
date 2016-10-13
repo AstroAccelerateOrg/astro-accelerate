@@ -7,6 +7,7 @@
 
 //{{{ Return stats 
 
+<<<<<<< HEAD
 void stats_gpu(cudaEvent_t event, cudaStream_t stream, int samps, float *mean, float *stddev, float *h_signal_power, float *d_signal_power) {
 
 	int	a, j;	
@@ -34,6 +35,14 @@ void stats_gpu(cudaEvent_t event, cudaStream_t stream, int samps, float *mean, f
 	}
 	*stddev = (float)sqrt(abs(total) / (double)((samps/2)*(trials+1))); // Stddev for data sample
 */
+=======
+void stats_gpu(cudaEvent_t event, cudaStream_t stream, int samps, float *mean, float *stddev, float *h_signal_power, float *d_signal_power)
+{
+	int	a, j;	
+	int trials = (2*ACCMAX +ACCSTEP)/ACCSTEP;
+	int	chunk  = omp_get_num_procs();
+
+>>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 	int half_samps = samps/2;
 	int acc_size = half_samps*trials;
 
@@ -71,21 +80,33 @@ void stats_gpu(cudaEvent_t event, cudaStream_t stream, int samps, float *mean, f
 	float	total_sum=0.0;
 	float	total_sum_square=0.0;
 	#pragma omp parallel for default(shared) private(a) schedule(static,chunk) reduction(+:total_sum,total_sum_square)
+<<<<<<< HEAD
 	for(a = 0; a < size; a++) {
+=======
+	for(a = 0; a < size; a++)
+	{
+>>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		total_sum += (h_sum[a]);
 		total_sum_square += (h_sum_square[a]);
 	}
 	*mean = (float)(total_sum/(acc_size));  // Mean for data sample
 	*stddev = (float)sqrt((total_sum_square - acc_size*(*mean)*(*mean))/(acc_size-1));
+<<<<<<< HEAD
 	//printf("\nM:\t%f, S:\t%f", *mean, *stddev);
+=======
+>>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 
 	cudaFree(d_sum);
 	cudaFree(d_sum_square);
 	cudaFreeHost(h_sum);
 	cudaFreeHost(h_sum_square);
+<<<<<<< HEAD
 
 
 }
 
 //}}}
 
+=======
+}
+>>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
