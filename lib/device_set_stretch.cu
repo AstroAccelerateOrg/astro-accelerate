@@ -4,11 +4,8 @@
 #include "device_set_stretch_kernel.cu"
 #include "helper_cuda.h"
 
-<<<<<<< HEAD
 //{{{ Dopler Stretch 
 
-=======
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 void set_stretch_gpu(cudaEvent_t event, cudaStream_t stream, int samps, float mean, float *d_input) {
 
 	int divisions_in_t  = 32;
@@ -21,11 +18,7 @@ void set_stretch_gpu(cudaEvent_t event, cudaStream_t stream, int samps, float me
 	set_stretch_kernel<<< num_blocks, threads_per_block, 0, stream >>>(samps, mean, d_input);
 	getLastCudaError("stretch_kernel failed");
 	cudaEventRecord(event, stream);
-<<<<<<< HEAD
 }
 
 //}}}
 
-=======
-}
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da

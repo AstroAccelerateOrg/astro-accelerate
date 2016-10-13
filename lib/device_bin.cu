@@ -6,13 +6,8 @@
 
 //extern "C" void bin_gpu(float *bin_buffer, float *input_buffer, int nchans, int nsamp);
 
-<<<<<<< HEAD
 void bin_gpu(unsigned short *d_input, float *d_output, int nchans, int nsamp) {
 
-=======
-void bin_gpu(unsigned short *d_input, float *d_output, int nchans, int nsamp)
-{
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 	int divisions_in_t  = BINDIVINT;
 	int divisions_in_f  = BINDIVINF;
 	int num_blocks_t    = (int)((nsamp+1)/(2*divisions_in_t));
@@ -24,28 +19,17 @@ void bin_gpu(unsigned short *d_input, float *d_output, int nchans, int nsamp)
 	//printf("\ndivisions_in_t:%d\tdivisions_in_f:%d",divisions_in_t, divisions_in_f);
 	//printf("\nnum_blocks_t:%d\tnum_blocks_f:%d\n",num_blocks_t,num_blocks_f);
 
-<<<<<<< HEAD
 
-=======
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 	//cudaFuncSetCacheConfig(bin, cudaFuncCachePreferL1);
 	double start_t, end_t;
 	start_t = omp_get_wtime();
 
 	bin<<< num_blocks, threads_per_block >>>(d_input, d_output, nsamp);
-<<<<<<< HEAD
 //	getLastCudaError("Kernel execution failed");
 	
 	int swap_divisions_in_t  = CT;
 	int swap_divisions_in_f = CF;
 	int swap_num_blocks_t    = nsamp/swap_divisions_in_t;
-=======
-	//getLastCudaError("Kernel execution failed");
-	
-	int swap_divisions_in_t = CT;
-	int swap_divisions_in_f = CF;
-	int swap_num_blocks_t   = nsamp/swap_divisions_in_t;
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 	int swap_num_blocks_f   = nchans/swap_divisions_in_f;
 
 	dim3 swap_threads_per_block(swap_divisions_in_t, swap_divisions_in_f);
@@ -64,10 +48,6 @@ void bin_gpu(unsigned short *d_input, float *d_output, int nchans, int nsamp)
 
 	cudaMemset(d_output, 0, nchans*nsamp*sizeof(float));
 	//cudaMemcpy(input_buffer, bin_buffer, sizeof(float)*nchans*(nsamp/2), cudaMemcpyDeviceToDevice);
-<<<<<<< HEAD
 //	getLastCudaError("Kernel execution failed");
-=======
-	//getLastCudaError("Kernel execution failed");
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 }
 

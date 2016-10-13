@@ -1,13 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-<<<<<<< HEAD
 void help(void) {
 	
-=======
-void help(void) 
-{	
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 	printf("\n **** Astro-accelerate 0.9 (07 March 2013) **** \n");
 	printf("\n Astro-accelerate is a program that performs the de-dispersion of time-series filterbank data.");
 	printf("\n The code has algorithms for both CPU and NVIDIA GPU acceleration (Fermi and Kepler).");
