@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 CUDA	:= $(CUDA_INSTALL_PATH)
 INC	:= -I$(CUDA)/include -I$(CUDA)/samples/common/inc/ -I.
 LIB	:= -L$(CUDA)/lib64
@@ -13,23 +12,6 @@ else
          --ptxas-options=-v -lcuda -lcudart  -lcurand -lcufft -Xptxas -dlcm=cg
 endif
 
-=======
-CUDA		 := $(CUDA_INSTALL_PATH)
-INC			 := -I$(CUDA)/include -I$(CUDA)/samples/common/inc/ -I.
-LIB			 := -L$(CUDA)/lib64
-BUILD_DIR	 :=../build
-ASTROLIB_DIR :=../astrolib
-
-
-ifeq ($(cache),off)
-        NVCCFLAGS := $(INC) -g -lineinfo -Xcompiler -fopenmp -O3 -lm -arch=sm_52 --use_fast_math --ptxas-options=-v -Xptxas -dlcm=cg
-else
-        NVCCFLAGS := $(INC) -g -lineinfo -Xcompiler -fopenmp -O3 -lm -arch=sm_52 --use_fast_math --ptxas-options=-v -lcuda -lcudart  -lcurand -lcufft \
-        -Xptxas -dlcm=cg
-endif
-
-
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 ifeq ($(gpu),sm_35)
         NVCCFLAGS += -D SM_35
 endif
@@ -48,11 +30,7 @@ ${ASTROLIB_DIR}:
 
 ${BUILD_DIR}:
 	mkdir -p ${BUILD_DIR}
-<<<<<<< HEAD
 	
-=======
-
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 
 $(BUILD_DIR)/main.o : 					AstroAccelerate/headers_mains.h
 
@@ -98,13 +76,6 @@ $(ASTROLIB_DIR)/libastrolib.a: $(BUILD_DIR)/host_acceleration.o $(BUILD_DIR)/hos
 
 $(BUILD_DIR)/dedisperse-gpu: $(BUILD_DIR)/main.o $(ASTROLIB_DIR)/libastrolib.a 
 	nvcc -o $(BUILD_DIR)/dedisperse-gpu $(BUILD_DIR)/main.o $(NVCCFLAGS) -L$(ASTROLIB_DIR)/ -lastrolib
-<<<<<<< HEAD
-=======
-# 	nvcc -o $(BUILD_DIR)/dedisperse-gpu $(NVCCFLAGS) $(BUILD_DIR)/host_main.o ... *.o
-
-
-libs: $(ASTROLIB_DIR)/libastrolib.a
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 
 clean:
 	rm -f $(BUILD_DIR)/dedisperse-gpu $(BUILD_DIR)/*.a $(BUILD_DIR)/*.o $(ASTROLIB_DIR)/*.a

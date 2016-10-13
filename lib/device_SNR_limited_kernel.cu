@@ -8,12 +8,7 @@
 #include "AstroAccelerate/params.h"
 
 
-<<<<<<< HEAD
 __global__ void SNR_GPU_limited(float *d_FIR_input, float *d_SNR_output, float *d_SNR_taps, float *d_MSD, int x_steps, int nTaps, int nColumns, int offset) {
-=======
-__global__ void SNR_GPU_limited(float *d_FIR_input, float *d_SNR_output, float *d_SNR_taps, float *d_MSD, int x_steps, int nTaps, int nColumns, int offset)
-{
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 	int local_id = threadIdx.x & (WARP - 1);
 	int warp_id = threadIdx.x>>5;
 	int dim_y = blockDim.x>>5;
@@ -27,24 +22,12 @@ __global__ void SNR_GPU_limited(float *d_FIR_input, float *d_SNR_output, float *
 	pos_y = (blockIdx.y*dim_y + warp_id)*nColumns;
 	pos_x = blockIdx.x*WARP*x_steps + local_id;
 
-<<<<<<< HEAD
 	for(int xf=0; xf<x_steps; xf++){
 		if(pos_x<(nColumns-offset)){
 			old_SNR = d_SNR_output[pos_y + pos_x];
 			//new_SNR = (d_FIR_input[pos_y + pos_x]-nTaps*signal_mean)/(sqrt((float) nTaps)*signal_sd);
 			new_SNR = (d_FIR_input[pos_y + pos_x]-signal_mean)/(signal_sd);
 			if(nTaps==1){
-=======
-	for(int xf=0; xf<x_steps; xf++)
-	{
-		if(pos_x<(nColumns-offset))
-		{
-			old_SNR = d_SNR_output[pos_y + pos_x];
-			//new_SNR = (d_FIR_input[pos_y + pos_x]-nTaps*signal_mean)/(sqrt((float) nTaps)*signal_sd);
-			new_SNR = (d_FIR_input[pos_y + pos_x]-signal_mean)/(signal_sd);
-			if(nTaps==1)
-			{
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 				//if(new_SNR>3.0){
 				//	d_FIR_input[pos_y + pos_x]=d_MSD[0];
 				//	d_SNR_output[pos_y + pos_x]=0;
@@ -55,25 +38,13 @@ __global__ void SNR_GPU_limited(float *d_FIR_input, float *d_SNR_output, float *
 					d_SNR_taps[pos_y + pos_x]=nTaps;
 				//}
 			}
-<<<<<<< HEAD
 			else if(new_SNR>old_SNR){
-=======
-			else if(new_SNR>old_SNR)
-			{
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 				d_SNR_output[pos_y + pos_x]=new_SNR;
 				d_SNR_taps[pos_y + pos_x]=nTaps;
 			}
 		}
-<<<<<<< HEAD
 		else {
 			if(pos_x>=(nColumns-offset) && pos_x<nColumns){
-=======
-		else 
-		{
-			if(pos_x>=(nColumns-offset) && pos_x<nColumns)
-			{
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 				d_SNR_output[pos_y + pos_x]=0;
 				d_SNR_taps[pos_y + pos_x]=0;
 			}
@@ -81,11 +52,7 @@ __global__ void SNR_GPU_limited(float *d_FIR_input, float *d_SNR_output, float *
 		pos_x = pos_x + WARP;
 	}
 	
-<<<<<<< HEAD
 } //-------------------- KERNEL ENDS HERE --------------------------
 
-=======
-} 
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 
 #endif

@@ -1,13 +1,9 @@
-<<<<<<< HEAD
 
-=======
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 #include <omp.h>
 #include <stdio.h>
 #include "AstroAccelerate/params.h"
 #include "device_corner_turn_kernel.cu"
 
-<<<<<<< HEAD
 //{{{ Corner-turn 
 
 void corner_turn(unsigned short *d_input, float *d_output, int nchans, int nsamp) {
@@ -17,14 +13,6 @@ void corner_turn(unsigned short *d_input, float *d_output, int nchans, int nsamp
 	int divisions_in_t  = CT;
 	int divisions_in_f = CF;
 	int num_blocks_t    = nsamp/divisions_in_t;
-=======
-void corner_turn(unsigned short *d_input, float *d_output, int nchans, int nsamp)
-{
-
-	int divisions_in_t = CT;
-	int divisions_in_f = CF;
-	int num_blocks_t   = nsamp/divisions_in_t;
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 	int num_blocks_f   = nchans/divisions_in_f;
 
 	printf("\nCORNER TURN!");
@@ -49,7 +37,6 @@ void corner_turn(unsigned short *d_input, float *d_output, int nchans, int nsamp
 	printf("\nCT Gops based on %.2f ops per channel per tsamp: %f",10.0,((10.0*(divisions_in_t*divisions_in_f*num_blocks_t*num_blocks_f))/(time))/1000000000.0);
 	printf("\nCT Device memory bandwidth in GB/s: %f", ((sizeof(float)+sizeof(unsigned short))*(divisions_in_t*divisions_in_f*num_blocks_t*num_blocks_f))/(time)/1000000000.0);
 
-<<<<<<< HEAD
 	//cudaMemcpy(d_input, d_output, inputsize, cudaMemcpyDeviceToDevice);
 
 	//}}}
@@ -58,6 +45,3 @@ void corner_turn(unsigned short *d_input, float *d_output, int nchans, int nsamp
 
 //}}}
 
-=======
-}
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da

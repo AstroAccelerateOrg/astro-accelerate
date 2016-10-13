@@ -4,7 +4,6 @@
 #include <math.h>
 #include "AstroAccelerate/params.h"
 
-<<<<<<< HEAD
 void periodicity(int range, int nsamp, int max_ndms, int processed, int nboots, int num_trial_bins, int navdms, float narrow, float wide, int nsearch, float aggression, float cutoff, float ***output_buffer, int *ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp) {
 
 	// Example FFT....
@@ -30,22 +29,6 @@ void periodicity(int range, int nsamp, int max_ndms, int processed, int nboots, 
 	}
 
 	for(int i=0; i<range; i++) {
-=======
-void periodicity(int range, int nsamp, int max_ndms, int processed, int nboots, int num_trial_bins, int navdms, float narrow, float wide, int nsearch, float aggression, float cutoff, float ***output_buffer, int *ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp)
-{
-	int nharms = 32;
-
-	// Example FFT....
-	printf("/n[1DCUFFT] is starting...\n");
-
-	FILE	*fp_c;
-	// FILE    *fp_dm, *fp_harm;
-	//FILE	*fp_c, *fp_dm;
-	char	filename[200];
-	
-	for(int i=0; i<range; i++)
-	{
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		int samps = processed/inBin[i];
 
 		// Allocate memory for signal
@@ -55,7 +38,6 @@ void periodicity(int range, int nsamp, int max_ndms, int processed, int nboots, 
 		cufftComplex* d_signal_out;
 		cudaMalloc((void**)&d_signal_out, (samps/2 + 1)*sizeof(cufftComplex));
 
-<<<<<<< HEAD
 		cufftComplex* h_signal = (cufftComplex*)malloc((samps/2 + 1)*sizeof(cufftComplex));
 		float* h_signal_x = (float*)malloc(sizeof(float) * (samps/2 + 1) * ndms[i]);
 		float* h_signal_y = (float*)malloc(sizeof(float) * (samps/2 + 1) * ndms[i]);
@@ -84,29 +66,12 @@ void periodicity(int range, int nsamp, int max_ndms, int processed, int nboots, 
 			exit(0);
 		}
 
-=======
-		cufftComplex* h_signal = (cufftComplex*)malloc((samps)*sizeof(cufftComplex));
-		float* h_signal_p = (float*)malloc(sizeof(float) * (samps) * ndms[i]);
-		float*** h_harm = (float***)malloc(sizeof(float**) * ndms[i]);
-		for (int dm_count = 0; dm_count < ndms[i]; dm_count++)
-		{
-			h_harm[dm_count] = (float**)malloc(sizeof(float*) * nharms);
-			for(int harm=0; harm<nharms; harm++)
-				h_harm[dm_count][harm] = (float*)malloc(sizeof(float) * (samps/2 + 1));
-		}
-			
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		// CUFFT plan
 		cufftHandle plan;
 		cufftPlan1d(&plan, samps, CUFFT_R2C, 1);
 
-<<<<<<< HEAD
 		for (int dm_count = 0; dm_count < ndms[i]; dm_count++) {
 
-=======
-		for (int dm_count = 0; dm_count < ndms[i]; dm_count++)
-		{
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 			cudaMemcpy(d_signal_in, output_buffer[i][dm_count], samps*sizeof(float), cudaMemcpyHostToDevice);
 
 			// Transform signal 
@@ -116,7 +81,6 @@ void periodicity(int range, int nsamp, int max_ndms, int processed, int nboots, 
 			// Copy device memory to host
 			cudaMemcpy(h_signal, d_signal_out, sizeof(cufftComplex) * (samps/2 + 1) , cudaMemcpyDeviceToHost);
 
-<<<<<<< HEAD
 			h_signal_p[0+dm_count*(samps/2)] = 0.0; 
 			#pragma omp parallel for
 			for(int j=1;j< samps/2;j++){
@@ -127,24 +91,6 @@ void periodicity(int range, int nsamp, int max_ndms, int processed, int nboots, 
 				h_signal_p[j+dm_count*(samps/2)]= ((h_signal[j].x*h_signal[j].x + h_signal[j].y*h_signal[j].y));
 				h_signal_inter[2*j+dm_count*samps]= h_signal_p[j+dm_count*(samps/2)];
 				h_signal_inter[2*j+1+dm_count*samps]=0.616850275*((h_signal[j].x-h_signal[j+1].x)*(h_signal[j].x-h_signal[j+1].x) + (h_signal[j].y-h_signal[j+1].y)*(h_signal[j].y-h_signal[j+1].y));
-=======
-			h_signal_p[dm_count*(samps/2)] = 0.0;
-			#pragma omp parallel for
-			for(int j=1;j< samps/2;j++)
-			{
-				h_signal_p[j+dm_count*(samps/2)] = ((h_signal[j].x*h_signal[j].x + h_signal[j].y*h_signal[j].y));
-			}
-			#pragma omp parallel for
-			for(int harm=1; harm<nharms; harm++)
-			{
-				for(int j=1; j< (samps/2)/harm;j++)
-				{
-					float sum=0.0f;
-					for(int s=1; s<=harm; s++)
-						sum += h_signal_p[(int)((float)j*(float)s)+dm_count*(samps/2)];
-					h_harm[dm_count][harm-1][j] = sum/harm; 
-				}
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 			}
 		}
 
@@ -156,7 +102,6 @@ void periodicity(int range, int nsamp, int max_ndms, int processed, int nboots, 
 		cudaFree(d_signal_in);
 		cudaFree(d_signal_out);
 
-<<<<<<< HEAD
 		double mean, stddev;
 	
 		double	total=0.0;
@@ -262,36 +207,10 @@ void periodicity(int range, int nsamp, int max_ndms, int processed, int nboots, 
 
 			sprintf(filename, "harmonic-%d-%d.dat", i, harm);
 			if ((fp_harm=fopen(filename, "w")) == NULL) {
-=======
-
-		for(int harm=1; harm<nharms; harm++)
-		{
-			double total = 0.0;
-			for (int dm_count = 0; dm_count < ndms[i]; dm_count++)
-			{
-				for(int j=1;j< (samps/2)/(harm);j++)
-					total += ((double)(h_harm[dm_count][harm-1][j]));
-			}
-			double mean = (total/(double)(((samps/2)/(harm))*ndms[i]));  // Mean for data sample
-			
-			// Calculate standard deviation
-			total = 0.0;
-			for (int dm_count = 0; dm_count < ndms[i]; dm_count++)
-			{
-				for(int j=1;j< (samps/2)/(harm); j++)
-					total += (double)((h_harm[dm_count][harm-1][j]-(float)mean)*(h_harm[dm_count][harm-1][j]-(float)mean));
-			}
-			double stddev = sqrt(abs(total) / (double)((samps/2)/(harm+1)*ndms[i])); // Stddev for data sample
-
-			sprintf(filename, "fourier-%d-%d.dat", i, harm);
-			if ((fp_c=fopen(filename, "w")) == NULL)
-			{
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 				fprintf(stderr, "Error opening output file!\n");
 				exit(0);
 			}
 
-<<<<<<< HEAD
 			for (int dm_count = 0; dm_count < ndms[i]; dm_count++) {
 				for(int j=0;j < (samps/(2*harm))-harm; j++){
 					h_harm[j*harm+dm_count*(samps/2)] += (h_signal_p[j+dm_count*(samps/2)]);
@@ -354,21 +273,6 @@ void periodicity(int range, int nsamp, int max_ndms, int processed, int nboots, 
 //	for (int c = 0 ; c < ( number_of_candidates - 1 ); c++) {
 //		printf("\nCandidate: %d, DM: %f, PERIOD: %f, HARMONIC: %f, PxH: %f, SNR: %f", c, h_top_list[0][c], 1.0f/h_top_list[1][c], h_top_list[2][c], (1.0f/h_top_list[1][c] * h_top_list[2][c]), h_top_list[4][c]);
 //	}
-=======
-			for (int dm_count = 0; dm_count < ndms[i]; dm_count++)
-			{
-				float dm = dm_low[i]+dm_step[i]*dm_count;
-				for(int j=1;j< (samps/2)/(harm); j++)
-				{
-					if((float)(((double)h_harm[dm_count][harm-1][j]-mean)/(stddev/sqrt(harm))) > cutoff)
-						fprintf(fp_c, "\n%f\t%f\t%f\t%d", dm, j*((1.0f/tsamp)/(samps)), (float)(((double)h_harm[dm_count][harm-1][j]-mean)/(sqrt(harm)*stddev)), harm);
-				}
-				fprintf(fp_c, "\n");
-			}
-			fclose(fp_c);
-		}
-	}
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 }
 
 

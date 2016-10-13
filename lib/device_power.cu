@@ -5,14 +5,9 @@
 #include "device_power_kernel.cu"
 #include "helper_cuda.h"
 
-<<<<<<< HEAD
 //{{{ Dopler Stretch 
 
 void power_gpu(cudaEvent_t event, cudaStream_t stream, int samps, int acc, cufftComplex *d_signal_fft, float *d_signal_power) {
-=======
-void power_gpu(cudaEvent_t event, cudaStream_t stream, int samps, int acc, cufftComplex *d_signal_fft, float *d_signal_power)
-{
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 
 	int half_samps = samps/2;
 
@@ -28,8 +23,5 @@ void power_gpu(cudaEvent_t event, cudaStream_t stream, int samps, int acc, cufft
 	cudaEventRecord(event, stream);
 }
 
-<<<<<<< HEAD
 //}}}
 
-=======
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da

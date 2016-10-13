@@ -12,8 +12,4 @@ analysis
 -periodicity
 -output_dmt
 debug
-<<<<<<< HEAD
 file /home/nassim/filterbank/ska-mid-b2.fil
-=======
-file /home/wa78/filterbank/ska-mid-b2.fil
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
