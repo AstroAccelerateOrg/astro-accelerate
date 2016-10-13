@@ -1,0 +1,96 @@
+Notes:
+
+1. The v2 code should work on any Fermi, Kepler or Maxwell GPU. Its unoptimised (caching version, not shared memory). 
+When I've debugged the shared memory version I'll send that on. Typically its about 2x faster than this version.
+
+2. To compile for GK110 use "make gpu=sm_35". This version uses the read-only texture cache on this chipset, its about 30% quicker than the vanilla version. 
+
+3. This code only uses one GPU.
+
+4. To configure the code on a multi-gpu system you need to figure out which GPU card you want to use. Do a nvidia-smi:
+
+:~$ nvidia-smi 
+Wed Sep 24 17:52:19 2014       
++------------------------------------------------------+                       
+| NVIDIA-SMI 343.22     Driver Version: 343.22         |                       
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|===============================+======================+======================|
+|   0  GeForce GTX 780 Ti  Off  | 0000:01:00.0     N/A |                  N/A |
+| 31%   34C    P8    N/A /  N/A |     11MiB /  3071MiB |     N/A      Default |
++-------------------------------+----------------------+----------------------+
+|   1  GeForce GTX 460     Off  | 0000:06:00.0     N/A |                  N/A |
+| 40%   35C   P12    N/A /  N/A |    106MiB /  2047MiB |     N/A      Default |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Compute processes:                                               GPU Memory |
+|  GPU       PID  Process name                                     Usage      |
+|=============================================================================|
+|    0            Not Supported                                               |
+|    1            Not Supported                                               |
++-----------------------------------------------------------------------------+
+
+
+I want to use my fast card, GTX 780. So I edit the lib/AstroAccelerate/params.h file so that the CARD variable is set to 0:
+
+#define CARD 0
+
+5. Type make to make the code (ensuring you have cuda and drivers installed etc...) goto the lib dir and type:
+
+$ make clean && make -j 8
+
+6. I now create some test files...
+
+fake -nbits 32 -tobs 60 -dm 45 -tsamp 491.52 -fch1 151 -foff 0.012207031250 -nchans 2592 -period 500 -snrpeak 0.5 > lotaas_500_0.5.dat
+fake -nbits 32 -tobs 60 -dm 45 -tsamp 491.52 -fch1 151 -foff 0.012207031250 -nchans 2592 -period 500 -snrpeak 1 > lotaas_500_1.dat
+fake -nbits 32 -tobs 60 -dm 45 -tsamp 491.52 -fch1 151 -foff 0.012207031250 -nchans 2592 -period 500 -snrpeak 8 > lotaas_500_8.dat
+fake -nbits 32 -tobs 60 -dm 45 -tsamp 491.52 -fch1 151 -foff 0.012207031250 -nchans 2592 -period 18.125 -snrpeak 0.25 > lotaas_18.125_0.25.dat
+
+7. Next you need an Input file.... In the tar there are examples. Look at lotaas_18.txt in the input_file dir:
+
+range   0    60    0.050 1  1
+range   60   120   0.050 2  2
+range   120  240   0.100 4  4
+range   240  480   0.200 8  8
+sigma_cutoff    6
+analysis
+debug
+periodicity
+file <location of your filterbank file>
+
+Not that a "-" in front of a keyword switches a feature off.
+Let me explain this line by line.
+
+range <start dm> <end dm> <dm step size> <decimation in time, in f,t input> <decimation in time, in dm,t output>:
+The above example "bins" at about 6x the diagonal dm in this example.
+
+sigma_cutoff <value>:
+This is the number of sigma (SNR) above which candidates will be reported. Currently this is the same for single pulses and periodicity search.
+
+power <value>: 
+this changes the 1/f^2 to 1/f^power in the dm trial.
+
+analysis:
+This turns on and off the single pulse search.
+
+output_dmt:
+This outputs the de-dispersed space into a ASCII text file.
+
+debug:
+This outputs lots of info
+
+periodicity:
+This looks for periodic things, it doesn't yet do an acceleration search.
+
+file:
+This is the location of the input file.
+
+8. Try and run the code, cd to teh scripts dir and type:
+
+$ ./astro-accelerate.sh ./lotaas_18.txt
+
+Lots of output. Hopefully all ok. 
+
+
