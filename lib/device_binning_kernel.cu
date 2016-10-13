@@ -9,6 +9,7 @@
 
 __shared__ float f_line_bin[BINARRAYSIZE];
 
+<<<<<<< HEAD
 //{{{ bin
 /*
 __global__ void bin(float *bin_buffer, float *input_buffer, int in_nsamp) {
@@ -31,6 +32,10 @@ __global__ void bin(float *bin_buffer, float *input_buffer, int in_nsamp) {
 */
 
 __global__ void bin(unsigned short *d_input, float *d_output, int in_nsamp) {
+=======
+__global__ void bin(unsigned short *d_input, float *d_output, int in_nsamp)
+{
+>>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 	
 	int	c = ((blockIdx.y*BINDIVINF) + threadIdx.y);
 	int	out_nsamp = (in_nsamp) / 2;
@@ -45,5 +50,8 @@ __global__ void bin(unsigned short *d_input, float *d_output, int in_nsamp) {
 }
 
 #endif
+<<<<<<< HEAD
 
 //}}}
+=======
+>>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
