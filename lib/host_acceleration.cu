@@ -9,7 +9,6 @@
 #include "AstroAccelerate/device_power.h"
 #include "helper_cuda.h"
 
-<<<<<<< HEAD
 void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots, int num_trial_bins, int navdms, float narrow, float wide, int nsearch, float aggression, float cutoff, float ***output_buffer, int *ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp) {
 
 
@@ -32,21 +31,6 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 
 double total=0.0;
 
-=======
-void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots, int num_trial_bins, int navdms, float narrow, float wide, int nsearch, float aggression, float cutoff, float ***output_buffer, int *ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp)
-{
-	// Example FFT....
-	printf("\n[1DCUFFT] is starting...\n");
-
-	size_t	size;
-	int	a;
-	float mean, stddev;
-
-	int chunk = omp_get_num_procs();
-	
-	for(int i=0; i<range; i++)
-	{
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		cudaStream_t stream_e;
 		cudaError_t result_e;
 		result_e = cudaStreamCreate(&stream_e);
@@ -72,29 +56,17 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 
 		// Allocate memory for signal even
 		float* d_signal_in_e;
-<<<<<<< HEAD
 		size=samps*sizeof(float);
-=======
-		size = samps*sizeof(float);
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		printf("\nSize of GPU input signal:\t%u MB", size/1024/1024);
 		checkCudaErrors(cudaMalloc((void**)&d_signal_in_e, size));
 
 		float* d_signal_transformed_e;
-<<<<<<< HEAD
 		size=samps*sizeof(float);
-=======
-		size = samps*sizeof(float);
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		printf("\nSize of GPU stretched signal:\t%u MB", size/1024/1024);
 		checkCudaErrors(cudaMalloc((void**)&d_signal_transformed_e, size));
 
 		cufftComplex* d_signal_fft_e;
-<<<<<<< HEAD
 		size= (samps/2 + 1)*sizeof(cufftComplex);
-=======
-		size = (samps/2 + 1)*sizeof(cufftComplex);
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		printf("\nSize of GPU output signal:\t%u MB", size/1024/1024);
 		checkCudaErrors(cudaMalloc((void**)&d_signal_fft_e, size));
 
@@ -104,20 +76,12 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 		checkCudaErrors(cudaMalloc((void**)&d_signal_power_e, size));
 
 		float2* h_signal_e;
-<<<<<<< HEAD
 		size= (samps)*sizeof(float2);
-=======
-		size = (samps)*sizeof(float2);
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		printf("\nSize of host output signal:\t%u MB", size/1024/1024);
 		checkCudaErrors(cudaMallocHost((void**)&h_signal_e, size));
 
 		float* h_signal_transformed_e;
-<<<<<<< HEAD
 		size=samps*sizeof(float);
-=======
-		size = samps*sizeof(float);
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		printf("\nSize of GPU stretched signal:\t%u MB", size/1024/1024);
 		checkCudaErrors(cudaMallocHost((void**)&h_signal_transformed_e, size));
 	
@@ -128,29 +92,17 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 
 		// Allocate memory for signal odd
 		float* d_signal_in_o;
-<<<<<<< HEAD
 		size=samps*sizeof(float);
-=======
-		size = samps*sizeof(float);
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		printf("\nSize of GPU input signal:\t%u MB", size/1024/1024);
 		checkCudaErrors(cudaMalloc((void**)&d_signal_in_o, size));
 
 		float* d_signal_transformed_o;
-<<<<<<< HEAD
 		size=samps*sizeof(float);
-=======
-		size = samps*sizeof(float);
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		printf("\nSize of GPU stretched signal:\t%u MB", size/1024/1024);
 		checkCudaErrors(cudaMalloc((void**)&d_signal_transformed_o, size));
 
 		cufftComplex* d_signal_fft_o;
-<<<<<<< HEAD
 		size= (samps/2 + 1)*sizeof(cufftComplex);
-=======
-		size = (samps/2 + 1)*sizeof(cufftComplex);
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		printf("\nSize of GPU output signal:\t%u MB", size/1024/1024);
 		checkCudaErrors(cudaMalloc((void**)&d_signal_fft_o, size));
 
@@ -160,20 +112,12 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 		checkCudaErrors(cudaMalloc((void**)&d_signal_power_o, size));
 
 		float2* h_signal_o;
-<<<<<<< HEAD
 		size= (samps)*sizeof(float2);
-=======
-		size = (samps)*sizeof(float2);
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		printf("\nSize of host output signal:\t%u MB", size/1024/1024);
 		checkCudaErrors(cudaMallocHost((void**)&h_signal_o, size));
 
 		float* h_signal_transformed_o;
-<<<<<<< HEAD
 		size=samps*sizeof(float);
-=======
-		size = samps*sizeof(float);
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		printf("\nSize of GPU stretched signal:\t%u MB", size/1024/1024);
 		checkCudaErrors(cudaMallocHost((void**)&h_signal_transformed_o, size));
 	
@@ -192,30 +136,17 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 		cufftPlan1d(&plan_o, samps, CUFFT_R2C, 1);
 		cufftSetStream(plan_o, stream_o);
 	
-<<<<<<< HEAD
 		int trials=(2*ACCMAX +ACCSTEP)/ACCSTEP;
 
 		// Transfer even memory asynchronously
 		//TEST:checkCudaErrors(cudaMemcpyAsync(d_signal_in_e, output_buffer[i][230],   samps*sizeof(float), cudaMemcpyHostToDevice, stream_e));
-=======
-		int trials = (2*ACCMAX +ACCSTEP)/ACCSTEP;
-
-		// Transfer even memory asynchronously
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		checkCudaErrors(cudaMemcpyAsync(d_signal_in_e, output_buffer[i][0],   samps*sizeof(float), cudaMemcpyHostToDevice, stream_e));
 		cudaEventRecord(event_e, stream_e);
 
 		// Cacluclate even dm
-<<<<<<< HEAD
 		for(a = 0; a < trials; a++) {
 			int acc = -ACCMAX + a*ACCSTEP;
 			float mean=127.959f;
-=======
-		for(a = 0; a < trials; a++)
-		{
-			int acc = -ACCMAX + a*ACCSTEP;
-			float mean = 127.959f;
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 			set_stretch_gpu(event_e, stream_e, samps, mean, d_signal_transformed_e);
 			stretch_gpu(event_e, stream_e, acc, samps, tsamp, d_signal_in_e, d_signal_transformed_e);
 			cudaStreamWaitEvent(stream_e, event_e, 0);
@@ -223,7 +154,6 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 			power_gpu(event_e, stream_e, samps, a, d_signal_fft_e, d_signal_power_e);
 		}
 
-<<<<<<< HEAD
 		for (int dm_count = 1; dm_count < ndms[i]-1; dm_count+=2) {
 		//TEST:	for (int dm_count = 231; dm_count < 240; dm_count+=2) {
 			start_t = omp_get_wtime();
@@ -242,21 +172,14 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 				exit(0);
 			}
 */
-=======
-		for (int dm_count = 1; dm_count < ndms[i]-1; dm_count+=2)
-		{
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 			// Transfer odd memory asynchronously
 			cudaStreamWaitEvent(stream_o, event_o, 0);
 			checkCudaErrors(cudaMemcpyAsync(d_signal_in_o, output_buffer[i][dm_count], samps*sizeof(float), cudaMemcpyHostToDevice, stream_o));
 			cudaEventRecord(event_o, stream_o);
 
-<<<<<<< HEAD
 			// Cacluclate odd dm
 			//cudaDeviceSynchronize();
 			//double local_start = omp_get_wtime();
-=======
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 			for(a = 0; a < trials; a++) {
 				int acc = -ACCMAX + a*ACCSTEP;
 				float mean=127.959f;
@@ -266,17 +189,13 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 				cudaStreamWaitEvent(stream_o, event_o, 0);
 				power_gpu(event_o, stream_o, samps, a, d_signal_fft_o, d_signal_power_o);
 			}
-<<<<<<< HEAD
 			//cudaDeviceSynchronize();
 			//double local_end = omp_get_wtime();
 			//total+=(local_end-local_start);
-=======
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 
 			// Threshold even f-fdot plane
 			cudaStreamSynchronize(stream_e);
 			stats_gpu(event_e, stream_e, samps, &mean, &stddev, h_signal_power_e, d_signal_power_e);
-<<<<<<< HEAD
 /*			for(a = 0; a < trials; a++) {
 				float dm = (dm_count-1)*dm_step[i];
 				int acc = -ACCMAX + a*ACCSTEP;
@@ -289,9 +208,6 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 			} 
 			fclose(fp_dm_e);
 */
-=======
-
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 			// Transfer even memory asynchronously
 			checkCudaErrors(cudaMemcpyAsync(d_signal_in_e, output_buffer[i][dm_count+1],   samps*sizeof(float), cudaMemcpyHostToDevice, stream_e));
 			cudaEventRecord(event_e, stream_e);
@@ -310,7 +226,6 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 			// Threshold odd f-fdot plane
 			cudaStreamSynchronize(stream_o);
 			stats_gpu(event_o, stream_o, samps, &mean, &stddev, h_signal_power_o, d_signal_power_o);
-<<<<<<< HEAD
 /*			for(a = 0; a < trials; a++) {
 				float dm = (dm_count)*dm_step[i];
 				int acc = -ACCMAX + a*ACCSTEP;
@@ -328,9 +243,6 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 			//printf("\nTime to calculate a dm trial:: %f ", time/2.0f);
 		}
 		//printf("\n%f SET", (float)total);
-=======
-		}
->>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		
 		//Destroy CUFFT context
 		cufftDestroy(plan_e);
