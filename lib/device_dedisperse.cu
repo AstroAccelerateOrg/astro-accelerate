@@ -2,10 +2,15 @@
 #include "AstroAccelerate/params.h"
 #include "AstroAccelerate/device_bin.h"
 
+<<<<<<< HEAD
 //{{{ dedisperse 
 
 void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned short *d_input, float *d_output, int nchans, int nsamp, int maxshift, float *tsamp, float *dm_low, float *dm_high, float *dm_step, int *ndms) {
 
+=======
+void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned short *d_input, float *d_output, int nchans, int nsamp, int maxshift, float *tsamp, float *dm_low, float *dm_high, float *dm_step, int *ndms) 
+{
+>>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 
 	// FOR KEPLER SMEM....
 	float shift_one = (SDIVINDM-1)*(dm_step[i]/(*tsamp));	
@@ -19,7 +24,12 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 	// Check to see if the threadblock will load a shared memory line that
 	// is long enough for the algorithm to run without an out of bounds
 	// access...
+<<<<<<< HEAD
 	if(((SDIVINT-1)+((SDIVINDM-1)*SDIVINT) - 1) > lineshift) {
+=======
+	if(((SDIVINT-1)+((SDIVINDM-1)*SDIVINT) - 1) > lineshift)
+	{
+>>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 
 	/* FOR FERMI SMEM....
 	float shift_one = (SDIVINDM-1)*(dm_step[i]/(*tsamp));	
@@ -32,7 +42,11 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 	*/
 		printf("\nUsing fast shared memory kernel");
 
+<<<<<<< HEAD
 		//{{{ Dedisperse data on the GPU 
+=======
+		// Dedisperse data on the GPU 
+>>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		float startdm = dm_low[i];
 
 		int divisions_in_t  = SDIVINT;
@@ -53,11 +67,18 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 		cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeFourByte);
 		cudaFuncSetCacheConfig(shared_dedisperse_kernel, cudaFuncCachePreferShared);
 		shared_dedisperse_kernel<<< num_blocks, threads_per_block >>>(inBin[i], d_input, d_output, (float)(startdm/(*tsamp)), (float)(dm_step[i]/(*tsamp)));
+<<<<<<< HEAD
 	} else {
+=======
+	} 
+	else
+	{
+>>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
 		printf("\nERROR: smem line length is too short.\nRun the auto tuner again!\n");
 		exit(0);
 	}
 
+<<<<<<< HEAD
 	//}}}
 	//cudaUnbindTexture(inTex);
 	//cudaDestroyTextureObject(tex);
@@ -65,3 +86,8 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 
 //}}}
 
+=======
+	//cudaUnbindTexture(inTex);
+	//cudaDestroyTextureObject(tex);
+}
+>>>>>>> fe80b9c735d1c898047cbb64bcf8da05cd6a21da
