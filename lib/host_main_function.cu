@@ -3,6 +3,7 @@
 #include "AstroAccelerate/device_init.h"
 #include "AstroAccelerate/device_dedisperse.h"
 #include "AstroAccelerate/device_dedispersion_kernel.h"
+#include "AstroAccelerate/device_zero_dm.h"
 
 #include "AstroAccelerate/device_SPS_inplace_kernel.h" //Added by KA
 #include "AstroAccelerate/device_SPS_inplace.h" //Added by KA
@@ -131,7 +132,7 @@ void main_function
 
 	// Clip RFI
 
-//	rfi(nsamp, nchans, &input_buffer);
+	//rfi(nsamp, nchans, &input_buffer);
 	/*
 	 FILE	*fp_o;
 
@@ -159,6 +160,7 @@ void main_function
 		//rfi((t_processed[0][t]+maxshift), nchans, &tmp);
 
 		load_data(-1, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
+		zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
 		corner_turn(d_input, d_output, nchans, t_processed[0][t] + maxshift);
 		int oldBin = 1;
 		for (dm_range = 0; dm_range < range; dm_range++)
