@@ -9,5 +9,6 @@ analysis
 -acceleration
 -periodicity
 -output_dmt
+-zero_dm
 debug
 file /home/nassim/filterbank/bper_0.0025.fil
