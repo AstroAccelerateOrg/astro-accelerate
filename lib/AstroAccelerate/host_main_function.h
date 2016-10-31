@@ -18,6 +18,7 @@ void main_function
 	int enable_acceleration,
 	int enable_periodicity,
 	int output_dmt,
+	int enable_zero_dm,
 	int *inBin,
 	int *outBin,
 	int *ndms,
