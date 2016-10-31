@@ -13,4 +13,4 @@ analysis
 -output_dmt
 -zero_dm
 debug
-file /home/wa78/filterbank/ska-mid-b2.fil
+file /home/nassim/filterbank/ska-mid-b2.fil
