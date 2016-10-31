@@ -20,6 +20,7 @@ int main(int argc, char* argv[])
 	int enable_acceleration = 0;
 	int enable_periodicity = 0;
 	int output_dmt = 0;
+	int enable_zero_dm = 0;
 	int *inBin = NULL;
 	int *outBin = NULL;
 	int *ndms = NULL;
@@ -38,14 +39,6 @@ int main(int argc, char* argv[])
 	size_t gpu_memory = 0;
 	unsigned short *input_buffer = NULL;
 	float ***output_buffer = NULL;
-
-	/***************************************/
-	float **output_sps = NULL;
-	// this pointer will be pass to the library, and then
-	// to the SPS analysis call
-	// analysis will allocate mem and send it back to host
-	/***************************************/
-
 	unsigned short *d_input = NULL;
 	float *d_output = NULL;
 	float *dmshifts = NULL;
@@ -85,7 +78,7 @@ int main(int argc, char* argv[])
 
 	// Users desired de-dispersion strategy. Pick up user defined values from the CLI.
 	get_user_input(&fp, argc, argv, &multi_file, &enable_debug, &enable_analysis,
-	    &enable_periodicity, &enable_acceleration, &output_dmt, &nboots,
+	    &enable_periodicity, &enable_acceleration, &output_dmt, &enable_zero_dm, &nboots,
 	    &ntrial_bins, &navdms, &narrow, &wide, &aggression, &nsearch, &inBin,
 	    &outBin, &power, &sigma_cutoff, &range, &user_dm_low, &user_dm_high,
 	    &user_dm_step);
@@ -135,7 +128,7 @@ int main(int argc, char* argv[])
 	  fp,
 	  // Counters and flags
 	  i, t, dm_range, range, enable_debug, enable_analysis, enable_acceleration,
-	  enable_periodicity, output_dmt, inBin, outBin, ndms, maxshift, max_ndms,
+	  enable_periodicity, output_dmt, enable_zero_dm, inBin, outBin, ndms, maxshift, max_ndms,
 	  max_samps, num_tchunks, total_ndms, multi_file, max_dm,
 	  // Memory sizes and pointers
 	  inputsize, outputsize, gpu_inputsize, gpu_outputsize, gpu_memory,
