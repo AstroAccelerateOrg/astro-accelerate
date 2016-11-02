@@ -1,2 +1,8 @@
 build/
 output/
+*.swp
+*~
+*.sav
+*.old
+*.new
+*.ori
