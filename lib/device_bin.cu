@@ -21,8 +21,8 @@ void bin_gpu(unsigned short *d_input, float *d_output, int nchans, int nsamp)
 	//printf("\nnum_blocks_t:%d\tnum_blocks_f:%d\n",num_blocks_t,num_blocks_f);
 
 	//cudaFuncSetCacheConfig(bin, cudaFuncCachePreferL1);
-	double start_t, end_t;
-	start_t = omp_get_wtime();
+	//double start_t, end_t;
+	//start_t = omp_get_wtime();
 
 	bin<<<num_blocks, threads_per_block>>>(d_input, d_output, nsamp);
 	//	getLastCudaError("Kernel execution failed");
@@ -39,8 +39,8 @@ void bin_gpu(unsigned short *d_input, float *d_output, int nchans, int nsamp)
 	swap<<<swap_num_blocks, swap_threads_per_block>>>(d_input, d_output, nchans, nsamp);
 	cudaDeviceSynchronize();
 
-	end_t = omp_get_wtime();
-	float time = (float) ( end_t - start_t );
+	//end_t = omp_get_wtime();
+	//float time = (float) ( end_t - start_t );
 	//printf("\nPerformed Bin: %f (GPU estimate)", time);
 	//printf("\nGops based on %.2f ops per channel per tsamp: %f",14.0,((15.0*(divisions_in_t*divisions_in_f*num_blocks_t*num_blocks_f))/(time))/1000000000.0);
 	//printf("\nBN Device memory bandwidth in GB/s: %f", (2*(sizeof(float)+sizeof(unsigned short))*(divisions_in_t*divisions_in_f*num_blocks_t*num_blocks_f))/(time)/1000000000.0);

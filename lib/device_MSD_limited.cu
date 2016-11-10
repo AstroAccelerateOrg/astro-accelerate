@@ -66,7 +66,7 @@ int MSD_limited(float *d_input, float *d_MSD, int nDMs, int nTimesamples, int of
 {
 	//---------> Task specific
 	int nBlocks_x, nBlocks_y, nBlocks_total, nSteps_x, nSteps_y, nRest, nThreads,
-	    nElements, epw; //epw = elements per warp 32 for float 64 for float2
+	    epw; //epw = elements per warp 32 for float 64 for float2
 	float *d_output;
 
 	//---------> CUDA block and CUDA grid parameters
@@ -86,7 +86,6 @@ int MSD_limited(float *d_input, float *d_MSD, int nDMs, int nTimesamples, int of
 	// I do not calculate nRest here since I assume it will be always divisible by nSteps_y.
 
 	nBlocks_total = nBlocks_x * nBlocks_y;
-	nElements = nBlocks_total * nSteps_x * epw * nSteps_y;
 
 	nThreads = nSteps_y * WARP;
 

@@ -19,16 +19,17 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 
 	while (1)
 	{
-
 		strcpy(string, "ERROR");
+		//if (fread(&nchar, sizeof(int), 1, *fp) != 1)
+		//	fprintf(stderr, "Error while reading file\n");
 		fread(&nchar, sizeof(int), 1, *fp);
-
 		if (feof(*fp))
 			exit(0);
 
 		if (nchar > 1 && nchar < 80)
 		{
-
+			//if (fread(string, nchar, 1, *fp) != 1)
+			//	fprintf(stderr, "Error while reading file\n");
 			fread(string, nchar, 1, *fp);
 			string[nchar] = '\0';
 			// For debugging only
@@ -40,39 +41,47 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 
 			if (strcmp(string, "tsamp") == 0)
 			{
-				fread(&temp, sizeof(double), 1, *fp);
+				if (fread(&temp, sizeof(double), 1, *fp) != 1)
+					fprintf(stderr, "Error while reading file\n");
 				*tsamp = (float) temp;
 			}
 			else if (strcmp(string, "tstart") == 0)
 			{
-				fread(&temp, sizeof(double), 1, *fp);
+				if (fread(&temp, sizeof(double), 1, *fp) != 1)
+					fprintf(stderr, "Error while reading file\n");
 				*tstart = (float) temp;
 			}
 			else if (strcmp(string, "fch1") == 0)
 			{
-				fread(&temp, sizeof(double), 1, *fp);
+				if (fread(&temp, sizeof(double), 1, *fp) != 1)
+					fprintf(stderr, "Error while reading file\n");
 				*fch1 = (float) temp;
 			}
 			else if (strcmp(string, "foff") == 0)
 			{
-				fread(&temp, sizeof(double), 1, *fp);
+				if (fread(&temp, sizeof(double), 1, *fp) != 1)
+					fprintf(stderr, "Error while reading file\n");
 				*foff = (float) temp;
 			}
 			else if (strcmp(string, "nchans") == 0)
 			{
-				fread(nchans, sizeof(int), 1, *fp);
+				if (fread(nchans, sizeof(int), 1, *fp) != 1)
+					fprintf(stderr, "Error while reading file\n");
 			}
 			else if (strcmp(string, "nifs") == 0)
 			{
-				fread(nifs, sizeof(int), 1, *fp);
+				if (fread(nifs, sizeof(int), 1, *fp) != 1)
+					fprintf(stderr, "Error while reading file\n");
 			}
 			else if (strcmp(string, "nbits") == 0)
 			{
-				fread(nbits, sizeof(int), 1, *fp);
+				if (fread(nbits, sizeof(int), 1, *fp) != 1)
+					fprintf(stderr, "Error while reading file\n");
 			}
 			else if (strcmp(string, "nsamples") == 0)
 			{
-				fread(nsamples, sizeof(int), 1, *fp);
+				if (fread(nsamples, sizeof(int), 1, *fp) != 1)
+					fprintf(stderr, "Error while reading file\n");	
 			}
 		}
 	}
@@ -95,6 +104,8 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 		total_data = 0;
 		while (!feof(*fp))
 		{
+			//if (fread(temp_buffer, sizeof(float), ( *nchans ), *fp) != ( *nchans ))
+			//	fprintf(stderr, "Error while reading file\n");					
 			fread(temp_buffer, sizeof(float), ( *nchans ), *fp);
 			total_data++;
 		}
@@ -110,6 +121,8 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 		total_data = 0;
 		while (!feof(*fp))
 		{
+			//if (fread(temp_buffer, sizeof(unsigned char), ( *nchans ), *fp) != ( *nchans ))
+			//	fprintf(stderr, "Error while reading file\n");					
 			fread(temp_buffer, sizeof(unsigned char), ( *nchans ), *fp);
 			total_data++;
 		}

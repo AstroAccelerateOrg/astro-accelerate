@@ -1,7 +1,6 @@
 /* This module recieves user input from the CLI and then opens the input data file.
  * The input data file should always be the last argument on the CLI.
  */
-
 #include <stdio.h>
 #include "AstroAccelerate/params.h"
 #include "AstroAccelerate/host_help.h"
@@ -31,6 +30,8 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 		( *range ) = 0;
 		while (!feof(fp_in))
 		{
+			//if (fscanf(fp_in, "%s", string) != 1)
+			//	fprintf(stderr, "failed to read string\n");
 			fscanf(fp_in, "%s", string);
 			if (strcmp(string, "range") == 0)
 				( *range )++;
@@ -45,12 +46,16 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 
 		for (i = 0; i < *range; i++)
 		{
-			fscanf(fp_in, "%s %f %f %f %d %d\n", string, &( *user_dm_low )[i], &( *user_dm_high )[i], &( *user_dm_step )[i], &( *inBin )[i], &( *outBin )[i]);
+			if (fscanf(fp_in, "%s %f %f %f %d %d\n", string, &( *user_dm_low )[i], &( *user_dm_high )[i], &( *user_dm_step )[i], &( *inBin )[i], &( *outBin )[i]) !=6 )
+				fprintf(stderr, "failed to read input\n");
 		}
 
 		rewind(fp_in);
 		while (!feof(fp_in))
 		{
+			
+			//if (fscanf(fp_in, "%s", string) != 1)
+			//	fprintf(stderr, "failed to read string\n");		
 			fscanf(fp_in, "%s", string);
 			if (strcmp(string, "debug") == 0)
 				*enable_debug = 1;
@@ -67,25 +72,54 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 			if (strcmp(string, "multi_file") == 0)
 				*multi_file = 1;
 			if (strcmp(string, "sigma_cutoff") == 0)
-				fscanf(fp_in, "%f", sigma_cutoff);
+			{
+				if (fscanf(fp_in, "%f", sigma_cutoff) != 1)
+					fprintf(stderr, "failed to read sigma_cutoff\n");
+			}
 			if (strcmp(string, "narrow") == 0)
-				fscanf(fp_in, "%f", narrow);
+			{
+				if (fscanf(fp_in, "%f", narrow) != 1)
+					fprintf(stderr, "failed to read narrow\n");	
+			}
 			if (strcmp(string, "wide") == 0)
-				fscanf(fp_in, "%f", wide);
+			{
+				if (fscanf(fp_in, "%f", wide) != 1)
+					fprintf(stderr, "failed to read wide\n");
+			}
 			if (strcmp(string, "nboots") == 0)
-				fscanf(fp_in, "%d", nboots);
+			{
+				if (fscanf(fp_in, "%d", nboots) != 1)
+					fprintf(stderr, "failed to read nboots\n");
+			}
 			if (strcmp(string, "navdms") == 0)
-				fscanf(fp_in, "%d", navdms);
+			{
+				if (fscanf(fp_in, "%d", navdms) != 1)
+					fprintf(stderr, "failed to read navdms\n");
+			}	
 			if (strcmp(string, "nwindows") == 0)
-				fscanf(fp_in, "%d", ntrial_bins);
+			{
+				if (fscanf(fp_in, "%d", ntrial_bins) != 1)
+					fprintf(stderr, "failed to read ntrial_bins\n");
+			}
 			if (strcmp(string, "nsearch") == 0)
-				fscanf(fp_in, "%d", nsearch);
+			{
+				if (fscanf(fp_in, "%d", nsearch) != 1)
+					fprintf(stderr, "failed to read nsearch\n");
+			}	
 			if (strcmp(string, "aggression") == 0)
-				fscanf(fp_in, "%f", aggression);
+			{
+				if (fscanf(fp_in, "%f", aggression) != 1)
+					fprintf(stderr, "failed to read aggression\n");
+			}				
 			if (strcmp(string, "power") == 0)
-				fscanf(fp_in, "%f", power);
+			{
+				if (fscanf(fp_in, "%f", power) != 1)
+					fprintf(stderr, "failed to read power\n");
+			}
 			if (strcmp(string, "file") == 0)
 			{
+				//if (fscanf(fp_in, "%s", string) != 1)
+				//	fprintf(stderr, "failed to read string\n");
 				fscanf(fp_in, "%s", string);
 				if (( *fp = fopen(string, "rb") ) == NULL)
 				{

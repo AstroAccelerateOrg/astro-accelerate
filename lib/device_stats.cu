@@ -10,7 +10,7 @@
 void stats_gpu(cudaEvent_t event, cudaStream_t stream, int samps, float *mean, float *stddev, float *h_signal_power, float *d_signal_power)
 {
 
-	int a, j;
+	int a;
 	int trials = ( 2 * ACCMAX + ACCSTEP ) / ACCSTEP;
 	int chunk = omp_get_num_procs();
 	/*

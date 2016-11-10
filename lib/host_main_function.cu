@@ -43,9 +43,6 @@ void main_function
 	// File pointers
 	FILE *fp,
 	// Counters and flags
-	int i,
-	int t,
-	int dm_range,
 	int range,
 	int enable_debug,
 	int enable_analysis,
@@ -64,12 +61,12 @@ void main_function
 	int multi_file,
 	float max_dm,
 	// Memory sizes and pointers
-  size_t inputsize,
-  size_t outputsize,
+  	size_t inputsize,
+  	size_t outputsize,
 	size_t gpu_inputsize,
 	size_t gpu_outputsize,
 	size_t gpu_memory,
-  unsigned short  *input_buffer,
+  	unsigned short  *input_buffer,
 	float ***output_buffer,
 	unsigned short  *d_input,
 	float *d_output,
@@ -145,6 +142,7 @@ void main_function
 	 */
 
 	printf("\nDe-dispersing...");
+	int t, dm_range;
 	double start_t, end_t;
 	start_t = omp_get_wtime();
 
@@ -161,7 +159,8 @@ void main_function
 		//rfi((t_processed[0][t]+maxshift), nchans, &tmp);
 
 		load_data(-1, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
-		zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
+		if (enable_zero_dm)
+			zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
 		corner_turn(d_input, d_output, nchans, t_processed[0][t] + maxshift);
 		int oldBin = 1;
 		for (dm_range = 0; dm_range < range; dm_range++)

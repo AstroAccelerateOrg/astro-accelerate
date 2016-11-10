@@ -96,13 +96,11 @@ __global__ void MSD_GPU_limited_final(float *d_input, float *d_output, int size)
 	__shared__ float Ss[WARP * WARP];
 	__shared__ float js[WARP * WARP]; // I'll leave this as it is since this kernel launches in one copy thus I do not care how much shared memory it will eat up.
 
-	int warp_id, pos;
+	int pos;
 	float M;
 	float S;
 	float j, jv;
 	float ftemp;
-
-	warp_id = threadIdx.x >> 5;
 
 	//----------------------------------------------
 	//---- Calculating of streaming mean and sum of squares

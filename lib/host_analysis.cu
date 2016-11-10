@@ -164,18 +164,13 @@ void analysis(int i, float tstart, int t_processed, int nsamp, int nchans, int m
 	FILE *fp_out;
 	char filename[200];
 
-	int k, dm_count, remaining_time, bin_factor, counter;
+	//int remaining_time;
 
 	float start_time;
 
-	unsigned long int j;
 	unsigned long int vals;
 	int nTimesamples = t_processed;
 	int nDMs = ndms[i];
-
-	float mean, stddev, stddev_orig;
-
-	double total;
 
 	// Calculate the total number of values
 	vals = (unsigned long int) ( nDMs * nTimesamples );
@@ -184,7 +179,7 @@ void analysis(int i, float tstart, int t_processed, int nsamp, int nchans, int m
 
 	//start_time = ((input_increment/nchans)*tsamp);
 	start_time = tstart;
-	remaining_time = ( t_processed );
+	//remaining_time = ( t_processed );
 
 	sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", start_time, dm_low[i], dm_high[i]);
 	//if ((fp_out=fopen(filename, "w")) == NULL) {
@@ -194,9 +189,9 @@ void analysis(int i, float tstart, int t_processed, int nsamp, int nchans, int m
 		exit(0);
 	}
 
-	double signal_mean, signal_sd, total_time, partial_time;
-	float signal_mean_1, signal_sd_1, signal_mean_16, signal_sd_16, modifier;
-	float max, min, threshold;
+	double total_time, partial_time;
+	float signal_mean_1, signal_sd_1, signal_sd_16;
+	//float signal_mean_16, modifier;
 	int offset;
 	float *h_temp = (float*) malloc(vals * sizeof(float));
 	float *h_output_list;
@@ -245,14 +240,14 @@ void analysis(int i, float tstart, int t_processed, int nsamp, int nchans, int m
 	offset = PD_FIR(output_buffer, d_list, PD_MAXTAPS, nDMs, nTimesamples);
 	MSD_limited(d_list, d_MSD, nDMs, nTimesamples, offset);
 	cudaMemcpy(h_MSD, d_MSD, 3 * sizeof(float), cudaMemcpyDeviceToHost);
-	signal_mean_16 = h_MSD[0];
+	//signal_mean_16 = h_MSD[0];
 	signal_sd_16 = h_MSD[1];
 	//printf("Bin: %d, Mean: %f, Stddev: %f\n", PD_MAXTAPS, signal_mean_16, signal_sd_16);
 
 	h_MSD[0] = signal_mean_1;
 	h_MSD[1] = ( signal_sd_16 - signal_sd_1 ) / ( (float) ( PD_MAXTAPS - 1 ) );
 	h_MSD[2] = signal_sd_1;
-	modifier = h_MSD[1];
+	//modifier = h_MSD[1];
 	cudaMemcpy(d_MSD, h_MSD, 3 * sizeof(float), cudaMemcpyHostToDevice);
 	timer.Stop();
 	partial_time = timer.Elapsed();

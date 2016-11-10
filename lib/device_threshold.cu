@@ -13,11 +13,10 @@ void THR_init(void)
 int THRESHOLD(float *d_input, unsigned char *d_input_taps, float *d_output_list, int *gmem_pos, float threshold, int nDMs, int nTimesamples, int max_list_size)
 {
 	//---------> Task specific
-	int nBlocks, nRest, Elements_per_block;
+	int nBlocks, Elements_per_block;
 
 	Elements_per_block = 2 * WARP * THR_ELEM_PER_THREAD;
 	nBlocks = nTimesamples / Elements_per_block;
-	nRest = nTimesamples - nBlocks * Elements_per_block;
 
 	//---------> CUDA block and CUDA grid parameters
 	int nCUDAblocks_x = nBlocks;
@@ -36,11 +35,10 @@ int THRESHOLD(float *d_input, unsigned char *d_input_taps, float *d_output_list,
 int THRESHOLD_ignore(float *d_input, unsigned char *d_input_taps, float *d_output_list, int *gmem_pos, float threshold, int nTaps, int nDMs, int nTimesamples, int max_list_size)
 {
 	//---------> Task specific
-	int nBlocks, nRest, Elements_per_block;
+	int nBlocks, Elements_per_block;
 
 	Elements_per_block = 2 * WARP * THR_ELEM_PER_THREAD;
 	nBlocks = nTimesamples / Elements_per_block;
-	nRest = nTimesamples - nBlocks * Elements_per_block;
 
 	//---------> CUDA block and CUDA grid parameters
 	int nCUDAblocks_x = nBlocks;
