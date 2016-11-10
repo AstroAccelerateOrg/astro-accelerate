@@ -7,14 +7,18 @@
 #include "AstroAccelerate/host_get_recorded_data.h"
 #include "AstroAccelerate/params.h"
 
+#include "AstroAccelerate/InputData.h"
+#include "AstroAccelerate/OutputData.h"
+#include "AstroAccelerate/DedispersionPlan.h"
+
+
 int main(int argc, char* argv[])
 {
 	// Internal code variables
 	// File pointers
 	FILE *fp = NULL;
 	// Counters and flags
-	int i, t, dm_range;
-	int range = 0;
+	int range = 0;						
 	int enable_debug = 0;
 	int enable_analysis = 0;
 	int enable_acceleration = 0;
@@ -24,7 +28,7 @@ int main(int argc, char* argv[])
 	int *inBin = NULL;
 	int *outBin = NULL;
 	int *ndms = NULL;
-	int maxshift = 0;
+	int maxshift = 0;					
 	int max_ndms = 0;
 	int max_samps = 0;
 	int num_tchunks = 0;
@@ -32,29 +36,29 @@ int main(int argc, char* argv[])
 	int multi_file = 1;
 	float max_dm = 0.0f;
 	// Memory sizes and pointers
-	size_t inputsize = 0;
-	size_t outputsize = 0;
-	size_t gpu_inputsize = 0;
-	size_t gpu_outputsize = 0;
+	size_t inputsize = 0; 				
+	size_t outputsize = 0;				
+	size_t gpu_inputsize = 0; 			 
+	size_t gpu_outputsize = 0;			
 	size_t gpu_memory = 0;
 	unsigned short *input_buffer = NULL;
-	float ***output_buffer = NULL;
-	unsigned short *d_input = NULL;
-	float *d_output = NULL;
-	float *dmshifts = NULL;
-	float *user_dm_low = NULL;
-	float *user_dm_high = NULL;
-	float *user_dm_step = NULL;
-	float *dm_low = NULL;
-	float *dm_high = NULL;
-	float *dm_step = NULL;
+	float ***output_buffer = NULL;		
+	unsigned short *d_input = NULL;		
+	float *d_output = NULL; 			
+	float *dmshifts = NULL; 			
+	float *user_dm_low = NULL;			
+	float *user_dm_high = NULL; 		
+	float *user_dm_step = NULL; 		
+	float *dm_low = NULL; 				
+	float *dm_high = NULL; 				
+	float *dm_step = NULL; 				
 	// Telescope parameters
-	int nchans = 0;
-	int nsamp = 0;
+	int nchans = 0;						
+	int nsamp = 0;						
 	int nbits = 0;
 	int nsamples = 0;
 	int nifs = 0;
-	int **t_processed;
+	int **t_processed;					
 	int nboots = -1;
 	int ntrial_bins;
 	int navdms = 1;
@@ -80,8 +84,7 @@ int main(int argc, char* argv[])
 	get_user_input(&fp, argc, argv, &multi_file, &enable_debug, &enable_analysis,
 	    &enable_periodicity, &enable_acceleration, &output_dmt, &enable_zero_dm, &nboots,
 	    &ntrial_bins, &navdms, &narrow, &wide, &aggression, &nsearch, &inBin,
-	    &outBin, &power, &sigma_cutoff, &range, &user_dm_low, &user_dm_high,
-	    &user_dm_step);
+	    &outBin, &power, &sigma_cutoff, &range, &user_dm_low, &user_dm_high,&user_dm_step);
 	if (enable_debug == 1)
 		debug(1, start_time, range, outBin, enable_debug, enable_analysis,
 		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
@@ -89,7 +92,8 @@ int main(int argc, char* argv[])
 		nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm,
 		nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
-	// Reads telescope parameters from the header of the input file and then counts the number of samples in the input data file.
+	// Reads telescope parameters from the header of the input file and then 
+	// counts the number of samples in the input data file.
 	get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp, &tstart,
 	    &fch1, &foff);
 	if (enable_debug == 1)
@@ -111,7 +115,8 @@ int main(int argc, char* argv[])
 		nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm,
 		nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
-	// Store the recorded telescope data contained in the input filterbank file in the allocated memory.
+	// Store the recorded telescope data contained in the input filterbank file
+	// in the allocated memory.
 	get_recorded_data(&fp, nsamp, nchans, nbits, &input_buffer, &inputsize);
 	if (enable_debug == 1)
 		debug(7, start_time, range, outBin, enable_debug, enable_analysis,
@@ -127,7 +132,7 @@ int main(int argc, char* argv[])
 	  // File pointers
 	  fp,
 	  // Counters and flags
-	  i, t, dm_range, range, enable_debug, enable_analysis, enable_acceleration,
+	  range, enable_debug, enable_analysis, enable_acceleration,
 	  enable_periodicity, output_dmt, enable_zero_dm, inBin, outBin, ndms, maxshift, max_ndms,
 	  max_samps, num_tchunks, total_ndms, multi_file, max_dm,
 	  // Memory sizes and pointers
