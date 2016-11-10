@@ -1,5 +1,5 @@
-#ifndef _MAIN_FUNCTION_H_
-#define _MAIN_FUNCTION_H_
+#ifndef SKA_ASTROACCELERATE_MAIN_FUNCTION_H_
+#define SKA_ASTROACCELERATE_MAIN_FUNCTION_H_
 
 void main_function
 (
@@ -9,9 +9,6 @@ void main_function
 	// File pointers
 	FILE *fp,
 	// Counters and flags
-	int i,
-	int t,
-	int dm_range,
 	int range,
 	int enable_debug,
 	int enable_analysis,

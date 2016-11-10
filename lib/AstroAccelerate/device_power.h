@@ -1,5 +1,5 @@
-#ifndef __POWER_GPU__
-#define __POWER_GPU__
+#ifndef SKA_ASTROACCELERATE_POWER_GPU_H_
+#define SKA_ASTROACCELERATE_POWER_GPU_H_
 
 #include <cufft.h>
 

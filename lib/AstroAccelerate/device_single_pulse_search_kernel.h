@@ -1,7 +1,6 @@
 // Added by Karel Adamek 
-
-#ifndef __SINGLE_PULSE_SEARCH_KERNEL_H_
-#define __SINGLE_PULSE_SEARCH_KERNEL_H_
+#ifndef SKA_ASTROACCELERATE_SINGLE_PULSE_SEARCH_KERNEL_H_
+#define SKA_ASTROACCELERATE_SINGLE_PULSE_SEARCH_KERNEL_H_
 
 #include "AstroAccelerate/params.h"
 

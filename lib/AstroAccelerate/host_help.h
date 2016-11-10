@@ -1,5 +1,5 @@
-#ifndef __HOST_HELP__
-#define __HOST_HELP__
+#ifndef SKA_ASTROACCELERATE_HOST_HELP_H_
+#define SKA_ASTROACCELERATE_HOST_HELP_H_
 
 void help(void);
 

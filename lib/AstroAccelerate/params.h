@@ -17,9 +17,6 @@
 #define STATST 128
 #define STATSLOOP 8
 
-
-
-
 //Added by Karel Adamek
 #define WARP 32
 #define HALF_WARP 16

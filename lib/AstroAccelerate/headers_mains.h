@@ -1,5 +1,5 @@
-#ifndef __COMMON_HEADERS__
-#define __COMMON_HEADERS__
+#ifndef SKA_ASTROACCELERATE_COMMON_HEADERS_H_
+#define SKA_ASTROACCELERATE_COMMON_HEADERS_H_
 
 #include <stdio.h>
 #include <stdlib.h>

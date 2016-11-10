@@ -1,5 +1,5 @@
-#ifndef __THRESHOLD__
-#define __THRESHOLD__
+#ifndef SKA_ASTROACCELERATE_THRESHOLD_H_
+#define SKA_ASTROACCELERATE_THRESHOLD_H_
 
 extern void THR_init(void);
 extern int THRESHOLD(float *d_input, unsigned char *d_input_taps, float *d_output_list, int *gmem_pos, float threshold, int nDMs, int nTimesamples, int max_list_size);
