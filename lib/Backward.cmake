@@ -1,43 +1,4 @@
 set(lib_src_cuda
-    device_MSD_grid.cu
-    device_MSD_grid_kernel.cu
-    device_MSD_limited.cu
-    device_MSD_limited_kernel.cu
-    device_MSD_plane.cu
-    device_MSD_plane_kernel.cu
-    device_SNR_limited.cu
-    device_SNR_limited_inplace_kernel.cu
-    device_SNR_limited_kernel.cu
-    device_SPS_inplace.cu
-    device_SPS_inplace_kernel.cu
-    device_bin.cu
-    device_binning_kernel.cu
-    device_corner_turn.cu
-    device_corner_turn_kernel.cu
-    device_dedisperse.cu
-    device_dedispersion_kernel.cu
-    device_dedispersion_kernel.orig
-    device_inference.cu
-    device_init.cu
-    device_load_data.cu
-    device_main.cu
-    device_power.cu
-    device_power_kernel.cu
-    device_save_data.cu
-    device_set_stretch.cu
-    device_set_stretch_kernel.cu
-    device_single_FIR.cu
-    device_single_FIR_kernel.cu
-    device_single_pulse_search.cu
-    device_single_pulse_search_kernel.cu
-    device_stats.cu
-    device_stats_kernel.cu
-    device_stretch.cu
-    device_stretch_kernel.cu
-    device_threshold.cu
-    device_threshold_kernel.cu
-    device_zero_dm.cu
-    device_zero_dm_kernel.cu
     host_acceleration.cu
     host_allocate_memory.cu
     host_analysis.cu

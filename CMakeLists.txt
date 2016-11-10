@@ -114,6 +114,3 @@ if (DEBUG_PRINT)
     message(STATUS "****************************************************************************")
     message(STATUS "")
 endif (DEBUG_PRINT)
-
-
-
