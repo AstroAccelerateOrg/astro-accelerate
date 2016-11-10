@@ -35,7 +35,7 @@ sub usage {
 }
 
 # parse options
-my @namespaces=("ska", "astro_accelerate");
+my @namespaces=("ska", "astroaccelerate");
 my @extra_namespaces;
 my $baseclass="";
 my $headtext="";
@@ -85,9 +85,9 @@ while ( $ARGV[0] =~/^-(.+)/ )
             next;
         } elsif ( $template eq "algo_test" ) {
             push @extra_namespaces, "test";
-            $includes = "#include \"astro_accelerate/utils/test_utils/AlgorithmTester.h\"\n".
+            $includes = "#include \"AstroAccelerate/utils/test_utils/AlgorithmTester.h\"\n".
                         "#include <gtest/gtest.h>\n";
-            $baseclass = "astro_accelerate::utils::test::AlgorithmTester<TestTraits>";
+            $baseclass = "AstroAccelerate::utils::test::AlgorithmTester<TestTraits>";
             $template_signature="<typename TestTraits>";
             push @head_brief, 'Generic functional test for the ${classname} algorithm';
             push @head_doc, "To use you will first need to create suitable Traits descriptions of the algorithm and the"
@@ -246,7 +246,7 @@ if ( ! -f $src_file ) {
         $classnamespace="template $template_signature\n".$classnamespace.$tmp;
     }
     my $fh=FileHandle->new(">".$src_file);
-    print $fh "#include \"astro_accelerate/$module/", $short_header_file, "\"\n\n";
+    print $fh "#include \"AstroAccelerate/$module/", $short_header_file, "\"\n\n";
     print $fh $cppincludes, "\n";
     foreach my $namespace ( @namespaces ) {
         print $fh "namespace $namespace {\n";
@@ -326,7 +326,7 @@ if ( ! -f $header_file ) {
         print $fh "} // namespace $namespace\n";
     }
     if($template_signature ne "") {
-        print $fh "#include \"astro_accelerate/${module}/detail/${classname}.cpp\"\n\n";
+        print $fh "#include \"AstroAccelerate/${module}/detail/${classname}.cpp\"\n\n";
     }
     print $fh "\n#endif // $defname\n";
 }
