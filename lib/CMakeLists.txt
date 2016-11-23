@@ -15,6 +15,7 @@ include_directories(${PROJECT_BINARY_DIR})
 # in dependency order
 include(Backward.cmake)
 #SUBPACKAGE(utils) # not dependent on any other subpackage
+SUBPACKGE(sps)
 
 # should come after all SUBPACKGE directives
 include_subpackage_files()
