@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
 	// File pointers
 	FILE *fp = NULL;
 	// Counters and flags
-	int range = 0;						
+	int range = 0; 								/*DedispersionPlan*/
 	int enable_debug = 0;
 	int enable_analysis = 0;
 	int enable_acceleration = 0;
@@ -28,9 +28,9 @@ int main(int argc, char* argv[])
 	int enable_zero_dm = 0;
 	int *inBin = NULL;						/*DedispersionPlan*/
 	int *outBin = NULL;						/*DedispersionPlan*/
-	int *ndms = NULL;
+	int *ndms = NULL;							/*DedispersionPlan*/
 	int maxshift = 0;							/*DedispersionPlan*/ /*InputData*/
-	int max_ndms = 0;
+	int max_ndms = 0;							/*DedispersionPlan*/
 	int max_samps = 0;
 	int num_tchunks = 0;
 	int total_ndms = 0;
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 	int nbits = 0;
 	int nsamples = 0;
 	int nifs = 0;
-	int **t_processed;					
+	int **t_processed;						/*DedispersionPlan*/
 	int nboots = -1;
 	int ntrial_bins;
 	int navdms = 1;
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
 	long int inc = 0;
 	float tstart = 0.0f;
 	float tstart_local = 0.0f;
-	float tsamp = 0.0f;
+	float tsamp = 0.0f; 					/*DedispersionPlan*/
 	float fch1 = 0.0f;
 	float foff = 0.0f;
 	// Analysis variables

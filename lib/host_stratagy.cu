@@ -255,6 +255,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 			printf("\nIn 4\n");
 		}
 	}
+
 	printf("\nMaxshift memory needed:\t%lu MB", nchans * ( *maxshift ) * sizeof(unsigned short) / 1024 / 1024);
 	if (nchans < ( *max_ndms ))
 	{

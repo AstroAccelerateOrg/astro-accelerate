@@ -39,6 +39,16 @@ class DedispersionPlan
         void    set_dm_high(float *);
         void    set_dm_step(float *);
         void    set_dmshifts(float *);
+        void    set_range(int);
+        void    set_ndms(int *);
+        void    set_t_processed(int **);
+        void    set_tsamp(float);
+        void    set_max_ndms(int);
+        void    set_nsamp(int);
+        void    set_nchans(int);
+        void    set_fch1(float);
+        void    set_foff(float);
+
         /**
         *  @brief Getters
         */
@@ -53,11 +63,24 @@ class DedispersionPlan
         float*  get_dm_step() const;
         float*  get_dmshifts() const;
 
+        int  		get_range() const;
+        int*  	get_ndms() const;
+        int**  	get_t_processed() const;
+        float  	get_tsamp() const;
+        int  		get_max_ndms() const;
+        int  		get_nsamp() const;
+        int  		get_nchans() const;
+        float  	get_fch1() const;
+        float  	get_foff() const;
+
         /**
          * @brief Return the minimum number of samples required for the
          *        algorithm to operate
          */
         int minimum_number_of_samples() const;
+
+    private:
+        void make_strategy(float* user_dm_low, float* user_dm_high, float* user_dm_steps);
 
     private:
       /**
@@ -100,6 +123,19 @@ class DedispersionPlan
     	*  @brief
     	*/
     	float *_dmshifts;
+    	/**
+    	*  @brief
+    	*/
+    	int _range;
+    	int *_ndms;
+    	int **_t_processed;
+    	float _tsamp;
+    	int _max_ndms;
+    	int _nsamp;
+    	int _nchans;
+    	float _fch1;
+    	float _foff;
+
 };
 
 } // namespace sps
