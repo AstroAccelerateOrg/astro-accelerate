@@ -9,7 +9,7 @@ OutputData::OutputData()
     _output_buffer	= NULL;
     _outputsize 	= 0;
     _range  		= 0;
-    _t_processed;	// = NULL looks better ?
+    _t_processed = NULL;	// = NULL looks better ?
     // Gpu
     _d_output 		= NULL;
     _max_ndms 		= 0;

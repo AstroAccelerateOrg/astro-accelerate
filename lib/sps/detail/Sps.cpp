@@ -1,4 +1,4 @@
-#include "AstroAccelerate/sps/Sps.h"
+#include "../Sps.h"
 
 
 namespace ska {

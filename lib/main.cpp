@@ -10,6 +10,7 @@
 #include "AstroAccelerate/InputData.h"
 #include "AstroAccelerate/OutputData.h"
 #include "AstroAccelerate/DedispersionPlan.h"
+#include "AstroAccelerate/SpsParameters.h"
 
 
 int main(int argc, char* argv[])
@@ -25,10 +26,10 @@ int main(int argc, char* argv[])
 	int enable_periodicity = 0;
 	int output_dmt = 0;
 	int enable_zero_dm = 0;
-	int *inBin = NULL;
-	int *outBin = NULL;
+	int *inBin = NULL;						/*DedispersionPlan*/
+	int *outBin = NULL;						/*DedispersionPlan*/
 	int *ndms = NULL;
-	int maxshift = 0;					
+	int maxshift = 0;							/*DedispersionPlan*/ /*InputData*/
 	int max_ndms = 0;
 	int max_samps = 0;
 	int num_tchunks = 0;
@@ -44,14 +45,14 @@ int main(int argc, char* argv[])
 	unsigned short *input_buffer = NULL;
 	float ***output_buffer = NULL;		
 	unsigned short *d_input = NULL;		
-	float *d_output = NULL; 			
-	float *dmshifts = NULL; 			
-	float *user_dm_low = NULL;			
-	float *user_dm_high = NULL; 		
-	float *user_dm_step = NULL; 		
-	float *dm_low = NULL; 				
-	float *dm_high = NULL; 				
-	float *dm_step = NULL; 				
+	float *d_output = NULL;
+	float *dmshifts = NULL; 			/*DedispersionPlan*/
+	float *user_dm_low = NULL;		/*DedispersionPlan*/
+	float *user_dm_high = NULL; 	/*DedispersionPlan*/
+	float *user_dm_step = NULL; 	/*DedispersionPlan*/
+	float *dm_low = NULL; 				/*DedispersionPlan*/
+	float *dm_high = NULL; 				/*DedispersionPlan*/
+	float *dm_step = NULL; 				/*DedispersionPlan*/
 	// Telescope parameters
 	int nchans = 0;						
 	int nsamp = 0;						

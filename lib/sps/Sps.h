@@ -1,7 +1,7 @@
 #ifndef SKA_ASTROACCELERATE_SPS_SPS_H
 #define SKA_ASTROACCELERATE_SPS_SPS_H
 
-#include "astro_accelerate/sps/DedispersionPlan.h"
+#include "../AstroAccelerate/DedispersionPlan.h"
 
 namespace ska {
 namespace astroaccelerate {
@@ -48,6 +48,6 @@ class Sps
 } // namespace sps
 } // namespace astroaccelerate
 } // namespace ska
-#include "astro_accelerate/sps/details/Sps.cpp"
+#include "detail/Sps.cpp"
 
 #endif // SKA_ASTROACCELERATE_SPS_SPS_H

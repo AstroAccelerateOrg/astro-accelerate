@@ -5,10 +5,10 @@ BUILD_DIR	:=../build
 ASTROLIB_DIR :=../astrolib
 
 ifeq ($(cache),off)
-        NVCCFLAGS := $(INC) -g -lineinfo -Xcompiler -fopenmp -O3 -lm -arch=sm_61 --use_fast_math\
+        NVCCFLAGS := $(INC) -g -std=c++11 -lineinfo -Xcompiler -fopenmp -O3 -lm -arch=sm_61 --use_fast_math\
          --ptxas-options=-v -Xptxas -dlcm=cg
 else
-        NVCCFLAGS := $(INC) -g -lineinfo -Xcompiler -fopenmp -O3 -lm -arch=sm_61 --use_fast_math\
+        NVCCFLAGS := $(INC) -g -std=c++11 -lineinfo -Xcompiler -fopenmp -O3 -lm -arch=sm_61 --use_fast_math\
          --ptxas-options=-v -lcuda -lcudart  -lcurand -lcufft -Xptxas -dlcm=cg
 endif
 
@@ -63,9 +63,11 @@ $(BUILD_DIR)/host_statistics.o:	 		AstroAccelerate/host_statistics.h
 $(BUILD_DIR)/host_write_file.o:	 		AstroAccelerate/host_write_file.h
 
 
-$(BUILD_DIR)/host_write_file.o:	 		AstroAccelerate/InputData.h
-$(BUILD_DIR)/host_write_file.o:	 		AstroAccelerate/OutputData.h
-$(BUILD_DIR)/host_write_file.o:	 		AstroAccelerate/DedispersionPlan.h
+$(BUILD_DIR)/InputData.o:	 			AstroAccelerate/InputData.h
+$(BUILD_DIR)/OutputData.o:	 			AstroAccelerate/OutputData.h
+$(BUILD_DIR)/DedispersionPlan.o:		AstroAccelerate/DedispersionPlan.h
+$(BUILD_DIR)/SpsParameters.o:			AstroAccelerate/SpsParameters.h
+
 
 #$(BUILD_DIR)/device_main.o:	device_main.cu
 #	nvcc -c $(NVCCFLAGS) device_main.cu
@@ -80,8 +82,9 @@ $(ASTROLIB_DIR)/libastrolib.a: $(BUILD_DIR)/host_acceleration.o $(BUILD_DIR)/hos
 	$(BUILD_DIR)/host_main_function.o
 
 $(BUILD_DIR)/dedisperse-gpu: $(BUILD_DIR)/main.o $(BUILD_DIR)/InputData.o $(BUILD_DIR)/OutputData.o $(BUILD_DIR)/DedispersionPlan.o \
-	$(ASTROLIB_DIR)/libastrolib.a
-	nvcc -o $(BUILD_DIR)/dedisperse-gpu $(BUILD_DIR)/main.o $(NVCCFLAGS) $(BUILD_DIR)/InputData.o $(BUILD_DIR)/OutputData.o $(BUILD_DIR)/DedispersionPlan.o -L$(ASTROLIB_DIR)/ -lastrolib
+	$(BUILD_DIR)/SpsParameters.o $(ASTROLIB_DIR)/libastrolib.a
+	nvcc -o $(BUILD_DIR)/dedisperse-gpu $(BUILD_DIR)/main.o $(NVCCFLAGS) $(BUILD_DIR)/InputData.o $(BUILD_DIR)/OutputData.o $(BUILD_DIR)/DedispersionPlan.o \
+	$(BUILD_DIR)/SpsParameters.o -L$(ASTROLIB_DIR)/ -lastrolib
 
 clean:
 	rm -f $(BUILD_DIR)/dedisperse-gpu $(BUILD_DIR)/*.a $(BUILD_DIR)/*.o $(ASTROLIB_DIR)/*.a

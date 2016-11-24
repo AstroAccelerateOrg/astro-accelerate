@@ -61,7 +61,6 @@ class InputData
     	*/
     	unsigned short 	*_d_input;
 
-
 };
 
 } // namespace astroaccelerate
