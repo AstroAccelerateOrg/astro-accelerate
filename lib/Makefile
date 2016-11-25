@@ -67,6 +67,7 @@ $(BUILD_DIR)/InputData.o:	 			AstroAccelerate/InputData.h
 $(BUILD_DIR)/OutputData.o:	 			AstroAccelerate/OutputData.h
 $(BUILD_DIR)/DedispersionPlan.o:		AstroAccelerate/DedispersionPlan.h
 $(BUILD_DIR)/SpsParameters.o:			AstroAccelerate/SpsParameters.h
+$(BUILD_DIR)/UserInput.o:				AstroAccelerate/UserInput.h
 
 
 #$(BUILD_DIR)/device_main.o:	device_main.cu
@@ -82,9 +83,9 @@ $(ASTROLIB_DIR)/libastrolib.a: $(BUILD_DIR)/host_acceleration.o $(BUILD_DIR)/hos
 	$(BUILD_DIR)/host_main_function.o
 
 $(BUILD_DIR)/dedisperse-gpu: $(BUILD_DIR)/main.o $(BUILD_DIR)/InputData.o $(BUILD_DIR)/OutputData.o $(BUILD_DIR)/DedispersionPlan.o \
-	$(BUILD_DIR)/SpsParameters.o $(ASTROLIB_DIR)/libastrolib.a
+	$(BUILD_DIR)/SpsParameters.o $(BUILD_DIR)/UserInput.o $(ASTROLIB_DIR)/libastrolib.a
 	nvcc -o $(BUILD_DIR)/dedisperse-gpu $(BUILD_DIR)/main.o $(NVCCFLAGS) $(BUILD_DIR)/InputData.o $(BUILD_DIR)/OutputData.o $(BUILD_DIR)/DedispersionPlan.o \
-	$(BUILD_DIR)/SpsParameters.o -L$(ASTROLIB_DIR)/ -lastrolib
+	$(BUILD_DIR)/SpsParameters.o $(BUILD_DIR)/UserInput.o -L$(ASTROLIB_DIR)/ -lastrolib
 
 clean:
 	rm -f $(BUILD_DIR)/dedisperse-gpu $(BUILD_DIR)/*.a $(BUILD_DIR)/*.o $(ASTROLIB_DIR)/*.a

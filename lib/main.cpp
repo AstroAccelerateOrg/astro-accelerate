@@ -11,6 +11,7 @@
 #include "AstroAccelerate/OutputData.h"
 #include "AstroAccelerate/DedispersionPlan.h"
 #include "AstroAccelerate/SpsParameters.h"
+#include "AstroAccelerate/UserInput.h"
 
 
 int main(int argc, char* argv[])

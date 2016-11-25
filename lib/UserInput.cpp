@@ -1,21 +1,146 @@
-/* This module recieves user input from the CLI and then opens the input data file.
- * The input data file should always be the last argument on the CLI.
- */
-#include <stdio.h>
-#include "AstroAccelerate/params.h"
-#include "AstroAccelerate/host_help.h"
+#include "AstroAccelerate/UserInput.h"
 
-void get_user_input(FILE **fp, int argc, char *argv[],
-                    int *multi_file, int *enable_debug,
-                    int *enable_analysis, int *enable_periodicity,
-                    int *enable_acceleration, int *output_dmt,
-                    int *enable_zero_dm, int *nboots, int *ntrial_bins,
-                    int *navdms, float *narrow, float *wide,
-                    float *aggression, int *nsearch, int **inBin,
-                    int **outBin, float *power, float *sigma_cutoff,
-                    int *range, float **user_dm_low, float **user_dm_high,
-                    float **user_dm_step)
+
+namespace ska {
+namespace astroaccelerate {
+
+UserInput::UserInput()
 {
+	_multi_file 					= 1;
+	_enable_debug 				= 0;
+	_enable_analysis 			= 0;
+	_enable_periodicity 	= 0;
+	_enable_acceleration 	= 0;
+	_output_dm 						= 0;
+	_enable_zero_dm 			= 0;
+	_nboots 							= -1;
+	_ntrial_bins					= 0;
+	_navdms								= 1;
+	_narrow								= 0.001f;
+	_agression						= 2.5;
+	_nsearch							= 3;
+	_inBin								= NULL;
+	_outBin								= NULL;
+	_power								= 2.0f;
+	_sigma_cutoff					= 6.0f;
+	_range								= 0;
+	_user_dm_low					= NULL;
+	_user_dm_high					= NULL;
+	_user_dm_step					= NULL;
+}
+
+UserInput::~UserInput()
+{
+}
+
+int 		UserInput::get_multi_file() const
+{
+	return _multi_file;
+}
+
+int 		UserInput::get_enable_debug() const
+{
+	return _enable_debug;
+}
+
+int 		UserInput::get_enable_analysis() const
+{
+	return _enable_analysis;
+}
+
+int 		UserInput::get_enable_periodicity() const
+{
+	return _enable_periodicity;
+}
+
+int 		UserInput::get_enable_acceleration() const
+{
+	return _enable_acceleration;
+}
+
+int 		UserInput::get_output_dm() const
+{
+	return _output_dm;
+}
+
+int 		UserInput::get_enable_zero_dm() const
+{
+	return _enable_zero_dm;
+}
+
+int 		UserInput::get_nboots() const
+{
+	return _nboots;
+}
+
+int 		UserInput::get_ntrial_bons() const
+{
+	return _ntrial_bins;
+}
+
+int 		UserInput::get_navdms() const
+{
+	return _navdms;
+}
+
+int 		UserInput::get_narrow() const
+{
+	return _narrow;
+}
+
+int 		UserInput::get_agression() const
+{
+	return _agression;
+}
+
+int			UserInput::get_nsearch() const
+{
+	return _nsearch;
+}
+
+int* 		UserInput::get_inBin() const
+{
+	return _inBin;
+}
+
+int* 		UserInput::get_outBin() const
+{
+	return _outBin;
+}
+
+float 	UserInput::get_power() const
+{
+	return _power;
+}
+
+float 	UserInput::get_sigma_cutoff() const
+{
+	return _sigma_cutoff;
+}
+
+int 		UserInput::get_range() const
+{
+	return _range;
+}
+
+float*	UserInput::get_user_dm_low() const
+{
+	return _user_dm_low;
+}
+
+float*	UserInput::get_user_dm_high() const
+{
+	return _user_dm_high;
+}
+
+float* 	UserInput::get_user_dm_step() const
+{
+	return _user_dm_step;
+}
+
+void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[])
+{
+/*
 
 	FILE *fp_in = NULL;
 
@@ -62,9 +187,9 @@ void get_user_input(FILE **fp, int argc, char *argv[],
 		rewind(fp_in);
 		while (!feof(fp_in))
 		{
-			
+
 			//if (fscanf(fp_in, "%s", string) != 1)
-			//	fprintf(stderr, "failed to read string\n");		
+			//	fprintf(stderr, "failed to read string\n");
 			fscanf(fp_in, "%s", string);
 			if (strcmp(string, "debug") == 0)
 				*enable_debug = 1;
@@ -88,7 +213,7 @@ void get_user_input(FILE **fp, int argc, char *argv[],
 			if (strcmp(string, "narrow") == 0)
 			{
 				if (fscanf(fp_in, "%f", narrow) != 1)
-					fprintf(stderr, "failed to read narrow\n");	
+					fprintf(stderr, "failed to read narrow\n");
 			}
 			if (strcmp(string, "wide") == 0)
 			{
@@ -104,7 +229,7 @@ void get_user_input(FILE **fp, int argc, char *argv[],
 			{
 				if (fscanf(fp_in, "%d", navdms) != 1)
 					fprintf(stderr, "failed to read navdms\n");
-			}	
+			}
 			if (strcmp(string, "nwindows") == 0)
 			{
 				if (fscanf(fp_in, "%d", ntrial_bins) != 1)
@@ -114,12 +239,12 @@ void get_user_input(FILE **fp, int argc, char *argv[],
 			{
 				if (fscanf(fp_in, "%d", nsearch) != 1)
 					fprintf(stderr, "failed to read nsearch\n");
-			}	
+			}
 			if (strcmp(string, "aggression") == 0)
 			{
 				if (fscanf(fp_in, "%f", aggression) != 1)
 					fprintf(stderr, "failed to read aggression\n");
-			}				
+			}
 			if (strcmp(string, "power") == 0)
 			{
 				if (fscanf(fp_in, "%f", power) != 1)
@@ -148,5 +273,10 @@ void get_user_input(FILE **fp, int argc, char *argv[],
 		fprintf(stderr, "Cannot recognise input, try \"./astro-accelerate -help.\"\n");
 		exit(0);
 	}
-	//}}}
+
+
+ */
 }
+
+} // namespace astroaccelerate
+} // namespace ska

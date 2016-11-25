@@ -10,9 +10,6 @@ namespace sps {
 		_in_bin					= NULL;
 		_out_bin				= NULL;
 		_maxshift				= 0;
-	  _user_dm_low		= NULL;
-		_user_dm_high 	= NULL;
-		_user_dm_step 	= NULL;
 		_dm_low 				= NULL;
 		_dm_high 				= NULL;
 		_dm_step 				= NULL;
@@ -30,21 +27,6 @@ namespace sps {
 
 	DedispersionPlan::~DedispersionPlan()
 	{
-	}
-
-	void DedispersionPlan::set_user_dm_low(float * user_dm_low)
-	{
-		_user_dm_low = user_dm_low;
-	}
-
-	void DedispersionPlan::set_user_dm_high(float * user_dm_high)
-	{
-		_user_dm_high = user_dm_high;
-	}
-
-	void DedispersionPlan::set_user_dm_step(float * user_dm_step)
-	{
-		_user_dm_step = user_dm_step;
 	}
 
 	void DedispersionPlan::set_dm_low(float * dm_low)
@@ -128,21 +110,6 @@ namespace sps {
 		return _maxshift ;
 	}
 
-	float* DedispersionPlan::get_user_dm_low() const
-	{
-		return _user_dm_low ;
-	}
-
-	float* DedispersionPlan::get_user_dm_high() const
-	{
-		return _user_dm_high;
-	}
-
-	float* DedispersionPlan::get_user_dm_step() const
-	{
-		return _user_dm_step;
-	}
-
 	float* DedispersionPlan::get_dm_low() const
 	{
 		return _dm_low;
@@ -208,7 +175,7 @@ namespace sps {
 		return _foff;
 	}
 
-	void DedispersionPlan::make_strategy(float* user_dm_low, float* user_dm_high, float* user_dm_steps)
+	void DedispersionPlan::make_strategy(UserInput user_input)
 	{
 /*
 		// This method relies on defining points when nsamps is a multiple of
