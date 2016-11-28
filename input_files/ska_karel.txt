@@ -4,11 +4,11 @@ range	300  500  0.25 2 2
 range	500  900  0.4  2 2
 range	900  1200 0.6  4 4
 range	1200 1500 0.8  4 4
-sigma_cutoff	10
+sigma_cutoff	7
 analysis
 -acceleration
 -periodicity
 -output_dmt
 -zero_dm
 debug
-file /home/nassim/filterbank/bper_0.0025.fil
+file /home/karel/bper_0.0025.fil
