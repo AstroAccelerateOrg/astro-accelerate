@@ -140,8 +140,7 @@ float* 	UserInput::get_user_dm_step() const
 
 void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[])
 {
-/*
-
+	/*
 	FILE *fp_in = NULL;
 
 	char string[100];
@@ -273,9 +272,7 @@ void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[])
 		fprintf(stderr, "Cannot recognise input, try \"./astro-accelerate -help.\"\n");
 		exit(0);
 	}
-
-
- */
+	*/
 }
 
 } // namespace astroaccelerate

@@ -10,14 +10,9 @@ InputData::InputData()
 
 
 	// Cpu
+	_inputsize 		= 0;
 	_input_buffer	= NULL;
-    _nchans			= 0;
-	_nsamp			= 0;
-	_inputsize 		= 0;
-	_t_processed = NULL;
-	_maxshift		= 0;
 	// Gpu
-	_inputsize 		= 0;
 	_gpu_inputsize 	= 0;
 	_d_input 		= NULL;
 }

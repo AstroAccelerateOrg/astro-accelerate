@@ -27,30 +27,15 @@ class InputData
 
     private:
     	// Cpu
+    			/**
+    	*  @brief 
+    	*/
+    	size_t 			_inputsize;
     	/**
     	*  @brief 
     	*/
     	unsigned short *_input_buffer;
-    	/**
-    	*  @brief 
-    	*/
-    	int 			_nchans;
-		/**
-    	*  @brief 
-    	*/
-    	int 			_nsamp;
-		/**
-    	*  @brief 
-    	*/
-    	size_t 			_inputsize;
-		/**
-    	*  @brief 
-    	*/
-    	int 			**_t_processed;
-		/**
-    	*  @brief 
-    	*/
-    	int 			_maxshift;
+
 		// Gpu
 		/**
     	*  @brief 

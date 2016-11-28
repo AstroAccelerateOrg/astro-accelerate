@@ -37,12 +37,17 @@ class DedispersionPlan
         void    set_dm_high(float *);
         void    set_dm_step(float *);
         void    set_dmshifts(float *);
-        void    set_range(int);
         void    set_ndms(int *);
-        void    set_t_processed(int **);
-        void    set_tsamp(float);
         void    set_max_ndms(int);
+        void    set_range(int);
+        void    set_t_processed(int **);
+        void 		set_nbits(int);
+        void 		set_nifs(int);
+        void 		set_tstart(float);
+        void    set_tsamp(float);
         void    set_nsamp(int);
+        void 		set_nsamples(int);
+        void 		set_max_samps(int);
         void    set_nchans(int);
         void    set_fch1(float);
         void    set_foff(float);
@@ -57,16 +62,20 @@ class DedispersionPlan
         float*  get_dm_high() const;
         float*  get_dm_step() const;
         float*  get_dmshifts() const;
+        int* 		get_ndms() const;
+        int 		get_max_ndms() const;
         int  		get_range() const;
-        int*  	get_ndms() const;
         int**  	get_t_processed() const;
+        int 		get_nbits() const;
+        int 		get_nifs() const;
+        float 	get_tstart() const;
         float  	get_tsamp() const;
-        int  		get_max_ndms() const;
         int  		get_nsamp() const;
+        int			get_nsamples() const;
+        int 		get_max_samps() const;
         int  		get_nchans() const;
         float  	get_fch1() const;
         float  	get_foff() const;
-
         /**
          * @brief Return the minimum number of samples required for the
          *        algorithm to operate
@@ -74,50 +83,31 @@ class DedispersionPlan
         int minimum_number_of_samples() const;
 
     private:
-        void make_strategy(UserInput user_input);
+        void make_strategy(UserInput &user_input);
+        void get_file_data(FILE **fp);
 
     private:
-      /**
-      *  @brief
-      */
-      int *_in_bin;
-      /**
-      *  @brief
-      */
-      int *_out_bin;
-      /**
-      *  @brief
-      */
-      int _maxshift;
-			/**
-    	*  @brief
-    	*/
-    	float *_dm_low;
-			/**
-    	*  @brief
-    	*/
-    	float *_dm_high;
-			/**
-    	*  @brief
-    	*/
-    	float *_dm_step;
-			/**
-    	*  @brief
-    	*/
-    	float *_dmshifts;
-    	/**
-    	*  @brief
-    	*/
-    	int _range;
-    	int *_ndms;
-    	int **_t_processed;
-    	float _tsamp;
-    	int _max_ndms;
-    	int _nsamp;
-    	int _nchans;
-    	float _fch1;
-    	float _foff;
-
+      int* 		_in_bin;
+      int* 		_out_bin;
+      int 		_maxshift;
+    	float* 	_dm_low;
+    	float* 	_dm_high;
+    	float* 	_dm_step;
+    	float* 	_dmshifts;
+    	int* 		_ndms;
+    	int 		_max_ndms;
+    	int 		_range;
+    	int** 	_t_processed;
+    	int 		_nbits;
+    	int 		_nifs;
+    	float 	_tstart;
+    	float 	_tsamp;
+    	int 		_nsamp;
+    	int 		_nsamples;
+    	int 		_max_samps;
+    	int 		_nchans;
+    	float 	_fch1;
+    	float 	_foff;
 };
 
 } // namespace sps

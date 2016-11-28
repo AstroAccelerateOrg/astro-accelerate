@@ -1,181 +1,177 @@
 #include "AstroAccelerate/DedispersionPlan.h"
 
-
 namespace ska {
 namespace astroaccelerate {
 namespace sps {
 
 	DedispersionPlan::DedispersionPlan()
 	{
-		_in_bin					= NULL;
-		_out_bin				= NULL;
-		_maxshift				= 0;
-		_dm_low 				= NULL;
-		_dm_high 				= NULL;
-		_dm_step 				= NULL;
-		_dmshifts				= NULL;
-		_range					= 0;
-		_ndms						= NULL;
-		_t_processed		= NULL;
-		_tsamp					=	0.0f;
-		_max_ndms				= 0;
-		_nsamp					= 0;
-		_nchans					= 0;
-		_fch1						= 0.0f;
-		_foff						= 0.0f;
+		_in_bin 			= NULL;
+		_out_bin 			= NULL;
+		_maxshift 		= 0;
+		_dm_low 			= NULL;
+		_dm_high 			= NULL;
+		_dm_step 			= NULL;
+		_dmshifts 		= NULL;
+		_ndms 				= NULL;
+		_max_ndms 		= 0;
+		_range 				= 0;
+		_t_processed 	= NULL;
+		_nbits 				= 0;
+		_nifs 				= 0;
+		_tstart 			= 0.0f;
+		_tsamp 				= 0.0f;
+		_nsamp 				= 0;
+		_nsamples 		= 0;
+		_max_samps 		= 0;
+		_nchans 			= 0;
+		_fch1 				= 0.0f;
+		_foff 				= 0.0f;
 	}
 
 	DedispersionPlan::~DedispersionPlan()
 	{
 	}
+	void DedispersionPlan::get_file_data(FILE **fp)
+		{
+			/*
+			fpos_t file_loc;
 
-	void DedispersionPlan::set_dm_low(float * dm_low)
-	{
-		_dm_low = dm_low;
-	}
+		char *string = (char *) malloc(80 * sizeof(char));
 
-	void DedispersionPlan::set_dm_high(float * dm_high)
-	{
-		_dm_high = dm_high;
-	}
+		int nchar;
+		int nbytes = sizeof(int);
 
-	void DedispersionPlan::set_dm_step(float * dm_step)
-	{
-		_dm_step = dm_step;
-	}
+		unsigned long int total_data;
 
-	void DedispersionPlan::set_dmshifts(float * dmshifts)
-	{
-		_dmshifts = dmshifts;
-	}
+		double temp;
 
-	void DedispersionPlan::set_range(int range)
-	{
-		_range = range;
-	}
+		while (1)
+		{
+			strcpy(string, "ERROR");
+			//if (fread(&nchar, sizeof(int), 1, *fp) != 1)
+			//	fprintf(stderr, "Error while reading file\n");
+			fread(&nchar, sizeof(int), 1, *fp);
+			if (feof(*fp))
+				exit(0);
 
-	void DedispersionPlan::set_ndms(int * ndms)
-	{
-		_ndms = ndms;
-	}
+			if (nchar > 1 && nchar < 80)
+			{
+				//if (fread(string, nchar, 1, *fp) != 1)
+				//	fprintf(stderr, "Error while reading file\n");
+				fread(string, nchar, 1, *fp);
+				string[nchar] = '\0';
+				// For debugging only
+				printf("\n%d\t%s", nchar, string), fflush(stdout);
+				nbytes += nchar;
 
-	void DedispersionPlan::set_t_processed(int ** t_processed)
-	{
-		_t_processed = t_processed;
-	}
+				if (strcmp(string, "HEADER_END") == 0)
+					break;
 
-	void DedispersionPlan::set_tsamp(float tsamp)
-	{
-		_tsamp = tsamp;
-	}
+				if (strcmp(string, "tsamp") == 0)
+				{
+					if (fread(&temp, sizeof(double), 1, *fp) != 1)
+						fprintf(stderr, "Error while reading file\n");
+					*tsamp = (float) temp;
+				}
+				else if (strcmp(string, "tstart") == 0)
+				{
+					if (fread(&temp, sizeof(double), 1, *fp) != 1)
+						fprintf(stderr, "Error while reading file\n");
+					*tstart = (float) temp;
+				}
+				else if (strcmp(string, "fch1") == 0)
+				{
+					if (fread(&temp, sizeof(double), 1, *fp) != 1)
+						fprintf(stderr, "Error while reading file\n");
+					*fch1 = (float) temp;
+				}
+				else if (strcmp(string, "foff") == 0)
+				{
+					if (fread(&temp, sizeof(double), 1, *fp) != 1)
+						fprintf(stderr, "Error while reading file\n");
+					*foff = (float) temp;
+				}
+				else if (strcmp(string, "nchans") == 0)
+				{
+					if (fread(nchans, sizeof(int), 1, *fp) != 1)
+						fprintf(stderr, "Error while reading file\n");
+				}
+				else if (strcmp(string, "nifs") == 0)
+				{
+					if (fread(nifs, sizeof(int), 1, *fp) != 1)
+						fprintf(stderr, "Error while reading file\n");
+				}
+				else if (strcmp(string, "nbits") == 0)
+				{
+					if (fread(nbits, sizeof(int), 1, *fp) != 1)
+						fprintf(stderr, "Error while reading file\n");
+				}
+				else if (strcmp(string, "nsamples") == 0)
+				{
+					if (fread(nsamples, sizeof(int), 1, *fp) != 1)
+						fprintf(stderr, "Error while reading file\n");
+				}
+			}
+		}
 
-	void DedispersionPlan::set_max_ndms(int max_ndms)
-	{
-		_max_ndms = max_ndms;
-	}
+		// Check that we are working with one IF channel
+		if (*nifs != 1)
+		{
+			printf("\nERROR!! Can only work with one IF channel!\n");
+			exit(1);
+		}
 
-	void DedispersionPlan::set_nsamp(int nsamp)
-	{
-		_nsamp = nsamp;
-	}
+		fgetpos(*fp, &file_loc);
 
-	void DedispersionPlan::set_nchans(int nchans)
-	{
-		_nchans = nchans;
-	}
+		if (( *nbits ) == 32)
+		{
+			// Allocate a tempory buffer to store a line of frequency data
+			float *temp_buffer = (float *) malloc(( *nchans ) * sizeof(float));
 
-	void DedispersionPlan::set_fch1(float fch1)
-	{
-		_fch1 = fch1;
-	}
+			// Count how many time samples we have
+			total_data = 0;
+			while (!feof(*fp))
+			{
+				//if (fread(temp_buffer, sizeof(float), ( *nchans ), *fp) != ( *nchans ))
+				//	fprintf(stderr, "Error while reading file\n");
+				fread(temp_buffer, sizeof(float), ( *nchans ), *fp);
+				total_data++;
+			}
+			*nsamp = total_data - 1;
 
-	void DedispersionPlan::set_foff(float foff)
-	{
-		_foff = foff;
-	}
+			free(temp_buffer);
+		}
+		else if (( *nbits ) == 8)
+		{
+			// Allocate a tempory buffer to store a line of frequency data
+			unsigned char *temp_buffer = (unsigned char *) malloc(( *nchans ) * sizeof(unsigned char));
 
+			total_data = 0;
+			while (!feof(*fp))
+			{
+				//if (fread(temp_buffer, sizeof(unsigned char), ( *nchans ), *fp) != ( *nchans ))
+				//	fprintf(stderr, "Error while reading file\n");
+				fread(temp_buffer, sizeof(unsigned char), ( *nchans ), *fp);
+				total_data++;
+			}
+			*nsamp = total_data - 1;
 
-	int* DedispersionPlan::get_in_bin() const
-	{
-		return _in_bin;
-	}
+			free(temp_buffer);
+		}
+		else
+		{
+			printf("\n\n======================= ERROR =======================\n");
+			printf(" Currently this code only runs with 1, 8 and 32 bit data\n");
+			printf("\n=====================================================\n");
+		}
 
-	int* DedispersionPlan::get_out_bin() const
-	{
-		return _out_bin;
-	}
+		// Move the file pointer back to the end of the header
+		fsetpos(*fp, &file_loc);
 
-	int DedispersionPlan::get_maxshift() const
-	{
-		return _maxshift ;
-	}
-
-	float* DedispersionPlan::get_dm_low() const
-	{
-		return _dm_low;
-	}
-
-	float* DedispersionPlan::get_dm_high() const
-	{
-		return _dm_high;
-	}
-
-	float* DedispersionPlan::get_dm_step() const
-	{
-		return _dm_step;
-	}
-
-	float* DedispersionPlan::get_dmshifts() const
-	{
-		return _dmshifts;
-	}
-
-	int DedispersionPlan::get_range() const
-	{
-		return _range;
-	}
-
-	int* DedispersionPlan::get_ndms() const
-	{
-		return _ndms;
-	}
-
-	int** DedispersionPlan::get_t_processed() const
-	{
-		return _t_processed;
-	}
-
-	float DedispersionPlan::get_tsamp() const
-	{
-		return _tsamp;
-	}
-
-	int DedispersionPlan::get_max_ndms() const
-	{
-		return _max_ndms;
-	}
-
-	int DedispersionPlan::get_nsamp() const
-	{
-		return _nsamp;
-	}
-
-	int DedispersionPlan::get_nchans() const
-	{
-		return _nchans;
-	}
-
-	float DedispersionPlan::get_fch1() const
-	{
-		return _fch1;
-	}
-
-	float DedispersionPlan::get_foff() const
-	{
-		return _foff;
-	}
-
-	void DedispersionPlan::make_strategy(UserInput user_input)
+			 */
+		}
+	void DedispersionPlan::make_strategy(UserInput &user_input)
 	{
 /*
 		// This method relies on defining points when nsamps is a multiple of
@@ -439,6 +435,7 @@ namespace sps {
 		}
 */
 	}
+
 
 } // namespace sps
 } // namespace astroaccelerate

@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
 	int *inBin = NULL;						/*DedispersionPlan*/
 	int *outBin = NULL;						/*DedispersionPlan*/
 	int *ndms = NULL;							/*DedispersionPlan*/
-	int maxshift = 0;							/*DedispersionPlan*/ /*InputData*/
+	int maxshift = 0;							/*DedispersionPlan*/
 	int max_ndms = 0;							/*DedispersionPlan*/
 	int max_samps = 0;
 	int num_tchunks = 0;
