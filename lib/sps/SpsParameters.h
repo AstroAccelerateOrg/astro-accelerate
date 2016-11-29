@@ -1,5 +1,5 @@
-#ifndef SKA_ASTROACCELERATE_SPSPARAMETERS_H
-#define SKA_ASTROACCELERATE_SPSPARAMETERS_H
+#ifndef SKA_ASTROACCELERATE_SPS_SPSPARAMETERS_H
+#define SKA_ASTROACCELERATE_SPS_SPSPARAMETERS_H
 
 
 namespace ska {
@@ -12,6 +12,7 @@ namespace astroaccelerate {
  * 
  */
 
+template<typename DerivedType>
 class SpsParameters
 {
     public:
@@ -105,5 +106,8 @@ class SpsParameters
 
 } // namespace astroaccelerate
 } // namespace ska
+
+
+#include "detail/SpsParameters.cpp"
 
 #endif // SKA_ASTROACCELERATE_TOOLS_SPSPARAMETERS_H

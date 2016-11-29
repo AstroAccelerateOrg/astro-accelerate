@@ -1,4 +1,4 @@
-#include "AstroAccelerate/UserInput.h"
+#include "../UserInput.h"
 
 
 namespace ska {

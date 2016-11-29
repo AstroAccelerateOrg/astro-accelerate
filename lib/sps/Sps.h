@@ -1,7 +1,7 @@
 #ifndef SKA_ASTROACCELERATE_SPS_SPS_H
 #define SKA_ASTROACCELERATE_SPS_SPS_H
 
-#include "../AstroAccelerate/DedispersionPlan.h"
+#include "DedispersionPlan.h"
 
 namespace ska {
 namespace astroaccelerate {
@@ -29,7 +29,7 @@ template<typename SpsParameterType>
 class Sps
 {
     public:
-        typedef float*** DataInputType;
+        typedef unsigned short* DataInputType;
         typedef float*** DataOutputType;
 
     public:
@@ -40,7 +40,8 @@ class Sps
          * @brief perform dedispersion and an sps search
          */
         template<typename SpsHandler, typename DmHandler>
-        void operator()(DeviceId, DataInputType const&, DataOutputType&, DedispersionPlan const&, SpsHandler, DmHandler);
+        void operator()(unsigned device_id, DataInputType const&, DataOutputType&,
+                        DedispersionPlan const&, SpsHandler, DmHandler);
 
     private:
 };

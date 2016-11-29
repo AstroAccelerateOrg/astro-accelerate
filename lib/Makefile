@@ -22,7 +22,7 @@ all:	${BUILD_DIR} $(BUILD_DIR)/dedisperse-gpu ${ASTROLIB_DIR} ${ASTROLIB_DIR}/li
 $(BUILD_DIR)/%.o : %.cu
 	nvcc -o $@ -c $(NVCCFLAGS) $< 
 
-$(BUILD_DIR)/%.o : %.cpp
+$(BUILD_DIR)/%.o : sps/detail/%.cpp
 	nvcc -o $@ -c $(NVCCFLAGS) $<
 
 ${ASTROLIB_DIR}:
@@ -63,11 +63,11 @@ $(BUILD_DIR)/host_statistics.o:	 		AstroAccelerate/host_statistics.h
 $(BUILD_DIR)/host_write_file.o:	 		AstroAccelerate/host_write_file.h
 
 
-$(BUILD_DIR)/InputData.o:	 			AstroAccelerate/InputData.h
-$(BUILD_DIR)/OutputData.o:	 			AstroAccelerate/OutputData.h
-$(BUILD_DIR)/DedispersionPlan.o:		AstroAccelerate/DedispersionPlan.h
-$(BUILD_DIR)/SpsParameters.o:			AstroAccelerate/SpsParameters.h
-$(BUILD_DIR)/UserInput.o:				AstroAccelerate/UserInput.h
+$(BUILD_DIR)/InputData.o:	 			sps/InputData.h
+$(BUILD_DIR)/OutputData.o:	 			sps/OutputData.h
+$(BUILD_DIR)/DedispersionPlan.o:		sps/DedispersionPlan.h
+$(BUILD_DIR)/SpsParameters.o:			sps/SpsParameters.h
+$(BUILD_DIR)/UserInput.o:				sps/UserInput.h
 
 
 #$(BUILD_DIR)/device_main.o:	device_main.cu

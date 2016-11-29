@@ -7,11 +7,11 @@
 #include "AstroAccelerate/host_get_recorded_data.h"
 #include "AstroAccelerate/params.h"
 
-#include "AstroAccelerate/InputData.h"
-#include "AstroAccelerate/OutputData.h"
-#include "AstroAccelerate/DedispersionPlan.h"
-#include "AstroAccelerate/SpsParameters.h"
-#include "AstroAccelerate/UserInput.h"
+#include "sps/InputData.h"
+#include "sps/OutputData.h"
+#include "sps/DedispersionPlan.h"
+#include "sps/SpsParameters.h"
+#include "sps/UserInput.h"
 
 
 int main(int argc, char* argv[])
@@ -129,6 +129,7 @@ int main(int argc, char* argv[])
 
 	main_function
 	(
+
 	  argc, argv,
 	  // Internal code variables
 	  // File pointers

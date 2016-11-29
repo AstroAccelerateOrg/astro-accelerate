@@ -1,4 +1,4 @@
-#include "AstroAccelerate/DedispersionPlan.h"
+#include "../DedispersionPlan.h"
 
 namespace ska {
 namespace astroaccelerate {
@@ -27,151 +27,16 @@ namespace sps {
 		_nchans 			= 0;
 		_fch1 				= 0.0f;
 		_foff 				= 0.0f;
+		_num_tchunks  = 0;
 	}
 
 	DedispersionPlan::~DedispersionPlan()
 	{
 	}
-	void DedispersionPlan::get_file_data(FILE **fp)
-		{
-			/*
-			fpos_t file_loc;
 
-		char *string = (char *) malloc(80 * sizeof(char));
+	unsigned int DedispersionPlan::get_num_tchunks() const{return _num_tchunks;}
 
-		int nchar;
-		int nbytes = sizeof(int);
-
-		unsigned long int total_data;
-
-		double temp;
-
-		while (1)
-		{
-			strcpy(string, "ERROR");
-			//if (fread(&nchar, sizeof(int), 1, *fp) != 1)
-			//	fprintf(stderr, "Error while reading file\n");
-			fread(&nchar, sizeof(int), 1, *fp);
-			if (feof(*fp))
-				exit(0);
-
-			if (nchar > 1 && nchar < 80)
-			{
-				//if (fread(string, nchar, 1, *fp) != 1)
-				//	fprintf(stderr, "Error while reading file\n");
-				fread(string, nchar, 1, *fp);
-				string[nchar] = '\0';
-				// For debugging only
-				printf("\n%d\t%s", nchar, string), fflush(stdout);
-				nbytes += nchar;
-
-				if (strcmp(string, "HEADER_END") == 0)
-					break;
-
-				if (strcmp(string, "tsamp") == 0)
-				{
-					if (fread(&temp, sizeof(double), 1, *fp) != 1)
-						fprintf(stderr, "Error while reading file\n");
-					*tsamp = (float) temp;
-				}
-				else if (strcmp(string, "tstart") == 0)
-				{
-					if (fread(&temp, sizeof(double), 1, *fp) != 1)
-						fprintf(stderr, "Error while reading file\n");
-					*tstart = (float) temp;
-				}
-				else if (strcmp(string, "fch1") == 0)
-				{
-					if (fread(&temp, sizeof(double), 1, *fp) != 1)
-						fprintf(stderr, "Error while reading file\n");
-					*fch1 = (float) temp;
-				}
-				else if (strcmp(string, "foff") == 0)
-				{
-					if (fread(&temp, sizeof(double), 1, *fp) != 1)
-						fprintf(stderr, "Error while reading file\n");
-					*foff = (float) temp;
-				}
-				else if (strcmp(string, "nchans") == 0)
-				{
-					if (fread(nchans, sizeof(int), 1, *fp) != 1)
-						fprintf(stderr, "Error while reading file\n");
-				}
-				else if (strcmp(string, "nifs") == 0)
-				{
-					if (fread(nifs, sizeof(int), 1, *fp) != 1)
-						fprintf(stderr, "Error while reading file\n");
-				}
-				else if (strcmp(string, "nbits") == 0)
-				{
-					if (fread(nbits, sizeof(int), 1, *fp) != 1)
-						fprintf(stderr, "Error while reading file\n");
-				}
-				else if (strcmp(string, "nsamples") == 0)
-				{
-					if (fread(nsamples, sizeof(int), 1, *fp) != 1)
-						fprintf(stderr, "Error while reading file\n");
-				}
-			}
-		}
-
-		// Check that we are working with one IF channel
-		if (*nifs != 1)
-		{
-			printf("\nERROR!! Can only work with one IF channel!\n");
-			exit(1);
-		}
-
-		fgetpos(*fp, &file_loc);
-
-		if (( *nbits ) == 32)
-		{
-			// Allocate a tempory buffer to store a line of frequency data
-			float *temp_buffer = (float *) malloc(( *nchans ) * sizeof(float));
-
-			// Count how many time samples we have
-			total_data = 0;
-			while (!feof(*fp))
-			{
-				//if (fread(temp_buffer, sizeof(float), ( *nchans ), *fp) != ( *nchans ))
-				//	fprintf(stderr, "Error while reading file\n");
-				fread(temp_buffer, sizeof(float), ( *nchans ), *fp);
-				total_data++;
-			}
-			*nsamp = total_data - 1;
-
-			free(temp_buffer);
-		}
-		else if (( *nbits ) == 8)
-		{
-			// Allocate a tempory buffer to store a line of frequency data
-			unsigned char *temp_buffer = (unsigned char *) malloc(( *nchans ) * sizeof(unsigned char));
-
-			total_data = 0;
-			while (!feof(*fp))
-			{
-				//if (fread(temp_buffer, sizeof(unsigned char), ( *nchans ), *fp) != ( *nchans ))
-				//	fprintf(stderr, "Error while reading file\n");
-				fread(temp_buffer, sizeof(unsigned char), ( *nchans ), *fp);
-				total_data++;
-			}
-			*nsamp = total_data - 1;
-
-			free(temp_buffer);
-		}
-		else
-		{
-			printf("\n\n======================= ERROR =======================\n");
-			printf(" Currently this code only runs with 1, 8 and 32 bit data\n");
-			printf("\n=====================================================\n");
-		}
-
-		// Move the file pointer back to the end of the header
-		fsetpos(*fp, &file_loc);
-
-			 */
-		}
-	void DedispersionPlan::make_strategy(UserInput &user_input)
+	void DedispersionPlan::make_strategy()
 	{
 /*
 		// This method relies on defining points when nsamps is a multiple of

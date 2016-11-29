@@ -2,7 +2,6 @@
 #define SKA_ASTROACCELERATE_SPS_DEDISPERSIONPLAN_H
 
 #include <stdio.h>
-#include "UserInput.h"
 
 namespace ska {
 namespace astroaccelerate {
@@ -26,6 +25,9 @@ class DedispersionPlan
         *  @brief Destructor
         */
         ~DedispersionPlan();
+
+        void add_range(float begin, float end, float step);
+        // add 1 to in and out_bin
 
         /**
 	       *  @brief Setters
@@ -51,31 +53,35 @@ class DedispersionPlan
         void    set_nchans(int);
         void    set_fch1(float);
         void    set_foff(float);
+        void 		set_num_tchunks(unsigned int);
+
 
         /**
         *  @brief Getters
         */
-        int*		get_in_bin() const;
-        int* 		get_out_bin() const;
-        int 		get_maxshift() const;
-        float*  get_dm_low() const;
-        float*  get_dm_high() const;
-        float*  get_dm_step() const;
-        float*  get_dmshifts() const;
-        int* 		get_ndms() const;
-        int 		get_max_ndms() const;
-        int  		get_range() const;
-        int**  	get_t_processed() const;
-        int 		get_nbits() const;
-        int 		get_nifs() const;
-        float 	get_tstart() const;
-        float  	get_tsamp() const;
-        int  		get_nsamp() const;
-        int			get_nsamples() const;
-        int 		get_max_samps() const;
-        int  		get_nchans() const;
-        float  	get_fch1() const;
-        float  	get_foff() const;
+        int*					get_in_bin() const;
+        int* 					get_out_bin() const;
+        int 					get_maxshift() const;
+        float*  			get_dm_low() const;
+        float*  			get_dm_high() const;
+        float*  			get_dm_step() const;
+        float*  			get_dmshifts() const;
+        int* 					get_ndms() const;
+        int 					get_max_ndms() const;
+        int  					get_range() const;
+        int**  				get_t_processed() const;
+        int 					get_nbits() const;
+        int 					get_nifs() const;
+        float 				get_tstart() const;
+        float  				get_tsamp() const;
+        int  					get_nsamp() const;
+        int						get_nsamples() const;
+        int 					get_max_samps() const;
+        int  					get_nchans() const;
+        float  				get_fch1() const;
+        float  				get_foff() const;
+      	unsigned int 	get_num_tchunks() const;
+
         /**
          * @brief Return the minimum number of samples required for the
          *        algorithm to operate
@@ -83,7 +89,6 @@ class DedispersionPlan
         int minimum_number_of_samples() const;
 
     private:
-        void make_strategy(UserInput &user_input);
         void get_file_data(FILE **fp);
 
     private:
@@ -108,10 +113,12 @@ class DedispersionPlan
     	int 		_nchans;
     	float 	_fch1;
     	float 	_foff;
+    	unsigned int 		_num_tchunks;
+    	// add num_tchunks
 };
 
 } // namespace sps
 } // namespace astroaccelerate
 } // namespace ska
 
-#endif // SKA_ASTROACCELERATE_SPS_DEDISPERSIONPLAN_H
+#endif // SKA_ASTROACCELERATE_DEDISPERSIONPLAN_H

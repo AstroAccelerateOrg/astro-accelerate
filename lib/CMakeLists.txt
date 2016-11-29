@@ -4,7 +4,7 @@ include(subpackage)
 set(ASTRO_ACCELERATE_LIBRARIES ${CMAKE_PROJECT_NAME} ${DEPENDENCY_LIBRARIES})
 
 # define the astro_accelerate test_utils libraries
-set(ASTRO_ACCELERATE_TEST_UTILS ${CMAKE_PROJECT_NAME}_test_utils)
+#set(ASTRO_ACCELERATE_TEST_UTILS ${CMAKE_PROJECT_NAME}_test_utils)
 #list(APPEND ASTRO_ACCELERATE_TEST_UTILS ${PANDA_TEST_LIBRARIES})
 
 # ensure we can access our headers with #include "AstroAccelerate/...."
@@ -15,7 +15,7 @@ include_directories(${PROJECT_BINARY_DIR})
 # in dependency order
 include(Backward.cmake)
 #SUBPACKAGE(utils) # not dependent on any other subpackage
-SUBPACKGE(sps)
+SUBPACKAGE(sps)
 
 # should come after all SUBPACKGE directives
 include_subpackage_files()

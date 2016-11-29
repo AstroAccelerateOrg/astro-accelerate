@@ -1,4 +1,4 @@
-#include "AstroAccelerate/OutputData.h"
+#include "../OutputData.h"
 
 namespace ska {
 namespace astroaccelerate {

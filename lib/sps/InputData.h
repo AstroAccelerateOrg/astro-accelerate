@@ -1,5 +1,5 @@
-#ifndef SKA_ASTROACCELERATE_INPUTDATA_H
-#define SKA_ASTROACCELERATE_INPUTDATA_H
+#ifndef SKA_ASTROACCELERATE_SPS_INPUTDATA_H
+#define SKA_ASTROACCELERATE_SPS_INPUTDATA_H
 
 #include <stdio.h>
 
@@ -47,6 +47,7 @@ class InputData
     	unsigned short 	*_d_input;
 
 };
+
 
 } // namespace astroaccelerate
 } // namespace ska
