@@ -1,6 +1,9 @@
-#include <panda/test/gtest.h>
+#include <gtest/gtest.h>
 
 int main(int argc, char* argv[])
 {
-    return ska::panda::test::panda_gtest_main(argc, argv);
+    testing::InitGoogleTest(&argc, argv);
+
+    return RUN_ALL_TESTS();
 }
+
