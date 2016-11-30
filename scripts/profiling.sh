@@ -47,6 +47,7 @@ do
 					cd ../scripts/
 
 					./astro-accelerate.sh ../input_files/ska_tune.txt > profile_results/u"$unroll"_a"$acc"_t"$divint"_dm"$divindm"_r"$regcount".dat
+					cp ../lib/AstroAccelerate/params.h profile_results/u"$unroll"_a"$acc"_t"$divint"_dm"$divindm"_r"$regcount".h
 			
 					echo "unrolls: $unroll	acc: $acc    divint: $divint    divindm: $divindm    reg: $regcount"
 			
@@ -55,3 +56,14 @@ do
 		done
 	done
 done
+
+optimum=$(grep "Real" * | awk -F" " '{print $4" "$1}' | sort -n | tail -1 | awk -F" " '{print $2}' | awk -F"." '{print $1".h"}')
+
+cp profile_results/$optimum ../lib/AstroAccelerate/params.h
+cd ../lib
+pwd
+make clean
+regcount=$(make -j 16 2>&1 | grep -A2 shared_dedisperse_kernel | tail -1 | awk -F" " '{print $5}')
+cd ../scripts/
+
+
