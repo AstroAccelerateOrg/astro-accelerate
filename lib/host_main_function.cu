@@ -13,6 +13,7 @@
 #include "AstroAccelerate/device_SNR_limited.h" //Added by KA
 #include "AstroAccelerate/device_threshold.h" //Added by KA
 #include "AstroAccelerate/device_single_FIR.h" //Added by KA
+#include "AstroAccelerate/device_analysis.h" //Added by KA
 
 #include "AstroAccelerate/device_load_data.h"
 #include "AstroAccelerate/device_corner_turn.h"
@@ -195,8 +196,14 @@ void main_function
 
 			if (output_dmt == 1)
 				write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
-			if (enable_analysis == 1)
-				analysis(dm_range, tstart_local, t_processed[dm_range][t], ( t_processed[dm_range][t] + maxshift ), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, d_output, dm_low, dm_high, dm_step, tsamp);
+			if (enable_analysis == 1) {
+				analysis_GPU(dm_range, tstart_local, t_processed[dm_range][t], ( t_processed[dm_range][t] + maxshift ), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, d_output, dm_low, dm_high, dm_step, tsamp);
+				
+				// This is for testing purposes and should be removed or commented out
+				//analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
+				
+				
+			}
 			oldBin = inBin[dm_range];
 		}
 
