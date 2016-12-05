@@ -10,5 +10,6 @@ analysis
 -periodicity
 -output_dmt
 -zero_dm
+-rfi
 debug
 file /home/karel/bper_0.0025.fil

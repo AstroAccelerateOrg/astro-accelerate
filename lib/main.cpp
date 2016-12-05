@@ -21,6 +21,7 @@ int main(int argc, char* argv[])
 	int enable_periodicity = 0;
 	int output_dmt = 0;
 	int enable_zero_dm = 0;
+	int enable_rfi;
 	int *inBin = NULL;
 	int *outBin = NULL;
 	int *ndms = NULL;
@@ -78,8 +79,8 @@ int main(int argc, char* argv[])
 
 	// Users desired de-dispersion strategy. Pick up user defined values from the CLI.
 	get_user_input(&fp, argc, argv, &multi_file, &enable_debug, &enable_analysis,
-	    &enable_periodicity, &enable_acceleration, &output_dmt, &enable_zero_dm, &nboots,
-	    &ntrial_bins, &navdms, &narrow, &wide, &aggression, &nsearch, &inBin,
+	    &enable_periodicity, &enable_acceleration, &output_dmt, &enable_zero_dm, &enable_rfi,
+	    &nboots, &ntrial_bins, &navdms, &narrow, &wide, &aggression, &nsearch, &inBin,
 	    &outBin, &power, &sigma_cutoff, &range, &user_dm_low, &user_dm_high,
 	    &user_dm_step);
 	if (enable_debug == 1)
