@@ -12,5 +12,6 @@ analysis
 -periodicity
 -output_dmt
 -zero_dm
+-rfi
 debug
 file /home/nassim/filterbank/ska-mid-b2.fil

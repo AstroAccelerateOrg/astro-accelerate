@@ -54,6 +54,7 @@ void main_function
 	int enable_periodicity,
 	int output_dmt,
 	int enable_zero_dm,
+	int enable_rfi,
 	int *inBin,
 	int *outBin,
 	int *ndms,
@@ -162,7 +163,8 @@ void main_function
 		//rfi((t_processed[0][t]+maxshift), nchans, &tmp);
 
 		load_data(-1, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
-		zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
+		if (enable_zero_dm)
+			zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
 		corner_turn(d_input, d_output, nchans, t_processed[0][t] + maxshift);
 		int oldBin = 1;
 		for (dm_range = 0; dm_range < range; dm_range++)

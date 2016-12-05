@@ -19,6 +19,7 @@ void main_function
 	int enable_periodicity,
 	int output_dmt,
 	int enable_zero_dm,
+	int enable_rfi,
 	int *inBin,
 	int *outBin,
 	int *ndms,
