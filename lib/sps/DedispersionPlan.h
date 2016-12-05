@@ -32,29 +32,30 @@ class DedispersionPlan
         /**
 	       *  @brief Setters
 	      */
-        void 		set_in_bin(int *);
-        void 		set_out_bin(int *);
-        void 		set_maxshift(int);
-        void    set_dm_low(float *);
-        void    set_dm_high(float *);
-        void    set_dm_step(float *);
-        void    set_dmshifts(float *);
-        void    set_ndms(int *);
-        void    set_max_ndms(int);
-        void    set_range(int);
-        void    set_t_processed(int **);
-        void 		set_nbits(int);
-        void 		set_nifs(int);
-        void 		set_tstart(float);
-        void    set_tsamp(float);
-        void    set_nsamp(int);
-        void 		set_nsamples(int);
-        void 		set_max_samps(int);
-        void    set_nchans(int);
-        void    set_fch1(float);
-        void    set_foff(float);
-        void 		set_num_tchunks(unsigned int);
-
+        void 					set_in_bin(int *);
+        void 					set_out_bin(int *);
+        void 					set_maxshift(int);
+        void    			set_dm_low(float *);
+        void    			set_dm_high(float *);
+        void    			set_dm_step(float *);
+        void    			set_dmshifts(float *);
+        void    			set_ndms(int *);
+        void    			set_max_ndms(int);
+        void 					set_total_ndms(int);
+        void    			set_range(int);
+        void    			set_t_processed(int **);
+        void 					set_nbits(int);
+        void 					set_nifs(int);
+        void 					set_tstart(float);
+        void    			set_tsamp(float);
+        void    			set_nsamp(int);
+        void 					set_nsamples(int);
+        void 					set_max_samps(int);
+        void    			set_nchans(int);
+        void    			set_fch1(float);
+        void    			set_foff(float);
+        void 					set_num_tchunks(unsigned int);
+        void					set_power(float);
 
         /**
         *  @brief Getters
@@ -68,6 +69,7 @@ class DedispersionPlan
         float*  			get_dmshifts() const;
         int* 					get_ndms() const;
         int 					get_max_ndms() const;
+        int 					get_total_ndms() const;
         int  					get_range() const;
         int**  				get_t_processed() const;
         int 					get_nbits() const;
@@ -81,6 +83,7 @@ class DedispersionPlan
         float  				get_fch1() const;
         float  				get_foff() const;
       	unsigned int 	get_num_tchunks() const;
+      	float					get_power() const;
 
         /**
          * @brief Return the minimum number of samples required for the
@@ -89,7 +92,7 @@ class DedispersionPlan
         int minimum_number_of_samples() const;
 
     private:
-        void get_file_data(FILE **fp);
+        void make_strategy(float*, float*, float*, size_t);
 
     private:
       int* 		_in_bin;
@@ -101,6 +104,8 @@ class DedispersionPlan
     	float* 	_dmshifts;
     	int* 		_ndms;
     	int 		_max_ndms;
+    	int 		_total_ndms;
+    	float 	_max_dm;
     	int 		_range;
     	int** 	_t_processed;
     	int 		_nbits;
@@ -114,6 +119,7 @@ class DedispersionPlan
     	float 	_fch1;
     	float 	_foff;
     	unsigned int 		_num_tchunks;
+    	float 	_power;
     	// add num_tchunks
 };
 

@@ -35,31 +35,12 @@ class OutputData
     	*  @brief 
     	*/
     	size_t 	_outputsize;
-    	/**
-    	*  @brief 
-    	*/
-    	int		_range;
-    	/**
-    	*  @brief 
-    	*/
-    	int		**_t_processed;
+
     	// Gpu
     	/**
     	*  @brief 
     	*/
     	float 	*_d_output;
-    	/**
-    	*  @brief 
-    	*/
-    	int		_max_ndms;
-    	/**
-    	*  @brief 
-    	*/
-    	int 	_maxshift;
-    	/**
-    	*  @brief 
-    	*/
-    	int 	_nchans;
     	/**
     	*  @brief 
     	*/

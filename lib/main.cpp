@@ -7,31 +7,24 @@
 #include "AstroAccelerate/host_get_recorded_data.h"
 #include "AstroAccelerate/params.h"
 
-#include "sps/InputData.h"
-#include "sps/OutputData.h"
-#include "sps/DedispersionPlan.h"
-#include "sps/SpsParameters.h"
-#include "sps/UserInput.h"
-
-
 int main(int argc, char* argv[])
 {
 	// Internal code variables
 	// File pointers
 	FILE *fp = NULL;
 	// Counters and flags
-	int range = 0; 								/*DedispersionPlan*/
+	int range = 0;
 	int enable_debug = 0;
 	int enable_analysis = 0;
 	int enable_acceleration = 0;
 	int enable_periodicity = 0;
 	int output_dmt = 0;
 	int enable_zero_dm = 0;
-	int *inBin = NULL;						/*DedispersionPlan*/
-	int *outBin = NULL;						/*DedispersionPlan*/
-	int *ndms = NULL;							/*DedispersionPlan*/
-	int maxshift = 0;							/*DedispersionPlan*/
-	int max_ndms = 0;							/*DedispersionPlan*/
+	int *inBin = NULL;
+	int *outBin = NULL;
+	int *ndms = NULL;
+	int maxshift = 0;
+	int max_ndms = 0;
 	int max_samps = 0;
 	int num_tchunks = 0;
 	int total_ndms = 0;
@@ -47,20 +40,20 @@ int main(int argc, char* argv[])
 	float ***output_buffer = NULL;		
 	unsigned short *d_input = NULL;		
 	float *d_output = NULL;
-	float *dmshifts = NULL; 			/*DedispersionPlan*/
-	float *user_dm_low = NULL;		/*DedispersionPlan*/
-	float *user_dm_high = NULL; 	/*DedispersionPlan*/
-	float *user_dm_step = NULL; 	/*DedispersionPlan*/
-	float *dm_low = NULL; 				/*DedispersionPlan*/
-	float *dm_high = NULL; 				/*DedispersionPlan*/
-	float *dm_step = NULL; 				/*DedispersionPlan*/
+	float *dmshifts = NULL;
+	float *user_dm_low = NULL;
+	float *user_dm_high = NULL;
+	float *user_dm_step = NULL;
+	float *dm_low = NULL;
+	float *dm_high = NULL;
+	float *dm_step = NULL;
 	// Telescope parameters
 	int nchans = 0;						
 	int nsamp = 0;						
 	int nbits = 0;
 	int nsamples = 0;
 	int nifs = 0;
-	int **t_processed;						/*DedispersionPlan*/
+	int **t_processed;
 	int nboots = -1;
 	int ntrial_bins;
 	int navdms = 1;
@@ -73,7 +66,7 @@ int main(int argc, char* argv[])
 	long int inc = 0;
 	float tstart = 0.0f;
 	float tstart_local = 0.0f;
-	float tsamp = 0.0f; 					/*DedispersionPlan*/
+	float tsamp = 0.0f;
 	float fch1 = 0.0f;
 	float foff = 0.0f;
 	// Analysis variables

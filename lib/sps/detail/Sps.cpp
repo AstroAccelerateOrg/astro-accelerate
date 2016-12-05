@@ -1,7 +1,5 @@
 #include "../Sps.h"
 
-
-
 namespace ska {
 namespace astroaccelerate {
 namespace sps {
@@ -21,14 +19,11 @@ template<typename SpsHandler, typename DmHandler>
 void Sps<SpsParameterType>::operator()( unsigned device_id, DataInputType const&,
                                   DataOutputType&, DedispersionPlan const &dedispersion_plan,
                                   SpsHandler, DmHandler)
-{/*
-		// Initialise the GPU.
-		//init_gpu(argc, argv, enable_debug, &gpu_memory);
-
-
+{
+	/*
 		// Initialise the GPU.
 		size_t gpu_memory=0;
-		cudaMemGetInfo(&gpu_memory, &total);
+		init_gpu(device_id, &gpu_memory);
 
 		// Allocate memory on host and device.
 		allocate_memory_cpu_output(&fp, gpu_memory, maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output,
@@ -62,7 +57,7 @@ void Sps<SpsParameterType>::operator()( unsigned device_id, DataInputType const&
 				zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
 			corner_turn(d_input, d_output, nchans, t_processed[0][t] + maxshift);
 			int oldBin = 1;
-			for (dm_range = 0; dm_range < range; dm_range++)
+			for (dm_range = 0; dm_range < range; ++dm_range)
 			{
 				//printf("\n\n%f\t%f\t%f\t%d", dm_low[dm_range], dm_high[dm_range], dm_step[dm_range], ndms[dm_range]), fflush(stdout);
 				//printf("\nAmount of telescope time processed: %f", tstart_local);
@@ -86,7 +81,7 @@ void Sps<SpsParameterType>::operator()( unsigned device_id, DataInputType const&
 				//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
 
 	//#pragma omp parallel for
-				for (int k = 0; k < ndms[dm_range]; k++)
+				for (int k = 0; k < ndms[dm_range]; ++k)
 				{
 					memcpy(&output_buffer[dm_range][k][inc / inBin[dm_range]], &out_tmp[k * t_processed[dm_range][t]], sizeof(float) * t_processed[dm_range][t]);
 				}

@@ -14,7 +14,7 @@ if(ENABLE_CUDA)
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
   # Pass options to NVCC ( -ccbin /path  --compiler-options -lfftw3f --compiler-options -lm --verbose)
-  list(APPEND CUDA_NVCC_FLAGS -DENABLE_CUDA --std c++11)
+  list(APPEND CUDA_NVCC_FLAGS -DENABLE_CUDA -g -std=c++11 -lineinfo -Xcompiler -fopenmp -O3 -lm -arch=sm_61 --use_fast_math --ptxas-options=-v -Xptxas -dlcm=cg)
   list(APPEND CUDA_NVCC_FLAGS_DEBUG --debug; --device-debug; --generate-line-info -Xcompiler)
   #list(APPEND CUDA_NVCC_FLAGS_DEBUG --debug; --device-debug; --generate-line-info -Xcompiler "-Werror")
 
