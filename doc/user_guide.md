@@ -41,7 +41,7 @@ $ make clean && make -j 8
 
 = Test files
 
-Create test files:
+Create test files, such as:
 
 fake -nbits 32 -tobs 60 -dm 45 -tsamp 491.52 -fch1 151 -foff 0.012207031250 -nchans 2592 -period 500 -snrpeak 0.5 > lotaas_500_0.5.dat
 fake -nbits 32 -tobs 60 -dm 45 -tsamp 491.52 -fch1 151 -foff 0.012207031250 -nchans 2592 -period 500 -snrpeak 1 > lotaas_500_1.dat
@@ -50,7 +50,7 @@ fake -nbits 32 -tobs 60 -dm 45 -tsamp 491.52 -fch1 151 -foff 0.012207031250 -nch
 
 = Input file
 
-You need an input file to run the code
+To run the code, you need an input file which looks like this: 
 
 range   0    60    0.050 1  1
 range   60   120   0.050 2  2
@@ -66,9 +66,8 @@ rfi
 debug
 file <location of your filterbank file>
 
-Not that a "-" in front of a keyword switches a feature off.
-Let me explain this line by line.
-To switch a fea
+To switch a feature off, add a "-" in front of the associated keyword.
+Here are some explanations about the keywords:
 
 range <start dm> <end dm> <dm step size> <decimation in time, in f,t input> <decimation in time, in dm,t output>:
 The above example "bins" at about 6x the diagonal dm in this example.
@@ -82,6 +81,12 @@ this changes the 1/f^2 to 1/f^power in the dm trial.
 analysis:
 This turns on and off the single pulse search.
 
+acceleration:
+[Insert appropriate description]
+
+periodicity:
+This looks for periodic things.
+
 output_dmt:
 This outputs the de-dispersed space into a ASCII text file.
 
@@ -94,9 +99,6 @@ rfi:
 debug:
 This outputs lots of info
 
-periodicity:
-This looks for periodic things.
-
 file:
 This is the location of the input file.
 
@@ -106,6 +108,6 @@ A script "profiling.sh" is provided. It runs the code several times with differe
 
 = Run the code
 
-Go to the script directory and run the 
-
+Go to the script directory and type the following command to run the code:
+$ ./astro-accelerate.sh ./lotaas_18.txt
 
