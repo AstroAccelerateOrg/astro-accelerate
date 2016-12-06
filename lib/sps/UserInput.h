@@ -5,6 +5,7 @@
 
 namespace ska {
 namespace astroaccelerate {
+namespace	sps{
 
 /**
  * @brief
@@ -81,6 +82,7 @@ class UserInput
         float*	_user_dm_step;
 };
 
+} // namespace sps
 } // namespace astroaccelerate
 } // namespace ska
 

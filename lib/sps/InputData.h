@@ -5,6 +5,8 @@
 
 namespace ska {
 namespace astroaccelerate {
+namespace sps{
+
 
 /**
  * @brief 	Input Data
@@ -24,31 +26,33 @@ class InputData
         *  @brief Destructor 
         */
         ~InputData();
+        /**
+        *  @brief Setters
+        */
+        void set_input_size(size_t);
+        void set_input_buffer(unsigned short*);
+        void set_gpu_input_size(size_t);
+        void set_d_input(unsigned short*);
+        /**
+        *  @brief Getters
+        */
+        size_t get_input_size() const;
+        unsigned short* get_input_buffer() const;
+        size_t get_gpu_input_size() const;
+        unsigned short* get_d_input() const;
+
 
     private:
     	// Cpu
-    			/**
-    	*  @brief 
-    	*/
-    	size_t 			_inputsize;
-    	/**
-    	*  @brief 
-    	*/
+    	size_t 			_input_size;
     	unsigned short *_input_buffer;
-
 		// Gpu
-		/**
-    	*  @brief 
-    	*/
-    	size_t			_gpu_inputsize;
-		/**
-    	*  @brief 
-    	*/
+    	size_t			_gpu_input_size;
     	unsigned short 	*_d_input;
 
 };
 
-
+} // namespace sps
 } // namespace astroaccelerate
 } // namespace ska
 

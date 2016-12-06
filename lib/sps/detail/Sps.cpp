@@ -22,7 +22,7 @@ void Sps<SpsParameterType>::operator()( unsigned device_id, DataInputType const&
 {
 	/*
 		// Initialise the GPU.
-		size_t gpu_memory=0;
+		size_t gpu_memory = 0;
 		init_gpu(device_id, &gpu_memory);
 
 		// Allocate memory on host and device.

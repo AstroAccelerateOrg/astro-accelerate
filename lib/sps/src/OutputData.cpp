@@ -2,6 +2,8 @@
 
 namespace ska {
 namespace astroaccelerate {
+namespace sps{
+
 
 OutputData::OutputData()
 {
@@ -17,5 +19,6 @@ OutputData::~OutputData()
 {
 }
 
+}
 } // namespace astroaccelerate
 } // namespace ska

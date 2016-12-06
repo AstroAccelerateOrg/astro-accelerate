@@ -4,7 +4,7 @@
 
 namespace ska {
 namespace astroaccelerate {
-
+namespace sps{
 /**
  * @brief		This object carries the parameters needed by the SPS kernels
  * 
@@ -104,6 +104,7 @@ class SpsParameters
 
 };
 
+} // namespace sps
 } // namespace astroaccelerate
 } // namespace ska
 

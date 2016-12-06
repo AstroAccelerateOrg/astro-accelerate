@@ -15,14 +15,23 @@
 #include <cuda.h>
 #include "AstroAccelerate/params.h"
 
-void allocate_memory_cpu_input(FILE **fp, size_t gpu_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, float ****output_buffer, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)
+
+void allocate_memory_cpu_input(int nsamp, int nchans, unsigned short **input_buffer, size_t *inputsize)
 {
 
 	*inputsize = nsamp * (size_t) nchans * sizeof(unsigned short);
 	*input_buffer = (unsigned short *) malloc(*inputsize);
 }
 
-void allocate_memory_cpu_output(FILE **fp, size_t gpu_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, float ****output_buffer, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)
+void allocate_memory_cpu_input(ska::astroaccelerate::sps::DedispersionPlan const&dedispersion_plan,
+                               ska::astroaccelerate::sps::InputData const& input_data)
+{
+	// [...]
+	//input_data.set_input_size(inputsize);
+	//input_data.set_input_buffer(input_buffer)
+}
+
+void allocate_memory_cpu_output(size_t gpu_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, float ****output_buffer, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)
 {
 
 	*outputsize = 0;
@@ -46,7 +55,7 @@ void allocate_memory_cpu_output(FILE **fp, size_t gpu_memory, int maxshift, int 
 	}
 }
 
-void allocate_memory_gpu(FILE **fp, size_t gpu_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, float ****output_buffer, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)
+void allocate_memory_gpu(size_t gpu_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, float ****output_buffer, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)
 {
 
 	int time_samps = t_processed[0][0] + maxshift;

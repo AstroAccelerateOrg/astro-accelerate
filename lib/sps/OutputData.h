@@ -5,7 +5,7 @@
 
 namespace ska {
 namespace astroaccelerate {
-
+namespace sps{
 /**
  * @brief 	Output Data
  * 
@@ -47,6 +47,7 @@ class OutputData
     	size_t 	_gpu_outputsize;
 };
 
+} // namespace sps
 } // namespace astroaccelerate
 } // namespace ska
 
