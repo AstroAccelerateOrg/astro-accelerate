@@ -49,7 +49,7 @@ class IOData
         void set_gpu_input_size(std::size_t);
         void set_d_input(unsigned short*);
         void set_output_size(std::size_t);
-        void set_output_buffer(float*);
+        void set_output_buffer(float***);
         void set_gpu_output_size(std::size_t);
         void set_d_output(float*);
         /**
@@ -60,7 +60,7 @@ class IOData
         std::size_t get_gpu_input_size() const;
         unsigned short* get_d_input() const;
         std::size_t get_output_size() const;
-        float* get_output_buffer() const;
+        float*** get_output_buffer() const;
         std::size_t get_gpu_output_size() const;
         float* get_d_output() const;
 
