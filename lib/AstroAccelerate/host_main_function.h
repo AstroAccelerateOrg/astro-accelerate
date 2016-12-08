@@ -6,8 +6,6 @@ void main_function
 	int argc,
 	char* argv[],
 	// Internal code variables
-	// File pointers
-	FILE *fp,
 	// Counters and flags
 	int range,
 	int enable_debug,
@@ -31,7 +29,6 @@ void main_function
     size_t outputsize,
 	size_t gpu_inputsize,
 	size_t gpu_outputsize,
-	size_t gpu_memory,
     unsigned short  *input_buffer,
 	float ***output_buffer,
 	unsigned short  *d_input,
@@ -59,9 +56,7 @@ void main_function
 	float wide,
 	int	maxshift_original,
 	double	tsamp_original,
-	long int inc,
 	float tstart,
-	float tstart_local,
 	float tsamp,
 	float fch1,
 	float foff,

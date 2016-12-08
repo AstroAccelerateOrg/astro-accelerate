@@ -1,7 +1,9 @@
-#ifndef SKA_ASTROACCELERATE_USERINPUT_H
-#define SKA_ASTROACCELERATE_USERINPUT_H
+#ifndef SKA_ASTROACCELERATE_SPS_USERINPUT_H
+#define SKA_ASTROACCELERATE_SPS_USERINPUT_H
 
 #include <stdio.h>
+
+#include "DedispersionPlan.h"
 
 namespace ska {
 namespace astroaccelerate {
@@ -33,18 +35,17 @@ class UserInput
         int 		get_enable_analysis() const;
         int 		get_enable_periodicity() const;
         int 		get_enable_acceleration() const;
-        int 		get_output_dm() const;
+        int 		get_output_dmt() const;
         int 		get_enable_zero_dm() const;
         int 		get_nboots() const ;
         int 		get_ntrial_bons() const;
         int 		get_navdms() const;
-        int 		get_narrow() const;
-        int 		get_agression() const;
+        float		get_narrow() const;
+        float		get_aggression() const;
         int			get_nsearch() const;
-        int* 		get_inBin() const;
-        int* 		get_outBin() const;
         float 	get_power() const;
         float 	get_sigma_cutoff() const;
+        float 	get_wide() const;
         int 		get_range() const;
         float*	get_user_dm_low() const;
         float*	get_user_dm_high() const;
@@ -56,7 +57,7 @@ class UserInput
         *  				This method replaces all the Setters
         *  				Name may be confusing
         */
-        void 	get_user_input(FILE** fp, int argc, char *argv[]);
+        void 	get_user_input(FILE** fp, int argc, char *argv[], DedispersionPlan &dedispersion_plan);
 
     private:
         int 		_multi_file;
@@ -64,18 +65,17 @@ class UserInput
         int 		_enable_analysis;
         int 		_enable_periodicity;
         int			_enable_acceleration;
-        int 		_output_dm;
+        int 		_output_dmt;
         int 		_enable_zero_dm;
         int 		_nboots;
         int 		_ntrial_bins;
         int 		_navdms;
-        int 		_narrow;
-        int 		_agression;
+        float		_narrow;
+        float		_aggression;
         int			_nsearch;
-        int*		_inBin;
-        int* 		_outBin;
         float 	_power;
         float 	_sigma_cutoff;
+        float 	_wide;
         int 		_range;
         float* 	_user_dm_low;
         float* 	_user_dm_high;
@@ -86,4 +86,4 @@ class UserInput
 } // namespace astroaccelerate
 } // namespace ska
 
-#endif // SKA_ASTROACCELERATE_USERINPUT_H
+#endif // SKA_ASTROACCELERATE_SPS_USERINPUT_H

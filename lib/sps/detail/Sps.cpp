@@ -1,5 +1,7 @@
 #include "../Sps.h"
 
+#include "../../AstroAccelerate/device_load_data.h"
+
 namespace ska {
 namespace astroaccelerate {
 namespace sps {
@@ -16,45 +18,63 @@ Sps<SpsParameterType>::~Sps()
 
 template<typename SpsParameterType>
 template<typename SpsHandler, typename DmHandler>
-void Sps<SpsParameterType>::operator()( unsigned device_id, DataInputType const&,
-                                  DataOutputType&, DedispersionPlan const &dedispersion_plan,
+void Sps<SpsParameterType>::operator()( unsigned device_id, IOData &io_data, DedispersionPlan &dedispersion_plan,
                                   SpsHandler, DmHandler)
 {
-	/*
+		//
+		long int inc = 0;
+		float tstart_local = 0.0f;
+
 		// Initialise the GPU.
 		size_t gpu_memory = 0;
-		init_gpu(device_id, &gpu_memory);
+		cudaSetDevice(device_id);
+		size_t free, total;
+		cudaMemGetInfo(&free, &total);
+		gpu_memory = ( free/4 );
+
+		// Call the strategy method of class dedispersion (could be done outside ?)
 
 		// Allocate memory on host and device.
-		allocate_memory_cpu_output(&fp, gpu_memory, maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output,
-	                        &gpu_inputsize, &gpu_outputsize, &inputsize, &outputsize);
-
-		// Allocate memory on host and device.
-		allocate_memory_gpu(&fp, gpu_memory, maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output,
-	                        &gpu_inputsize, &gpu_outputsize, &inputsize, &outputsize);
-
+		io_data.allocate_memory_cpu_output(dedispersion_plan);
+		io_data.allocate_memory_gpu(dedispersion_plan);
 
 		//printf("\nDe-dispersing...");
 		int t, dm_range;
-		double start_t, end_t;
+		//double start_t, end_t;
 		//start_t = omp_get_wtime();
 
+		//
+		int tsamp_original = dedispersion_plan.get_tsamp();
+		int maxshift = dedispersion_plan.get_maxshift();
+		int max_ndms = dedispersion_plan.get_max_ndms();
+		int maxshift_original = dedispersion_plan.get_maxshift();
+		int** t_processed = dedispersion_plan.get_t_processed();
+		int num_tchunks = dedispersion_plan.get_num_tchunks();
+		int nchans = dedispersion_plan.get_nchans();
+		float* dmshifts = dedispersion_plan.get_dmshifts();
+		unsigned short* input_buffer = io_data.get_input_buffer();
+		int* inBin = dedispersion_plan.get_in_bin();
+		unsigned short* d_input = io_data.get_d_input();
 
-		tsamp_original = tsamp;
-		maxshift_original = maxshift;
-
+		//
 		float *out_tmp;
 		out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
 		memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
 
-		for (t = 0; t < dedispersion_plan.get_num_tchunks(); ++t)
+		/***************************** ok *************************************/
+
+		for (t = 0; t < num_tchunks; ++t)
 		{
 			//printf("\nt_processed:\t%d, %d", t_processed[0][t], t);
 			//rfi((t_processed[0][t]+maxshift), nchans, &tmp);
 
-			load_data(-1, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
+
+			load_data(-1, inBin, d_input, &input_buffer[(long int) ( inc * nchans )],
+								t_processed[0][t], maxshift, nchans, dmshifts);
+			/*
 			if (enable_zero_dm)
 				zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
+
 			corner_turn(d_input, d_output, nchans, t_processed[0][t] + maxshift);
 			int oldBin = 1;
 			for (dm_range = 0; dm_range < range; ++dm_range)
@@ -80,7 +100,7 @@ void Sps<SpsParameterType>::operator()( unsigned device_id, DataInputType const&
 				save_data(d_output, out_tmp, gpu_outputsize);
 				//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
 
-	//#pragma omp parallel for
+				//#pragma omp parallel for
 				for (int k = 0; k < ndms[dm_range]; ++k)
 				{
 					memcpy(&output_buffer[dm_range][k][inc / inBin[dm_range]], &out_tmp[k * t_processed[dm_range][t]], sizeof(float) * t_processed[dm_range][t]);
@@ -99,9 +119,9 @@ void Sps<SpsParameterType>::operator()( unsigned device_id, DataInputType const&
 			printf("\nINC:\t%ld", inc);
 			tstart_local = ( tsamp_original * inc );
 			tsamp = tsamp_original;
-			maxshift = maxshift_original;
+			maxshift = maxshift_original;*/
 		}
-
+/*
 		cudaFree(d_input);
 		cudaFree(d_output);
 		free(out_tmp);

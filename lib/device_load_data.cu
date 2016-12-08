@@ -4,7 +4,9 @@
 
 //{{{ load_data_from_host_to_device
 
-void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short *host_pointer, int t_processed, int maxshift, int nchans, float *dmshifts)
+void load_data(int i, int *inBin, unsigned short *device_pointer,
+               unsigned short *host_pointer, int t_processed, int maxshift,
+               int nchans, float *dmshifts)
 {
 
 	//{{{ Copy data and set up the GPU constants/variables.

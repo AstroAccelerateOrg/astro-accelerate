@@ -35,7 +35,6 @@ int main(int argc, char* argv[])
 	size_t outputsize = 0;				
 	size_t gpu_inputsize = 0; 			 
 	size_t gpu_outputsize = 0;			
-	size_t gpu_memory = 0;
 	unsigned short *input_buffer = NULL;
 	float ***output_buffer = NULL;		
 	unsigned short *d_input = NULL;		
@@ -63,9 +62,7 @@ int main(int argc, char* argv[])
 	float wide = 0.1f;
 	int maxshift_original;
 	double tsamp_original;
-	long int inc = 0;
 	float tstart = 0.0f;
-	float tstart_local = 0.0f;
 	float tsamp = 0.0f;
 	float fch1 = 0.0f;
 	float foff = 0.0f;
@@ -122,23 +119,24 @@ int main(int argc, char* argv[])
 
 	  argc, argv,
 	  // Internal code variables
-	  // File pointers
-	  fp,
 	  // Counters and flags
 	  range, enable_debug, enable_analysis, enable_acceleration,
 	  enable_periodicity, output_dmt, enable_zero_dm, inBin, outBin, ndms, maxshift, max_ndms,
 	  max_samps, num_tchunks, total_ndms, multi_file, max_dm,
 	  // Memory sizes and pointers
-	  inputsize, outputsize, gpu_inputsize, gpu_outputsize, gpu_memory,
+	  inputsize, outputsize, gpu_inputsize, gpu_outputsize,
 	  input_buffer, output_buffer, d_input, d_output, dmshifts, user_dm_low,
 	  user_dm_high, user_dm_step, dm_low, dm_high, dm_step,
 	  // Telescope parameters
 	  nchans, nsamp, nbits, nsamples, nifs, t_processed, nboots, ntrial_bins,
 	  navdms, nsearch, aggression, narrow, wide, maxshift_original,
-	  tsamp_original, inc, tstart, tstart_local, tsamp, fch1, foff,
+	  tsamp_original, tstart, tsamp, fch1, foff,
 	  // Analysis variables
 	  power, sigma_cutoff, start_time
 	);
+
+	// close file
+	fclose(fp);
 
 	// write output here, not in the library
 

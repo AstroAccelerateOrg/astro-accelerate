@@ -1,8 +1,14 @@
+#include "../../AstroAccelerate/headers_mains.h"
+#include "../../AstroAccelerate/host_help.h"
+
 #include "../UserInput.h"
+
+
 
 
 namespace ska {
 namespace astroaccelerate {
+namespace sps{
 
 UserInput::UserInput()
 {
@@ -11,18 +17,17 @@ UserInput::UserInput()
 	_enable_analysis 			= 0;
 	_enable_periodicity 	= 0;
 	_enable_acceleration 	= 0;
-	_output_dm 						= 0;
+	_output_dmt						= 0;
 	_enable_zero_dm 			= 0;
 	_nboots 							= -1;
 	_ntrial_bins					= 0;
 	_navdms								= 1;
 	_narrow								= 0.001f;
-	_agression						= 2.5;
+	_aggression						= 2.5;
 	_nsearch							= 3;
-	_inBin								= NULL;
-	_outBin								= NULL;
 	_power								= 2.0f;
 	_sigma_cutoff					= 6.0f;
+	_wide 								= 0.1f;
 	_range								= 0;
 	_user_dm_low					= NULL;
 	_user_dm_high					= NULL;
@@ -58,9 +63,9 @@ int 		UserInput::get_enable_acceleration() const
 	return _enable_acceleration;
 }
 
-int 		UserInput::get_output_dm() const
+int 		UserInput::get_output_dmt() const
 {
-	return _output_dm;
+	return _output_dmt;
 }
 
 int 		UserInput::get_enable_zero_dm() const
@@ -83,29 +88,19 @@ int 		UserInput::get_navdms() const
 	return _navdms;
 }
 
-int 		UserInput::get_narrow() const
+float		UserInput::get_narrow() const
 {
 	return _narrow;
 }
 
-int 		UserInput::get_agression() const
+float		UserInput::get_aggression() const
 {
-	return _agression;
+	return _aggression;
 }
 
 int			UserInput::get_nsearch() const
 {
 	return _nsearch;
-}
-
-int* 		UserInput::get_inBin() const
-{
-	return _inBin;
-}
-
-int* 		UserInput::get_outBin() const
-{
-	return _outBin;
 }
 
 float 	UserInput::get_power() const
@@ -118,6 +113,10 @@ float 	UserInput::get_sigma_cutoff() const
 	return _sigma_cutoff;
 }
 
+float 	UserInput::get_wide() const
+{
+	return _wide;
+}
 int 		UserInput::get_range() const
 {
 	return _range;
@@ -138,9 +137,9 @@ float* 	UserInput::get_user_dm_step() const
 	return _user_dm_step;
 }
 
-void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[])
+void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[], DedispersionPlan &dedispersion_plan)
 {
-	/*
+
 	FILE *fp_in = NULL;
 
 	char string[100];
@@ -160,26 +159,27 @@ void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[])
 			fprintf(stderr, "Invalid input file!\n");
 			exit(0);
 		}
-		( *range ) = 0;
+		_range = 0;
 		while (!feof(fp_in))
 		{
 			//if (fscanf(fp_in, "%s", string) != 1)
 			//	fprintf(stderr, "failed to read string\n");
 			fscanf(fp_in, "%s", string);
 			if (strcmp(string, "range") == 0)
-				( *range )++;
+				_range++;
 		}
 		rewind(fp_in);
 
-		*user_dm_low = (float *) malloc(( *range ) * sizeof(float));
-		*user_dm_high = (float *) malloc(( *range ) * sizeof(float));
-		*user_dm_step = (float *) malloc(( *range ) * sizeof(float));
-		*outBin = (int *) malloc(( *range ) * sizeof(int));
-		*inBin = (int *) malloc(( *range ) * sizeof(int));
+		_user_dm_low = (float *) malloc(  _range * sizeof(float));
+		_user_dm_high = (float *) malloc( _range * sizeof(float));
+		_user_dm_step = (float *) malloc( _range * sizeof(float));
 
-		for (i = 0; i < *range; i++)
+		int* out_bin = (int *) malloc( _range  * sizeof(int));
+		int* in_bin = (int *) malloc(  _range  * sizeof(int));
+
+		for (i = 0; i < _range; i++)
 		{
-			if (fscanf(fp_in, "%s %f %f %f %d %d\n", string, &( *user_dm_low )[i], &( *user_dm_high )[i], &( *user_dm_step )[i], &( *inBin )[i], &( *outBin )[i]) !=6 )
+			if (fscanf(fp_in, "%s %f %f %f %d %d\n", string, &_user_dm_low[i], &_user_dm_high[i], &_user_dm_step[i], &in_bin[i], &out_bin[i]) !=6 )
 				fprintf(stderr, "failed to read input\n");
 		}
 
@@ -191,62 +191,62 @@ void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[])
 			//	fprintf(stderr, "failed to read string\n");
 			fscanf(fp_in, "%s", string);
 			if (strcmp(string, "debug") == 0)
-				*enable_debug = 1;
+				_enable_debug = 1;
 			if (strcmp(string, "analysis") == 0)
-				*enable_analysis = 1;
+				_enable_analysis = 1;
 			if (strcmp(string, "periodicity") == 0)
-				*enable_periodicity = 1;
+				_enable_periodicity = 1;
 			if (strcmp(string, "acceleration") == 0)
-				*enable_acceleration = 1;
+				_enable_acceleration = 1;
 			if (strcmp(string, "output_dmt") == 0)
-				*output_dmt = 1;
+				_output_dmt = 1;
 			if (strcmp(string, "zero_dm") == 0)
-				*enable_zero_dm = 1;
+				_enable_zero_dm = 1;
 			if (strcmp(string, "multi_file") == 0)
-				*multi_file = 1;
+				_multi_file = 1;
 			if (strcmp(string, "sigma_cutoff") == 0)
 			{
-				if (fscanf(fp_in, "%f", sigma_cutoff) != 1)
+				if (fscanf(fp_in, "%f", &_sigma_cutoff) != 1)
 					fprintf(stderr, "failed to read sigma_cutoff\n");
 			}
 			if (strcmp(string, "narrow") == 0)
 			{
-				if (fscanf(fp_in, "%f", narrow) != 1)
+				if (fscanf(fp_in, "%f", &_narrow) != 1)
 					fprintf(stderr, "failed to read narrow\n");
 			}
 			if (strcmp(string, "wide") == 0)
 			{
-				if (fscanf(fp_in, "%f", wide) != 1)
+				if (fscanf(fp_in, "%f", &_wide) != 1)
 					fprintf(stderr, "failed to read wide\n");
 			}
 			if (strcmp(string, "nboots") == 0)
 			{
-				if (fscanf(fp_in, "%d", nboots) != 1)
+				if (fscanf(fp_in, "%d", &_nboots) != 1)
 					fprintf(stderr, "failed to read nboots\n");
 			}
 			if (strcmp(string, "navdms") == 0)
 			{
-				if (fscanf(fp_in, "%d", navdms) != 1)
+				if (fscanf(fp_in, "%d", &_navdms) != 1)
 					fprintf(stderr, "failed to read navdms\n");
 			}
 			if (strcmp(string, "nwindows") == 0)
 			{
-				if (fscanf(fp_in, "%d", ntrial_bins) != 1)
+				if (fscanf(fp_in, "%d", &_ntrial_bins) != 1)
 					fprintf(stderr, "failed to read ntrial_bins\n");
 			}
 			if (strcmp(string, "nsearch") == 0)
 			{
-				if (fscanf(fp_in, "%d", nsearch) != 1)
+				if (fscanf(fp_in, "%d", &_nsearch) != 1)
 					fprintf(stderr, "failed to read nsearch\n");
 			}
 			if (strcmp(string, "aggression") == 0)
 			{
-				if (fscanf(fp_in, "%f", aggression) != 1)
+				if (fscanf(fp_in, "%f", &_aggression) != 1)
 					fprintf(stderr, "failed to read aggression\n");
 			}
 			if (strcmp(string, "power") == 0)
 			{
-				if (fscanf(fp_in, "%f", power) != 1)
+				if (fscanf(fp_in, "%f", &_power) != 1)
 					fprintf(stderr, "failed to read power\n");
 			}
 			if (strcmp(string, "file") == 0)
@@ -261,7 +261,8 @@ void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[])
 				}
 			}
 		}
-
+		dedispersion_plan.set_in_bin(in_bin);
+		dedispersion_plan.set_out_bin(out_bin);
 	}
 	else if (argc == 2 && strcmp(argv[1], "-help") == 0)
 	{
@@ -272,8 +273,9 @@ void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[])
 		fprintf(stderr, "Cannot recognise input, try \"./astro-accelerate -help.\"\n");
 		exit(0);
 	}
-	*/
+
 }
 
+} // namespace sps
 } // namespace astroaccelerate
 } // namespace ska

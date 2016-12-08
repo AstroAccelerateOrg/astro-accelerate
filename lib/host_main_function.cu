@@ -40,8 +40,6 @@ void main_function
 	int argc,
 	char* argv[],
 	// Internal code variables
-	// File pointers
-	FILE *fp,
 	// Counters and flags
 	int range,
 	int enable_debug,
@@ -65,7 +63,6 @@ void main_function
   	size_t outputsize,
 	size_t gpu_inputsize,
 	size_t gpu_outputsize,
-	size_t gpu_memory,
   	unsigned short  *input_buffer,
 	float ***output_buffer,
 	unsigned short  *d_input,
@@ -93,9 +90,7 @@ void main_function
 	float wide,
 	int	maxshift_original,
 	double	tsamp_original,
-	long int inc,
 	float tstart,
-	float tstart_local,
 	float tsamp,
 	float fch1,
 	float foff,
@@ -105,6 +100,13 @@ void main_function
 	double start_time
 	)
 {
+	//
+	long int inc = 0;
+	float tstart_local = 0.0f;
+	size_t gpu_memory = 0;
+
+
+
 	// Initialise the GPU.	
 	init_gpu(argc, argv, enable_debug, &gpu_memory);
 	if(enable_debug == 1) debug(2, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
@@ -117,14 +119,13 @@ void main_function
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
 	// Allocate memory on host and device.
-	allocate_memory_cpu_output(&fp, gpu_memory, maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output,
-                        &gpu_inputsize, &gpu_outputsize, &inputsize, &outputsize);
+	allocate_memory_cpu_output(num_tchunks, range, ndms, t_processed, &output_buffer,
+	                           &d_output, &outputsize);
 	if(enable_debug == 1) debug(5, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
-	// Allocate memory on host and device.
-	allocate_memory_gpu(&fp, gpu_memory, maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output,
-                        &gpu_inputsize, &gpu_outputsize, &inputsize, &outputsize);
+	allocate_memory_gpu(maxshift, max_ndms, nchans, t_processed, &d_input, &d_output,
+                        &gpu_inputsize, &gpu_outputsize);
 	if(enable_debug == 1) debug(5, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
@@ -268,7 +269,6 @@ void main_function
 		printf("\nReal-time speedup factor: %f", ( tstart_local ) / ( time ));
 	}
 
-	fclose(fp);
 
 	free(output_buffer);
 
