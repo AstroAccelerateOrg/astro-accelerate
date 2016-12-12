@@ -12,4 +12,4 @@ analysis
 -zero_dm
 -rfi
 debug
-file /home/karel/bper_0.0025.fil
+file /home/nassim/filterbank/bper_0.0025.fil
