@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
 	  fp,
 	  // Counters and flags
 	  i, t, dm_range, range, enable_debug, enable_analysis, enable_acceleration,
-	  enable_periodicity, output_dmt, enable_zero_dm, inBin, outBin, ndms, maxshift, max_ndms,
+	  enable_periodicity, output_dmt, enable_zero_dm, enable_rfi, inBin, outBin, ndms, maxshift, max_ndms,
 	  max_samps, num_tchunks, total_ndms, multi_file, max_dm,
 	  // Memory sizes and pointers
 	  inputsize, outputsize, gpu_inputsize, gpu_outputsize, gpu_memory,
