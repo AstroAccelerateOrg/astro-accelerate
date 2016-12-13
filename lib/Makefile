@@ -33,19 +33,33 @@ ${BUILD_DIR}:
 	
 
 $(BUILD_DIR)/main.o : 					AstroAccelerate/headers_mains.h
+
 $(BUILD_DIR)/host_main_function.o:		AstroAccelerate/host_main_function.h 
+
 $(BUILD_DIR)/host_allocate_memory.o:	AstroAccelerate/host_allocate_memory.h
+
 $(BUILD_DIR)/host_acceleration.o:		AstroAccelerate/host_acceleration.h
+
 $(BUILD_DIR)/host_analysis.o:			AstroAccelerate/host_analysis.h 
+
 $(BUILD_DIR)/host_periods.o:			AstroAccelerate/host_periods.h 
+
 $(BUILD_DIR)/host_debug.o:	 			AstroAccelerate/host_debug.h
+
 $(BUILD_DIR)/host_get_file_data.o: 		AstroAccelerate/host_get_file_data.h
+
 $(BUILD_DIR)/host_get_user_input.o:	 	AstroAccelerate/host_get_user_input.h
+
 $(BUILD_DIR)/host_get_recorded_data.o:	AstroAccelerate/host_get_recorded_data.h
+
 $(BUILD_DIR)/host_help.o:	 			AstroAccelerate/host_help.h
+
 $(BUILD_DIR)/host_rfi.o:	 			AstroAccelerate/host_rfi.h
+
 $(BUILD_DIR)/host_stratagy.o:	 		AstroAccelerate/host_stratagy.h
+
 $(BUILD_DIR)/host_statistics.o:	 		AstroAccelerate/host_statistics.h
+
 $(BUILD_DIR)/host_write_file.o:	 		AstroAccelerate/host_write_file.h
 
 #$(BUILD_DIR)/device_main.o:	device_main.cu
@@ -60,7 +74,7 @@ $(ASTROLIB_DIR)/libastrolib.a: $(BUILD_DIR)/host_acceleration.o $(BUILD_DIR)/hos
 	$(BUILD_DIR)/host_get_recorded_data.o $(BUILD_DIR)/host_help.o $(BUILD_DIR)/host_rfi.o $(BUILD_DIR)/host_stratagy.o $(BUILD_DIR)/host_statistics.o \
 	$(BUILD_DIR)/host_main_function.o
 
-$(BUILD_DIR)/dedisperse-gpu: $(BUILD_DIR)/main.o $(ASTROLIB_DIR)/libastrolib.a
+$(BUILD_DIR)/dedisperse-gpu: $(BUILD_DIR)/main.o $(ASTROLIB_DIR)/libastrolib.a 
 	nvcc -o $(BUILD_DIR)/dedisperse-gpu $(BUILD_DIR)/main.o $(NVCCFLAGS) -L$(ASTROLIB_DIR)/ -lastrolib
 
 clean:
