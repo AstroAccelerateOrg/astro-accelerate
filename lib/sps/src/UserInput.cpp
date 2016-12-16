@@ -3,35 +3,32 @@
 
 #include "../UserInput.h"
 
-
-
-
 namespace ska {
 namespace astroaccelerate {
 namespace sps{
 
 UserInput::UserInput()
 {
-	_multi_file 					= 1;
-	_enable_debug 				= 0;
-	_enable_analysis 			= 0;
+	_multi_file 			= 1;
+	_enable_debug 			= 0;
+	_enable_analysis 		= 0;
 	_enable_periodicity 	= 0;
 	_enable_acceleration 	= 0;
-	_output_dmt						= 0;
-	_enable_zero_dm 			= 0;
-	_nboots 							= -1;
-	_ntrial_bins					= 0;
-	_navdms								= 1;
-	_narrow								= 0.001f;
-	_aggression						= 2.5;
-	_nsearch							= 3;
-	_power								= 2.0f;
-	_sigma_cutoff					= 6.0f;
-	_wide 								= 0.1f;
-	_range								= 0;
-	_user_dm_low					= NULL;
-	_user_dm_high					= NULL;
-	_user_dm_step					= NULL;
+	_output_dmt				= 0;
+	_enable_zero_dm 		= 0;
+	_nboots 				= -1;
+	_ntrial_bins			= 0;
+	_navdms					= 1;
+	_narrow					= 0.001f;
+	_aggression				= 2.5;
+	_nsearch				= 3;
+	_power					= 2.0f;
+	_sigma_cutoff			= 6.0f;
+	_wide 					= 0.1f;
+	_range					= 0;
+	_user_dm_low			= NULL;
+	_user_dm_high			= NULL;
+	_user_dm_step			= NULL;
 }
 
 UserInput::~UserInput()
@@ -78,7 +75,7 @@ int 		UserInput::get_nboots() const
 	return _nboots;
 }
 
-int 		UserInput::get_ntrial_bons() const
+int 		UserInput::get_ntrial_bins() const
 {
 	return _ntrial_bins;
 }
@@ -162,8 +159,6 @@ void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[], DedispersionP
 		_range = 0;
 		while (!feof(fp_in))
 		{
-			//if (fscanf(fp_in, "%s", string) != 1)
-			//	fprintf(stderr, "failed to read string\n");
 			fscanf(fp_in, "%s", string);
 			if (strcmp(string, "range") == 0)
 				_range++;
@@ -186,9 +181,6 @@ void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[], DedispersionP
 		rewind(fp_in);
 		while (!feof(fp_in))
 		{
-
-			//if (fscanf(fp_in, "%s", string) != 1)
-			//	fprintf(stderr, "failed to read string\n");
 			fscanf(fp_in, "%s", string);
 			if (strcmp(string, "debug") == 0)
 				_enable_debug = 1;
@@ -251,8 +243,6 @@ void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[], DedispersionP
 			}
 			if (strcmp(string, "file") == 0)
 			{
-				//if (fscanf(fp_in, "%s", string) != 1)
-				//	fprintf(stderr, "failed to read string\n");
 				fscanf(fp_in, "%s", string);
 				if (( *fp = fopen(string, "rb") ) == NULL)
 				{
@@ -273,7 +263,6 @@ void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[], DedispersionP
 		fprintf(stderr, "Cannot recognise input, try \"./astro-accelerate -help.\"\n");
 		exit(0);
 	}
-
 }
 
 } // namespace sps

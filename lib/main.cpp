@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 	int nifs = 0;
 	int **t_processed;
 	int nboots = -1;
-	int ntrial_bins;
+	int ntrial_bins = 0;
 	int navdms = 1;
 	int nsearch = 3;
 	float aggression = 2.5;

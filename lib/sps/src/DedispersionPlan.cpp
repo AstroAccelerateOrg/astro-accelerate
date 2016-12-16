@@ -9,31 +9,31 @@ namespace sps {
 
 	DedispersionPlan::DedispersionPlan()
 	{
-		_in_bin 			= NULL;
-		_out_bin 			= NULL;
-		_maxshift 		= 0;
-		_dm_low 			= NULL;
-		_dm_high 			= NULL;
-		_dm_step 			= NULL;
-		_dmshifts 		= NULL;
-		_ndms 				= NULL;
-		_max_ndms 		= 0;
-		_total_ndms		= 0;
-		_max_dm				=	0.0f;
-		_range 				= 0;
-		_t_processed 	= NULL;
-		_nbits 				= 0;
-		_nifs 				= 0;
-		_tstart 			= 0.0f;
-		_tsamp 				= 0.0f;
-		_nsamp 				= 0;
-		_nsamples 		= 0;
-		_max_samps 		= 0;
-		_nchans 			= 0;
-		_fch1 				= 0.0f;
-		_foff 				= 0.0f;
-		_num_tchunks  = 0;
-		_power				= 2.0f;
+		_in_bin 	 = NULL;
+		_out_bin 	 = NULL;
+		_maxshift 	 = 0;
+		_dm_low 	 = NULL;
+		_dm_high 	 = NULL;
+		_dm_step 	 = NULL;
+		_dmshifts 	 = NULL;
+		_ndms 		 = NULL;
+		_max_ndms 	 = 0;
+		_total_ndms	 = 0;
+		_max_dm		 =	0.0f;
+		_range 		 = 0;
+		_t_processed = NULL;
+		_nbits 		 = 0;
+		_nifs 		 = 0;
+		_tstart 	 = 0.0f;
+		_tsamp 		 = 0.0f;
+		_nsamp 		 = 0;
+		_nsamples 	 = 0;
+		_max_samps 	 = 0;
+		_nchans 	 = 0;
+		_fch1 		 = 0.0f;
+		_foff 		 = 0.0f;
+		_num_tchunks = 0;
+		_power		 = 2.0f;
 	}
 
 	DedispersionPlan::~DedispersionPlan()
@@ -212,6 +212,10 @@ namespace sps {
 		return _total_ndms;
 	}
 
+	float DedispersionPlan::get_max_dm() const
+	{
+		return _max_dm;
+	}
 	int DedispersionPlan::get_range() const
 	{
 		return _range;

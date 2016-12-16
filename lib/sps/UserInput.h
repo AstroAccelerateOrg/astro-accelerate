@@ -30,23 +30,23 @@ class UserInput
         /**
         *  @brief Getters
         */
-        int 		get_multi_file() const;
-        int 		get_enable_debug() const;
-        int 		get_enable_analysis() const;
-        int 		get_enable_periodicity() const;
-        int 		get_enable_acceleration() const;
-        int 		get_output_dmt() const;
-        int 		get_enable_zero_dm() const;
-        int 		get_nboots() const ;
-        int 		get_ntrial_bons() const;
-        int 		get_navdms() const;
-        float		get_narrow() const;
-        float		get_aggression() const;
-        int			get_nsearch() const;
+        int 	get_multi_file() const;
+        int 	get_enable_debug() const;
+        int 	get_enable_analysis() const;
+        int 	get_enable_periodicity() const;
+        int 	get_enable_acceleration() const;
+        int 	get_output_dmt() const;
+        int 	get_enable_zero_dm() const;
+        int 	get_nboots() const ;
+        int 	get_ntrial_bins() const;
+        int 	get_navdms() const;
+        float	get_narrow() const;
+        float	get_aggression() const;
+        int		get_nsearch() const;
         float 	get_power() const;
         float 	get_sigma_cutoff() const;
         float 	get_wide() const;
-        int 		get_range() const;
+        int 	get_range() const;
         float*	get_user_dm_low() const;
         float*	get_user_dm_high() const;
         float* 	get_user_dm_step() const;
