@@ -3,11 +3,9 @@
 
 #include <stdio.h>
 
-#include "DedispersionPlan.h"
-
 namespace ska {
 namespace astroaccelerate {
-namespace	sps{
+namespace sps{
 
 /**
  * @brief
@@ -19,10 +17,10 @@ namespace	sps{
 class UserInput
 {
     public:
-				/**
-				*  @brief Constructor
-				*/
-				UserInput();
+		/**
+		*  @brief Constructor
+		*/
+		UserInput();
         /**
         *  @brief Destructor
         */
@@ -50,14 +48,16 @@ class UserInput
         float*	get_user_dm_low() const;
         float*	get_user_dm_high() const;
         float* 	get_user_dm_step() const;
+        int*	get_in_bin() const;
+        int* 	get_out_bin() const;
 
         /**
         *  @brief Get the user input
-        *  				This is not a class Getter though
+        *  				This is not a getter method though
         *  				This method replaces all the Setters
         *  				Name may be confusing
         */
-        void 	get_user_input(FILE** fp, int argc, char *argv[], DedispersionPlan &dedispersion_plan);
+        void 	get_user_input(FILE** fp, int argc, char *argv[]);
 
     private:
         int 		_multi_file;
@@ -80,6 +80,8 @@ class UserInput
         float* 	_user_dm_low;
         float* 	_user_dm_high;
         float*	_user_dm_step;
+        int* 		_in_bin;
+        int* 		_out_bin;
 };
 
 } // namespace sps

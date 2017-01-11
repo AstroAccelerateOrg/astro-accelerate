@@ -18,28 +18,51 @@ IOData::IOData()
 
 IOData::~IOData()
 {
+	// free all the pointers
+	free(_input_buffer);
+	cudaFree(_d_input);
+	// note: it's a float ***, should first free all the _output_buffer[i][j], then
+	// the _output_buffer[i], then _output_buffer
+	free(_output_buffer);
+	cudaFree(_d_output);
 }
+
+// setters
 
 void IOData::set_input_size(std::size_t input_size)
 {
 	_input_size = input_size;
 }
-
 void IOData::set_input_buffer(unsigned short* input_buffer)
 {
 	_input_buffer = input_buffer;
 }
-
 void IOData::set_gpu_input_size(std::size_t gpu_input_size)
 {
 	_gpu_input_size = gpu_input_size;
 }
-
 void IOData::set_d_input(unsigned short* d_input)
 {
 	_d_input = d_input;
 }
+void IOData::set_output_size(std::size_t output_size)
+{
+	_output_size = output_size;
+}
+void IOData::set_output_buffer(float*** output_buffer)
+{
+	_output_buffer = output_buffer;
+}
+void IOData::set_gpu_output_size(std::size_t gpu_output_size)
+{
+	_gpu_output_size = gpu_output_size;
+}
+void IOData::set_d_output(float* d_output)
+{
+	_d_output = d_output;
+}
 
+// getters
 std::size_t IOData::get_input_size() const
 {
 	return _input_size;
@@ -56,7 +79,24 @@ unsigned short* IOData::get_d_input() const
 {
 	return _d_input;
 }
+std::size_t IOData::get_output_size() const
+{
+	return _output_size;
+}
+float*** IOData::get_output_buffer() const
+{
+	return _output_buffer;
+}
+std::size_t IOData::get_gpu_output_size() const
+{
+	return _gpu_output_size;
+}
+float* IOData::get_d_output() const
+{
+	return _d_output;
+}
 
+// methods
 
 void IOData::allocate_memory_cpu_input(DedispersionPlan const &dedispersion_plan)
 {

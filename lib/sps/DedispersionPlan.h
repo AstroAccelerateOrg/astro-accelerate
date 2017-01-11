@@ -2,6 +2,7 @@
 #define SKA_ASTROACCELERATE_SPS_DEDISPERSIONPLAN_H
 
 #include <stdio.h>
+#include "UserInput.h"
 
 namespace ska {
 namespace astroaccelerate {
@@ -21,6 +22,7 @@ class DedispersionPlan
         *  @brief Default constructor
         */
         DedispersionPlan();
+
         /**
         *  @brief Destructor
         */

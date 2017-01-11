@@ -29,10 +29,18 @@ UserInput::UserInput()
 	_user_dm_low			= NULL;
 	_user_dm_high			= NULL;
 	_user_dm_step			= NULL;
+	_in_bin 				= NULL;
+	_out_bin				= NULL;
 }
 
 UserInput::~UserInput()
 {
+	// free all the pointers
+	free(_user_dm_low);
+	free(_user_dm_high);
+	free(_user_dm_step);
+	free(_in_bin);
+	free(_out_bin);
 }
 
 int 		UserInput::get_multi_file() const
@@ -134,7 +142,18 @@ float* 	UserInput::get_user_dm_step() const
 	return _user_dm_step;
 }
 
-void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[], DedispersionPlan &dedispersion_plan)
+// Getters
+int* UserInput::get_in_bin() const
+{
+	return _in_bin;
+}
+
+int* UserInput::get_out_bin() const
+{
+	return _out_bin;
+}
+
+void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[])
 {
 
 	FILE *fp_in = NULL;
@@ -169,12 +188,12 @@ void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[], DedispersionP
 		_user_dm_high = (float *) malloc( _range * sizeof(float));
 		_user_dm_step = (float *) malloc( _range * sizeof(float));
 
-		int* out_bin = (int *) malloc( _range  * sizeof(int));
-		int* in_bin = (int *) malloc(  _range  * sizeof(int));
+		_out_bin = (int *) malloc( _range  * sizeof(int));
+		_in_bin = (int *) malloc(  _range  * sizeof(int));
 
 		for (i = 0; i < _range; i++)
 		{
-			if (fscanf(fp_in, "%s %f %f %f %d %d\n", string, &_user_dm_low[i], &_user_dm_high[i], &_user_dm_step[i], &in_bin[i], &out_bin[i]) !=6 )
+			if (fscanf(fp_in, "%s %f %f %f %d %d\n", string, &_user_dm_low[i], &_user_dm_high[i], &_user_dm_step[i], &_in_bin[i], &_out_bin[i]) !=6 )
 				fprintf(stderr, "failed to read input\n");
 		}
 
@@ -251,8 +270,6 @@ void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[], DedispersionP
 				}
 			}
 		}
-		dedispersion_plan.set_in_bin(in_bin);
-		dedispersion_plan.set_out_bin(out_bin);
 	}
 	else if (argc == 2 && strcmp(argv[1], "-help") == 0)
 	{

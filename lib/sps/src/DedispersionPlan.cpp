@@ -38,6 +38,16 @@ namespace sps {
 
 	DedispersionPlan::~DedispersionPlan()
 	{
+		// free all the pointers
+		free(_in_bin);
+		free(_out_bin);
+		free(_dm_low);
+		free(_dm_high);
+		free(_dm_step);
+		free(_dmshifts);
+		// Probably not so trivial (int **), should free all the _t_processed[i] first
+		free(_t_processed);
+
 	}
 
 	// Setters
@@ -286,10 +296,10 @@ namespace sps {
 		return _power;
 	}
 
-	void DedispersionPlan::make_strategy(float* user_dm_low,
-	                                     float* user_dm_high,
-	                                     float* user_dm_step,
-	                                     size_t gpu_memory)
+	void DedispersionPlan::make_strategy(float* const user_dm_low,
+	                                     float* const user_dm_high,
+	                                     float* const user_dm_step,
+	                                     size_t const gpu_memory)
 	{
 
 		// This method relies on defining points when nsamps is a multiple of
