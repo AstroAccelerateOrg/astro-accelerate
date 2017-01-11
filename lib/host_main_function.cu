@@ -105,8 +105,6 @@ void main_function
 	float tstart_local = 0.0f;
 	size_t gpu_memory = 0;
 
-
-
 	// Initialise the GPU.	
 	init_gpu(argc, argv, enable_debug, &gpu_memory);
 	if(enable_debug == 1) debug(2, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
