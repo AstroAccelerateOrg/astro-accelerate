@@ -44,7 +44,6 @@ TEST_F(SpsTest, test_handlers)
     ASSERT_FALSE(sps_handler_called);
 }
 
-
 TEST_F(SpsTest, test_user_input)
 {
 	// Following is ok for ska_karel.txt
@@ -52,8 +51,9 @@ TEST_F(SpsTest, test_user_input)
 	if(strcmp(filename, "ska_karel.txt") == 0)
 	{
 		// create objects
+
 		sps::UserInput user_input;
-		sps::DedispersionPlan dedispersion_plan;
+
 		// first, check constructor:
 		EXPECT_EQ(1, user_input.get_multi_file());
 		EXPECT_EQ(0, user_input.get_enable_debug());
@@ -78,7 +78,7 @@ TEST_F(SpsTest, test_user_input)
 
 		// read user input
 		FILE *fp = NULL;
-		user_input.get_user_input(&fp, my_argc, my_argv, dedispersion_plan);
+		user_input.get_user_input(&fp, my_argc, my_argv);
 
 		// check class members values after run
 		EXPECT_EQ(1, user_input.get_multi_file());
@@ -120,12 +120,27 @@ TEST_F(SpsTest, test_user_input)
 		//
 		fclose(fp);
 	}
-
-
 }
 
+// to finish
 TEST_F(SpsTest, test_dedispersion_plan)
 {
+
+	// read user input
+	FILE *fp = NULL;
+	user_input.get_user_input(&fp, my_argc, my_argv);
+	// get file data
+	int nchans = 0;
+	int nsamp = 0;
+	int nbits = 0;
+	int nsamples = 0;
+	int nifs = 0;
+	float tsamp = 0.0f;
+	float tstart = 0.0f;
+	float fch1 = 0.0f;
+	float foff = 0.0f;
+	get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp,
+				  &tstart, &fch1, &foff);
 	// declare objects
 	sps::UserInput user_input;
 	sps::DedispersionPlan dedispersion_plan;
@@ -155,12 +170,31 @@ TEST_F(SpsTest, test_dedispersion_plan)
 	EXPECT_FLOAT_EQ(0.0f, dedispersion_plan.get_foff());
 	EXPECT_EQ(0, dedispersion_plan.get_num_tchunks());
 	EXPECT_FLOAT_EQ(2.0f, dedispersion_plan.get_power());
-	// get user input
+	// read user input
 	FILE *fp = NULL;
-	user_input.get_user_input(&fp, my_argc, my_argv, dedispersion_plan);
+	user_input.get_user_input(&fp, my_argc, my_argv);
 	//
+}
+
+TEST_F(SpsTest, test_iodata)
+{
+	//declare object
+	sps::IOData iodata;
+	sps::UserInput user_input;
+	sps::DedispersionPlan dedispersion_plan;
+	// check constructor
+	EXPECT_EQ(0, iodata.get_input_size());
+	EXPECT_EQ(NULL, iodata.get_input_buffer());
+	EXPECT_EQ(0, iodata.get_gpu_input_size());
+	EXPECT_EQ(NULL, iodata.get_d_input());
+	EXPECT_EQ(0, iodata.get_output_size());
+	EXPECT_EQ(NULL, iodata.get_output_buffer());
+	EXPECT_EQ(0, iodata.get_gpu_output_size());
+	EXPECT_EQ(NULL, iodata.get_d_output());
 
 }
+
+
 
 } // namespace test
 } // namespace sps
