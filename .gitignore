@@ -6,3 +6,7 @@ output/
 *.old
 *.new
 *.ori
+
+./astrolib/libastrolib.a
+.cproject
+.project
