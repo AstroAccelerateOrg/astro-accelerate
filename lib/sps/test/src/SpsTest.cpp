@@ -1,3 +1,4 @@
+#include "AstroAccelerate/host_get_file_data.h"
 #include "SpsTest.h"
 #include "sps/Sps.h"
 #include "../../SpsParameters.h"
@@ -127,6 +128,7 @@ TEST_F(SpsTest, test_dedispersion_plan)
 {
 
 	// read user input
+	sps::UserInput user_input;
 	FILE *fp = NULL;
 	user_input.get_user_input(&fp, my_argc, my_argv);
 	// get file data
@@ -142,7 +144,6 @@ TEST_F(SpsTest, test_dedispersion_plan)
 	get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp,
 				  &tstart, &fch1, &foff);
 	// declare objects
-	sps::UserInput user_input;
 	sps::DedispersionPlan dedispersion_plan;
 	// first, check constructor
 	EXPECT_EQ(NULL, dedispersion_plan.get_in_bin());
@@ -171,7 +172,6 @@ TEST_F(SpsTest, test_dedispersion_plan)
 	EXPECT_EQ(0, dedispersion_plan.get_num_tchunks());
 	EXPECT_FLOAT_EQ(2.0f, dedispersion_plan.get_power());
 	// read user input
-	FILE *fp = NULL;
 	user_input.get_user_input(&fp, my_argc, my_argv);
 	//
 }

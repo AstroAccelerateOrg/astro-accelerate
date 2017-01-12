@@ -14,14 +14,15 @@ if(ENABLE_CUDA)
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
   # Pass options to NVCC ( -ccbin /path  --compiler-options -lfftw3f --compiler-options -lm --verbose)
-  list(APPEND CUDA_NVCC_FLAGS -DENABLE_CUDA -g -std=c++11 -lineinfo -Xcompiler -fopenmp -O3 -lm -arch=sm_61 --use_fast_math --ptxas-options=-v -Xptxas -dlcm=cg)
+  list(APPEND CUDA_NVCC_FLAGS -DENABLE_CUDA -g -std=c++11 -lineinfo -Xcompiler -fopenmp -O3 -lm --use_fast_math --ptxas-options=-v -Xptxas -dlcm=cg)
   list(APPEND CUDA_NVCC_FLAGS_DEBUG --debug; --device-debug; --generate-line-info -Xcompiler)
   #list(APPEND CUDA_NVCC_FLAGS_DEBUG --debug; --device-debug; --generate-line-info -Xcompiler "-Werror")
 
-  #list(APPEND CUDA_NVCC_FLAGS -arch compute_35) # minumum compute level (Sps restriction)
-  #list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_52,code=sm_52) # TitanX
-  #list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_50,code=sm_50) # Maxwell
-  #list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_37,code=sm_37) # K80
+  list(APPEND CUDA_NVCC_FLAGS -arch compute_35) # minumum compute level (Sps restriction)
+  #list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_60,code=sm_61) # P100
+  list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_52,code=sm_52) # TitanX
+  list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_50,code=sm_50) # Maxwell
+  list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_37,code=sm_37) # K80
 
   set(CMAKE_CXX_FLAGS "-DENABLE_CUDA ${CMAKE_CXX_FLAGS}")
 
