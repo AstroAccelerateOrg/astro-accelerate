@@ -137,6 +137,8 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 		printf("\n=====================================================\n");
 	}
 
+	free(string);
+
 	// Move the file pointer back to the end of the header
 	fsetpos(*fp, &file_loc);
 
