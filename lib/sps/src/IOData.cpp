@@ -7,7 +7,6 @@ namespace sps{
 IOData::IOData()
 {
 	_input_size 		= 0;
-	_input_buffer	= NULL;
 	_gpu_input_size 	= 0;
 	_d_input 		= NULL;
 	_output_size 		= 0;
@@ -19,7 +18,6 @@ IOData::IOData()
 IOData::~IOData()
 {
 	// free all the pointers
-	free(_input_buffer);
 	cudaFree(_d_input);
 	// note: it's a float ***, should first free all the _output_buffer[i][j], then
 	// the _output_buffer[i], then _output_buffer
@@ -33,10 +31,6 @@ void IOData::set_input_size(std::size_t input_size)
 {
 	_input_size = input_size;
 }
-void IOData::set_input_buffer(unsigned short* input_buffer)
-{
-	_input_buffer = input_buffer;
-}
 void IOData::set_gpu_input_size(std::size_t gpu_input_size)
 {
 	_gpu_input_size = gpu_input_size;
@@ -48,10 +42,6 @@ void IOData::set_d_input(unsigned short* d_input)
 void IOData::set_output_size(std::size_t output_size)
 {
 	_output_size = output_size;
-}
-void IOData::set_output_buffer(float*** output_buffer)
-{
-	_output_buffer = output_buffer;
 }
 void IOData::set_gpu_output_size(std::size_t gpu_output_size)
 {
@@ -67,15 +57,15 @@ std::size_t IOData::get_input_size() const
 {
 	return _input_size;
 }
-unsigned short* IOData::get_input_buffer() const
+unsigned short* IOData::get_input_buffer()
 {
-	return _input_buffer;
+	return _input_buffer.data();
 }
 std::size_t IOData::get_gpu_input_size() const
 {
 	return _gpu_input_size;
 }
-unsigned short* IOData::get_d_input() const
+unsigned short* IOData::get_d_input()
 {
 	return _d_input;
 }
@@ -83,7 +73,7 @@ std::size_t IOData::get_output_size() const
 {
 	return _output_size;
 }
-float*** IOData::get_output_buffer() const
+float*** IOData::get_output_buffer()
 {
 	return _output_buffer;
 }
@@ -91,19 +81,20 @@ std::size_t IOData::get_gpu_output_size() const
 {
 	return _gpu_output_size;
 }
-float* IOData::get_d_output() const
+float* IOData::get_d_output()
 {
 	return _d_output;
 }
 
 // methods
 
-void IOData::allocate_memory_cpu_input(DedispersionPlan const &dedispersion_plan)
+void IOData::allocate_memory_cpu_input(DedispersionPlan &dedispersion_plan)
 {
 	_input_size = dedispersion_plan.get_nsamp() * (size_t)(dedispersion_plan.get_nchans()) * sizeof(unsigned short);
-	_input_buffer = (unsigned short *) malloc(_input_size);
+	_input_buffer.resize(_input_size);
 }
-void IOData::allocate_memory_cpu_output(DedispersionPlan const &dedispersion_plan)
+
+void IOData::allocate_memory_cpu_output(DedispersionPlan &dedispersion_plan)
 {
 	int range 				= dedispersion_plan.get_range();
 	int num_tchunks 	= dedispersion_plan.get_num_tchunks();
@@ -130,7 +121,8 @@ void IOData::allocate_memory_cpu_output(DedispersionPlan const &dedispersion_pla
 		printf("\noutput size: %llu", (unsigned long long) sizeof( _output_buffer ) / 1024 / 1024 / 1024);
 	}
 }
-void IOData::allocate_memory_gpu(DedispersionPlan const &dedispersion_plan)
+
+void IOData::allocate_memory_gpu(DedispersionPlan &dedispersion_plan)
 {
 	int maxshift = dedispersion_plan.get_maxshift();
 	int** t_processed = dedispersion_plan.get_t_processed();

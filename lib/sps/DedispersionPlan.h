@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include "UserInput.h"
+#include <vector>
 
 namespace ska {
 namespace astroaccelerate {
@@ -37,15 +38,9 @@ class DedispersionPlan
         void set_in_bin(int *);
         void set_out_bin(int *);
         void set_maxshift(int);
-        void set_dm_low(float *);
-        void set_dm_high(float *);
-        void set_dm_step(float *);
-        void set_dmshifts(float *);
-        void set_ndms(int *);
         void set_max_ndms(int);
         void set_total_ndms(int);
         void set_range(int);
-        void set_t_processed(int **);
         void set_nbits(int);
         void set_nifs(int);
         void set_tstart(float);
@@ -62,19 +57,19 @@ class DedispersionPlan
         /**
         *  @brief Getters
         */
-        int*   get_in_bin() const;
-        int*   get_out_bin() const;
+        int*   get_in_bin();
+        int*   get_out_bin();
         int    get_maxshift() const;
-        float* get_dm_low() const;
-        float* get_dm_high() const;
-        float* get_dm_step() const;
-        float* get_dmshifts() const;
-        int*   get_ndms() const;
+        float* get_dm_low();
+        float* get_dm_high();
+        float* get_dm_step();
+        float* get_dmshifts();
+        int*   get_ndms();
         int 		 get_max_ndms() const;
         int 		 get_total_ndms() const;
         float 		 get_max_dm() const;
         int  		 get_range() const;
-        int**  		 get_t_processed() const;
+        int**  		 get_t_processed();
         int 		 get_nbits() const;
         int 		 get_nifs() const;
         float 		 get_tstart() const;
@@ -101,11 +96,11 @@ class DedispersionPlan
       int* 		_in_bin;
       int* 		_out_bin;
       int 		_maxshift;
-    	float* 	_dm_low;
-    	float* 	_dm_high;
-    	float* 	_dm_step;
-    	float* 	_dmshifts;
-    	int* 		_ndms;
+      std::vector<float> 	_dm_low;
+      std::vector<float> 	_dm_high;
+      std::vector<float> 	_dm_step;
+      std::vector<float> 	_dmshifts;
+      std::vector<int> 		_ndms;
     	int 		_max_ndms;
     	int 		_total_ndms;
     	float 	_max_dm;

@@ -26,21 +26,6 @@ UserInput::UserInput()
 	_sigma_cutoff			= 6.0f;
 	_wide 					= 0.1f;
 	_range					= 0;
-	_user_dm_low			= NULL;
-	_user_dm_high			= NULL;
-	_user_dm_step			= NULL;
-	_in_bin 				= NULL;
-	_out_bin				= NULL;
-}
-
-UserInput::~UserInput()
-{
-	// free all the pointers
-	free(_user_dm_low);
-	free(_user_dm_high);
-	free(_user_dm_step);
-	free(_in_bin);
-	free(_out_bin);
 }
 
 int 		UserInput::get_multi_file() const
@@ -127,30 +112,30 @@ int 		UserInput::get_range() const
 	return _range;
 }
 
-float*	UserInput::get_user_dm_low() const
+float*	UserInput::get_user_dm_low()
 {
-	return _user_dm_low;
+	return _user_dm_low.data();
 }
 
-float*	UserInput::get_user_dm_high() const
+float*	UserInput::get_user_dm_high()
 {
-	return _user_dm_high;
+	return _user_dm_high.data();
 }
 
-float* 	UserInput::get_user_dm_step() const
+float* 	UserInput::get_user_dm_step()
 {
-	return _user_dm_step;
+	return _user_dm_step.data();
 }
 
 // Getters
-int* UserInput::get_in_bin() const
+int* UserInput::get_in_bin()
 {
-	return _in_bin;
+	return _in_bin.data();
 }
 
-int* UserInput::get_out_bin() const
+int* UserInput::get_out_bin()
 {
-	return _out_bin;
+	return _out_bin.data();
 }
 
 void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[])
@@ -184,12 +169,12 @@ void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[])
 		}
 		rewind(fp_in);
 
-		_user_dm_low = (float *) malloc(  _range * sizeof(float));
-		_user_dm_high = (float *) malloc( _range * sizeof(float));
-		_user_dm_step = (float *) malloc( _range * sizeof(float));
+		_user_dm_low.resize(_range);
+		_user_dm_high.resize(_range);
+		_user_dm_step.resize(_range);
 
-		_out_bin = (int *) malloc( _range  * sizeof(int));
-		_in_bin = (int *) malloc(  _range  * sizeof(int));
+		_out_bin.resize(_range);
+		_in_bin.resize(_range);
 
 		for (i = 0; i < _range; i++)
 		{

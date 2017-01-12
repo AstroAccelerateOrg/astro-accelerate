@@ -2,6 +2,7 @@
 #define SKA_ASTROACCELERATE_SPS_USERINPUT_H
 
 #include <stdio.h>
+#include <vector>
 
 namespace ska {
 namespace astroaccelerate {
@@ -17,14 +18,17 @@ namespace sps{
 class UserInput
 {
     public:
-		/**
-		*  @brief Constructor
-		*/
-		UserInput();
-        /**
-        *  @brief Destructor
-        */
-        ~UserInput();
+	/**
+	*  @brief Constructor
+	*/
+	UserInput();
+
+	UserInput(const UserInput &) = delete;
+	UserInput(UserInput &&) = delete;
+	UserInput & operator=(const UserInput &) = delete;
+
+	~UserInput() = default;
+
         /**
         *  @brief Getters
         */
@@ -45,11 +49,11 @@ class UserInput
         float 	get_sigma_cutoff() const;
         float 	get_wide() const;
         int 	get_range() const;
-        float*	get_user_dm_low() const;
-        float*	get_user_dm_high() const;
-        float* 	get_user_dm_step() const;
-        int*	get_in_bin() const;
-        int* 	get_out_bin() const;
+        float*	get_user_dm_low();
+        float*	get_user_dm_high();
+        float* 	get_user_dm_step();
+        int*	get_in_bin();
+        int* 	get_out_bin();
 
         /**
         *  @brief Get the user input
@@ -77,11 +81,11 @@ class UserInput
         float 	_sigma_cutoff;
         float 	_wide;
         int 		_range;
-        float* 	_user_dm_low;
-        float* 	_user_dm_high;
-        float*	_user_dm_step;
-        int* 		_in_bin;
-        int* 		_out_bin;
+        std::vector<float> 	_user_dm_low;
+        std::vector<float> 	_user_dm_high;
+        std::vector<float>	_user_dm_step;
+        std::vector<int>	_in_bin;
+        std::vector<int> 	_out_bin;
 };
 
 } // namespace sps

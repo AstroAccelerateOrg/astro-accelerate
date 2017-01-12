@@ -12,11 +12,6 @@ namespace sps {
 		_in_bin 	 = NULL;
 		_out_bin 	 = NULL;
 		_maxshift 	 = 0;
-		_dm_low 	 = NULL;
-		_dm_high 	 = NULL;
-		_dm_step 	 = NULL;
-		_dmshifts 	 = NULL;
-		_ndms 		 = NULL;
 		_max_ndms 	 = 0;
 		_total_ndms	 = 0;
 		_max_dm		 =	0.0f;
@@ -41,11 +36,8 @@ namespace sps {
 		// free all the pointers
 		free(_in_bin);
 		free(_out_bin);
-		free(_dm_low);
-		free(_dm_high);
-		free(_dm_step);
-		free(_dmshifts);
-		// Probably not so trivial (int **), should free all the _t_processed[i] first
+		for (int i=0; i < _range; ++i)
+                    free(_t_processed[i]);
 		free(_t_processed);
 
 	}
@@ -66,31 +58,6 @@ namespace sps {
 		_maxshift = maxshift;
 	}
 
-	void DedispersionPlan::set_dm_low(float* dm_low)
-	{
-		_dm_low = dm_low;
-	}
-
-	void DedispersionPlan::set_dm_high(float* dm_high)
-	{
-		_dm_high = dm_high;
-	}
-
-	void DedispersionPlan::set_dm_step(float* dm_step)
-	{
-		_dm_step = dm_step;
-	}
-
-	void DedispersionPlan::set_dmshifts(float* dmshifts)
-	{
-		_dmshifts = dmshifts;
-	}
-
-	void DedispersionPlan::set_ndms(int* ndms)
-	{
-		_ndms = ndms;
-	}
-
 	void DedispersionPlan::set_max_ndms(int max_ndms)
 	{
 		_max_ndms = max_ndms;
@@ -104,11 +71,6 @@ namespace sps {
 	void DedispersionPlan::set_range(int range)
 	{
 		_range = range;
-	}
-
-	void DedispersionPlan::set_t_processed(int** t_processed)
-	{
-		_t_processed = t_processed;
 	}
 
 	void DedispersionPlan::set_nbits(int nbits)
@@ -172,12 +134,12 @@ namespace sps {
 	}
 
 	// Getters
-	int* DedispersionPlan::get_in_bin() const
+	int* DedispersionPlan::get_in_bin()
 	{
 		return _in_bin;
 	}
 
-	int* DedispersionPlan::get_out_bin() const
+	int* DedispersionPlan::get_out_bin()
 	{
 		return _out_bin;
 	}
@@ -187,29 +149,29 @@ namespace sps {
 		return _maxshift;
 	}
 
-	float* DedispersionPlan::get_dm_low() const
+	float* DedispersionPlan::get_dm_low()
 	{
-		return _dm_low;
+		return _dm_low.data();
 	}
 
-	float* DedispersionPlan::get_dm_high() const
+	float* DedispersionPlan::get_dm_high()
 	{
-		return _dm_high;
+		return _dm_high.data();
 	}
 
-	float* DedispersionPlan::get_dm_step() const
+	float* DedispersionPlan::get_dm_step()
 	{
-		return _dm_step;
+		return _dm_step.data();
 	}
 
-	float* DedispersionPlan::get_dmshifts() const
+	float* DedispersionPlan::get_dmshifts()
 	{
-		return _dmshifts;
+		return _dmshifts.data();
 	}
 
-	int* DedispersionPlan::get_ndms() const
+	int* DedispersionPlan::get_ndms()
 	{
-		return _ndms;
+		return _ndms.data();
 	}
 
 	int DedispersionPlan::get_max_ndms() const
@@ -231,7 +193,7 @@ namespace sps {
 		return _range;
 	}
 
-	int** DedispersionPlan::get_t_processed() const
+	int** DedispersionPlan::get_t_processed()
 	{
 		return _t_processed;
 	}
@@ -313,12 +275,12 @@ namespace sps {
 		float fmin_pow = powf(fmin, _power);
 		float fmax_pow = powf(_fch1, _power);
 
-		_dm_low = (float *) malloc(( _range ) * sizeof(float));
-		_dm_high = (float *) malloc(( _range ) * sizeof(float));
-		_dm_step = (float *) malloc(( _range ) * sizeof(float));
-		_ndms = (int *) malloc(( _range ) * sizeof(int));
+		_dm_low.resize(_range);
+		_dm_high.resize(_range);
+		_dm_step.resize(_range);
+		_ndms.resize(_range);
 
-		_dmshifts = (float *) malloc(_nchans * sizeof(float));
+		_dmshifts.resize(_nchans * sizeof(float));
 
 		//{{{ Calculate maxshift, the number of dms for this bin and
 		//the highest value of dm to be calculated in this bin
