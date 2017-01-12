@@ -1,5 +1,20 @@
 build/
 output/
 
-.project
+./astrolib/
+./astrolib/libastrolib.a
 .cproject
+.project
+
+#Ignore cuda build temporary files
+*.ptx
+*.cudafe*
+*.cubin
+*.fatbin
+*.fatbin.*
+*.hash
+*.i
+*.ii
+*.module_id
+*.reg.c
+*.o
