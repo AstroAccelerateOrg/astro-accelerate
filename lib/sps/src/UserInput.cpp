@@ -270,6 +270,8 @@ void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[])
 				}
 			}
 		}
+		fclose(fp_in);
+
 	}
 	else if (argc == 2 && strcmp(argv[1], "-help") == 0)
 	{

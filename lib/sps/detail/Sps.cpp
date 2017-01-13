@@ -30,7 +30,9 @@ void Sps<SpsParameterType>::operator()( unsigned device_id, IOData &io_data, Ded
 		cudaMemGetInfo(&mem_free, &total);
 		gpu_memory = ( mem_free/4 );
 
-		// Call the strategy method of class dedispersion (could be done outside ?)
+		// Call the strategy method of class dedispersion
+		// (could be done outside ?) -> can't be done outside since gpu mem is needed and it has be decided
+		// that gpu initialisation will be done in the libary call
 
 		// Allocate memory on host and device.
 		io_data.allocate_memory_cpu_output(dedispersion_plan);
@@ -52,8 +54,8 @@ void Sps<SpsParameterType>::operator()( unsigned device_id, IOData &io_data, Ded
 		float* dmshifts = dedispersion_plan.get_dmshifts();
 		unsigned short* input_buffer = io_data.get_input_buffer();
 		float*** output_buffer = io_data.get_output_buffer();
-		int* inBin = dedispersion_plan.get_in_bin();
-		int* outBin = dedispersion_plan.get_out_bin();
+		int* inBin = user_input.get_in_bin();
+		int* outBin = user_input.get_out_bin();
 		unsigned short* d_input = io_data.get_d_input();
 		float* d_output = io_data.get_d_output();
 		int range = dedispersion_plan.get_range();
