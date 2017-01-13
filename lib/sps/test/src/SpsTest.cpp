@@ -2,6 +2,7 @@
 #include "sps/Sps.h"
 #include "../../SpsParameters.h"
 #include "../../UserInput.h"
+#include "../../../AstroAccelerate/host_get_file_data.h"
 
 namespace ska {
 namespace astroaccelerate {
@@ -28,6 +29,7 @@ void SpsTest::TearDown()
 
 class TestParams : public SpsParameters<TestParams> {};
 
+// dummy example on how gtest works
 TEST_F(SpsTest, test_handlers)
 {
     unsigned device_id = 0;
@@ -44,14 +46,15 @@ TEST_F(SpsTest, test_handlers)
     ASSERT_FALSE(sps_handler_called);
 }
 
+
+// test class user input
 TEST_F(SpsTest, test_user_input)
 {
 	// Following is ok for ska_karel.txt
 	char* filename = my_argv[1] + strlen(my_argv[1]) - 13;
 	if(strcmp(filename, "ska_karel.txt") == 0)
 	{
-		// create objects
-
+		// create object
 		sps::UserInput user_input;
 
 		// first, check constructor:
@@ -122,76 +125,160 @@ TEST_F(SpsTest, test_user_input)
 	}
 }
 
-// to finish
+// test dedispersion plan class
 TEST_F(SpsTest, test_dedispersion_plan)
 {
+	// Following is ok for ska_karel.txt
+	char* filename = my_argv[1] + strlen(my_argv[1]) - 13;
+	if(strcmp(filename, "ska_karel.txt") == 0)
+	{
+		// declare objects
+		sps::UserInput user_input;
+		sps::DedispersionPlan dedispersion_plan;
+		// first, check constructor
+		EXPECT_EQ(0   , dedispersion_plan.get_maxshift());
+		EXPECT_EQ(NULL, dedispersion_plan.get_dm_low());
+		EXPECT_EQ(NULL, dedispersion_plan.get_dm_high());
+		EXPECT_EQ(NULL, dedispersion_plan.get_dm_step());
+		EXPECT_EQ(NULL, dedispersion_plan.get_dmshifts());
+		EXPECT_EQ(NULL, dedispersion_plan.get_ndms());
+		EXPECT_EQ(0,    dedispersion_plan.get_max_ndms());
+		EXPECT_EQ(0,    dedispersion_plan.get_total_ndms());
+		EXPECT_FLOAT_EQ(0.0f, dedispersion_plan.get_max_dm());
+		EXPECT_EQ(0, dedispersion_plan.get_range());
+		EXPECT_EQ(NULL, dedispersion_plan.get_t_processed());
+		EXPECT_EQ(0, dedispersion_plan.get_nbits());
+		EXPECT_EQ(0, dedispersion_plan.get_nifs());
+		EXPECT_FLOAT_EQ(0.0f, dedispersion_plan.get_tstart());
+		EXPECT_FLOAT_EQ(0.0f, dedispersion_plan.get_tsamp());
+		EXPECT_EQ(0, dedispersion_plan.get_nsamp());
+		EXPECT_EQ(0, dedispersion_plan.get_nsamples());
+		EXPECT_EQ(0, dedispersion_plan.get_max_samps());
+		EXPECT_EQ(0, dedispersion_plan.get_nchans());
+		EXPECT_FLOAT_EQ(0.0f, dedispersion_plan.get_fch1());
+		EXPECT_FLOAT_EQ(0.0f, dedispersion_plan.get_foff());
+		EXPECT_EQ(0, dedispersion_plan.get_num_tchunks());
+		// read user input
+		FILE *fp = NULL;
+		user_input.get_user_input(&fp, my_argc, my_argv);
+		// set dedispersion plan
+		dedispersion_plan.set_power(user_input.get_power());
+		dedispersion_plan.set_range(user_input.get_range());
+		// chech if it updates correctly
+		EXPECT_FLOAT_EQ(2.0f, dedispersion_plan.get_power());
+		EXPECT_EQ(6, dedispersion_plan.get_range());
+		// get file data
+		int nchans = 0;
+		int nsamp = 0;
+		int nbits = 0;
+		int nsamples = 0;
+		int nifs = 0;
+		float tsamp = 0.0f;
+		float tstart = 0.0f;
+		float fch1 = 0.0f;
+		float foff = 0.0f;
+		get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp,
+					  &tstart, &fch1, &foff);
+		// set dedispersion plan
+		dedispersion_plan.set_nchans(nchans);
+		dedispersion_plan.set_nsamples(nsamples);
+		dedispersion_plan.set_nsamp(nsamp);
+		dedispersion_plan.set_nifs(nifs);
+		dedispersion_plan.set_nbits(nbits);
+		dedispersion_plan.set_tsamp(tsamp);
+		dedispersion_plan.set_tstart(tstart);
+		dedispersion_plan.set_fch1(fch1);
+		dedispersion_plan.set_foff(foff);
+		// check if it updates correctly
+		EXPECT_EQ(4096, dedispersion_plan.get_nchans());
+		EXPECT_EQ(0, dedispersion_plan.get_nsamples());
+		EXPECT_EQ(234496, dedispersion_plan.get_nsamp());
+		EXPECT_EQ(1, dedispersion_plan.get_nifs());
+		EXPECT_EQ(8, dedispersion_plan.get_nbits());
+		EXPECT_FLOAT_EQ(0.000064, dedispersion_plan.get_tsamp());
+		EXPECT_FLOAT_EQ(50000, dedispersion_plan.get_tstart());
+		EXPECT_FLOAT_EQ(1550, dedispersion_plan.get_fch1());
+		EXPECT_NEAR(-0.073242, dedispersion_plan.get_foff(), 0.000001);
+		//EXPECT_FLOAT_EQ(-0.073242, dedispersion_plan.get_foff());
+		// it fails the test:
+		// Value of: dedispersion_plan.get_foff()
+		// Actual: -0.073242188
+		// Expected: -0.073242
+		// Which is: -0.073242001
+		// Initialise the GPU.
+		int device_id = 0; // hard-coded, would be a parameter
+		size_t gpu_memory = 0;
+		cudaSetDevice(device_id);
+		size_t mem_free, total;
+		cudaMemGetInfo(&mem_free, &total);
+		gpu_memory = ( mem_free/4 );
+		// Call the strategy method
+		dedispersion_plan.make_strategy(user_input.get_user_dm_low(),
+										user_input.get_user_dm_high(),
+										user_input.get_user_dm_step(),
+										user_input.get_in_bin(),
+										gpu_memory
+										);
+		fclose(fp);
 
-	// read user input
-	FILE *fp = NULL;
-	user_input.get_user_input(&fp, my_argc, my_argv);
-	// get file data
-	int nchans = 0;
-	int nsamp = 0;
-	int nbits = 0;
-	int nsamples = 0;
-	int nifs = 0;
-	float tsamp = 0.0f;
-	float tstart = 0.0f;
-	float fch1 = 0.0f;
-	float foff = 0.0f;
-	get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp,
-				  &tstart, &fch1, &foff);
-	// declare objects
-	sps::UserInput user_input;
-	sps::DedispersionPlan dedispersion_plan;
-	// first, check constructor
-	EXPECT_EQ(NULL, dedispersion_plan.get_in_bin());
-	EXPECT_EQ(NULL, dedispersion_plan.get_out_bin());
-	EXPECT_EQ(0   , dedispersion_plan.get_maxshift());
-	EXPECT_EQ(NULL, dedispersion_plan.get_dm_low());
-	EXPECT_EQ(NULL, dedispersion_plan.get_dm_high());
-	EXPECT_EQ(NULL, dedispersion_plan.get_dm_step());
-	EXPECT_EQ(NULL, dedispersion_plan.get_dmshifts());
-	EXPECT_EQ(NULL, dedispersion_plan.get_ndms());
-	EXPECT_EQ(0,    dedispersion_plan.get_max_ndms());
-	EXPECT_EQ(0,    dedispersion_plan.get_total_ndms());
-	EXPECT_FLOAT_EQ(0.0f, dedispersion_plan.get_max_dm());
-	EXPECT_EQ(0, dedispersion_plan.get_range());
-	EXPECT_EQ(NULL, dedispersion_plan.get_t_processed());
-	EXPECT_EQ(0, dedispersion_plan.get_nbits());
-	EXPECT_EQ(0, dedispersion_plan.get_nifs());
-	EXPECT_FLOAT_EQ(0.0f, dedispersion_plan.get_tstart());
-	EXPECT_FLOAT_EQ(0.0f, dedispersion_plan.get_tsamp());
-	EXPECT_EQ(0, dedispersion_plan.get_nsamp());
-	EXPECT_EQ(0, dedispersion_plan.get_nsamples());
-	EXPECT_EQ(0, dedispersion_plan.get_max_samps());
-	EXPECT_EQ(0, dedispersion_plan.get_nchans());
-	EXPECT_FLOAT_EQ(0.0f, dedispersion_plan.get_fch1());
-	EXPECT_FLOAT_EQ(0.0f, dedispersion_plan.get_foff());
-	EXPECT_EQ(0, dedispersion_plan.get_num_tchunks());
-	EXPECT_FLOAT_EQ(2.0f, dedispersion_plan.get_power());
-	// read user input
-	FILE *fp = NULL;
-	user_input.get_user_input(&fp, my_argc, my_argv);
-	//
+	}
 }
+
+
 
 TEST_F(SpsTest, test_iodata)
 {
-	//declare object
-	sps::IOData iodata;
-	sps::UserInput user_input;
-	sps::DedispersionPlan dedispersion_plan;
-	// check constructor
-	EXPECT_EQ(0, iodata.get_input_size());
-	EXPECT_EQ(NULL, iodata.get_input_buffer());
-	EXPECT_EQ(0, iodata.get_gpu_input_size());
-	EXPECT_EQ(NULL, iodata.get_d_input());
-	EXPECT_EQ(0, iodata.get_output_size());
-	EXPECT_EQ(NULL, iodata.get_output_buffer());
-	EXPECT_EQ(0, iodata.get_gpu_output_size());
-	EXPECT_EQ(NULL, iodata.get_d_output());
-
+	// Following is ok for ska_karel.txt
+	char* filename = my_argv[1] + strlen(my_argv[1]) - 13;
+	if(strcmp(filename, "ska_karel.txt") == 0)
+	{
+		// declare objects
+		sps::UserInput user_input;
+		sps::DedispersionPlan dedispersion_plan;
+		// read user input
+		FILE *fp = NULL;
+		user_input.get_user_input(&fp, my_argc, my_argv);
+		// set dedispersion plan
+		dedispersion_plan.set_power(user_input.get_power());
+		dedispersion_plan.set_range(user_input.get_range());
+		// get file data
+		int nchans = 0;
+		int nsamp = 0;
+		int nbits = 0;
+		int nsamples = 0;
+		int nifs = 0;
+		float tsamp = 0.0f;
+		float tstart = 0.0f;
+		float fch1 = 0.0f;
+		float foff = 0.0f;
+		get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp,
+					  &tstart, &fch1, &foff);
+		// set dedispersion plan
+		dedispersion_plan.set_nchans(nchans);
+		dedispersion_plan.set_nsamples(nsamples);
+		dedispersion_plan.set_nsamp(nsamp);
+		dedispersion_plan.set_nifs(nifs);
+		dedispersion_plan.set_nbits(nbits);
+		dedispersion_plan.set_tsamp(tsamp);
+		dedispersion_plan.set_tstart(tstart);
+		dedispersion_plan.set_fch1(fch1);
+		dedispersion_plan.set_foff(foff);
+		// Initialise the GPU.
+		int device_id = 0; // hard-coded, would be a parameter
+		size_t gpu_memory = 0;
+		cudaSetDevice(device_id);
+		size_t mem_free, total;
+		cudaMemGetInfo(&mem_free, &total);
+		gpu_memory = ( mem_free/4 );
+		// Call the strategy method
+		dedispersion_plan.make_strategy(user_input.get_user_dm_low(),
+										user_input.get_user_dm_high(),
+										user_input.get_user_dm_step(),
+										user_input.get_in_bin(),
+										gpu_memory
+										);
+		fclose(fp);
+	}
 }
 
 
