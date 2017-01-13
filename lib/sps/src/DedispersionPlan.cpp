@@ -386,7 +386,7 @@ namespace sps {
 			// Check that we dont have an out of range maxshift:
 			if ( _maxshift > max_tsamps)
 			{
-				printf("\nERROR!! Your GPU doens't have enough memory for this number of dispersion trials.");
+				printf("\nERROR!! Your GPU doesn't have enough memory for this number of dispersion trials.");
 				printf("\nReduce your maximum dm or increase the size of your dm step");
 				exit(0);
 			}
@@ -456,7 +456,7 @@ namespace sps {
 			// Check that we dont have an out of range maxshift:
 			if (( _maxshift ) > max_tsamps)
 			{
-				printf("\nERROR!! Your GPU doens't have enough memory for this number of dispersion trials.");
+				printf("\nERROR!! Your GPU doesn't have enough memory for this number of dispersion trials.");
 				printf("\nReduce your maximum dm or increase the size of your dm step");
 				exit(0);
 			}
