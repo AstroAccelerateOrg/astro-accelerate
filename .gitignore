@@ -11,3 +11,15 @@ output/
 ./astrolib/libastrolib.a
 .cproject
 .project
+
+#Ignore cuda build temporary files
+*.ptx
+*.cudafe*
+*.cubin
+*.fatbin
+*.fatbin.*
+*.i
+*.ii
+*.module_id
+*.reg.c
+*.o

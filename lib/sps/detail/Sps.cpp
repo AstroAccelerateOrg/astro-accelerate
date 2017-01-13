@@ -1,3 +1,4 @@
+
 #include "../Sps.h"
 
 namespace ska {
@@ -30,9 +31,8 @@ void Sps<SpsParameterType>::operator()( unsigned device_id, IOData &io_data, Ded
 		cudaMemGetInfo(&mem_free, &total);
 		gpu_memory = ( mem_free/4 );
 
-		// Call the strategy method of class dedispersion
-		// (could be done outside ?) -> can't be done outside since gpu mem is needed and it has be decided
-		// that gpu initialisation will be done in the libary call
+		// Call the strategy method of class dedispersion (could be done outside ?)
+		// -> can't be done outside b/c need gpu_mem and gpu is initialised inside the library
 
 		// Allocate memory on host and device.
 		io_data.allocate_memory_cpu_output(dedispersion_plan);

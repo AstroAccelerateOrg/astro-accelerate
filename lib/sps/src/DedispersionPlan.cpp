@@ -41,15 +41,11 @@ namespace sps {
 		free(_dm_high);
 		free(_dm_step);
 		free(_dmshifts);
-		free(_ndms);
-		//for (int i = 0; i < _range; ++i)
-		//	free(_t_processed[i]);
+		// Probably not so trivial (int **), should free all the _t_processed[i] first
 		free(_t_processed);
-
 	}
 
 	// Setters
-
 	void DedispersionPlan::set_maxshift(int maxshift)
 	{
 		_maxshift = maxshift;
@@ -279,7 +275,7 @@ namespace sps {
 	void DedispersionPlan::make_strategy(float* const user_dm_low,
 	                                     float* const user_dm_high,
 	                                     float* const user_dm_step,
-	                                     int*	const inBin,
+	                                     int* 	const inBin,
 	                                     size_t const gpu_memory)
 	{
 
@@ -298,6 +294,7 @@ namespace sps {
 		_dm_high = (float *) malloc(( _range ) * sizeof(float));
 		_dm_step = (float *) malloc(( _range ) * sizeof(float));
 		_ndms = (int *) malloc(( _range ) * sizeof(int));
+
 		_dmshifts = (float *) malloc(_nchans * sizeof(float));
 
 		//{{{ Calculate maxshift, the number of dms for this bin and
@@ -319,7 +316,6 @@ namespace sps {
 				_dmshifts[c] = (float) ( 4148.741601f * ( ( 1.0 / pow((double) ( _fch1 + ( _foff * c ) ), _power) ) - ( 1.0 / pow((double) _fch1, _power) ) ) );
 			}
 		}
-
 
 		for (i = 0; i < _range; ++i)
 		{
@@ -541,7 +537,6 @@ namespace sps {
 		{
 			printf("\nOutput memory needed:\t%lu MB", _nchans * _maxshift * sizeof(float) / 1024 / 1024);
 		}
-
 	}
 } // namespace sps
 } // namespace astroaccelerate

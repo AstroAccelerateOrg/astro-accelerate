@@ -25,9 +25,9 @@ namespace sps{
 
 /**
  * @brief 	Input/Output Data
- * 
+ *
  * @details This object carries the input/output data for both Cpu and Gpu
- * 
+ *
  */
 
 class IOData
@@ -38,7 +38,7 @@ class IOData
         */
         IOData();
         /**
-        *  @brief Destructor 
+        *  @brief Destructor
         */
         ~IOData();
         /**

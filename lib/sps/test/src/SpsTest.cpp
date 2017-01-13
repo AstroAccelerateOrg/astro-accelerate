@@ -1,3 +1,4 @@
+#include "AstroAccelerate/host_get_file_data.h"
 #include "SpsTest.h"
 #include "sps/Sps.h"
 #include "../../SpsParameters.h"
@@ -220,7 +221,6 @@ TEST_F(SpsTest, test_dedispersion_plan)
 										gpu_memory
 										);
 		fclose(fp);
-
 	}
 }
 
