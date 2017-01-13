@@ -48,12 +48,12 @@ void Sps<SpsParameterType>::operator()( unsigned device_id, IOData &io_data, Ded
 		int maxshift = dedispersion_plan.get_maxshift();
 		int max_ndms = dedispersion_plan.get_max_ndms();
 		int maxshift_original = maxshift;
-		int** t_processed = dedispersion_plan.get_t_processed();
+		auto t_processed = dedispersion_plan.get_t_processed();
 		int num_tchunks = dedispersion_plan.get_num_tchunks();
 		int nchans = dedispersion_plan.get_nchans();
 		float* dmshifts = dedispersion_plan.get_dmshifts();
 		unsigned short* input_buffer = io_data.get_input_buffer();
-		float*** output_buffer = io_data.get_output_buffer();
+		auto output_buffer = io_data.get_output_buffer();
 		int* inBin = dedispersion_plan.get_in_bin();
 		int* outBin = dedispersion_plan.get_out_bin();
 		unsigned short* d_input = io_data.get_d_input();
@@ -136,8 +136,6 @@ void Sps<SpsParameterType>::operator()( unsigned device_id, IOData &io_data, Ded
 
 		cudaFree(d_input);
 		cudaFree(d_output);
-		free(input_buffer);
-		free(output_buffer);
 }
 
 } // namespace sps

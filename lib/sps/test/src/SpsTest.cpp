@@ -158,7 +158,6 @@ TEST_F(SpsTest, test_dedispersion_plan)
 	EXPECT_EQ(0,    dedispersion_plan.get_total_ndms());
 	EXPECT_FLOAT_EQ(0.0f, dedispersion_plan.get_max_dm());
 	EXPECT_EQ(0, dedispersion_plan.get_range());
-	EXPECT_EQ(NULL, dedispersion_plan.get_t_processed());
 	EXPECT_EQ(0, dedispersion_plan.get_nbits());
 	EXPECT_EQ(0, dedispersion_plan.get_nifs());
 	EXPECT_FLOAT_EQ(0.0f, dedispersion_plan.get_tstart());

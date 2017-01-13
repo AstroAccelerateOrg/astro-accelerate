@@ -98,7 +98,7 @@ void IOData::allocate_memory_cpu_output(DedispersionPlan &dedispersion_plan)
 {
 	int range 				= dedispersion_plan.get_range();
 	int num_tchunks 	= dedispersion_plan.get_num_tchunks();
-	int** t_processed = dedispersion_plan.get_t_processed();
+	auto t_processed = dedispersion_plan.get_t_processed();
 	int* ndms 				= dedispersion_plan.get_ndms();
 
 	_output_size = 0;
@@ -125,7 +125,7 @@ void IOData::allocate_memory_cpu_output(DedispersionPlan &dedispersion_plan)
 void IOData::allocate_memory_gpu(DedispersionPlan &dedispersion_plan)
 {
 	int maxshift = dedispersion_plan.get_maxshift();
-	int** t_processed = dedispersion_plan.get_t_processed();
+	auto t_processed = dedispersion_plan.get_t_processed();
 	int nchans = dedispersion_plan.get_nchans();
 	int max_ndms = dedispersion_plan.get_max_ndms();
 

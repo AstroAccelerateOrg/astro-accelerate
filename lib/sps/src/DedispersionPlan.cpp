@@ -16,7 +16,6 @@ namespace sps {
 		_total_ndms	 = 0;
 		_max_dm		 =	0.0f;
 		_range 		 = 0;
-		_t_processed = NULL;
 		_nbits 		 = 0;
 		_nifs 		 = 0;
 		_tstart 	 = 0.0f;
@@ -36,10 +35,6 @@ namespace sps {
 		// free all the pointers
 		free(_in_bin);
 		free(_out_bin);
-		for (int i=0; i < _range; ++i)
-                    free(_t_processed[i]);
-		free(_t_processed);
-
 	}
 
 	// Setters
@@ -193,7 +188,7 @@ namespace sps {
 		return _range;
 	}
 
-	int** DedispersionPlan::get_t_processed()
+	std::vector<std::vector<int>>& DedispersionPlan::get_t_processed()
 	{
 		return _t_processed;
 	}
@@ -373,7 +368,7 @@ namespace sps {
 		int max_tsamps;
 
 		// Allocate memory to store the t_processed ranges:
-		_t_processed = (int **) malloc(_range * sizeof(int *));
+		_t_processed.resize(_range);
 
 		if (_nchans < ( _max_ndms ))
 		{
@@ -397,12 +392,12 @@ namespace sps {
 				// We have case 1)
 				// Allocate memory to hold the values of nsamps to be processed
 				int local_t_processed = (int) floor(( (float) ( _nsamp - _maxshift ) / (float) _in_bin[_range - 1] ) / (float) ( SDIVINT * ( SNUMREG ) ));
-				local_t_processed = local_t_processed * ( SDIVINT * ( SNUMREG ) ) * _in_bin[_range - 1];
+				local_t_processed *= ( SDIVINT * ( SNUMREG ) ) * _in_bin[_range - 1];
 				for (i = 0; i < _range; ++i)
 				{
-					_t_processed[i]    = (int *) malloc(sizeof(int));
+					_t_processed[i].resize(1);
 					_t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) _in_bin[i] ) / (float) ( SDIVINT * ( SNUMREG ) ));
-					_t_processed[i][0] = ( _t_processed )[i][0] * ( SDIVINT * ( SNUMREG ) );
+					_t_processed[i][0] *= SDIVINT * ( SNUMREG );
 				}
 				_num_tchunks = 1;
 				printf("\nIn 1\n");
@@ -419,26 +414,26 @@ namespace sps {
 
 				// Find the common integer amount of samples between all bins
 				int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) _in_bin[_range - 1] ) / (float) ( SDIVINT * ( SNUMREG ) ));
-				local_t_processed = local_t_processed * ( SDIVINT * ( SNUMREG ) ) * _in_bin[_range - 1];
+				local_t_processed *= ( SDIVINT * ( SNUMREG ) ) * _in_bin[_range - 1];
 
 				// Work out the remaining fraction to be processed
 				int remainder = ( _nsamp - ( ( num_blocks - 1 ) * local_t_processed ) - ( _maxshift ) );
 				remainder = (int) floor((float) remainder / (float) _in_bin[_range - 1]) / (float) ( SDIVINT * ( SNUMREG ) );
-				remainder = remainder * ( SDIVINT * ( SNUMREG ) ) * _in_bin[_range - 1];
+				remainder *= ( SDIVINT * ( SNUMREG ) ) * _in_bin[_range - 1];
 
 				for (i = 0; i < _range; ++i)
 				{
 					// Allocate memory to hold the values of nsamps to be processed
-					_t_processed[i] = (int *) malloc(num_blocks * sizeof(int));
+					_t_processed[i].resize(num_blocks);
 					// Remember the last block holds less!
 					for (j = 0; j < num_blocks - 1; ++j)
 					{
 						_t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) _in_bin[i] ) / (float) ( SDIVINT * ( SNUMREG ) ));
-						_t_processed[i][j] = _t_processed[i][j] * ( SDIVINT * ( SNUMREG ) );
+						_t_processed[i][j] *= ( SDIVINT * ( SNUMREG ) );
 					}
 					// fractional bit
 					_t_processed[i][num_blocks - 1] = (int) floor(( (float) ( remainder ) / (float) _in_bin[i] ) / (float) ( SDIVINT * ( SNUMREG ) ));
-					_t_processed[i][num_blocks - 1] = _t_processed[i][num_blocks - 1] * ( SDIVINT * ( SNUMREG ) );
+					_t_processed[i][num_blocks - 1] *= ( SDIVINT * ( SNUMREG ) );
 				}
 				_num_tchunks = num_blocks;
 				printf("\nIn 3\n");
@@ -467,12 +462,12 @@ namespace sps {
 				// We have case 2)
 				// Allocate memory to hold the values of nsamps to be processed
 				int local_t_processed = (int) floor(( (float) ( _nsamp - ( _maxshift ) ) / (float) _in_bin[_range - 1] ) / (float) ( SDIVINT * ( SNUMREG ) ));
-				local_t_processed = local_t_processed * ( SDIVINT * ( SNUMREG ) ) * _in_bin[_range - 1];
+				local_t_processed *= ( SDIVINT * ( SNUMREG ) ) * _in_bin[_range - 1];
 				for (i = 0; i < _range; i++)
 				{
-					_t_processed[i] = (int *) malloc(sizeof(int));
+					_t_processed[i].resize(1);
 					_t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) _in_bin[i] ) / (float) ( SDIVINT * ( SNUMREG ) ));
-					_t_processed[i][0] = ( _t_processed )[i][0] * ( SDIVINT * ( SNUMREG ) );
+					_t_processed[i][0] *= ( SDIVINT * ( SNUMREG ) );
 				}
 				_num_tchunks = 1;
 				printf("\nIn 2\n");
@@ -489,7 +484,7 @@ namespace sps {
 
 				// Find the common integer amount of samples between all bins
 				int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) _in_bin[_range - 1] ) / (float) ( SDIVINT * ( SNUMREG ) ));
-				local_t_processed = local_t_processed * ( SDIVINT * ( SNUMREG ) ) * _in_bin[_range - 1];
+				local_t_processed *= ( SDIVINT * ( SNUMREG ) ) * _in_bin[_range - 1];
 
 				// Work out the remaining fraction to be processed
 				int remainder = _nsamp - ( num_blocks * local_t_processed ) - ( _maxshift );
@@ -497,16 +492,16 @@ namespace sps {
 				for (i = 0; i < _range; ++i)
 				{
 					// Allocate memory to hold the values of nsamps to be processed
-					_t_processed[i] = (int *) malloc(( num_blocks + 1 ) * sizeof(int));
+					_t_processed[i].resize(num_blocks + 1);
 					// Remember the last block holds less!
 					for (j = 0; j < num_blocks; ++j)
 					{
 						_t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) _in_bin[i] ) / (float) ( SDIVINT * ( SNUMREG ) ));
-						_t_processed[i][j] = _t_processed[i][j] * ( SDIVINT * ( SNUMREG ) );
+						_t_processed[i][j] *= ( SDIVINT * ( SNUMREG ) );
 					}
 					// fractional bit
 					_t_processed[i][num_blocks] = (int) floor(( (float) ( remainder ) / (float) _in_bin[i] ) / (float) ( SDIVINT * ( SNUMREG ) ));
-					_t_processed[i][num_blocks] = _t_processed[i][num_blocks] * ( SDIVINT * ( SNUMREG ) );
+					_t_processed[i][num_blocks] *= ( SDIVINT * ( SNUMREG ) );
 				}
 				_num_tchunks  = num_blocks + 1;
 				printf("\nIn 4\n");

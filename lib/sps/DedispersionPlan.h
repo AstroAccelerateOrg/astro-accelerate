@@ -69,7 +69,7 @@ class DedispersionPlan
         int 		 get_total_ndms() const;
         float 		 get_max_dm() const;
         int  		 get_range() const;
-        int**  		 get_t_processed();
+        std::vector<std::vector<int>>&  get_t_processed();
         int 		 get_nbits() const;
         int 		 get_nifs() const;
         float 		 get_tstart() const;
@@ -93,32 +93,32 @@ class DedispersionPlan
         void make_strategy(float*, float*, float*, size_t);
 
     private:
-      int* 		_in_bin;
-      int* 		_out_bin;
-      int 		_maxshift;
+      int* 	_in_bin;
+      int* 	_out_bin;
+      int 	_maxshift;
       std::vector<float> 	_dm_low;
       std::vector<float> 	_dm_high;
       std::vector<float> 	_dm_step;
       std::vector<float> 	_dmshifts;
       std::vector<int> 		_ndms;
-    	int 		_max_ndms;
-    	int 		_total_ndms;
-    	float 	_max_dm;
-    	int 		_range;
-    	int** 	_t_processed;
-    	int 		_nbits;
-    	int 		_nifs;
-    	float 	_tstart;
-    	float 	_tsamp;
-    	int 		_nsamp;
-    	int 		_nsamples;
-    	int 		_max_samps;
-    	int 		_nchans;
-    	float 	_fch1;
-    	float 	_foff;
-    	unsigned int 		_num_tchunks;
-    	float 	_power;
-    	// add num_tchunks
+      int 	_max_ndms;
+      int 	_total_ndms;
+      float 	_max_dm;
+      int 	_range;
+      std::vector<std::vector<int>> 	_t_processed;
+      int 	_nbits;
+      int 	_nifs;
+      float 	_tstart;
+      float 	_tsamp;
+      int	_nsamp;
+      int 	_nsamples;
+      int 	_max_samps;
+      int 	_nchans;
+      float 	_fch1;
+      float 	_foff;
+      unsigned int 	_num_tchunks;
+      float 	_power;
+      // add num_tchunks
 };
 
 } // namespace sps
