@@ -127,6 +127,10 @@ void main_function
 	if(enable_debug == 1) debug(5, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
+	printf("/n/*********/n/cpu_input_size: %d\ncpu_input_buffer: %d\n/*********//n");
+
+
+
 	// Clip RFI
 
 	//rfi(nsamp, nchans, &input_buffer);

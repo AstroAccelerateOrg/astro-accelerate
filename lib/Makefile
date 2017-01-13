@@ -6,10 +6,10 @@ ASTROLIB_DIR :=../astrolib
 
 ifeq ($(cache),off)
         NVCCFLAGS := $(INC) -g -lineinfo -Xcompiler -fopenmp -O3 -lm -arch=sm_61 --use_fast_math\
-         --ptxas-options=-v -Xptxas -dlcm=cg
+         --ptxas-options=-v -Xptxas -dlcm=cg -std=c++11
 else
         NVCCFLAGS := $(INC) -g -lineinfo -Xcompiler -fopenmp -O3 -lm -arch=sm_61 --use_fast_math\
-         --ptxas-options=-v -lcuda -lcudart  -lcurand -lcufft -Xptxas -dlcm=cg
+         --ptxas-options=-v -lcuda -lcudart  -lcurand -lcufft -Xptxas -dlcm=cg -std=c++11
 endif
 
 ifeq ($(gpu),sm_35)
