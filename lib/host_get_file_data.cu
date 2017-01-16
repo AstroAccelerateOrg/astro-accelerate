@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /* Note we send in a pointer to the file pointer becuase this function needs to update the position of the file pointer
  */
