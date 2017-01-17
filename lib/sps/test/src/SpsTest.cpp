@@ -1,15 +1,16 @@
-#include "AstroAccelerate/host_get_file_data.h"
 #include "SpsTest.h"
-#include "sps/Sps.h"
 #include "../../SpsParameters.h"
+#include "../../IOData.h"
 #include "../../UserInput.h"
+#include "../../DedispersionPlan.h"
+#include "../../Sps.h"
+
 #include "../../../AstroAccelerate/host_get_file_data.h"
 
 namespace ska {
 namespace astroaccelerate {
 namespace sps {
 namespace test {
-
 
 SpsTest::SpsTest()
     : ::testing::Test()
@@ -30,8 +31,8 @@ void SpsTest::TearDown()
 
 class TestParams : public SpsParameters<TestParams> {};
 
-// dummy example on how gtest works
-TEST_F(SpsTest, test_handlers)
+// example on how gtest works
+/*TEST_F(SpsTest, test_handlers)
 {
     unsigned device_id = 0;
     sps::DedispersionPlan dedispersion_plan;
@@ -46,9 +47,9 @@ TEST_F(SpsTest, test_handlers)
     ASSERT_FALSE(dm_handler_called);
     ASSERT_FALSE(sps_handler_called);
 }
+*/
 
-
-// test class user input
+// test class user input class
 TEST_F(SpsTest, test_user_input)
 {
 	// Following is ok for ska_karel.txt
@@ -178,8 +179,10 @@ TEST_F(SpsTest, test_dedispersion_plan)
 		float tstart = 0.0f;
 		float fch1 = 0.0f;
 		float foff = 0.0f;
+		printf("\n\n ============ output of get_file_data =========\n\n");
 		get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp,
 					  &tstart, &fch1, &foff);
+		printf("\n\n ==============================================\n\n");
 		// set dedispersion plan
 		dedispersion_plan.set_nchans(nchans);
 		dedispersion_plan.set_nsamples(nsamples);
@@ -220,12 +223,12 @@ TEST_F(SpsTest, test_dedispersion_plan)
 										user_input.get_in_bin(),
 										gpu_memory
 										);
+		//
 		fclose(fp);
 	}
 }
 
-
-
+// test input/output data class
 TEST_F(SpsTest, test_iodata)
 {
 	// Following is ok for ska_karel.txt
@@ -235,6 +238,7 @@ TEST_F(SpsTest, test_iodata)
 		// declare objects
 		sps::UserInput user_input;
 		sps::DedispersionPlan dedispersion_plan;
+		sps::IOData io_data;
 		// read user input
 		FILE *fp = NULL;
 		user_input.get_user_input(&fp, my_argc, my_argv);
@@ -251,8 +255,10 @@ TEST_F(SpsTest, test_iodata)
 		float tstart = 0.0f;
 		float fch1 = 0.0f;
 		float foff = 0.0f;
+		printf("\n\n ============ output of get_file_data =========\n\n");
 		get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp,
 					  &tstart, &fch1, &foff);
+		printf("\n\n ==============================================\n\n");
 		// set dedispersion plan
 		dedispersion_plan.set_nchans(nchans);
 		dedispersion_plan.set_nsamples(nsamples);
@@ -277,10 +283,86 @@ TEST_F(SpsTest, test_iodata)
 										user_input.get_in_bin(),
 										gpu_memory
 										);
+		// allocate memory cpu input
+		io_data.allocate_memory_cpu_input(dedispersion_plan);
+		EXPECT_EQ(1832, (int)(io_data.get_input_size() / 1024 / 1024));
+		// get recorded data
+		// check this one
+		io_data.get_recorded_data(&fp, dedispersion_plan.get_nchans(),dedispersion_plan.get_nbits());
+
+		// allocate memory cpu output
+		io_data.allocate_memory_cpu_output(dedispersion_plan);
+		EXPECT_EQ(2784, (int)(io_data.get_output_size() / 1024 / 1024));
+		// allocate memory gpu
+		io_data.allocate_memory_gpu(dedispersion_plan);
+		EXPECT_EQ(498, (int)(io_data.get_gpu_input_size() / 1024 / 1024));
+		EXPECT_EQ(997, (int)(io_data.get_gpu_output_size() / 1024 / 1024));
+		//
 		fclose(fp);
 	}
 }
 
+// test sps class
+TEST_F(SpsTest, sps_call)
+{
+	// Following is ok for ska_karel.txt
+	char* filename = my_argv[1] + strlen(my_argv[1]) - 13;
+	if(strcmp(filename, "ska_karel.txt") == 0)
+	{
+		// declare objects
+		sps::UserInput user_input;
+		sps::DedispersionPlan dedispersion_plan;
+		sps::IOData io_data;
+		//sps::Sps<TestParams> sps_object;
+		sps::Sps<TestParams> sps_object;
+		// read user input
+		FILE *fp = NULL;
+		user_input.get_user_input(&fp, my_argc, my_argv);
+		// set dedispersion plan
+		dedispersion_plan.set_power(user_input.get_power());
+		dedispersion_plan.set_range(user_input.get_range());
+		// get file data
+		int nchans = 0;
+		int nsamp = 0;
+		int nbits = 0;
+		int nsamples = 0;
+		int nifs = 0;
+		float tsamp = 0.0f;
+		float tstart = 0.0f;
+		float fch1 = 0.0f;
+		float foff = 0.0f;
+		printf("\n\n ============ output of get_file_data =========\n\n");
+		get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp,
+					  &tstart, &fch1, &foff);
+		printf("\n\n ==============================================\n\n");
+		// set dedispersion plan
+		dedispersion_plan.set_nchans(nchans);
+		dedispersion_plan.set_nsamples(nsamples);
+		dedispersion_plan.set_nsamp(nsamp);
+		dedispersion_plan.set_nifs(nifs);
+		dedispersion_plan.set_nbits(nbits);
+		dedispersion_plan.set_tsamp(tsamp);
+		dedispersion_plan.set_tstart(tstart);
+		dedispersion_plan.set_fch1(fch1);
+		dedispersion_plan.set_foff(foff);
+		// Initialise the GPU.
+		int device_id = 0; // hard-coded, would be a parameter
+		size_t gpu_memory = 0;
+		cudaSetDevice(device_id);
+		size_t mem_free, total;
+		cudaMemGetInfo(&mem_free, &total);
+		gpu_memory = ( mem_free/4 );
+		// allocate memory cpu input
+		io_data.allocate_memory_cpu_input(dedispersion_plan);
+		// get recorded data
+		io_data.get_recorded_data(&fp, dedispersion_plan.get_nchans(),dedispersion_plan.get_nbits());
+		//
+		// call sps_object main method
+
+		//
+		fclose(fp);
+	}
+}
 
 
 } // namespace test
