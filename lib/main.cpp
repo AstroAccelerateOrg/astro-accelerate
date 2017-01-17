@@ -9,7 +9,6 @@
 
 int main(int argc, char* argv[])
 {
-	int useless = 0;
 	// Internal code variables
 	// File pointers
 	FILE *fp = NULL;
