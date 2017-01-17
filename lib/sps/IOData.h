@@ -12,10 +12,11 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
-#include <omp.h>
 #include <cuda.h>
 
 #include <cstdlib>
+
+#include "DedispersionPlan.h"
 
 #include "DedispersionPlan.h"
 
@@ -67,6 +68,7 @@ class IOData
         void allocate_memory_cpu_input(DedispersionPlan const &);
         void allocate_memory_cpu_output(DedispersionPlan const &);
         void allocate_memory_gpu(DedispersionPlan const &);
+        void get_recorded_data(FILE **, const int, const int);
 
     private:
       // INPUT

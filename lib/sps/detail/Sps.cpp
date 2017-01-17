@@ -1,4 +1,3 @@
-
 #include "../Sps.h"
 
 namespace ska {
@@ -17,8 +16,12 @@ Sps<SpsParameterType>::~Sps()
 
 template<typename SpsParameterType>
 template<typename SpsHandler, typename DmHandler>
-void Sps<SpsParameterType>::operator()( unsigned device_id, IOData &io_data, DedispersionPlan &dedispersion_plan,
-                                        UserInput const &user_input, SpsHandler, DmHandler)
+void Sps<SpsParameterType>::operator()( unsigned device_id,
+										IOData &io_data,
+										DedispersionPlan &dedispersion_plan,
+                                        UserInput const &user_input,
+                                        SpsHandler,
+                                        DmHandler)
 {
 		//
 		long int inc = 0;
@@ -33,9 +36,16 @@ void Sps<SpsParameterType>::operator()( unsigned device_id, IOData &io_data, Ded
 
 		// Call the strategy method of class dedispersion (could be done outside ?)
 		// -> can't be done outside b/c need gpu_mem and gpu is initialised inside the library
-
-		// Allocate memory on host and device.
+		// Call the strategy method
+		dedispersion_plan.make_strategy(user_input.get_user_dm_low(),
+										user_input.get_user_dm_high(),
+										user_input.get_user_dm_step(),
+										user_input.get_in_bin(),
+										gpu_memory
+										);
+		// allocate memory cpu output
 		io_data.allocate_memory_cpu_output(dedispersion_plan);
+		// allocate memory gpu
 		io_data.allocate_memory_gpu(dedispersion_plan);
 
 		//printf("\nDe-dispersing...");

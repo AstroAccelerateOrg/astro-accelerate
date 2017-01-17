@@ -325,7 +325,6 @@ namespace sps {
 				_max_ndms = _ndms[i];
 			_total_ndms = _total_ndms + _ndms[i];
 		}
-		printf("\nMaximum number of dm trials in any of the range steps:\t%d", _max_ndms);
 
 		_dm_low[0]  = user_dm_low[0];
 		_dm_high[0] = _ndms[0] * user_dm_step[0];
@@ -360,18 +359,13 @@ namespace sps {
 			maxshift_high = (int) ceil(( ( _dm_low[_range - 1] + _dm_step[_range - 1] * ( _ndms[_range - 1] ) ) * _dmshifts[_nchans - 1] ) / _tsamp);
 		}
 		_max_dm = ceil(_dm_high[_range - 1]);
-
 		_maxshift = ( maxshift_high + 2 * ( SNUMREG * SDIVINT ) );
-		printf("\nRange:\t%d, MAXSHIFT:\t%d, Scrunch value:\t%d", _range - 1, _maxshift, inBin[_range - 1]);
-		printf("\nMaximum dispersive delay:\t%.2f (s)", _maxshift * _tsamp);
-
 		if (_maxshift >= _nsamp)
 		{
 			printf("\n\nERROR!! Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial\n\n");
 			exit(1);
 		}
 
-		printf("\nDiagonal DM:\t%f", ( _tsamp * _nchans * 0.0001205 * powf(( _fch1 + ( _foff * ( _nchans / 2 ) ) ), 3.0) ) / ( -_foff * _nchans ));
 		if (_maxshift >= _nsamp)
 		{
 			printf("ERROR!! Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial");
@@ -524,18 +518,7 @@ namespace sps {
 					_t_processed[i][num_blocks] = _t_processed[i][num_blocks] * ( SDIVINT * ( SNUMREG ) );
 				}
 				_num_tchunks  = num_blocks + 1;
-				printf("\nIn 4\n");
 			}
-		}
-
-		printf("\nMaxshift memory needed:\t%lu MB", _nchans *  _maxshift  * sizeof(unsigned short) / 1024 / 1024);
-		if (_nchans <  _max_ndms )
-		{
-			printf("\nOutput memory needed:\t%lu MB", _max_ndms * _maxshift  * sizeof(float) / 1024 / 1024);
-		}
-		else
-		{
-			printf("\nOutput memory needed:\t%lu MB", _nchans * _maxshift * sizeof(float) / 1024 / 1024);
 		}
 	}
 } // namespace sps

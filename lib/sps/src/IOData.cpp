@@ -127,7 +127,6 @@ void IOData::allocate_memory_cpu_output(DedispersionPlan const &dedispersion_pla
 //			memset((*output_buffer)[i][j],0.0f,(total_samps)*sizeof(float));
 		}
 		_output_size += ( total_samps ) * ndms[i] * sizeof(float);
-		printf("\noutput size: %llu", (unsigned long long) sizeof( _output_buffer ) / 1024 / 1024 / 1024);
 	}
 }
 void IOData::allocate_memory_gpu(DedispersionPlan const &dedispersion_plan)
@@ -151,11 +150,48 @@ void IOData::allocate_memory_gpu(DedispersionPlan const &dedispersion_plan)
 	}
 	( cudaMalloc((void **) _d_output, _gpu_output_size) );
 
-	//end_t=omp_get_wtime();
-	//time = (float)(end_t-start_t);
-	//printf("\nGPU Malloc in: %f ", time);
-
 	( cudaMemset(_d_output, 0, _gpu_output_size) );
+}
+
+void IOData::get_recorded_data(FILE **fp, const int nchans, const int nbits)
+{
+
+	int c;
+
+	unsigned long int total_data;
+
+	//{{{ Load in the raw data from the input file and transpose
+	if (nbits == 8)
+	{
+
+		// Allocate a tempory buffer to store a line of frequency data
+		unsigned char *temp_buffer = (unsigned char *) malloc(nchans * sizeof(unsigned char));
+
+		// Read in the data, transpose it and store it in the input buffer
+		total_data = 0;
+		while (!feof(*fp))
+		{
+
+			if (fread(temp_buffer, sizeof(unsigned char), nchans, *fp) != nchans)
+				break;
+			for (c = 0; c < nchans; c++)
+			{
+				_input_buffer[c + total_data * ( nchans )] = (unsigned short) temp_buffer[c];
+			}
+			total_data++;
+
+		}
+		free(temp_buffer);
+
+	}
+	else
+	{
+		printf("\n\n========================= ERROR =========================\n");
+		printf(" This is a SKA prototype code and only runs with 8 bit data\n");
+		printf("\n=========================================================\n");
+	}
+
+	//}}}
 }
 
 } // namespace sps

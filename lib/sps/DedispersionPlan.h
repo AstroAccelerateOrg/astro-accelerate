@@ -2,8 +2,8 @@
 #define SKA_ASTROACCELERATE_SPS_DEDISPERSIONPLAN_H
 
 #include <stdio.h>
+
 #include "UserInput.h"
-#include <vector>
 
 namespace ska {
 namespace astroaccelerate {
