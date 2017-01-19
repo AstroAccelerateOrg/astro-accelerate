@@ -98,28 +98,28 @@ class DedispersionPlan
 
 
     private:
-        int 		_maxshift;
+        int 	_maxshift;
     	float* 	_dm_low;
     	float* 	_dm_high;
     	float* 	_dm_step;
     	float* 	_dmshifts;
-    	int* 		_ndms;
-    	int 		_max_ndms;
-    	int 		_total_ndms;
+    	int* 	_ndms;
+    	int 	_max_ndms;
+    	int 	_total_ndms;
     	float 	_max_dm;
-    	int 		_range;
+    	int 	_range;
     	int** 	_t_processed;
-    	int 		_nbits;
-    	int 		_nifs;
+    	int 	_nbits;
+    	int 	_nifs;
     	float 	_tstart;
     	float 	_tsamp;
-    	int 		_nsamp;
-    	int 		_nsamples;
-    	int 		_max_samps;
-    	int 		_nchans;
+    	int 	_nsamp;
+    	int 	_nsamples;
+    	int 	_max_samps;
+    	int 	_nchans;
     	float 	_fch1;
     	float 	_foff;
-    	unsigned int 		_num_tchunks;
+    	unsigned int _num_tchunks;
     	float 	_power;
 };
 

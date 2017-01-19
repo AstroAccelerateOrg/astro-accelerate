@@ -1,23 +1,16 @@
 #ifndef SKA_ASTROACCELERATE_SPS_IODATA_H
 #define SKA_ASTROACCELERATE_SPS_IODATA_H
 
-/* This function takes a pointer to the file pointer so that it can update the position of the file pointer
- */
-#include <vector_types.h>
+//
 #include <driver_functions.h>
-#include <cuda_runtime.h>
-
-// CUDA utilities and system includes
 #include <vector_types.h>
 #include <stdio.h>
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 #include <cuda.h>
-
 #include <cstdlib>
 
-#include "DedispersionPlan.h"
-
+//
 #include "DedispersionPlan.h"
 
 namespace ska {
@@ -27,7 +20,7 @@ namespace sps{
 /**
  * @brief 	Input/Output Data
  *
- * @details This object carries the input/output data for both Cpu and Gpu
+ * @details This object carries the input/output data of SPS for both Cpu and Gpu
  *
  */
 
@@ -71,21 +64,34 @@ class IOData
         void get_recorded_data(FILE **, const int, const int);
 
     private:
-      // INPUT
-    	// Cpu
+        /**
+        *  @brief 	Host/Cpu input members
+        *  @details _input_buffer carries _input_size of data on the host
+        *  @see allocate_memory_cpu_input()
+        */
     	size_t 			_input_size;
     	unsigned short *_input_buffer;
-    	// Gpu
+    	/**
+        *  @brief   Device/Gpu input members
+        *  @details _d_input carries gpu_input_size size_t of data on the device
+        *  @see allocate_memory_gpu()
+        */
     	size_t			_gpu_input_size;
     	unsigned short 	*_d_input;
-    	// OUTPUT
-    	// Cpu
+    	/**
+    	*  @brief   Host/Cpu output members
+    	*  @details _output_buffer carries _output_size of data on the host
+    	*  @see allocate_memory_cpu_output()
+    	*/
     	size_t 	_output_size;
     	float 	***_output_buffer;
-    	// Gpu
+    	/**
+    	*  @brief   Device/Gpu output members
+    	*  @details _d_output carries gpu_output_size size_t of data on the device
+    	*  @see allocate_memory_gpu()
+    	*/
     	size_t 	_gpu_output_size;
     	float 	*_d_output;
-
 };
 
 } // namespace sps

@@ -414,7 +414,6 @@ namespace sps {
 					_t_processed[i][0] = ( _t_processed )[i][0] * ( SDIVINT * ( SNUMREG ) );
 				}
 				_num_tchunks = 1;
-				printf("\nIn 1\n");
 			}
 			else
 			{
@@ -450,8 +449,6 @@ namespace sps {
 					_t_processed[i][num_blocks - 1] = _t_processed[i][num_blocks - 1] * ( SDIVINT * ( SNUMREG ) );
 				}
 				_num_tchunks = num_blocks;
-				printf("\nIn 3\n");
-				printf("\nnum_blocks:\t%d", num_blocks);
 			}
 		}
 		else
@@ -484,7 +481,6 @@ namespace sps {
 					_t_processed[i][0] = ( _t_processed )[i][0] * ( SDIVINT * ( SNUMREG ) );
 				}
 				_num_tchunks = 1;
-				printf("\nIn 2\n");
 			}
 			else
 			{
