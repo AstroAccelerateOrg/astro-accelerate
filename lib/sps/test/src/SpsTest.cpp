@@ -5,7 +5,6 @@
 #include "../../DedispersionPlan.h"
 #include "../../Sps.h"
 
-#include "../../../AstroAccelerate/host_get_file_data.h"
 
 namespace ska {
 namespace astroaccelerate {
@@ -32,7 +31,7 @@ void SpsTest::TearDown()
 class TestParams : public SpsParameters<TestParams> {};
 
 // example on how gtest works
-/*TEST_F(SpsTest, test_handlers)
+TEST_F(SpsTest, test_handlers)
 {
     unsigned device_id = 0;
     sps::DedispersionPlan dedispersion_plan;
@@ -47,7 +46,7 @@ class TestParams : public SpsParameters<TestParams> {};
     ASSERT_FALSE(dm_handler_called);
     ASSERT_FALSE(sps_handler_called);
 }
-*/
+
 
 // test class user input class
 TEST_F(SpsTest, test_user_input)
@@ -170,29 +169,7 @@ TEST_F(SpsTest, test_dedispersion_plan)
 		EXPECT_FLOAT_EQ(2.0f, dedispersion_plan.get_power());
 		EXPECT_EQ(6, dedispersion_plan.get_range());
 		// get file data
-		int nchans = 0;
-		int nsamp = 0;
-		int nbits = 0;
-		int nsamples = 0;
-		int nifs = 0;
-		float tsamp = 0.0f;
-		float tstart = 0.0f;
-		float fch1 = 0.0f;
-		float foff = 0.0f;
-		printf("\n\n ============ output of get_file_data =========\n\n");
-		get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp,
-					  &tstart, &fch1, &foff);
-		printf("\n\n ==============================================\n\n");
-		// set dedispersion plan
-		dedispersion_plan.set_nchans(nchans);
-		dedispersion_plan.set_nsamples(nsamples);
-		dedispersion_plan.set_nsamp(nsamp);
-		dedispersion_plan.set_nifs(nifs);
-		dedispersion_plan.set_nbits(nbits);
-		dedispersion_plan.set_tsamp(tsamp);
-		dedispersion_plan.set_tstart(tstart);
-		dedispersion_plan.set_fch1(fch1);
-		dedispersion_plan.set_foff(foff);
+		dedispersion_plan.get_file_data(&fp);
 		// check if it updates correctly
 		EXPECT_EQ(4096, dedispersion_plan.get_nchans());
 		EXPECT_EQ(0, dedispersion_plan.get_nsamples());
@@ -246,29 +223,7 @@ TEST_F(SpsTest, test_iodata)
 		dedispersion_plan.set_power(user_input.get_power());
 		dedispersion_plan.set_range(user_input.get_range());
 		// get file data
-		int nchans = 0;
-		int nsamp = 0;
-		int nbits = 0;
-		int nsamples = 0;
-		int nifs = 0;
-		float tsamp = 0.0f;
-		float tstart = 0.0f;
-		float fch1 = 0.0f;
-		float foff = 0.0f;
-		printf("\n\n ============ output of get_file_data =========\n\n");
-		get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp,
-					  &tstart, &fch1, &foff);
-		printf("\n\n ==============================================\n\n");
-		// set dedispersion plan
-		dedispersion_plan.set_nchans(nchans);
-		dedispersion_plan.set_nsamples(nsamples);
-		dedispersion_plan.set_nsamp(nsamp);
-		dedispersion_plan.set_nifs(nifs);
-		dedispersion_plan.set_nbits(nbits);
-		dedispersion_plan.set_tsamp(tsamp);
-		dedispersion_plan.set_tstart(tstart);
-		dedispersion_plan.set_fch1(fch1);
-		dedispersion_plan.set_foff(foff);
+		dedispersion_plan.get_file_data(&fp);
 		// Initialise the GPU.
 		int device_id = 0; // hard-coded, would be a parameter
 		size_t gpu_memory = 0;
@@ -308,13 +263,11 @@ TEST_F(SpsTest, sps_call)
 	// Following is ok for ska_karel.txt
 	char* filename = my_argv[1] + strlen(my_argv[1]) - 13;
 	if(strcmp(filename, "ska_karel.txt") == 0)
-	{
-		/*
+	{/*
 		// declare objects
 		sps::UserInput user_input;
 		sps::DedispersionPlan dedispersion_plan;
 		sps::IOData io_data;
-		//sps::Sps<TestParams> sps_object;
 		sps::Sps<TestParams> sps_object;
 		// read user input
 		FILE *fp = NULL;
@@ -323,29 +276,7 @@ TEST_F(SpsTest, sps_call)
 		dedispersion_plan.set_power(user_input.get_power());
 		dedispersion_plan.set_range(user_input.get_range());
 		// get file data
-		int nchans = 0;
-		int nsamp = 0;
-		int nbits = 0;
-		int nsamples = 0;
-		int nifs = 0;
-		float tsamp = 0.0f;
-		float tstart = 0.0f;
-		float fch1 = 0.0f;
-		float foff = 0.0f;
-		printf("\n\n ============ output of get_file_data =========\n\n");
-		get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp,
-					  &tstart, &fch1, &foff);
-		printf("\n\n ==============================================\n\n");
-		// set dedispersion plan
-		dedispersion_plan.set_nchans(nchans);
-		dedispersion_plan.set_nsamples(nsamples);
-		dedispersion_plan.set_nsamp(nsamp);
-		dedispersion_plan.set_nifs(nifs);
-		dedispersion_plan.set_nbits(nbits);
-		dedispersion_plan.set_tsamp(tsamp);
-		dedispersion_plan.set_tstart(tstart);
-		dedispersion_plan.set_fch1(fch1);
-		dedispersion_plan.set_foff(foff);
+		dedispersion_plan.get_file_data(&fp);
 		// Initialise the GPU.
 		int device_id = 0; // hard-coded, would be a parameter
 		size_t gpu_memory = 0;
@@ -353,16 +284,21 @@ TEST_F(SpsTest, sps_call)
 		size_t mem_free, total;
 		cudaMemGetInfo(&mem_free, &total);
 		gpu_memory = ( mem_free/4 );
+		// Call the strategy method
+		dedispersion_plan.make_strategy(user_input.get_user_dm_low(),
+										user_input.get_user_dm_high(),
+										user_input.get_user_dm_step(),
+										user_input.get_in_bin(),
+										gpu_memory
+										);
 		// allocate memory cpu input
 		io_data.allocate_memory_cpu_input(dedispersion_plan);
 		// get recorded data
 		io_data.get_recorded_data(&fp, dedispersion_plan.get_nchans(),dedispersion_plan.get_nbits());
-		//
-		// call sps_object main method
+		// call sps main method here
+		sps_object.run(device_id, io_data, dedispersion_plan, user_input);
 
-		//
-		fclose(fp);
-		*/
+		fclose(fp);*/
 	}
 }
 
