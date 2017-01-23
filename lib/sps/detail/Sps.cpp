@@ -1,5 +1,15 @@
 #include "../Sps.h"
 
+#include "../../AstroAccelerate/device_init.h"
+#include "../../AstroAccelerate/device_load_data.h"
+#include "../../AstroAccelerate/device_zero_dm.h"
+#include "../../AstroAccelerate/device_corner_turn.h"
+#include "../../AstroAccelerate/device_dedisperse.h"
+#include "../../AstroAccelerate/device_bin.h"
+#include "../../AstroAccelerate/device_save_data.h"
+#include "../../AstroAccelerate/host_write_file.h"
+#include "../../AstroAccelerate/host_analysis.h"
+
 namespace ska {
 namespace astroaccelerate {
 namespace sps {
@@ -15,15 +25,12 @@ Sps<SpsParameterType>::~Sps()
 }
 
 template<typename SpsParameterType>
-template<typename SpsHandler, typename DmHandler>
 void Sps<SpsParameterType>::operator()( unsigned device_id,
 										IOData &io_data,
 										DedispersionPlan &dedispersion_plan,
-                                        UserInput const &user_input,
-                                        SpsHandler,
-                                        DmHandler)
+                                        UserInput const &user_input)
 {
-		//
+	//
 		long int inc = 0;
 		float tstart_local = 0.0f;
 
@@ -53,7 +60,7 @@ void Sps<SpsParameterType>::operator()( unsigned device_id,
 		//double start_t, end_t;
 		//start_t = omp_get_wtime();
 
-		//
+		/**************** temp  -> constructor parameter *********************/
 		int tsamp_original = dedispersion_plan.get_tsamp();
 		int maxshift = dedispersion_plan.get_maxshift();
 		int max_ndms = dedispersion_plan.get_max_ndms();
@@ -76,7 +83,7 @@ void Sps<SpsParameterType>::operator()( unsigned device_id,
 		int* ndms = dedispersion_plan.get_ndms();
 		size_t gpu_outputsize = io_data.get_gpu_output_size();
 		float sigma_cutoff = user_input.get_sigma_cutoff();
-
+		/***************************************************/
 		//
 		float *out_tmp;
 		out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));

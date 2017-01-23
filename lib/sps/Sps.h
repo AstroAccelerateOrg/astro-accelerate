@@ -5,15 +5,6 @@
 #include "IOData.h"
 #include "UserInput.h"
 
-#include "../AstroAccelerate/device_init.h"
-#include "../AstroAccelerate/device_load_data.h"
-#include "../AstroAccelerate/device_zero_dm.h"
-#include "../AstroAccelerate/device_corner_turn.h"
-#include "../AstroAccelerate/device_dedisperse.h"
-#include "../AstroAccelerate/device_bin.h"
-#include "../AstroAccelerate/device_save_data.h"
-#include "../AstroAccelerate/host_write_file.h"
-#include "../AstroAccelerate/host_analysis.h"
 
 namespace ska {
 namespace astroaccelerate {
@@ -30,8 +21,6 @@ namespace sps {
  * @example
  * @code
  *
- * Sps<MyParams> sps;
- * sps(in, out, );
  *
  * @endcode
  * @endexample
@@ -47,11 +36,10 @@ class Sps
         /**
          * @brief perform dedispersion and an sps search
          */
-        template<typename SpsHandler, typename DmHandler>
-        void operator()(unsigned device_id, IOData &, DedispersionPlan &,
-                        UserInput const &, SpsHandler, DmHandler);
+        void operator()(unsigned device_id, IOData &, DedispersionPlan &, UserInput const &);
 
     private:
+
 };
 
 } // namespace sps
