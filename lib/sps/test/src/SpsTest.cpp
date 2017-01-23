@@ -30,24 +30,6 @@ void SpsTest::TearDown()
 
 class TestParams : public SpsParameters<TestParams> {};
 
-// example on how gtest works
-TEST_F(SpsTest, test_handlers)
-{
-    unsigned device_id = 0;
-    sps::DedispersionPlan dedispersion_plan;
-    sps::IOData io_data;
-    bool sps_handler_called = false;
-    bool dm_handler_called = false;
-    {
-        sps::Sps<TestParams> sps;
-        //sps(device_id, io_data, dedispersion_plan, [&]() { sps_handler_called = true; }, [&]() { dm_handler_called =true;} );
-        //sps(device_id, io_data, plan);
-    }
-    ASSERT_FALSE(dm_handler_called);
-    ASSERT_FALSE(sps_handler_called);
-}
-
-
 // test class user input class
 TEST_F(SpsTest, test_user_input)
 {
@@ -263,12 +245,12 @@ TEST_F(SpsTest, sps_call)
 	// Following is ok for ska_karel.txt
 	char* filename = my_argv[1] + strlen(my_argv[1]) - 13;
 	if(strcmp(filename, "ska_karel.txt") == 0)
-	{/*
+	{
 		// declare objects
 		sps::UserInput user_input;
 		sps::DedispersionPlan dedispersion_plan;
 		sps::IOData io_data;
-		sps::Sps<TestParams> sps_object;
+		sps::Sps<TestParams> sps;
 		// read user input
 		FILE *fp = NULL;
 		user_input.get_user_input(&fp, my_argc, my_argv);
@@ -296,9 +278,12 @@ TEST_F(SpsTest, sps_call)
 		// get recorded data
 		io_data.get_recorded_data(&fp, dedispersion_plan.get_nchans(),dedispersion_plan.get_nbits());
 		// call sps main method here
-		sps_object.run(device_id, io_data, dedispersion_plan, user_input);
+		// linker problem
+		// have been investigating cmake without success
+		//sps(device_id, io_data, dedispersion_plan, user_input);
 
-		fclose(fp);*/
+
+		fclose(fp);
 	}
 }
 
