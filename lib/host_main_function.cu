@@ -31,6 +31,9 @@
 #include "AstroAccelerate/host_stratagy.h"
 #include "AstroAccelerate/host_write_file.h"
 
+// fdas
+#include "AstroAccelerate/device_acceleration_fdas.h"
+
 #include "AstroAccelerate/host_main_function.h"
 
 #include "AstroAccelerate/params.h"
@@ -264,9 +267,12 @@ void main_function
 
 	if (enable_acceleration == 1)
 	{
+		// Input needed for fdas is output_buffer which is DDPlan
+		// Assumption: gpu memory is free and available
 		start_t = omp_get_wtime();
 
-		acceleration(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
+		// acceleration(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
+		acceleration_fdas(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
 
 		end_t = omp_get_wtime();
 		time = (float) ( end_t - start_t );
@@ -276,6 +282,7 @@ void main_function
 		printf("\nAmount of telescope time processed: %f", tstart_local);
 		printf("\nNumber of samples processed: %ld", inc);
 		printf("\nReal-time speedup factor: %f", ( tstart_local ) / ( time ));
+
 	}
 
 	fclose(fp);
