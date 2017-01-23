@@ -55,12 +55,12 @@ void acceleration_fdas(int range,
 	cmdargs.zval = 4; // ?
 	cmdargs.mul = 1024; // ?
 	cmdargs.wsig = 0; // ?
-	cmdargs.search = 0; // ?
+	cmdargs.search = 1; // ?
 	cmdargs.thresh = 10.0; // ?
 	cmdargs.freq0 = 100.5; // ?
 	cmdargs.sigamp = 0.1; // ?
 	cmdargs.basic = 0; // ?
-	cmdargs.kfft = 0; // ?
+	cmdargs.kfft = 1; // ?
 	cmdargs.inbin = 0; // ?
 	cmdargs.norm = 0; // ?
 
@@ -82,6 +82,9 @@ void acceleration_fdas(int range,
 
 	// Check devices
 	fdas_cuda_check_devices(0);
+	
+	params.nsamps = processed;
+
 	/// Print params.h
 	fdas_print_params_h();
 
@@ -190,7 +193,7 @@ void acceleration_fdas(int range,
 				//first time PCIe transfer and print timing
 				gettimeofday(&t_start, NULL); //don't time transfer
 				for (int i = 0; i < titer; i++)
-					checkCudaErrors( cudaMemcpy(gpuarrays.d_in_signal, output_buffer[i][dm_count], nsamp*sizeof(float), cudaMemcpyHostToDevice));
+					checkCudaErrors( cudaMemcpy(gpuarrays.d_in_signal, &output_buffer[i][dm_count], processed*sizeof(float), cudaMemcpyHostToDevice));
 					//checkCudaErrors( cudaMemcpy(gpuarrays.d_in_signal, acc_signal, params.nsamps*sizeof(float), cudaMemcpyHostToDevice));
 
 				cudaDeviceSynchronize();

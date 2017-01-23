@@ -8,10 +8,10 @@ range	1500 2000 1.0  4 4
 range	2000 3000 2.0  8 8
 sigma_cutoff	6
 analysis
--acceleration
+acceleration
 -periodicity
 -output_dmt
 -zero_dm
 -rfi
 debug
-file /home/nassim/filterbank/ska-mid-b2.fil
+file /home/wa78/filterbank/ska-mid-b2.fil
