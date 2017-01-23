@@ -17,9 +17,6 @@
 #define STATST 128
 #define STATSLOOP 8
 
-
-
-
 //Added by Karel Adamek
 #define WARP 32
 #define HALF_WARP 16
@@ -33,3 +30,35 @@
 #define PD_SMEM_SIZE 1280
 #define PD_FIR_ACTIVE_WARPS 2
 #define PD_FIR_NWINDOWS 2
+
+/**** FDAS parameters ******/
+/*Params for benchmarks */
+#define TSAMP 0.000064
+//#define NSAMPS 4194304 // 2^22
+#define SLIGHT 299792458.0
+#define RADIX 1
+#define NEXP 10
+#define POTWO (1 << NEXP)
+#define KERNLEN RADIX*POTWO
+
+#define ACCEL_STEP (float)(2.0) //1 //default acceleration step
+#define ACCEL_STEP_R (float)(1/ACCEL_STEP)
+#define ZMAX 96
+#define NKERN (ZMAX + 1)
+//#define ZLO  -(int)((ZMAX/ACCEL_STEP) )
+
+#define TBSIZEX 32
+#define TBSIZEY 1
+#define PTBSIZEX 64
+#define PTBSIZEY 1
+#define STBSIZEX 32
+
+//custom fft params (K. Adamek)
+#define TAPS 8
+#define FFT_SIZE (KERNLEN)/2/32
+//--------------------> Shared PD
+#define NWARPS 16
+#define GROUPS 4
+#define WPG 4
+#define WARP 32
+
