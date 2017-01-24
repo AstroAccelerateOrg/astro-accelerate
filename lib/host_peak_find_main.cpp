@@ -50,11 +50,14 @@ int main(int argc, char * argv[]) {
 	float time = (float) ( end_t - start_t );
 	auto data_mb = ntrials*data.size() * sizeof(float) / (1024 * 1024);
 	std::cout << "Processed " <<  data_mb << " MB in " << time << " secs (" << data_mb/time << ") MB/s" << std::endl;
-/*	for (int i=0; i < output.size() ; ++i) {
+	std::size_t peak_count = 0;
+	for (int i=0; i < output.size() ; ++i) {
 		if (output[i] == 1) {
-			std::cout << i << " " << data[i] << std::endl;
+		  ++peak_count;
+		  //std::cout << i << " " << data[i] << std::endl;
 		}
-	}*/
+	}
+	std::cout << "Peaks: " << peak_count <<  "/" << output.size() << std::endl;
     } else {
         std::cerr << "No data to process!" << std::endl;
         exit(1);

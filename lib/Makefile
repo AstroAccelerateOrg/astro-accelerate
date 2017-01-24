@@ -19,8 +19,8 @@ endif
 NVCCFLAGS += -gencode arch=compute_35,code=sm_35
 NVCCFLAGS += -gencode arch=compute_37,code=sm_37
 NVCCFLAGS += -gencode arch=compute_52,code=sm_52
-#NVCCFLAGS += -gencode arch=compute_60,code=sm_60
-#NVCCFLAGS += -gencode arch=compute_61,code=sm_61
+NVCCFLAGS += -gencode arch=compute_60,code=sm_60
+NVCCFLAGS += -gencode arch=compute_61,code=sm_61
 
 
 NVCCFLAGS += --source-in-ptx --keep
@@ -73,6 +73,8 @@ $(BUILD_DIR)/host_stratagy.o:	 		AstroAccelerate/host_stratagy.h
 $(BUILD_DIR)/host_statistics.o:	 		AstroAccelerate/host_statistics.h
 
 $(BUILD_DIR)/host_write_file.o:	 		AstroAccelerate/host_write_file.h
+
+$(BUILD_DIR)/device_main.o:			device_peak_find.cu
 
 #$(BUILD_DIR)/device_main.o:	device_main.cu
 #	nvcc -c $(NVCCFLAGS) device_main.cu
