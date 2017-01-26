@@ -19,9 +19,14 @@ int main(int argc, char * argv[]) {
         std::cerr << "Error opening file" << std::endl;
 	exit(1);
     }
- 
-    std::vector<float, managed_allocator<float>> data;
 
+    infile.seekg(0, std::ios::end);
+    auto sz = infile.tellg();
+    infile.seekg(0, std::ios::beg);
+    
+    std::vector<float, managed_allocator<float>> data;
+    data.reserve(sz/sizeof(float)/4);
+    
     while (!infile.eof()) {
 	float f1, f2, f3, f4;
 	try {
@@ -32,18 +37,18 @@ int main(int argc, char * argv[]) {
         } catch (...) {
             break;
         }
-        data.push_back(f3);
+	data.push_back(f3);
     }
 
-    const int ntrials = 4;
+    const int ntrials = 1;
     if (data.size()) {
 	cudaSetDevice(0);
     	double start_t, end_t;
-	start_t = omp_get_wtime();
 
         std::vector<unsigned short, managed_allocator<unsigned short>> output(data.size(), 0);
+	start_t = omp_get_wtime();
         for (int i=0; i < ntrials; ++i) {
-	    peakfind(data.data(), 0, data.size(), 1, output.data());
+	    peakfind(data.data(), 0, data.size()/4, 4, output.data());
 	}
 	cudaDeviceSynchronize();
 	end_t = omp_get_wtime();
