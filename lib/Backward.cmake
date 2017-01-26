@@ -13,4 +13,5 @@ set(lib_src_cuda
     host_statistics.cu
     host_stratagy.cu
     host_write_file.cu
+ 
 )

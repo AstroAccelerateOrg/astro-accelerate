@@ -15,7 +15,29 @@ namespace astroaccelerate {
 namespace sps {
 
 template<typename SpsParameterType>
-Sps<SpsParameterType>::Sps()
+Sps<SpsParameterType>::Sps(IOData &io_data,
+						   DedispersionPlan  &dedispersion_plan,
+						   UserInput &user_input)
+						   : _num_tchunks(dedispersion_plan.get_num_tchunks()),
+						     _range(dedispersion_plan.get_range()),
+						     _nchans(dedispersion_plan.get_nchans()),
+						     _maxshift(dedispersion_plan.get_maxshift()),
+						     _tsamp(dedispersion_plan.get_tsamp()),
+						     _max_ndms(dedispersion_plan.get_max_ndms()),
+						     _sigma_cutoff(user_input.get_sigma_cutoff()),
+						     _gpu_outputsize(io_data.get_gpu_output_size()),
+						     _ndms(dedispersion_plan.get_ndms()),
+						     _dmshifts(dedispersion_plan.get_dmshifts()),
+						     _t_processed(dedispersion_plan.get_t_processed()),
+						     _dm_low(dedispersion_plan.get_dm_low()),
+						     _dm_high(dedispersion_plan.get_dm_high()),
+						     _dm_step(dedispersion_plan.get_dm_step()),
+						     _in_bin(user_input.get_in_bin()),
+						     _out_bin(user_input.get_out_bin()),
+						     _input_buffer(io_data.get_input_buffer()),
+						     _output_buffer(io_data.get_output_buffer()),
+						     _d_input(io_data.get_d_input()),
+						     _d_output(io_data.get_d_output())
 {
 }
 
@@ -28,7 +50,7 @@ template<typename SpsParameterType>
 void Sps<SpsParameterType>::operator()( unsigned device_id,
 										IOData &io_data,
 										DedispersionPlan &dedispersion_plan,
-                                        UserInput const &user_input)
+                                        UserInput &user_input)
 {
 	//
 		long int inc = 0;
@@ -55,109 +77,73 @@ void Sps<SpsParameterType>::operator()( unsigned device_id,
 		// allocate memory gpu
 		io_data.allocate_memory_gpu(dedispersion_plan);
 
-		//printf("\nDe-dispersing...");
+		//printf("De-dispersing...");
 		int t, dm_range;
-		//double start_t, end_t;
-		//start_t = omp_get_wtime();
+		float tsamp_original = _tsamp;
+		int maxshift_original = _maxshift;
 
-		/**************** temp  -> constructor parameter *********************/
-		int tsamp_original = dedispersion_plan.get_tsamp();
-		int maxshift = dedispersion_plan.get_maxshift();
-		int max_ndms = dedispersion_plan.get_max_ndms();
-		int maxshift_original = maxshift;
-		int** t_processed = dedispersion_plan.get_t_processed();
-		int num_tchunks = dedispersion_plan.get_num_tchunks();
-		int nchans = dedispersion_plan.get_nchans();
-		float* dmshifts = dedispersion_plan.get_dmshifts();
-		unsigned short* input_buffer = io_data.get_input_buffer();
-		float*** output_buffer = io_data.get_output_buffer();
-		int* inBin = user_input.get_in_bin();
-		int* outBin = user_input.get_out_bin();
-		unsigned short* d_input = io_data.get_d_input();
-		float* d_output = io_data.get_d_output();
-		int range = dedispersion_plan.get_range();
-		float tsamp = dedispersion_plan.get_tsamp();
-		float* dm_low  = dedispersion_plan.get_dm_low();
-		float* dm_high = dedispersion_plan.get_dm_high();
-		float* dm_step = dedispersion_plan.get_dm_step();
-		int* ndms = dedispersion_plan.get_ndms();
-		size_t gpu_outputsize = io_data.get_gpu_output_size();
-		float sigma_cutoff = user_input.get_sigma_cutoff();
-		/***************************************************/
 		//
-		float *out_tmp;
-		out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
-		memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
+		float *out_tmp = NULL;
+		out_tmp = (float *) malloc(( _t_processed[0][0] + _maxshift ) * _max_ndms * sizeof(float));
+		memset(out_tmp, 0.0f, _t_processed[0][0] + _maxshift * _max_ndms * sizeof(float));
 
-		for (t = 0; t < num_tchunks; ++t)
+		for (t = 0; t < _num_tchunks; ++t)
 		{
-			//printf("\nt_processed:\t%d, %d", t_processed[0][t], t);
-			//rfi((t_processed[0][t]+maxshift), nchans, &tmp);
 
-
-			load_data(-1, inBin, d_input, &input_buffer[(long int) ( inc * nchans )],
-								t_processed[0][t], maxshift, nchans, dmshifts);
+			load_data(-1, _in_bin, _d_input, &_input_buffer[(long int) ( inc * _nchans )],
+								_t_processed[0][t], _maxshift, _nchans, _dmshifts);
 
 			if (user_input.get_enable_zero_dm())
-				zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
+				zero_dm(_d_input, _nchans, _t_processed[0][t]+_maxshift);
 
-			corner_turn(d_input, d_output, nchans, t_processed[0][t] + maxshift);
+			corner_turn(_d_input, _d_output, _nchans, _t_processed[0][t] + _maxshift);
 			int oldBin = 1;
 
-			for (dm_range = 0; dm_range < range; ++dm_range)
+			for (dm_range = 0; dm_range < _range; ++dm_range)
 			{
 
-				//printf("\n\n%f\t%f\t%f\t%d", dm_low[dm_range], dm_high[dm_range], dm_step[dm_range], ndms[dm_range]), fflush(stdout);
-				//printf("\nAmount of telescope time processed: %f", tstart_local);
-				maxshift = maxshift_original / inBin[dm_range];
+				_maxshift = maxshift_original / _in_bin[dm_range];
 
 				cudaDeviceSynchronize();
-				load_data(dm_range, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t], maxshift, nchans, dmshifts);
+				load_data(dm_range, _in_bin, _d_input, &_input_buffer[(long int) ( inc * _nchans )], _t_processed[dm_range][t], _maxshift, _nchans, _dmshifts);
 
-				if (inBin[dm_range] > oldBin)
+				if (_in_bin[dm_range] > oldBin)
 				{
-					bin_gpu(d_input, d_output, nchans, t_processed[dm_range - 1][t] + maxshift * inBin[dm_range]);
-					( tsamp ) = ( tsamp ) * 2.0f;
+					bin_gpu(_d_input, _d_output, _nchans, _t_processed[dm_range - 1][t] + _maxshift * _in_bin[dm_range]);
+					( _tsamp ) = ( _tsamp ) * 2.0f;
 				}
 
-				dedisperse(dm_range, t_processed[dm_range][t], inBin, dmshifts, d_input, d_output, nchans,
-				           ( t_processed[dm_range][t] + maxshift ), maxshift, &tsamp, dm_low, dm_high, dm_step, ndms);
+				dedisperse(dm_range, _t_processed[dm_range][t], _in_bin, _dmshifts, _d_input, _d_output, _nchans,
+				           ( _t_processed[dm_range][t] + _maxshift ), _maxshift, &_tsamp, _dm_low, _dm_high, _dm_step, _ndms);
 
-				gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
-				//cudaDeviceSynchronize();
+				_gpu_outputsize = _ndms[dm_range] * ( _t_processed[dm_range][t] ) * sizeof(float);
 
-				save_data(d_output, out_tmp, gpu_outputsize);
-				//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
-
+				save_data(_d_output, out_tmp, _gpu_outputsize);
 
 				//#pragma omp parallel for
-				for (int k = 0; k < ndms[dm_range]; ++k)
+				for (int k = 0; k < _ndms[dm_range]; ++k)
 				{
-					memcpy(&output_buffer[dm_range][k][inc / inBin[dm_range]], &out_tmp[k * t_processed[dm_range][t]],
-								sizeof(float) * t_processed[dm_range][t]);
+					memcpy(&_output_buffer[dm_range][k][inc / _in_bin[dm_range]], &out_tmp[k * _t_processed[dm_range][t]],
+								sizeof(float) * _t_processed[dm_range][t]);
 				}
 
 				if (user_input.get_output_dmt() == 1)
-					write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
+					write_output(dm_range, _t_processed[dm_range][t], _ndms[dm_range], gpu_memory, out_tmp, _gpu_outputsize, _dm_low, _dm_high);
 				if (user_input.get_enable_analysis() == 1)
-					analysis(dm_range, tstart_local, t_processed[dm_range][t], ( t_processed[dm_range][t] + maxshift ), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, d_output, dm_low, dm_high, dm_step, tsamp);
-				oldBin = inBin[dm_range];
+					analysis(dm_range, tstart_local, _t_processed[dm_range][t], ( _t_processed[dm_range][t] + _maxshift ), _nchans, _maxshift, _max_ndms, _ndms, _out_bin, _sigma_cutoff, _d_output, _dm_low, _dm_high, _dm_step, _tsamp);
+				oldBin = _in_bin[dm_range];
 			}
 
-			memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
+			memset(out_tmp, 0.0f, _t_processed[0][0] + _maxshift * _max_ndms * sizeof(float));
 
-			inc = inc + t_processed[0][t];
+			inc = inc + _t_processed[0][t];
 			printf("\nINC:\t%ld", inc);
 			tstart_local = ( tsamp_original * inc );
-			tsamp = tsamp_original;
-			maxshift = maxshift_original;
+			_tsamp = tsamp_original;
+			_maxshift = maxshift_original;
 		}
 
-		cudaFree(d_input);
-		cudaFree(d_output);
 		free(out_tmp);
-		free(input_buffer);
-		free(output_buffer);
 }
 
 } // namespace sps
