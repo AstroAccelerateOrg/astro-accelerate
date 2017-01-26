@@ -620,7 +620,7 @@ namespace sps {
 				int samp_block_size = max_tsamps - _maxshift;
 
 				// Work out how many blocks of time samples we need to complete the processing
-				// upto nsamp-maxshift
+				// up to nsamp-maxshift
 				int num_blocks = (int) floor(( (float) _nsamp - (float) ( _maxshift ) ) / ( (float) samp_block_size ));
 
 				// Find the common integer amount of samples between all bins

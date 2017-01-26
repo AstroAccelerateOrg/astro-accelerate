@@ -105,84 +105,65 @@ void IOData::allocate_memory_cpu_input(DedispersionPlan const &dedispersion_plan
 }
 void IOData::allocate_memory_cpu_output(DedispersionPlan const &dedispersion_plan)
 {
-	int range 				= dedispersion_plan.get_range();
-	int num_tchunks 	= dedispersion_plan.get_num_tchunks();
-	int** t_processed = dedispersion_plan.get_t_processed();
-	int* ndms 				= dedispersion_plan.get_ndms();
-
 	_output_size = 0;
-	_output_buffer = (float ***) malloc(range * sizeof(float **));
-	for (int i = 0; i < range; ++i)
+	_output_buffer = (float ***) malloc(dedispersion_plan.get_range() * sizeof(float **));
+	for (int i = 0; i < dedispersion_plan.get_range(); ++i)
 	{
 		int total_samps = 0;
-		for (int k = 0; k < num_tchunks; ++k)
-			total_samps += t_processed[i][k];
-		//printf("\nTOTSAMPS:\t%d %d", total_samps, i);
-		_output_buffer[i] = (float **) malloc(ndms[i] * sizeof(float *));
-		//if((*output_buffer)[i]) printf("\n FAILED! Could not allocate %zu bytes", ndms[i]*sizeof(float *));
-		for (int j = 0; j < ndms[i]; ++j)
+		for (int k = 0; k < dedispersion_plan.get_num_tchunks(); ++k)
+			total_samps += dedispersion_plan.get_t_processed()[i][k];
+		_output_buffer[i] = (float **) malloc(dedispersion_plan.get_ndms()[i] * sizeof(float *));
+		for (int j = 0; j < dedispersion_plan.get_ndms()[i]; ++j)
 		{
 			_output_buffer[i][j] = (float *) malloc(( total_samps ) * sizeof(float));
-			//if((*output_buffer)[i][j]) printf("\n FAILED! Could not allocate %zu bytes", ndms[i]*sizeof(float *));
-//			memset((*output_buffer)[i][j],0.0f,(total_samps)*sizeof(float));
 		}
-		_output_size += ( total_samps ) * ndms[i] * sizeof(float);
+		_output_size += ( total_samps ) * dedispersion_plan.get_ndms()[i] * sizeof(float);
 	}
 }
 void IOData::allocate_memory_gpu(DedispersionPlan const &dedispersion_plan)
 {
-	int maxshift = dedispersion_plan.get_maxshift();
-	int** t_processed = dedispersion_plan.get_t_processed();
-	int nchans = dedispersion_plan.get_nchans();
-	int max_ndms = dedispersion_plan.get_max_ndms();
 
-	int time_samps = t_processed[0][0] + maxshift;
-	_gpu_input_size = time_samps * (size_t) nchans * sizeof(unsigned short);
+	int time_samps = dedispersion_plan.get_t_processed()[0][0] + dedispersion_plan.get_maxshift();
+	_gpu_input_size = time_samps * (size_t) dedispersion_plan.get_nchans() * sizeof(unsigned short);
 	( cudaMalloc((void **) _d_input, _gpu_input_size) );
 
-	if (nchans < max_ndms)
+	if (dedispersion_plan.get_nchans() < dedispersion_plan.get_max_ndms())
 	{
-		_gpu_output_size = time_samps * max_ndms * sizeof(float);
+		_gpu_output_size = time_samps * dedispersion_plan.get_max_ndms() * sizeof(float);
 	}
 	else
 	{
-		_gpu_output_size = time_samps * nchans * sizeof(float);
+		_gpu_output_size = time_samps * dedispersion_plan.get_nchans() * sizeof(float);
 	}
 	( cudaMalloc((void **) _d_output, _gpu_output_size) );
 
 	( cudaMemset(_d_output, 0, _gpu_output_size) );
 }
 
-void IOData::get_recorded_data(FILE **fp, const int nchans, const int nbits)
+void IOData::get_recorded_data(FILE **fp, DedispersionPlan const &dedispersion_plan)
 {
 
 	int c;
-
 	unsigned long int total_data;
-
 	//{{{ Load in the raw data from the input file and transpose
-	if (nbits == 8)
+	if (dedispersion_plan.get_nbits() == 8)
 	{
-
 		// Allocate a tempory buffer to store a line of frequency data
-		unsigned char *temp_buffer = (unsigned char *) malloc(nchans * sizeof(unsigned char));
-
+		unsigned char *temp_buffer = (unsigned char *) malloc(dedispersion_plan.get_nchans() * sizeof(unsigned char));
 		// Read in the data, transpose it and store it in the input buffer
 		total_data = 0;
 		while (!feof(*fp))
 		{
-
-			if (fread(temp_buffer, sizeof(unsigned char), nchans, *fp) != nchans)
+			if (fread(temp_buffer, sizeof(unsigned char), dedispersion_plan.get_nchans(), *fp) != dedispersion_plan.get_nchans())
 				break;
-			for (c = 0; c < nchans; c++)
+			for (c = 0; c < dedispersion_plan.get_nchans(); c++)
 			{
-				_input_buffer[c + total_data * ( nchans )] = (unsigned short) temp_buffer[c];
+				_input_buffer[c + total_data * ( dedispersion_plan.get_nchans() )] = (unsigned short) temp_buffer[c];
 			}
 			total_data++;
 
 		}
 		free(temp_buffer);
-
 	}
 	else
 	{
@@ -190,7 +171,6 @@ void IOData::get_recorded_data(FILE **fp, const int nchans, const int nbits)
 		printf(" This is a SKA prototype code and only runs with 8 bit data\n");
 		printf("\n=========================================================\n");
 	}
-
 	//}}}
 }
 

@@ -61,7 +61,7 @@ class IOData
         void allocate_memory_cpu_input(DedispersionPlan const &);
         void allocate_memory_cpu_output(DedispersionPlan const &);
         void allocate_memory_gpu(DedispersionPlan const &);
-        void get_recorded_data(FILE **, const int, const int);
+        void get_recorded_data(FILE **, DedispersionPlan  const &);
 
     private:
         /**
