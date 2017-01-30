@@ -268,6 +268,11 @@ __global__ void find_peak(const Npp32f *d_input, const Npp32f * d_dilated, Npp16
     (reinterpret_cast<ushort4*>(d_output))[idx] = is_peak(orig_values, dilated_values); 
 }
 
+/**
+ * This version runs a thread per pixel
+ * and hence needs to handle the special cases of the edges and the corners
+ * where less data is loaded
+ */
 __global__ void dilate_peak_find(const Npp32f *d_input, Npp16u* d_output)
 {
     auto idxX = blockDim.x * blockIdx.x + threadIdx.x;
@@ -338,6 +343,71 @@ __global__ void dilate_peak_find(const Npp32f *d_input, Npp16u* d_output)
     }
 }
 
+/**
+ * This version uses a warp per block per row i.e.
+ * 
+ *  1 1 1 1 1 1 1 ... 1 4 4 4 4 4 ... 4
+ *  2 2 2 2 2 2 2 ... 2 5 5 5 5 5 ... 5
+ *  3 3 3 3 3 3 3 ... 3 6 6 6 6 6 ... 6
+ *
+ * where the number represents the block index.
+ * The warp collaboratively loads the data for each row
+ * and then dilates each pixel and then writes out the
+ * results in a co-operative manner.
+ */
+__global__ void dilate_peak_find_v2(const Npp32f * d_input, Npp16u* d_output, const int width)
+{
+    auto idxX = threadIdx.x;
+    auto gidxX = blockDim.x * blockIdx.x + idxX;
+
+    if (gidxX > width) return;
+
+    auto row = blockIdx.y;
+    __shared__ float data[3][128+1];
+    //Always Load the middle row
+    data[1][idxX] = d_input[row*width+gidxX];
+    if (row > 1) {
+        data[0][idxX] = d_input[(row-1)*width+idxX];
+    }
+    if ((row+1) < gridDim.y) {
+        data[2][idxX] = d_input[(row+1)*width+idxX];
+    }
+
+    __syncthreads();
+    
+    auto dilated_value = data[1][idxX];
+    if (row > 1) {
+        dilated_value = fmaxf(dilated_value, data[0][idxX]);
+    }
+    if ((row+1) < gridDim.y) {
+        dilated_value = fmaxf(dilated_value, data[2][idxX]);
+    }
+
+    //Shared the dilated values via shared memory
+    data[0][idxX] = dilated_value;
+
+    __syncthreads();
+
+    //Left hand boundary condition
+    if (threadIdx.x == 0) {
+        //TODO: left hand side boundary
+        dilated_value = fmaxf(dilated_value, data[0][idxX+1]);
+    }
+
+    //Right hand boundary condition
+    else if (idxX == blockDim.x) {
+        //TODO: right hand side boundary
+        dilated_value = fmaxf(dilated_value, data[0][idxX-1]);
+    }
+    //Default case
+    else {
+        dilated_value = fmaxf(dilated_value, data[0][idxX-1]);
+        dilated_value = fmaxf(dilated_value, data[0][idxX+1]);
+    }
+
+    d_output[row*width+gidxX] = is_peak(data[1][idxX], dilated_value);
+}
+
 class PeakFinderContext
 {
 public:
@@ -355,7 +425,8 @@ public:
     } 
 
     void operator()(const NppImage & input, unsigned short * output) {
-	runFusedKernel(input, output);
+	//runFusedKernel(input, output);
+	runFusedKernelv2(input, output);
 #if 0
 	int blockSize;   // The launch configurator returned block size 
 	int minGridSize; // The minimum grid size needed to achieve the 
@@ -393,6 +464,12 @@ public:
     }
 
 private:
+
+    void runFusedKernelv2(const NppImage & input, unsigned short * output) {
+        dim3 blockDim = {128, 1, 1};
+        dim3 gridSize = {std::max(1u, input.size().width/blockDim.x), input.size().height, 1};
+	dilate_peak_find_v2<<<gridSize, blockDim, 0, stream>>>(input.data, output, input.size().width);
+    }
 
     void runFusedKernel(const NppImage & input, unsigned short * output) {
 	int blockSize;   // The launch configurator returned block size 
