@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <cuda_runtime.h>
 #include <omp.h>
 
@@ -35,6 +36,8 @@ void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned sho
 			total_data++;
 
 		}
+		
+		free(temp_buffer);
 	}
 	else
 	{

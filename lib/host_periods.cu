@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cufft.h>
+#include <cuda_runtime.h>
 #include <math.h>
 #include "AstroAccelerate/params.h"
 

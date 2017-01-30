@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /* Note we send in a pointer to the file pointer becuase this function needs to update the position of the file pointer
  */
@@ -13,7 +15,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 	int nchar;
 	int nbytes = sizeof(int);
 
-	unsigned long int total_data;
+	long int total_data;
 
 	double temp;
 
@@ -85,42 +87,32 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 	}
 
 	fgetpos(*fp, &file_loc);
+        long data_start = ftell(*fp);
+	if (fseek(*fp, 0, SEEK_END) != 0) 
+ 	{
+		printf("\nERROR!! Failed to seek to end of data file\n");
+		exit(1);
+	}
+        total_data = ftell(*fp);
+	if (total_data == -1)
+	{
+		printf("\nERROR!! Failed to seek to end of data file\n");
+		exit(1);
+	}
+	total_data -= data_start;
 
 	if (( *nbits ) == 32)
 	{
-		// Allocate a tempory buffer to store a line of frequency data
-		float *temp_buffer = (float *) malloc(( *nchans ) * sizeof(float));
-
-		// Count how many time samples we have
-		total_data = 0;
-		while (!feof(*fp))
-		{
-			fread(temp_buffer, sizeof(float), ( *nchans ), *fp);
-			total_data++;
-		}
-		*nsamp = total_data - 1;
-
-		free(temp_buffer);
+		*nsamp = (total_data/sizeof(float)) - 1;
 	}
 	else if (( *nbits ) == 8)
 	{
-		// Allocate a tempory buffer to store a line of frequency data
-		unsigned char *temp_buffer = (unsigned char *) malloc(( *nchans ) * sizeof(unsigned char));
-
-		total_data = 0;
-		while (!feof(*fp))
-		{
-			fread(temp_buffer, sizeof(unsigned char), ( *nchans ), *fp);
-			total_data++;
-		}
-		*nsamp = total_data - 1;
-
-		free(temp_buffer);
+		*nsamp = (total_data/sizeof(unsigned char)) - 1;
 	}
 	else
 	{
 		printf("\n\n======================= ERROR =======================\n");
-		printf(" Currently this code only runs with 1, 8 and 32 bit data\n");
+		printf(" Currently this code only runs with 8 and 32 bit data\n");
 		printf("\n=====================================================\n");
 	}
 

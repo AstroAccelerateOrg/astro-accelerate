@@ -4,26 +4,38 @@ LIB	:= -L$(CUDA)/lib64
 BUILD_DIR	:=../build
 ASTROLIB_DIR :=../astrolib
 
+CCFLAGS = $(INC) -g -lineinfo -O3 -std=c++11
+
+CCFLAGS += -DSM_35
+
 ifeq ($(cache),off)
-        NVCCFLAGS := $(INC) -g -lineinfo -Xcompiler -fopenmp -O3 -lm -arch=sm_61 --use_fast_math\
+        NVCCFLAGS := $(CCFLAGS) -Xcompiler -fopenmp -arch=compute_35 --use_fast_math\
          --ptxas-options=-v -Xptxas -dlcm=cg
 else
-        NVCCFLAGS := $(INC) -g -lineinfo -Xcompiler -fopenmp -O3 -lm -arch=sm_61 --use_fast_math\
-         --ptxas-options=-v -lcuda -lcudart  -lcurand -lcufft -Xptxas -dlcm=cg
+        NVCCFLAGS := $(CCFLAGS) -Xcompiler -fopenmp -arch=compute_35 --use_fast_math\
+         --ptxas-options=-v -lcuda -lcudart -lnppc -lnppi -lcurand -lcufft -Xptxas -dlcm=cg
 endif
 
-ifeq ($(gpu),sm_35)
-        NVCCFLAGS += -D SM_35
-endif
+NVCCFLAGS += -gencode arch=compute_35,code=sm_35
+NVCCFLAGS += -gencode arch=compute_37,code=sm_37
+NVCCFLAGS += -gencode arch=compute_52,code=sm_52
+NVCCFLAGS += -gencode arch=compute_60,code=sm_60
+NVCCFLAGS += -gencode arch=compute_61,code=sm_61
 
 
-all:	${BUILD_DIR} $(BUILD_DIR)/dedisperse-gpu ${ASTROLIB_DIR} ${ASTROLIB_DIR}/libastrolib.a
+NVCCFLAGS += --source-in-ptx --keep
+
+
+all: $(BUILD_DIR)/dedisperse-gpu ${BUILD_DIR}/peak_find_test ${ASTROLIB_DIR}/libastrolib.a
+
+$(BUILD_DIR)/host_%.o: host_%.cu
+	$(CXX) -ansi -fopenmp -x c++ -o $@ -c -Wall $(CCFLAGS) $<
 
 $(BUILD_DIR)/%.o : %.cu
-	nvcc -o $@ -c $(NVCCFLAGS) $<
+	$(CUDA)/bin/nvcc -o $@ -c $(NVCCFLAGS) $<
 
 $(BUILD_DIR)/%.o : %.cpp
-	nvcc -o $@ -c $(NVCCFLAGS) $<
+	$(CUDA)/bin/nvcc -o $@ -c $(NVCCFLAGS) $<
 
 ${ASTROLIB_DIR}:
 	mkdir -p ${ASTROLIB_DIR}
@@ -62,6 +74,8 @@ $(BUILD_DIR)/host_statistics.o:	 		AstroAccelerate/host_statistics.h
 
 $(BUILD_DIR)/host_write_file.o:	 		AstroAccelerate/host_write_file.h
 
+$(BUILD_DIR)/device_main.o:			device_peak_find.cu
+
 #$(BUILD_DIR)/device_main.o:	device_main.cu
 #	nvcc -c $(NVCCFLAGS) device_main.cu
 
@@ -75,7 +89,10 @@ $(ASTROLIB_DIR)/libastrolib.a: $(BUILD_DIR)/host_acceleration.o $(BUILD_DIR)/hos
 	$(BUILD_DIR)/host_main_function.o
 
 $(BUILD_DIR)/dedisperse-gpu: $(BUILD_DIR)/main.o $(ASTROLIB_DIR)/libastrolib.a
-	nvcc -o $(BUILD_DIR)/dedisperse-gpu $(BUILD_DIR)/main.o -L$(ASTROLIB_DIR)/ -lastrolib -L${LIB} $(NVCCFLAGS)
+	$(CUDA)/bin/nvcc -o $(BUILD_DIR)/dedisperse-gpu $(BUILD_DIR)/main.o -L$(ASTROLIB_DIR)/ -lastrolib ${LIB} $(NVCCFLAGS)
+
+$(BUILD_DIR)/peak_find_test: $(BUILD_DIR)/host_peak_find_main.o $(ASTROLIB_DIR)/libastrolib.a
+	$(CUDA)/bin/nvcc -o $(BUILD_DIR)/peak_find_test $(BUILD_DIR)/host_peak_find_main.o -L$(ASTROLIB_DIR)/ -lastrolib ${LIB} $(NVCCFLAGS)
 
 clean:
 	rm -f $(BUILD_DIR)/dedisperse-gpu $(BUILD_DIR)/*.a $(BUILD_DIR)/*.o $(ASTROLIB_DIR)/*.a

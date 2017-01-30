@@ -17,6 +17,7 @@
 #include "device_SNR_limited.cu" //Added by KA
 #include "device_threshold.cu" //Added by KA
 #include "device_single_FIR.cu" //Added by KA
+#include "device_peak_find.cu"
 
 #include "device_bin.cu"
 #include "device_dedisperse.cu"

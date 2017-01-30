@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <cufft.h>
 #include <omp.h>
+#include <cuda_runtime.h>
 #include "AstroAccelerate/params.h"
 #include "AstroAccelerate/device_stats.h"
 #include "AstroAccelerate/device_stretch.h"
@@ -57,73 +58,73 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 		// Allocate memory for signal even
 		float* d_signal_in_e;
 		size = samps * sizeof(float);
-		printf("\nSize of GPU input signal:\t%u MB", size / 1024 / 1024);
+		printf("\nSize of GPU input signal:\t%zu MB", size / 1024 / 1024);
 		checkCudaErrors(cudaMalloc((void** )&d_signal_in_e, size));
 
 		float* d_signal_transformed_e;
 		size = samps * sizeof(float);
-		printf("\nSize of GPU stretched signal:\t%u MB", size / 1024 / 1024);
+		printf("\nSize of GPU stretched signal:\t%zu MB", size / 1024 / 1024);
 		checkCudaErrors(cudaMalloc((void** )&d_signal_transformed_e, size));
 
 		cufftComplex* d_signal_fft_e;
 		size = ( samps / 2 + 1 ) * sizeof(cufftComplex);
-		printf("\nSize of GPU output signal:\t%u MB", size / 1024 / 1024);
+		printf("\nSize of GPU output signal:\t%zu MB", size / 1024 / 1024);
 		checkCudaErrors(cudaMalloc((void** )&d_signal_fft_e, size));
 
 		float* d_signal_power_e;
 		size = sizeof(float) * ( samps / 2 ) * ( 2 * ACCMAX + ACCSTEP ) / ACCSTEP;
-		printf("\nSize of GPU power signal:\t%u MB", size / 1024 / 1024);
+		printf("\nSize of GPU power signal:\t%zu MB", size / 1024 / 1024);
 		checkCudaErrors(cudaMalloc((void** )&d_signal_power_e, size));
 
 		float2* h_signal_e;
 		size = ( samps ) * sizeof(float2);
-		printf("\nSize of host output signal:\t%u MB", size / 1024 / 1024);
+		printf("\nSize of host output signal:\t%zu MB", size / 1024 / 1024);
 		checkCudaErrors(cudaMallocHost((void** )&h_signal_e, size));
 
 		float* h_signal_transformed_e;
 		size = samps * sizeof(float);
-		printf("\nSize of GPU stretched signal:\t%u MB", size / 1024 / 1024);
+		printf("\nSize of GPU stretched signal:\t%zu MB", size / 1024 / 1024);
 		checkCudaErrors(cudaMallocHost((void** )&h_signal_transformed_e, size));
 
 		float* h_signal_power_e;
 		size = sizeof(float) * ( samps / 2 ) * ( 2 * ACCMAX + ACCSTEP ) / ACCSTEP;
-		printf("\nSize of total host power signal:\t%u MB", size / 1024 / 1024), fflush(stdout);
+		printf("\nSize of total host power signal:\t%zu MB", size / 1024 / 1024), fflush(stdout);
 		checkCudaErrors(cudaMallocHost((void** )&h_signal_power_e, size));
 
 		// Allocate memory for signal odd
 		float* d_signal_in_o;
 		size = samps * sizeof(float);
-		printf("\nSize of GPU input signal:\t%u MB", size / 1024 / 1024);
+		printf("\nSize of GPU input signal:\t%zu MB", size / 1024 / 1024);
 		checkCudaErrors(cudaMalloc((void** )&d_signal_in_o, size));
 
 		float* d_signal_transformed_o;
 		size = samps * sizeof(float);
-		printf("\nSize of GPU stretched signal:\t%u MB", size / 1024 / 1024);
+		printf("\nSize of GPU stretched signal:\t%zu MB", size / 1024 / 1024);
 		checkCudaErrors(cudaMalloc((void** )&d_signal_transformed_o, size));
 
 		cufftComplex* d_signal_fft_o;
 		size = ( samps / 2 + 1 ) * sizeof(cufftComplex);
-		printf("\nSize of GPU output signal:\t%u MB", size / 1024 / 1024);
+		printf("\nSize of GPU output signal:\t%zu MB", size / 1024 / 1024);
 		checkCudaErrors(cudaMalloc((void** )&d_signal_fft_o, size));
 
 		float* d_signal_power_o;
 		size = sizeof(float) * ( samps / 2 ) * ( 2 * ACCMAX + ACCSTEP ) / ACCSTEP;
-		printf("\nSize of GPU power signal:\t%u MB", size / 1024 / 1024);
+		printf("\nSize of GPU power signal:\t%zu MB", size / 1024 / 1024);
 		checkCudaErrors(cudaMalloc((void** )&d_signal_power_o, size));
 
 		float2* h_signal_o;
 		size = ( samps ) * sizeof(float2);
-		printf("\nSize of host output signal:\t%u MB", size / 1024 / 1024);
+		printf("\nSize of host output signal:\t%zu MB", size / 1024 / 1024);
 		checkCudaErrors(cudaMallocHost((void** )&h_signal_o, size));
 
 		float* h_signal_transformed_o;
 		size = samps * sizeof(float);
-		printf("\nSize of GPU stretched signal:\t%u MB", size / 1024 / 1024);
+		printf("\nSize of GPU stretched signal:\t%zu MB", size / 1024 / 1024);
 		checkCudaErrors(cudaMallocHost((void** )&h_signal_transformed_o, size));
 
 		float* h_signal_power_o;
 		size = sizeof(float) * ( samps / 2 ) * ( 2 * ACCMAX + ACCSTEP ) / ACCSTEP;
-		printf("\nSize of total host power signal:\t%u MB", size / 1024 / 1024), fflush(stdout);
+		printf("\nSize of total host power signal:\t%zu MB", size / 1024 / 1024), fflush(stdout);
 		checkCudaErrors(cudaMallocHost((void** )&h_signal_power_o, size));
 
 		// CUFFT plan even
