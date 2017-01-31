@@ -46,6 +46,7 @@ int main(int argc, char * argv[]) {
     	double start_t, end_t;
 
         std::vector<unsigned short, managed_allocator<unsigned short>> output(data.size(), 0);
+	peakfind(data.data(), 0, data.size()/4, 4, output.data());
 	start_t = omp_get_wtime();
         for (int i=0; i < ntrials; ++i) {
 	    peakfind(data.data(), 0, data.size()/4, 4, output.data());
