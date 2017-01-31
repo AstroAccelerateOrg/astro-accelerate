@@ -92,7 +92,7 @@ struct float3x3 {
 
 __device__ Npp16u is_peak(const float original_value, const float dilated_value)
 {
-    return (original_value == dilated_value) ? 1u: 0u;
+    return (original_value != 0.0f && original_value == dilated_value) ? 1u: 0u;
 }
 
 __device__ ushort4 is_peak(const float4 original_values, const float4 dilated_values)
