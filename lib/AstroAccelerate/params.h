@@ -1,10 +1,10 @@
 #define ACCMAX 350
 #define ACCSTEP 11
 #define UNROLLS 16
-#define SNUMREG 10
+#define SNUMREG 8
 #define SDIVINT 8
-#define SDIVINDM 40
-#define SFDIVINDM 40.0f
+#define SDIVINDM 32
+#define SFDIVINDM 32.0f
 #define CARD 0
 #define NOPSSHIFT 5
 #define NOPSLOOP 3
@@ -16,9 +16,8 @@
 #define NOPS 4.0
 #define STATST 128
 #define STATSLOOP 8
-
-
-
+#define FILTER_OUT_RANGES 0
+#define RANGE_TO_KEEP 0
 
 //Added by Karel Adamek
 #define WARP 32

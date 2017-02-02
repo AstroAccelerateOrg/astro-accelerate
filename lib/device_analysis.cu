@@ -192,7 +192,7 @@ void analysis_GPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 	printf("THR_WARP took:%f ms\n", partial_time);
 	//-------------- Thresholding
 
-	printf("\n====> TOTAL TIME:%f\n\n", total_time);
+	printf("\n%d ====> TOTAL TIME:%f\n\n", i, total_time);
 
 	cudaMemcpy(&h_list_size, gmem_pos, sizeof(int), cudaMemcpyDeviceToHost);
 	h_output_list = (float*) malloc(h_list_size*4*sizeof(float));

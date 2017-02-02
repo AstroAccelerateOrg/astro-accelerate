@@ -156,6 +156,33 @@ void main_function
 	float *out_tmp;
 	out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
 	memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
+	
+
+//! AB
+	double start_t_per_range, end_t_per_range;
+/*
+	float tsamp_temp=tsamp_original;
+	int oldBin_temp=1;
+	for (dm_range=0; dm_range<range; dm_range++){
+		if (inBin[dm_range] > oldBin_temp)
+		{
+			( tsamp_temp ) = ( tsamp_temp ) * 2.0f;
+		}
+		float shift_one = ( SDIVINDM - 1 ) * ( dm_step[dm_range] / ( tsamp_temp ) );
+		int shifta = (int) floorf(shift_one * dmshifts[nchans - 1]) + ( SDIVINT - 1 ) * 2;
+		int lineshift = shifta + ( ( SNUMREG - 1 ) * 2 * SDIVINT );
+
+		// Check to see if the threadblock will load a shared memory line that
+		// is long enough for the algorithm to run without an out of bounds
+		// access...
+		if (( ( SDIVINT - 1 ) + ( ( SDIVINDM - 1 ) * SDIVINT ) - 1 ) <= lineshift) {
+			printf("smem line length is too short\n");
+			exit(0);
+		}
+	}
+*/
+//! END AB
+
 
 	for (t = 0; t < num_tchunks; t++)
 	{
@@ -169,11 +196,13 @@ void main_function
 		int oldBin = 1;
 		for (dm_range = 0; dm_range < range; dm_range++)
 		{
+			if (FILTER_OUT_RANGES && dm_range!=RANGE_TO_KEEP) continue;
 			printf("\n\n%f\t%f\t%f\t%d", dm_low[dm_range], dm_high[dm_range], dm_step[dm_range], ndms[dm_range]), fflush(stdout);
 			printf("\nAmount of telescope time processed: %f", tstart_local);
 			maxshift = maxshift_original / inBin[dm_range];
 
 			cudaDeviceSynchronize();
+			start_t_per_range = omp_get_wtime();
 			load_data(dm_range, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t], maxshift, nchans, dmshifts);
 
 			if (inBin[dm_range] > oldBin)
@@ -196,6 +225,8 @@ void main_function
 				memcpy(&output_buffer[dm_range][k][inc / inBin[dm_range]], &out_tmp[k * t_processed[dm_range][t]], sizeof(float) * t_processed[dm_range][t]);
 			}
 
+			end_t_per_range = omp_get_wtime();
+			printf("\n\nTIME_PER_RANGE range %d time %.8f\n", dm_range, end_t_per_range-start_t_per_range);
 			if (output_dmt == 1)
 				write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
 			if (enable_analysis == 1) {
