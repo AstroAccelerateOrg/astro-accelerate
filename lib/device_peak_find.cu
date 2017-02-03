@@ -90,9 +90,9 @@ struct float3x3 {
     float z1, z2, z3;
 };
 
-__device__ Npp16u is_peak(const float original_value, const float dilated_value)
+__device__ Npp16u is_peak(const float original_value, const float dilated_value, const float threshold=0.0f)
 {
-    return (original_value != 0.0f && original_value == dilated_value) ? 1u: 0u;
+    return (original_value > threshold && original_value == dilated_value) ? 1u: 0u;
 }
 
 __device__ ushort4 is_peak(const float4 original_values, const float4 dilated_values)
@@ -355,10 +355,9 @@ __global__ void dilate_peak_find(const Npp32f *d_input, Npp16u* d_output, const 
  * results in a co-operative manner.
  */
 template<int dilate_block_size=DILATE_BLOCK_SIZE>
-__global__ void dilate_peak_find_v2(const Npp32f * d_input, Npp16u* d_output, const int width)
+__global__ void dilate_peak_find_v2(const Npp32f * d_input, Npp16u* d_output, const int width, const float threshold)
 {
-    //TODO: try swapping block x and y
-    //TODO: move last element of warp to 0 for idxX and move everything else up by 1 to avoid divergence in 2 warps - Think about shared memory bank conflicts though! 
+    //TODO: try swapping block x and y - however order of block execution is undefined so this may not improve cache behaviour - hence v3 impl to solve this
     auto idxX = threadIdx.x; // Index into shared memory cache
     auto gidxX = blockDim.x * blockIdx.x + idxX;
 
@@ -381,7 +380,7 @@ __global__ void dilate_peak_find_v2(const Npp32f * d_input, Npp16u* d_output, co
     if (!is_last_row) {
         data[2][idxX] = d_input[(row+1)*width+gidxX];
     }
-
+    
     auto dilated_value = data[1][idxX];
     if (!is_first_row) {
         dilated_value = fmaxf(dilated_value, data[0][idxX]);
@@ -434,7 +433,109 @@ __global__ void dilate_peak_find_v2(const Npp32f * d_input, Npp16u* d_output, co
     dilated_value = fmaxf(dilated_value, cmp_val_l);
     dilated_value = fmaxf(dilated_value, cmp_val_r);
 
-    d_output[row*width+gidxX] = is_peak(data[1][idxX], dilated_value);
+    d_output[row*width+gidxX] = is_peak(data[1][idxX], dilated_value, threshold);
+}
+
+/**
+ * This version uses a block of warps laid out as follows: 
+ * 
+ *   1  2  3 .... 32
+ *  33 34 35 .... 64 
+ *  ..       .... .. 
+ *  ..       .... 1024 
+ *
+ * where the number represents the thread index.
+ * The warp collaboratively loads the data for each row
+ * and then dilates each pixel and then writes out the
+ * results in a co-operative manner.
+ * This is better than v2 because it facilitates data
+ * reuse (each warp only loads a single row - except the first and last)
+ * and the left and right boundary conditions are no longer divergent 
+ */
+__global__ void dilate_peak_find_v3(const Npp32f * d_input, Npp16u* d_output, const int linestep, const int width, const int height, const float threshold)
+{
+    const auto idxX = threadIdx.x; // Index into shared memory cache
+    const auto gidxX = blockIdx.x * blockDim.x + idxX;
+    const auto row_s = threadIdx.y + 1;
+    const auto row = (blockIdx.y * blockDim.y + threadIdx.y);
+    const bool is_last_row_in_block = (row_s == blockDim.y);
+    const bool is_last_row = row == (height-1); 
+    const bool is_last_active_row_in_block = is_last_row ? true: is_last_row_in_block;
+    const bool is_first_row = (row == 0);
+    const bool is_first_row_in_block = (row_s == 1);
+    const bool is_leftmost_element = (gidxX == 0);
+    const bool is_leftmost_element_in_block = (idxX == 0);
+    const bool is_rightmost_element = gidxX == (width-1);
+    const bool is_rightmost_element_in_block = ((idxX == blockDim.x-1) || is_rightmost_element);
+    const bool is_top_row_block = (blockIdx.x == 0);
+    const int linewidth = width+linestep;
+    
+    __shared__ float data[34][32];
+    float dilated_value, my_val = 0.0f;
+    float val1 = 0.0f; 
+    float val2 = 0.0f; 
+ 
+    const bool thread_active = !(gidxX >= width || row >= height); 
+    const auto last_row_s = (blockIdx.y == (gridDim.y-1) ? (height-1) & (blockDim.y-1) : blockDim.y + 1);
+    const auto idx_s = (is_first_row_in_block) ? 0 : last_row_s;
+
+    //Note we can't return here as we use syncthreads
+    if (thread_active) {
+
+        //Load block data collaboratively
+        auto * ptr = d_input + row*linewidth+gidxX;
+        my_val = __ldg(ptr);
+
+	//Boundary condition neightbours on my row
+        if ((is_leftmost_element_in_block and not is_leftmost_element)
+           || (is_rightmost_element_in_block and not is_rightmost_element))
+            val2 = __ldg( is_leftmost_element_in_block ? ptr-1 : ptr+1);
+
+	//Top/bottom edge boundary condition
+        if ((is_first_row_in_block and not is_first_row)
+           || (is_last_active_row_in_block and not is_last_row)) {
+            auto ptr_bc = is_first_row_in_block ? ptr - linewidth : ptr + linewidth;
+	    data[idx_s][idxX] = __ldg(ptr_bc);
+            if ((is_leftmost_element_in_block and not is_leftmost_element)
+               || (is_rightmost_element_in_block and not is_rightmost_element)) {
+                val1 = __ldg(is_leftmost_element_in_block ? ptr_bc - 1: ptr_bc + 1);
+            }
+        }
+
+        //Compare against left and right values
+        auto tmp = fmaxf(__shfl_up(my_val, 1), __shfl_down(my_val, 1));
+
+	//Compare against boundary condition value
+        auto tmp2 = fmaxf(my_val, val2);
+        dilated_value = fmaxf(tmp, tmp2);
+
+        //Share the dilated values via shared memory
+        data[row_s][idxX] = dilated_value;
+
+        // Dilate the first and last rows
+	if ((is_first_row_in_block and not is_first_row)
+           || (is_last_active_row_in_block and not is_last_row)) {
+            float lval;
+            auto dilated_value_bc = lval = data[idx_s][idxX];
+            dilated_value_bc = fmaxf(dilated_value_bc, __shfl_down(lval, 1));
+            dilated_value_bc = fmaxf(dilated_value_bc, __shfl_up(lval, 1));
+            dilated_value_bc = fmaxf(dilated_value_bc, val1);
+            data[idx_s][idxX] = dilated_value_bc;
+        }
+    }
+    //Sync here so we can see the data from other warps i.e. the other rows in this block
+    __syncthreads();
+ 
+    if (thread_active) {
+        if (not is_first_row) {
+            dilated_value = fmaxf(dilated_value, data[row_s-1][idxX]);
+        }
+        if (not is_last_row) {
+            dilated_value = fmaxf(dilated_value, data[row_s+1][idxX]);
+        }
+
+        d_output[row*linewidth+gidxX] = is_peak(my_val, dilated_value, threshold);
+    }
 }
 
 class PeakFinderContext
@@ -458,7 +559,7 @@ public:
 	cudaStreamSynchronize(stream);
     }
 
-    void v2(const NppImage & input, unsigned short * output) {
+    void v2(const NppImage & input, unsigned short * output, const float threshold) {
 #if 0
 	int blockSize;   // The launch configurator returned block size 
 	int minGridSize; // The minimum grid size needed to achieve the 
@@ -476,17 +577,26 @@ public:
         std::cout << "Gridsize " << gridSize << std::endl;	
 	runKernels(input, output, gridSize, blockSize, this->stream);
 #endif
-	runFusedKernelv2(input, output);
+	runFusedKernelv2(input, output, threshold);
 	cudaStreamSynchronize(stream);
     }
 
+    void v3(const NppImage & input, unsigned short * output, const float threshold) {
+        dim3 blockDim = {32, 32, 1};
+        dim3 gridSize = {1u + ((input.size().width-1)/blockDim.x), 1u + ((input.size().height-1)/blockDim.y), 1};
+	//std::cout << "Grid dims: " << gridSize.x << " " << gridSize.y << " " << gridSize.z << std::endl;	
+	dilate_peak_find_v3<<<gridSize, blockDim, 0, stream>>>(input.data, output, input.linestep, input.size().width, input.size().height, threshold);
+ 	cudaStreamSynchronize(stream);
+    }
+
+
 private:
 
-    void runFusedKernelv2(const NppImage & input, unsigned short * output) {
+    void runFusedKernelv2(const NppImage & input, unsigned short * output, const float threshold) {
         dim3 blockDim = {DILATE_BLOCK_SIZE, 1, 1};
         dim3 gridSize = {1 + ((input.size().width-1)/blockDim.x), 1 + ((input.size().height-1)/blockDim.y), 1};
 	//std::cout << "Grid dims: " << gridSize.x << " " << gridSize.y << " " << gridSize.z << std::endl;	
-	dilate_peak_find_v2<><<<gridSize, blockDim, 0, stream>>>(input.data, output, input.size().width);
+	dilate_peak_find_v2<><<<gridSize, blockDim, 0, stream>>>(input.data, output, input.size().width, threshold);
     }
 
     void runFusedKernel(const NppImage & input, unsigned short * output) {
@@ -521,6 +631,14 @@ private:
     cudaStream_t stream;
 };
 
+void peakfind_v3(float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output)
+{
+   	if (height == 0 || width == 0) return;	
+	NppImage input(width, height, d_input, d_input_linestep);
+	PeakFinderContext p(width, height);
+        p.v3(input, d_output, 0.0f);
+}
+
 void peakfind(float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output)
 {
    	if (height == 0 || width == 0) return;	
@@ -534,6 +652,6 @@ void peakfind_v2(float *d_input, int32_t d_input_linestep, int32_t width, int32_
    	if (height == 0 || width == 0) return;	
 	NppImage input(width, height, d_input, d_input_linestep);
 	PeakFinderContext p(width, height);
-        p.v2(input, d_output);
+        p.v2(input, d_output, 0.0f);
 }
 
