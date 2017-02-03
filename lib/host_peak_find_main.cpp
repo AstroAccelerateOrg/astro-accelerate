@@ -44,7 +44,8 @@ int main(int argc, char * argv[]) {
     if (data.size()) {
 	cudaSetDevice(0);
     	double start_t, end_t;
-
+	auto width = data.size() / 4096;
+        auto height = 4096;
         std::vector<unsigned short, managed_allocator<unsigned short>> output(data.size(), 0);
 	peakfind(data.data(), 0, data.size()/4, 4, output.data());
 	start_t = omp_get_wtime();
@@ -57,6 +58,23 @@ int main(int argc, char * argv[]) {
 	auto data_mb = ntrials*data.size() * sizeof(float) / (1024 * 1024);
 	std::cout << "Processed " <<  data_mb << " MB in " << time << " secs (" << data_mb/time << ") MB/s" << std::endl;
 	std::size_t peak_count = 0;
+	for (int i=0; i < output.size() ; ++i) {
+		if (output[i] == 1) {
+		  ++peak_count;
+		}
+	}
+	std::cout << "Peaks: " << peak_count <<  "/" << output.size() << std::endl;
+        std::cout << "\n" << "Testing v2" << std::endl;
+	start_t = omp_get_wtime();
+        for (int i=0; i < ntrials; ++i) {
+	    peakfind_v2(data.data(), 0, data.size()/4, 4, output.data());
+	}
+	cudaDeviceSynchronize();
+	end_t = omp_get_wtime();
+	time = (float) ( end_t - start_t );
+	data_mb = ntrials*data.size() * sizeof(float) / (1024 * 1024);
+	std::cout << "Processed " <<  data_mb << " MB in " << time << " secs (" << data_mb/time << ") MB/s" << std::endl;
+	peak_count = 0;
 	for (int i=0; i < output.size() ; ++i) {
 		if (output[i] == 1) {
 		  ++peak_count;

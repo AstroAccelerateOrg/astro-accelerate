@@ -26,7 +26,10 @@ NVCCFLAGS += -gencode arch=compute_61,code=sm_61
 NVCCFLAGS += --source-in-ptx --keep
 
 
-all: $(BUILD_DIR)/dedisperse-gpu ${BUILD_DIR}/peak_find_test ${ASTROLIB_DIR}/libastrolib.a
+all: $(BUILD_DIR)/dedisperse-gpu ${BUILD_DIR}/peak_find ${ASTROLIB_DIR}/libastrolib.a
+
+test: ${BUILD_DIR}/peak_find_test
+	${BUILD_DIR}/peak_find_test
 
 $(BUILD_DIR)/host_%.o: host_%.cu
 	$(CXX) -ansi -fopenmp -x c++ -o $@ -c -Wall $(CCFLAGS) $<
@@ -91,8 +94,11 @@ $(ASTROLIB_DIR)/libastrolib.a: $(BUILD_DIR)/host_acceleration.o $(BUILD_DIR)/hos
 $(BUILD_DIR)/dedisperse-gpu: $(BUILD_DIR)/main.o $(ASTROLIB_DIR)/libastrolib.a
 	$(CUDA)/bin/nvcc -o $(BUILD_DIR)/dedisperse-gpu $(BUILD_DIR)/main.o -L$(ASTROLIB_DIR)/ -lastrolib ${LIB} $(NVCCFLAGS)
 
-$(BUILD_DIR)/peak_find_test: $(BUILD_DIR)/host_peak_find_main.o $(ASTROLIB_DIR)/libastrolib.a
-	$(CUDA)/bin/nvcc -o $(BUILD_DIR)/peak_find_test $(BUILD_DIR)/host_peak_find_main.o -L$(ASTROLIB_DIR)/ -lastrolib ${LIB} $(NVCCFLAGS)
+$(BUILD_DIR)/peak_find: $(BUILD_DIR)/host_peak_find_main.o $(ASTROLIB_DIR)/libastrolib.a
+	$(CUDA)/bin/nvcc -o $(BUILD_DIR)/peak_find $(BUILD_DIR)/host_peak_find_main.o -L$(ASTROLIB_DIR)/ -lastrolib ${LIB} $(NVCCFLAGS)
+
+$(BUILD_DIR)/peak_find_test: $(BUILD_DIR)/host_test_peak_find.o $(ASTROLIB_DIR)/libastrolib.a
+	$(CUDA)/bin/nvcc -o $(BUILD_DIR)/peak_find_test $< -L${ASTROLIB_DIR} -lastrolib ${LIB} $(NVCCFLAGS)
 
 clean:
 	rm -f $(BUILD_DIR)/dedisperse-gpu $(BUILD_DIR)/*.a $(BUILD_DIR)/*.o $(ASTROLIB_DIR)/*.a

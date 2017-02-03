@@ -112,7 +112,7 @@ __device__ float3 load_row(const Npp32f * input, int idx) {
 }
 
 __device__ float2 load_row2(const Npp32f * input, int idx) {
-    float2 val = __ldg((float2*)(input+idx));
+    float2 val = { __ldg(input+idx), __ldg(input+idx+1)};
     return val;
 }
 
@@ -200,8 +200,8 @@ __device__ float3x3 load_block_right(const Npp32f * input, int idxX, int idxY, i
  * Loads a 2x2 block starting at input and one row below, where the row width is specified by @p width
  */
 __device__ float4 load_block_2x2(const Npp32f * input, int width) {
-     float2 first = __ldg((float2 *)input);
-     float2 second = __ldg((float2 *)(input+width));
+     float2 first = {__ldg(input), __ldg(input+1)};
+     float2 second = {__ldg(input+width), __ldg(input+width+1)};
      return float4{first.x, first.y, second.x, second.y};
 }
 
@@ -273,137 +273,166 @@ __global__ void find_peak(const Npp32f *d_input, const Npp32f * d_dilated, Npp16
  * and hence needs to handle the special cases of the edges and the corners
  * where less data is loaded
  */
-__global__ void dilate_peak_find(const Npp32f *d_input, Npp16u* d_output)
+__global__ void dilate_peak_find(const Npp32f *d_input, Npp16u* d_output, const int width, const int height)
 {
     auto idxX = blockDim.x * blockIdx.x + threadIdx.x;
     auto idxY = blockDim.y * blockIdx.y + threadIdx.y;
-    const int width = blockDim.x * gridDim.x;
+    if (idxX >= width) return;
+    if (idxY >= height) return;
+
+    unsigned short peak = 0u;
     //handle boundary conditions - top edge
-    if (blockIdx.y == 0 && threadIdx.y == 0) {
+    if (idxY == 0) {
+        //Special case for height of 1 or width of 1
+        if (width == 1 && height == 1) {
+            peak = is_peak(d_input[0], d_input[0]);
+        }
         //Top left corner case
-        if (blockIdx.x == 0 && threadIdx.x == 0) {
+        else if (idxX == 0) {
 	    auto block = load_block_2x2(d_input, width);
 	    auto dilated_value = dilate4(block);
-	    auto peak = is_peak(block.x, dilated_value);
-	    d_output[idxY*width+idxX] = peak;
+	    peak = is_peak(block.x, dilated_value);
         } 
         //Top right corner case
-        else if (blockIdx.x == (gridDim.x-1) && threadIdx.x == (blockDim.x-1)) {
+        else if (idxX == (width-1)) {
 	    auto block = load_block_2x2(d_input+width-2, width);
 	    auto dilated_value = dilate4(block);
-	    auto peak = is_peak(block.y, dilated_value);
-	    d_output[idxY*width+idxX] = peak;
+	    peak = is_peak(block.y, dilated_value);
 	} else {
 	    auto block = load_block_top(d_input, idxX, idxY, width);
             auto dilated_value = dilate3x3_top(block);
-            auto peak = is_peak(block.y2, dilated_value);
-            d_output[idxY*width+idxX] = peak;
+            peak = is_peak(block.y2, dilated_value);
         }
     //bottom edge
-    } else if (blockIdx.y == (gridDim.y-1) && threadIdx.y == blockDim.y-1) {
+    } else if (idxY == height-1) {
         //Bottom left corner
-        if (blockIdx.x == 0 && threadIdx.x == 0) {
-	    auto block = load_block_2x2(d_input+(width*((blockDim.y-1)*(gridDim.y-1))), width);
+        if (idxX == 0) {
+	    auto block = load_block_2x2(d_input+width*(height-2), width);
             auto dilated_value = dilate4(block);
-            auto peak = is_peak(block.z, dilated_value);
-            d_output[idxY*width+idxX] = peak;
+            peak = is_peak(block.z, dilated_value);
         }
         //Bottom right corner
-        else if (blockIdx.x == (gridDim.x-1) && threadIdx.x == blockDim.x-1) {
-	    auto block = load_block_2x2(d_input+(width*(1+(blockDim.y-1)*(gridDim.y-1)))-2, width);
+        else if (idxX == (width-1)) {
+	    auto block = load_block_2x2(d_input+width*(height-1)-2, width);
 	    auto dilated_value = dilate4(block);
-	    auto peak = is_peak(block.w, dilated_value);
-	    d_output[idxY*width+idxX] = peak;
+	    peak = is_peak(block.w, dilated_value);
         } else {
             auto block = load_block_bottom(d_input, idxX, idxY, width);        
             auto dilated_value = dilate3x3_bottom(block);
-            auto peak = is_peak(block.y2, dilated_value);
-            d_output[idxY*width+idxX] = peak;
+            peak = is_peak(block.y2, dilated_value);
         }
     //Left edge
-    } else if (blockIdx.x == 0 && threadIdx.x == 0) {
+    } else if (idxX == 0) {
         auto block = load_block_left(d_input, idxX, idxY, width);        
         auto dilated_value = dilate3x3_left(block);
-        auto peak = is_peak(block.y2, dilated_value);
-        d_output[idxY*width+idxX] = peak;
-
+        peak = is_peak(block.y2, dilated_value);
     
     //right edge
-    } else if (blockIdx.x == (gridDim.x-1) && threadIdx.x == blockDim.x-1) {
+    } else if (idxX == (width-1)) {
         auto block = load_block_right(d_input, idxX, idxY, width);        
         auto dilated_value = dilate3x3_right(block);
-        auto peak = is_peak(block.y2, dilated_value);
-        d_output[idxY*width+idxX] = peak;
+        peak = is_peak(block.y2, dilated_value);
 
-     } else {
+    } else {
         auto block = load_block(d_input, idxX, idxY, width);
         auto dilated_value = dilate3x3(block);
-        auto peak = is_peak(block.y2, dilated_value);
-        d_output[idxY*width+idxX] = peak;
+        peak = is_peak(block.y2, dilated_value);
     }
+    d_output[idxY*width+idxX] = peak;
 }
 
+#define DILATE_BLOCK_SIZE 1024 
 /**
  * This version uses a warp per block per row i.e.
  * 
- *  1 1 1 1 1 1 1 ... 1 4 4 4 4 4 ... 4
- *  2 2 2 2 2 2 2 ... 2 5 5 5 5 5 ... 5
- *  3 3 3 3 3 3 3 ... 3 6 6 6 6 6 ... 6
+ *  1 1 1 1 1 1 1 ... 1 2 2 2 2 2 ... 2
+ *  3 3 3 3 3 3 3 ... 3 4 4 4 4 4 ... 4
+ *  5 5 5 5 5 5 5 ... 5 6 6 6 6 6 ... 6
  *
  * where the number represents the block index.
  * The warp collaboratively loads the data for each row
  * and then dilates each pixel and then writes out the
  * results in a co-operative manner.
  */
+template<int dilate_block_size=DILATE_BLOCK_SIZE>
 __global__ void dilate_peak_find_v2(const Npp32f * d_input, Npp16u* d_output, const int width)
 {
-    auto idxX = threadIdx.x;
+    //TODO: try swapping block x and y
+    //TODO: move last element of warp to 0 for idxX and move everything else up by 1 to avoid divergence in 2 warps - Think about shared memory bank conflicts though! 
+    auto idxX = threadIdx.x; // Index into shared memory cache
     auto gidxX = blockDim.x * blockIdx.x + idxX;
 
-    if (gidxX > width) return;
+    if (gidxX >= width) return;
 
     auto row = blockIdx.y;
-    __shared__ float data[3][128+1];
+    bool is_last_row = row == (gridDim.y-1);
+    bool is_first_row = (row == 0);
+    bool is_leftmost_element = (idxX == 0);
+    bool is_rightmost_element = ((idxX == (blockDim.x-1)) || idxX == (width-1));
+    bool is_first_block = (blockIdx.x == 0);
+    bool is_last_block = (blockIdx.x == (gridDim.x-1));
+
+    __shared__ float data[3][dilate_block_size];
     //Always Load the middle row
     data[1][idxX] = d_input[row*width+gidxX];
-    if (row > 1) {
-        data[0][idxX] = d_input[(row-1)*width+idxX];
+    if (!is_first_row) {
+        data[0][idxX] = d_input[(row-1)*width+gidxX];
     }
-    if ((row+1) < gridDim.y) {
-        data[2][idxX] = d_input[(row+1)*width+idxX];
+    if (!is_last_row) {
+        data[2][idxX] = d_input[(row+1)*width+gidxX];
     }
 
-    __syncthreads();
-    
     auto dilated_value = data[1][idxX];
-    if (row > 1) {
+    if (!is_first_row) {
         dilated_value = fmaxf(dilated_value, data[0][idxX]);
     }
-    if ((row+1) < gridDim.y) {
+    if (!is_last_row) {
         dilated_value = fmaxf(dilated_value, data[2][idxX]);
     }
 
-    //Shared the dilated values via shared memory
+    //Share the dilated values via shared memory
     data[0][idxX] = dilated_value;
 
     __syncthreads();
 
     //Left hand boundary condition
-    if (threadIdx.x == 0) {
-        //TODO: left hand side boundary
-        dilated_value = fmaxf(dilated_value, data[0][idxX+1]);
+    float cmp_val_l = 0.0f;
+    float cmp_val_r = 0.0f;
+    if (is_leftmost_element) {
+        if (not is_first_block) {
+	    float temp1 = 0.0f; 
+	    float temp2 = 0.0f; 
+	    if (not is_first_row) {
+                temp1 = __ldg(d_input+(row-1)*width+gidxX-1);
+	    }
+	    if (not is_last_row) {
+                temp2 = __ldg(d_input+(row+1)*width+gidxX-1);
+	    }
+       	    cmp_val_l = fmaxf(temp1, temp2); 
+	    cmp_val_l = fmaxf(cmp_val_l, __ldg(d_input+row*width+gidxX-1));
+        }
+    } else {
+        cmp_val_l = data[0][idxX-1];
     }
-
     //Right hand boundary condition
-    else if (idxX == blockDim.x) {
-        //TODO: right hand side boundary
-        dilated_value = fmaxf(dilated_value, data[0][idxX-1]);
+    if (is_rightmost_element) {
+        if (not is_last_block) {
+	    float temp1 = 0.0f; 
+	    float temp2 = 0.0f; 
+	    if (not is_first_row) {
+                temp1 = __ldg(d_input+(row-1)*width+gidxX+1);
+	    }
+	    if (not is_last_row) {
+                temp2 = __ldg(d_input+(row+1)*width+gidxX+1);
+	    }
+       	    cmp_val_r = fmaxf(temp1, temp2); 
+	    cmp_val_r = fmaxf(cmp_val_r, __ldg(d_input+row*width+gidxX-1));
+        }
+    } else {
+        cmp_val_r = data[0][idxX+1];
     }
-    //Default case
-    else {
-        dilated_value = fmaxf(dilated_value, data[0][idxX-1]);
-        dilated_value = fmaxf(dilated_value, data[0][idxX+1]);
-    }
+    dilated_value = fmaxf(dilated_value, cmp_val_l);
+    dilated_value = fmaxf(dilated_value, cmp_val_r);
 
     d_output[row*width+gidxX] = is_peak(data[1][idxX], dilated_value);
 }
@@ -424,9 +453,12 @@ public:
 	cudaStreamDestroy(stream);
     } 
 
-    void operator()(const NppImage & input, unsigned short * output) {
-	//runFusedKernel(input, output);
-	runFusedKernelv2(input, output);
+    void v1(const NppImage & input, unsigned short * output) {
+	runFusedKernel(input, output);
+	cudaStreamSynchronize(stream);
+    }
+
+    void v2(const NppImage & input, unsigned short * output) {
 #if 0
 	int blockSize;   // The launch configurator returned block size 
 	int minGridSize; // The minimum grid size needed to achieve the 
@@ -441,34 +473,20 @@ public:
 	// Round up according to array size 
 	int gridSize = ((input.size().width * input.size().height) + blockSize - 1) / blockSize; 
 	gridSize /= 4; //we operate on four elements at a time
+        std::cout << "Gridsize " << gridSize << std::endl;	
 	runKernels(input, output, gridSize, blockSize, this->stream);
 #endif
+	runFusedKernelv2(input, output);
 	cudaStreamSynchronize(stream);
-    }
-
-    void operator()(const NppImage & input, unsigned short * output, cudaStream_t stream) {
-	int blockSize;   // The launch configurator returned block size 
-	int minGridSize; // The minimum grid size needed to achieve the 
-	// maximum occupancy for a full device launch 
-
-	// Attach the used memory to this stream
-	cudaStreamAttachMemAsync(stream, input.data);
-	cudaStreamAttachMemAsync(stream, output);
-
-        cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, 
-                                           find_peak, 0, 0); 
-	// Round up according to array size 
-	int gridSize = ((input.size().width * input.size().height) + blockSize - 1) / blockSize; 
-	gridSize /= 4; //we operate on four elements at a time
-	runKernels(input, output, gridSize, blockSize, stream);
     }
 
 private:
 
     void runFusedKernelv2(const NppImage & input, unsigned short * output) {
-        dim3 blockDim = {128, 1, 1};
-        dim3 gridSize = {std::max(1u, input.size().width/blockDim.x), input.size().height, 1};
-	dilate_peak_find_v2<<<gridSize, blockDim, 0, stream>>>(input.data, output, input.size().width);
+        dim3 blockDim = {DILATE_BLOCK_SIZE, 1, 1};
+        dim3 gridSize = {1 + ((input.size().width-1)/blockDim.x), 1 + ((input.size().height-1)/blockDim.y), 1};
+	//std::cout << "Grid dims: " << gridSize.x << " " << gridSize.y << " " << gridSize.z << std::endl;	
+	dilate_peak_find_v2<><<<gridSize, blockDim, 0, stream>>>(input.data, output, input.size().width);
     }
 
     void runFusedKernel(const NppImage & input, unsigned short * output) {
@@ -484,97 +502,38 @@ private:
                                            dilate_peak_find, 0, 0);
 
 	dim3 blockDim = {32, 2, 1};
-	dim3 gridSize = {input.size().width/blockDim.x, std::max(1u, input.size().height/blockDim.y), 1};
-        dilate_peak_find<<<gridSize, blockDim, 0, stream>>>(input.data, output);
+        dim3 gridSize = {1 + ((input.size().width-1)/blockDim.x), 1 + ((input.size().height-1)/blockDim.y), 1};
+        dilate_peak_find<<<gridSize, blockDim, 0, stream>>>(input.data, output, input.size().width, input.size().height);
     }
 
     void runKernels(const NppImage & input, unsigned short * output, int gridSize, int blockSize, cudaStream_t stream) {
 	//std::cout << "Gridsize: " << gridSize << " width " << input.size().width << " height " << input.size().height << " blockSize " << blockSize << std::endl;
-/*
+
+        AllocatedNppImage dilated(input.size().width, input.size().height);
         NppiPoint srcOffset = {0, 0};
         //Do a 3x3 image dilation
 	nppSetStream(stream);
 	auto status = nppiDilate3x3Border_32f_C1R(input.data, input.linestep, input.size(), srcOffset, dilated.data, dilated.linestep, dilated.size(), NPP_BORDER_REPLICATE);
         if (status != NPP_SUCCESS) handle_npp_error(status);
 	find_peak<<<gridSize, blockSize, 0, stream>>>(input.data, dilated.data, output);
-*/
     }
 
-    //AllocatedNppImage dilated;
     cudaStream_t stream;
-};
-
-class PeakFinderManager
-{
-public:
-	PeakFinderManager(int count, int width, int height)
-	{
-            for(int i=0; i < count; ++i) {
-		peak_finders.emplace_back(new PeakFinderContext(width, height));
-                free_peak_finders.push_back(peak_finders.back().get());
-	    }
-	}
-
-	~PeakFinderManager() {
-	    //Everyone should have released their PeakFinderContext's before
-            // this is called
-            assert(peak_finders.size() == free_peak_finders.size());
-        }
-
-	PeakFinderContext * getFinderContext() {
-	    auto context = free_peak_finders.back();
-            free_peak_finders.pop_back();
-            return context;
-        }
-
-        void releaseFinderContext(PeakFinderContext * context) {
-	    free_peak_finders.push_back(context);
-        }
-private:
-	std::vector<std::unique_ptr<PeakFinderContext>> peak_finders;
-	std::vector<PeakFinderContext *> free_peak_finders;
-};
-
-
-class PeakFinder
-{
-public:
-	PeakFinder(PeakFinderManager & m) 
-	: manager(m), context(m.getFinderContext())
-	{
-	}
-
-	~PeakFinder()
-	{
-	    manager.releaseFinderContext(context);
-	}
-
-	PeakFinder(const PeakFinder &) = delete;
-	PeakFinder & operator= (const PeakFinder &) = delete;
-
-	void operator()(const NppImage & image, unsigned short * output)
-	{
-	    (*context)(image, output);
-	}
-private:
-	PeakFinderManager & manager;
-	PeakFinderContext * context;
 };
 
 void peakfind(float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output)
 {
-	/*PeakFinderManager peakFinderManager(1, 1024, 1024);
-	PeakFinder p(peakFinderManager);*/
+   	if (height == 0 || width == 0) return;	
 	NppImage input(width, height, d_input, d_input_linestep);
 	PeakFinderContext p(width, height);
-        p(input, d_output);
+        p.v1(input, d_output);
 }
 
-//This version isn't quite right as it doesn't keep the PeakFinderContext alive and so the dilated image will get deallocated too early
-/*void peakfindAsync(float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output, cudaStream_t stream)
+void peakfind_v2(float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output)
 {
+   	if (height == 0 || width == 0) return;	
 	NppImage input(width, height, d_input, d_input_linestep);
 	PeakFinderContext p(width, height);
-        p(input, d_output, stream);
-}*/
+        p.v2(input, d_output);
+}
 
