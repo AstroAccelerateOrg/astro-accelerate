@@ -89,6 +89,7 @@ void init_gpu(int argc, char **arg, int enable_debug, size_t *gpu_memory)
 
 	cudaMemGetInfo(&free, &total);
 	*gpu_memory = ( free/2 );
+	//*gpu_memory = ( free );
 }
 
 //}}}
