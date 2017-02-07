@@ -4,6 +4,8 @@
 #include "AstroAccelerate/device_dedisperse.h"
 #include "AstroAccelerate/device_dedispersion_kernel.h"
 #include "AstroAccelerate/device_zero_dm.h"
+#include "AstroAccelerate/device_zero_dm_outliers.h"
+#include "AstroAccelerate/device_rfi.h"
 
 #include "AstroAccelerate/device_SPS_inplace_kernel.h" //Added by KA
 #include "AstroAccelerate/device_SPS_inplace.h" //Added by KA
@@ -160,12 +162,18 @@ void main_function
 	for (t = 0; t < num_tchunks; t++)
 	{
 		printf("\nt_processed:\t%d, %d", t_processed[0][t], t);
-		//rfi((t_processed[0][t]+maxshift), nchans, &tmp);
 
 		load_data(-1, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
-		if (enable_zero_dm)
-			zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
+//		if (enable_zero_dm)
+//			zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
+//		if(enable_zero_dm_with_outliers)
+//			zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
 		corner_turn(d_input, d_output, nchans, t_processed[0][t] + maxshift);
+//		if(enable_rfi)
+// 			rfi_gpu(d_input, nchans, t_processed[0][t]+maxshift);
+
+
+
 		int oldBin = 1;
 		for (dm_range = 0; dm_range < range; dm_range++)
 		{
