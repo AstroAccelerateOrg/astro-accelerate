@@ -5,7 +5,7 @@
 #define SDIVINT 8
 #define SDIVINDM 40
 #define SFDIVINDM 40.0f
-#define CARD 0
+#define CARD 1
 #define NOPSSHIFT 5
 #define NOPSLOOP 3
 #define NDATAPERLOOP 1

@@ -51,7 +51,7 @@ void acceleration_fdas(int range,
 	cmdargs.nsig = 0; // ?
 	cmdargs.duty = 0.10; // ?
 	cmdargs.iter = 1; // ?
-	cmdargs.writef = 0; // ?
+	cmdargs.writef = 1; // ?
 	cmdargs.zval = 4; // ?
 	cmdargs.mul = 1024; // ?
 	cmdargs.wsig = 0; // ?
@@ -62,7 +62,7 @@ void acceleration_fdas(int range,
 	cmdargs.basic = 0; // ?
 	cmdargs.kfft = 1; // ?
 	cmdargs.inbin = 0; // ?
-	cmdargs.norm = 0; // ?
+	cmdargs.norm = 1; // ?
 
 	// Since the command line is not read, add these parameters in params.h ?
 
@@ -81,9 +81,16 @@ void acceleration_fdas(int range,
 	acc_sig.sigamp = cmdargs.sigamp; // ?
 
 	// Check devices
-	fdas_cuda_check_devices(0);
-	
-	params.nsamps = processed;
+	//fdas_cuda_check_devices(0);
+
+	int nearest = (int) floorf(log2f((float) processed));
+	printf("\nnearest:\t%d", nearest);
+	int samps = (int) powf(2.0, nearest);
+	processed=samps;
+	printf("\nsamps:\t%d", samps);
+
+
+	params.nsamps = samps;
 
 	/// Print params.h
 	fdas_print_params_h();
@@ -192,9 +199,8 @@ void acceleration_fdas(int range,
 
 				//first time PCIe transfer and print timing
 				gettimeofday(&t_start, NULL); //don't time transfer
-				for (int i = 0; i < titer; i++)
-					checkCudaErrors( cudaMemcpy(gpuarrays.d_in_signal, &output_buffer[i][dm_count], processed*sizeof(float), cudaMemcpyHostToDevice));
-					//checkCudaErrors( cudaMemcpy(gpuarrays.d_in_signal, acc_signal, params.nsamps*sizeof(float), cudaMemcpyHostToDevice));
+				checkCudaErrors( cudaMemcpy(gpuarrays.d_in_signal, output_buffer[i][dm_count], processed*sizeof(float), cudaMemcpyHostToDevice));
+				//checkCudaErrors( cudaMemcpy(gpuarrays.d_in_signal, acc_signal, params.nsamps*sizeof(float), cudaMemcpyHostToDevice));
 
 				cudaDeviceSynchronize();
 				gettimeofday(&t_end, NULL);
@@ -206,8 +212,7 @@ void acceleration_fdas(int range,
 				if(cmdargs.basic)
 				{
 					gettimeofday(&t_start, NULL); //don't time transfer
-				    for (int i = 0; i < iter; i++)
-				    	fdas_cuda_basic(&fftplans, &gpuarrays, &cmdargs, &params );
+				    fdas_cuda_basic(&fftplans, &gpuarrays, &cmdargs, &params );
 				    cudaDeviceSynchronize();
 				    gettimeofday(&t_end, NULL);
 				    t_gpu = (double) (t_end.tv_sec + (t_end.tv_usec / 1000000.0)  - t_start.tv_sec - (t_start.tv_usec/ 1000000.0)) * 1000.0;
@@ -220,8 +225,7 @@ void acceleration_fdas(int range,
 				 {
 					 printf("\nMain: running FDAS with custom fft\n");
 				     gettimeofday(&t_start, NULL); //don't time transfer
-				     for (int i = 0; i < iter; i++)
-				    	 fdas_cuda_customfft(&fftplans, &gpuarrays, &cmdargs, &params);
+				  	fdas_cuda_customfft(&fftplans, &gpuarrays, &cmdargs, &params);
 
 				     cudaDeviceSynchronize();
 				     gettimeofday(&t_end, NULL);
