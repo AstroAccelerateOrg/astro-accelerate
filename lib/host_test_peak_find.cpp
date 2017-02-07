@@ -30,9 +30,9 @@ void test_peak_at_loc(std::vector<float, managed_allocator<float>> & input, std:
   input.resize(9);
   output.resize(9);
   for(int i=0; i < 9; ++i) {
-    input[i] = (i==peak_loc) ? 100.0f : 0.0f;
+    input[i] = (i==peak_loc) ? 100.0f : 1.0f;
   }
-  peakfind_func(input.data(), 0, 3, 3, output.data());
+  peakfind_func(input.data(), 0, 3, 3, output.data(), 1.0f);
   for (int i=0; i < 9; ++i) {
     auto val = (i==peak_loc) ? 1u : 0u;
     REQUIRE(output[i] == val);

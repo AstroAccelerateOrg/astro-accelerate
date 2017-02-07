@@ -273,71 +273,74 @@ __global__ void find_peak(const Npp32f *d_input, const Npp32f * d_dilated, Npp16
  * and hence needs to handle the special cases of the edges and the corners
  * where less data is loaded
  */
-__global__ void dilate_peak_find(const Npp32f *d_input, Npp16u* d_output, const int width, const int height)
+__global__ void dilate_peak_find(const Npp32f *d_input, Npp16u* d_output, const int width, const int height, const float threshold)
 {
     auto idxX = blockDim.x * blockIdx.x + threadIdx.x;
     auto idxY = blockDim.y * blockIdx.y + threadIdx.y;
     if (idxX >= width) return;
     if (idxY >= height) return;
 
+    float dilated_value = 0.0f;
+    float my_value = 0.0f;
     unsigned short peak = 0u;
     //handle boundary conditions - top edge
     if (idxY == 0) {
         //Special case for height of 1 or width of 1
         if (width == 1 && height == 1) {
-            peak = is_peak(d_input[0], d_input[0]);
+            my_value = dilated_value = d_input[0];
         }
         //Top left corner case
         else if (idxX == 0) {
 	    auto block = load_block_2x2(d_input, width);
-	    auto dilated_value = dilate4(block);
-	    peak = is_peak(block.x, dilated_value);
+	    dilated_value = dilate4(block);
+	    my_value = block.x;
         } 
         //Top right corner case
         else if (idxX == (width-1)) {
 	    auto block = load_block_2x2(d_input+width-2, width);
-	    auto dilated_value = dilate4(block);
-	    peak = is_peak(block.y, dilated_value);
+	    dilated_value = dilate4(block);
+	    my_value = block.y;
 	} else {
 	    auto block = load_block_top(d_input, idxX, idxY, width);
-            auto dilated_value = dilate3x3_top(block);
-            peak = is_peak(block.y2, dilated_value);
+            dilated_value = dilate3x3_top(block);
+            my_value = block.y2;
         }
     //bottom edge
     } else if (idxY == height-1) {
         //Bottom left corner
         if (idxX == 0) {
 	    auto block = load_block_2x2(d_input+width*(height-2), width);
-            auto dilated_value = dilate4(block);
-            peak = is_peak(block.z, dilated_value);
+            dilated_value = dilate4(block);
+            my_value = block.z;
         }
         //Bottom right corner
         else if (idxX == (width-1)) {
 	    auto block = load_block_2x2(d_input+width*(height-1)-2, width);
-	    auto dilated_value = dilate4(block);
-	    peak = is_peak(block.w, dilated_value);
+	    dilated_value = dilate4(block);
+	    my_value = block.w;
         } else {
             auto block = load_block_bottom(d_input, idxX, idxY, width);        
-            auto dilated_value = dilate3x3_bottom(block);
-            peak = is_peak(block.y2, dilated_value);
+            dilated_value = dilate3x3_bottom(block);
+            my_value = block.y2;
         }
     //Left edge
     } else if (idxX == 0) {
         auto block = load_block_left(d_input, idxX, idxY, width);        
-        auto dilated_value = dilate3x3_left(block);
-        peak = is_peak(block.y2, dilated_value);
+        dilated_value = dilate3x3_left(block);
+        my_value = block.y2;
     
     //right edge
     } else if (idxX == (width-1)) {
         auto block = load_block_right(d_input, idxX, idxY, width);        
-        auto dilated_value = dilate3x3_right(block);
-        peak = is_peak(block.y2, dilated_value);
+        dilated_value = dilate3x3_right(block);
+        my_value = block.y2;
 
     } else {
         auto block = load_block(d_input, idxX, idxY, width);
-        auto dilated_value = dilate3x3(block);
-        peak = is_peak(block.y2, dilated_value);
+        dilated_value = dilate3x3(block);
+        my_value = block.y2;
     }
+    peak = is_peak(my_value, dilated_value, threshold);
     d_output[idxY*width+idxX] = peak;
 }
 
@@ -618,8 +621,8 @@ public:
 	cudaStreamDestroy(stream);
     } 
 
-    void v1(const NppImage & input, unsigned short * output) {
-	runFusedKernel(input, output);
+    void v1(const NppImage & input, unsigned short * output, const float threshold) {
+	runFusedKernel(input, output, threshold);
 	cudaStreamSynchronize(stream);
     }
 
@@ -671,7 +674,7 @@ private:
 	dilate_peak_find_v2<><<<gridSize, blockDim, 0, stream>>>(input.data, output, input.size().width, threshold);
     }
 
-    void runFusedKernel(const NppImage & input, unsigned short * output) {
+    void runFusedKernel(const NppImage & input, unsigned short * output, const float threshold) {
 	int blockSize;   // The launch configurator returned block size 
 	int minGridSize; // The minimum grid size needed to achieve the 
 	// maximum occupancy for a full device launch 
@@ -685,7 +688,7 @@ private:
 
 	dim3 blockDim = {32, 2, 1};
         dim3 gridSize = {1 + ((input.size().width-1)/blockDim.x), 1 + ((input.size().height-1)/blockDim.y), 1};
-        dilate_peak_find<<<gridSize, blockDim, 0, stream>>>(input.data, output, input.size().width, input.size().height);
+        dilate_peak_find<<<gridSize, blockDim, 0, stream>>>(input.data, output, input.size().width, input.size().height, threshold);
     }
 
     void runKernels(const NppImage & input, unsigned short * output, int gridSize, int blockSize, cudaStream_t stream) {
@@ -703,27 +706,36 @@ private:
     cudaStream_t stream;
 };
 
-void peakfind_v3(float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output)
+void peakfind_v4(float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output, const float threshold)
 {
-   	if (height == 0 || width == 0) return;	
+        if (height == 0 || width == 0) return;
 	NppImage input(width, height, d_input, d_input_linestep);
 	PeakFinderContext p(width, height);
-        p.v3(input, d_output, 0.0f);
+        p.v4(input, d_output, threshold);
 }
 
-void peakfind(float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output)
+
+void peakfind_v3(float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output, const float threshold)
 {
-   	if (height == 0 || width == 0) return;	
+        if (height == 0 || width == 0) return;
 	NppImage input(width, height, d_input, d_input_linestep);
 	PeakFinderContext p(width, height);
-        p.v1(input, d_output);
+        p.v3(input, d_output, threshold);
 }
 
-void peakfind_v2(float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output)
+void peakfind(float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output, const float threshold)
 {
-   	if (height == 0 || width == 0) return;	
+        if (height == 0 || width == 0) return;
 	NppImage input(width, height, d_input, d_input_linestep);
 	PeakFinderContext p(width, height);
-        p.v2(input, d_output, 0.0f);
+        p.v1(input, d_output, threshold);
+}
+
+void peakfind_v2(float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output, const float threshold)
+{
+        if (height == 0 || width == 0) return;
+	NppImage input(width, height, d_input, d_input_linestep);
+	PeakFinderContext p(width, height);
+        p.v2(input, d_output, threshold);
 }
 
