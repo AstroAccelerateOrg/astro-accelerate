@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <math.h>
 #include "AstroAccelerate/fdas_host.h"
+#include "AstroAccelerate/params.h"
 //#include <helper_functions.h>
 #include <helper_cuda.h>
 #include <curand.h>
@@ -46,6 +47,7 @@ void fdas_cuda_check_devices(int devid)
 /* ******* Detect CUDA devices ******* */
   checkCudaErrors(cudaGetDeviceCount(&devcount));
   printf("\nDetected %d CUDA Capable device(s)\n", devcount);
+/*
   for (dev = 0; dev < devcount; ++dev)
     {
       cudaSetDevice(dev);
@@ -60,7 +62,8 @@ void fdas_cuda_check_devices(int devid)
     printf("\nDevice %d not found, setting device 0 (default)\n", devid);
     cudaSetDevice(0);
   }
-
+*/
+//   cudaSetDevice(CARD);
 }
 
 void fdas_alloc_gpu_arrays(fdas_gpuarrays *arrays,  cmd_args *cmdargs)
