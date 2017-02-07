@@ -467,7 +467,6 @@ __global__ void dilate_peak_find_v3(const Npp32f * d_input, Npp16u* d_output, co
     const bool is_leftmost_element_in_block = (idxX == 0);
     const bool is_rightmost_element = gidxX == (width-1);
     const bool is_rightmost_element_in_block = ((idxX == blockDim.x-1) || is_rightmost_element);
-    const bool is_top_row_block = (blockIdx.x == 0);
     const int linewidth = width+linestep;
     
     __shared__ float data[34][32];
@@ -538,6 +537,71 @@ __global__ void dilate_peak_find_v3(const Npp32f * d_input, Npp16u* d_output, co
     }
 }
 
+/**
+ * V4 runs in the same manner as v3 but avoids the top bottom
+ * boundary condition by running more warps
+ * Each block now processes 30 rows instead of 32 and the 0 and 31st warp
+ * 'handle' the boundary condition 
+ */
+__global__ void dilate_peak_find_v4(const Npp32f * d_input, Npp16u* d_output, const int linestep, const int width, const int height, const float threshold)
+{
+    const auto idxX = threadIdx.x; // Index into shared memory cache
+    const auto gidxX = blockIdx.x * blockDim.x + idxX;
+    const auto row_s = threadIdx.y;
+    const auto row = ((blockIdx.y) * (blockDim.y-2)) + threadIdx.y;
+    const bool is_last_row = row == (height-1); 
+    const bool is_first_row = (row == 0);
+    const bool is_leftmost_element = (gidxX == 0);
+    const bool is_leftmost_element_in_block = (idxX == 0);
+    const bool is_rightmost_element = gidxX == (width-1);
+    const bool is_rightmost_element_in_block = ((idxX == blockDim.x-1) || is_rightmost_element);
+    const int linewidth = width+linestep;
+    
+    __shared__ float data[32][32];
+    float dilated_value, my_val = 0.0f;
+    float val1 = 0.0f; 
+ 
+    const bool thread_active = !(gidxX >= width || row >= height); 
+    const bool thread_output = thread_active && ((threadIdx.y > 0 && threadIdx.y < 31) || is_first_row || is_last_row);
+
+    //Note we can't return here as we use syncthreads
+    if (thread_active) {
+
+        //Load block data collaboratively
+        auto * ptr = d_input + row*linewidth + gidxX;
+        my_val = __ldg(ptr);
+
+	//Boundary condition neightbours on my row
+        if ((is_leftmost_element_in_block and not is_leftmost_element)
+           || (is_rightmost_element_in_block and not is_rightmost_element))
+            val1 = __ldg( is_leftmost_element_in_block ? ptr-1 : ptr+1);
+
+        //Compare against left and right values
+        auto tmp = fmaxf(__shfl_up(my_val, 1), __shfl_down(my_val, 1));
+
+	//Compare against boundary condition value
+        auto tmp2 = fmaxf(my_val, val1);
+        dilated_value = fmaxf(tmp, tmp2);
+
+        //Share the dilated values via shared memory
+        data[row_s][idxX] = dilated_value;
+    }
+    //Sync here so we can see the data from other warps i.e. the other rows in this block
+    __syncthreads();
+ 
+    if (thread_output) {
+        if ( not is_first_row ) {
+            dilated_value = fmaxf(dilated_value, data[row_s-1][idxX]);
+        }
+        if ( not is_last_row ) {
+            dilated_value = fmaxf(dilated_value, data[row_s+1][idxX]);
+        }
+
+        d_output[row*linewidth+gidxX] = is_peak(my_val, dilated_value, threshold);
+    }
+}
+
+
 class PeakFinderContext
 {
 public:
@@ -586,6 +650,14 @@ public:
         dim3 gridSize = {1u + ((input.size().width-1)/blockDim.x), 1u + ((input.size().height-1)/blockDim.y), 1};
 	//std::cout << "Grid dims: " << gridSize.x << " " << gridSize.y << " " << gridSize.z << std::endl;	
 	dilate_peak_find_v3<<<gridSize, blockDim, 0, stream>>>(input.data, output, input.linestep, input.size().width, input.size().height, threshold);
+ 	cudaStreamSynchronize(stream);
+    }
+
+    void v4(const NppImage & input, unsigned short * output, const float threshold) {
+        dim3 blockDim = {32, 32, 1};
+        dim3 gridSize = {1u + ((input.size().width-1)/blockDim.x), 1u + ((input.size().height-1)/(blockDim.y-2)), 1};
+	//std::cout << "Grid dims: " << gridSize.x << " " << gridSize.y << " " << gridSize.z << std::endl;
+	dilate_peak_find_v4<<<gridSize, blockDim, 0, stream>>>(input.data, output, input.linestep, input.size().width, input.size().height, threshold);
  	cudaStreamSynchronize(stream);
     }
 

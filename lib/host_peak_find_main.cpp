@@ -102,6 +102,25 @@ int main(int argc, char * argv[]) {
 		}
 	}
 	std::cout << "Peaks: " << peak_count <<  "/" << output.size() << std::endl;
+        std::cout << "\n" << "Testing v4" << std::endl;
+	peakfind_v4(data.data(), 0, width, height, output.data());
+	start_t = omp_get_wtime();
+        for (int i=0; i < ntrials; ++i) {
+	    peakfind_v4(data.data(), 0, width, height, output.data());
+	}
+	cudaDeviceSynchronize();
+	end_t = omp_get_wtime();
+	time = (float) ( end_t - start_t );
+	data_mb = ntrials*data.size() * sizeof(float) / (1024 * 1024);
+	std::cout << "Processed " <<  data_mb << " MB in " << time << " secs (" << data_mb/(1024*time) << ") GB/s" << std::endl;
+	peak_count = 0;
+	for (int i=0; i < output.size() ; ++i) {
+		if (output[i] == 1) {
+		  ++peak_count;
+		  //std::cout << i << " " << data[i] << std::endl;
+		}
+	}
+	std::cout << "Peaks: " << peak_count <<  "/" << output.size() << std::endl;
      } else {
         std::cerr << "No data to process!" << std::endl;
         exit(1);
