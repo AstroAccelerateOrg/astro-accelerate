@@ -30,4 +30,6 @@
 #include "device_load_data.cu"
 #include "device_save_data.cu"
 #include "device_zero_dm.cu"
+#include "device_zero_dm_outliers.cu"
+#include "device_rfi.cu"
 #include "device_analysis.cu" //Added by KA
