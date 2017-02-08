@@ -370,7 +370,7 @@ void fdas_cuda_customfft(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cm
 #endif
 
 
-void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params)
+void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step )
 {
   int ibin=1;
   if (cmdargs->inbin)
@@ -425,8 +425,9 @@ void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params 
   char pfname[200];
   char *infilename;
   infilename = basename(cmdargs->afname);
-
-  sprintf(pfname, "%s/out_inbin%d_%s",dirname,ibin,infilename);
+// filename needs to be acc_dm_%f, dm_low[i] + ((float)dm_count)*dm_step[i]
+  //sprintf(pfname, "%s/out_inbin%d_%s",dirname,ibin,infilename);
+  sprintf(pfname, "acc_%f.dat", dm_low + ((float)dm_count)*dm_step);
   printf("\nwriting results to file %s\n",pfname);
   if ((fp_c=fopen(pfname, "w")) == NULL) {
     fprintf(stderr, "Error opening %s file for writing: %s\n",pfname, strerror(errno));

@@ -236,7 +236,7 @@ void acceleration_fdas(int range,
 				 #endif
 				 if(cmdargs.writef)
 				 {
-					 fdas_write_ffdot(&gpuarrays, &cmdargs, &params);
+					 fdas_write_ffdot(&gpuarrays, &cmdargs, &params, dm_low[i], dm_count, dm_step[i]);
 				 }
   				// Call sofias code here pass...
 				// output_buffer[i][dm_count],
