@@ -240,7 +240,7 @@ TEST_F(SpsTest, test_dedispersion_plan)
 		fclose(fp);
 	}
 }
-
+/*
 // test input/output data class
 TEST_F(SpsTest, test_iodata)
 {
@@ -300,34 +300,44 @@ TEST_F(SpsTest, test_iodata)
 		fclose(fp);
 	}
 }
-
+*/
 // test sps class
 TEST_F(SpsTest, sps_call)
-{/*
+{
 	// Following is ok for ska_karel.txt
 	char* filename = my_argv[1] + strlen(my_argv[1]) - 13;
 	if(strcmp(filename, "ska_karel.txt") == 0)
 	{
-		// declare objects
-		sps::UserInput user_input;
-		sps::DedispersionPlan dedispersion_plan;
-		sps::IOData io_data;
-		sps::Sps<TestParams> sps(io_data, dedispersion_plan, user_input);
-		// read user input
+ 
+		// Internal code variables
+		// File pointers
 		FILE *fp = NULL;
+		// declare objects
+		ska::astroaccelerate::sps::UserInput user_input;
+		// read user input
 		user_input.get_user_input(&fp, my_argc, my_argv);
+
+		ska::astroaccelerate::sps::DedispersionPlan dedispersion_plan;
 		// set dedispersion plan
 		dedispersion_plan.set_power(user_input.get_power());
 		dedispersion_plan.set_range(user_input.get_range());
 		// get file data
 		dedispersion_plan.get_file_data(&fp);
-		// Initialise the GPU.
+
+		ska::astroaccelerate::sps::IOData io_data;
+		// allocate memory cpu input
+		io_data.allocate_memory_cpu_input(dedispersion_plan);
+		// get recorded data
+		io_data.get_recorded_data(&fp, dedispersion_plan);
+
+		//
 		int device_id = 0; // hard-coded, would be a parameter
 		size_t gpu_memory = 0;
 		cudaSetDevice(device_id);
 		size_t mem_free, total;
 		cudaMemGetInfo(&mem_free, &total);
-		gpu_memory = ( mem_free/4 );
+		gpu_memory = ( mem_free/2 );
+
 		// Call the strategy method
 		dedispersion_plan.make_strategy(user_input.get_user_dm_low(),
 										user_input.get_user_dm_high(),
@@ -335,19 +345,18 @@ TEST_F(SpsTest, sps_call)
 										user_input.get_in_bin(),
 										gpu_memory
 										);
-		// allocate memory cpu input
-		io_data.allocate_memory_cpu_input(dedispersion_plan);
-		// get recorded data
-		io_data.get_recorded_data(&fp, dedispersion_plan.get_nchans(),dedispersion_plan.get_nbits());
+
 		// call sps main method here
-		// linker problem
-		// have been investigating cmake without success
-		sps(device_id, io_data, dedispersion_plan, user_input);
+		ska::astroaccelerate::sps::Sps<TestParams> sps(io_data, dedispersion_plan, user_input);
+		sps(device_id, io_data, dedispersion_plan, user_input, gpu_memory);
 
-
+		// close file
 		fclose(fp);
+
+		// write output here, not in the library
+
+
 	}
-	*/
 }
 
 
