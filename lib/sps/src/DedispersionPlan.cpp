@@ -41,7 +41,7 @@ namespace sps {
 		free(_dm_high);
 		free(_dm_step);
 		free(_dmshifts);
-		// Probably not so trivial (int **), should free all the _t_processed[i] first
+		free(_ndms);
 		free(_t_processed);
 	}
 
@@ -403,6 +403,7 @@ namespace sps {
 
 	}
 
+
 	void DedispersionPlan::make_strategy(float* const user_dm_low,
 	                                     float* const user_dm_high,
 	                                     float* const user_dm_step,
@@ -554,11 +555,14 @@ namespace sps {
 
 				// Work out how many blocks of time samples we need to complete the processing
 				// upto nsamp-maxshift
-				int num_blocks = (int) floor(( (float) _nsamp - ( _maxshift ) )) / ( (float) ( samp_block_size ) ) + 1;
+				// int num_blocks = (int) floor(( (float) _nsamp - ( _maxshift ) )) / ( (float) ( samp_block_size ) ) + 1;
 
 				// Find the common integer amount of samples between all bins
 				int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) inBin[_range - 1] ) / (float) ( SDIVINT * ( SNUMREG ) ));
 				local_t_processed = local_t_processed * ( SDIVINT * ( SNUMREG ) ) * inBin[_range - 1];
+
+				 int num_blocks = (int) floor(( (float) _nsamp - ( _maxshift ) )) / ( (float) ( local_t_processed ) ) + 1;
+
 
 				// Work out the remaining fraction to be processed
 				int remainder = ( _nsamp - ( ( num_blocks - 1 ) * local_t_processed ) - ( _maxshift ) );
@@ -621,11 +625,14 @@ namespace sps {
 
 				// Work out how many blocks of time samples we need to complete the processing
 				// up to nsamp-maxshift
-				int num_blocks = (int) floor(( (float) _nsamp - (float) ( _maxshift ) ) / ( (float) samp_block_size ));
+
+				//int num_blocks = (int) floor(( (float) _nsamp - (float) ( _maxshift ) ) / ( (float) samp_block_size ));
 
 				// Find the common integer amount of samples between all bins
 				int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) inBin[_range - 1] ) / (float) ( SDIVINT * ( SNUMREG ) ));
 				local_t_processed = local_t_processed * ( SDIVINT * ( SNUMREG ) ) * inBin[_range - 1];
+
+				int num_blocks = (int) floor(( (float) _nsamp - (float) ( _maxshift ) ) / ( (float) local_t_processed ));
 
 				// Work out the remaining fraction to be processed
 				int remainder = _nsamp - ( num_blocks * local_t_processed ) - ( _maxshift );
@@ -648,6 +655,8 @@ namespace sps {
 			}
 		}
 	}
+
+
 } // namespace sps
 } // namespace astroaccelerate
 } // namespace ska

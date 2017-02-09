@@ -29,18 +29,25 @@ namespace sps {
 template<typename SpsParameterType>
 class Sps
 {
-    public:
+	public:
         Sps(IOData &,
-        	DedispersionPlan &,
-        	UserInput &);
+            DedispersionPlan &,
+            UserInput &);
         ~Sps();
+
+        /**
+         * @brief allocate memory for the cpu output and the gpu
+         */
+        void allocate_memory_cpu_output(DedispersionPlan const &);
+        void allocate_memory_gpu(DedispersionPlan const &);
 
         /**
          * @brief perform dedispersion and an sps search
          */
-        void operator()(unsigned device_id, IOData &, DedispersionPlan &, UserInput &);
+        void operator()(unsigned device_id, IOData &, DedispersionPlan &, UserInput &, size_t gpu_memory);
 
     private:
+
         int _num_tchunks;
         int _range;
         int _nchans;
@@ -48,7 +55,6 @@ class Sps
         float _tsamp;
         int _max_ndms;
         float _sigma_cutoff;
-        size_t _gpu_outputsize;
         int* _ndms;
         float* _dmshifts;
         int** _t_processed;
@@ -58,9 +64,13 @@ class Sps
         int* _in_bin;
         int* _out_bin;
         unsigned short* _input_buffer;
+        //
+        size_t  _output_size;
         float *** _output_buffer;
-		unsigned short* _d_input;
-		float* _d_output;
+        size_t          _gpu_input_size;
+        unsigned short  *_d_input;
+        size_t  _gpu_output_size;
+        float   *_d_output;
 
 };
 

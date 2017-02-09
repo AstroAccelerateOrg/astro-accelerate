@@ -282,6 +282,7 @@ void 	UserInput::get_user_input(FILE** fp, int argc, char *argv[])
 	}
 }
 
+
 } // namespace sps
 } // namespace astroaccelerate
 } // namespace ska

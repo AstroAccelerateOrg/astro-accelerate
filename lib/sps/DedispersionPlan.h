@@ -15,7 +15,6 @@ namespace sps {
      * @details This object carries the dedispersion plan
      *
      */
-
 class DedispersionPlan
 {
     public:
