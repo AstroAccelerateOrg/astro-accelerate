@@ -22,7 +22,7 @@ endif ()
 if (CMAKE_COMPILER_IS_GNUCXX)
     ## -Wl,--no-as-needed avoids linker problem with libfftwf3 on ubuntu systems
     set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "-isystem")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -pthread")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -pthread -fopenmp")
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -pthread -Werror")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcast-align")
     if(CMAKE_BUILD_TYPE MATCHES profile)

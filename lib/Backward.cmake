@@ -1,4 +1,5 @@
 set(lib_src_cuda
+    device_main.cu
     host_acceleration.cu
     host_allocate_memory.cu
     host_analysis.cu
@@ -13,5 +14,4 @@ set(lib_src_cuda
     host_statistics.cu
     host_stratagy.cu
     host_write_file.cu
- 
 )
