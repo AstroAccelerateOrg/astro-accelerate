@@ -1,6 +1,6 @@
 #include "SpsTest.h"
 #include "../../SpsParameters.h"
-#include "../../IOData.h"
+#include "../../InputData.h"
 #include "../../UserInput.h"
 #include "../../DedispersionPlan.h"
 #include "../../Sps.h"
@@ -242,7 +242,7 @@ TEST_F(SpsTest, test_dedispersion_plan)
 }
 /*
 // test input/output data class
-TEST_F(SpsTest, test_iodata)
+TEST_F(SpsTest, test_InputData)
 {
 	// Following is ok for ska_karel.txt
 	char* filename = my_argv[1] + strlen(my_argv[1]) - 13;
@@ -251,7 +251,7 @@ TEST_F(SpsTest, test_iodata)
 		// declare objects
 		sps::UserInput user_input;
 		sps::DedispersionPlan dedispersion_plan;
-		sps::IOData io_data;
+		sps::InputData input_data;
 		// read user input
 		FILE *fp = NULL;
 		user_input.get_user_input(&fp, my_argc, my_argv);
@@ -275,27 +275,27 @@ TEST_F(SpsTest, test_iodata)
 										gpu_memory
 										);
 		// allocate memory cpu input
-		io_data.allocate_memory_cpu_input(dedispersion_plan);
-		EXPECT_EQ(1832, (int)(io_data.get_input_size() / 1024 / 1024));
+		input_data.allocate_memory_cpu_input(dedispersion_plan);
+		EXPECT_EQ(1832, (int)(input_data.get_input_size() / 1024 / 1024));
 		// get recorded data
-		io_data.get_recorded_data(&fp, dedispersion_plan);
+		input_data.get_recorded_data(&fp, dedispersion_plan);
 		//
-		EXPECT_EQ(113, io_data.get_input_buffer()[0]);
-		EXPECT_EQ(129, io_data.get_input_buffer()[500]);
-		EXPECT_EQ(130, io_data.get_input_buffer()[1000]);
-		EXPECT_EQ(150, io_data.get_input_buffer()[1500]);
-		EXPECT_EQ(145, io_data.get_input_buffer()[2000]);
-		EXPECT_EQ(93,  io_data.get_input_buffer()[2500]);
-		EXPECT_EQ(150, io_data.get_input_buffer()[3000]);
-		EXPECT_EQ(186, io_data.get_input_buffer()[3500]);
-		EXPECT_EQ(181, io_data.get_input_buffer()[4000]);
+		EXPECT_EQ(113, input_data.get_input_buffer()[0]);
+		EXPECT_EQ(129, input_data.get_input_buffer()[500]);
+		EXPECT_EQ(130, input_data.get_input_buffer()[1000]);
+		EXPECT_EQ(150, input_data.get_input_buffer()[1500]);
+		EXPECT_EQ(145, input_data.get_input_buffer()[2000]);
+		EXPECT_EQ(93,  input_data.get_input_buffer()[2500]);
+		EXPECT_EQ(150, input_data.get_input_buffer()[3000]);
+		EXPECT_EQ(186, input_data.get_input_buffer()[3500]);
+		EXPECT_EQ(181, input_data.get_input_buffer()[4000]);
 		// allocate memory cpu output
-		io_data.allocate_memory_cpu_output(dedispersion_plan);
-		EXPECT_EQ(2784, (int)(io_data.get_output_size() / 1024 / 1024));
+		input_data.allocate_memory_cpu_output(dedispersion_plan);
+		EXPECT_EQ(2784, (int)(input_data.get_output_size() / 1024 / 1024));
 		// allocate memory gpu
-		io_data.allocate_memory_gpu(dedispersion_plan);
-		EXPECT_EQ(498, (int)(io_data.get_gpu_input_size() / 1024 / 1024));
-		EXPECT_EQ(997, (int)(io_data.get_gpu_output_size() / 1024 / 1024));
+		input_data.allocate_memory_gpu(dedispersion_plan);
+		EXPECT_EQ(498, (int)(input_data.get_gpu_input_size() / 1024 / 1024));
+		EXPECT_EQ(997, (int)(input_data.get_gpu_output_size() / 1024 / 1024));
 		//
 		fclose(fp);
 	}
@@ -324,11 +324,11 @@ TEST_F(SpsTest, sps_call)
 		// get file data
 		dedispersion_plan.get_file_data(&fp);
 
-		ska::astroaccelerate::sps::IOData io_data;
+		ska::astroaccelerate::sps::InputData input_data;
 		// allocate memory cpu input
-		io_data.allocate_memory_cpu_input(dedispersion_plan);
+		input_data.allocate_memory_cpu_input(dedispersion_plan);
 		// get recorded data
-		io_data.get_recorded_data(&fp, dedispersion_plan);
+		input_data.get_recorded_data(&fp, dedispersion_plan);
 
 		//
 		int device_id = 0; // hard-coded, would be a parameter
@@ -347,8 +347,8 @@ TEST_F(SpsTest, sps_call)
 										);
 
 		// call sps main method here
-		ska::astroaccelerate::sps::Sps<TestParams> sps(io_data, dedispersion_plan, user_input);
-		sps(device_id, io_data, dedispersion_plan, user_input, gpu_memory);
+		ska::astroaccelerate::sps::Sps<TestParams> sps(input_data, dedispersion_plan, user_input);
+		sps(device_id, input_data, dedispersion_plan, user_input, gpu_memory);
 
 		// close file
 		fclose(fp);

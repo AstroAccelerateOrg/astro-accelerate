@@ -1,5 +1,5 @@
-#ifndef SKA_ASTROACCELERATE_SPS_IODATA_H
-#define SKA_ASTROACCELERATE_SPS_IODATA_H
+#ifndef SKA_ASTROACCELERATE_SPS_INPUTDATA_H
+#define SKA_ASTROACCELERATE_SPS_INPUTDATA_H
 
 //
 #include <driver_functions.h>
@@ -24,17 +24,17 @@ namespace sps{
  *
  */
 
-class IOData
+class InputData
 {
     public:
         /**
         *  @brief Default constructor
         */
-        IOData();
+        InputData();
         /**
         *  @brief Destructor
         */
-        ~IOData();
+        ~InputData();
         /**
                 *  @brief Setters
                 */
@@ -65,4 +65,4 @@ class IOData
 } // namespace astroaccelerate
 } // namespace ska
 
-#endif // SKA_ASTROACCELERATE_IODATA_H
+#endif // SKA_ASTROACCELERATE_INPUTDATA_H

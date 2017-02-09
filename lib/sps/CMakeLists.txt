@@ -1,6 +1,6 @@
 set(module_sps_lib_src_cpu
     src/DedispersionPlan.cpp
-    src/IOData.cpp
+    src/InputData.cpp
     src/UserInput.cpp
     PARENT_SCOPE
 )

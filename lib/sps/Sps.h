@@ -2,7 +2,7 @@
 #define SKA_ASTROACCELERATE_SPS_SPS_H
 
 #include "DedispersionPlan.h"
-#include "IOData.h"
+#include "InputData.h"
 #include "UserInput.h"
 
 
@@ -30,7 +30,7 @@ template<typename SpsParameterType>
 class Sps
 {
 	public:
-        Sps(IOData &,
+        Sps(InputData &,
             DedispersionPlan &,
             UserInput &);
         ~Sps();
@@ -44,7 +44,7 @@ class Sps
         /**
          * @brief perform dedispersion and an sps search
          */
-        void operator()(unsigned device_id, IOData &, DedispersionPlan &, UserInput &, size_t gpu_memory);
+        void operator()(unsigned device_id, InputData &, DedispersionPlan &, UserInput &, size_t gpu_memory);
 
     private:
 

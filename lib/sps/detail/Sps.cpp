@@ -42,7 +42,7 @@ namespace astroaccelerate {
 namespace sps {
 
 template<typename SpsParameterType>
-Sps<SpsParameterType>::Sps(IOData &io_data,
+Sps<SpsParameterType>::Sps(InputData &input_data,
 		 DedispersionPlan  &dedispersion_plan,
 		 UserInput &user_input)
 		 : _num_tchunks(dedispersion_plan.get_num_tchunks()),
@@ -60,7 +60,7 @@ Sps<SpsParameterType>::Sps(IOData &io_data,
 		 _dm_step(dedispersion_plan.get_dm_step()),
 		 _in_bin(user_input.get_in_bin()),
 		 _out_bin(user_input.get_out_bin()),
-		 _input_buffer(io_data.get_input_buffer())
+		 _input_buffer(input_data.get_input_buffer())
 {
 	_output_size 		= 0;
 	_output_buffer		= NULL;
@@ -127,7 +127,7 @@ void Sps<SpsParameterType>::allocate_memory_gpu(DedispersionPlan const &dedisper
 
 template<typename SpsParameterType>
 void Sps<SpsParameterType>::operator()( unsigned device_id,
-										IOData &io_data,
+										InputData &input_data,
 										DedispersionPlan &dedispersion_plan,
 										UserInput &user_input,
 										size_t gpu_memory)
@@ -153,7 +153,7 @@ void Sps<SpsParameterType>::operator()( unsigned device_id,
 			(float) free_mem / (1024.0 * 1024.0));
 
 	printf("\nMaxshift efficiency:\t\t%.2f%%", 100.0f-((float)_maxshift/(float)dedispersion_plan.get_nsamp())*100.0f);
-	printf("\nHost Input size:\t\t%d MB", (int) (io_data.get_input_size() / 1024 / 1024));
+	printf("\nHost Input size:\t\t%d MB", (int) (input_data.get_input_size() / 1024 / 1024));
 	printf("\nHost Output size:\t\t%d MB", (int) (_output_size / 1024 / 1024));
 	printf("\nDevice Input size:\t\t%d MB", (int) (_gpu_input_size / 1024 / 1024));
 	printf("\nDevice Output size:\t\t%d MB", (int) (_gpu_output_size / 1024 / 1024));
