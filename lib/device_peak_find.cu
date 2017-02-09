@@ -358,30 +358,30 @@ __global__ void dilate_peak_find(const Npp32f *d_input, Npp16u* d_output, const 
  * results in a co-operative manner.
  */
 template<int dilate_block_size=DILATE_BLOCK_SIZE>
-__global__ void dilate_peak_find_v2(const Npp32f * d_input, Npp16u* d_output, const int width, const float threshold)
+__global__ void dilate_peak_find_v2(const Npp32f * d_input, Npp16u* d_output, const int width, const int linestep, const float threshold)
 {
-    //TODO: try swapping block x and y - however order of block execution is undefined so this may not improve cache behaviour - hence v3 impl to solve this
     auto idxX = threadIdx.x; // Index into shared memory cache
     auto gidxX = blockDim.x * blockIdx.x + idxX;
 
     if (gidxX >= width) return;
 
-    auto row = blockIdx.y;
-    bool is_last_row = row == (gridDim.y-1);
-    bool is_first_row = (row == 0);
-    bool is_leftmost_element = (idxX == 0);
-    bool is_rightmost_element = ((idxX == (blockDim.x-1)) || idxX == (width-1));
-    bool is_first_block = (blockIdx.x == 0);
-    bool is_last_block = (blockIdx.x == (gridDim.x-1));
+    const auto row = blockIdx.y;
+    const bool is_last_row = row == (gridDim.y-1);
+    const bool is_first_row = (row == 0);
+    const bool is_leftmost_element = (idxX == 0);
+    const bool is_rightmost_element = ((idxX == (blockDim.x-1)) || idxX == (width-1));
+    const bool is_first_block = (blockIdx.x == 0);
+    const bool is_last_block = (blockIdx.x == (gridDim.x-1));
+    const auto realwidth = width + linestep;
 
     __shared__ float data[3][dilate_block_size];
     //Always Load the middle row
-    data[1][idxX] = d_input[row*width+gidxX];
+    data[1][idxX] = d_input[row*realwidth+gidxX];
     if (!is_first_row) {
-        data[0][idxX] = d_input[(row-1)*width+gidxX];
+        data[0][idxX] = d_input[(row-1)*realwidth+gidxX];
     }
     if (!is_last_row) {
-        data[2][idxX] = d_input[(row+1)*width+gidxX];
+        data[2][idxX] = d_input[(row+1)*realwidth+gidxX];
     }
     
     auto dilated_value = data[1][idxX];
@@ -405,38 +405,38 @@ __global__ void dilate_peak_find_v2(const Npp32f * d_input, Npp16u* d_output, co
 	    float temp1 = 0.0f; 
 	    float temp2 = 0.0f; 
 	    if (not is_first_row) {
-                temp1 = __ldg(d_input+(row-1)*width+gidxX-1);
+                temp1 = __ldg(d_input+(row-1)*realwidth+gidxX-1);
 	    }
 	    if (not is_last_row) {
-                temp2 = __ldg(d_input+(row+1)*width+gidxX-1);
+                temp2 = __ldg(d_input+(row+1)*realwidth+gidxX-1);
 	    }
        	    cmp_val_l = fmaxf(temp1, temp2); 
-	    cmp_val_l = fmaxf(cmp_val_l, __ldg(d_input+row*width+gidxX-1));
+	    cmp_val_l = fmaxf(cmp_val_l, __ldg(d_input+row*realwidth+gidxX-1));
         }
-    } else {
-        cmp_val_l = data[0][idxX-1];
-    }
+        cmp_val_r = data[0][idxX+1];
     //Right hand boundary condition
-    if (is_rightmost_element) {
+    } else if (is_rightmost_element) {
         if (not is_last_block) {
 	    float temp1 = 0.0f; 
 	    float temp2 = 0.0f; 
 	    if (not is_first_row) {
-                temp1 = __ldg(d_input+(row-1)*width+gidxX+1);
+                temp1 = __ldg(d_input+(row-1)*realwidth+gidxX+1);
 	    }
 	    if (not is_last_row) {
-                temp2 = __ldg(d_input+(row+1)*width+gidxX+1);
+                temp2 = __ldg(d_input+(row+1)*realwidth+gidxX+1);
 	    }
        	    cmp_val_r = fmaxf(temp1, temp2); 
-	    cmp_val_r = fmaxf(cmp_val_r, __ldg(d_input+row*width+gidxX-1));
+	    cmp_val_r = fmaxf(cmp_val_r, __ldg(d_input+row*realwidth+gidxX-1));
         }
-    } else {
+        cmp_val_l = data[0][idxX-1];
+     } else {
+        cmp_val_l = data[0][idxX-1];
         cmp_val_r = data[0][idxX+1];
     }
     dilated_value = fmaxf(dilated_value, cmp_val_l);
     dilated_value = fmaxf(dilated_value, cmp_val_r);
 
-    d_output[row*width+gidxX] = is_peak(data[1][idxX], dilated_value, threshold);
+    d_output[row*realwidth+gidxX] = is_peak(data[1][idxX], dilated_value, threshold);
 }
 
 /**
@@ -671,7 +671,7 @@ private:
         dim3 blockDim = {DILATE_BLOCK_SIZE, 1, 1};
         dim3 gridSize = {1 + ((input.size().width-1)/blockDim.x), 1 + ((input.size().height-1)/blockDim.y), 1};
 	//std::cout << "Grid dims: " << gridSize.x << " " << gridSize.y << " " << gridSize.z << std::endl;	
-	dilate_peak_find_v2<><<<gridSize, blockDim, 0, stream>>>(input.data, output, input.size().width, threshold);
+	dilate_peak_find_v2<><<<gridSize, blockDim, 0, stream>>>(input.data, output, input.size().width, input.linestep, threshold);
     }
 
     void runFusedKernel(const NppImage & input, unsigned short * output, const float threshold) {
