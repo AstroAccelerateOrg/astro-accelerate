@@ -36,6 +36,7 @@ if(ENABLE_CUDA)
   cuda_add_cufft_to_target(${CMAKE_PROJECT_NAME})
   target_link_libraries(${CMAKE_PROJECT_NAME}
         ${CUDA_LIBRARIES}
+        ${CUDA_curand_LIBRARY}
   )
   # We need to set the linker language based on what the expected generated file
   # would be. CUDA_C_OR_CXX is computed based on CUDA_HOST_COMPILATION_CPP.
