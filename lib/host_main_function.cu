@@ -138,6 +138,8 @@ void main_function
 	 fwrite(input_buffer, nchans*nsamp*sizeof(unsigned short), 1, fp_o);
 	 */
 
+	// temporary output for sps
+	std::vector<float> output_sps;
 	printf("\nDe-dispersing...");
 	int t, dm_range;
 	double start_t, end_t;
@@ -192,7 +194,7 @@ void main_function
 			if (output_dmt == 1)
 				write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
 			if (enable_analysis == 1)
-				analysis(dm_range, tstart_local, t_processed[dm_range][t], ( t_processed[dm_range][t] + maxshift ), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, d_output, dm_low, dm_high, dm_step, tsamp);
+				analysis(dm_range, tstart_local, t_processed[dm_range][t], ( t_processed[dm_range][t] + maxshift ), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, d_output, dm_low, dm_high, dm_step, tsamp, output_sps);
 			oldBin = inBin[dm_range];
 		}
 

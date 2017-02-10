@@ -5,6 +5,8 @@
 #include "../../DedispersionPlan.h"
 #include "../../Sps.h"
 
+#include <vector>
+
 
 namespace ska {
 namespace astroaccelerate {
@@ -240,7 +242,7 @@ TEST_F(SpsTest, test_dedispersion_plan)
 		fclose(fp);
 	}
 }
-/*
+
 // test input/output data class
 TEST_F(SpsTest, test_InputData)
 {
@@ -289,18 +291,11 @@ TEST_F(SpsTest, test_InputData)
 		EXPECT_EQ(150, input_data.get_input_buffer()[3000]);
 		EXPECT_EQ(186, input_data.get_input_buffer()[3500]);
 		EXPECT_EQ(181, input_data.get_input_buffer()[4000]);
-		// allocate memory cpu output
-		input_data.allocate_memory_cpu_output(dedispersion_plan);
-		EXPECT_EQ(2784, (int)(input_data.get_output_size() / 1024 / 1024));
-		// allocate memory gpu
-		input_data.allocate_memory_gpu(dedispersion_plan);
-		EXPECT_EQ(498, (int)(input_data.get_gpu_input_size() / 1024 / 1024));
-		EXPECT_EQ(997, (int)(input_data.get_gpu_output_size() / 1024 / 1024));
 		//
 		fclose(fp);
 	}
 }
-*/
+
 // test sps class
 TEST_F(SpsTest, sps_call)
 {
@@ -346,9 +341,20 @@ TEST_F(SpsTest, sps_call)
 										gpu_memory
 										);
 
+		std::vector<float> output_sps;
+
 		// call sps main method here
 		ska::astroaccelerate::sps::Sps<TestParams> sps(input_data, dedispersion_plan, user_input);
-		sps(device_id, input_data, dedispersion_plan, user_input, gpu_memory);
+		sps(device_id, input_data, dedispersion_plan, user_input, gpu_memory, output_sps);
+
+
+		printf("\nHost DD  output size:\t\t%d MB", (int) (sps.get_output_size() / 1024 / 1024 / sizeof(float)));
+		printf("\nHost SPS output size:\t\t%d MB", (int) (output_sps.size() / 1024 / 1024));
+
+		for (int i = 0; i < 100; i+=4)
+		{
+			printf("\n%f %f %f %f", output_sps[i], output_sps[i+1], output_sps[i+2], output_sps[i+3]);
+		}
 
 		// close file
 		fclose(fp);

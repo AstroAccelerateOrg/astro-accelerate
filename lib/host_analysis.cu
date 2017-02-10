@@ -10,6 +10,7 @@
 #include "AstroAccelerate/device_single_FIR.h"
 #include "timer.h"
 
+#include "AstroAccelerate/host_analysis.h"
 //---------------------------------------------------------------------------------
 //-------> Kahan MSD
 void d_kahan_summation(float *signal, int nDMs, int nTimesamples, int offset, float *result, float *error)
@@ -158,7 +159,7 @@ void export_file_nDM_nTimesamples(float *data, int nDMs, int nTimesamples, char 
 
 }
 
-void analysis(int i, float tstart, int t_processed, int nsamp, int nchans, int maxshift, int max_ndms, int *ndms, int *outBin, float cutoff, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp)
+void analysis(int i, float tstart, int t_processed, int nsamp, int nchans, int maxshift, int max_ndms, int *ndms, int *outBin, float cutoff, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, std::vector<float> &output_sps, int analysis_call)
 {
 
 	FILE *fp_out;
@@ -294,8 +295,17 @@ void analysis(int i, float tstart, int t_processed, int nsamp, int nchans, int m
 		b_list_out[4 * count + 2] = h_output_list[4 * count + 2];
 		b_list_out[4 * count + 3] = h_output_list[4 * count + 3];
 	}
-
 	fwrite(&b_list_out[0], h_list_size * sizeof(float), 4, fp_out);
+
+#pragma omp parallel for
+	for (int count = 0; count < h_list_size; count++)
+	{
+		output_sps[4 * count + (analysis_call*4*h_list_size)] = h_output_list[4 * count] * dm_step[i] + dm_low[i];
+		output_sps[4 * count + 1 + (analysis_call*4*h_list_size)] = h_output_list[4 * count + 1] * tsamp + start_time;
+		output_sps[4 * count + 2 + (analysis_call*4*h_list_size)] = h_output_list[4 * count + 2];
+		output_sps[4 * count + 3 + (analysis_call*4*h_list_size)] = h_output_list[4 * count + 3];
+	}
+
 
 //	for (int count = 0; count < h_list_size; count++) {
 //		fprintf(fp_out, "%f, %f, %f, %f\n", h_output_list[4*count+1]*tsamp+start_time, dm_low[i] + h_output_list[4*count]*dm_step[i], h_output_list[4*count+2], h_output_list[4*count+3]);

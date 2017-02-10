@@ -1,6 +1,8 @@
 #ifndef SKA_ASTROACCELERATE_MAIN_FUNCTION_H_
 #define SKA_ASTROACCELERATE_MAIN_FUNCTION_H_
 
+#include <vector>
+
 void main_function
 (
 	int argc,

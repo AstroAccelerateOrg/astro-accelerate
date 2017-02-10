@@ -5,6 +5,8 @@
 #include "InputData.h"
 #include "UserInput.h"
 
+#include <vector>
+
 
 namespace ska {
 namespace astroaccelerate {
@@ -35,6 +37,9 @@ class Sps
             UserInput &);
         ~Sps();
 
+
+        size_t  get_output_size();
+
         /**
          * @brief allocate memory for the cpu output and the gpu
          */
@@ -44,7 +49,7 @@ class Sps
         /**
          * @brief perform dedispersion and an sps search
          */
-        void operator()(unsigned device_id, InputData &, DedispersionPlan &, UserInput &, size_t gpu_memory);
+        void operator()(unsigned device_id, InputData &, DedispersionPlan &, UserInput &, size_t gpu_memory, std::vector<float> &output_sps);
 
     private:
 

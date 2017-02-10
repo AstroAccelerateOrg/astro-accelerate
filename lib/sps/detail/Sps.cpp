@@ -124,13 +124,20 @@ void Sps<SpsParameterType>::allocate_memory_gpu(DedispersionPlan const &dedisper
 
 	( cudaMemset(_d_output, 0, _gpu_output_size) );
 }
+template<typename SpsParameterType>
+size_t Sps<SpsParameterType>::get_output_size()
+{
+	return _output_size;
+}
+
 
 template<typename SpsParameterType>
 void Sps<SpsParameterType>::operator()( unsigned device_id,
 										InputData &input_data,
 										DedispersionPlan &dedispersion_plan,
 										UserInput &user_input,
-										size_t gpu_memory)
+										size_t gpu_memory,
+										std::vector<float> &output_sps)
 {
 
 	//
@@ -146,7 +153,9 @@ void Sps<SpsParameterType>::operator()( unsigned device_id,
 	allocate_memory_cpu_output(dedispersion_plan);
 	// allocate memory gpu
 	allocate_memory_gpu(dedispersion_plan);
-
+	//
+	output_sps.resize(_output_size/sizeof(float));
+	//
 	cudaMemGetInfo(&free_mem, &total_mem);
 	printf("\nAfter call to allocate_memory_gpu\nDevice has %0.3f MB of total memory, which %0.3f MB is available.\n",
 			(float) total_mem / (1024.0 * 1024.0),
@@ -171,6 +180,8 @@ void Sps<SpsParameterType>::operator()( unsigned device_id,
 	out_tmp = (float *) malloc(( _t_processed[0][0] + _maxshift ) * _max_ndms * sizeof(float));
 	memset(out_tmp, 0.0f, _t_processed[0][0] + _maxshift * _max_ndms * sizeof(float));
 
+	// count the number of times that analysis is called - used to fill the output buffer of analysis
+	int analysis_call = 0;
 	for (t = 0; t < _num_tchunks; ++t)
 	{
 
@@ -217,13 +228,15 @@ void Sps<SpsParameterType>::operator()( unsigned device_id,
 			if (user_input.get_output_dmt() == 1)
 				write_output(dm_range, _t_processed[dm_range][t], _ndms[dm_range], gpu_memory, out_tmp, _gpu_output_size, _dm_low, _dm_high);
 
-			printf("\n before analysis\n");
-
 			if (user_input.get_enable_analysis() == 1)
+			{
 				analysis(dm_range, tstart_local, _t_processed[dm_range][t],
 						( _t_processed[dm_range][t] + _maxshift ), _nchans,
 						_maxshift, _max_ndms, _ndms, _out_bin, _sigma_cutoff,
-						_d_output, _dm_low, _dm_high, _dm_step, _tsamp);
+						_d_output, _dm_low, _dm_high, _dm_step, _tsamp, output_sps, analysis_call);
+				analysis_call += 1;
+
+			}
 			oldBin = _in_bin[dm_range];
 		}
 
