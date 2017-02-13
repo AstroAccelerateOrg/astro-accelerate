@@ -21,6 +21,7 @@ int main(int argc, char* argv[])
 	int enable_periodicity = 0;
 	int output_dmt = 0;
 	int enable_zero_dm = 0;
+	int enable_zero_dm_with_outliers = 0;
 	int enable_rfi;
 	int *inBin = NULL;
 	int *outBin = NULL;
@@ -79,10 +80,10 @@ int main(int argc, char* argv[])
 
 	// Users desired de-dispersion strategy. Pick up user defined values from the CLI.
 	get_user_input(&fp, argc, argv, &multi_file, &enable_debug, &enable_analysis,
-	    &enable_periodicity, &enable_acceleration, &output_dmt, &enable_zero_dm, &enable_rfi,
-	    &nboots, &ntrial_bins, &navdms, &narrow, &wide, &aggression, &nsearch, &inBin,
-	    &outBin, &power, &sigma_cutoff, &range, &user_dm_low, &user_dm_high,
-	    &user_dm_step);
+	    &enable_periodicity, &enable_acceleration, &output_dmt, &enable_zero_dm,
+	    &enable_zero_dm_with_outliers, &enable_rfi, &nboots, &ntrial_bins, &navdms,
+	    &narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff,
+	    &range, &user_dm_low, &user_dm_high, &user_dm_step);
 	if (enable_debug == 1)
 		debug(1, start_time, range, outBin, enable_debug, enable_analysis,
 		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
@@ -129,7 +130,8 @@ int main(int argc, char* argv[])
 	  fp,
 	  // Counters and flags
 	  i, t, dm_range, range, enable_debug, enable_analysis, enable_acceleration,
-	  enable_periodicity, output_dmt, enable_zero_dm, enable_rfi, inBin, outBin, ndms, maxshift, max_ndms,
+	  enable_periodicity, output_dmt, enable_zero_dm, enable_zero_dm_with_outliers,
+	  enable_rfi, inBin, outBin, ndms, maxshift, max_ndms,
 	  max_samps, num_tchunks, total_ndms, multi_file, max_dm,
 	  // Memory sizes and pointers
 	  inputsize, outputsize, gpu_inputsize, gpu_outputsize, gpu_memory,
