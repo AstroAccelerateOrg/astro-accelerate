@@ -56,6 +56,7 @@ void main_function
 	int enable_periodicity,
 	int output_dmt,
 	int enable_zero_dm,
+	int enable_zero_dm_with_outliers,
 	int enable_rfi,
 	int *inBin,
 	int *outBin,
@@ -117,7 +118,7 @@ void main_function
 	if(enable_debug == 1) debug(2, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
-	// Calculate the desipersion stratagy.
+	// Calculate the dedispersion stratagy.
 	stratagy(&maxshift, &max_samps, &num_tchunks, &max_ndms, &total_ndms, &max_dm, power, nchans, nsamp, fch1, foff, tsamp, range, user_dm_low, user_dm_high, user_dm_step,
                  &dm_low, &dm_high, &dm_step, &ndms, &dmshifts, inBin, &t_processed, &gpu_memory);
 	if(enable_debug == 1) debug(4, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
@@ -164,15 +165,24 @@ void main_function
 		printf("\nt_processed:\t%d, %d", t_processed[0][t], t);
 
 		load_data(-1, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
-//		if (enable_zero_dm)
-//			zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
-//		if(enable_zero_dm_with_outliers)
-//			zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
+
+		//
+		if (enable_zero_dm)
+		{
+			zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
+		}
+		//
+		if(enable_zero_dm_with_outliers)
+		{
+			zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
+	 	}
+		//
 		corner_turn(d_input, d_output, nchans, t_processed[0][t] + maxshift);
-//		if(enable_rfi)
-// 			rfi_gpu(d_input, nchans, t_processed[0][t]+maxshift);
-
-
+		//
+		if(enable_rfi)
+		{
+ 			rfi_gpu(d_input, nchans, t_processed[0][t]+maxshift);
+		}
 
 		int oldBin = 1;
 		for (dm_range = 0; dm_range < range; dm_range++)
