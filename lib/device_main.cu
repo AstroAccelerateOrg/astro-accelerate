@@ -33,3 +33,6 @@
 #include "device_zero_dm_outliers.cu"
 #include "device_rfi.cu"
 #include "device_analysis.cu" //Added by KA
+
+// fdas
+#include "device_acceleration_fdas.cu"
