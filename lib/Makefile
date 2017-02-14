@@ -20,10 +20,10 @@ GENCODE_FLAGS   := $(GENCODE_SM61)
 
 ifeq ($(cache),off)
         NVCCFLAGS := $(INC) -g -lineinfo -Xcompiler -fopenmp -O3 -lm --use_fast_math\
-         --ptxas-options=-v -Xptxas -dlcm=cg $(GENCODE_FLAGS)
+         --ptxas-options=-v -Xptxas -dlcm=cg $(GENCODE_FLAGS) -std=c++11
 else
         NVCCFLAGS := $(INC) -g -lineinfo -Xcompiler -fopenmp -O3 -lm --use_fast_math\
-         --ptxas-options=-v -lcuda -lcudart  -lcurand -lcufft -Xptxas -dlcm=cg $(GENCODE_FLAGS)
+         --ptxas-options=-v -lcuda -lcudart  -lcurand -lcufft -Xptxas -dlcm=cg $(GENCODE_FLAGS) -std=c++11
 endif
 
 #ifeq ($(gpu),sm_35)
@@ -38,7 +38,10 @@ $(BUILD_DIR)/%.o : %.cu
 
 $(BUILD_DIR)/%.o : %.cpp
 	nvcc -o $@ -c $(NVCCFLAGS) $<
-
+	
+$(BUILD_DIR)/%.o : %.c
+	nvcc -o $@ -c $(NVCCFLAGS) $<
+	
 ${ASTROLIB_DIR}:
 	mkdir -p ${ASTROLIB_DIR}
 
@@ -61,17 +64,20 @@ $(BUILD_DIR)/host_stratagy.o:	 		AstroAccelerate/host_stratagy.h
 $(BUILD_DIR)/host_statistics.o:	 		AstroAccelerate/host_statistics.h
 $(BUILD_DIR)/host_write_file.o:	 		AstroAccelerate/host_write_file.h
 
+
 #$(BUILD_DIR)/device_main.o:	device_main.cu
 #	nvcc -c $(NVCCFLAGS) device_main.cu
 
 $(ASTROLIB_DIR)/libastrolib.a: $(BUILD_DIR)/host_acceleration.o $(BUILD_DIR)/host_write_file.o $(BUILD_DIR)/device_main.o $(BUILD_DIR)/host_allocate_memory.o \
 	$(BUILD_DIR)/host_analysis.o $(BUILD_DIR)/host_periods.o $(BUILD_DIR)/host_debug.o $(BUILD_DIR)/host_get_file_data.o $(BUILD_DIR)/host_get_user_input.o \
 	$(BUILD_DIR)/host_get_recorded_data.o $(BUILD_DIR)/host_help.o $(BUILD_DIR)/host_rfi.o $(BUILD_DIR)/host_stratagy.o $(BUILD_DIR)/host_statistics.o \
-	$(BUILD_DIR)/host_main_function.o
+	$(BUILD_DIR)/host_main_function.o $(BUILD_DIR)/fresnl.o $(BUILD_DIR)/median.o $(BUILD_DIR)/presto_funcs.o $(BUILD_DIR)/characteristics.o $(BUILD_DIR)/dcdflib.o $(BUILD_DIR)/ipmpar.o \
+	$(BUILD_DIR)/fdas_host.o  $(BUILD_DIR)/fdas_device.o $(BUILD_DIR)/fdas_util.o
 	ar rcs $(ASTROLIB_DIR)/libastrolib.a $(BUILD_DIR)/host_acceleration.o $(BUILD_DIR)/host_write_file.o $(BUILD_DIR)/device_main.o $(BUILD_DIR)/host_allocate_memory.o \
 	$(BUILD_DIR)/host_analysis.o $(BUILD_DIR)/host_periods.o $(BUILD_DIR)/host_debug.o $(BUILD_DIR)/host_get_file_data.o $(BUILD_DIR)/host_get_user_input.o \
 	$(BUILD_DIR)/host_get_recorded_data.o $(BUILD_DIR)/host_help.o $(BUILD_DIR)/host_rfi.o $(BUILD_DIR)/host_stratagy.o $(BUILD_DIR)/host_statistics.o \
-	$(BUILD_DIR)/host_main_function.o
+	$(BUILD_DIR)/host_main_function.o $(BUILD_DIR)/fresnl.o $(BUILD_DIR)/median.o $(BUILD_DIR)/presto_funcs.o $(BUILD_DIR)/characteristics.o $(BUILD_DIR)/dcdflib.o $(BUILD_DIR)/ipmpar.o \
+	$(BUILD_DIR)/fdas_host.o  $(BUILD_DIR)/fdas_device.o $(BUILD_DIR)/fdas_util.o
 
 $(BUILD_DIR)/dedisperse-gpu: $(BUILD_DIR)/main.o $(ASTROLIB_DIR)/libastrolib.a
 	nvcc -o $(BUILD_DIR)/dedisperse-gpu $(BUILD_DIR)/main.o -L$(ASTROLIB_DIR)/ -lastrolib -L${LIB} $(NVCCFLAGS)
