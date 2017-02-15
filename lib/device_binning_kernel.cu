@@ -41,7 +41,7 @@ __global__ void bin(unsigned short *d_input, float *d_output, int in_nsamp)
 	int shift_one = ( ( c * out_nsamp ) + t_out );
 	int shift_two = ( ( c * in_nsamp ) + t_in );
 
-	d_output[( shift_one )] = (float) ( ( d_input[( shift_two )] + d_input[shift_two + 1] ) );
+	d_output[( shift_one )] = (float) ( ( d_input[( shift_two )] + d_input[shift_two + 1] )/2.0f );
 
 }
 
