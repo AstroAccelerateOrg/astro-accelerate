@@ -168,20 +168,20 @@ void main_function
 
 		load_data(-1, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
 
-		//
+		
 		if (enable_zero_dm)
 		{
 			zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
 		}
-		//
-		if(enable_zero_dm_with_outliers)
+		
+		if (enable_zero_dm_with_outliers)
 		{
 			zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
 	 	}
-		//
+	
 		corner_turn(d_input, d_output, nchans, t_processed[0][t] + maxshift);
-		//
-		if(enable_rfi)
+		
+		if (enable_rfi)
 		{
  			rfi_gpu(d_input, nchans, t_processed[0][t]+maxshift);
 		}
@@ -204,27 +204,26 @@ void main_function
 
 			dedisperse(dm_range, t_processed[dm_range][t], inBin, dmshifts, d_input, d_output, nchans, ( t_processed[dm_range][t] + maxshift ), maxshift, &tsamp, dm_low, dm_high, dm_step, ndms);
 
-			gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
-			//cudaDeviceSynchronize();
-
-			save_data(d_output, out_tmp, gpu_outputsize);
-			//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
-
-#pragma omp parallel for
-			for (int k = 0; k < ndms[dm_range]; k++)
+			if (enable_acceleration == 1)
 			{
-				memcpy(&output_buffer[dm_range][k][inc / inBin[dm_range]], &out_tmp[k * t_processed[dm_range][t]], sizeof(float) * t_processed[dm_range][t]);
+				gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
+				save_data(d_output, out_tmp, gpu_outputsize);
+
+				#pragma omp parallel for
+				for (int k = 0; k < ndms[dm_range]; k++)
+				{
+					memcpy(&output_buffer[dm_range][k][inc / inBin[dm_range]], &out_tmp[k * t_processed[dm_range][t]], sizeof(float) * t_processed[dm_range][t]);
+				}
+			//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
 			}
 
 			if (output_dmt == 1)
 				write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
-			if (enable_analysis == 1) {
+			if (enable_analysis == 1) 
+			{
 				analysis_GPU(dm_range, tstart_local, t_processed[dm_range][t], ( t_processed[dm_range][t] + maxshift ), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, d_output, dm_low, dm_high, dm_step, tsamp);
-				
 				// This is for testing purposes and should be removed or commented out
 				//analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
-				
-				
 			}
 			oldBin = inBin[dm_range];
 		}

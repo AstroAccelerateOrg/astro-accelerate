@@ -424,7 +424,7 @@ void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params 
   FILE *fp_c;
   char pfname[200];
   char *infilename;
-  infilename = basename(cmdargs->afname);
+//  infilename = basename(cmdargs->afname);
 // filename needs to be acc_dm_%f, dm_low[i] + ((float)dm_count)*dm_step[i]
   //sprintf(pfname, "%s/out_inbin%d_%s",dirname,ibin,infilename);
   sprintf(pfname, "acc_%f.dat", dm_low + ((float)dm_count)*dm_step);
