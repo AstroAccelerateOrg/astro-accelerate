@@ -39,6 +39,71 @@ void test_peak_at_loc(std::vector<float, managed_allocator<float>> & input, std:
   }
 }
 
+TEST_CASE("Peak Find 1d", "[peakfind]") {
+  std::vector<float, managed_allocator<float>> data;
+  std::vector<unsigned short, managed_allocator<unsigned short>> output;
+
+  SECTION ("Empty data is ok") {
+    peakfind(data.data(), 0, 0, 0, output.data());
+  }
+
+  SECTION ("Single element is peak") {
+    data.resize(1);
+    output.resize(1);
+    data[0] = 1.0;
+    peakfind(data.data(), 0, 1, 1, output.data());
+
+    REQUIRE(output[0] == 1);
+  }
+
+  SECTION ("Boundaries") {
+    data.resize(2048);
+    output.resize(data.size());
+
+    SECTION ("Warp boundary right") {
+        data[31] = 10.0;
+        data[32] = 1.0;
+        peakfind(data.data(), 0, 2048, 1, output.data());
+        REQUIRE(output[31] == 1);
+    }
+    SECTION ("Warp boundary left") {
+        data[31] = 1.0;
+        data[32] = 10.0;
+        peakfind(data.data(), 0, 2048, 1, output.data());
+        REQUIRE(output[32] == 1);
+    }
+    SECTION ("Block boundary right") {
+        data[1023] = 10.0;
+        data[1024] = 1.0;
+        peakfind(data.data(), 0, 2048, 1, output.data());
+        REQUIRE(output[1023] == 1);
+    }
+    SECTION ("Block boundary left") {
+        data[1023] = 1.0;
+        data[1024] = 10.0;
+        peakfind(data.data(), 0, 2048, 1, output.data());
+        REQUIRE(output[1024] == 1);
+    }
+
+    SECTION ("Boundary left") {
+        data[1] = 1.0;
+        data[0] = 10.0;
+        peakfind(data.data(), 0, 2044, 1, output.data());
+        REQUIRE(output[0] == 1);
+    }
+     
+    SECTION ("Boundary right") {
+        data[2022] = 1.0;
+        data[2023] = 10.0;
+        peakfind(data.data(), 0, 2044, 1, output.data());
+        REQUIRE(output[2023] == 1);
+    }
+       
+  }
+
+
+}
+
 TEST_CASE("Peak Find v1", "[peakfind]") {
   std::vector<float, managed_allocator<float>> data;
   std::vector<unsigned short, managed_allocator<unsigned short>> output;
