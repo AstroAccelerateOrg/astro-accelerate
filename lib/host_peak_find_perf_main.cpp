@@ -10,11 +10,15 @@
 
 int main(int argc, char * argv[]) {
     std::vector<float, managed_allocator<float>> data;
+    int ntrials = 10;
+    if (argc > 1) {
+        ntrials = atoi(argv[1]);
+    }
+    std::cerr << "Running with " << ntrials << " trials\n";
 
     while (true) {
 	    data.resize(data.size() + 128ul*1024*1024/sizeof(float));
 	    std::cout << "\n" << data.size() * sizeof(float) /1024 / 1024;
-	    const int ntrials = 10;
 	    if (data.size()) {
 		    cudaSetDevice(0);
 		    double start_t, end_t;
@@ -30,7 +34,7 @@ int main(int argc, char * argv[]) {
 		    end_t = omp_get_wtime();
 		    float time = (float) ( end_t - start_t );
 		    auto data_mb = ntrials*data.size() * sizeof(float) / (1024 * 1024);
-		    std::cout <<  " " << data_mb/(1024 * time);
+		    std::cout <<  " " << data_mb/(1024 * time) << std::flush;
 		    std::size_t peak_count = 0;
 		    for (int i=0; i < output.size() ; ++i) {
 			    if (output[i] == 1) {
@@ -46,7 +50,7 @@ int main(int argc, char * argv[]) {
 		    end_t = omp_get_wtime();
 		    time = (float) ( end_t - start_t );
 		    data_mb = ntrials*data.size() * sizeof(float) / (1024 * 1024);
-		    std::cout <<  " " << data_mb/(1024 * time);
+		    std::cout <<  " " << data_mb/(1024 * time) << std::flush;
 		    peak_count = 0;
 		    for (int i=0; i < output.size() ; ++i) {
 			    if (output[i] == 1) {
@@ -62,7 +66,7 @@ int main(int argc, char * argv[]) {
 		    end_t = omp_get_wtime();
 		    time = (float) ( end_t - start_t );
 		    data_mb = ntrials*data.size() * sizeof(float) / (1024 * 1024);
-		    std::cout <<  " " << data_mb/(1024 * time);
+		    std::cout <<  " " << data_mb/(1024 * time) << std::flush;
 		    peak_count = 0;
 		    for (int i=0; i < output.size() ; ++i) {
 			    if (output[i] == 1) {
@@ -78,7 +82,7 @@ int main(int argc, char * argv[]) {
 		    end_t = omp_get_wtime();
 		    time = (float) ( end_t - start_t );
 		    data_mb = ntrials*data.size() * sizeof(float) / (1024 * 1024);
-		    std::cout <<  " " << data_mb/(1024 * time);
+		    std::cout <<  " " << data_mb/(1024 * time) << std::flush;
 		    peak_count = 0;
 		    for (int i=0; i < output.size() ; ++i) {
 			    if (output[i] == 1) {
