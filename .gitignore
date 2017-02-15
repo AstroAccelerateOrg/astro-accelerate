@@ -3,3 +3,5 @@ output/
 
 .project
 .cproject
+
+asstrolib/libastrolib.a
