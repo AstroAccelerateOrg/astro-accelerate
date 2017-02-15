@@ -268,6 +268,33 @@ __global__ void find_peak(const Npp32f *d_input, const Npp32f * d_dilated, Npp16
     (reinterpret_cast<ushort4*>(d_output))[idx] = is_peak(orig_values, dilated_values); 
 }
 
+__global__ void dilate_peak_find_1d(const float * d_input, uint16_t * d_output, const int width, const float threshold)
+{
+    auto idxX = blockDim.x * blockIdx.x + threadIdx.x;
+    float dilated_value = 0.0f;
+    float my_value = 0.0f;
+    float tmp2 = 0.0f;
+    unsigned short peak = 0u;
+    if (!(idxX >= width)) {
+        my_value = dilated_value = __ldg(d_input + idxX);
+
+        if (threadIdx.x == 0 && blockIdx.x != 0) {
+            tmp2 = __ldg(d_input + idxX - 1);
+        } else if (threadIdx.x == 31 && blockIdx.x != (gridDim.x-1)) {
+            tmp2 = __ldg(d_input + idxX + 1);
+        }
+    }
+    
+    auto tmp = fmaxf(__shfl_up(my_value, 1), __shfl_down(my_value, 1));
+    dilated_value = fmaxf(tmp, my_value);
+    dilated_value = fmaxf(tmp2, dilated_value);
+
+    if (!(idxX >= width)) {
+        peak = is_peak(my_value, dilated_value, threshold);
+        d_output[idxX] = peak;
+    }
+}
+
 /**
  * This version runs a thread per pixel
  * and hence needs to handle the special cases of the edges and the corners
@@ -285,8 +312,8 @@ __global__ void dilate_peak_find(const Npp32f *d_input, Npp16u* d_output, const 
     unsigned short peak = 0u;
     //handle boundary conditions - top edge
     if (idxY == 0) {
-        //Special case for height of 1 or width of 1
-        if (width == 1 && height == 1) {
+        //Special case for width of 1
+        if (width == 1) {
             my_value = dilated_value = d_input[0];
         }
         //Top left corner case
@@ -307,8 +334,12 @@ __global__ void dilate_peak_find(const Npp32f *d_input, Npp16u* d_output, const 
         }
     //bottom edge
     } else if (idxY == height-1) {
-        //Bottom left corner
-        if (idxX == 0) {
+        //Special case for width of 1
+        if (width == 1) {
+            my_value = dilated_value = d_input[width*(height-1)];
+        }
+         //Bottom left corner
+        else if (idxX == 0) {
 	    auto block = load_block_2x2(d_input+width*(height-2), width);
             dilated_value = dilate4(block);
             my_value = block.z;
@@ -622,7 +653,13 @@ public:
     } 
 
     void v1(const NppImage & input, unsigned short * output, const float threshold) {
-	runFusedKernel(input, output, threshold);
+        if (input.size().height == 1) {
+             dim3 blockDim = 1024;
+             dim3 gridSize = { 1 + ((input.size().width-1)/blockDim.x) };
+             dilate_peak_find_1d<<<gridSize, blockDim, 0, stream>>>(input.data, output, input.size().width, threshold);
+        } else {
+	     runFusedKernel(input, output, threshold);
+        }
 	cudaStreamSynchronize(stream);
     }
 
