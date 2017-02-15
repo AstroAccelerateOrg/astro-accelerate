@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
 	int output_dmt = 0;
 	int enable_zero_dm = 0;
 	int enable_zero_dm_with_outliers = 0;
-	int enable_rfi;
+	int enable_rfi=0;
 	int *inBin = NULL;
 	int *outBin = NULL;
 	int *ndms = NULL;
