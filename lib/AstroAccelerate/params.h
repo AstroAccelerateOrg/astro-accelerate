@@ -9,10 +9,10 @@
 #define NOPSSHIFT 5
 #define NOPSLOOP 3
 #define NDATAPERLOOP 1
-#define BINDIVINT 6
+#define BINDIVINT 8
 #define BINDIVINF 32
-#define CT 256
-#define CF 2
+#define CT 32
+#define CF 8
 #define NOPS 4.0
 #define STATST 128
 #define STATSLOOP 8
