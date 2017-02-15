@@ -62,8 +62,6 @@ Sps<SpsParameterType>::Sps(InputData &input_data,
 		 _out_bin(user_input.get_out_bin()),
 		 _input_buffer(input_data.get_input_buffer())
 {
-	_output_size 		= 0;
-	_output_buffer		= NULL;
 	_gpu_input_size 	= 0;
 	_d_input 			= NULL;
 	_gpu_output_size 	= 0;
@@ -73,27 +71,28 @@ Sps<SpsParameterType>::Sps(InputData &input_data,
 template<typename SpsParameterType>
 Sps<SpsParameterType>::~Sps()
 {
-	free(_output_buffer);
 	cudaFree(_d_input);
 	cudaFree(_d_output);
 }
 
 
 template<typename SpsParameterType>
-void Sps<SpsParameterType>::allocate_memory_cpu_output(DedispersionPlan const &dedispersion_plan)
+void Sps<SpsParameterType>::allocate_memory_cpu_output(DedispersionPlan const &dedispersion_plan,
+													   float ****output_buffer,
+													   size_t *output_size)
 {
-	_output_buffer = (float ***) malloc(dedispersion_plan.get_range() * sizeof(float **));
+	*output_buffer = (float ***) malloc(dedispersion_plan.get_range() * sizeof(float **));
 	for (int i = 0; i < dedispersion_plan.get_range(); ++i)
 	{
 		int total_samps = 0;
 		for (int k = 0; k < dedispersion_plan.get_num_tchunks(); ++k)
 			total_samps += dedispersion_plan.get_t_processed()[i][k];
-		_output_buffer[i] = (float **) malloc(dedispersion_plan.get_ndms()[i] * sizeof(float *));
+		(*output_buffer)[i] = (float **) malloc(dedispersion_plan.get_ndms()[i] * sizeof(float *));
 		for (int j = 0; j < dedispersion_plan.get_ndms()[i]; ++j)
 		{
-			_output_buffer[i][j] = (float *) malloc(( total_samps ) * sizeof(float));
+			(*output_buffer)[i][j] = (float *) malloc(( total_samps ) * sizeof(float));
 		}
-		_output_size += ( total_samps ) * dedispersion_plan.get_ndms()[i] * sizeof(float);
+		*output_size += ( total_samps ) * dedispersion_plan.get_ndms()[i] * sizeof(float);
 	}
 }
 
@@ -124,12 +123,6 @@ void Sps<SpsParameterType>::allocate_memory_gpu(DedispersionPlan const &dedisper
 
 	( cudaMemset(_d_output, 0, _gpu_output_size) );
 }
-template<typename SpsParameterType>
-size_t Sps<SpsParameterType>::get_output_size()
-{
-	return _output_size;
-}
-
 
 template<typename SpsParameterType>
 void Sps<SpsParameterType>::operator()( unsigned device_id,
@@ -137,37 +130,21 @@ void Sps<SpsParameterType>::operator()( unsigned device_id,
 										DedispersionPlan &dedispersion_plan,
 										UserInput &user_input,
 										size_t gpu_memory,
-										std::vector<float> &output_sps)
+										std::vector<float> &output_sps,
+										float ****output_buffer,
+										size_t *output_size)
 {
 
 	//
 	long int inc = 0;
 	float tstart_local = 0.0f;
 
-	size_t free_mem, total_mem;
-	cudaMemGetInfo(&free_mem, &total_mem);
-	printf("\nBefore call to allocate_memory_gpu\nDevice has %0.3f MB of total memory, which %0.3f MB is available.\n",
-			(float) total_mem / (1024.0 * 1024.0),
-			(float) free_mem / (1024.0 * 1024.0));
 	// allocate memory cpu output
-	allocate_memory_cpu_output(dedispersion_plan);
+	allocate_memory_cpu_output(dedispersion_plan, output_buffer, output_size);
 	// allocate memory gpu
 	allocate_memory_gpu(dedispersion_plan);
 	//
-	output_sps.resize(_output_size/sizeof(float));
-	//
-	cudaMemGetInfo(&free_mem, &total_mem);
-	printf("\nAfter call to allocate_memory_gpu\nDevice has %0.3f MB of total memory, which %0.3f MB is available.\n",
-			(float) total_mem / (1024.0 * 1024.0),
-			(float) free_mem / (1024.0 * 1024.0));
-
-	printf("\nMaxshift efficiency:\t\t%.2f%%", 100.0f-((float)_maxshift/(float)dedispersion_plan.get_nsamp())*100.0f);
-	printf("\nHost Input size:\t\t%d MB", (int) (input_data.get_input_size() / 1024 / 1024));
-	printf("\nHost Output size:\t\t%d MB", (int) (_output_size / 1024 / 1024));
-	printf("\nDevice Input size:\t\t%d MB", (int) (_gpu_input_size / 1024 / 1024));
-	printf("\nDevice Output size:\t\t%d MB", (int) (_gpu_output_size / 1024 / 1024));
-    fflush(stdout);
-
+	output_sps.resize(*output_size/sizeof(float));
 
 	printf("\nDe-dispersing...\n");
 
@@ -221,7 +198,7 @@ void Sps<SpsParameterType>::operator()( unsigned device_id,
 
 			for (int k = 0; k < _ndms[dm_range]; ++k)
 			{
-				memcpy(&_output_buffer[dm_range][k][inc / _in_bin[dm_range]], &out_tmp[k * _t_processed[dm_range][t]],
+				memcpy(&(*output_buffer)[dm_range][k][inc / _in_bin[dm_range]], &out_tmp[k * _t_processed[dm_range][t]],
 							sizeof(float) * _t_processed[dm_range][t]);
 			}
 

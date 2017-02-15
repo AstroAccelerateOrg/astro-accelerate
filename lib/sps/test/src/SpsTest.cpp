@@ -341,27 +341,25 @@ TEST_F(SpsTest, sps_call)
 										gpu_memory
 										);
 
+		//
 		std::vector<float> output_sps;
+		// dedispersed data
+		float ***output_buffer = NULL;
+		size_t output_size = 0;
 
 		// call sps main method here
 		ska::astroaccelerate::sps::Sps<TestParams> sps(input_data, dedispersion_plan, user_input);
-		sps(device_id, input_data, dedispersion_plan, user_input, gpu_memory, output_sps);
+		sps(device_id, input_data, dedispersion_plan, user_input, gpu_memory, output_sps, &output_buffer, &output_size);
 
-
-		printf("\nHost DD  output size:\t\t%d MB", (int) (sps.get_output_size() / 1024 / 1024 / sizeof(float)));
+		printf("\nHost DD  output size:\t\t%d MB", (int) (output_size / 1024 / 1024 / sizeof(float)));
 		printf("\nHost SPS output size:\t\t%d MB", (int) (output_sps.size() / 1024 / 1024));
-
-		for (int i = 0; i < 100; i+=4)
-		{
-			printf("\n%f %f %f %f", output_sps[i], output_sps[i+1], output_sps[i+2], output_sps[i+3]);
-		}
 
 		// close file
 		fclose(fp);
+		// free memory
+		free(output_buffer);
 
 		// write output here, not in the library
-
-
 	}
 }
 

@@ -43,13 +43,14 @@ class Sps
         /**
          * @brief allocate memory for the cpu output and the gpu
          */
-        void allocate_memory_cpu_output(DedispersionPlan const &);
+        void allocate_memory_cpu_output(DedispersionPlan const &, float ****output_buffer, size_t *output_size);
         void allocate_memory_gpu(DedispersionPlan const &);
 
         /**
          * @brief perform dedispersion and an sps search
          */
-        void operator()(unsigned device_id, InputData &, DedispersionPlan &, UserInput &, size_t gpu_memory, std::vector<float> &output_sps);
+        void operator()(unsigned device_id, InputData &, DedispersionPlan &, UserInput &,
+        				size_t gpu_memory, std::vector<float> &output_sps, float ****output_buffer, size_t *output_size);
 
     private:
 
@@ -70,8 +71,6 @@ class Sps
         int* _out_bin;
         unsigned short* _input_buffer;
         //
-        size_t  _output_size;
-        float *** _output_buffer;
         size_t          _gpu_input_size;
         unsigned short  *_d_input;
         size_t  _gpu_output_size;
