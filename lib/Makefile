@@ -26,7 +26,7 @@ NVCCFLAGS += -gencode arch=compute_61,code=sm_61
 NVCCFLAGS += --source-in-ptx --keep
 
 
-all: $(BUILD_DIR)/dedisperse-gpu ${BUILD_DIR}/peak_find ${ASTROLIB_DIR}/libastrolib.a
+all: $(BUILD_DIR)/dedisperse-gpu ${BUILD_DIR}/peak_find ${BUILD_DIR}/peak_find_perf ${ASTROLIB_DIR}/libastrolib.a
 
 test: ${BUILD_DIR}/peak_find_test
 	${BUILD_DIR}/peak_find_test

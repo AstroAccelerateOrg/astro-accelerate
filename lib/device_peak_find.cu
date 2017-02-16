@@ -11,7 +11,7 @@
 
 class NppImage {
 public:
-     NppImage(int32_t width, int32_t height, Npp32f *data=nullptr, int32_t linestep=0)
+     NppImage(int32_t width, int32_t height, const Npp32f *data=nullptr, int32_t linestep=0)
 	: data(data), linestep(linestep), width(width), height(height)
      {
      }
@@ -23,7 +23,7 @@ public:
 	return NppiSize() = {width, height};
      }
 
-     Npp32f * data;
+     const Npp32f * data;
      Npp32s linestep; 
 protected:
      /**
@@ -64,7 +64,7 @@ public:
      }
 
      ~AllocatedNppImage() {
-         nppiFree(data);
+         nppiFree((void *)data);
      }
 };
 
@@ -735,7 +735,7 @@ private:
         NppiPoint srcOffset = {0, 0};
         //Do a 3x3 image dilation
 	nppSetStream(stream);
-	auto status = nppiDilate3x3Border_32f_C1R(input.data, input.linestep, input.size(), srcOffset, dilated.data, dilated.linestep, dilated.size(), NPP_BORDER_REPLICATE);
+	auto status = nppiDilate3x3Border_32f_C1R((Npp32f*)input.data, input.linestep, input.size(), srcOffset, (Npp32f*)dilated.data, dilated.linestep, dilated.size(), NPP_BORDER_REPLICATE);
         if (status != NPP_SUCCESS) handle_npp_error(status);
 	find_peak<<<gridSize, blockSize, 0, stream>>>(input.data, dilated.data, output);
     }
@@ -743,7 +743,7 @@ private:
     cudaStream_t stream;
 };
 
-void peakfind_v4(float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output, const float threshold)
+void peakfind_v4(const float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output, const float threshold)
 {
         if (height == 0 || width == 0) return;
 	NppImage input(width, height, d_input, d_input_linestep);
@@ -752,7 +752,7 @@ void peakfind_v4(float *d_input, int32_t d_input_linestep, int32_t width, int32_
 }
 
 
-void peakfind_v3(float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output, const float threshold)
+void peakfind_v3(const float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output, const float threshold)
 {
         if (height == 0 || width == 0) return;
 	NppImage input(width, height, d_input, d_input_linestep);
@@ -760,7 +760,7 @@ void peakfind_v3(float *d_input, int32_t d_input_linestep, int32_t width, int32_
         p.v3(input, d_output, threshold);
 }
 
-void peakfind(float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output, const float threshold)
+void peakfind(const float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output, const float threshold)
 {
         if (height == 0 || width == 0) return;
 	NppImage input(width, height, d_input, d_input_linestep);
@@ -768,7 +768,7 @@ void peakfind(float *d_input, int32_t d_input_linestep, int32_t width, int32_t h
         p.v1(input, d_output, threshold);
 }
 
-void peakfind_v2(float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output, const float threshold)
+void peakfind_v2(const float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output, const float threshold)
 {
         if (height == 0 || width == 0) return;
 	NppImage input(width, height, d_input, d_input_linestep);
