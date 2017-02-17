@@ -1,4 +1,4 @@
-#include <omp.h>
+// #include <omp.h>
 #include <stdio.h>
 #include "AstroAccelerate/params.h"
 #include "device_stretch_kernel.cu"

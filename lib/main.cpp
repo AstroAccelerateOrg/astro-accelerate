@@ -1,4 +1,4 @@
-#include "AstroAccelerate/headers_mains.h" // Added by Nassim.O
+#include "AstroAccelerate/headers_mains.h"
 #include "AstroAccelerate/host_main_function.h" // Added by Nassim.O
 #include "AstroAccelerate/host_debug.h"
 #include "AstroAccelerate/host_get_user_input.h"
@@ -75,8 +75,9 @@ int main(int argc, char* argv[])
 	// Analysis variables
 	float power = 2.0f;
 	float sigma_cutoff = 6.0f;
+
 	// Timing parameters
-	double start_time = omp_get_wtime();
+	clock_t start_time = clock();
 
 	// Users desired de-dispersion strategy. Pick up user defined values from the CLI.
 	get_user_input(&fp, argc, argv, &multi_file, &enable_debug, &enable_analysis,
@@ -146,6 +147,10 @@ int main(int argc, char* argv[])
 	);
 
 	// write output here, not in the library
+
+	fclose(fp);
+
+	free(output_buffer);
 
 	return 0;
 

@@ -1,5 +1,6 @@
 
-#include <omp.h>
+//#include <omp.h>
+#include <time.h>
 #include <stdio.h>
 #include "AstroAccelerate/params.h"
 #include "device_rfi_kernel.cu"
@@ -19,15 +20,15 @@ void rfi_gpu(unsigned short *d_input, int nchans, int nsamp) {
 	dim3 threads_per_block(divisions_in_f, 1);
 	dim3 num_blocks(num_blocks_f,1);
 
-	double start_t, end_t;
-	start_t = omp_get_wtime();
+	clock_t start_t, end_t;
+	start_t = clock();
 
 	rfi_gpu_kernel<<< num_blocks, threads_per_block >>>(d_input, nchans, nsamp);
 	cudaDeviceSynchronize();
 
-	end_t = omp_get_wtime();
-	float time = (float)(end_t-start_t);
-	printf("\nPerformed RFI: %f (GPU estimate)", time);
+	end_t = clock();
+	double time = (double)(end_t-start_t)/CLOCKS_PER_SEC;
+	printf("\nPerformed RFI: %lf (GPU estimate)", time);
 
 	//}}}
 

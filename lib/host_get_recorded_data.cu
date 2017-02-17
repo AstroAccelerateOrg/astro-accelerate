@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
-#include <omp.h>
+//#include <omp.h>
 
 /* Again this funtion uses a pointer to the file pointer so that it can update the position of the file pointer :)
  * Note the brakets surrounding the input_buffer, these are needed due to operator percidence...

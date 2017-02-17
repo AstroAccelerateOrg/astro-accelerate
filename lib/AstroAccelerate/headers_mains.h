@@ -7,7 +7,7 @@
 #include <math.h>
 #include <time.h>
 #include <malloc.h>
-#include <omp.h>
+//#include <omp.h>
 
 #include <cuda.h>
 #include <cuda_runtime.h>
