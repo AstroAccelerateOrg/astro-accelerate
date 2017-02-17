@@ -57,8 +57,8 @@ __global__ void zero_dm_outliers_kernel(unsigned short *d_input, int nchans, int
 		}
 	}
 */
-	if(mean > 5.0f * stdev) {
-//	if(mean > 125.0f && mean < 130.0f) {
+//	if(mean > 5.0f * stdev) {
+	if(mean > 125.0f && mean < 130.0f) {
 		for(int c = 0; c < nchans-4; c++) {
 			//float data=(float)d_input[t*nchans + c];
 			float data=0.0f;
