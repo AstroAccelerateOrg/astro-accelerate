@@ -73,7 +73,7 @@ void main_function
 	// Analysis variables
 	float power,
 	float sigma_cutoff,
-	double start_time
+	clock_t start_time
 );
 
 #endif
