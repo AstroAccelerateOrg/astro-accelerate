@@ -206,22 +206,23 @@ void main_function
 
 			if (enable_acceleration == 1)
 			{
-				gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
+				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
 				//save_data(d_output, out_tmp, gpu_outputsize);
 
 				//#pragma omp parallel for
 				for (int k = 0; k < ndms[dm_range]; k++)
 				{
-					save_data(d_output, output_buffer[dm_range][k], gpu_outputsize);
 					//memcpy(&output_buffer[dm_range][k][inc / inBin[dm_range]], &out_tmp[k * t_processed[dm_range][t]], sizeof(float) * t_processed[dm_range][t]);
+
+					save_data_offset(d_output, k * t_processed[dm_range][t], output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
 				}
 			//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
 			}
 
 			if (output_dmt == 1)
 			{
-				for (int k = 0; k < ndms[dm_range]; k++)
-					write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, output_buffer[dm_range][k], gpu_outputsize, dm_low, dm_high);
+				//for (int k = 0; k < ndms[dm_range]; k++)
+				//	write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, output_buffer[dm_range][k], gpu_outputsize, dm_low, dm_high);
 				//write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
 			}
 			if (enable_analysis == 1) 
