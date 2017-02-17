@@ -158,9 +158,9 @@ void main_function
 	tsamp_original = tsamp;
 	maxshift_original = maxshift;
 
-	float *out_tmp;
-	out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
-	memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
+	//float *out_tmp;
+	//out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
+	//memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
 
 	for (t = 0; t < num_tchunks; t++)
 	{
@@ -219,7 +219,11 @@ void main_function
 			}
 
 			if (output_dmt == 1)
-				write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
+			{
+				for (int k = 0; k < ndms[dm_range]; k++)
+					write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, output_buffer[dm_range][k], gpu_outputsize, dm_low, dm_high);
+				//write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
+			}
 			if (enable_analysis == 1) 
 			{
 				analysis_GPU(dm_range, tstart_local, t_processed[dm_range][t], ( t_processed[dm_range][t] + maxshift ), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, d_output, dm_low, dm_high, dm_step, tsamp);
@@ -229,7 +233,7 @@ void main_function
 			oldBin = inBin[dm_range];
 		}
 
-		memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
+		//memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
 
 		inc = inc + t_processed[0][t];
 		printf("\nINC:\t%ld", inc);
@@ -249,7 +253,7 @@ void main_function
 
 	cudaFree(d_input);
 	cudaFree(d_output);
-	free(out_tmp);
+	//free(out_tmp);
 	free(input_buffer);
 
 	double time_processed = ( tstart_local ) / tsamp_original;
