@@ -1,9 +1,5 @@
 range	0    150  0.1  1 1
 range	150  300  0.2  1 1
-range	300  500  0.25 1 1 
-range	500  900  0.4  2 2
-range	900  1200 0.6  4 4
-range	1200 1500 0.8  4 4
 sigma_cutoff	6
 -analysis
 -acceleration
@@ -12,4 +8,5 @@ sigma_cutoff	6
 -zero_dm
 -rfi
 -debug
-file /home/oerc-rse/oerc0113/bper.fil
+file /home/ania/ska-mid-b2.fil
+

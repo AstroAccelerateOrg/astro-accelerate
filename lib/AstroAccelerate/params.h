@@ -1,10 +1,10 @@
 #define ACCMAX 350
 #define ACCSTEP 11
-#define UNROLLS 16
-#define SNUMREG 12
-#define SDIVINT 10
-#define SDIVINDM 50
-#define SFDIVINDM 50.0f
+#define UNROLLS 32
+#define SNUMREG 14
+#define SDIVINT 14
+#define SDIVINDM 60
+#define SFDIVINDM 60.0f
 #define CARD 0
 #define NOPSSHIFT 5
 #define NOPSLOOP 3
@@ -19,6 +19,7 @@
 #define FILTER_OUT_RANGES 0
 #define RANGE_TO_KEEP 0
 
+
 //Added by Karel Adamek
 #define WARP 32
 #define HALF_WARP 16
@@ -32,3 +33,45 @@
 #define PD_SMEM_SIZE 1280
 #define PD_FIR_ACTIVE_WARPS 2
 #define PD_FIR_NWINDOWS 2
+
+
+#define UNROLLS_0 16
+#define SNUMREG_0 14
+#define SDIVINT_0 12
+#define SDIVINDM_0 32
+#define SFDIVINDM_0 32.0f
+#define UNROLLS_1 16
+#define SNUMREG_1 12
+#define SDIVINT_1 8
+#define SDIVINDM_1 40
+#define SFDIVINDM_1 40.0f
+#define UNROLLS_2 16
+#define SNUMREG_2 12
+#define SDIVINT_2 10
+#define SDIVINDM_2 50
+#define SFDIVINDM_2 50.0f
+#define UNROLLS_3 16
+#define SNUMREG_3 14
+#define SDIVINT_3 6
+#define SDIVINDM_3 60
+#define SFDIVINDM_3 60.0f
+#define UNROLLS_4 16
+#define SNUMREG_4 12
+#define SDIVINT_4 8
+#define SDIVINDM_4 50
+#define SFDIVINDM_4 50.0f
+#define UNROLLS_5 32
+#define SNUMREG_5 6
+#define SDIVINT_5 8
+#define SDIVINDM_5 40
+#define SFDIVINDM_5 40.0f
+#define UNROLLS_6 16
+#define SNUMREG_6 10
+#define SDIVINT_6 14
+#define SDIVINDM_6 32
+#define SFDIVINDM_6 32.0f
+#define UNROLLS_7 16
+#define SNUMREG_7 8
+#define SDIVINT_7 6
+#define SDIVINDM_7 60
+#define SFDIVINDM_7 60.0f
