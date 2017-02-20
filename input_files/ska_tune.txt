@@ -14,5 +14,8 @@ analysis
 -zero_dm
 -zero_dm_with_outliers
 -rfi
+fdas_custom_fft
+-fdas_inbin
+fdas_norm
 debug
 file /home/nassim/filterbank/ska-mid-b2.fil

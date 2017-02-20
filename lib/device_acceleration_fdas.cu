@@ -34,7 +34,10 @@ void acceleration_fdas(int range,
 					   float *dm_low,
 					   float *dm_high,
 					   float *dm_step,
-					   float tsamp)
+					   float tsamp,
+					   int enable_custom_fft,
+					   int enable_inbin,
+					   int enable_norm)
 {
 
 	fdas_params params;
@@ -61,8 +64,24 @@ void acceleration_fdas(int range,
 	cmdargs.sigamp = 0.1; //
 	cmdargs.basic = 0; //
 	cmdargs.kfft = 1; //
-	cmdargs.inbin = 0; //
-	cmdargs.norm = 1; //
+	if (enable_custom_fft == 1){
+		cmdargs.basic = 0; //
+		cmdargs.kfft = 1; //
+	}
+	else{
+		cmdargs.basic = 1; //
+		cmdargs.kfft  = 0; //
+	}
+	//
+	if (enable_inbin == 1)
+		cmdargs.inbin = 1; //
+	else
+		cmdargs.inbin = 0; //
+	//
+	if (enable_norm == 1)
+		cmdargs.norm = 1; //
+	else
+		cmdargs.norm = 0; //
 
 	//get signal parameters
 	acc_sig.nsamps = cmdargs.mul * 8192;  //
