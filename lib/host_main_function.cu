@@ -40,6 +40,7 @@
 #include "AstroAccelerate/params.h"
 
 
+
 void main_function
 	(
 	int argc,
@@ -152,8 +153,9 @@ void main_function
 	 */
 
 	printf("\nDe-dispersing...");
-	clock_t start_t, end_t;
-	start_t = clock();
+	GpuTimer timer;
+	timer.Start();
+
 
 	tsamp_original = tsamp;
 	maxshift_original = maxshift;
@@ -242,15 +244,16 @@ void main_function
 		tsamp = tsamp_original;
 		maxshift = maxshift_original;
 	}
-	end_t = clock();
+
+	timer.Stop();
+	float time = timer.Elapsed() / 1000;
 
 	printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
-	double time = (double) (end_t - start_t) / CLOCKS_PER_SEC;
-	printf("\nPerformed Brute-Force Dedispersion: %lf (GPU estimate)", time);
+	printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)",  time);
 	printf("\nAmount of telescope time processed: %f", tstart_local);
 	printf("\nNumber of samples processed: %ld", inc);
-	printf("\nReal-time speedup factor: %lf", ( tstart_local ) / ( time ));
+	printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
 
 	cudaFree(d_input);
 	cudaFree(d_output);
@@ -273,12 +276,14 @@ void main_function
 
 	if (enable_periodicity == 1)
 	{
-		start_t = clock();
-
+		//
+		GpuTimer timer;
+		timer.Start();
+		//
 		periodicity(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
-
-		end_t = clock();
-		time = (double) ( end_t - start_t ) / CLOCKS_PER_SEC;
+		//
+		timer.Stop();
+		float time = timer.Elapsed()/1000;
 		printf("\n\n === OVERALL PERIODICITY THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
 		printf("\nPerformed Peroidicity Location: %f (GPU estimate)", time);
@@ -291,21 +296,19 @@ void main_function
 	{
 		// Input needed for fdas is output_buffer which is DDPlan
 		// Assumption: gpu memory is free and available
-		start_t = clock();
-
+		//
+		GpuTimer timer;
+		timer.Start();
 		// acceleration(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
 		acceleration_fdas(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
-
-		end_t = clock();
-		time = (double) ( end_t - start_t ) / CLOCKS_PER_SEC;
+		//
+		timer.Stop();
+		float time = timer.Elapsed()/1000;
 		printf("\n\n === OVERALL TDAS THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
 		printf("\nPerformed Acceleration Location: %lf (GPU estimate)", time);
 		printf("\nAmount of telescope time processed: %f", tstart_local);
 		printf("\nNumber of samples processed: %ld", inc);
 		printf("\nReal-time speedup factor: %lf", ( tstart_local ) / ( time ));
-
 	}
-
-
 }
