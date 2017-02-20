@@ -11,6 +11,7 @@
 #include "device_threshold_kernel.cu" //Added by KA
 #include "device_single_FIR_kernel.cu" //Added by KA
 #include "device_SPS_inplace.cu" //Added by KA
+#include "device_SPS_long.cu" //Added by KA
 #include "device_MSD_grid.cu" //Added by KA
 #include "device_MSD_plane.cu" //Added by KA
 #include "device_MSD_limited.cu" //Added by KA

@@ -1,0 +1,7 @@
+#ifndef __SPS_LONG__
+#define __SPS_LONG__
+
+extern void PD_SEARCH_LONG_init();
+extern int PD_SEARCH_LONG(float *d_input, float *d_boxcar_values, float *d_decimated, float *d_output_SNR, int *d_output_taps, float *d_MSD, int max_boxcar_width, int nDMs, int nTimesamples, int *t_max_iterarion);
+
+#endif
