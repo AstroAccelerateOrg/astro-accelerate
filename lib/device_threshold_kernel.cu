@@ -63,7 +63,7 @@ __global__ void THR_GPU_WARP_ignore(float2 const* __restrict__ d_input, unsigned
 	}
 }
 
-__global__ void THR_GPU_WARP(float2 const* __restrict__ d_input, unsigned char *d_input_taps, float *d_output_list, int *gmem_pos, float threshold, int nTimesamples, int offset, int max_list_size) {
+__global__ void THR_GPU_WARP(float2 const* __restrict__ d_input, ushort *d_input_taps, float *d_output_list, int *gmem_pos, float threshold, int nTimesamples, int offset, int max_list_size) {
 	int local_id;
 	local_id = threadIdx.x & (WARP - 1);
 	int warp_id;

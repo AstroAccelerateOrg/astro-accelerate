@@ -11,98 +11,24 @@
 #include "timer.h"
 
 
-
-void print_to_file(float *list, int size, float tsamp, float start_time, float dm_low, float dm_step, char *filename)
-{
-	FILE *file_out;
-
-	if (( file_out = fopen(filename, "w") ) == NULL)
-	{
-		fprintf(stderr, "Error opening output file!\n");
-		exit(0);
-	}
-
-	for (int f = 0; f < size; f++)
-	{
-		fprintf(file_out, "%f, %f, %f, %f\n", list[4*f + 1]*tsamp + start_time, dm_low + list[4*f]*dm_step, list[4*f + 2], list[4*f + 3]);
-	}
-
-	fclose(file_out);
-}
-
-void export_file_nDM_nTimesamples(float *data, int nDMs, int nTimesamples, char *filename)
-{
-	FILE *file_out;
-	char str[200];
-
-	sprintf(str, "%s_DM.dat", filename);
-	if (( file_out = fopen(str, "w") ) == NULL)
-	{
-		fprintf(stderr, "Error opening output file!\n");
-		exit(0);
-	}
-
-	printf("export nDMs\n");
-	for (int s = 0; s < nTimesamples; s++)
-	{
-		for (int d = 0; d < nDMs; d++)
-		{
-			fprintf(file_out, "%f ", data[d*nTimesamples + s]);
-		}
-		fprintf(file_out, "\n");
-	}
-
-	fclose(file_out);
-
-	sprintf(str, "%s_Time.dat", filename);
-	if (( file_out = fopen(str, "w") ) == NULL)
-	{
-		fprintf(stderr, "Error opening output file!\n");
-		exit(0);
-	}
-
-	printf("export nTimesamples\n");
-	for (int d = 0; d < nDMs; d++)
-	{
-		for (int s = 0; s < nTimesamples; s++)
-		{
-			fprintf(file_out, "%f ", data[d*nTimesamples + s]);
-		}
-		fprintf(file_out, "\n");
-	}
-
-	fclose(file_out);
-
-}
-
-
-
 void analysis_GPU(int i, float tstart, int t_processed, int nsamp, int nchans, int maxshift, int max_ndms, int *ndms, int *outBin, float cutoff, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp){
-	
 	FILE *fp_out;
 	char filename[200];
-
-	int k, dm_count, remaining_time, bin_factor, counter;
+	int max_boxcar_width=16;
 
 	float start_time;
-
 	unsigned long int j;
 	unsigned long int vals;
 	int nTimesamples = t_processed;
 	int nDMs = ndms[i];
-
-	float mean, stddev, stddev_orig;
 
 	double total;
 
 	// Calculate the total number of values
 	vals = (unsigned long int) ( nDMs*nTimesamples );
 
-	//chunk=(int)(vals/24);
-
 	//start_time = ((input_increment/nchans)*tsamp);
 	start_time = tstart;
-	remaining_time = ( t_processed );
 
 	sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", start_time, dm_low[i], dm_high[i]);
 	//if ((fp_out=fopen(filename, "w")) == NULL) {
@@ -114,7 +40,7 @@ void analysis_GPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 	double signal_mean, signal_sd, total_time, partial_time;
 	float signal_mean_1, signal_sd_1, signal_mean_16, signal_sd_16, modifier;
 	float max, min, threshold;
-	int offset;
+	int offset, max_iteration;
 	float *h_output_list;
 
 	//---------------------------------------------------------------------------
@@ -122,16 +48,26 @@ void analysis_GPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 	printf("\n GPU analysis part\n\n");
 	printf("Dimensions nDMs:%d; nTimesamples:%d;\n", ndms[i], t_processed);
 	GpuTimer timer;
-
+	
 	float *d_MSD;
-	cudaMalloc((void**) &d_MSD, 3*sizeof(float));
+	if ( cudaSuccess != cudaMalloc((void**) &d_MSD, sizeof(float)*3)) printf("Allocation error!\n");
 	
 	float *d_list;
-	cudaMalloc((void**) &d_list, vals*sizeof(float));
+	if ( cudaSuccess != cudaMalloc((void**) &d_list, sizeof(float)*vals)) printf("Allocation error!\n");
 	
-	unsigned char *d_SNR_taps;
-	cudaMalloc((void**) &d_SNR_taps, vals*sizeof(unsigned char));
-	cudaMemset((void*) d_SNR_taps, 0, vals*sizeof(unsigned char));
+	float *d_decimated;
+	if ( cudaSuccess != cudaMalloc((void **) &d_decimated,  sizeof(float)*(vals/2))) printf("Allocation error!\n");
+	
+	float *d_boxcar_values;
+	if ( cudaSuccess != cudaMalloc((void **) &d_boxcar_values,  sizeof(float)*vals)) printf("Allocation error!\n");
+	
+	float *d_output_SNR;
+	if ( cudaSuccess != cudaMalloc((void **) &d_output_SNR, sizeof(float)*2*vals)) printf("Allocation error!\n");
+	
+	ushort *d_output_taps;
+	if ( cudaSuccess != cudaMalloc((void **) &d_output_taps, sizeof(int)*2*vals)) printf("Allocation error!\n");
+	
+	
 	
 	int *gmem_pos;
 	cudaMalloc((void**) &gmem_pos, 1*sizeof(int));
@@ -144,7 +80,7 @@ void analysis_GPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 	
 	//-------------- Normal MSD
 	timer.Start();
-	MSD_limited(output_buffer, d_MSD, nDMs, nTimesamples, 128);
+	MSD_limited(output_buffer, d_MSD, nDMs, nTimesamples, 128); // Those 128 are there because there was a problem with data, I'm not sure if it is still the case.
 	timer.Stop();
 	partial_time = timer.Elapsed();
 	total_time += partial_time;
@@ -156,7 +92,7 @@ void analysis_GPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 	signal_sd_1 = h_MSD[1];
 	printf("MSD Bin: %d, Mean: %f, Stddev: %f\n", 1, signal_mean_1, signal_sd_1);
 
-	offset = PD_FIR(output_buffer, d_list, PD_MAXTAPS, nDMs, nTimesamples);
+	offset = PD_FIR(output_buffer, d_list, max_boxcar_width, nDMs, nTimesamples);
 	MSD_limited(d_list, d_MSD, nDMs, nTimesamples, offset);
 	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost);
 	signal_mean_16 = h_MSD[0];
@@ -176,7 +112,8 @@ void analysis_GPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 	
 	//-------------- SPS	
 	timer.Start();
-	PD_SEARCH_INPLACE(output_buffer, d_SNR_taps, d_MSD, PD_MAXTAPS, nDMs, nTimesamples);
+	offset=PD_SEARCH_LONG(output_buffer, d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD, max_boxcar_width, nDMs, nTimesamples, &max_iteration);
+	offset = offset*(1<<(max_iteration-1));
 	timer.Stop();
 	partial_time = timer.Elapsed();
 	total_time += partial_time;
@@ -185,7 +122,7 @@ void analysis_GPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 
 	//-------------- Thresholding
 	timer.Start();
-	THRESHOLD(output_buffer, d_SNR_taps, d_list, gmem_pos, cutoff, nDMs, nTimesamples, PD_MAXTAPS, vals/4);
+	THRESHOLD(d_output_SNR, d_output_taps, d_list, gmem_pos, cutoff, nDMs, nTimesamples, offset, max_iteration, vals/4);
 	timer.Stop();
 	partial_time = timer.Elapsed();
 	total_time += partial_time;
@@ -201,9 +138,8 @@ void analysis_GPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 	float *b_list_out;
 	b_list_out = (float*) malloc(h_list_size*4*sizeof(float));
 	
-	//#pragma omp parallel for
-	for (int count = 0; count < h_list_size; count++)
-	{
+	#pragma omp parallel for
+	for (int count = 0; count < h_list_size; count++){
 		b_list_out[4*count] = h_output_list[4*count]*dm_step[i] + dm_low[i];
 		b_list_out[4*count + 1] = h_output_list[4*count + 1]*tsamp + start_time;
 		b_list_out[4*count + 2] = h_output_list[4*count + 2];
@@ -214,7 +150,10 @@ void analysis_GPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 
 	cudaFree(d_MSD);
 	cudaFree(d_list);
-	cudaFree(d_SNR_taps);
+	cudaFree(d_boxcar_values);
+	cudaFree(d_decimated);
+	cudaFree(d_output_SNR);
+	cudaFree(d_output_taps);
 	cudaFree(gmem_pos);
 	//----------> GPU part
 	//---------------------------------------------------------------------------
