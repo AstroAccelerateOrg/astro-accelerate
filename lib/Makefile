@@ -95,7 +95,7 @@ $(BUILD_DIR)/dedisperse-gpu: $(BUILD_DIR)/main.o $(ASTROLIB_DIR)/libastrolib.a
 	$(CUDA)/bin/nvcc -o $(BUILD_DIR)/dedisperse-gpu $(BUILD_DIR)/main.o -L$(ASTROLIB_DIR)/ -lastrolib ${LIB} $(NVCCFLAGS)
 
 $(BUILD_DIR)/peak_find_perf: $(BUILD_DIR)/host_peak_find_perf_main.o $(ASTROLIB_DIR)/libastrolib.a
-	$(CUDA)/bin/nvcc -o $(BUILD_DIR)/peak_find_perf $(BUILD_DIR)/host_peak_find_perf_main.o -L$(ASTROLIB_DIR)/ -lastrolib ${LIB} $(NVCCFLAGS)
+	$(CUDA)/bin/nvcc -o $(BUILD_DIR)/peak_find_perf $(BUILD_DIR)/host_peak_find_perf_main.o -L$(ASTROLIB_DIR)/ -lastrolib ${LIB} $(NVCCFLAGS) ${CUDA}/targets/x86_64-linux/lib/stubs/libnvidia-ml.so
 
 $(BUILD_DIR)/peak_find: $(BUILD_DIR)/host_peak_find_main.o $(ASTROLIB_DIR)/libastrolib.a
 	$(CUDA)/bin/nvcc -o $(BUILD_DIR)/peak_find $(BUILD_DIR)/host_peak_find_main.o -L$(ASTROLIB_DIR)/ -lastrolib ${LIB} $(NVCCFLAGS)
