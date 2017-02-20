@@ -1,10 +1,10 @@
 #include "AstroAccelerate/params.h"
-#include <omp.h>
+//#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "AstroAccelerate/headers_mains.h"
 
-void statistics(char *string, int i, cudaStream_t stream, double *in_time, double *out_time, int maxshift, int total_ndms, int nchans, int nsamp, float tsamp, float *dm_low, float *dm_high, float *dm_step, int *ndms)
+void statistics(char *string, int i, cudaStream_t stream, clock_t *in_time, clock_t *out_time, int maxshift, int total_ndms, int nchans, int nsamp, float tsamp, float *dm_low, float *dm_high, float *dm_step, int *ndms)
 {
 
 	int num_reg = SNUMREG;
@@ -17,13 +17,13 @@ void statistics(char *string, int i, cudaStream_t stream, double *in_time, doubl
 
 	if (strcmp(string, "dedisperse in") == 0)
 	{
-		*in_time = omp_get_wtime();
+		*in_time = clock();
 
 	}
 	else if (strcmp(string, "dedisperse out") == 0)
 	{
-		*out_time = omp_get_wtime();
-		time = ( *out_time - *in_time );
+		*out_time = clock();
+		time = double ( *out_time - *in_time ) / CLOCKS_PER_SEC;
 
 		printf("\nPerformed Brute-Force Dedispersion: %f (GPU estimate)", time);
 

@@ -91,7 +91,7 @@ void rfi(int nsamp, int nchans, unsigned short **input_buffer)
 	 printf("\nClipped %lf percent of channels", ((double)chan_counter/(double)nchans)*100.0);
 	 */
 	// Zero dm 
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int t = 0; t < nsamp; t++)
 	{
 		double mean = 0.0;
