@@ -1,12 +1,12 @@
 #include <stdio.h>
-#include <omp.h>
+//#include <omp.h>
 
-void debug(int test, double start_time, int range, int *outBin, int enable_debug, int analysis, int output_dmt, int multi_file, float sigma_cutoff, float power, int max_ndms, float *user_dm_low, float *user_dm_high, float *user_dm_step, float *dm_low, float *dm_high, float *dm_step, int *ndms, int nchans, int nsamples, int nifs, int nbits, float tsamp, float tstart, float fch1, float foff, int maxshift, float max_dm, int nsamp, size_t gpu_inputsize, size_t gpu_outputsize, size_t inputsize, size_t outputsize) {
+void debug(int test, clock_t start_time, int range, int *outBin, int enable_debug, int analysis, int output_dmt, int multi_file, float sigma_cutoff, float power, int max_ndms, float *user_dm_low, float *user_dm_high, float *user_dm_step, float *dm_low, float *dm_high, float *dm_step, int *ndms, int nchans, int nsamples, int nifs, int nbits, float tsamp, float tstart, float fch1, float foff, int maxshift, float max_dm, int nsamp, size_t gpu_inputsize, size_t gpu_outputsize, size_t inputsize, size_t outputsize) {
 
 	int	i;
-	double  now;
+	clock_t now;
         
-	now = omp_get_wtime();
+	now = clock();
 
 #ifdef SM_35
 	printf("\n Using GPU __ldg() code (version: sm_35)");
@@ -25,10 +25,10 @@ void debug(int test, double start_time, int range, int *outBin, int enable_debug
 		for(i=0; i<range; i++) {
 			printf("\n%f\t%f\t%f\t%d", user_dm_low[i], user_dm_high[i], user_dm_step[i], outBin[i]);
 		}
-		printf("\nGot user input:\t\t%.16g(s)\n", now - start_time);
+		printf("\nGot user input:\t\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
 		fflush(stdout);
 	} else if(test == 2) {
-		printf("\nInitialised GPU:\t\t%.16g(s)\n", now - start_time);
+		printf("\nInitialised GPU:\t\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
 		fflush(stdout);
 	} else if(test == 3) {
 		printf("\ntsamp:\t\t\t%lf", tsamp);
@@ -40,7 +40,7 @@ void debug(int test, double start_time, int range, int *outBin, int enable_debug
 		printf("\nnbits:\t\t\t%d", nbits);
 		printf("\nnsamples:\t\t%d", nsamples);
                 printf("\nnsamp:\t\t\t%d", nsamp);
-		printf("\nGot file header info:\t%.16g(s)\n", now - start_time);
+		printf("\nGot file header info:\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
 		fflush(stdout);
 	} else if(test == 4) {
 		printf("\n\nmaximum DM:\t\t%f", max_dm);
@@ -50,7 +50,7 @@ void debug(int test, double start_time, int range, int *outBin, int enable_debug
 		for(i=0; i<range; i++) {
 			printf("\n%f\t%f\t%f\t%d", dm_low[i], dm_high[i], dm_step[i], ndms[i]);
 		}
-		printf("\nCalculated strategy:\t%.16g(s)\n", now - start_time);
+		printf("\nCalculated strategy:\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
 		fflush(stdout);
 	} else if(test == 5) {
 		printf("\nMaxshift efficiency:\t\t%.2f%%", 100.0f-((float)maxshift/(float)nsamp)*100.0f); 
@@ -58,20 +58,20 @@ void debug(int test, double start_time, int range, int *outBin, int enable_debug
 		printf("\nHost Output size:\t\t%zu MB", (int) (outputsize / 1024 / 1024));
 		printf("\nDevice Input size:\t\t%zu MB", (int) (gpu_inputsize / 1024 / 1024));
 		printf("\nDevice Output size:\t\t%zu MB", (int) (gpu_outputsize / 1024 / 1024));
-	        printf("\nAllocated memory:\t%.16g(s)\n", now - start_time);
+	        printf("\nAllocated memory:\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
 		fflush(stdout);
 	}  else if(test == 6) {
-		printf("\nCalculated dm shifts:\t%.16g(s)\n", now - start_time);
+		printf("\nCalculated dm shifts:\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
 		fflush(stdout);
 	}  else if(test == 7) {
-		printf("\nGot input filterbank data:\t%.16g(s)\n", now - start_time);
+		printf("\nGot input filterbank data:\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
 		fflush(stdout);
 	}  else if(test == 8) {
-		printf("\nLoaded data onto the GPU:\t%.16g(s)\n", now - start_time);
+		printf("\nLoaded data onto the GPU:\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
 		fflush(stdout);
 	} /*else if(test == 5) {
         	printf("\npos:\t\t\t%ld", pos);
-		printf("\nGot input data:\t\t%.16g(s)\n", now - start_time);
+		printf("\nGot input data:\t\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SECOND);
 		fflush(stdout);
 	}*/
 }

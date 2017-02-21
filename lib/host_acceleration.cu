@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cufft.h>
-#include <omp.h>
+#include <time.h>
+// #include <omp.h>
 #include "AstroAccelerate/params.h"
 #include "AstroAccelerate/device_stats.h"
 #include "AstroAccelerate/device_stretch.h"
@@ -22,10 +23,10 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 	char filename[200];
 	size_t size;
 	int a, j;
-	double start_t, end_t;
+	clock_t start_t, end_t;
 	float mean, stddev;
 
-	int chunk = omp_get_num_procs();
+	// int chunk = omp_get_num_procs();
 
 	for (int i = 0; i < range; i++)
 	{
@@ -158,7 +159,7 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 		for (int dm_count = 1; dm_count < ndms[i] - 1; dm_count += 2)
 		{
 			//TEST:	for (int dm_count = 231; dm_count < 240; dm_count+=2) {
-			start_t = omp_get_wtime();
+			start_t = clock();
 			/*
 			 float dm = dm_count*dm_step[i];
 			 sprintf(filename, "acc_power-%d-%f.dat", i, dm);
@@ -242,9 +243,9 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 			 }
 			 fclose(fp_dm_o);
 			 */
-			end_t = omp_get_wtime();
-			float time = (float) ( end_t - start_t );
-			//printf("\nTime to calculate a dm trial:: %f ", time/2.0f);
+			end_t = clock();
+			float time = double ( end_t - start_t ) / CLOCKS_PER_SEC;
+			//printf("\nTime to calculate a dm trial:: %lf ", time/2.0f);
 		}
 		//printf("\n%f SET", (float)total);
 

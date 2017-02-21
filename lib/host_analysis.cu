@@ -1,4 +1,5 @@
-#include <omp.h>
+//#include <omp.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "AstroAccelerate/params.h"
@@ -46,12 +47,12 @@ void analysis_CPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 		exit(0);
 	}
 
-	double AA_time_start, AA_time;
+	clock_t AA_time_start, AA_time;
 	//*************************** TIMING START ************************* 
-	AA_time_start=omp_get_wtime();
+	AA_time_start=clock();
 	// Calculate the mean
 	total  = 0.0;
-	#pragma omp parallel for default(shared) private(j) reduction(+:total)
+	//#pragma omp parallel for default(shared) private(j) reduction(+:total)
 	for(j = 0; j < vals; j++) {
 		total += (double)output_buffer[j];
 	}
@@ -60,7 +61,7 @@ void analysis_CPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 	// Calculate standard deviation
 	total = 0;
 
-	#pragma omp parallel for default(shared) private(j) reduction(+:total)
+	//#pragma omp parallel for default(shared) private(j) reduction(+:total)
 	for(j = 0; j < vals; j++) {
 		total += (double)((output_buffer[j] - mean)*(output_buffer[j] - mean));
 	}
@@ -92,7 +93,7 @@ void analysis_CPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 		}
 	}
 
-	#pragma omp parallel for private(dm_count,k)
+	//#pragma omp parallel for private(dm_count,k)
 	for (dm_count = 0; dm_count < ndms[i]; dm_count++) {
 		int shift=(remaining_time/2)*dm_count;
 		int shift2=(remaining_time)*dm_count;
@@ -137,7 +138,7 @@ void analysis_CPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 			}
 		}
 
-		#pragma omp parallel for private(dm_count,k) 
+		//#pragma omp parallel for private(dm_count,k)
 		for (dm_count = 0; dm_count < ndms[i]; dm_count++) {
 			int shift=(remaining_time/2)*dm_count;
 			int shift2=(remaining_time)*dm_count;
@@ -156,10 +157,10 @@ void analysis_CPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 		counter++;
 	}
 	
-	AA_time = omp_get_wtime() - AA_time_start;
+	AA_time = clock() - AA_time_start;
 	//*************************** TIMING END ************************* 
 	
-	printf("\n====> TIME:%f\n\n",(float) AA_time);
+	printf("\n====> TIME:%lf\n\n",(double) AA_time / CLOCKS_PER_SEC);
 	
 	free(binned_output);
 	free(binned_output_next);

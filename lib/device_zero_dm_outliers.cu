@@ -1,5 +1,6 @@
 
-#include <omp.h>
+//#include <omp.h>
+#include <time.h>
 #include <stdio.h>
 #include "AstroAccelerate/params.h"
 #include "device_zero_dm_outliers_kernel.cu"
@@ -19,15 +20,16 @@ void zero_dm_outliers(unsigned short *d_input, int nchans, int nsamp) {
 	dim3 threads_per_block(divisions_in_t, 1);
 	dim3 num_blocks(num_blocks_t,1);
 
-	double start_t, end_t;
-	start_t = omp_get_wtime();
+	clock_t start_t, end_t;
+	start_t = clock();
 
 	zero_dm_outliers_kernel<<< num_blocks, threads_per_block >>>(d_input, nchans, nsamp);
 	cudaDeviceSynchronize();
 
-	end_t = omp_get_wtime();
-	float time = (float)(end_t-start_t);
-	printf("\nPerformed ZDM: %f (GPU estimate)", time);
+
+	end_t = clock();
+	double time = (double)(end_t-start_t) / CLOCKS_PER_SEC;
+	printf("\nPerformed ZDM: %lf (GPU estimate)", time);
 
 	//}}}
 

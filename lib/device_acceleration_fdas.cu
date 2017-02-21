@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cufft.h>
-#include <omp.h>
+//#include <omp.h>
 //
 #include <errno.h>
 #include <string.h>
@@ -34,7 +34,10 @@ void acceleration_fdas(int range,
 					   float *dm_low,
 					   float *dm_high,
 					   float *dm_step,
-					   float tsamp)
+					   float tsamp,
+					   int enable_custom_fft,
+					   int enable_inbin,
+					   int enable_norm)
 {
 
 	fdas_params params;
@@ -47,41 +50,48 @@ void acceleration_fdas(int range,
 	double t_gpu = 0.0, t_gpu_i = 0.0;
 
 	//set default arguments
-	cmdargs.nharms = 1; // ?
-	cmdargs.nsig = 0; // ?
-	cmdargs.duty = 0.10; // ?
-	cmdargs.iter = 1; // ?
-	cmdargs.writef = 1; // ?
-	cmdargs.zval = 4; // ?
-	cmdargs.mul = 1024; // ?
-	cmdargs.wsig = 0; // ?
-	cmdargs.search = 1; // ?
-	cmdargs.thresh = 10.0; // ?
-	cmdargs.freq0 = 100.5; // ?
-	cmdargs.sigamp = 0.1; // ?
-	cmdargs.basic = 0; // ?
-	cmdargs.kfft = 1; // ?
-	cmdargs.inbin = 0; // ?
-	cmdargs.norm = 1; // ?
-
-	// Since the command line is not read, add these parameters in params.h ?
-
-
-	// don't need to read the command line
-	//read_command_line(argc, argv, &cmdargs);
+	cmdargs.nharms = 1; //
+	cmdargs.nsig = 0; //
+	cmdargs.duty = 0.10; //
+	cmdargs.iter = 1; //
+	cmdargs.writef = 1; //
+	cmdargs.zval = 4; //
+	cmdargs.mul = 1024; //
+	cmdargs.wsig = 0; //
+	cmdargs.search = 1; //
+	cmdargs.thresh = 10.0; //
+	cmdargs.freq0 = 100.5; //
+	cmdargs.sigamp = 0.1; //
+	cmdargs.basic = 0; //
+	cmdargs.kfft = 1; //
+	if (enable_custom_fft == 1){
+		cmdargs.basic = 0; //
+		cmdargs.kfft = 1; //
+	}
+	else{
+		cmdargs.basic = 1; //
+		cmdargs.kfft  = 0; //
+	}
+	//
+	if (enable_inbin == 1)
+		cmdargs.inbin = 1; //
+	else
+		cmdargs.inbin = 0; //
+	//
+	if (enable_norm == 1)
+		cmdargs.norm = 1; //
+	else
+		cmdargs.norm = 0; //
 
 	//get signal parameters
-	acc_sig.nsamps = cmdargs.mul * 8192;  // nsamp ?
-	acc_sig.freq0 = cmdargs.freq0; // fch0 ?
-	acc_sig.mul = cmdargs.mul; 	// ?
-	acc_sig.zval = cmdargs.zval; // ?
-	acc_sig.nsig = cmdargs.nsig; // ?
-	acc_sig.nharms = cmdargs.nharms; // ?
-	acc_sig.duty = cmdargs.duty; // ?
-	acc_sig.sigamp = cmdargs.sigamp; // ?
-
-	// Check devices
-	//fdas_cuda_check_devices(0);
+	acc_sig.nsamps = cmdargs.mul * 8192;  //
+	acc_sig.freq0 = cmdargs.freq0; //
+	acc_sig.mul = cmdargs.mul; 	//
+	acc_sig.zval = cmdargs.zval; //
+	acc_sig.nsig = cmdargs.nsig; //
+	acc_sig.nharms = cmdargs.nharms; //
+	acc_sig.duty = cmdargs.duty; //
+	acc_sig.sigamp = cmdargs.sigamp; //
 
 	int nearest = (int) floorf(log2f((float) processed));
 	printf("\nnearest:\t%d", nearest);
@@ -89,14 +99,12 @@ void acceleration_fdas(int range,
 	processed=samps;
 	printf("\nsamps:\t%d", samps);
 
-
 	params.nsamps = samps;
 
 	/// Print params.h
 	fdas_print_params_h();
 
 	// prepare signal
-
 
 	params.offset = presto_z_resp_halfwidth((double) ZMAX, 0); //array offset when we pick signal points for the overlp-save method
 	printf(" Calculated overlap-save offsets: %d\n", params.offset);
