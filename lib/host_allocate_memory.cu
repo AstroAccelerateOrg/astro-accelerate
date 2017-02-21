@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
-#include <omp.h>
+//#include <omp.h>
 #include <cuda.h>
 #include "AstroAccelerate/params.h"
 

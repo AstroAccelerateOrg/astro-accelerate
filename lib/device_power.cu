@@ -1,4 +1,4 @@
-#include <omp.h>
+//#include <omp.h>
 #include <stdio.h>
 #include <cufft.h>
 #include "AstroAccelerate/params.h"

@@ -1,4 +1,4 @@
-#include "AstroAccelerate/headers_mains.h" // Added by Nassim.O
+#include "AstroAccelerate/headers_mains.h"
 #include "AstroAccelerate/host_main_function.h" // Added by Nassim.O
 #include "AstroAccelerate/host_debug.h"
 #include "AstroAccelerate/host_get_user_input.h"
@@ -22,8 +22,11 @@ int main(int argc, char* argv[])
 	int output_dmt = 0;
 	int enable_zero_dm = 0;
 	int enable_zero_dm_with_outliers = 0;
-	int enable_rfi=0;
-	int *inBin = NULL;
+	int enable_rfi = 0;
+	int enable_fdas_custom_fft = 0;
+	int enable_fdas_inbin = 0;
+	int enable_fdas_norm = 0;
+    int *inBin = NULL;
 	int *outBin = NULL;
 	int *ndms = NULL;
 	int maxshift = 0;
@@ -75,13 +78,15 @@ int main(int argc, char* argv[])
 	// Analysis variables
 	float power = 2.0f;
 	float sigma_cutoff = 6.0f;
+
 	// Timing parameters
-	double start_time = omp_get_wtime();
+	clock_t start_time = clock();
 
 	// Users desired de-dispersion strategy. Pick up user defined values from the CLI.
 	get_user_input(&fp, argc, argv, &multi_file, &enable_debug, &enable_analysis,
 	    &enable_periodicity, &enable_acceleration, &output_dmt, &enable_zero_dm,
-	    &enable_zero_dm_with_outliers, &enable_rfi, &nboots, &ntrial_bins, &navdms,
+	    &enable_zero_dm_with_outliers, &enable_rfi, &enable_fdas_custom_fft,
+	    &enable_fdas_inbin, &enable_fdas_norm, &nboots, &ntrial_bins, &navdms,
 	    &narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff,
 	    &range, &user_dm_low, &user_dm_high, &user_dm_step);
 	if (enable_debug == 1)
@@ -131,8 +136,8 @@ int main(int argc, char* argv[])
 	  // Counters and flags
 	  i, t, dm_range, range, enable_debug, enable_analysis, enable_acceleration,
 	  enable_periodicity, output_dmt, enable_zero_dm, enable_zero_dm_with_outliers,
-	  enable_rfi, inBin, outBin, ndms, maxshift, max_ndms,
-	  max_samps, num_tchunks, total_ndms, multi_file, max_dm,
+	  enable_rfi, enable_fdas_custom_fft, enable_fdas_inbin, enable_fdas_norm, inBin,
+	  outBin, ndms, maxshift, max_ndms, max_samps, num_tchunks, total_ndms, multi_file, max_dm,
 	  // Memory sizes and pointers
 	  inputsize, outputsize, gpu_inputsize, gpu_outputsize, gpu_memory,
 	  input_buffer, output_buffer, d_input, d_output, dmshifts, user_dm_low,
@@ -146,6 +151,10 @@ int main(int argc, char* argv[])
 	);
 
 	// write output here, not in the library
+
+	fclose(fp);
+
+	free(output_buffer);
 
 	return 0;
 
