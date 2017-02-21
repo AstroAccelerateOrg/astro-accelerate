@@ -19,7 +19,13 @@
 |=============================================================================|
 |  No running processes found                                                 |
 +-----------------------------------------------------------------------------+
- 
+
+ If you have a multi-gpu system, you need to modify 2 files to use one specific card:
+ - edit the lib/AstroAccelerate/params.h file so that the CARD variable is set to the right card number id:
+#define CARD ... 
+ - edit the Makefile and set the GENCODE_FLAG to the correct architecture:
+ GENCODE_FLAGS := $(GENCODE_SM61) if I have a Pascal architecture ...
+
 2. Upgrade your CUDA version to CUDA 8.0, you can get this here: https://developer.nvidia.com/cuda-downloads
 
 3. Upgrade to the latest version of AstroAccelerate (this now has acceleration searching, zero dm and some limited RFI mitigation), 
