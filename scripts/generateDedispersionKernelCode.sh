@@ -10,7 +10,7 @@ cat "$kernelTemplatePrefix"_header_template.cu > $kernelFilename
 
 for range in `seq 0 $maxRange`
 do
-	cat "$kernelTemplatePrefix"_template.cu | sed "s/{RANGE}/_$range/g" >> $kernelFilename
+	cat "$kernelTemplatePrefix"_template.cu | sed "s/__RANGE__/_$range/g" >> $kernelFilename
 done
 
 cat "$kernelTemplatePrefix"_footer_template.cu >> $kernelFilename
