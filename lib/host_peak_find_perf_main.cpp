@@ -16,7 +16,7 @@
 
 class PowerMonitor {
 public:
-    PowerMonitor() : active(true), pm(&PowerMonitor::monitor_power, this) {
+    PowerMonitor() : active(true), pm(&PowerMonitor::monitor_power, this), max_power(0) {
         sleep(1);
     }
 
@@ -43,7 +43,7 @@ public:
     }
 
     void csv_report() {
-        std::cout << stats.N << ", " << stats.mean() << ", " << stats.variance();
+        std::cout << stats.N << ", " << max_power << ", " << stats.mean() << ", " << stats.variance();
     }
 
 private:
@@ -56,6 +56,7 @@ private:
              m.unlock();
              do {
                  nvmlDeviceGetPowerUsage(device, &power);
+                 max_power = std::max(max_power, power);
                  stats(power);
                  usleep(1);
              } while (!m_end);
@@ -70,7 +71,7 @@ private:
     std::condition_variable start_cond;
     volatile bool m_end;
     accumulator<unsigned int, unsigned long long> stats;
-
+    unsigned int max_power;
 };
 
 template<typename Func>
@@ -108,7 +109,7 @@ int main(int argc, char * argv[]) {
         ntrials = atoi(argv[1]);
     }
     std::cerr << "Running with " << ntrials << " trials\n";
-    std::cout << "Algorithm, DataSize(MB), data_rate(GB/s), mean time, variance, peaks, power samples, mean power (mW), power variance\n";
+    std::cout << "Algorithm, DataSize(MB), data_rate(GB/s), mean time, variance, peaks, power samples, max power (mW), mean power (mW), power variance\n";
 
     while (true) {
 	    data.resize(data.size() + 128ul*1024*1024/sizeof(float));
