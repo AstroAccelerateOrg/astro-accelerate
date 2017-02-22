@@ -31,11 +31,6 @@ void  fdas_print_params_h()
   printf("\nThread block size in y direction for 2-D thread block power spectrum GPU kernels : PTBSIZEY %d\n", PTBSIZEY);
   printf("\n\nCustom FFT specific parameters:\n\t------------------\n" );
   printf("\nTAPS \t%d\n", TAPS);
-  printf("\nFFT_SIZE \t%d\n", FFT_SIZE);
-  printf("\nNWARPS \t%d\n", NWARPS);
-  printf("\nGROUPS \t%d\n", GROUPS);
-  printf("\nWPG \t%d\n", WPG);
-  printf("\nWARP \t%d\n", WARP);
   printf("\n\n\t--------------\n\n");
 }
 
