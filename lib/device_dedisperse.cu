@@ -1,36 +1,20 @@
 #include <stdio.h>
 #include "AstroAccelerate/params.h"
 #include "AstroAccelerate/device_bin.h"
+#include "AstroAccelerate/kernel_params.h"
+#include "AstroAccelerate/kernel_functions.h"
 
 #define NUMDMRANGES 8
 
 //{{{ dedisperse 
 
-static const int UNROLLS_DM[] =  {16, 16, 16, 16, 16, 32, 16, 16};
-static const int SNUMREG_DM[] =  {14, 12, 12, 14, 12, 6,  10, 8};
-static const int SDIVINT_DM[] =  {12, 8,  10, 6,  8,  8,  14, 6};
-static const int SDIVINDM_DM[] = {32, 40, 50, 60, 50, 40, 32, 60};
-
-typedef void (*shared_dedisperse_kernel_FTYPE)(int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep);
-
-shared_dedisperse_kernel_FTYPE shared_dedisperse_kernel_FARRAY[NUMDMRANGES] = {
-	shared_dedisperse_kernel_range_0,
-	shared_dedisperse_kernel_range_1,
-	shared_dedisperse_kernel_range_2,
-	shared_dedisperse_kernel_range_3,
-	shared_dedisperse_kernel_range_4,
-	shared_dedisperse_kernel_range_5,
-	shared_dedisperse_kernel_range_6,
-	shared_dedisperse_kernel_range_7
-};
-
 void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned short *d_input, float *d_output, int nchans, int nsamp, int maxshift, float *tsamp, float *dm_low, float *dm_high, float *dm_step, int *ndms)
 {
 
 	// FOR KEPLER SMEM....
-	float shift_one = ( SDIVINDM_DM[i] - 1 ) * ( dm_step[i] / ( *tsamp ) );
-	int shifta = (int) floorf(shift_one * dmshifts[nchans - 1]) + ( SDIVINT_DM[i] - 1 ) * 2;
-	int lineshift = shifta + ( ( SNUMREG_DM[i] - 1 ) * 2 * SDIVINT_DM[i] );
+	float shift_one = ( SDIVINDM_ARRAY[i] - 1 ) * ( dm_step[i] / ( *tsamp ) );
+	int shifta = (int) floorf(shift_one * dmshifts[nchans - 1]) + ( SDIVINT_ARRAY[i] - 1 ) * 2;
+	int lineshift = shifta + ( ( SNUMREG_ARRAY[i] - 1 ) * 2 * SDIVINT_ARRAY[i] );
 	printf("\n%f", dm_step[i] / ( *tsamp ));
 	printf("\n%f", dmshifts[nchans - 1]);
 	printf("\n%d", shifta);
@@ -38,13 +22,13 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 
 	// is long enough for the algorithm to run without an out of bounds
 	// access...
-	if (( ( SDIVINT_DM[i] - 1 ) + ( ( SDIVINDM_DM[i] - 1 ) * SDIVINT_DM[i] ) - 1 ) > lineshift)
+	if (( ( SDIVINT_ARRAY[i] - 1 ) + ( ( SDIVINDM_ARRAY[i] - 1 ) * SDIVINT_ARRAY[i] ) - 1 ) > lineshift)
 	{
 
 		/* FOR FERMI SMEM....
-		 float shift_one = (SDIVINDM_DM[i]-1)*(dm_step[i]/(*tsamp));
+		 float shift_one = (SDIVINDM_ARRAY[i]-1)*(dm_step[i]/(*tsamp));
 		 int shift = (int)floorf(shift_one*dmshifts[nchans-1]);
-		 int lineshift = shift+((SNUMREG_DM[i]-1)*SDIVINT_DM[i]);
+		 int lineshift = shift+((SNUMREG_ARRAY[i]-1)*SDIVINT_ARRAY[i]);
 		 //printf("\n%f",dm_step[i]/(*tsamp));
 		 //printf("\n%f",dmshifts[nchans-1]);
 		 //printf("\n%d",shift);
@@ -55,9 +39,9 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 		//{{{ Dedisperse data on the GPU 
 		float startdm = dm_low[i];
 
-		int divisions_in_t = SDIVINT_DM[i];
-		int divisions_in_dm = SDIVINDM_DM[i];
-		int num_blocks_t = t_processed / ( divisions_in_t * 2 * SNUMREG_DM[i] );
+		int divisions_in_t = SDIVINT_ARRAY[i];
+		int divisions_in_dm = SDIVINDM_ARRAY[i];
+		int num_blocks_t = t_processed / ( divisions_in_t * 2 * SNUMREG_ARRAY[i] );
 		int num_blocks_dm = ndms[i] / divisions_in_dm;
 
 //		printf("\ntpro:\t%d, numb:\t%d", t_processed, num_blocks_t), fflush(stdout);
@@ -70,8 +54,8 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 		dim3 threads_per_block(divisions_in_t, divisions_in_dm);
 		dim3 num_blocks(num_blocks_t, num_blocks_dm);
 
-		int array_size = SDIVINT_DM[i]*SDIVINDM_DM[i];
-		int shared_mem = UNROLLS_DM[i]*(array_size + 1) * sizeof(ushort2);
+		int array_size = SDIVINT_ARRAY[i]*SDIVINDM_ARRAY[i];
+		int shared_mem = UNROLLS_ARRAY[i]*(array_size + 1) * sizeof(ushort2);
 
 		cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
 		cudaFuncSetCacheConfig(shared_dedisperse_kernel_FARRAY[i], cudaFuncCachePreferShared);
@@ -90,4 +74,3 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 }
 
 //}}}
-

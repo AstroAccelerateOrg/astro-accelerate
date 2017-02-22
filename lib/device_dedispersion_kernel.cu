@@ -4,6 +4,7 @@
 #define ARRAYSIZE SDIVINT * SDIVINDM
 
 #include "float.h"
+#include "AstroAccelerate/kernel_params.h"
 
 // Stores temporary shift values
 __device__ __constant__ float dm_shifts[8192];

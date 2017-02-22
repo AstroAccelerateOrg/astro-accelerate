@@ -6,9 +6,10 @@ numTrials=5
 rm -rf profile_optimum
 mkdir profile_optimum
 
+maxRange=${1-7}
 
-for range in {0,1,2,3,4,5,6,7}
-	do
+for range in `seq 0 $maxRange` 
+do
 	rm range${range}Stats.txt
 	rm -rf profile_results
 	mkdir profile_results
