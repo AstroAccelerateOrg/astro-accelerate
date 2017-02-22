@@ -108,7 +108,7 @@ int main(int argc, char * argv[]) {
         ntrials = atoi(argv[1]);
     }
     std::cerr << "Running with " << ntrials << " trials\n";
-    std::cout << "Algorithm, DataSize, data_rate(GB/s), mean time, variance, peaks, power samples, mean power (mW), power variance\n";
+    std::cout << "Algorithm, DataSize(MB), data_rate(GB/s), mean time, variance, peaks, power samples, mean power (mW), power variance\n";
 
     while (true) {
 	    data.resize(data.size() + 128ul*1024*1024/sizeof(float));
@@ -118,7 +118,7 @@ int main(int argc, char * argv[]) {
 		    auto height = 4096;
 		    std::vector<unsigned short, managed_allocator<unsigned short>> output(data.size(), 0);
 		    peakfind(data.data(), 0, data.size(), 1, output.data());
-                    test_algorithm(data, output, width, 1, peakfind, ntrials, "v1-1D");
+                    test_algorithm(data, output, data.size(), 1, peakfind, ntrials, "v1-1D");
 
 		    peakfind(data.data(), 0, width, height, output.data());
                     test_algorithm(data, output, width, height, peakfind, ntrials, "v1");
