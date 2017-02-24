@@ -121,6 +121,9 @@ int main(int argc, char * argv[]) {
 		    peakfind(data.data(), 0, data.size(), 1, output.data());
                     test_algorithm(data, output, data.size(), 1, peakfind, ntrials, "v1-1D");
 
+		    peakfind_npp(data.data(), 0, width, height, output.data());
+                    test_algorithm(data, output, width, height, peakfind_npp, ntrials, "npp");
+
 		    peakfind(data.data(), 0, width, height, output.data());
                     test_algorithm(data, output, width, height, peakfind, ntrials, "v1");
 

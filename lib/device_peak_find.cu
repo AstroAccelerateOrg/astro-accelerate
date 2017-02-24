@@ -90,17 +90,17 @@ struct float3x3 {
     float z1, z2, z3;
 };
 
-__device__ Npp16u is_peak(const float original_value, const float dilated_value, const float threshold=0.0f)
+__device__ Npp16u is_peak(const float original_value, const float dilated_value, const float threshold)
 {
     return (original_value > threshold && original_value == dilated_value) ? 1u: 0u;
 }
 
-__device__ ushort4 is_peak(const float4 original_values, const float4 dilated_values)
+__device__ ushort4 is_peak(const float4 original_values, const float4 dilated_values, const float threshold)
 {
-    return ushort4 { (original_values.x == dilated_values.x) ? 1u: 0u,
-                     (original_values.y == dilated_values.y) ? 1u: 0u,
-                     (original_values.z == dilated_values.z) ? 1u: 0u,
-                     (original_values.w == dilated_values.w) ? 1u: 0u };
+    return ushort4 { (original_values.x > threshold && original_values.x == dilated_values.x) ? 1u: 0u,
+                     (original_values.y > threshold && original_values.y == dilated_values.y) ? 1u: 0u,
+                     (original_values.z > threshold && original_values.z == dilated_values.z) ? 1u: 0u,
+                     (original_values.w > threshold && original_values.w == dilated_values.w) ? 1u: 0u };
 }
 
 __device__ float3 load_row(const Npp32f * input, int idx) {
@@ -260,12 +260,12 @@ __device__ float dilate3x3(const float3x3 i) {
      return max;
 }
 
-__global__ void find_peak(const Npp32f *d_input, const Npp32f * d_dilated, Npp16u * d_output)
+__global__ void find_peak(const Npp32f *d_input, const Npp32f * d_dilated, Npp16u * d_output, const float threshold)
 {
     auto idx = blockDim.x * blockIdx.x + threadIdx.x;
     auto orig_values = reinterpret_cast<const float4*>(d_input)[idx];
     auto dilated_values = reinterpret_cast<const float4*>(d_dilated)[idx];
-    (reinterpret_cast<ushort4*>(d_output))[idx] = is_peak(orig_values, dilated_values); 
+    (reinterpret_cast<ushort4*>(d_output))[idx] = is_peak(orig_values, dilated_values, threshold); 
 }
 
 __global__ void dilate_peak_find_1d(const float * d_input, uint16_t * d_output, const int width, const float threshold)
@@ -663,8 +663,7 @@ public:
 	cudaStreamSynchronize(stream);
     }
 
-    void v2(const NppImage & input, unsigned short * output, const float threshold) {
-#if 0
+    void npp(const NppImage & input, unsigned short * output, const float threshold) {
 	int blockSize;   // The launch configurator returned block size 
 	int minGridSize; // The minimum grid size needed to achieve the 
 	// maximum occupancy for a full device launch 
@@ -678,9 +677,19 @@ public:
 	// Round up according to array size 
 	int gridSize = ((input.size().width * input.size().height) + blockSize - 1) / blockSize; 
 	gridSize /= 4; //we operate on four elements at a time
-        std::cout << "Gridsize " << gridSize << std::endl;	
-	runKernels(input, output, gridSize, blockSize, this->stream);
-#endif
+	//std::cout << "Gridsize: " << gridSize << " width " << input.size().width << " height " << input.size().height << " blockSize " << blockSize << std::endl;
+
+        AllocatedNppImage dilated(input.size().width, input.size().height);
+        NppiPoint srcOffset = {0, 0};
+        //Do a 3x3 image dilation
+	nppSetStream(stream);
+	auto status = nppiDilate3x3Border_32f_C1R((Npp32f*)input.data, input.linestep, input.size(), srcOffset, (Npp32f*)dilated.data, dilated.linestep, dilated.size(), NPP_BORDER_REPLICATE);
+        if (status != NPP_SUCCESS) handle_npp_error(status);
+	find_peak<<<gridSize, blockSize, 0, stream>>>(input.data, dilated.data, output, threshold);
+ 	cudaStreamSynchronize(stream);
+    }
+
+    void v2(const NppImage & input, unsigned short * output, const float threshold) {
 	runFusedKernelv2(input, output, threshold);
 	cudaStreamSynchronize(stream);
     }
@@ -728,20 +737,17 @@ private:
         dilate_peak_find<<<gridSize, blockDim, 0, stream>>>(input.data, output, input.size().width, input.size().height, threshold);
     }
 
-    void runKernels(const NppImage & input, unsigned short * output, int gridSize, int blockSize, cudaStream_t stream) {
-	//std::cout << "Gridsize: " << gridSize << " width " << input.size().width << " height " << input.size().height << " blockSize " << blockSize << std::endl;
-
-        AllocatedNppImage dilated(input.size().width, input.size().height);
-        NppiPoint srcOffset = {0, 0};
-        //Do a 3x3 image dilation
-	nppSetStream(stream);
-	auto status = nppiDilate3x3Border_32f_C1R((Npp32f*)input.data, input.linestep, input.size(), srcOffset, (Npp32f*)dilated.data, dilated.linestep, dilated.size(), NPP_BORDER_REPLICATE);
-        if (status != NPP_SUCCESS) handle_npp_error(status);
-	find_peak<<<gridSize, blockSize, 0, stream>>>(input.data, dilated.data, output);
-    }
-
     cudaStream_t stream;
 };
+
+void peakfind_npp(const float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output, const float threshold)
+{
+        if (height == 0 || width == 0) return;
+	NppImage input(width, height, d_input, d_input_linestep);
+	PeakFinderContext p(width, height);
+        p.npp(input, d_output, threshold);
+}
+
 
 void peakfind_v4(const float *d_input, int32_t d_input_linestep, int32_t width, int32_t height, unsigned short *d_output, const float threshold)
 {
