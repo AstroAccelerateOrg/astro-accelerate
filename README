@@ -1,96 +1,124 @@
-Notes:
-
-1. The v2 code should work on any Fermi, Kepler or Maxwell GPU. Its unoptimised (caching version, not shared memory). 
-When I've debugged the shared memory version I'll send that on. Typically its about 2x faster than this version.
-
-2. To compile for GK110 use "make gpu=sm_35". This version uses the read-only texture cache on this chipset, its about 30% quicker than the vanilla version. 
-
-3. This code only uses one GPU.
-
-4. To configure the code on a multi-gpu system you need to figure out which GPU card you want to use. Do a nvidia-smi:
-
-:~$ nvidia-smi 
-Wed Sep 24 17:52:19 2014       
-+------------------------------------------------------+                       
-| NVIDIA-SMI 343.22     Driver Version: 343.22         |                       
+1. At the prompt type nvidia-smi. On my machine I see….
+ 
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 375.20                 Driver Version: 375.20                    |
 |-------------------------------+----------------------+----------------------+
 | GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
 | Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
 |===============================+======================+======================|
-|   0  GeForce GTX 780 Ti  Off  | 0000:01:00.0     N/A |                  N/A |
-| 31%   34C    P8    N/A /  N/A |     11MiB /  3071MiB |     N/A      Default |
+|   0  Tesla P100-PCIE...  On   | 0000:02:00.0     Off |                    0 |
+| N/A   32C    P0    26W / 250W |      0MiB / 16308MiB |      0%      Default |
 +-------------------------------+----------------------+----------------------+
-|   1  GeForce GTX 460     Off  | 0000:06:00.0     N/A |                  N/A |
-| 40%   35C   P12    N/A /  N/A |    106MiB /  2047MiB |     N/A      Default |
+|   1  Tesla P100-PCIE...  On   | 0000:03:00.0     Off |                    0 |
+| N/A   34C    P0    25W / 250W |      0MiB / 16308MiB |      0%      Default |
 +-------------------------------+----------------------+----------------------+
-                                                                               
+                                                                              
 +-----------------------------------------------------------------------------+
-| Compute processes:                                               GPU Memory |
-|  GPU       PID  Process name                                     Usage      |
+| Processes:                                                       GPU Memory |
+|  GPU       PID  Type  Process name                               Usage      |
 |=============================================================================|
-|    0            Not Supported                                               |
-|    1            Not Supported                                               |
+|  No running processes found                                                 |
 +-----------------------------------------------------------------------------+
 
+ If you have a multi-gpu system, you need to modify 2 files to use one specific card:
+ - edit the lib/AstroAccelerate/params.h file so that the CARD variable is set to the right card number id:
+#define CARD ... 
+ - edit the Makefile and set the GENCODE_FLAG to the correct architecture:
+ GENCODE_FLAGS := $(GENCODE_SM61) if I have a Pascal architecture ...
 
-I want to use my fast card, GTX 780. So I edit the lib/AstroAccelerate/params.h file so that the CARD variable is set to 0:
+2. Upgrade your CUDA version to CUDA 8.0, you can get this here: https://developer.nvidia.com/cuda-downloads
 
-#define CARD 0
+3. Upgrade to the latest version of AstroAccelerate (this now has acceleration searching, zero dm and some limited RFI mitigation), 
+you can pull this from git or download a tar: https://github.com/AstroAccelerateOrg/astro-accelerate
 
-5. Type make to make the code (ensuring you have cuda and drivers installed etc...) goto the lib dir and type:
+4. Then cd to lib and make clean && make –j 8
 
-$ make clean && make -j 8
-
-6. I now create some test files...
-
-fake -nbits 32 -tobs 60 -dm 45 -tsamp 491.52 -fch1 151 -foff 0.012207031250 -nchans 2592 -period 500 -snrpeak 0.5 > lotaas_500_0.5.dat
-fake -nbits 32 -tobs 60 -dm 45 -tsamp 491.52 -fch1 151 -foff 0.012207031250 -nchans 2592 -period 500 -snrpeak 1 > lotaas_500_1.dat
-fake -nbits 32 -tobs 60 -dm 45 -tsamp 491.52 -fch1 151 -foff 0.012207031250 -nchans 2592 -period 500 -snrpeak 8 > lotaas_500_8.dat
-fake -nbits 32 -tobs 60 -dm 45 -tsamp 491.52 -fch1 151 -foff 0.012207031250 -nchans 2592 -period 18.125 -snrpeak 0.25 > lotaas_18.125_0.25.dat
-
-7. Next you need an Input file.... In the tar there are examples. Look at lotaas_18.txt in the input_file dir:
-
-range   0    60    0.050 1  1
-range   60   120   0.050 2  2
-range   120  240   0.100 4  4
-range   240  480   0.200 8  8
-sigma_cutoff    6
+5. If this compiles then you need to create an input file. This should look like:
+ 
+range    0    150  0.1  1 1
+range    150  300  0.2  1 1
+range    300  500  0.25 1 1
+range    500  900  0.4  2 2
+range    900  1200 0.6  4 4
+range    1200 1500 0.8  4 4
+range    1500 2000 1.0  4 4
+range    2000 3000 2.0  8 8
+sigma_cutoff     6
 analysis
+-acceleration
+-periodicity
+-output_dmt
+-zero_dm
+-zero_dm_with_outliers
+-rfi
+fdas_custom_fft
+-fdas_inbin
+fdas_norm
 debug
-periodicity
-file <location of your filterbank file>
+file /home/wa78/filterbank/ska-mid-b2.fil
+ 
+You can turn any of the features off by adding a character at the beginning of the line (here "-" is used).
+Let me explain them …
 
-Not that a "-" in front of a keyword switches a feature off.
-Let me explain this line by line.
+range tells the code to dedisperse and has input
+ 
+range dm_low dm_high dm_step downsampling_in_input_time downsampling_in_output_time
+ 
+so…
+ 
+range 500  900  0.4  2 2
+ 
+tells the code to dedisperse from a dm of 500 to a dm of 900 in steps of 0.4 (making (900-500)/0.4 dm trials) with input data 
+downsampled (in time by 2, so 64uS would be binned into 128uS samples).
+ 
+sigma_cutoff is the SNR cutoff for your single pulse search.
+ 
+analysis this tells the code to analyse the dedispersed data outputting data into the output directory, these are binary files and so 
+can be read in gnuplot (for example, you could use python etc) using:
+splot "./57663_22588_B0531+21_000007.fil/global_analysed_frb.dat" binary format="%float%float%float%float" u 1:2:3 palette
+ 
+acceleration this does a Fourier domain acceleration search on the data.
+ 
+periodicity this looks for periodic objects
+ 
+output_dmt this outputs the entire dedispersed data to a file (in ASCII)
+ 
+zero_dm you can guess
+ 
+zero_dm_with_outliers this is part of the rfi mitigation routine
+ 
+rfi again this trys to eliminate RFI (we’ve had good results from Lovell data so far, if you have any data with RFI that you could
+share that would be very helpful).
 
-range <start dm> <end dm> <dm step size> <decimation in time, in f,t input> <decimation in time, in dm,t output>:
-The above example "bins" at about 6x the diagonal dm in this example.
+fdas_custom_fft this runs fourier domain acceleration search with a custom FFT
 
-sigma_cutoff <value>:
-This is the number of sigma (SNR) above which candidates will be reported. Currently this is the same for single pulses and periodicity search.
+fdas_inbin this performs interbinning on the complex output
 
-power <value>: 
-this changes the 1/f^2 to 1/f^power in the dm trial.
+fdas_norm this performs PRESTO block median normalization 
+ 
+debug this gives detailed output
+ 
+file <your input file>
+ 
+One thing to note is that this version works with 8 bit data. If you have input data that’s different to 8 bits let me know and 
+I’ll add this to the code (we have other versions). 
 
-analysis:
-This turns on and off the single pulse search.
+6. Next if you plan to use this on the same machine to search many filterbank files from the same observation you should optimise 
+the code:
 
-output_dmt:
-This outputs the de-dispersed space into a ASCII text file.
+Once you have your input file cd to the scripts directory. In it modify the profiling.sh script, change:
+ 
+./astro-accelerate.sh ../input_files/ska_tune.txt
+ 
+to
+ 
+./astro-accelerate.sh ../input_files/<your input file>
+ 
 
-debug:
-This outputs lots of info
+7. Run ./profiling.sh
 
-periodicity:
-This looks for periodic things, it doesn't yet do an acceleration search.
+ 
+This will create an optimised code for your search and GPU type.
+ 
 
-file:
-This is the location of the input file.
-
-8. Try and run the code, cd to teh scripts dir and type:
-
-$ ./astro-accelerate.sh ./lotaas_18.txt
-
-Lots of output. Hopefully all ok. 
-
-
+8. You can then use ./astro-accelerate.sh ../input_files/<your input file>

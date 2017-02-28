@@ -6,7 +6,10 @@ sigma_cutoff	6
 -periodicity
 -output_dmt
 -zero_dm
+-zero_dm_with_outliers
 -rfi
--debug
+-fdas_custom_fft
+-fdas_inbin
+-fdas_norm
+debug
 file /home/ania/ska-mid-b2.fil
-

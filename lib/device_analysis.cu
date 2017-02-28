@@ -201,7 +201,7 @@ void analysis_GPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 	float *b_list_out;
 	b_list_out = (float*) malloc(h_list_size*4*sizeof(float));
 	
-	#pragma omp parallel for
+	//#pragma omp parallel for
 	for (int count = 0; count < h_list_size; count++)
 	{
 		b_list_out[4*count] = h_output_list[4*count]*dm_step[i] + dm_low[i];

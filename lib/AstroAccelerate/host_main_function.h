@@ -19,7 +19,11 @@ void main_function
 	int enable_periodicity,
 	int output_dmt,
 	int enable_zero_dm,
+	int enable_zero_dm_with_outliers,
 	int enable_rfi,
+	int enable_fdas_custom_fft,
+	int enable_fdas_inbin,
+	int enable_fdas_norm,
 	int *inBin,
 	int *outBin,
 	int *ndms,
@@ -72,7 +76,7 @@ void main_function
 	// Analysis variables
 	float power,
 	float sigma_cutoff,
-	double start_time
+	clock_t start_time
 );
 
 #endif

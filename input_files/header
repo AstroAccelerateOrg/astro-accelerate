@@ -1,0 +1,13 @@
+range	0.000	 444.00  0.125 1 8
+range	444.00	 888.00  0.250 2 16
+range	888.00	 1776.00 0.500 4 32
+sigma_cutoff	8
+sigma_constant 2.0
+analysis
+acceleration
+-periodicity
+-output_dmt
+-zero_dm
+zero_dm_with_outliers
+rfi
+debug

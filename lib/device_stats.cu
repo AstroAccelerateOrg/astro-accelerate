@@ -1,4 +1,5 @@
-#include <omp.h>
+//#include <omp.h>
+#include <time.h>
 #include <stdio.h>
 #include <cufft.h>
 #include "AstroAccelerate/params.h"
@@ -12,7 +13,7 @@ void stats_gpu(cudaEvent_t event, cudaStream_t stream, int samps, float *mean, f
 
 	int a, j;
 	int trials = ( 2 * ACCMAX + ACCSTEP ) / ACCSTEP;
-	int chunk = omp_get_num_procs();
+	// int chunk = omp_get_num_procs();
 	/*
 	 // Calculate the mean
 	 double	total=0.0;
@@ -71,7 +72,7 @@ void stats_gpu(cudaEvent_t event, cudaStream_t stream, int samps, float *mean, f
 
 	float total_sum = 0.0;
 	float total_sum_square = 0.0;
-#pragma omp parallel for default(shared) private(a) schedule(static,chunk) reduction(+:total_sum,total_sum_square)
+//#pragma omp parallel for default(shared) private(a) schedule(static,chunk) reduction(+:total_sum,total_sum_square)
 	for (a = 0; a < size; a++)
 	{
 		total_sum += ( h_sum[a] );

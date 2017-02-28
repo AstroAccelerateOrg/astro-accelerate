@@ -12,5 +12,11 @@ sigma_constant	2.0
 -acceleration
 -periodicity
 -output_dmt
+-zero_dm
+-zero_dm_with_outliers
+-rfi
+-fdas_custom_fft
+-fdas_inbin
+-fdas_norm
 debug
 file /home/ania/ska-mid-b2.fil

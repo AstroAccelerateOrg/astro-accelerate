@@ -4,6 +4,8 @@
 #include "AstroAccelerate/device_dedisperse.h"
 #include "AstroAccelerate/device_dedispersion_kernel.h"
 #include "AstroAccelerate/device_zero_dm.h"
+#include "AstroAccelerate/device_zero_dm_outliers.h"
+#include "AstroAccelerate/device_rfi.h"
 
 #include "AstroAccelerate/device_SPS_inplace_kernel.h" //Added by KA
 #include "AstroAccelerate/device_SPS_inplace.h" //Added by KA
@@ -30,10 +32,13 @@
 #include "AstroAccelerate/host_rfi.h"
 #include "AstroAccelerate/host_stratagy.h"
 #include "AstroAccelerate/host_write_file.h"
+// fdas
+#include "AstroAccelerate/device_acceleration_fdas.h"
 
 #include "AstroAccelerate/host_main_function.h"
 
 #include "AstroAccelerate/params.h"
+
 
 
 void main_function
@@ -54,7 +59,11 @@ void main_function
 	int enable_periodicity,
 	int output_dmt,
 	int enable_zero_dm,
+	int enable_zero_dm_with_outliers,
 	int enable_rfi,
+	int enable_fdas_custom_fft,
+	int enable_fdas_inbin,
+	int enable_fdas_norm,
 	int *inBin,
 	int *outBin,
 	int *ndms,
@@ -107,7 +116,7 @@ void main_function
 	// Analysis variables
 	float power,
 	float sigma_cutoff,
-	double start_time
+	clock_t start_time
 	)
 {
 	// Initialise the GPU.	
@@ -115,7 +124,7 @@ void main_function
 	if(enable_debug == 1) debug(2, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
-	// Calculate the desipersion stratagy.
+	// Calculate the dedispersion stratagy.
 	stratagy(&maxshift, &max_samps, &num_tchunks, &max_ndms, &total_ndms, &max_dm, power, nchans, nsamp, fch1, foff, tsamp, range, user_dm_low, user_dm_high, user_dm_step,
                  &dm_low, &dm_high, &dm_step, &ndms, &dmshifts, inBin, &t_processed, &gpu_memory);
 	if(enable_debug == 1) debug(4, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
@@ -147,16 +156,12 @@ void main_function
 	 */
 
 	printf("\nDe-dispersing...");
-	double start_t, end_t;
-	start_t = omp_get_wtime();
+	GpuTimer timer;
+	timer.Start();
+
 
 	tsamp_original = tsamp;
 	maxshift_original = maxshift;
-
-	float *out_tmp;
-	out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
-	memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
-	
 
 	double start_t_per_range, end_t_per_range, *time_for_range;
 	time_for_range = (double *) malloc(range*sizeof(time_for_range));
@@ -165,12 +170,27 @@ void main_function
 	for (t = 0; t < num_tchunks; t++)
 	{
 		printf("\nt_processed:\t%d, %d", t_processed[0][t], t);
-		//rfi((t_processed[0][t]+maxshift), nchans, &tmp);
 
 		load_data(-1, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
+
+		
 		if (enable_zero_dm)
+		{
 			zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
+		}
+		
+		if (enable_zero_dm_with_outliers)
+		{
+			zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
+	 	}
+	
 		corner_turn(d_input, d_output, nchans, t_processed[0][t] + maxshift);
+		
+		if (enable_rfi)
+		{
+ 			rfi_gpu(d_input, nchans, t_processed[0][t]+maxshift);
+		}
+
 		int oldBin = 1;
 		for (dm_range = 0; dm_range < range; dm_range++)
 		{
@@ -201,34 +221,39 @@ void main_function
 
 			dedisperse(dm_range, t_processed[dm_range][t], inBin, dmshifts, d_input, d_output, nchans, ( t_processed[dm_range][t] + maxshift ), maxshift, &tsamp, dm_low, dm_high, dm_step, ndms);
 
-			gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
-			//cudaDeviceSynchronize();
-
-			save_data(d_output, out_tmp, gpu_outputsize);
-			//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
-
-#pragma omp parallel for
-			for (int k = 0; k < ndms[dm_range]; k++)
+			if (enable_acceleration == 1)
 			{
-				memcpy(&output_buffer[dm_range][k][inc / inBin[dm_range]], &out_tmp[k * t_processed[dm_range][t]], sizeof(float) * t_processed[dm_range][t]);
+				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
+				//save_data(d_output, out_tmp, gpu_outputsize);
+
+				//#pragma omp parallel for
+				for (int k = 0; k < ndms[dm_range]; k++)
+				{
+					//memcpy(&output_buffer[dm_range][k][inc / inBin[dm_range]], &out_tmp[k * t_processed[dm_range][t]], sizeof(float) * t_processed[dm_range][t]);
+
+					save_data_offset(d_output, k * t_processed[dm_range][t], output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
+				}
+			//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
 			}
 			cudaDeviceSynchronize();
 			end_t_per_range = omp_get_wtime();
 			time_for_range[dm_range] += (end_t_per_range-start_t_per_range);
 			if (output_dmt == 1)
-				write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
-			if (enable_analysis == 1) {
+			{
+				//for (int k = 0; k < ndms[dm_range]; k++)
+				//	write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, output_buffer[dm_range][k], gpu_outputsize, dm_low, dm_high);
+				//write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
+			}
+			if (enable_analysis == 1) 
+			{
 				analysis_GPU(dm_range, tstart_local, t_processed[dm_range][t], ( t_processed[dm_range][t] + maxshift ), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, d_output, dm_low, dm_high, dm_step, tsamp);
-				
 				// This is for testing purposes and should be removed or commented out
 				//analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
-				
-				
 			}
 			oldBin = inBin[dm_range];
 		}
 
-		memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
+		//memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
 
 		inc = inc + t_processed[0][t];
 		printf("\nINC:\t%ld", inc);
@@ -236,15 +261,16 @@ void main_function
 		tsamp = tsamp_original;
 		maxshift = maxshift_original;
 	}
-	end_t = omp_get_wtime();
+
+	timer.Stop();
+	float time = timer.Elapsed() / 1000;
 
 	printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
-	float time = (float) ( end_t - start_t );
-	printf("\nPerformed Brute-Force Dedispersion: %f (GPU estimate)", time);
+	printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)",  time);
 	printf("\nAmount of telescope time processed: %f", tstart_local);
 	printf("\nNumber of samples processed: %ld", inc);
-	printf("\nReal-time speedup factor: %f", ( tstart_local ) / ( time ));
+	printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
 
 	for (dm_range=0; dm_range<range; dm_range++){
 		if (FILTER_OUT_RANGES && dm_range!=RANGE_TO_KEEP) continue;
@@ -254,13 +280,13 @@ void main_function
 
 	cudaFree(d_input);
 	cudaFree(d_output);
-	free(out_tmp);
+	//free(out_tmp);
 	free(input_buffer);
 
 	double time_processed = ( tstart_local ) / tsamp_original;
 	double dm_t_processed = time_processed * total_ndms;
 	double all_processed = dm_t_processed * nchans;
-	printf("\nGops based on %.2f ops per channel per tsamp: %f", NOPS, ( ( NOPS * all_processed ) / ( time ) ) / 1000000000.0);
+	printf("\nGops based on %.2lf ops per channel per tsamp: %f", NOPS, ( ( NOPS * all_processed ) / ( time ) ) / 1000000000.0);
 	int num_reg = SNUMREG;
 	float num_threads = total_ndms * ( t_processed[0][0] ) / ( num_reg );
 	float data_size_loaded = ( num_threads * nchans * sizeof(ushort) ) / 1000000000;
@@ -273,12 +299,14 @@ void main_function
 
 	if (enable_periodicity == 1)
 	{
-		start_t = omp_get_wtime();
-
+		//
+		GpuTimer timer;
+		timer.Start();
+		//
 		periodicity(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
-
-		end_t = omp_get_wtime();
-		time = (float) ( end_t - start_t );
+		//
+		timer.Stop();
+		float time = timer.Elapsed()/1000;
 		printf("\n\n === OVERALL PERIODICITY THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
 		printf("\nPerformed Peroidicity Location: %f (GPU estimate)", time);
@@ -289,22 +317,22 @@ void main_function
 
 	if (enable_acceleration == 1)
 	{
-		start_t = omp_get_wtime();
-
-		acceleration(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
-
-		end_t = omp_get_wtime();
-		time = (float) ( end_t - start_t );
+		// Input needed for fdas is output_buffer which is DDPlan
+		// Assumption: gpu memory is free and available
+		//
+		GpuTimer timer;
+		timer.Start();
+		// acceleration(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
+		acceleration_fdas(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff,
+						  output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, enable_fdas_custom_fft, enable_fdas_inbin, enable_fdas_norm);
+		//
+		timer.Stop();
+		float time = timer.Elapsed()/1000;
 		printf("\n\n === OVERALL TDAS THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
-		printf("\nPerformed Acceleration Location: %f (GPU estimate)", time);
+		printf("\nPerformed Acceleration Location: %lf (GPU estimate)", time);
 		printf("\nAmount of telescope time processed: %f", tstart_local);
 		printf("\nNumber of samples processed: %ld", inc);
-		printf("\nReal-time speedup factor: %f", ( tstart_local ) / ( time ));
+		printf("\nReal-time speedup factor: %lf", ( tstart_local ) / ( time ));
 	}
-
-	fclose(fp);
-
-	free(output_buffer);
-
 }
