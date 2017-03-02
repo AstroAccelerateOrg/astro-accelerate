@@ -85,7 +85,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 	}
 
 	fgetpos(*fp, &file_loc);
-
+/*
 	if (( *nbits ) == 32)
 	{
 		// Allocate a tempory buffer to store a line of frequency data
@@ -102,7 +102,9 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 
 		free(temp_buffer);
 	}
-	else if (( *nbits ) == 8)
+	else
+*/
+	 if (( *nbits ) == 8)
 	{
 		// Allocate a tempory buffer to store a line of frequency data
 		unsigned char *temp_buffer = (unsigned char *) malloc(( *nchans ) * sizeof(unsigned char));
@@ -114,14 +116,34 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 			total_data++;
 		}
 		*nsamp = total_data - 1;
-
+		free(temp_buffer);
+	}
+	else if (( *nbits ) == 4)
+	{
+		// Allocate a tempory buffer to store a line of frequency data
+		// each byte stores 2 frequency data
+		// assumption: nchans is a multiple of 2
+		if ((*nchans % 2) != 0)
+		{
+			printf("\nNumber of frequency channels must be a power of 2 with 4bit data\n");
+			exit(0);
+		}
+		int nb_bytes = *nchans/2;
+		unsigned char *temp_buffer = (unsigned char *) malloc( nb_bytes * sizeof(unsigned char));
+		total_data = 0;
+		while (!feof(*fp))
+		{
+			fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp);
+			total_data++;
+		}
+		*nsamp = total_data - 1;
 		free(temp_buffer);
 	}
 	else
 	{
-		printf("\n\n======================= ERROR =======================\n");
-		printf(" Currently this code only runs with 1, 8 and 32 bit data\n");
-		printf("\n=====================================================\n");
+		printf("\n\n======================= ERROR ==================\n");
+		printf(" Currently this code only runs with 4 and 8 bit data\n");
+		printf("\n==================================================\n");
 	}
 
 	// Move the file pointer back to the end of the header
