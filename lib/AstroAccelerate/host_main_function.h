@@ -2,7 +2,7 @@
 #define _MAIN_FUNCTION_H_
 
 void main_function
-(
+	(
 	int argc,
 	char* argv[],
 	// Internal code variables
@@ -35,12 +35,12 @@ void main_function
 	int multi_file,
 	float max_dm,
 	// Memory sizes and pointers
-    size_t inputsize,
-    size_t outputsize,
+  size_t inputsize,
+  size_t outputsize,
 	size_t gpu_inputsize,
 	size_t gpu_outputsize,
 	size_t gpu_memory,
-    unsigned short  *input_buffer,
+  unsigned short  *input_buffer,
 	float ***output_buffer,
 	unsigned short  *d_input,
 	float *d_output,
@@ -76,7 +76,8 @@ void main_function
 	// Analysis variables
 	float power,
 	float sigma_cutoff,
+	float sigma_constant,
+	int max_boxcar_width,
 	clock_t start_time
-);
-
+	);
 #endif
