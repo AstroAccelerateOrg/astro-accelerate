@@ -1,4 +1,4 @@
-CUDA	:= $(CUDA_INSTALL_PATH)
+UDA	:= $(CUDA_INSTALL_PATH)
 INC	:= -I$(CUDA)/include -I$(CUDA)/samples/common/inc/ -I.
 LIB	:= -L$(CUDA)/lib64
 BUILD_DIR	:=../build
@@ -20,10 +20,10 @@ GENCODE_FLAGS   := $(GENCODE_SM61)
 
 ifeq ($(cache),off)
         NVCCFLAGS := $(INC) -g -lineinfo -Xcompiler -fopenmp -O3 -lm --use_fast_math\
-         --ptxas-options=-v -Xptxas -dlcm=cg $(GENCODE_FLAGS) -std=c++11
+         --ptxas-options=-v -Xptxas -dlcm=cg $(GENCODE_FLAGS)
 else
         NVCCFLAGS := $(INC) -g -lineinfo -Xcompiler -fopenmp -O3 -lm --use_fast_math\
-         --ptxas-options=-v -lcuda -lcudart  -lcurand -lcufft -Xptxas -dlcm=cg $(GENCODE_FLAGS) -std=c++11
+         --ptxas-options=-v -lcuda -lcudart  -lcurand -lcufft -Xptxas -dlcm=cg $(GENCODE_FLAGS)
 endif
 
 #ifeq ($(gpu),sm_35)
