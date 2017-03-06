@@ -7,6 +7,7 @@
 #include "AstroAccelerate/device_zero_dm_outliers.h"
 #include "AstroAccelerate/device_rfi.h"
 
+#include "AstroAccelerate/device_BLN.h" //Added by KA
 #include "AstroAccelerate/device_SPS_inplace_kernel.h" //Added by KA
 #include "AstroAccelerate/device_SPS_inplace.h" //Added by KA
 #include "AstroAccelerate/device_MSD_grid.h" //Added by KA
@@ -16,6 +17,8 @@
 #include "AstroAccelerate/device_threshold.h" //Added by KA
 #include "AstroAccelerate/device_single_FIR.h" //Added by KA
 #include "AstroAccelerate/device_analysis.h" //Added by KA
+
+#include "AstroAccelerate/device_peak_find.h" //Added by KA
 
 #include "AstroAccelerate/device_load_data.h"
 #include "AstroAccelerate/device_corner_turn.h"
@@ -39,7 +42,7 @@
 
 #include "AstroAccelerate/params.h"
 
-
+#include "timer.h"
 
 void main_function
 	(
@@ -116,6 +119,8 @@ void main_function
 	// Analysis variables
 	float power,
 	float sigma_cutoff,
+	float sigma_constant,
+	int max_boxcar_width,
 	clock_t start_time
 	)
 {
@@ -230,9 +235,70 @@ void main_function
 				//	write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, output_buffer[dm_range][k], gpu_outputsize, dm_low, dm_high);
 				//write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
 			}
-			if (enable_analysis == 1) 
-			{
-				analysis_GPU(dm_range, tstart_local, t_processed[dm_range][t], ( t_processed[dm_range][t] + maxshift ), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, d_output, dm_low, dm_high, dm_step, tsamp);
+			if (enable_analysis == 1) {
+				float *h_output_list;
+				float *h_peak_list;
+				size_t max_list_size, max_peak_size;
+				size_t list_pos, peak_pos;
+				max_list_size = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 ); // we can store 1/2 of the input plane
+				max_peak_size = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 );
+				h_output_list = (float*) malloc(max_list_size*4*sizeof(float)); // Allocations
+				h_peak_list   = (float*) malloc(max_list_size*4*sizeof(float));
+				
+				list_pos=0;
+				peak_pos=0;
+				
+				analysis_GPU(h_output_list, &list_pos, max_list_size, h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width, d_output, dm_low, dm_high, dm_step, tsamp);
+				
+				
+				printf("-------> list_pos:%d; \n", list_pos);
+				#pragma omp parallel for
+				for (int count = 0; count < list_pos; count++){
+					h_output_list[4*count]     = h_output_list[4*count]*dm_step[dm_range] + dm_low[dm_range];
+					h_output_list[4*count + 1] = h_output_list[4*count + 1]*tsamp + tstart_local;
+					//h_output_list[4*count + 2] = h_output_list[4*count + 2];
+					//h_output_list[4*count + 3] = h_output_list[4*count + 3];
+					
+				}
+				
+				#pragma omp parallel for
+				for (int count = 0; count < peak_pos; count++){
+					h_peak_list[4*count]     = h_peak_list[4*count]*dm_step[dm_range] + dm_low[dm_range];
+					h_peak_list[4*count + 1] = h_peak_list[4*count + 1]*tsamp + tstart_local;
+					//h_output_list[4*count + 2] = h_output_list[4*count + 2];
+					//h_output_list[4*count + 3] = h_output_list[4*count + 3];
+				}
+
+				FILE *fp_out;
+				char filename[200];
+				
+				if(list_pos>0){
+					sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart_local, dm_low[dm_range], dm_high[dm_range]);
+					//if ((fp_out=fopen(filename, "w")) == NULL) {
+					if (( fp_out = fopen(filename, "wb") ) == NULL)	{
+						fprintf(stderr, "Error opening output file!\n");
+						exit(0);
+					}
+					fwrite(h_output_list, list_pos*sizeof(float), 4, fp_out);
+					fclose(fp_out);
+				}
+				
+				if(peak_pos>0){
+					sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart_local, dm_low[dm_range], dm_high[dm_range]);
+					//if ((fp_out=fopen(filename, "w")) == NULL) {
+					if (( fp_out = fopen(filename, "wb") ) == NULL)	{
+						fprintf(stderr, "Error opening output file!\n");
+						exit(0);
+					}
+					fwrite(h_peak_list, peak_pos*sizeof(float), 4, fp_out);
+					fclose(fp_out);
+				}
+				
+				
+				free(h_peak_list);
+				free(h_output_list);
+				
+				
 				// This is for testing purposes and should be removed or commented out
 				//analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
 			}
