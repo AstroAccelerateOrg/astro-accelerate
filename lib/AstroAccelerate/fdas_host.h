@@ -1,6 +1,6 @@
 /* FDAS host functions header */
-#ifndef FDAS_HOST_H
-#define FDAS_HOST_H
+#ifndef ASTROACCELERATE_FDAS_HOST_H_
+#define ASTROACCELERATE_FDAS_HOST_H_
 
 #include <cufft.h>
 #include "fdas_device.h"

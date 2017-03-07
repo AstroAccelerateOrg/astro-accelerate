@@ -1,6 +1,6 @@
 /* FDAS utilities header */
-#ifndef FDAS_UTIL_H
-#define FDAS_UTIL_H
+#ifndef ASTROACCELERATE_FDAS_UTIL_H_
+#define ASTROACCELERATE_FDAS_UTIL_H_
 
 typedef struct {
   int search;
