@@ -1,5 +1,5 @@
-#ifndef __COMMON_HEADERS__
-#define __COMMON_HEADERS__
+#ifndef ASTROACCELERATE_COMMON_HEADERS_H_
+#define ASTROACCELERATE_COMMON_HEADERS_H_
 
 #include <stdio.h>
 #include <stdlib.h>

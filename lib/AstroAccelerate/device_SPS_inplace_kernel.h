@@ -1,5 +1,5 @@
-#ifndef __SPS_INPLACE_KERNEL_H_
-#define __SPS_INPLACE_KERNEL_H_
+#ifndef ASTROACCELERATE_SPS_INPLACE_KERNEL_H_
+#define ASTROACCELERATE_SPS_INPLACE_KERNEL_H_
 
 #include "AstroAccelerate/params.h"
 
