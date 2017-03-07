@@ -1,4 +1,4 @@
-UDA	:= $(CUDA_INSTALL_PATH)
+CUDA	:= $(CUDA_INSTALL_PATH)
 INC	:= -I$(CUDA)/include -I$(CUDA)/samples/common/inc/ -I.
 LIB	:= -L$(CUDA)/lib64
 BUILD_DIR	:=../build
