@@ -51,11 +51,15 @@ analysis
 -zero_dm
 -zero_dm_with_outliers
 -rfi
+fdas_custom_fft
+-fdas_inbin
+fdas_norm
 debug
 file /home/wa78/filterbank/ska-mid-b2.fil
  
-Let me explain this….
- 
+You can turn any of the features off by adding a character at the beginning of the line (here "-" is used).
+Let me explain them …
+
 range tells the code to dedisperse and has input
  
 range dm_low dm_high dm_step downsampling_in_input_time downsampling_in_output_time
@@ -67,17 +71,17 @@ range 500  900  0.4  2 2
 tells the code to dedisperse from a dm of 500 to a dm of 900 in steps of 0.4 (making (900-500)/0.4 dm trials) with input data 
 downsampled (in time by 2, so 64uS would be binned into 128uS samples).
  
-Next, sigma_cutoff is the SNR cutoff for your single pulse search.
+sigma_cutoff is the SNR cutoff for your single pulse search.
  
-analysis tells the code to analyse the dedispersed data outputting data into the output directory, these are binary files and so 
+analysis this tells the code to analyse the dedispersed data outputting data into the output directory, these are binary files and so 
 can be read in gnuplot (for example, you could use python etc) using:
 splot "./57663_22588_B0531+21_000007.fil/global_analysed_frb.dat" binary format="%float%float%float%float" u 1:2:3 palette
  
-acceleration does a Fourier domain acceleration search on the data.
+acceleration this does a Fourier domain acceleration search on the data.
  
-periodicity looks for periodic objects
+periodicity this looks for periodic objects
  
-output_dmt outputs the entire dedispersed data to a file (in ASCII)
+output_dmt this outputs the entire dedispersed data to a file (in ASCII)
  
 zero_dm you can guess
  
@@ -85,6 +89,12 @@ zero_dm_with_outliers this is part of the rfi mitigation routine
  
 rfi again this trys to eliminate RFI (we’ve had good results from Lovell data so far, if you have any data with RFI that you could
 share that would be very helpful).
+
+fdas_custom_fft this runs fourier domain acceleration search with a custom FFT
+
+fdas_inbin this performs interbinning on the complex output
+
+fdas_norm this performs PRESTO block median normalization 
  
 debug this gives detailed output
  

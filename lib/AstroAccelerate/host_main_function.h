@@ -1,5 +1,5 @@
-#ifndef _MAIN_FUNCTION_H_
-#define _MAIN_FUNCTION_H_
+#ifndef ASTROACCELERATE_MAIN_FUNCTION_H_
+#define ASTROACCELERATE_MAIN_FUNCTION_H_
 
 void main_function
 	(
