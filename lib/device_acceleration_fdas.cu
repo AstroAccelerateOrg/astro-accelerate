@@ -41,11 +41,11 @@ void acceleration_fdas(int range,
 {
 
 	fdas_params params;
-	fdas_new_acc_sig acc_sig;
+	// fdas_new_acc_sig acc_sig;
 	cmd_args cmdargs;
 	fdas_gpuarrays gpuarrays;
 	fdas_cufftplan fftplans;
-	float *acc_signal = NULL;
+	//float *acc_signal = NULL;
 	struct timeval t_start, t_end;
 	double t_gpu = 0.0, t_gpu_i = 0.0;
 
@@ -84,7 +84,7 @@ void acceleration_fdas(int range,
 		cmdargs.norm = 0; //
 
 	//get signal parameters
-	acc_sig.nsamps = cmdargs.mul * 8192;  //
+	/*acc_sig.nsamps = cmdargs.mul * 8192;  //
 	acc_sig.freq0 = cmdargs.freq0; //
 	acc_sig.mul = cmdargs.mul; 	//
 	acc_sig.zval = cmdargs.zval; //
@@ -92,7 +92,7 @@ void acceleration_fdas(int range,
 	acc_sig.nharms = cmdargs.nharms; //
 	acc_sig.duty = cmdargs.duty; //
 	acc_sig.sigamp = cmdargs.sigamp; //
-
+*/
 	int nearest = (int) floorf(log2f((float) processed));
 	printf("\nnearest:\t%d", nearest);
 	int samps = (int) powf(2.0, nearest);
