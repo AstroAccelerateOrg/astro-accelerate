@@ -40,24 +40,14 @@
 #define NEXP 10
 #define POTWO (1 << NEXP)
 #define KERNLEN RADIX*POTWO
-
 #define ACCEL_STEP (float)(2.0) //1 //default acceleration step
 #define ACCEL_STEP_R (float)(1/ACCEL_STEP)
 #define ZMAX 96
 #define NKERN (ZMAX + 1)
 //#define ZLO  -(int)((ZMAX/ACCEL_STEP) )
-
 #define TBSIZEX 32
 #define TBSIZEY 1
 #define PTBSIZEX 64
 #define PTBSIZEY 1
-#define STBSIZEX 32
-
 //custom fft params (K. Adamek)
 #define TAPS 8
-#define FFT_SIZE (KERNLEN)/2/32
-//--------------------> Shared PD
-#define NWARPS 16
-#define GROUPS 4
-#define WPG 4
-#define WARP 32

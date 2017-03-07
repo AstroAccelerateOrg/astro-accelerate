@@ -12,7 +12,7 @@
 #include <helper_cuda.h>
 #include <curand.h>
 #include <libgen.h>
-#include <random> // C++11 to use normal distribution
+//#include <random> // C++11 to use normal distribution
 
 void  fdas_print_params_h()
 {
@@ -31,11 +31,6 @@ void  fdas_print_params_h()
   printf("\nThread block size in y direction for 2-D thread block power spectrum GPU kernels : PTBSIZEY %d\n", PTBSIZEY);
   printf("\n\nCustom FFT specific parameters:\n\t------------------\n" );
   printf("\nTAPS \t%d\n", TAPS);
-  printf("\nFFT_SIZE \t%d\n", FFT_SIZE);
-  printf("\nNWARPS \t%d\n", NWARPS);
-  printf("\nGROUPS \t%d\n", GROUPS);
-  printf("\nWPG \t%d\n", WPG);
-  printf("\nWARP \t%d\n", WARP);
   printf("\n\n\t--------------\n\n");
 }
 
@@ -121,10 +116,10 @@ void fdas_free_gpu_arrays(fdas_gpuarrays *arrays,  cmd_args *cmdargs)
     if(cmdargs->kfft && cmdargs->inbin)
       checkCudaErrors(cudaFree(arrays->ip_edge_points));
 }
-
+/*
 void fdas_create_acc_sig(fdas_new_acc_sig *acc_sig, cmd_args *cmdargs)
 /* Create accelerated signal with given parameters in a float array */
-{
+/*{
   double t0, tau;
   double omega = 2*M_PI*acc_sig->freq0;
   double accel;
@@ -160,7 +155,7 @@ void fdas_create_acc_sig(fdas_new_acc_sig *acc_sig, cmd_args *cmdargs)
 
   free(acc_sig->acc_signal);
 }
-
+*/
 
 void fdas_create_acc_kernels(cufftComplex* d_kernel, cmd_args *cmdargs )
 {

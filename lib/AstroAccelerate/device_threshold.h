@@ -1,5 +1,5 @@
-#ifndef __THRESHOLD__
-#define __THRESHOLD__
+#ifndef ASTROACCELERATE_THRESHOLD_H_
+#define ASTROACCELERATE_THRESHOLD_H_
 
 #include<vector>
 #include "AstroAccelerate/device_BC_plan.h"
