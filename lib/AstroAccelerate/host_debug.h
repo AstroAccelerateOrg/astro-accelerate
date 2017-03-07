@@ -1,5 +1,5 @@
-#ifndef __DEBUG__
-#define __DEBUG__
+#ifndef ASTROACCELERATE_DEBUG_H_
+#define ASTROACCELERATE_DEBUG_H_
 
 #include <time.h>
 

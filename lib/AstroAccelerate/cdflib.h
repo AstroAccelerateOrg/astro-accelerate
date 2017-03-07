@@ -1,3 +1,6 @@
+#ifndef ASTROACCELERATE_CDFLIB_H_
+#define ASTROACCELERATE_CDFLIB_H_
+
 double algdiv(double*,double*);
 double alngam(double*);
 double alnrel(double*);
@@ -78,3 +81,4 @@ long fifmod(long,long);
 void ftnstop(char*);
 extern int ipmpar(int*);
 
+#endif

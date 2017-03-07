@@ -1,6 +1,6 @@
 /* FDAS device functions header */
-#ifndef FDAS_DEVICE_H
-#define FDAS_DEVICE_H
+#ifndef ASTROACCELERATE_FDAS_DEVICE_H_
+#define ASTROACCELERATE_FDAS_DEVICE_H_
 
 #include <cufft.h>
 

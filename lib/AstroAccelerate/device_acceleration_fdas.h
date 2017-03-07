@@ -1,5 +1,5 @@
-#ifndef __ACC_FDAS__
-#define __ACC_FDAS__
+#ifndef ASTROACCELERATE_ACC_FDAS_H_
+#define ASTROACCELERATE_ACC_FDAS_H_
 
 void acceleration_fdas(int range,
 					   int nsamp,
