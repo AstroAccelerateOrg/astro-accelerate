@@ -82,18 +82,18 @@ void analysis_GPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 	FILE *fp_out;
 	char filename[200];
 
-	int k, dm_count, remaining_time, bin_factor, counter;
-
+	//int remaining_time;//int k, dm_count, bin_factor, counter;
 	float start_time;
 
-	unsigned long int j;
+
+	//unsigned long int j;
 	unsigned long int vals;
 	int nTimesamples = t_processed;
 	int nDMs = ndms[i];
 
-	float mean, stddev, stddev_orig;
+	//float mean, stddev, stddev_orig;
 
-	double total;
+	// double total;
 
 	// Calculate the total number of values
 	vals = (unsigned long int) ( nDMs*nTimesamples );
@@ -102,7 +102,7 @@ void analysis_GPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 
 	//start_time = ((input_increment/nchans)*tsamp);
 	start_time = tstart;
-	remaining_time = ( t_processed );
+	//remaining_time = ( t_processed );
 
 	sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", start_time, dm_low[i], dm_high[i]);
 	//if ((fp_out=fopen(filename, "w")) == NULL) {
@@ -111,9 +111,9 @@ void analysis_GPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 		exit(0);
 	}
 
-	double signal_mean, signal_sd, total_time, partial_time;
-	float signal_mean_1, signal_sd_1, signal_mean_16, signal_sd_16, modifier;
-	float max, min, threshold;
+	double total_time, partial_time; // double signal_mean, signal_sd;
+	float signal_mean_1, signal_sd_1, signal_mean_16, signal_sd_16;//float modifier;
+	//float max, min, threshold;
 	int offset;
 	float *h_output_list;
 
@@ -166,7 +166,7 @@ void analysis_GPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 	h_MSD[0] = signal_mean_1;
 	h_MSD[1] = ( signal_sd_16 - signal_sd_1 )/( (float) ( PD_MAXTAPS - 1 ) );
 	h_MSD[2] = signal_sd_1;
-	modifier = h_MSD[1];
+	//modifier = h_MSD[1];
 	cudaMemcpy(d_MSD, h_MSD, 3*sizeof(float), cudaMemcpyHostToDevice);
 	timer.Stop();
 	partial_time = timer.Elapsed();

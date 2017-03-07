@@ -36,8 +36,9 @@ void  fdas_print_params_h()
 
 void fdas_cuda_check_devices(int devid)
 {
-  int dev = 0, devcount;
-  cudaDeviceProp deviceProp;
+  //int dev = 0;
+  int devcount;
+  //cudaDeviceProp deviceProp;
 
 /* ******* Detect CUDA devices ******* */
   checkCudaErrors(cudaGetDeviceCount(&devcount));
@@ -69,7 +70,7 @@ void fdas_alloc_gpu_arrays(fdas_gpuarrays *arrays,  cmd_args *cmdargs)
     printf("\nF-fdot array will be interbinned\n");
   }
     double gbyte = 1024.0*1024.0*1024.0;
-    double mbyte = 1024.0*1024.0;
+    //double mbyte = 1024.0*1024.0;
 
   // Memory allocations for gpu real fft input / output signal
   checkCudaErrors(cudaMalloc((void**)&arrays->d_in_signal, arrays->mem_insig));
@@ -87,7 +88,7 @@ void fdas_alloc_gpu_arrays(fdas_gpuarrays *arrays,  cmd_args *cmdargs)
    //initialise array
    checkCudaErrors(cudaMemset(arrays->d_ffdot_pwr, 0, arrays->mem_ffdot));
 
-   printf("ffdot x size: %u",arrays->mem_ffdot/sizeof(float)/NKERN);
+   printf("ffdot x size: %zu",arrays->mem_ffdot/sizeof(float)/NKERN);
    if(cmdargs->basic==1){
      checkCudaErrors(cudaMalloc(&arrays->d_ffdot_cpx, arrays->mem_ffdot_cpx));
    }
@@ -252,18 +253,18 @@ void fdas_cuda_create_fftplans(fdas_cufftplan *fftplans, fdas_params *params)
 void fdas_cuda_basic(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params)
 {
   /* Basic GPU fdas algorithm using cuFFT */
-  int inbin;
+  //int inbin;
   int cthreads = TBSIZEX;
   int cblocks = KERNLEN/TBSIZEX;
 
   dim3 pwthreads(PTBSIZEX, PTBSIZEY);
   dim3 pwblocks((params->sigblock / PTBSIZEX) + 1, NKERN/PTBSIZEY);
 
-  if (cmdargs->inbin)
+   /* if (cmdargs->inbin)
     inbin = 2;
   else
     inbin = 1;
-
+  */
   //real fft
   cufftExecR2C(fftplans->realplan, gpuarrays->d_in_signal, gpuarrays->d_fft_signal);
 
@@ -321,7 +322,7 @@ void fdas_cuda_basic(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cmd_ar
 #ifndef NOCUST
 void fdas_cuda_customfft(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params)
 {
-  int nthreads;
+  //int nthreads;
   dim3 cblocks(params->nblocks, NKERN/2); 
 
   //real fft
@@ -371,7 +372,7 @@ void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params 
   if (cmdargs->inbin)
     ibin=2;
   /* Download, threshold and write ffdot data to file */
-  int nsamps = params->nsamps;
+  //int nsamps = params->nsamps;
 
   printf("\n\nWrite data for signal with %d samples\nf-fdot size=%u\n",params->nsamps, params->ffdotlen);
   float *h_ffdotpwr = (float*)malloc(params->ffdotlen* sizeof(float));
@@ -418,7 +419,7 @@ void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params 
 
   FILE *fp_c;
   char pfname[200];
-  char *infilename;
+//  char *infilename;
 //  infilename = basename(cmdargs->afname);
 // filename needs to be acc_dm_%f, dm_low[i] + ((float)dm_count)*dm_step[i]
   //sprintf(pfname, "%s/out_inbin%d_%s",dirname,ibin,infilename);
