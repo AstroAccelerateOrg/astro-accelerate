@@ -120,7 +120,7 @@ void main_function
 	float power,
 	float sigma_cutoff,
 	float sigma_constant,
-	int max_boxcar_width,
+	float max_boxcar_width_in_sec,
 	clock_t start_time
 	)
 {
@@ -236,6 +236,7 @@ void main_function
 				//write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
 			}
 			if (enable_analysis == 1) {
+				// TODO: put the file export back to analysis I leaving it here at the moment since for interface we need to output from the analysis.
 				float *h_output_list;
 				float *h_peak_list;
 				size_t max_list_size, max_peak_size;
@@ -248,7 +249,7 @@ void main_function
 				list_pos=0;
 				peak_pos=0;
 				
-				analysis_GPU(h_output_list, &list_pos, max_list_size, h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width, d_output, dm_low, dm_high, dm_step, tsamp);
+				analysis_GPU(h_output_list, &list_pos, max_list_size, h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp);
 				
 				
 				printf("-------> list_pos:%d; \n", list_pos);
