@@ -77,7 +77,7 @@ void main_function
 	float power,
 	float sigma_cutoff,
 	float sigma_constant,
-	int max_boxcar_width,
+	float max_boxcar_width_in_sec,
 	clock_t start_time
 	);
 #endif
