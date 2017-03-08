@@ -1,4 +1,4 @@
-#define OLD_THRESHOLD
+//#define OLD_THRESHOLD
 
 #include <vector>
 #include <stdio.h>
@@ -65,6 +65,7 @@ int Get_max_iteration(int max_boxcar_width, std::vector<int> *BC_widths){
 	int startTaps, iteration;
 	
 	startTaps = 0;
+	iteration = 0;
 	for(int f=0; f<(int) BC_widths->size(); f++){
 		startTaps = startTaps + BC_widths->operator[](f)*(1<<f);
 		if(startTaps>=max_boxcar_width) {
@@ -73,10 +74,13 @@ int Get_max_iteration(int max_boxcar_width, std::vector<int> *BC_widths){
 		}
 	}
 	
+	if(max_boxcar_width>startTaps) iteration=(int) BC_widths->size();
+	
 	return(iteration);
 }
 
-void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, float *h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float sigma_constant, int max_boxcar_width, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp){
+void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, float *h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float sigma_constant, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp){
+	int max_boxcar_width = (int) (max_boxcar_width_in_sec/tsamp);
 	unsigned long int j;
 	unsigned long int vals;
 	int nTimesamples = t_processed;
@@ -92,7 +96,7 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 	float signal_mean_1, signal_sd_1, modifier;
 	float max, min, threshold;
 	int offset, max_iteration;
-	int t_BC_widths[10]={32,16,16,16,8,8,8,8,8,8};
+	int t_BC_widths[10]={PD_MAXTAPS,16,16,16,8,8,8,8,8,8};
 	std::vector<int> BC_widths(t_BC_widths,t_BC_widths+sizeof(t_BC_widths)/sizeof(int));
 	std::vector<PulseDetection_plan> PD_plan;
 
