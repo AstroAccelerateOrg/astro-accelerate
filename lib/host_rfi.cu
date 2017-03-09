@@ -4,11 +4,11 @@
 
 void rfi(int nsamp, int nchans, unsigned short **input_buffer)
 {
-
+/*
 	int chan_counter = 0;
 	int good = -1;
 	int flag = -1;
-	/*
+
 	 for(int t=0; t<nsamp; t++) {
 	 for(int c = 0; c < nchans-30; c++) {
 	 float running_mean=0.0f;
