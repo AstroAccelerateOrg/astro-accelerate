@@ -1,4 +1,6 @@
 #include "AstroAccelerate/presto.h"
+#include "AstroAccelerate/cdflib.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 

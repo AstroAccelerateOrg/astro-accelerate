@@ -1,7 +1,13 @@
 build/
 output/
 
-.project
-.cproject
+*.project
+*.cproject
+*.swp
+*~
+*.sav
+*.old
+*.new
+*.ori
 
 asstrolib/libastrolib.a
