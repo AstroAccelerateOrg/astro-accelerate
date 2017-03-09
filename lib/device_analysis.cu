@@ -81,11 +81,11 @@ int Get_max_iteration(int max_boxcar_width, std::vector<int> *BC_widths){
 
 void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, float *h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float sigma_constant, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp){
 	int max_boxcar_width = (int) (max_boxcar_width_in_sec/tsamp);
-	unsigned long int j;
+	//unsigned long int j;
 	unsigned long int vals;
 	int nTimesamples = t_processed;
 	int nDMs = ndms[i];
-	int temp_list_pos, temp_peak_pos;
+	int  temp_peak_pos; //temp_list_pos,
 	//double total;
 
 	// Calculate the total number of values
@@ -93,8 +93,8 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 	
 
 	double total_time, partial_time;
-	float signal_mean_1, signal_sd_1, modifier;
-	float max, min, threshold;
+	float signal_mean_1, signal_sd_1;//, modifier;
+	//float max, min, threshold;
 	int offset, max_iteration;
 	int t_BC_widths[10]={PD_MAXTAPS,16,16,16,8,8,8,8,8,8};
 	std::vector<int> BC_widths(t_BC_widths,t_BC_widths+sizeof(t_BC_widths)/sizeof(int));
@@ -138,7 +138,7 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 	max_timesamples=(free_mem*0.95)/(5.5*sizeof(float) + 2*sizeof(ushort));
 	#endif
 	int DMs_per_cycle = max_timesamples/nTimesamples;
-	int nRepeats, nRest, BC_shift, DM_shift, itemp, local_max_list_size;
+	int nRepeats, nRest, DM_shift, itemp, local_max_list_size;//BC_shift,
 	
 	itemp = (int) (DMs_per_cycle/THR_WARPS_PER_BLOCK);
 	DMs_per_cycle = itemp*THR_WARPS_PER_BLOCK;
@@ -244,7 +244,7 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 			
 			
 			cudaMemcpy(&temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost);
-			printf("temp_peak_pos:%d; host_pos:%d; max:%d;\n", temp_peak_pos, (*peak_pos), (int) max_peak_size);
+			printf("temp_peak_pos:%d; host_pos:%zu; max:%d;\n", temp_peak_pos, (*peak_pos), (int) max_peak_size);
 			if( ((*peak_pos) + temp_peak_pos)<max_peak_size){
 				cudaMemcpy(&h_peak_list[(*peak_pos)*4], d_peak_list, temp_peak_pos*4*sizeof(float), cudaMemcpyDeviceToHost);
 				*peak_pos = (*peak_pos) + temp_peak_pos;
