@@ -252,7 +252,7 @@ void main_function
 				analysis_GPU(h_output_list, &list_pos, max_list_size, h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp);
 				
 				
-				printf("-------> list_pos:%d; \n", list_pos);
+				printf("-------> list_pos:%zu; \n", list_pos);
 				#pragma omp parallel for
 				for (int count = 0; count < list_pos; count++){
 					h_output_list[4*count]     = h_output_list[4*count]*dm_step[dm_range] + dm_low[dm_range];

@@ -88,7 +88,7 @@ void PD_SEARCH_LONG_init() {
 
 int PD_SEARCH_LONG(float *d_input, float *d_boxcar_values, float *d_decimated, float *d_output_SNR, ushort *d_output_taps, float *d_MSD, int max_boxcar_width, int nDMs, int nTimesamples, int *t_max_iterarion) {
 	//---------> Task specific
-	int nBlocks, nRest, Elements_per_block, unprocessed_samples;
+	int nBlocks, unprocessed_samples;//nRest, Elements_per_block,
 	int shift, output_shift, iteration, max_iteration, startTaps, decimated_timesamples;
 	int nBoxcars;
 	int PD_plan[10]={32,16,16,16,8,8,8,8,8,8};
@@ -139,7 +139,7 @@ int PD_SEARCH_LONG(float *d_input, float *d_boxcar_values, float *d_decimated, f
 
 int PD_SEARCH_LONG_BLN(float *d_input, float *d_boxcar_values, float *d_decimated, float *d_output_SNR, ushort *d_output_taps, float *d_MSD, int max_boxcar_width, int nDMs, int nTimesamples, int *t_max_iterarion) {
 	//---------> Task specific
-	int nBlocks, nRest, Elements_per_block, unprocessed_samples;
+	int nBlocks, unprocessed_samples;//nRest, Elements_per_block,
 	int shift, output_shift, iteration, max_iteration, startTaps, decimated_timesamples;
 	int nBoxcars;
 	int PD_plan[10]={32,16,16,16,8,8,8,8,8,8};
