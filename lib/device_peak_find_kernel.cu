@@ -171,10 +171,10 @@ __device__ float dilate3x3(const float3x3 i) {
 }
 
 
-__global__ void dilate_peak_find(const float *d_input, ushort* d_input_taps, float *d_peak_list, const int width, const int height, const float threshold, int max_peak_size, int *gmem_pos, int shift, int DIT_value) {
+__global__ void dilate_peak_find(const float *d_input, ushort* d_input_taps, float *d_peak_list, const int width, const int height, const int offset, const float threshold, int max_peak_size, int *gmem_pos, int shift, int DIT_value) {
     int idxX = blockDim.x * blockIdx.x + threadIdx.x;
     int idxY = blockDim.y * blockIdx.y + threadIdx.y;
-    if (idxX >= width) return;
+    if (idxX >= width-offset) return;
     if (idxY >= height) return;
 
     float dilated_value = 0.0f;
@@ -194,8 +194,8 @@ __global__ void dilate_peak_find(const float *d_input, ushort* d_input_taps, flo
 			my_value = block.x;
         } 
         //Top right corner case
-        else if (idxX == (width-1)) {
-			float4 block = load_block_2x2(d_input+width-2, width);
+        else if (idxX == (width-offset-1)) {
+			float4 block = load_block_2x2(d_input+width-offset-2, width);
 			dilated_value = dilate4(block);
 			my_value = block.y;
 		} else {
@@ -216,8 +216,8 @@ __global__ void dilate_peak_find(const float *d_input, ushort* d_input_taps, flo
             my_value = block.z;
         }
         //Bottom right corner
-        else if (idxX == (width-1)) {
-			float4 block = load_block_2x2(d_input+width*(height-1)-2, width);
+        else if (idxX == (width-offset-1)) {
+			float4 block = load_block_2x2(d_input+width*(height-2)+width-offset-2, width);
 			dilated_value = dilate4(block);
 			my_value = block.w;
         } else {
@@ -232,7 +232,7 @@ __global__ void dilate_peak_find(const float *d_input, ushort* d_input_taps, flo
         my_value = block.y2;
     
     //right edge
-    } else if (idxX == (width-1)) {
+    } else if (idxX == (width-offset-1)) {
         float3x3 block = load_block_right(d_input, idxX, idxY, width);        
         dilated_value = dilate3x3_right(block);
         my_value = block.y2;
