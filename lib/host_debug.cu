@@ -54,10 +54,10 @@ void debug(int test, clock_t start_time, int range, int *outBin, int enable_debu
 		fflush(stdout);
 	} else if(test == 5) {
 		printf("\nMaxshift efficiency:\t\t%.2f%%", 100.0f-((float)maxshift/(float)nsamp)*100.0f); 
-		printf("\nHost Input size:\t\t%zu MB", (int) (inputsize / 1024 / 1024));
-		printf("\nHost Output size:\t\t%zu MB", (int) (outputsize / 1024 / 1024));
-		printf("\nDevice Input size:\t\t%zu MB", (int) (gpu_inputsize / 1024 / 1024));
-		printf("\nDevice Output size:\t\t%zu MB", (int) (gpu_outputsize / 1024 / 1024));
+		printf("\nHost Input size:\t\t%d MB", (int) (inputsize / 1024 / 1024));
+		printf("\nHost Output size:\t\t%d MB", (int) (outputsize / 1024 / 1024));
+		printf("\nDevice Input size:\t\t%d MB", (int) (gpu_inputsize / 1024 / 1024));
+		printf("\nDevice Output size:\t\t%d MB", (int) (gpu_outputsize / 1024 / 1024));
 	        printf("\nAllocated memory:\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
 		fflush(stdout);
 	}  else if(test == 6) {
