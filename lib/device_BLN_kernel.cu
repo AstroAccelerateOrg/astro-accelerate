@@ -104,12 +104,12 @@ __global__ void BLN_outlier_rejection(float const* __restrict__ d_input, float *
 	__shared__ float s_signal_sd;
 	
 	
-	int warp_id, pos;
+	int  pos; //warp_id,
 	float M, Mt, S, j, jv;
 	float ftemp;
 	float signal_mean, signal_sd;
 	
-	warp_id = threadIdx.x>>5;
+	//warp_id = threadIdx.x>>5;
 	
 	//----------------------------------------------
 	//---- Calculation of the initial MSD
