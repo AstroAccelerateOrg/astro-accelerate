@@ -27,7 +27,7 @@ void PEAK_FIND(float *d_output_SNR, ushort *d_output_taps, float *d_peak_list, i
 			gridSize.y = 1 + ((nDMs-1)/blockDim.y);
 			gridSize.z = 1;		
 			
-			dilate_peak_find<<<gridSize, blockDim>>>(&d_output_SNR[output_offset], &d_output_taps[output_offset], d_peak_list, decimated_timesamples, nDMs, threshold, max_peak_size, gmem_peak_pos, shift, (1<<f));
+			dilate_peak_find<<<gridSize, blockDim>>>(&d_output_SNR[output_offset], &d_output_taps[output_offset], d_peak_list, decimated_timesamples, nDMs, local_offset, threshold, max_peak_size, gmem_peak_pos, shift, (1<<f));
 			output_offset = output_offset + nDMs*decimated_timesamples;
 		}
 	}
