@@ -1,2 +1,0 @@
-#define THREADS_PER_BLOCK 192
-#define SPECTRA_PER_BLOCK 5
