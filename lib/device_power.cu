@@ -1,7 +1,7 @@
 //#include <omp.h>
 #include <stdio.h>
 #include <cufft.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include "device_power_kernel.cu"
 #include "helper_cuda.h"
 

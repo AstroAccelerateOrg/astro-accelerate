@@ -1,6 +1,6 @@
 //Added by Karel Adamek
 
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include "device_SPS_inplace_kernel.cu"
 
 int Choose_dim_SPS(int grid_dim)

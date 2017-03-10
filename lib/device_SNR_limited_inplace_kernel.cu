@@ -5,7 +5,7 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 
 __device__ __constant__ float c_sqrt_taps[PD_MAXTAPS+1];
 

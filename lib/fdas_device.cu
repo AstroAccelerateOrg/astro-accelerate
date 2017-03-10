@@ -4,8 +4,8 @@
 
 #include <stdio.h>
 #include <cuda_runtime.h>
-#include "AstroAccelerate/fdas_device.h"
-#include "AstroAccelerate/params.h"
+#include "headers/fdas_device.h"
+#include "headers/params.h"
 
 static __device__ __inline__ float2 Get_W_value(int N, int m){
 	float2 ctemp;

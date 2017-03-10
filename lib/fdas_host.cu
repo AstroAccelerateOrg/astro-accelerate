@@ -6,8 +6,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <math.h>
-#include "AstroAccelerate/fdas_host.h"
-#include "AstroAccelerate/params.h"
+#include "headers/fdas_host.h"
+#include "headers/params.h"
 //#include <helper_functions.h>
 #include <helper_cuda.h>
 #include <curand.h>

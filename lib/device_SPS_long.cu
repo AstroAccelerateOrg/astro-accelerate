@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "AstroAccelerate/params.h"
-#include "AstroAccelerate/device_BC_plan.h"
+#include "headers/params.h"
+#include "headers/device_BC_plan.h"
 #include "device_SPS_long_kernel.cu"
 
 

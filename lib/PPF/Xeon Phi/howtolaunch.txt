@@ -1,0 +1,4 @@
+
+icc -O3 -mmic -openmp -mkl PHI_PPF.cpp -o PHI_PPF.mic 
+
+micnativeloadex PHI_PPF.mic -a "nSpectra nChannels nTaps" -e "KMP_AFFINITY=compact OMP_NUM_THREADS=240"
