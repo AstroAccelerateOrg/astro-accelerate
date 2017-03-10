@@ -1,0 +1,4 @@
+icc CPU_PPF.cpp -o CPU_PPF.exe -openmp -mkl params.h -O3
+
+
+./CPU_PPF.exe nTaps nChannels nSpectra

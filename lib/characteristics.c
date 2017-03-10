@@ -1,5 +1,5 @@
-#include "AstroAccelerate/presto.h"
-#include "AstroAccelerate/cdflib.h"
+#include "headers/presto.h"
+#include "headers/cdflib.h"
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,4 +1,4 @@
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

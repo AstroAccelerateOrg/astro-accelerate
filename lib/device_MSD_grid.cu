@@ -1,5 +1,5 @@
 //Added by Karel Adamek
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include "device_MSD_grid_kernel.cu"
 
 void MSD_grid_init(void)

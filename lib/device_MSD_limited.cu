@@ -1,6 +1,6 @@
 //Added by Karel Adamek
 
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include "device_MSD_limited_kernel.cu"
 
 int Choose_x_dim(int grid_dim)
