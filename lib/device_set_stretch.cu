@@ -1,6 +1,6 @@
 #include <omp.h>
 #include <stdio.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include "device_set_stretch_kernel.cu"
 #include "helper_cuda.h"
 

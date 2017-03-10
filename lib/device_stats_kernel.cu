@@ -4,7 +4,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cufft.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 
 //{{{ Set stats
 __global__ void stats_kernel(int half_samps, float *d_sum, float *d_sum_square, float *d_signal_power)

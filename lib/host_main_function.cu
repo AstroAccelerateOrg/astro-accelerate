@@ -1,46 +1,47 @@
-#include "AstroAccelerate/headers_mains.h"
-#include "AstroAccelerate/device_bin.h"
-#include "AstroAccelerate/device_init.h"
-#include "AstroAccelerate/device_dedisperse.h"
-#include "AstroAccelerate/device_dedispersion_kernel.h"
-#include "AstroAccelerate/device_zero_dm.h"
-#include "AstroAccelerate/device_zero_dm_outliers.h"
-#include "AstroAccelerate/device_rfi.h"
+#include "headers/headers_mains.h"
+#include "headers/device_bin.h"
+#include "headers/device_init.h"
+#include "headers/device_dedisperse.h"
+#include "headers/device_dedispersion_kernel.h"
+#include "headers/device_zero_dm.h"
+#include "headers/device_zero_dm_outliers.h"
+#include "headers/device_rfi.h"
 
-#include "AstroAccelerate/device_BLN.h" //Added by KA
-#include "AstroAccelerate/device_SPS_inplace_kernel.h" //Added by KA
-#include "AstroAccelerate/device_SPS_inplace.h" //Added by KA
-#include "AstroAccelerate/device_MSD_grid.h" //Added by KA
-#include "AstroAccelerate/device_MSD_plane.h" //Added by KA
-#include "AstroAccelerate/device_MSD_limited.h" //Added by KA
-#include "AstroAccelerate/device_SNR_limited.h" //Added by KA
-#include "AstroAccelerate/device_threshold.h" //Added by KA
-#include "AstroAccelerate/device_single_FIR.h" //Added by KA
-#include "AstroAccelerate/device_analysis.h" //Added by KA
+#include "headers/device_BLN.h" //Added by KA
+#include "headers/device_SPS_inplace_kernel.h" //Added by KA
+#include "headers/device_SPS_inplace.h" //Added by KA
+#include "headers/device_MSD_grid.h" //Added by KA
+#include "headers/device_MSD_plane.h" //Added by KA
+#include "headers/device_MSD_limited.h" //Added by KA
+#include "headers/device_SNR_limited.h" //Added by KA
+#include "headers/device_threshold.h" //Added by KA
+#include "headers/device_single_FIR.h" //Added by KA
+#include "headers/device_analysis.h" //Added by KA
 
-#include "AstroAccelerate/device_peak_find.h" //Added by KA
+#include "headers/device_peak_find.h" //Added by KA
 
-#include "AstroAccelerate/device_load_data.h"
-#include "AstroAccelerate/device_corner_turn.h"
-#include "AstroAccelerate/device_save_data.h"
-#include "AstroAccelerate/host_acceleration.h"
-#include "AstroAccelerate/host_allocate_memory.h"
-#include "AstroAccelerate/host_analysis.h"
-#include "AstroAccelerate/host_periods.h"
-#include "AstroAccelerate/host_debug.h"
-#include "AstroAccelerate/host_get_file_data.h"
-#include "AstroAccelerate/host_get_recorded_data.h"
-#include "AstroAccelerate/host_get_user_input.h"
-#include "AstroAccelerate/host_help.h"
-#include "AstroAccelerate/host_rfi.h"
-#include "AstroAccelerate/host_stratagy.h"
-#include "AstroAccelerate/host_write_file.h"
+#include "headers/device_load_data.h"
+#include "headers/device_corner_turn.h"
+#include "headers/device_save_data.h"
+#include "headers/host_acceleration.h"
+#include "headers/host_allocate_memory.h"
+#include "headers/host_analysis.h"
+#include "headers/host_periods.h"
+#include "headers/host_debug.h"
+#include "headers/host_get_file_data.h"
+#include "headers/host_get_recorded_data.h"
+#include "headers/host_get_user_input.h"
+#include "headers/host_help.h"
+#include "headers/host_rfi.h"
+#include "headers/host_stratagy.h"
+#include "headers/host_write_file.h"
+
 // fdas
-#include "AstroAccelerate/device_acceleration_fdas.h"
+#include "headers/device_acceleration_fdas.h"
 
-#include "AstroAccelerate/host_main_function.h"
+#include "headers/host_main_function.h"
 
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 
 #include "timer.h"
 

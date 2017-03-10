@@ -1,11 +1,11 @@
 // James Sharpe's peak finding code
 
-#include "AstroAccelerate/device_BC_plan.h"
+#include "headers/device_BC_plan.h"
 
 #include <npp.h>
 #include "helper_cuda.h"
 
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include "device_peak_find_kernel.cu"
 
 

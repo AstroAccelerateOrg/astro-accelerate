@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include "AstroAccelerate/fdas_util.h"
+#include "headers/fdas_util.h"
 #include <getopt.h>
 #include <string.h>
 #include <sys/stat.h>

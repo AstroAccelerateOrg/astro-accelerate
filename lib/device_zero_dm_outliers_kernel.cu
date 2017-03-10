@@ -3,7 +3,7 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 
 
 //{{{ zero dm kernel - needs cleaning and optimizing // WA 21/10/16

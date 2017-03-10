@@ -1,7 +1,7 @@
 //Added by Karel Adamek
-#include "AstroAccelerate/device_BC_plan.h"
+#include "headers/device_BC_plan.h"
 
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include "device_threshold_kernel.cu"
 
 void THR_init(void) {

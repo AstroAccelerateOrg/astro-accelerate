@@ -3,17 +3,18 @@
 #include <vector>
 #include <stdio.h>
 #include <stdlib.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 
-#include "AstroAccelerate/device_BC_plan.h"
-#include "AstroAccelerate/device_peak_find.h"
-#include "AstroAccelerate/device_BLN.h"
-#include "AstroAccelerate/device_MSD_plane.h"
-#include "AstroAccelerate/device_MSD_limited.h"
-#include "AstroAccelerate/device_SNR_limited.h"
-#include "AstroAccelerate/device_SPS_inplace.h"
-#include "AstroAccelerate/device_threshold.h"
-#include "AstroAccelerate/device_single_FIR.h"
+#include "headers/device_BC_plan.h"
+#include "headers/device_peak_find.h"
+#include "headers/device_BLN.h"
+#include "headers/device_MSD_plane.h"
+#include "headers/device_MSD_limited.h"
+#include "headers/device_SNR_limited.h"
+#include "headers/device_SPS_inplace.h"
+#include "headers/device_threshold.h"
+#include "headers/device_single_FIR.h"
+
 #include "timer.h"
 
 

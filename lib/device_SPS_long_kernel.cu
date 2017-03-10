@@ -5,7 +5,7 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 
 __global__ void PD_GPU_1st_float1(float const* __restrict__ d_input, float *d_bv_out, float *d_decimated, float *d_output_SNR, ushort *d_output_taps, float *d_MSD, int nTimesamples, int nBoxcars) {
 	__shared__ float2 s_input[PD_NTHREADS];
