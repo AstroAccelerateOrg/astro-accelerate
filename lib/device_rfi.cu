@@ -2,7 +2,7 @@
 //#include <omp.h>
 #include <time.h>
 #include <stdio.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include "device_rfi_kernel.cu"
 
 //{{{ rfi_gpu

@@ -3,11 +3,11 @@
 #include <cufft.h>
 #include <time.h>
 // #include <omp.h>
-#include "AstroAccelerate/params.h"
-#include "AstroAccelerate/device_stats.h"
-#include "AstroAccelerate/device_stretch.h"
-#include "AstroAccelerate/device_set_stretch.h"
-#include "AstroAccelerate/device_power.h"
+#include "headers/params.h"
+#include "headers/device_stats.h"
+#include "headers/device_stretch.h"
+#include "headers/device_set_stretch.h"
+#include "headers/device_power.h"
 #include "helper_cuda.h"
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }

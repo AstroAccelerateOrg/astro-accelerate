@@ -2,7 +2,7 @@
 #define ASTROACCELERATE_THRESHOLD_H_
 
 #include<vector>
-#include "AstroAccelerate/device_BC_plan.h"
+#include "device_BC_plan.h"
 
 
 extern void THR_init(void);

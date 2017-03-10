@@ -1,6 +1,6 @@
 //Added by Karel Adamek
 
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include "device_BLN_kernel.cu"
 
 void BLN_init(){

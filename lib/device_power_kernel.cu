@@ -4,7 +4,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cufft.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 
 //{{{ Set stretch
 __global__ void power_kernel(int half_samps, int acc, cufftComplex *d_signal_fft, float *d_signal_power)

@@ -1,6 +1,6 @@
 //Added by Karel Adamek
 
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include "device_MSD_plane_kernel.cu"
 
 void MSD_init(void)

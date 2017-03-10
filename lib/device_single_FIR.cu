@@ -1,6 +1,6 @@
 //Added by Karel Adamek
 
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 
 void PD_FIR_init(void)
 {
