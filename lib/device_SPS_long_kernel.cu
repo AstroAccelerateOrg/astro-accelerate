@@ -500,26 +500,26 @@ __global__ void PD_GPU_1st_float1_BLN_IF(float const* __restrict__ d_input, floa
 	
 	spos=blockIdx.x*(2*PD_NTHREADS-nBoxcars) + 2*threadIdx.x;
 	
+	Bw[0]=0; Bw[1]=0; Bw[2]=0; Bw[3]=0; Bw[4]=0; Bw[5]=0; Bw[6]=0; Bw[7]=0;
 	// Loading data and normalization
-	if( (spos+4)<nTimesamples ) {
-		gpos = blockIdx.y*nTimesamples + spos;
-		ftemp1.x=d_input[gpos];	
-		ftemp1.y=d_input[gpos+1];
-		ftemp1.x = __fdividef( (ftemp1.x-signal_mean),signal_sd);	ftemp1.y = __fdividef( (ftemp1.y-signal_mean),signal_sd);
-		ftemp2.x=d_input[gpos+2];
-		ftemp2.y=d_input[gpos+3];
-		ftemp2.x = __fdividef( (ftemp2.x-signal_mean),signal_sd);	ftemp2.y = __fdividef( (ftemp2.y-signal_mean),signal_sd);
-		ftemp3.x=d_input[gpos+4];
-		ftemp3.x = __fdividef( (ftemp3.x-signal_mean),signal_sd);
 	
-	
-		Bw[0]=ftemp1.x; Bw[4]=ftemp1.y;
-		Bw[1]=ftemp1.x+ftemp1.y; Bw[5]=ftemp1.y+ftemp2.x;
-		Bw[2]=Bw[1] + ftemp2.x; Bw[6]=Bw[5] + ftemp2.y;
-		Bw[3]=Bw[1] + ftemp2.x + ftemp2.y; Bw[7] = Bw[5] + ftemp2.y + ftemp3.x;
-	
-		d_decimated[(gpos>>1)]=Bw[1];
-	}
+	gpos = blockIdx.y*nTimesamples + spos;
+	ftemp1.x=d_input[gpos];	
+	ftemp1.y=d_input[gpos+1];
+	ftemp1.x = __fdividef( (ftemp1.x-signal_mean),signal_sd);	ftemp1.y = __fdividef( (ftemp1.y-signal_mean),signal_sd);
+	ftemp2.x=d_input[gpos+2];
+	ftemp2.y=d_input[gpos+3];
+	ftemp2.x = __fdividef( (ftemp2.x-signal_mean),signal_sd);	ftemp2.y = __fdividef( (ftemp2.y-signal_mean),signal_sd);
+	ftemp3.x=d_input[gpos+4];
+	ftemp3.x = __fdividef( (ftemp3.x-signal_mean),signal_sd);
+
+
+	Bw[0]=ftemp1.x; Bw[4]=ftemp1.y;
+	Bw[1]=ftemp1.x+ftemp1.y; Bw[5]=ftemp1.y+ftemp2.x;
+	Bw[2]=Bw[1] + ftemp2.x; Bw[6]=Bw[5] + ftemp2.y;
+	Bw[3]=Bw[1] + ftemp2.x + ftemp2.y; Bw[7] = Bw[5] + ftemp2.y + ftemp3.x;
+
+	d_decimated[(gpos>>1)]=Bw[1];
 	
 	s_input[threadIdx.x].x = Bw[3];
 	s_input[threadIdx.x].y = Bw[7];
@@ -600,7 +600,7 @@ __global__ void PD_GPU_1st_float1_BLN_IF(float const* __restrict__ d_input, floa
 	__syncthreads();
 	
 	spos=blockIdx.x*(2*PD_NTHREADS-nBoxcars) + 2*threadIdx.x;
-	if( threadIdx.x<(PD_NTHREADS-(nBoxcars>>1)) && (spos+1)<nTimesamples ){
+	if( threadIdx.x<(PD_NTHREADS-(nBoxcars>>1)) && spos<nTimesamples){
 		gpos=blockIdx.y*nTimesamples + spos;
 		d_output_SNR[gpos] = s_SNRs[threadIdx.x].x;
 		d_output_SNR[gpos + 1] = s_SNRs[threadIdx.x].y;
@@ -626,29 +626,31 @@ __global__ void PD_GPU_Nth_float1_BLN_IF(float const* __restrict__ d_input, floa
 	ushort2 taps, taps1, taps2;
 	int Taps;
 	
+	Bw[0]=0; Bw[1]=0; Bw[2]=0; Bw[3]=0; Bw[4]=0; Bw[5]=0; Bw[6]=0; Bw[7]=0;
+	s_BV[threadIdx.x].x=0; s_BV[threadIdx.x].y=0;
 	
 	spos=blockIdx.x*(2*PD_NTHREADS-nBoxcars) + 2*threadIdx.x;
-	if( (spos+4+shift)<nTimesamples ) {
-		gpos=blockIdx.y*nTimesamples + spos;
-		ftemp1.x=d_input[gpos+shift];
-		ftemp1.y=d_input[gpos+shift + 1];
-		ftemp2.x=d_input[gpos+shift + 2];
-		ftemp2.y=d_input[gpos+shift + 3];
-		ftemp3.x=d_input[gpos+shift + 4];
 	
-		
-		Bw[0]=ftemp1.x; Bw[4]=ftemp1.y;
-		Bw[1]=ftemp1.x+ftemp1.y; Bw[5]=ftemp1.y+ftemp2.x;
-		Bw[2]=Bw[1] + ftemp2.x; Bw[6]=Bw[5] + ftemp2.y;
-		Bw[3]=Bw[1] + ftemp2.x + ftemp2.y; Bw[7] = Bw[5] + ftemp2.y + ftemp3.x;
+	gpos=blockIdx.y*nTimesamples + spos;
+	ftemp1.x=d_input[gpos+shift];
+	ftemp1.y=d_input[gpos+shift + 1];
+	ftemp2.x=d_input[gpos+shift + 2];
+	ftemp2.y=d_input[gpos+shift + 3];
+	ftemp3.x=d_input[gpos+shift + 4];
 	
 	
-		d_decimated[(gpos>>1)]=Bw[1];
-
-		
-		s_BV[threadIdx.x].x=d_bv_in[gpos];	
-		s_BV[threadIdx.x].y=d_bv_in[gpos+1];
-	}
+	Bw[0]=ftemp1.x; Bw[4]=ftemp1.y;
+	Bw[1]=ftemp1.x+ftemp1.y; Bw[5]=ftemp1.y+ftemp2.x;
+	Bw[2]=Bw[1] + ftemp2.x; Bw[6]=Bw[5] + ftemp2.y;
+	Bw[3]=Bw[1] + ftemp2.x + ftemp2.y; Bw[7] = Bw[5] + ftemp2.y + ftemp3.x;
+	
+	
+	d_decimated[(gpos>>1)]=Bw[1];
+    
+	
+	s_BV[threadIdx.x].x=d_bv_in[gpos];	
+	s_BV[threadIdx.x].y=d_bv_in[gpos+1];
+	
 	
 	s_input[threadIdx.x].x = Bw[3];
 	s_input[threadIdx.x].y = Bw[7];
@@ -726,8 +728,7 @@ __global__ void PD_GPU_Nth_float1_BLN_IF(float const* __restrict__ d_input, floa
 	__syncthreads();
 	
 	spos = blockIdx.x*(2*PD_NTHREADS-nBoxcars) + 2*threadIdx.x;
-	if( threadIdx.x<(PD_NTHREADS-(nBoxcars>>1))  && (spos+1)<nTimesamples ){
-	//if( threadIdx.x<(PD_NTHREADS-(nBoxcars>>1)) ){
+	if( threadIdx.x<(PD_NTHREADS-(nBoxcars>>1))  && spos<(nTimesamples) ){
 		gpos=blockIdx.y*nTimesamples + spos;
 		d_output_SNR[gpos] = s_SNRs[threadIdx.x].x;
 		d_output_SNR[gpos + 1] = s_SNRs[threadIdx.x].y;
