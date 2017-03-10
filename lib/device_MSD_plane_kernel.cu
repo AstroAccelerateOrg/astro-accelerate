@@ -5,7 +5,7 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 
 __global__ void MSD_GPU(float2 const* __restrict__ d_input, float *d_output)
 {

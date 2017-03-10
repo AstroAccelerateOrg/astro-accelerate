@@ -1,0 +1,28 @@
+void reverse_coefficients(float *coeff, int nChannels, int nTaps){
+	int c,t,itemp;
+	float swap;
+	
+	itemp=nTaps/2+nTaps%2;
+	for(t=0; t<itemp; t++){
+		for(c=0; c<nChannels; c++){
+			swap=coeff[t*nChannels+c];
+			coeff[t*nChannels+c]=coeff[(nTaps-t-1)*nChannels+c];
+			coeff[(nTaps-t-1)*nChannels+c]=swap;
+		}
+	}
+}
+
+
+Comment: There is a 'bug' in our code. We have approached our implementation of a polyphase filter as a weighted sum, which FIR filter and polyphase filter certainly is. The expression for FIR filter is given as 
+y[n]=SUM_{k=0}^{T-1}(h[k]*x[n-k]) (1),
+where T is number of taps. For example if h={x,y,z} and x={a,b,c,d,e,f} the equation for FIR filter produces for T=3 we get
+y[3]=c*x + b*y + a*z (2).
+Our code however produces 
+y[3]=a*x + b*y + c*z (3).
+To get expected result given by eq. (2) all we need to do is to reverse (mirror) order of the coefficients that is swap the columns in coefficient matrix, e.g. h={x,y,z}->h={z,y,x}. We have added function 
+void reverse_coefficients(float *coeff, int nChannels, int nTaps);
+which does exactly that.
+
+The performance of our implementation of the polyphase filter is unaffected by this change as the reversing happens before actual computation starts.
+
+

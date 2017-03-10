@@ -5,7 +5,7 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 
 __global__ void SNR_GPU_limited(float *d_FIR_input, float *d_SNR_output, float *d_SNR_taps, float *d_MSD, int x_steps, int nTaps, int nColumns, int offset)
 {

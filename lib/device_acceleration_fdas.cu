@@ -11,10 +11,10 @@
 #include <helper_cuda.h>
 #include <cuda_profiler_api.h>
 //
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include "helper_cuda.h"
-#include "AstroAccelerate/fdas.h"
-#include "AstroAccelerate/fdas_host.h"
+#include "headers/fdas.h"
+#include "headers/fdas_host.h"
 
 void acceleration_fdas(int range,
 					   int nsamp,

@@ -5,7 +5,7 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 
 __global__ void THR_GPU_WARP_ignore(float2 const* __restrict__ d_input, unsigned char *d_input_taps, float *d_output_list, int *gmem_pos, float threshold, int nTaps, int nTimesamples, int max_list_size)
 {
