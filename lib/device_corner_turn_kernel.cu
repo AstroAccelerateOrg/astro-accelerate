@@ -3,7 +3,7 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 
 //{{{ corner_turn
 __global__ void simple_corner_turn_kernel(unsigned short *d_input, float *d_output, int nchans, int nsamp)

@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "AstroAccelerate/cdflib.h"
+#include "headers/cdflib.h"
+
 static void E0000(int, int *, double *, double *, unsigned long *,
                   unsigned long *, double *, double *, double *,
                   double *, double *, double *, double *);

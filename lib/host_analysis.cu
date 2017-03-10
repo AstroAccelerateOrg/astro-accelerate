@@ -2,8 +2,8 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "AstroAccelerate/params.h"
-#include "AstroAccelerate/host_periods.h"
+#include "headers/params.h"
+#include "headers/host_periods.h"
 
 #define OUTPUT_TO_FILE 1
 #define OUTPUT_TO_LIST 0

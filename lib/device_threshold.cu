@@ -1,6 +1,6 @@
 //Added by Karel Adamek
 
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include "device_threshold_kernel.cu"
 
 void THR_init(void)

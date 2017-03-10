@@ -1,4 +1,4 @@
-#include "AstroAccelerate/headers_mains.h"
+#include "headers/headers_mains.h"
 #include "device_dedispersion_kernel.cu"
 #include "device_corner_turn_kernel.cu"
 #include "device_binning_kernel.cu"

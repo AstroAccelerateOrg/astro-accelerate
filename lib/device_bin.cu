@@ -2,7 +2,7 @@
 // #include <omp.h>
 #include <time.h>
 #include <stdio.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include "device_binning_kernel.cu"
 
 //extern "C" void bin_gpu(float *bin_buffer, float *input_buffer, int nchans, int nsamp);

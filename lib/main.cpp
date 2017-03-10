@@ -1,11 +1,11 @@
-#include "AstroAccelerate/headers_mains.h"
-#include "AstroAccelerate/host_main_function.h" // Added by Nassim.O
-#include "AstroAccelerate/host_debug.h"
-#include "AstroAccelerate/host_get_user_input.h"
-#include "AstroAccelerate/host_get_file_data.h"
-#include "AstroAccelerate/host_allocate_memory.h"
-#include "AstroAccelerate/host_get_recorded_data.h"
-#include "AstroAccelerate/params.h"
+#include "headers/headers_mains.h"
+#include "headers/host_main_function.h" // Added by Nassim.O
+#include "headers/host_debug.h"
+#include "headers/host_get_user_input.h"
+#include "headers/host_get_file_data.h"
+#include "headers/host_allocate_memory.h"
+#include "headers/host_get_recorded_data.h"
+#include "headers/params.h"
 
 int main(int argc, char* argv[])
 {

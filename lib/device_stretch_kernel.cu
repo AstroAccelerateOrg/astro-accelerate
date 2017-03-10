@@ -3,7 +3,7 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include <cufft.h>
 
 //{{{ stretch

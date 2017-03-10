@@ -2,7 +2,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <cufft.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include "device_stats_kernel.cu"
 #include "helper_cuda.h"
 
