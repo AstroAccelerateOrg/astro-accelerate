@@ -35,7 +35,7 @@ void Create_PD_plan(std::vector<PulseDetection_plan> *PD_plan, std::vector<int> 
 		PDmp.nBlocks = itemp/Elements_per_block;
 		nRest = itemp - PDmp.nBlocks*Elements_per_block;
 		if(nRest>0) PDmp.nBlocks++;
-		PDmp.unprocessed_samples = PDmp.nBoxcars;
+		PDmp.unprocessed_samples = PDmp.nBoxcars + 6;
 		PDmp.total_ut = PDmp.unprocessed_samples;
 		
 		PD_plan->push_back(PDmp);
@@ -245,7 +245,7 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 			
 			
 			cudaMemcpy(&temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost);
-			printf("temp_peak_pos:%d; host_pos:%zu; max:%d;\n", temp_peak_pos, (*peak_pos), (int) max_peak_size);
+			printf("temp_peak_pos:%d; host_pos:%d; max:%d;\n", temp_peak_pos, (*peak_pos), (int) max_peak_size);
 			if( ((*peak_pos) + temp_peak_pos)<max_peak_size){
 				cudaMemcpy(&h_peak_list[(*peak_pos)*4], d_peak_list, temp_peak_pos*4*sizeof(float), cudaMemcpyDeviceToHost);
 				*peak_pos = (*peak_pos) + temp_peak_pos;
