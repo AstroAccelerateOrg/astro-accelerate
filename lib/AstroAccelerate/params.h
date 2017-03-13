@@ -1,22 +1,22 @@
 #define ACCMAX 350
 #define ACCSTEP 11
-#define UNROLLS 32
-#define SNUMREG 14
-#define SDIVINT 14
-#define SDIVINDM 60
-#define SFDIVINDM 60.0f
+#define UNROLLS 16
+#define SNUMREG 6
+#define SDIVINT 6
+#define SDIVINDM 40
+#define SFDIVINDM 40.0f
 #define CARD 0
 #define NOPSSHIFT 5
 #define NOPSLOOP 3
 #define NDATAPERLOOP 1
-#define BINDIVINT 8
+#define BINDIVINT 6
 #define BINDIVINF 32
-#define CT 32
-#define CF 8
+#define CT 256
+#define CF 2
 #define NOPS 4.0
 #define STATST 128
 #define STATSLOOP 8
-#define FILTER_OUT_RANGES 0
+#define FILTER_OUT_RANGES 1
 #define RANGE_TO_KEEP 0
 
 //Added by Karel Adamek
@@ -32,24 +32,3 @@
 #define PD_SMEM_SIZE 1280
 #define PD_FIR_ACTIVE_WARPS 2
 #define PD_FIR_NWINDOWS 2
-
-/**** FDAS parameters ******/
-/*Params for benchmarks */
-#define TSAMP 0.000064
-//#define NSAMPS 4194304 // 2^22
-#define SLIGHT 299792458.0
-#define RADIX 1
-#define NEXP 10
-#define POTWO (1 << NEXP)
-#define KERNLEN RADIX*POTWO
-#define ACCEL_STEP (float)(2.0) //1 //default acceleration step
-#define ACCEL_STEP_R (float)(1/ACCEL_STEP)
-#define ZMAX 96
-#define NKERN (ZMAX + 1)
-//#define ZLO  -(int)((ZMAX/ACCEL_STEP) )
-#define TBSIZEX 32
-#define TBSIZEY 1
-#define PTBSIZEX 64
-#define PTBSIZEY 1
-//custom fft params (K. Adamek)
-#define TAPS 8

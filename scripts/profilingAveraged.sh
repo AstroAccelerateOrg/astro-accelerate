@@ -9,7 +9,7 @@ mkdir profile_optimum_averaged
 rm -rf profile_results
 mkdir profile_results
 
-rm stats.txt
+rm profile_optimum_averaged/stats.txt
 
 unroll=16
 for unroll in {16,32,64}
@@ -92,7 +92,7 @@ do
 				averageSpeedup=$(echo "scale=5;$totalSpeedup/$numTrials" | bc)
 				bestTrial=$(grep "Real" ./profile_results/*"$paramString"* | awk -F" " '{print $4" "$1}' | sort -n | tail -1 | awk -F" " '{print $1}')
 				worstTrial=$(grep "Real" ./profile_results/*"$paramString"* | awk -F" " '{print $4" "$1}' | sort -n | head -1 | awk -F" " '{print $1}')
-				echo params: $paramString avg: $averageSpeedup max: $bestTrial min: $worstTrial >> stats.txt
+				echo params: $paramString avg: $averageSpeedup max: $bestTrial min: $worstTrial >> profile_optimum_averaged/stats.txt
 
 				fi
 			done
@@ -103,9 +103,9 @@ done
 #optimum=$(grep "Real" ./profile_results/* | awk -F" " '{print $4" "$1}' | sort -n | tail -1 | awk -F" " '{print $2}' | awk -F":" '{print $1}' | awk -F"." '{print "."$2}')
 #echo "optimum: "$optimum
 
-optimumParams=$(cat stats.txt | awk -F" " '{print $4" "$2}' | sort -n | tail -1 | awk -F" " '{print $2}')
-optimumParamString=$(grep "$optimumParams" stats.txt)
-echo BEST: $optimumParamString >> stats.txt
+optimumParams=$(cat profile_optimum_averaged/stats.txt | awk -F" " '{print $4" "$2}' | sort -n | tail -1 | awk -F" " '{print $2}')
+optimumParamString=$(grep "$optimumParams" profile_optimum_averaged/stats.txt)
+echo BEST: $optimumParamString >> profile_optimum_averaged/stats.txt
 
 cp ./profile_results/$optimumParams.h ../lib/AstroAccelerate/params.h
 cp ./profile_results/$optimumParams.h profile_optimum_averaged/params_averaged.h
