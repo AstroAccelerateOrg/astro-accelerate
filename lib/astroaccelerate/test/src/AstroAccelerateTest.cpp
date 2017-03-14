@@ -216,7 +216,6 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		astroaccelerate::AstroAccelerate<TestParams> astroaccelerate(dedispersion_strategy);
 		astroaccelerate.run_dedispersion_sps_fdas(device_id
 												  ,dedispersion_strategy
-												  ,gpu_memory
 												  ,input_buffer
 												  ,output_buffer
 												  ,output_sps
