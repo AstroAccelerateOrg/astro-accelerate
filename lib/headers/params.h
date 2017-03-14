@@ -26,7 +26,7 @@
 #define THR_WARPS_PER_BLOCK 4
 #define PD_NTHREADS 512
 #define PD_NWINDOWS 2
-#define PD_MAXTAPS 16
+#define PD_MAXTAPS 32
 #define PD_SMEM_SIZE 1280
 #define PD_FIR_ACTIVE_WARPS 2
 #define PD_FIR_NWINDOWS 2
