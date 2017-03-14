@@ -1,0 +1,85 @@
+#!/usr/bin/perl
+# Copyright 2000-2015 Chris Williams
+# All rights reserved
+# Create a new c++ project package
+#
+use FindBin;
+use lib "$FindBin::Bin";
+use strict;
+use FileHandle;
+use DirHandle;
+use Cwd;
+
+sub usage {
+    print "Tool to create package structure relative to the current working directory.\n";
+    print "Usage:\n\tnewpackage <package_name>\n";
+}
+
+sub makedir {
+    my $dir=shift;
+    if( ! -e $dir ) {
+        mkdir $dir,0755 or die "unable to create directory $dir";
+    }
+}
+
+my $name=$ARGV[0];
+if( ! defined $name ) {
+    usage();
+    exit 1;
+}
+
+# create package structure
+makedir( $name );
+makedir( $name."/doc" );
+makedir( $name."/examples" );
+makedir( $name."/src" );
+makedir( $name."/detail" );
+makedir( $name."/test_utils" );
+my $cmfile=$name."/CMakeLists.txt";
+my $fh=FileHandle->new(">$cmfile") or die "unable to create file $cmfile :$!";
+print $fh "set(module_", $name, "_lib_src_cpu\nPARENT_SCOPE\n)\n";
+print $fh "\nTEST_UTILS()\n";
+print $fh "\nadd_subdirectory(test)\n";
+$fh->close();
+
+# test_utils directory
+my $test_utils_dir=$name."/test_utils";
+my $test_utils_srcdir=$test_utils_dir."/src";
+makedir( $test_utils_dir );
+makedir( $test_utils_srcdir );
+$cmfile=$test_utils_dir."/CMakeLists.txt";
+my $test_utils_name="test_utils_$name";
+my $tufh=FileHandle->new(">$cmfile") or die "unable to create file $cmfile :$!";
+print $tufh "set(module_${name}_test_utils_src_cpu\n    PARENT_SCOPE\n)\n";
+$tufh->close();
+
+# test directory
+my $testdir=$name."/test";
+my $testsrcdir=$testdir."/src";
+my $testdatadir=$testdir."/data";
+makedir( $testdir );
+makedir( $testsrcdir );
+makedir( $testdatadir );
+$cmfile=$testdir."/CMakeLists.txt";
+my $tfh=FileHandle->new(">$cmfile") or die "unable to create file $cmfile :$!";
+my $testname="gtest_$name";
+my $testmain=$testsrcdir."/".$testname.".cpp";
+print $tfh "include_directories(\${GTEST_INCLUDE_DIR})\n\n";
+print $tfh "link_directories(\${GTEST_LIBRARY_DIR})\n\n";
+print $tfh "set(\n   ",$testname,"_src\n    src/$testname.cpp\n)\n";
+print $tfh "add_executable($testname \${".$testname."_src} )\n";
+print $tfh "target_link_libraries($testname \${ASTRO_ACCELERATE_TEST_UTILS} \${ASTRO_ACCELERATE_LIBRARIES} \${GTEST_LIBRARIES})\n";
+#print $tfh "add_test($testname \${EXECUTABLE_OUTPUT_PATH}/$testname )\n";
+print $tfh "add_test($testname $testname --test_data \"\${CMAKE_CURRENT_LIST_DIR}/data\")\n";
+$tfh->close();
+
+# test template
+my $th=FileHandle->new(">$testmain") or die "unable to create file $testmain:$!";
+print $th <<END;
+#include <panda/test/gtest.h>
+
+int main(int argc, char* argv[])
+{
+    return ska::panda::test::panda_gtest_main(argc, argv);
+}
+END

@@ -1,6 +1,8 @@
 #ifndef ASTROACCELERATE_ACC_FDAS_H_
 #define ASTROACCELERATE_ACC_FDAS_H_
 
+#include "../astroaccelerate/DmTime.h"
+
 void acceleration_fdas(int range,
 					   int nsamp,
 					   int max_ndms,
@@ -13,7 +15,7 @@ void acceleration_fdas(int range,
 					   int nsearch,
 					   float aggression,
 					   float cutoff,
-					   float ***output_buffer,
+					   ska::astroaccelerate::DmTime<float> &output_buffer,
 					   int *ndms,
 					   int *inBin,
 					   float *dm_low,

@@ -6,7 +6,7 @@
 #include "headers/device_zero_dm.h"
 #include "headers/device_zero_dm_outliers.h"
 #include "headers/device_rfi.h"
-
+//sps
 #include "headers/device_BLN.h" //Added by KA
 #include "headers/device_SPS_inplace_kernel.h" //Added by KA
 #include "headers/device_SPS_inplace.h" //Added by KA
@@ -17,9 +17,8 @@
 #include "headers/device_threshold.h" //Added by KA
 #include "headers/device_single_FIR.h" //Added by KA
 #include "headers/device_analysis.h" //Added by KA
-
 #include "headers/device_peak_find.h" //Added by KA
-
+//
 #include "headers/device_load_data.h"
 #include "headers/device_corner_turn.h"
 #include "headers/device_save_data.h"
@@ -35,14 +34,12 @@
 #include "headers/host_rfi.h"
 #include "headers/host_stratagy.h"
 #include "headers/host_write_file.h"
-
 // fdas
 #include "headers/device_acceleration_fdas.h"
-
+//
 #include "headers/host_main_function.h"
-
+//
 #include "headers/params.h"
-
 #include "timer.h"
 
 void main_function
@@ -79,12 +76,12 @@ void main_function
 	int multi_file,
 	float max_dm,
 	// Memory sizes and pointers
-  size_t inputsize,
-  size_t outputsize,
+	size_t inputsize,
+	size_t outputsize,
 	size_t gpu_inputsize,
 	size_t gpu_outputsize,
 	size_t gpu_memory,
-  unsigned short  *input_buffer,
+	unsigned short  *input_buffer,
 	float ***output_buffer,
 	unsigned short  *d_input,
 	float *d_output,
