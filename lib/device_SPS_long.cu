@@ -209,7 +209,7 @@ int PD_SEARCH_LONG_BLN(float *d_input, float *d_boxcar_values, float *d_decimate
 	Assign_parameters(0, PD_plan, &decimated_timesamples, &iteration, &nBoxcars, &nBlocks, &output_shift, &shift, &startTaps, &unprocessed_samples, &total_ut);
 	gridSize.x=nBlocks; gridSize.y=nDMs; gridSize.z=1;
 	blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
-	printf("decimated_timesamples:%d; iteration:%d; nBlocks:%d; nBoxcars:%d; shift:%d; start_Taps:%d;\n", decimated_timesamples, iteration, gridSize.x, nBoxcars, shift, startTaps);
+	printf("decimated_timesamples:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples	,iteration ,nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
 	PD_GPU_1st_float1_BLN_IF<<<gridSize,blockSize>>>( d_input, d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD, decimated_timesamples, nBoxcars);
 	
 	
@@ -217,7 +217,7 @@ int PD_SEARCH_LONG_BLN(float *d_input, float *d_boxcar_values, float *d_decimate
 		Assign_parameters(f, PD_plan, &decimated_timesamples, &iteration, &nBoxcars, &nBlocks, &output_shift, &shift, &startTaps, &unprocessed_samples, &total_ut);
 		gridSize.x=nBlocks; gridSize.y=nDMs; gridSize.z=1;
 		blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
-		printf("decimated_timesamples:%d; iteration:%d; nBlocks:%d; nBoxcars:%d; shift:%d; start_Taps:%d;\n", decimated_timesamples, iteration, gridSize.x, nBoxcars, shift, startTaps);
+		printf("decimated_timesamples:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples	,iteration ,nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
 		if( (f%2) == 0 ) {
 			PD_GPU_Nth_float1_BLN_IF<<<gridSize,blockSize>>>(d_input, &d_boxcar_values[nDMs*(nTimesamples>>1)], d_boxcar_values, d_decimated, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], d_MSD, decimated_timesamples, nBoxcars, startTaps, (1<<iteration), shift);
 		}
@@ -266,7 +266,4 @@ int PD_SEARCH_LONG_BLN(float *d_input, float *d_boxcar_values, float *d_decimate
 	unprocessed_samples = unprocessed_samples*(1<<(max_iteration-1));
 	return(unprocessed_samples);
 }
-
-
-
 
