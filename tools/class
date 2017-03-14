@@ -1,0 +1,337 @@
+#!/usr/bin/perl
+# Class script
+# Given a classname will return the location
+# of the appropriate header and the cpp file
+# If the files do not exist it will create them with
+# a standard template
+# -----------------------------------------------
+# copyright Chirs Williams 2003-2013
+# -----------------------------------------------
+use FileHandle;
+use Cwd;
+use File::Basename;
+use strict;
+
+sub usage {
+    print "Funtion:\n";
+    print "  Return the filenames of the specified class.\n";
+    print "  If the files do not exist then they will be generated.\n";
+    print "Usage:\n";
+    print "  class [options] module/path/classname\n\n";
+    print "Options:\n",
+          "  -t template\t: construct with the specified template\n",
+          "                 Templates available:\n",
+          "                   gtest - create a standard gtest fixture class\n",
+          "                   algo_test - create a accelerator algorithm testing class\n",
+          "                   cppunit - cppunit (deprecated)\n",
+          "                   QWidget - deprecated\n",
+          "                   QDialog - deprectated\n",
+          "  -i baseclass\t\n",
+          "\n";
+    print "Examples:\n";
+    print "    >class GasSensor/GasSensorCore/MyClass\n\n";
+    print "  Will create files MyClass.cpp MyClass.h\n";
+    print "  in the module GasSensor/GasSensorCore\n";
+}
+
+# parse options
+my @namespaces=("astroaccelerate");
+my @extra_namespaces;
+my $baseclass="";
+my $headtext="";
+my $head_post_class="";
+my $head_pre_class="";
+my $template_signature="";
+my $cpptext="";
+my $includes="";
+my $cppincludes="";
+my $cppincludesNamespace="";
+my $constructSig="";
+my $constructHeadSig="";
+my $indents=4; # default tab size indents
+my @head_doc;
+my @head_brief=qw(@brief);
+while ( $ARGV[0] =~/^-(.+)/ )
+{
+    shift @ARGV;
+    my $opt=$1;
+    if ( $opt =~/indent/ ) {
+        $indents = shift;
+    }
+    elsif ( $opt =~/^-+help/ ) {
+        usage();
+        exit 0;
+    }
+    elsif ( $opt eq "i" ) {
+        $baseclass = shift;
+        next;
+    }
+    elsif ( $opt eq "t" ) {
+        # templates
+        my $template = shift;
+        if ( $template eq "gtest" ) {
+            push @extra_namespaces, "test";
+            $includes = "#include <gtest/gtest.h>\n";
+            $baseclass = "::testing::Test";
+            $headtext = '${i}protected:'."\n".
+                        '${i}${i}'.'void SetUp() override;'."\n".
+                        '${i}${i}'.'void TearDown() override;'."\n\n";
+            $cpptext = 'void ${classname}::SetUp()'."\n".
+                       "{\n}\n\n".
+                       'void ${classname}::TearDown()'."\n".
+                       "{\n}\n\n".
+                       'TEST_F(${classname}, test_something)'."\n".
+                       "{\n}\n\n";
+            next;
+        } elsif ( $template eq "algo_test" ) {
+            push @extra_namespaces, "test";
+            $includes = "#include \"AstroAccelerate/utils/test_utils/AlgorithmTester.h\"\n".
+                        "#include <gtest/gtest.h>\n";
+            $baseclass = "AstroAccelerate::utils::test::AlgorithmTester<TestTraits>";
+            $template_signature="<typename TestTraits>";
+            push @head_brief, 'Generic functional test for the ${classname} algorithm';
+            push @head_doc, "To use you will first need to create suitable Traits descriptions of the algorithm and the"
+                          , "hardware requiremnst it needs to run."
+                          , ""
+                          , " e.g."
+                          , "\@code"
+                          , 'struct MyAlgoTraits1 : public ${classname}Traits<ResourceCapabilities, Architecture> {'
+                          , '     /// wrapper to execute the algorithm on requested provided device'
+                          , '     /// @return A dataype matching the tester requirements to verify the results'
+                          , '     ResultsType apply_algorithm(DeviceType&) const;'
+                          , '};'
+                          , "\@endcode"
+                          , "Instantiate your algorithm tests by constructing suitable \@class AlgorithmTestTraits classes"
+                          , "and then instantiate them with the INSTANTIATE_TYPED_TEST_CASE_P macro"
+                          , ""
+                          , " e.g."
+                          , "\@code"
+                          , "typedef ::testing::Types<MyAlgoTraits1, MyAlgoTraits2> MyTypes;"
+                          , 'INSTANTIATE_TYPED_TEST_CASE_P(MyAlgo, ${classname}, MyTypes);'
+                          , "\@endcode"
+                          , " n.b. the INSTANTIATE_TYPED_TEST_CASE_P must be in the same namespace as this class";
+            $head_pre_class = "template<typename ArchitectureTag, typename ArchitectureCapability>\n"
+                              .'struct ${classname}Traits : public utils::test::AlgorithmTesterTraits<ArchitectureTag, ArchitectureCapability> {'."\n"
+                              ,'    typedef utils::test::AlgorithmTesterTraits<ArchitectureTag, ArchitectureCapability> BaseT;', "\n"
+                              ,'    typedef typename BaseT::DeviceType DeviceType;', "\n\n"
+                              .'    static ${classname}ResultsCompatibleType apply_algorithm(DeviceType&);'."\n"
+                              ."};\n";
+            $headtext = '${i}protected:'."\n".
+                        '${i}${i}'.'void SetUp();'."\n".
+                        '${i}${i}'.'void TearDown();'."\n\n";
+            $head_post_class = 'TYPED_TEST_CASE_P(${classname});'."\n";
+            $cpptext = "template<typename TestTraits>\n".
+                       'void ${classname}<TestTraits>::SetUp()'."\n".
+                       "{\n}\n\n".
+                       "template<typename TestTraits>\n".
+                       'void ${classname}<TestTraits>::TearDown()'."\n".
+                       "{\n}\n\n".
+                       'ALGORITHM_TYPED_TEST_P(${classname}, test_something)'."\n".
+                       "{\n    // passed accelerator device to use as argument named device\n}\n\n".
+                       "// each test defined by ALGORITHM_TYPED_TEST_P must be added to the\n// test register (each one as an element of the comma seperated list)\n".
+                       'REGISTER_TYPED_TEST_CASE_P(${classname}, test_something);'."\n\n";
+            next;
+        } elsif ( $template eq "cppunit" ) {
+            $includes = "#include <cppunit/extensions/HelperMacros.h>\n";
+            $cppincludesNamespace='CPPUNIT_TEST_SUITE_REGISTRATION( ${classname} );';
+            $baseclass = "CppUnit::TestFixture";
+            $headtext = '${i}public:'."\n".
+                        '${i}${i}'.'CPPUNIT_TEST_SUITE( ${classname} );'."\n".
+                        '${i}${i}'.'CPPUNIT_TEST( test_method );'."\n".
+                        '${i}${i}'.'CPPUNIT_TEST_SUITE_END();'."\n\n".
+                        '${i}public:'."\n".
+                        '${i}${i}'.'void setUp();'."\n".
+                        '${i}${i}'.'void tearDown();'."\n\n".
+                        '${i}${i}// Test Methods'."\n".
+                        '${i}${i}'.'void test_method();'."\n\n";
+            $cpptext = 'void ${classname}::setUp()'."\n".
+                       "{\n}\n\n".
+                       'void ${classname}::tearDown()'."\n".
+                       "{\n}\n\n".
+                       'void ${classname}::test_method()'."\n".
+                       "{\n}\n\n";
+            next;
+        }
+        elsif ( $template eq "QWidget" )
+        {
+            $headtext = '${i}Q_OBJECT'."\n\n";
+            $includes = "#include <QWidget>\n";
+            $baseclass="QWidget";
+            $constructSig="QWidget* parent";
+            $constructHeadSig="QWidget* parent=0";
+        }
+        elsif ( $template eq "QDialog" )
+        {
+            $headtext = '${i}Q_OBJECT'."\n\n";
+            $includes = "#include <QDialog>\n";
+            $baseclass="QDialog";
+            $constructSig="QDialog* parent";
+            $constructHeadSig="QDialog* parent=0";
+        }
+        else {
+            print "Unknown template specified \"$template\"\n";
+            exit 1;
+        }
+        next;
+    }
+    else {
+        print "Unknown option $opt\n";
+        usage();
+        exit 1;
+    }
+}
+
+if ( $#ARGV != 0 ) {
+    print "Expecting different number of arguments. Got : ( @ARGV )\n";
+    usage();
+    exit 1;
+}
+my $verbose = 0;
+my $i=" " x $indents;
+my $class=shift @ARGV;
+my $classname=basename($class);
+if ( $constructSig ne "" && $constructHeadSig eq "" )
+{
+    $constructHeadSig = $constructSig;
+}
+if ( $constructHeadSig ne "" && $constructSig eq "" )
+{
+    $constructSig = $constructHeadSig;
+}
+
+# find filenames
+my $short_header_file=$classname.".h";
+my $path=dirname($class);
+my $base=cwd()."/".$path;
+
+my $full_module=Cwd::abs_path($path);
+my $module=basename($full_module);
+while($module eq "test" || $module eq "src" || $module eq "test_utils") {
+    $full_module=dirname($full_module);
+    $module=basename($full_module);
+}
+push @namespaces, $module, @extra_namespaces;
+my $src_file = $base;
+my $header_file = $base;
+if ( -d $base."/include" ) {
+     $header_file=$base."/include";
+}
+if ( -d $base."/src" && $template_signature eq "" ) {
+     $src_file=$base."/src";
+}
+if ( -d $base."/detail" && $template_signature ne "") {
+     $src_file=$base."/detail";
+}
+$src_file.="/".$classname.".cpp";
+$header_file.="/".$short_header_file;
+if ( $verbose ) {
+    print "Checking for Class=",$class," in directory ", $base."\n";
+}
+
+# ------- write out the cpp file
+{
+    # expand the cpptext variables
+    no strict 'refs';
+    $cpptext =~ s/(\$\{\w+\})/$1/eeg;
+    $cppincludes =~ s/(\$\{\w+\})/$1/eeg;
+    $cppincludesNamespace =~ s/(\$\{\w+\})/$1/eeg;
+}
+if ( ! -f $src_file ) {
+    if ( $verbose ) {
+        print "Creating file $src_file\n";
+    }
+    my $classnamespace=$classname;
+    if($template_signature ne "") {
+        (my $tmp=$template_signature)=~s/\b(typename|class|template)\b\s*//g;
+        $classnamespace="template $template_signature\n".$classnamespace.$tmp;
+    }
+    my $fh=FileHandle->new(">".$src_file);
+    print $fh "#include \"AstroAccelerate/$module/", $short_header_file, "\"\n\n";
+    print $fh $cppincludes, "\n";
+    foreach my $namespace ( @namespaces ) {
+        print $fh "namespace $namespace {\n";
+    }
+    print $fh $cppincludesNamespace, "\n";
+    print $fh "\n";
+    print $fh $classnamespace,"::", $classname, "($constructSig)\n",
+              (( $baseclass ne "")?"    : ".$baseclass."()\n":"" ),
+              "{\n",
+              "}\n\n",
+              $classnamespace, "::~", $classname, "()\n{\n",
+              "}\n\n",
+              $cpptext;
+    foreach my $namespace ( reverse @namespaces ) {
+        print $fh "} // namespace $namespace\n", if ( defined $namespace );
+    }
+}
+# ------ write out the header file
+if ( ! -f $header_file ) {
+    if ( $verbose ) {
+        print "Creating file $header_file\n";
+    }
+    my $fh=FileHandle->new(">".$header_file);
+    my $defname=(join("_",@namespaces,$classname))."_H";
+    {
+       # expand the header text variables
+       no strict 'refs';
+       $headtext =~ s/(\$\{\w+\})/$1/eeg;
+       $head_pre_class =~ s/(\$\{\w+\})/$1/eeg;
+       $head_post_class =~ s/(\$\{\w+\})/$1/eeg;
+    }
+    $defname=~tr/a-z/A-Z/;
+    print $fh "#ifndef ", $defname, "\n",
+              "#define $defname\n\n";
+    print $fh $includes."\n";
+    if ( $baseclass ne "" && $includes eq "" ) {
+        (my $bclass = $baseclass)=~s/::/\//g;
+        print $fh "#include \"$bclass.h\"\n\n";
+    }
+    foreach my $namespace ( @namespaces ) {
+        print $fh "namespace $namespace {\n", if ( defined $namespace );
+    }
+    print $fh "\n/**\n";
+    foreach my $line ( @head_brief ) {
+        no strict 'refs';
+        $line =~ s/(\$\{\w+\})/$1/eeg;
+        print $fh " * $line\n",
+    }
+    print $fh " * \n",
+              " * \@details\n";
+    foreach my $line ( @head_doc ) {
+        no strict 'refs';
+        $line =~ s/(\$\{\w+\})/$1/eeg;
+        print $fh " * $line\n",
+    }
+    print $fh " * \n",
+              " */\n\n";
+    if($head_pre_class ne "") {
+            print $fh $head_pre_class, "\n\n";
+    }
+    if($template_signature ne "") {
+        print $fh "template $template_signature\n";
+    }
+    print $fh "class $classname", (($baseclass eq "")?"":" : public $baseclass");
+    print $fh  "\n{\n",
+               $headtext,
+               $i,"public:\n",
+               $i x 2, $classname, "($constructHeadSig);\n\n",
+               $i x 2,"~",$classname, "();\n",
+               "\n",
+               $i,"private:\n",
+              "};\n\n";
+    if(defined $head_post_class ne "") {
+        print $fh $head_post_class, "\n",
+    }
+    foreach my $namespace ( reverse @namespaces ) {
+        print $fh "} // namespace $namespace\n";
+    }
+    if($template_signature ne "") {
+        print $fh "#include \"AstroAccelerate/${module}/detail/${classname}.cpp\"\n\n";
+    }
+    print $fh "\n#endif // $defname\n";
+}
+if ( ! $verbose ) {
+    # default is to print out filenames of the class to be piped
+    # to editors etc.
+    print $header_file, " ", $src_file, "\n";
+}

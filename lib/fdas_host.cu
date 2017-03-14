@@ -1,4 +1,4 @@
-	/* FDAS host functions */
+/* FDAS host functions */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -125,11 +125,9 @@ void fdas_create_acc_sig(fdas_new_acc_sig *acc_sig, cmd_args *cmdargs)
   double omega = 2*M_PI*acc_sig->freq0;
   double accel;
   double tobs;
-
   // gaussian distribution from C++ <random>
   std::default_random_engine rgen;
   std::normal_distribution<float> gdist(0.0,cmdargs->nsig);
-
   tobs = (double) (TSAMP*acc_sig->nsamps);
   accel = ((double)acc_sig->zval * SLIGHT) / (acc_sig->freq0*tobs*tobs);
   printf("\n\npreparing test signal, observation time = %f s, %d nsamps f0 = %f Hz with %d harmonics\n", tobs, acc_sig->nsamps, acc_sig->freq0, acc_sig->nharms);
@@ -151,9 +149,7 @@ void fdas_create_acc_sig(fdas_new_acc_sig *acc_sig, cmd_args *cmdargs)
   //Write to file 
   char afname[200];
   sprintf(afname, "data/acc_sig_8192x%d_%dharms_%dduty_%.3fHz_%dz_%dnsigma.dat",  acc_sig->mul,  acc_sig->nharms, (int)( acc_sig->duty*100.0),  acc_sig->freq0,  acc_sig->zval, acc_sig->nsig );
-
   write_output_file(afname, &acc_sig->acc_signal, acc_sig->nsamps );
-
   free(acc_sig->acc_signal);
 }
 */

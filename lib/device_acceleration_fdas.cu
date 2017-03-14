@@ -15,6 +15,7 @@
 #include "helper_cuda.h"
 #include "headers/fdas.h"
 #include "headers/fdas_host.h"
+#include "headers/device_acceleration_fdas.h"
 
 void acceleration_fdas(int range,
 					   int nsamp,
@@ -28,7 +29,7 @@ void acceleration_fdas(int range,
 					   int nsearch,
 					   float aggression,
 					   float cutoff,
-					   float ***output_buffer,
+					   ska::astroaccelerate::DmTime<float> &output_buffer,
 					   int *ndms,
 					   int *inBin,
 					   float *dm_low,
