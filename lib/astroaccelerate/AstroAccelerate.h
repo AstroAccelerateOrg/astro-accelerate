@@ -80,7 +80,7 @@ class AstroAccelerate
          */
         void run_dedispersion_sps_fdas(unsigned device_id
         						  ,DedispersionStrategy &
-        						  ,size_t gpu_memory
+        						  //,size_t gpu_memory
         						  ,unsigned short *input_buffer
         						  ,DmTime<float> &output_buffer
         						  ,std::vector<float> &output_sps
