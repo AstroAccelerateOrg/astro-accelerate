@@ -69,7 +69,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::allocate_memory_gpu(Dedisper
 template<typename AstroAccelerateParameterType>
 void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps_fdas( unsigned device_id
 										,DedispersionStrategy &dedispersion_strategy
-										,size_t gpu_memory
+										//,size_t gpu_memory
 										,unsigned short *input_buffer
 										,DmTime<float> &output_buffer
 										,std::vector<float> &output_sps
