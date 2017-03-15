@@ -97,6 +97,10 @@ void fdas_alloc_gpu_arrays(fdas_gpuarrays *arrays,  cmd_args *cmdargs)
          //    printf("mem_ipedge = %u ",mem_ipedge/);
      checkCudaErrors(cudaMalloc(&arrays->ip_edge_points, arrays->mem_ipedge));
    }
+   
+	// Added by KA
+	if ( cudaSuccess != cudaMalloc((void**) &arrays->d_fdas_peak_list, arrays->mem_max_list_size)) printf("Allocation error in FDAS: d_fdas_peak_list\n");
+	
    // check allocated/free memory
    size_t mfree,  mtotal;
    checkCudaErrors(cudaMemGetInfo ( &mfree, &mtotal ));
@@ -116,6 +120,9 @@ void fdas_free_gpu_arrays(fdas_gpuarrays *arrays,  cmd_args *cmdargs)
 
     if(cmdargs->kfft && cmdargs->inbin)
       checkCudaErrors(cudaFree(arrays->ip_edge_points));
+	
+	// Added by KA
+	cudaFree(arrays->d_fdas_peak_list);
 }
 /*
 void fdas_create_acc_sig(fdas_new_acc_sig *acc_sig, cmd_args *cmdargs)
@@ -365,9 +372,52 @@ void fdas_cuda_customfft(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cm
 }
 #endif
 
+void fdas_write_list(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float *h_MSD, float dm_low, int dm_count, float dm_step, unsigned int list_size){
+	int ibin=1;
+	if (cmdargs->inbin) ibin=2;
+	double tobs = TSAMP * (double)params->nsamps*ibin;
+	
+	printf("Number of peaks:%d;\n", list_size);
+	float *h_fdas_peak_list = (float*)malloc(list_size*4*sizeof(float));
+	if(h_fdas_peak_list==NULL) printf("HUH!\n");
+	checkCudaErrors(cudaMemcpy(h_fdas_peak_list, gpuarrays->d_fdas_peak_list, list_size*4*sizeof(float), cudaMemcpyDeviceToHost));
+	
+	
+	//prepare file
+	const char *dirname= "output_data";
+	struct stat st = {0};
 
-void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step )
-{
+	if (stat(dirname, &st) == -1) {
+	printf("\nDirectory %s does not exist, creating...\n", dirname);
+	mkdir(dirname, 0700);
+	}	
+	
+	FILE *fp_c;
+	char pfname[200];
+	sprintf(pfname, "acc_list_%f.dat", dm_low + ((float)dm_count)*dm_step);
+	if ((fp_c=fopen(pfname, "w")) == NULL) {
+		fprintf(stderr, "Error opening %s file for writing: %s\n",pfname, strerror(errno));
+	}
+	
+	for(int f=0; f<list_size; f++){
+		int j;
+		double a, acc, acc1, jfreq, pow, SNR;
+		a   = h_fdas_peak_list[4*f];
+		j   = (int) h_fdas_peak_list[4*f + 1];
+		pow = h_fdas_peak_list[4*f + 2];
+		SNR = (pow-h_MSD[0])/h_MSD[1];
+		jfreq = (double)(j) / tobs;
+		acc = (double) (ZMAX - a* ACCEL_STEP);
+		acc1 = acc*SLIGHT / jfreq / tobs / tobs;
+		fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, SNR);
+	}
+
+	fclose(fp_c);
+	
+	free(h_fdas_peak_list);
+}
+
+void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step ) {
   int ibin=1;
   if (cmdargs->inbin)
     ibin=2;
@@ -377,7 +427,7 @@ void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params 
   printf("\n\nWrite data for signal with %d samples\nf-fdot size=%u\n",params->nsamps, params->ffdotlen);
   float *h_ffdotpwr = (float*)malloc(params->ffdotlen* sizeof(float));
   //download data
-  checkCudaErrors(cudaMemcpy(h_ffdotpwr, gpuarrays->d_ffdot_pwr, params->ffdotlen*sizeof(float), cudaMemcpyDeviceToHost));  
+  checkCudaErrors(cudaMemcpy(h_ffdotpwr, gpuarrays->d_ffdot_pwr, params->ffdotlen*sizeof(float), cudaMemcpyDeviceToHost));
 
   // calculating statistics
   double total = 0.0;
@@ -385,7 +435,7 @@ void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params 
   double stddev;
   // unsigned int j;
   for ( int j = 0; j < params->ffdotlen; ++j){
-    total += (double)(h_ffdotpwr[j]);
+	total += (double)(h_ffdotpwr[j]);
     if(isnan(total)){
       printf("\nnan detected during sum for mean at j=%d\nValue at j:%f\n",j,h_ffdotpwr[j]);
       exit(1);
@@ -436,20 +486,20 @@ void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params 
   //write to file
   printf("\nWriting ffdot data to file...\n");
 
-  for(int a = 0; a < NKERN; a++) {
-    double acc = (double) (ZMAX - a* ACCEL_STEP);
-    for( int j = 0; j < ibin*params->siglen; j++){
-      pow =  h_ffdotpwr[a * ibin*params->siglen + j]; //(h_ffdotpwr[a * params->siglen + j]-mean)/stddev;
-
-	if( pow > cmdargs->thresh) {
-	  sigma = candidate_sigma(pow, cmdargs->nharms, numindep);//power, number of harmonics, number of independed searches=1...2^harms
-	  //  sigma=1.0;
-	  double jfreq = (double)(j) / tobs;
-	  double acc1 = acc*SLIGHT / jfreq / tobs / tobs;
-	  fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, sigma);
-	}    
-      }
-  }
+	for(int a = 0; a < NKERN; a++) {
+		double acc = (double) (ZMAX - a* ACCEL_STEP);
+		for( int j = 0; j < ibin*params->siglen; j++){
+			pow =  h_ffdotpwr[a * ibin*params->siglen + j]; //(h_ffdotpwr[a * params->siglen + j]-mean)/stddev;
+		
+			if( pow > cmdargs->thresh) {
+				sigma = candidate_sigma(pow, cmdargs->nharms, numindep);//power, number of harmonics, number of independed searches=1...2^harms
+				//  sigma=1.0;
+				double jfreq = (double)(j) / tobs;
+				double acc1 = acc*SLIGHT / jfreq / tobs / tobs;
+				fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, sigma);
+			}    
+		}
+	}
 
   fclose(fp_c);
   printf("\nFinished writing file %s\n",pfname);
