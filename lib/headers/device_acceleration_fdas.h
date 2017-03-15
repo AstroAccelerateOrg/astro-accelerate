@@ -22,6 +22,7 @@ void acceleration_fdas(int range,
 					   float tsamp,
 					   int enable_custom_fft,
 					   int enable_inbin,
-					   int enable_norm);
+					   int enable_norm,
+					   float sigma_constant);
 #endif
 
