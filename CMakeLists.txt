@@ -28,7 +28,7 @@
 #===============================================================================
 
 # project name and specify the minumum cmake version.
-project(astro_accelerate CXX)
+project(astro_accelerate C CXX)
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 
 # cmake setup.
