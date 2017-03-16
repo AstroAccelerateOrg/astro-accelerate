@@ -83,7 +83,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps_fdas( u
 	allocate_memory_gpu(dedispersion_strategy);
 	//
 
-	output_sps.resize(output_buffer.output_size()/sizeof(float));
+	//output_sps.resize(output_buffer.output_size()/sizeof(float));
 
 	//printf("\nDe-dispersing...\n");
 	GpuTimer timer;

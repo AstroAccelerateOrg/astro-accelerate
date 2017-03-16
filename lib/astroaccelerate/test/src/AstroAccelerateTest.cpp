@@ -205,15 +205,19 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		cudaMemGetInfo(&mem_free, &total);
 		gpu_memory = ( mem_free/2 );
 		// Call the strategy method
+		printf("\nBefore MakeStrategy\n");
 		dedispersion_strategy.make_strategy(gpu_memory);
 		//
 		std::vector<float> output_sps;
 
+		printf("\nBefore DmTime object\n");
 		// dedispersed data
 		DmTime<float> output_buffer(dedispersion_strategy);
 
+		printf("\nBefore Astro object\n");
 		// call AstroAccelerate main method here
 		astroaccelerate::AstroAccelerate<TestParams> astroaccelerate(dedispersion_strategy);
+		printf("\nBefore Astro main call\n");
 		astroaccelerate.run_dedispersion_sps_fdas(device_id
 												  ,dedispersion_strategy
 												  ,input_buffer
