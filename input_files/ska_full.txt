@@ -20,4 +20,4 @@ fdas_custom_fft
 -fdas_inbin
 fdas_norm
 debug
-file /home/nassim/filterbank/ska-mid-b2-full.fil
+file ~/filterbank/ska-mid-b2-full.fil
