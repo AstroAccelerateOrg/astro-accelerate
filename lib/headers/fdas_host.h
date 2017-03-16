@@ -93,7 +93,7 @@ extern "C" {
 
   void presto_norm(cufftComplex * fft,  unsigned long numamps);
 
- // double candidate_sigma(double power, int numsum, double numtrials);
+  double candidate_sigma(double power, int numsum, double numtrials);
 }
 
 #endif /* FDAS_HOST_H */
