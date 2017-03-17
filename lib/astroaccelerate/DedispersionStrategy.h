@@ -17,6 +17,7 @@ namespace astroaccelerate {
      */
 class DedispersionStrategy
 {
+	friend class DedispersionStrategyFile;
     public:
         /**
         *  @brief Default constructor
@@ -82,19 +83,6 @@ class DedispersionStrategy
         float get_fch1() const;
         float get_foff() const;
         unsigned int get_num_tchunks() const;
-
-        /**
-        *  @brief   Get the user input
-        *  @details This function read the user input file and stores it
-        *
-        */
-        void get_user_input(FILE** fp
-        					,int argc
-        					,char *argv[]);
-        /**
-         * @brief Read telescope parameters from the header of the input file
-         */
-        void get_file_data(FILE **);
 
         /**
          * @brief Computes the dedispersion strategy

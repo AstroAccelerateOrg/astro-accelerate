@@ -1,6 +1,7 @@
 #include "AstroAccelerateTest.h"
 #include "../../AstroAccelerateParameters.h"
 #include "../../DedispersionStrategy.h"
+#include "../../DedispersionStrategyFile.h"
 #include "../../DmTime.h"
 #include "../../AstroAccelerate.h"
 
@@ -37,9 +38,10 @@ TEST_F(AstroAccelerateTest, test_dedispersion_strategy)
 	{
 		// declare objects
 		DedispersionStrategy dedispersion_strategy;
+
 		// read user input
 		FILE *fp = nullptr;
-		dedispersion_strategy.get_user_input(&fp, my_argc, my_argv);
+		DedispersionStrategyFile(&fp, my_argc, my_argv, dedispersion_strategy);
 		// check class members values after run
 		EXPECT_EQ(1, dedispersion_strategy.get_multi_file());
 		EXPECT_EQ(1, dedispersion_strategy.get_enable_debug());
@@ -91,7 +93,6 @@ TEST_F(AstroAccelerateTest, test_dedispersion_strategy)
 		EXPECT_EQ(4, dedispersion_strategy.get_out_bin()[4]);
 		EXPECT_EQ(4, dedispersion_strategy.get_out_bin()[5]);
 		// get file data
-		dedispersion_strategy.get_file_data(&fp);
 		// check if it updates correctly
 		EXPECT_EQ(4096, dedispersion_strategy.get_nchans());
 		EXPECT_EQ(0, dedispersion_strategy.get_nsamples());
