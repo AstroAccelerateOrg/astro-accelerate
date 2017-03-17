@@ -1,5 +1,7 @@
 build/
 output/
+cmake/CMakeCache.txt
+cmake/CMakeFiles
 
 *.project
 *.cproject
