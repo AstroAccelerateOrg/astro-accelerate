@@ -49,7 +49,6 @@
 
 #include <vector>
 
-namespace ska {
 namespace astroaccelerate {
 
 /**
@@ -122,7 +121,7 @@ class AstroAccelerate
 };
 
 } // namespace astroaccelerate
-}
+
 #include "detail/AstroAccelerate.cpp"
 
 #endif // ASTROACCELERATE_ASTROACCELERATE_H

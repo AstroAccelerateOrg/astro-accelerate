@@ -7,7 +7,6 @@
 
 #include <stdio.h>
 
-namespace ska {
 namespace astroaccelerate {
 
     /**
@@ -158,6 +157,6 @@ class DedispersionStrategy
 };
 
 } // namespace astroaccelerate
-}
+
 
 #endif // ASTROACCELERATE_DEDISPERSIONSTRATEGY_H

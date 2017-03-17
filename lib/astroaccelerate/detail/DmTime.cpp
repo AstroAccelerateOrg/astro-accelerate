@@ -1,6 +1,5 @@
 #include "../DmTime.h"
 
-namespace ska {
 namespace astroaccelerate {
 
 template<typename ValueType>
@@ -65,4 +64,3 @@ std::size_t DmTime<ValueType>::output_size() const
 }
 
 } // namespace astroaccelerate
-}

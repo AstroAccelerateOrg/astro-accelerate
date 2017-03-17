@@ -6,7 +6,6 @@
 
 #include <vector>
 
-namespace ska {
 namespace astroaccelerate {
 namespace test {
 
@@ -162,7 +161,7 @@ TEST_F(AstroAccelerateTest, test_dedispersion_strategy)
 		fclose(fp);
 	}
 }
-
+/*
 // test AstroAccelerate class
 TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 {
@@ -231,7 +230,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		// write output here, not in the library
 	}
 }
-
+*/
 } // namespace test
 } // namespace astroaccelerate
-}
+

@@ -1,6 +1,5 @@
 #include "../DedispersionStrategy.h"
 
-namespace ska {
 namespace astroaccelerate{
 
 	DedispersionStrategy::DedispersionStrategy()
@@ -124,7 +123,9 @@ namespace astroaccelerate{
 	float DedispersionStrategy::get_foff() const { return _foff;}
 	unsigned int DedispersionStrategy::get_num_tchunks() const { return _num_tchunks;}
 
-	void DedispersionStrategy::get_user_input(FILE** fp, int argc, char *argv[])
+	void DedispersionStrategy::get_user_input(FILE** fp
+											 ,int argc
+											 ,char *argv[])
 	{
 
 		FILE *fp_in = nullptr;
@@ -762,4 +763,4 @@ namespace astroaccelerate{
 
 
 } // namespace astroaccelerate
-}
+

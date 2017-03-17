@@ -9,7 +9,6 @@
 extern int my_argc;
 extern char** my_argv;
 
-namespace ska {
 namespace astroaccelerate {
 namespace test {
 
@@ -37,5 +36,5 @@ class AstroAccelerateTest : public ::testing::Test
 
 } // namespace test
 } // namespace astroaccelerate
-}
+
 #endif // ASTROACCELERATE__TEST_ASTROACCELERATETEST_H
