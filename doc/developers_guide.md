@@ -40,7 +40,7 @@ Remember that these are just general guidelines. Try to stick to them as much as
 but there will always be cases where doing it differently is justified. Document these exceptions with comments in the code.
 
 == Namespaces
-- all classes shall be in the ska::AstroAccelerate::<module_name> or ska::AstroAccelerate::<module_name>::test namespace as appropriate.
+- all classes shall be in the AstroAccelerate::<module_name> or AstroAccelerate::<module_name>::test namespace as appropriate.
 - avoid using where possible "using namespace ..". Avoid completely in public header files.
 
 == Naming Conventions
@@ -50,7 +50,7 @@ but there will always be cases where doing it differently is justified. Document
 - all members shall be prefixed with an underscore "_"
 
 == Indendation & CRLF of source files
-- use 2 spaces instead of tab.
+- use 4 spaces instead of tab.
 - use LF in preference to CRLF
 - namespaces shall not be indented
 
@@ -60,13 +60,13 @@ Do not mix two classes together in the same file.
 An exception to this rule can be made where there is a private Internal Implementation class unique to the
 class being implemented AND it is not confusing to do so.
 
-- All classes must be in the ska, astroaccelerate namespace
+- All classes must be in the astroaccelerate namespace
 - Header files must start with.
 '''
-#ifdef SKA_ASTROACCELERATE_<CLASS_NAME>_H
-#define SKA_ASTROACCELERATE_<CLASS_NAME>_H
+#ifdef ASTROACCELERATE_<CLASS_NAME>_H
+#define ASTROACCELERATE_<CLASS_NAME>_H
 ... body of header
-#endif // SKA_ASTROACCELERATE_<CLASS_NAME>_H
+#endif // ASTROACCELERATE_<CLASS_NAME>_H
 '''
   In the tool directory you will find a class template generator that you may find helpful.
 
@@ -90,7 +90,7 @@ class being implemented AND it is not confusing to do so.
 - align commas in the initialiser list on seperate lines
     e.g.
       MyClass(A a, B b)
-          : _a(a)  // indent : by 2 spaces on its own line
+          : _a(a)  // indent : by 4 spaces on its own line
           , _b(b)  // align comma under the :
       {
       }

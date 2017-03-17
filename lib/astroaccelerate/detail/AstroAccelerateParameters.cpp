@@ -1,6 +1,5 @@
 #include "../AstroAccelerateParameters.h"
 
-namespace ska {
 namespace astroaccelerate {
 
 template<typename DerivedType>
@@ -108,4 +107,3 @@ template<typename DerivedType>
 constexpr int AstroAccelerateParameters<DerivedType>::get_taps(){ return DerivedType::_taps; }
 
 } // namespace astroaccelerate
-}

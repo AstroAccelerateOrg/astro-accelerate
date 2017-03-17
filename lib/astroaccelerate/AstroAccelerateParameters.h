@@ -1,7 +1,6 @@
 #ifndef ASTROACCELERATE_ASTROACCELERATEPARAMETERS_H
 #define ASTROACCELERATE_ASTROACCELERATEPARAMETERS_H
 
-namespace ska {
 namespace astroaccelerate {
 
 /**
@@ -132,7 +131,7 @@ class AstroAccelerateParameters
 };
 
 } // namespace astroaccelerate
-}
+
 
 #include "detail/AstroAccelerateParameters.cpp"
 

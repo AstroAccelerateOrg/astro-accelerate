@@ -1,25 +1,24 @@
 #include "../AstroAccelerate.h"
 
-namespace ska {
 namespace astroaccelerate {
 
 template<typename AstroAccelerateParameterType>
 AstroAccelerate<AstroAccelerateParameterType>::AstroAccelerate(DedispersionStrategy  &dedispersion_strategy)
-						   : _num_tchunks(dedispersion_strategy.get_num_tchunks())
-						   ,_range(dedispersion_strategy.get_range())
-						   ,_nchans(dedispersion_strategy.get_nchans())
-						   ,_maxshift(dedispersion_strategy.get_maxshift())
-						   ,_tsamp(dedispersion_strategy.get_tsamp())
-						   ,_max_ndms(dedispersion_strategy.get_max_ndms())
-						   ,_sigma_cutoff(dedispersion_strategy.get_sigma_cutoff())
-						   ,_ndms(dedispersion_strategy.get_ndms())
-						   ,_dmshifts(dedispersion_strategy.get_dmshifts())
-						   ,_t_processed(dedispersion_strategy.get_t_processed())
-						   ,_dm_low(dedispersion_strategy.get_dm_low())
-						   ,_dm_high(dedispersion_strategy.get_dm_high())
-						   ,_dm_step(dedispersion_strategy.get_dm_step())
-						   ,_in_bin(dedispersion_strategy.get_in_bin())
-						   ,_out_bin(dedispersion_strategy.get_out_bin())
+						   	   	   	   	   	   	   	   	   	   : _num_tchunks(dedispersion_strategy.get_num_tchunks())
+						   	   	   	   	   	   	   	   	   	   ,_range(dedispersion_strategy.get_range())
+						   	   	   	   	   	   	   	   	   	   ,_nchans(dedispersion_strategy.get_nchans())
+						   	   	   	   	   	   	   	   	   	   ,_maxshift(dedispersion_strategy.get_maxshift())
+						   	   	   	   	   	   	   	   	   	   ,_tsamp(dedispersion_strategy.get_tsamp())
+						   	   	   	   	   	   	   	   	   	   ,_max_ndms(dedispersion_strategy.get_max_ndms())
+						   	   	   	   	   	   	   	   	   	   ,_sigma_cutoff(dedispersion_strategy.get_sigma_cutoff())
+						   	   	   	   	   	   	   	   	   	   ,_ndms(dedispersion_strategy.get_ndms())
+						   	   	   	   	   	   	   	   	   	   ,_dmshifts(dedispersion_strategy.get_dmshifts())
+						   	   	   	   	   	   	   	   	   	   ,_t_processed(dedispersion_strategy.get_t_processed())
+						   	   	   	   	   	   	   	   	   	   ,_dm_low(dedispersion_strategy.get_dm_low())
+						   	   	   	   	   	   	   	   	   	   ,_dm_high(dedispersion_strategy.get_dm_high())
+						   	   	   	   	   	   	   	   	   	   ,_dm_step(dedispersion_strategy.get_dm_step())
+						   	   	   	   	   	   	   	   	   	   ,_in_bin(dedispersion_strategy.get_in_bin())
+						   	   	   	   	   	   	   	   	   	   ,_out_bin(dedispersion_strategy.get_out_bin())
 {
 	_gpu_input_size = 0;
 	_d_input = nullptr;
@@ -67,13 +66,13 @@ void AstroAccelerate<AstroAccelerateParameterType>::allocate_memory_gpu(Dedisper
 }
 
 template<typename AstroAccelerateParameterType>
-void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps_fdas( unsigned device_id
-										,DedispersionStrategy &dedispersion_strategy
-										//,size_t gpu_memory
-										,unsigned short *input_buffer
-										,DmTime<float> &output_buffer
-										,std::vector<float> &output_sps
-										)
+void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps_fdas(unsigned device_id
+																			  ,DedispersionStrategy &dedispersion_strategy
+																			  //,size_t gpu_memory
+																			  ,unsigned short *input_buffer
+																			  ,DmTime<float> &output_buffer
+																			  ,std::vector<float> &output_sps
+																			  )
 {
 	//
 	long int inc = 0;
@@ -336,4 +335,3 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps_fdas( u
 }
 
 } // namespace astroaccelerate
-}

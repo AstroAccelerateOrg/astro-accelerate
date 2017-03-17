@@ -1,16 +1,16 @@
-#ifndef ASTROACCELERATE_SPS_CUDA_DMTIME_H
-#define ASTROACCELERATE_SPS_CUDA_DMTIME_H
+#ifndef ASTROACCELERATE_CUDA_DMTIME_H
+#define ASTROACCELERATE_CUDA_DMTIME_H
 
 #include "DedispersionStrategy.h"
 #include <vector>
 #include <assert.h>
 
-namespace ska {
 namespace astroaccelerate {
 
 /**
  * @brief
  *    Class to encapsulate DmTime
+ *    Credit goes to Chris Williams
  * @details
  *
  */
@@ -29,12 +29,10 @@ class DmTime
         std::size_t _ouput_size;
         std::vector<std::size_t> _ndms;
         std::size_t _range;
-        ValueType*** _data; // contiguos memory block
+        ValueType*** _data; // contiguous memory block
 };
 
-
-}
 }
 
 #include "detail/DmTime.cpp"
-#endif // ASTROACCELERATE_SPS_CUDA_DMTIME_H
+#endif // ASTROACCELERATE_CUDA_DMTIME_H
