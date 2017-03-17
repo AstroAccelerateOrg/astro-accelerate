@@ -253,50 +253,6 @@ void main_function
 				analysis_GPU(h_output_list, &list_pos, max_list_size, h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp);
 				
 				
-				printf("-------> list_pos:%zu; \n", list_pos);
-				#pragma omp parallel for
-				for (int count = 0; count < list_pos; count++){
-					h_output_list[4*count]     = h_output_list[4*count]*dm_step[dm_range] + dm_low[dm_range];
-					h_output_list[4*count + 1] = h_output_list[4*count + 1]*tsamp + tstart_local;
-					//h_output_list[4*count + 2] = h_output_list[4*count + 2];
-					//h_output_list[4*count + 3] = h_output_list[4*count + 3];
-					
-				}
-				
-				#pragma omp parallel for
-				for (int count = 0; count < peak_pos; count++){
-					h_peak_list[4*count]     = h_peak_list[4*count]*dm_step[dm_range] + dm_low[dm_range];
-					h_peak_list[4*count + 1] = h_peak_list[4*count + 1]*tsamp + tstart_local;
-					//h_output_list[4*count + 2] = h_output_list[4*count + 2];
-					//h_output_list[4*count + 3] = h_output_list[4*count + 3];
-				}
-
-				FILE *fp_out;
-				char filename[200];
-				
-				if(list_pos>0){
-					sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart_local, dm_low[dm_range], dm_high[dm_range]);
-					//if ((fp_out=fopen(filename, "w")) == NULL) {
-					if (( fp_out = fopen(filename, "wb") ) == NULL)	{
-						fprintf(stderr, "Error opening output file!\n");
-						exit(0);
-					}
-					fwrite(h_output_list, list_pos*sizeof(float), 4, fp_out);
-					fclose(fp_out);
-				}
-				
-				if(peak_pos>0){
-					sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart_local, dm_low[dm_range], dm_high[dm_range]);
-					//if ((fp_out=fopen(filename, "w")) == NULL) {
-					if (( fp_out = fopen(filename, "wb") ) == NULL)	{
-						fprintf(stderr, "Error opening output file!\n");
-						exit(0);
-					}
-					fwrite(h_peak_list, peak_pos*sizeof(float), 4, fp_out);
-					fclose(fp_out);
-				}
-				
-				
 				free(h_peak_list);
 				free(h_output_list);
 				

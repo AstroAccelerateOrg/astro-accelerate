@@ -27,38 +27,36 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 
 	if (power != 2.0) {
 		// Calculate time independent dm shifts
-		for (c = 0; c < nchans; c++)
-		{
+		for (c = 0; c < nchans; c++) {
 			( *dmshifts )[c] = 4148.741601f * ( ( 1.0 / pow(( fch1 + ( foff * c ) ), power) ) - ( 1.0 / pow(fch1, power) ) );
 		}
 	}
 	else {
 		// Calculate time independent dm shifts
-		for (c = 0; c < nchans; c++)
-		{
+		for (c = 0; c < nchans; c++) {
 			( *dmshifts )[c] = (float) ( 4148.741601f * ( ( 1.0 / pow((double) ( fch1 + ( foff * c ) ), power) ) - ( 1.0 / pow((double) fch1, power) ) ) );
 		}
 	}
 
 	for (i = 0; i < range; i++)	{
-		modff(( ( (int) ( ( user_dm_high[i] - user_dm_low[i] ) / user_dm_step[i] ) + SDIVINDM ) / SDIVINDM ), &n);
-		( *ndms )[i] = (int) ( (int) n * SDIVINDM );
+		modff(      ( ( (int) ( ( user_dm_high[i] - user_dm_low[i] ) / user_dm_step[i] ) + SDIVINDM ) / SDIVINDM )     , &n); // This calculates number of SDIVINDM blocks per DM range
+		( *ndms )[i] = (int) ( (int) n * SDIVINDM ); // This is number of DM trial per DM range
 		if (*max_ndms < ( *ndms )[i])
-			*max_ndms = ( *ndms )[i];
+			*max_ndms = ( *ndms )[i]; // looking for maximum number of DM trials for memory allocation
 		*total_ndms = *total_ndms + ( *ndms )[i];
 	}
 	printf("\nMaximum number of dm trials in any of the range steps:\t%d", *max_ndms);
 
-	( *dm_low )[0] = user_dm_low[0];
-	( *dm_high )[0] = ( *ndms )[0] * ( user_dm_step[0] );
-	( *dm_step )[0] = user_dm_step[0];
+	( *dm_low )[0] = user_dm_low[0];                        // 
+	( *dm_high )[0] = ( *ndms )[0] * ( user_dm_step[0] );   // Redefines DM plan to suit GPU
+	( *dm_step )[0] = user_dm_step[0];                      // 
 	for (i = 1; i < range; i++)	{
 		( *dm_low )[i] = ( *dm_high )[i - 1];
 		( *dm_high )[i] = ( *dm_low )[i] + ( *ndms )[i] * user_dm_step[i];
 		( *dm_step )[i] = user_dm_step[i];
 
 		if (inBin[i - 1] > 1) {
-			*maxshift = (int) ceil(( ( ( *dm_low )[i - 1] + ( *dm_step )[i - 1] * ( *ndms )[i - 1] ) * ( *dmshifts )[nchans - 1] ) / ( tsamp ));
+			*maxshift = (int) ceil(( ( (*dm_low)[i - 1] + (*dm_step)[i - 1] * (*ndms)[i - 1] ) * ( *dmshifts )[nchans - 1] ) / ( tsamp ));
 			*maxshift = (int) ceil((float) ( *maxshift + ( (float) ( SDIVINT * ( SNUMREG ) ) ) ) / (float) inBin[i - 1]) / (float) ( SDIVINT * ( SNUMREG ) );
 			*maxshift = ( *maxshift ) * ( SDIVINT * ( SNUMREG ) ) * inBin[i - 1];
 			if (( *maxshift ) > maxshift_high)
@@ -101,7 +99,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 	 * 4) nchans > max_ndms & nsamp does not fit in GPU RAM
 	 */
 
-	int max_tsamps;
+	unsigned int max_tsamps;
 
 	// Allocate memory to store the t_processed ranges:
 	( *t_processed ) = (int **) malloc(range * sizeof(int *));
@@ -111,7 +109,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 		// without increasing the memory needed
 
 		// Maximum number of samples we can fit in our GPU RAM is then given by:
-		max_tsamps = (int) ( ( *gpu_memory ) / ( sizeof(unsigned short) * ( ( *max_ndms ) + nchans ) ) );
+		max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short) * ( (*max_ndms) + nchans ) ) ); // maximum number of timesamples we can fit into GPU memory
 
 		// Check that we dont have an out of range maxshift:
 		if (( *maxshift ) > max_tsamps)	{
@@ -124,10 +122,10 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 		if (nsamp < max_tsamps)	{
 			// We have case 1)
 			// Allocate memory to hold the values of nsamps to be processed
-			int local_t_processed = (int) floor(( (float) ( nsamp - ( *maxshift ) ) / (float) inBin[range - 1] ) / (float) ( SDIVINT * ( SNUMREG ) ));
+			unsigned long int local_t_processed = (unsigned long int) floor(( (double) ( nsamp - (*maxshift) ) / (double) inBin[range - 1] ) / (double) ( SDIVINT * ( SNUMREG ) )); //number of timesamples per block
 			local_t_processed = local_t_processed * ( SDIVINT * ( SNUMREG ) ) * inBin[range - 1];
 			for (i = 0; i < range; i++)	{
-				( *t_processed )[i] = (int *) malloc(sizeof(int));
+				( *t_processed )[i] = (int *) malloc(sizeof(int)); // TODO: change to size_t
 				( *t_processed )[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) inBin[i] ) / (float) ( SDIVINT * ( SNUMREG ) ));
 				( *t_processed )[i][0] = ( *t_processed )[i][0] * ( SDIVINT * ( SNUMREG ) );
 			}
@@ -151,7 +149,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 			int num_blocks = (int) floor(( (float) nsamp - ( *maxshift ) )) / ( (float) ( local_t_processed ) ) + 1;
 
 			// Work out the remaining fraction to be processed
-			int remainder = ( nsamp - ( ( num_blocks - 1 ) * local_t_processed ) - ( *maxshift ) );
+			int remainder = ( nsamp - ( (num_blocks-1)*local_t_processed ) - (*maxshift) );
 			remainder = (int) floor((float) remainder / (float) inBin[range - 1]) / (float) ( SDIVINT * ( SNUMREG ) );
 			remainder = remainder * ( SDIVINT * ( SNUMREG ) ) * inBin[range - 1];
 
@@ -177,7 +175,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 		// without increasing the memory needed. Set the output buffer to be as large as the input buffer:
 
 		// Maximum number of samples we can fit in our GPU RAM is then given by:
-		max_tsamps = (int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + 2 * sizeof(unsigned short) ) ) );
+		max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + 2 * sizeof(unsigned short) ) ) );
 
 		// Check that we dont have an out of range maxshift:
 		if (( *maxshift ) > max_tsamps) {
@@ -218,6 +216,8 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 
 			// Work out the remaining fraction to be processed
 			int remainder = nsamp - ( num_blocks * local_t_processed ) - ( *maxshift );
+			remainder = (int) floor((float) remainder / (float) inBin[range - 1]) / (float) ( SDIVINT * ( SNUMREG ) );
+			remainder = remainder * ( SDIVINT * ( SNUMREG ) ) * inBin[range - 1];
 
 			for (i = 0; i < range; i++)	{
 				// Allocate memory to hold the values of nsamps to be processed
