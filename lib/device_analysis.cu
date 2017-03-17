@@ -1,4 +1,4 @@
-//#define OLD_THRESHOLD
+#define OLD_THRESHOLD
 
 #include <vector>
 #include <stdio.h>
@@ -36,7 +36,9 @@ void Create_PD_plan(std::vector<PulseDetection_plan> *PD_plan, std::vector<int> 
 		nRest = itemp - PDmp.nBlocks*Elements_per_block;
 		if(nRest>0) PDmp.nBlocks++;
 		PDmp.unprocessed_samples = PDmp.nBoxcars + 6;
+		if(PDmp.decimated_timesamples<PDmp.unprocessed_samples) PDmp.nBlocks=0;
 		PDmp.total_ut = PDmp.unprocessed_samples;
+		
 		
 		PD_plan->push_back(PDmp);
 		
@@ -54,6 +56,7 @@ void Create_PD_plan(std::vector<PulseDetection_plan> *PD_plan, std::vector<int> 
 			nRest = itemp - PDmp.nBlocks*Elements_per_block;
 			if(nRest>0) PDmp.nBlocks++;
 			PDmp.unprocessed_samples = PDmp.unprocessed_samples/2 + PDmp.nBoxcars + 6; //
+			if(PDmp.decimated_timesamples<PDmp.unprocessed_samples) PDmp.nBlocks=0;
 			PDmp.total_ut = PDmp.unprocessed_samples*(1<<PDmp.iteration);
 			
 			PD_plan->push_back(PDmp);
@@ -86,7 +89,10 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 	unsigned long int vals;
 	int nTimesamples = t_processed;
 	int nDMs = ndms[i];
-	int  temp_peak_pos; //temp_list_pos,
+	int  temp_peak_pos;
+	#ifdef OLD_THRESHOLD
+	int temp_list_pos;
+	#endif
 	//double total;
 
 	// Calculate the total number of values
@@ -115,7 +121,7 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 	
 	//-------------- Calculating base level noise using outlier rejection
 	timer.Start();
-	BLN(output_buffer, d_MSD, 32, 32, nDMs, nTimesamples, 128, sigma_constant); // Those 128 are there because there was a problem with data, I'm not sure if it is still the case.
+	BLN(output_buffer, d_MSD, 32, 32, nDMs, nTimesamples, 0, sigma_constant); // Those 128 are there because there was a problem with data, I'm not sure if it is still the case.
 	timer.Stop();
 	partial_time = timer.Elapsed();
 	total_time += partial_time;
@@ -259,6 +265,47 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 			//---------> Old thresholding code.
 			cudaMemset((void*) gmem_peak_pos, 0, sizeof(int));
 		}
+		
+		//------------------------> Output
+		printf("-------> list_pos:%zu; \n", (*list_pos));
+		#pragma omp parallel for
+		for (int count = 0; count < (*list_pos); count++){
+			h_output_list[4*count]     = h_output_list[4*count]*dm_step[i] + dm_low[i];
+			h_output_list[4*count + 1] = h_output_list[4*count + 1]*tsamp + tstart;
+		}
+		
+		printf("-------> peak_pos:%zu; \n", (*peak_pos));
+		#pragma omp parallel for
+		for (int count = 0; count < (*peak_pos); count++){
+			h_peak_list[4*count]     = h_peak_list[4*count]*dm_step[i] + dm_low[i];
+			h_peak_list[4*count + 1] = h_peak_list[4*count + 1]*tsamp + tstart;
+		}
+        
+		FILE *fp_out;
+		char filename[200];
+		
+		if(list_pos>0){
+			sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart, dm_low[i], dm_high[i]);
+			//if ((fp_out=fopen(filename, "w")) == NULL) {
+			if (( fp_out = fopen(filename, "wb") ) == NULL)	{
+				fprintf(stderr, "Error opening output file!\n");
+				exit(0);
+			}
+			fwrite(h_output_list, (*list_pos)*sizeof(float), 4, fp_out);
+			fclose(fp_out);
+		}
+		
+		if(peak_pos>0){
+			sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart, dm_low[i], dm_high[i]);
+			//if ((fp_out=fopen(filename, "w")) == NULL) {
+			if (( fp_out = fopen(filename, "wb") ) == NULL)	{
+				fprintf(stderr, "Error opening output file!\n");
+				exit(0);
+			}
+			fwrite(h_peak_list, (*peak_pos)*sizeof(float), 4, fp_out);
+			fclose(fp_out);
+		}
+		//------------------------> Output
 		
 		//---------> Old thresholding code.
 		#ifdef OLD_THRESHOLD
