@@ -40,3 +40,10 @@ void PEAK_FIND(float *d_output_SNR, ushort *d_output_taps, float *d_peak_list, i
         cudaStreamSynchronize(stream);
         cudaStreamDestroy(stream);
 }
+
+void PEAK_FIND_FOR_FDAS(float *d_ffdot_plane, float *d_peak_list, float *d_MSD, int nDMs, int nTimesamples, float threshold, unsigned int max_peak_size, unsigned int *gmem_peak_pos, float DM_trial) {
+	dim3 blockDim(32, 2, 1);
+	dim3 gridSize(1 + ((nTimesamples-1)/blockDim.x), 1 + ((nDMs-1)/blockDim.y), 1);
+	
+	dilate_peak_find_for_fdas<<<gridSize, blockDim>>>( d_ffdot_plane, d_peak_list, d_MSD, nTimesamples, nDMs, 0, threshold, max_peak_size, gmem_peak_pos, DM_trial);
+}
