@@ -133,8 +133,8 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps_fdas(un
 			dedisperse(dm_range, _t_processed[dm_range][t], _in_bin, _dmshifts, _d_input, _d_output, _nchans,
 				( _t_processed[dm_range][t] + _maxshift ), _maxshift, &_tsamp, _dm_low, _dm_high, _dm_step, _ndms);
 
-			if (dedispersion_strategy.get_enable_acceleration() == 1)
-			{
+	//		if (dedispersion_strategy.get_enable_acceleration() == 1)
+	//		{
 				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
 				//save_data(d_output, out_tmp, gpu_outputsize);
 
@@ -145,7 +145,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps_fdas(un
 					save_data_offset(_d_output, k * _t_processed[dm_range][t], output_buffer[dm_range][k], inc / _in_bin[dm_range], sizeof(float) * _t_processed[dm_range][t]);
 				}
 				//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
-			}
+	//		}
 
 //			if (output_dmt == 1)
 //			{
@@ -290,7 +290,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps_fdas(un
 		printf("\nNumber of samples processed: %ld", inc);
 		printf("\nReal-time speedup factor: %f", ( tstart_local ) / ( time ));
 	}
-
+/*
 	if (dedispersion_strategy.get_enable_acceleration() == 1)
 	{
 		// todo: export fdas ouput to vector once got Karel's peak finding in master
@@ -333,6 +333,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps_fdas(un
 		printf("\nNumber of samples processed: %ld", inc);
 		printf("\nReal-time speedup factor: %lf", ( tstart_local ) / ( time ));
 	}
+*/
 	//free(out_tmp);
 	cudaFree(_d_input);
 	cudaFree(_d_output);
