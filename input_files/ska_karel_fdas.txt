@@ -8,7 +8,7 @@ sigma_cutoff	7
 sigma_constant  4.0
 max_boxcar_width_in_sec 0.5
 analysis
--acceleration
+acceleration
 -periodicity
 -output_dmt
 -zero_dm

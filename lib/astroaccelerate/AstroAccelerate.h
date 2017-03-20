@@ -73,7 +73,7 @@ class AstroAccelerate
 
         /**
          * @brief perform dedispersion , sps search, fdas
-         * todo: object for sps and fdas output instead of a vector.
+         * todo: data type for sps and fdas output instead of a vector.
          * sps: dm, timesample, snr, boxcar
          * fdas, f', f, SNR, DM
          */
@@ -82,10 +82,13 @@ class AstroAccelerate
         						  //,size_t gpu_memory
         						  ,unsigned short *input_buffer
         						  ,DmTime<float> &output_buffer
-        						  ,std::vector<float> &output_sps
+        						  //,std::vector<float> &output_sps
+        						  //,std::vector<float> &output_fdas
         						  );
         /*
-         * todo: define once got rid of fdas linking problem ...
+         * Current state: one function with boolean to choose
+         * In streaming process, user will call one of these three
+         * todo: add them once problem on fdas is solved (in progress)
          */
 /*        void run_dedispersion_sps();
           void run_dedispersion_fdas();
