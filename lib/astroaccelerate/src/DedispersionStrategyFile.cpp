@@ -1,4 +1,5 @@
 #include "../DedispersionStrategyFile.h"
+#include <wordexp.h>
 
 namespace astroaccelerate{
 
@@ -193,16 +194,21 @@ namespace astroaccelerate{
 				}
 				if (strcmp(string, "file") == 0)
 				{
+					// this command expand "~" to "home/username/"
+				    wordexp_t expanded_string;
+
 					if ( fscanf(fp_in, "%s", string) == 0 )
 					{
 						fprintf(stderr, "failed to read input\n");
 						exit(0);
 					}
-					if (( *fp = fopen(string, "rb") ) == nullptr)
+					wordexp(string, &expanded_string, 0);
+				    if (( *fp = fopen(expanded_string.we_wordv[0], "rb") ) == NULL)
 					{
 						fprintf(stderr, "Invalid data file!\n");
 						exit(0);
 					}
+					wordfree(&expanded_string);
 				}
 			}
 		}
