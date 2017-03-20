@@ -31,12 +31,14 @@ typedef struct{
   float *d_ffdot_summed;
   float2 *d_ffdot_cpx;
   float2 *ip_edge_points;// edge points for interbinning in kfft
+  float *d_fdas_peak_list; // added by KA
   size_t mem_insig;
   size_t mem_rfft;
   size_t mem_extsig;
   size_t mem_ffdot;
   size_t mem_ffdot_cpx;
   size_t mem_ipedge; // edge points for interbinning in kfft
+  size_t mem_max_list_size; // maximum length of candate list in bytes added by KA
 }fdas_gpuarrays;
 
 typedef struct{
@@ -53,6 +55,7 @@ typedef struct{
   int offset; 
   int siglen;
   int extlen;
+  int max_list_length; // maximum number of rows in the list
   unsigned int ffdotlen;
   unsigned int ffdotlen_cpx;
   float scale;
@@ -77,6 +80,8 @@ void fdas_cuda_create_fftplans( fdas_cufftplan *fftplans, fdas_params *params);
 void fdas_cuda_basic(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params );
 
 void fdas_cuda_customfft(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params );
+
+void fdas_write_list(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float *h_MSD, float dm_low, int dm_count, float dm_step, unsigned int list_size);
 
 void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step );
 
