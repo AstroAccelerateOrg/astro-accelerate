@@ -21,6 +21,7 @@ if(ENABLE_CUDA)
 
   list(APPEND CUDA_NVCC_FLAGS -arch compute_35) # minumum compute level (AstroAccelerate restriction)
   #list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_60,code=sm_61) # P100
+  list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_61,code=sm_61) # P100
   list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_52,code=sm_52) # TitanX
   list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_50,code=sm_50) # Maxwell
   list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_37,code=sm_37) # K80
