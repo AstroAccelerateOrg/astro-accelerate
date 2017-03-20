@@ -3,6 +3,7 @@
  */
 
 #include <stdio.h>
+#include <wordexp.h>
 #include "headers/params.h"
 #include "headers/host_help.h"
 
@@ -162,16 +163,21 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 			}
 			if (strcmp(string, "file") == 0)
 			{
+				// this command expand "~" to "home/username/"
+			    wordexp_t expanded_string;
+
 				if ( fscanf(fp_in, "%s", string) == 0 )
 				{
 					fprintf(stderr, "failed to read input\n");
 					exit(0);
 				}
-				if (( *fp = fopen(string, "rb") ) == NULL)
+				wordexp(string, &expanded_string, 0);
+			    if (( *fp = fopen(expanded_string.we_wordv[0], "rb") ) == NULL)
 				{
 					fprintf(stderr, "Invalid data file!\n");
 					exit(0);
 				}
+				wordfree(&expanded_string);
 			}
 		}
 

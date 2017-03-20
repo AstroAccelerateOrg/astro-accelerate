@@ -504,7 +504,7 @@ __global__ void PD_GPU_1st_float1_BLN_IF(float const* __restrict__ d_input, floa
 	// Loading data and normalization
 	
 	gpos = blockIdx.y*nTimesamples + spos;
-	ftemp1.x=d_input[gpos];
+	ftemp1.x=d_input[gpos];	
 	ftemp1.y=d_input[gpos+1];
 	ftemp1.x = __fdividef( (ftemp1.x-signal_mean),signal_sd);	ftemp1.y = __fdividef( (ftemp1.y-signal_mean),signal_sd);
 	ftemp2.x=d_input[gpos+2];
@@ -637,18 +637,18 @@ __global__ void PD_GPU_Nth_float1_BLN_IF(float const* __restrict__ d_input, floa
 	ftemp2.x=d_input[gpos+shift + 2];
 	ftemp2.y=d_input[gpos+shift + 3];
 	ftemp3.x=d_input[gpos+shift + 4];
-
-
+	
+	
 	Bw[0]=ftemp1.x; Bw[4]=ftemp1.y;
 	Bw[1]=ftemp1.x+ftemp1.y; Bw[5]=ftemp1.y+ftemp2.x;
 	Bw[2]=Bw[1] + ftemp2.x; Bw[6]=Bw[5] + ftemp2.y;
 	Bw[3]=Bw[1] + ftemp2.x + ftemp2.y; Bw[7] = Bw[5] + ftemp2.y + ftemp3.x;
-
-
-	d_decimated[(gpos>>1)]=Bw[1];
-
 	
-	s_BV[threadIdx.x].x=d_bv_in[gpos];
+	
+	d_decimated[(gpos>>1)]=Bw[1];
+    
+	
+	s_BV[threadIdx.x].x=d_bv_in[gpos];	
 	s_BV[threadIdx.x].y=d_bv_in[gpos+1];
 	
 	
