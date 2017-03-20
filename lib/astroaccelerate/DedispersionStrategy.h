@@ -30,6 +30,23 @@ class DedispersionStrategy
         ~DedispersionStrategy();
 
         /**
+        *  @brief Setters
+        */
+        void set_range(int range);
+        void set_nchans(int nchans);
+        void set_fch1(float fch1);
+        void set_foff(float fch1);
+        void set_ndms(int ndms);
+        void set_max_ndms(int max_ndms);
+        void set_user_dm_low(float* dm_low);
+        void set_user_dm_high(float* dm_high);
+        void set_user_dm_step(float* dm_step);
+        void set_dmshifts(float* dmshifts);
+        void set_max_dm(float max_dm);
+        // todo: sort variables and add relevant setters only
+        // waiting for variables dic
+
+        /**
         *  @brief Getters
         */
         int get_multi_file() const;
@@ -121,6 +138,7 @@ class DedispersionStrategy
         int* _in_bin;
         int* _out_bin;
         // dedispersion strategy
+        // todo: move from float* to vector<float>
         int _maxshift;
         float* _dm_low;
         float* _dm_high;

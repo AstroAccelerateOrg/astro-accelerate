@@ -162,7 +162,7 @@ TEST_F(AstroAccelerateTest, test_dedispersion_strategy)
 		fclose(fp);
 	}
 }
-/*
+
 // test AstroAccelerate class
 TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 {
@@ -178,10 +178,12 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		// Input buffer
 		size_t inputsize = 0;
 		unsigned short *input_buffer = NULL;
+		DedispersionStrategyFile(&fp, my_argc, my_argv, dedispersion_strategy);
+
 		// read user input
-		dedispersion_strategy.get_user_input(&fp, my_argc, my_argv);
+		//dedispersion_strategy.get_user_input(&fp, my_argc, my_argv);
 		// get file data
-		dedispersion_strategy.get_file_data(&fp);
+		//dedispersion_strategy.get_file_data(&fp);
 		//
 		// Allocate memory on host.
 		allocate_memory_cpu_input(dedispersion_strategy.get_nsamp()
@@ -222,7 +224,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 												  ,dedispersion_strategy
 												  ,input_buffer
 												  ,output_buffer
-												  ,output_sps
+												  //,output_sps
 												  );
 
 		// close file
@@ -231,7 +233,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		// write output here, not in the library
 	}
 }
-*/
+
 } // namespace test
 } // namespace astroaccelerate
 

@@ -71,7 +71,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps_fdas(un
 																			  //,size_t gpu_memory
 																			  ,unsigned short *input_buffer
 																			  ,DmTime<float> &output_buffer
-																			  ,std::vector<float> &output_sps
+																			  //,std::vector<float> &output_sps
 																			  )
 {
 	//
@@ -155,6 +155,8 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps_fdas(un
 //			}
 			if (dedispersion_strategy.get_enable_analysis() == 1)
 			{
+				// todo: export sps ouput to vector once Karel updates analysis function
+
 				// TODO: put the file export back to analysis I leaving it here at the moment since for interface we need to output from the analysis.
 				float *h_output_list;
 				float *h_peak_list;
@@ -291,6 +293,8 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps_fdas(un
 
 	if (dedispersion_strategy.get_enable_acceleration() == 1)
 	{
+		// todo: export fdas ouput to vector once got Karel's peak finding in master
+
 		// Input needed for fdas is output_buffer which is DDPlan
 		// Assumption: gpu memory is free and available
 		//
