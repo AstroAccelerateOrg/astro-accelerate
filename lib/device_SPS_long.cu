@@ -7,67 +7,6 @@
 #include "device_SPS_long_kernel.cu"
 
 
-void Get_next_iteration_parameters_IF(int old_nBoxcars, int new_nBoxcars, int nDMs, int nTimesamples, int *nBlocks, int *unprocessed_samples, int *decimated_timesamples, int *shift, int *output_shift, int *startTaps, int  *iteration) {
-	int t_decimated_timesamples;
-	int t_nBlocks, t_nRest, t_Elements_per_block;
-
-	*shift = old_nBoxcars/2;
-	if(old_nBoxcars==0) *output_shift = 0;
-	else *output_shift = *output_shift + nDMs*(nTimesamples>>(*iteration));
-	*startTaps = *startTaps + old_nBoxcars*(1<<(*iteration));
-	
-	if(old_nBoxcars==0) *iteration = 0;
-	else *iteration = *iteration + 1;
-	
-	t_decimated_timesamples = nTimesamples>>(*iteration);
-	t_Elements_per_block=PD_NTHREADS*2-new_nBoxcars;
-	t_nBlocks=(t_decimated_timesamples)/t_Elements_per_block;
-	t_nRest=t_decimated_timesamples - t_nBlocks*t_Elements_per_block;
-	if(t_nRest>0) t_nBlocks++;
-	
-	*decimated_timesamples = t_decimated_timesamples;
-	*unprocessed_samples = (*unprocessed_samples)/2 + new_nBoxcars + 6;
-	*nBlocks = t_nBlocks;
-}
-
-void Get_next_iteration_parameters(int old_nBoxcars, int new_nBoxcars, int nDMs, int nTimesamples, int *nBlocks, int *unprocessed_samples, int *decimated_timesamples, int *shift, int *output_shift, int *startTaps, int  *iteration) {
-	int t_decimated_timesamples;
-	int t_nBlocks, t_nRest, t_Elements_per_block;
-
-	*shift = old_nBoxcars/2;
-	if(old_nBoxcars==0) *output_shift = 0;
-	else *output_shift = *output_shift + nDMs*(nTimesamples>>(*iteration));
-	*startTaps = *startTaps + old_nBoxcars*(1<<(*iteration));
-	
-	if(old_nBoxcars==0) *iteration = 0;
-	else *iteration = *iteration + 1;
-	
-	t_decimated_timesamples = nTimesamples>>(*iteration);
-	t_Elements_per_block=PD_NTHREADS*2-new_nBoxcars;
-	t_nBlocks=(t_decimated_timesamples - (*unprocessed_samples)/2 - new_nBoxcars)/t_Elements_per_block;
-	t_nRest=t_decimated_timesamples - t_nBlocks*t_Elements_per_block;
-	
-	*decimated_timesamples = t_decimated_timesamples;
-	*unprocessed_samples = t_nRest;
-	*nBlocks = t_nBlocks;
-}
-
-
-int Get_max_iteration(int max_boxcar_width, int *PD_plan, int PD_plan_size){
-	int startTaps, iteration;
-	
-	startTaps = 0;
-	for(int f=0; f<PD_plan_size; f++){
-		startTaps = startTaps + PD_plan[f]*(1<<f);
-		if(startTaps>=max_boxcar_width) {
-			iteration = f+1;
-			break;
-		}
-	}
-	
-	return(iteration);
-}
-
 void Assign_parameters(int f, std::vector<PulseDetection_plan> *PD_plan, int *decimated_timesamples, int *iteration, int *nBoxcars, int *nBlocks, int *output_shift, int *shift, int *startTaps, int *unprocessed_samples, int *total_ut){
 	*decimated_timesamples = PD_plan->operator[](f).decimated_timesamples;
 	*iteration             = PD_plan->operator[](f).iteration;
@@ -120,43 +59,6 @@ void PD_SEARCH_LONG_init() {
 			if(nBlocks>0) PD_GPU_Nth_float1_BLN_IF<<<gridSize,blockSize>>>(d_decimated, d_boxcar_values, &d_boxcar_values[nDMs*(nTimesamples>>1)], d_input, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], d_MSD, decimated_timesamples, nBoxcars, startTaps, (1<<iteration), shift);
 		}
 	}
-	
-	
-	/*
-	int nBlocks, unprocessed_samples;
-	int shift, output_shift, iteration, startTaps, decimated_timesamples;
-	int nBoxcars;
-	
-	shift = 0;
-	output_shift = 0;
-	startTaps = 0;
-	iteration=0;
-	
-	// ----------> First iteration
-	Get_next_iteration_parameters_IF(0, BC_widths[0], nDMs, nTimesamples, &nBlocks, &unprocessed_samples, &decimated_timesamples, &shift, &output_shift, &startTaps, &iteration);
-	nBoxcars=BC_widths[0];
-	gridSize.x=nBlocks; gridSize.y=nDMs; gridSize.z=1;
-	blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
-	printf("decimated_timesamples:%d; iteration:%d; nBlocks:%d; nBoxcars:%d; shift:%d; start_Taps:%d;\n", decimated_timesamples, iteration, gridSize.x, nBoxcars, shift, startTaps);
-	PD_GPU_1st_float1_BLN_IF<<<gridSize,blockSize>>>( d_input, d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD, decimated_timesamples, nBoxcars);
-	
-	
-	for(int f=1; f< (int) BC_widths_size; f++){
-		if(f<max_iteration){
-			Get_next_iteration_parameters_IF(nBoxcars, BC_widths[f], nDMs, nTimesamples, &nBlocks, &unprocessed_samples, &decimated_timesamples, &shift, &output_shift, &startTaps, &iteration);
-			nBoxcars=BC_widths[f];
-			gridSize.x=nBlocks; gridSize.y=nDMs; gridSize.z=1;
-			blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
-			printf("decimated_timesamples:%d; iteration:%d; nBlocks:%d; nBoxcars:%d; shift:%d; start_Taps:%d;\n", decimated_timesamples, iteration, gridSize.x, nBoxcars, shift, startTaps);
-			if( (f%2) == 0 ) {
-				PD_GPU_Nth_float1_BLN_IF<<<gridSize,blockSize>>>(d_input, &d_boxcar_values[nDMs*(nTimesamples>>1)], d_boxcar_values, d_decimated, &d_output_SNR[output_shift], &d_output_taps[output_shift], d_MSD, decimated_timesamples, nBoxcars, startTaps, (1<<iteration), shift);
-			}
-			else {
-				PD_GPU_Nth_float1_BLN_IF<<<gridSize,blockSize>>>(d_decimated, d_boxcar_values, &d_boxcar_values[nDMs*(nTimesamples>>1)], d_input, &d_output_SNR[output_shift], &d_output_taps[output_shift], d_MSD, decimated_timesamples, nBoxcars, startTaps, (1<<iteration), shift);
-			}
-		}
-	}
-	*/
 
 	unprocessed_samples = unprocessed_samples*(1<<(max_iteration-1));
 	return(unprocessed_samples);

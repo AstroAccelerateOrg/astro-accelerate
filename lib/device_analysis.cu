@@ -1,4 +1,4 @@
-#define OLD_THRESHOLD
+//#define OLD_THRESHOLD
 
 #include <vector>
 #include <stdio.h>
@@ -103,7 +103,8 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 	float signal_mean_1, signal_sd_1;//, modifier;
 	//float max, min, threshold;
 	int offset, max_iteration;
-	int t_BC_widths[10]={PD_MAXTAPS,16,16,16,8,8,8,8,8,8};
+	//int t_BC_widths[10]={PD_MAXTAPS,16,16,16,8,8,8,8,8,8};
+	int t_BC_widths[10]={PD_MAXTAPS,32,32,32,32,32,32,32,32,32};
 	std::vector<int> BC_widths(t_BC_widths,t_BC_widths+sizeof(t_BC_widths)/sizeof(int));
 	std::vector<PulseDetection_plan> PD_plan;
 
@@ -205,7 +206,6 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 		for(int f=0; f<DM_list.size(); f++) {
 			//-------------- SPS BLN
 			timer.Start();
-			//offset=PD_SEARCH_LONG_BLN(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD, max_boxcar_width/inBin, DM_list[f], nTimesamples, &max_iteration);
 			offset=PD_SEARCH_LONG_BLN_IF(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD, &PD_plan, max_iteration, DM_list[f], nTimesamples);
 			timer.Stop();
 			partial_time = timer.Elapsed();
@@ -284,7 +284,7 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 		FILE *fp_out;
 		char filename[200];
 		
-		if(list_pos>0){
+		if((*list_pos)>0){
 			sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart, dm_low[i], dm_high[i]);
 			//if ((fp_out=fopen(filename, "w")) == NULL) {
 			if (( fp_out = fopen(filename, "wb") ) == NULL)	{
@@ -295,7 +295,7 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 			fclose(fp_out);
 		}
 		
-		if(peak_pos>0){
+		if((*peak_pos)>0){
 			sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart, dm_low[i], dm_high[i]);
 			//if ((fp_out=fopen(filename, "w")) == NULL) {
 			if (( fp_out = fopen(filename, "wb") ) == NULL)	{
