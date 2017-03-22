@@ -29,6 +29,9 @@ void Create_PD_plan(std::vector<PulseDetection_plan> *PD_plan, std::vector<int> 
 		PDmp.iteration    = 0;
 		
 		PDmp.decimated_timesamples = nTimesamples;
+		PDmp.dtm = (nTimesamples>>(PDmp.iteration+1));
+		PDmp.dtm = PDmp.dtm - (PDmp.dtm&1);
+		
 		PDmp.nBoxcars = BC_widths->operator[](0);
 		Elements_per_block = PD_NTHREADS*2 - PDmp.nBoxcars;
 		itemp = PDmp.decimated_timesamples;
@@ -43,12 +46,17 @@ void Create_PD_plan(std::vector<PulseDetection_plan> *PD_plan, std::vector<int> 
 		PD_plan->push_back(PDmp);
 		
 		for(int f=1; f< (int) BC_widths->size(); f++){
+			// These are based on previous values of PDmp
 			PDmp.shift        = PDmp.nBoxcars/2;
-			PDmp.output_shift = PDmp.output_shift + nDMs*PDmp.decimated_timesamples;
+			PDmp.output_shift = PDmp.output_shift + PDmp.decimated_timesamples;
 			PDmp.startTaps    = PDmp.startTaps + PDmp.nBoxcars*(1<<PDmp.iteration);
 			PDmp.iteration    = PDmp.iteration + 1;
 			
-			PDmp.decimated_timesamples = (nTimesamples>>PDmp.iteration);
+			// Definition of new PDmp values
+			PDmp.decimated_timesamples = PDmp.dtm;
+			PDmp.dtm = (nTimesamples>>(PDmp.iteration+1));
+			PDmp.dtm = PDmp.dtm - (PDmp.dtm&1);
+			
 			PDmp.nBoxcars = BC_widths->operator[](f);
 			Elements_per_block=PD_NTHREADS*2 - PDmp.nBoxcars;
 			itemp = PDmp.decimated_timesamples;
@@ -103,8 +111,8 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 	float signal_mean_1, signal_sd_1;//, modifier;
 	//float max, min, threshold;
 	int offset, max_iteration;
-	//int t_BC_widths[10]={PD_MAXTAPS,16,16,16,8,8,8,8,8,8};
-	int t_BC_widths[10]={PD_MAXTAPS,32,32,32,32,32,32,32,32,32};
+	int t_BC_widths[10]={PD_MAXTAPS,16,16,16,8,8,8,8,8,8};
+	//int t_BC_widths[10]={PD_MAXTAPS,32,32,32,32,32,32,32,32,32};
 	std::vector<int> BC_widths(t_BC_widths,t_BC_widths+sizeof(t_BC_widths)/sizeof(int));
 	std::vector<PulseDetection_plan> PD_plan;
 
@@ -242,7 +250,8 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 			cudaMemcpy(&temp_list_pos, gmem_list_pos, sizeof(int), cudaMemcpyDeviceToHost);
 			printf("temp_peak_pos:%d; host_pos:%d; max:%d;\n", temp_list_pos, (*list_pos), (int) max_list_size);
 			if( ((*list_pos) + temp_list_pos)<max_list_size){
-				cudaMemcpy(&h_output_list[(*list_pos)*4], d_list, temp_list_pos*4*sizeof(float), cudaMemcpyDeviceToHost);
+				printf("Thresholded data copy. %d\n",(*list_pos));
+				checkCudaErrors(cudaMemcpy(&h_output_list[(int) (*list_pos)*4], d_list, temp_list_pos*4*sizeof(float), cudaMemcpyDeviceToHost));
 				*list_pos = (*list_pos) + temp_list_pos;
 			}
 			else printf("Error list is too small!\n");
@@ -271,7 +280,7 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 		#pragma omp parallel for
 		for (int count = 0; count < (*list_pos); count++){
 			h_output_list[4*count]     = h_output_list[4*count]*dm_step[i] + dm_low[i];
-			h_output_list[4*count + 1] = h_output_list[4*count + 1]*tsamp + tstart;
+			h_output_list[4*count + 1] = h_output_list[4*count + 1]*tsamp + tstart;	
 		}
 		
 		printf("-------> peak_pos:%zu; \n", (*peak_pos));

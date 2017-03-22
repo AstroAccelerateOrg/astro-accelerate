@@ -246,10 +246,10 @@ __global__ void dilate_peak_find(const float *d_input, ushort* d_input_taps, flo
 	if(peak==1){
 		list_pos=atomicAdd(gmem_pos, 1);
 		if(list_pos<max_peak_size){
-			d_peak_list[4*list_pos]   = idxY + shift;
-			d_peak_list[4*list_pos+1] = idxX*DIT_value + d_input_taps[idxY*width+idxX]/2;
-			d_peak_list[4*list_pos+2] = my_value;
-			d_peak_list[4*list_pos+3] = d_input_taps[idxY*width+idxX];
+			d_peak_list[4*list_pos]   = idxY + shift; // DM coordinate (y)
+			d_peak_list[4*list_pos+1] = idxX*DIT_value + d_input_taps[idxY*width+idxX]/2; // time coordinate (x)
+			d_peak_list[4*list_pos+2] = my_value; // SNE value
+			d_peak_list[4*list_pos+3] = d_input_taps[idxY*width+idxX]; // width of the boxcar
 		}
 	}
 	

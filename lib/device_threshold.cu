@@ -22,7 +22,7 @@ int THRESHOLD(float *d_input, ushort *d_input_taps, float *d_output_list, int *g
 	
 	output_offset=0;
 	for(int f=0; f<max_iteration; f++){
-		decimated_timesamples = (nTimesamples>>f);
+		decimated_timesamples = PD_plan->operator[](f).decimated_timesamples;
 		//local_offset = (offset>>f);
 		local_offset = PD_plan->operator[](f).unprocessed_samples;
 		if( (decimated_timesamples-local_offset)>0 ){
@@ -37,8 +37,9 @@ int THRESHOLD(float *d_input, ushort *d_input_taps, float *d_output_list, int *g
 			gridSize.x=nCUDAblocks_x; gridSize.y=nCUDAblocks_y; gridSize.z=1;
 			blockSize.x=WARP*THR_WARPS_PER_BLOCK; blockSize.y=1; blockSize.z=1;
 			
-			THR_GPU_WARP<<<gridSize, blockSize>>>((float2 *) &d_input[output_offset], &d_input_taps[output_offset], d_output_list, gmem_pos, threshold, decimated_timesamples, decimated_timesamples-local_offset, shift, max_list_size, (1<<f));
-			output_offset = output_offset + nDMs*decimated_timesamples;
+			output_offset = nDMs*PD_plan->operator[](f).output_shift;
+			THR_GPU_WARP<<<gridSize, blockSize>>>((float2 *) &d_input[output_offset>>1], &d_input_taps[output_offset], d_output_list, gmem_pos, threshold, decimated_timesamples, decimated_timesamples-local_offset, shift, max_list_size, (1<<f));
+			
 		}
 	}
 
