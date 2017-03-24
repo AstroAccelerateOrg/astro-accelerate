@@ -81,7 +81,7 @@ namespace astroaccelerate{
 				{
 					fprintf(stderr, "failed to read input\n");
 					exit(0);
-				}
+				}/*
 				if (strcmp(string, "debug") == 0)
 					dedispersion_strategy._enable_debug = 1;
 				if (strcmp(string, "analysis") == 0)
@@ -105,7 +105,7 @@ namespace astroaccelerate{
 				if (strcmp(string, "fdas_norm") == 0)
 					dedispersion_strategy._enable_fdas_norm = 1;
 				if (strcmp(string, "multi_file") == 0)
-					dedispersion_strategy._multi_file = 1;
+					dedispersion_strategy._multi_file = 1;*/
 				if (strcmp(string, "sigma_cutoff") == 0)
 				{
 					if ( fscanf(fp_in, "%f", &(dedispersion_strategy._sigma_cutoff)) == 0 )
