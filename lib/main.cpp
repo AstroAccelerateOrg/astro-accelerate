@@ -36,6 +36,7 @@ int main(int argc, char* argv[])
 	int total_ndms = 0;
 	int multi_file = 1;
 	float max_dm = 0.0f;
+	int candidate_algorithm=0;
 	// Memory sizes and pointers
 	size_t inputsize = 0;
 	size_t outputsize = 0;
@@ -90,7 +91,7 @@ int main(int argc, char* argv[])
 	    &enable_zero_dm_with_outliers, &enable_rfi, &enable_fdas_custom_fft,
 	    &enable_fdas_inbin, &enable_fdas_norm, &nboots, &ntrial_bins, &navdms,
 	    &narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff, &sigma_constant, &max_boxcar_width_in_sec,
-	    &range, &user_dm_low, &user_dm_high, &user_dm_step);
+	    &range, &user_dm_low, &user_dm_high, &user_dm_step, &candidate_algorithm);
 	if (enable_debug == 1)
 		debug(1, start_time, range, outBin, enable_debug, enable_analysis,
 		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
@@ -150,7 +151,7 @@ int main(int argc, char* argv[])
 	  navdms, nsearch, aggression, narrow, wide, maxshift_original,
 	  tsamp_original, inc, tstart, tstart_local, tsamp, fch1, foff,
 	  // Analysis variables
-	  power, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, start_time
+	  power, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, start_time, candidate_algorithm
 	);
 
 	// write output here, not in the library

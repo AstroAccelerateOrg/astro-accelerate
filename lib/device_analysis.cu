@@ -91,16 +91,13 @@ int Get_max_iteration(int max_boxcar_width, std::vector<int> *BC_widths){
 	return(iteration);
 }
 
-void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, float *h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float sigma_constant, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp){
+void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float sigma_constant, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, int candidate_algorithm){
 	int max_boxcar_width = (int) (max_boxcar_width_in_sec/tsamp);
 	//unsigned long int j;
 	unsigned long int vals;
 	int nTimesamples = t_processed;
 	int nDMs = ndms[i];
 	int  temp_peak_pos;
-	#ifdef OLD_THRESHOLD
-	int temp_list_pos;
-	#endif
 	//double total;
 
 	// Calculate the total number of values
@@ -150,9 +147,6 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 	
 	std::vector<int> DM_list;
 	unsigned long int max_timesamples=(free_mem*0.95)/(5.5*sizeof(float) + 2*sizeof(ushort));
-	#ifdef OLD_THRESHOLD
-	max_timesamples=(free_mem*0.95)/(5.5*sizeof(float) + 2*sizeof(ushort));
-	#endif
 	int DMs_per_cycle = max_timesamples/nTimesamples;
 	int nRepeats, nRest, DM_shift, itemp, local_max_list_size;//BC_shift,
 	
@@ -174,15 +168,6 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 	if(DM_list.size()>0){
 		DMs_per_cycle = DM_list[0];
 		
-		
-		
-		//---------> Old thresholding code.
-		#ifdef OLD_THRESHOLD
-		float *d_list;
-		if ( cudaSuccess != cudaMalloc((void**) &d_list, sizeof(float)*DMs_per_cycle*nTimesamples)) printf("Allocation error! list\n");
-		#endif
-		//---------> Old thresholding code.
-
 		float *d_peak_list;
 		if ( cudaSuccess != cudaMalloc((void**) &d_peak_list, sizeof(float)*DMs_per_cycle*nTimesamples)) printf("Allocation error! peaks\n");
 		
@@ -198,14 +183,6 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 		ushort *d_output_taps;
 		if ( cudaSuccess != cudaMalloc((void **) &d_output_taps, sizeof(ushort)*2*DMs_per_cycle*nTimesamples)) printf("Allocation error! taps\n");
 		
-		//---------> Old thresholding code.
-		#ifdef OLD_THRESHOLD
-		int *gmem_list_pos;
-		cudaMalloc((void**) &gmem_list_pos, 1*sizeof(int));
-		cudaMemset((void*) gmem_list_pos, 0, sizeof(int));
-		#endif
-		//---------> Old thresholding code.
-		
 		int *gmem_peak_pos;
 		cudaMalloc((void**) &gmem_peak_pos, 1*sizeof(int));
 		cudaMemset((void*) gmem_peak_pos, 0, sizeof(int));
@@ -220,44 +197,29 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 			total_time += partial_time;
 			printf("PD_SEARCH took:%f ms\n", partial_time);
 			//-------------- SPS BLN
+
+			printf("BC_shift:%d; DMs_per_cycle:%d; f*DMs_per_cycle:%d; max_iteration:%d; offset:%d;\n", DM_shift*nTimesamples, DM_list[f], DM_shift, max_iteration, offset);			
 			
-			//-------------- Thresholding
-			#ifdef OLD_THRESHOLD
-			timer.Start();
-			THRESHOLD(d_output_SNR, d_output_taps, d_list, gmem_list_pos, cutoff, DM_list[f], nTimesamples, DM_shift, &PD_plan, max_iteration, local_max_list_size);
-			timer.Stop();
-			partial_time = timer.Elapsed();
-			total_time += partial_time;
-			printf("THR_WARP took:%f ms\n", partial_time);
-			#endif
-			//-------------- Thresholding
-			
-			printf("BC_shift:%d; DMs_per_cycle:%d; f*DMs_per_cycle:%d; max_iteration:%d; offset:%d;\n", DM_shift*nTimesamples, DM_list[f], DM_shift, max_iteration, offset);
-			
-			//-------------- Peak finding
-			timer.Start();
-			PEAK_FIND(d_output_SNR, d_output_taps, d_peak_list, DM_list[f], nTimesamples, cutoff, local_max_list_size, gmem_peak_pos, DM_shift, &PD_plan, max_iteration);
-			timer.Stop();
-			partial_time = timer.Elapsed();
-			total_time += partial_time;
-			printf("PEAK_FIND took:%f ms\n", partial_time);
-			//-------------- Peak finding
-			
-			DM_shift = DM_shift + DM_list[f];
-			
-			//---------> Old thresholding code.
-			#ifdef OLD_THRESHOLD
-			cudaMemcpy(&temp_list_pos, gmem_list_pos, sizeof(int), cudaMemcpyDeviceToHost);
-			printf("temp_peak_pos:%d; host_pos:%d; max:%d;\n", temp_list_pos, (*list_pos), (int) max_list_size);
-			if( ((*list_pos) + temp_list_pos)<max_list_size){
-				printf("Thresholded data copy. %d\n",(*list_pos));
-				checkCudaErrors(cudaMemcpy(&h_output_list[(int) (*list_pos)*4], d_list, temp_list_pos*4*sizeof(float), cudaMemcpyDeviceToHost));
-				*list_pos = (*list_pos) + temp_list_pos;
+			if(candidate_algorithm==1){
+				//-------------- Thresholding
+				timer.Start();
+				THRESHOLD(d_output_SNR, d_output_taps, d_peak_list, gmem_peak_pos, cutoff, DM_list[f], nTimesamples, DM_shift, &PD_plan, max_iteration, local_max_list_size);
+				timer.Stop();
+				partial_time = timer.Elapsed();
+				total_time += partial_time;
+				printf("THR_WARP took:%f ms\n", partial_time);
+				//-------------- Thresholding
 			}
-			else printf("Error list is too small!\n");
-			#endif
-			//---------> Old thresholding code.
-			
+			else {
+				//-------------- Peak finding
+				timer.Start();
+				PEAK_FIND(d_output_SNR, d_output_taps, d_peak_list, DM_list[f], nTimesamples, cutoff, local_max_list_size, gmem_peak_pos, DM_shift, &PD_plan, max_iteration);
+				timer.Stop();
+				partial_time = timer.Elapsed();
+				total_time += partial_time;
+				printf("PEAK_FIND took:%f ms\n", partial_time);
+				//-------------- Peak finding
+			}
 			
 			cudaMemcpy(&temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost);
 			printf("temp_peak_pos:%d; host_pos:%d; max:%d;\n", temp_peak_pos, (*peak_pos), (int) max_peak_size);
@@ -267,22 +229,17 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 			}
 			else printf("Error peak list is too small!\n");
 			
+
 			//---------> Old thresholding code.
-			#ifdef OLD_THRESHOLD
-			cudaMemset((void*) gmem_list_pos, 0, sizeof(int));
-			#endif
+			//#ifdef OLD_THRESHOLD
+			//#endif
 			//---------> Old thresholding code.
+
+			DM_shift = DM_shift + DM_list[f];
 			cudaMemset((void*) gmem_peak_pos, 0, sizeof(int));
 		}
 		
 		//------------------------> Output
-		printf("-------> list_pos:%zu; \n", (*list_pos));
-		#pragma omp parallel for
-		for (int count = 0; count < (*list_pos); count++){
-			h_output_list[4*count]     = h_output_list[4*count]*dm_step[i] + dm_low[i];
-			h_output_list[4*count + 1] = h_output_list[4*count + 1]*tsamp + tstart;	
-		}
-		
 		printf("-------> peak_pos:%zu; \n", (*peak_pos));
 		#pragma omp parallel for
 		for (int count = 0; count < (*peak_pos); count++){
@@ -293,44 +250,35 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 		FILE *fp_out;
 		char filename[200];
 		
-		if((*list_pos)>0){
-			sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart, dm_low[i], dm_high[i]);
-			//if ((fp_out=fopen(filename, "w")) == NULL) {
-			if (( fp_out = fopen(filename, "wb") ) == NULL)	{
-				fprintf(stderr, "Error opening output file!\n");
-				exit(0);
+		if(candidate_algorithm==1){
+			if((*peak_pos)>0){
+				sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart, dm_low[i], dm_high[i]);
+				if (( fp_out = fopen(filename, "wb") ) == NULL)	{
+					fprintf(stderr, "Error opening output file!\n");
+					exit(0);
+				}
+				fwrite(h_peak_list, (*peak_pos)*sizeof(float), 4, fp_out);
+				fclose(fp_out);
 			}
-			fwrite(h_output_list, (*list_pos)*sizeof(float), 4, fp_out);
-			fclose(fp_out);
 		}
-		
-		if((*peak_pos)>0){
-			sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart, dm_low[i], dm_high[i]);
-			//if ((fp_out=fopen(filename, "w")) == NULL) {
-			if (( fp_out = fopen(filename, "wb") ) == NULL)	{
-				fprintf(stderr, "Error opening output file!\n");
-				exit(0);
+		else {
+			if((*peak_pos)>0){
+				sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart, dm_low[i], dm_high[i]);
+				if (( fp_out = fopen(filename, "wb") ) == NULL)	{
+					fprintf(stderr, "Error opening output file!\n");
+					exit(0);
+				}
+				fwrite(h_peak_list, (*peak_pos)*sizeof(float), 4, fp_out);
+				fclose(fp_out);
 			}
-			fwrite(h_peak_list, (*peak_pos)*sizeof(float), 4, fp_out);
-			fclose(fp_out);
 		}
 		//------------------------> Output
 		
-		//---------> Old thresholding code.
-		#ifdef OLD_THRESHOLD
-		cudaFree(d_list);
-		#endif
-		//---------> Old thresholding code.
 		cudaFree(d_peak_list);
 		cudaFree(d_boxcar_values);
 		cudaFree(d_decimated);
 		cudaFree(d_output_SNR);
 		cudaFree(d_output_taps);
-		//---------> Old thresholding code.
-		#ifdef OLD_THRESHOLD
-		cudaFree(gmem_list_pos);
-		#endif
-		//---------> Old thresholding code.
 		cudaFree(gmem_peak_pos);
 
 	}
