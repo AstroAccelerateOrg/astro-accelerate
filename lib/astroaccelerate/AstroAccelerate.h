@@ -81,8 +81,7 @@ class AstroAccelerate
         						  ,DedispersionStrategy &
         						  ,unsigned short *input_buffer
         						  ,DmTime<float> &output_buffer
-        						  //,std::vector<float> &output_sps
-        						  //,std::vector<float> &output_fdas
+        						  ,std::vector<float> &output_sps
         						  );
         /*
          * Current state: dd + sps

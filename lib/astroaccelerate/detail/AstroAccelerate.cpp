@@ -84,7 +84,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 																		,DedispersionStrategy &dedispersion_strategy
 																		,unsigned short *input_buffer
 																		,DmTime<float> &output_buffer
-																		//,std::vector<float> &output_sps
+																		,std::vector<float> &output_sps
 																		)
 {
 	//
@@ -109,6 +109,12 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 	//out_tmp = (float *) malloc(( _t_processed[0][0] + _maxshift ) * _max_ndms * sizeof(float));
 	//memset(out_tmp, 0.0f, _t_processed[0][0] + _maxshift * _max_ndms * sizeof(float));
 
+
+	// assume we store size of the output size
+	// so max number of candidates is a quarter of it
+	size_t max_peak_size = output_sps.size() / 4;
+	size_t  peak_pos = 0;
+
 	for (int t = 0; t < _num_tchunks; ++t)
 	{
 		printf("\nt_processed:\t%d, %d", _t_processed[0][t], t);
@@ -116,15 +122,15 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 		load_data(-1, _in_bin, _d_input, &input_buffer[(long int) ( inc * _nchans )], _t_processed[0][t], _maxshift, _nchans, _dmshifts);
 
 
-		if (dedispersion_strategy.get_enable_zero_dm())
+		if (_enable_zero_dm)
 			zero_dm(_d_input, _nchans, _t_processed[0][t]+_maxshift);
 
-		if (dedispersion_strategy.get_enable_zero_dm_with_outliers())
+		if (_enable_zero_dm_with_outliers)
 			zero_dm_outliers(_d_input, _nchans, _t_processed[0][t]+_maxshift);
 
 		corner_turn(_d_input, _d_output, _nchans, _t_processed[0][t] + _maxshift);
 
-		if (dedispersion_strategy.get_enable_rfi())
+		if (_enable_rfi)
 	 		rfi_gpu(_d_input, _nchans, _t_processed[0][t]+_maxshift);
 
 		int oldBin = 1;
@@ -146,7 +152,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 			dedisperse(dm_range, _t_processed[dm_range][t], _in_bin, _dmshifts, _d_input, _d_output, _nchans,
 				( _t_processed[dm_range][t] + _maxshift ), _maxshift, &_tsamp, _dm_low, _dm_high, _dm_step, _ndms);
 
-	//		if (dedispersion_strategy.get_enable_acceleration() == 1)
+	//		if (_enable_acceleration == 1)
 	//		{
 				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
 				//save_data(d_output, out_tmp, gpu_outputsize);
@@ -160,88 +166,33 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 				//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
 	//		}
 
-//			if (output_dmt == 1)
+//			if (_output_dmt == 1)
 //			{
 				//for (int k = 0; k < ndms[dm_range]; k++)
 				//	write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, output_buffer[dm_range][k], gpu_outputsize, dm_low, dm_high);
 				//write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
 //			}
-			if (dedispersion_strategy.get_enable_analysis() == 1)
+			if (_enable_analysis == 1)
 			{
-				// todo: export sps ouput to vector once Karel updates analysis function
-
-				// TODO: put the file export back to analysis I leaving it here at the moment since for interface we need to output from the analysis.
-				float *h_output_list;
-				float *h_peak_list;
-				size_t max_list_size, max_peak_size;
-				size_t list_pos, peak_pos;
-				max_list_size = (size_t) ( _ndms[dm_range]*_t_processed[dm_range][t]/2 ); // we can store 1/2 of the input plane
-				max_peak_size = (size_t) ( _ndms[dm_range]*_t_processed[dm_range][t]/2 );
-				h_output_list = (float*) malloc(max_list_size*4*sizeof(float)); // Allocations
-				h_peak_list   = (float*) malloc(max_list_size*4*sizeof(float));
-
-				list_pos=0;
-				peak_pos=0;
-
-				analysis_GPU(h_output_list, &list_pos, max_list_size, h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local,
+				size_t previous_peak_pos = peak_pos;
+				analysis_GPU(output_sps, &peak_pos, max_peak_size, dm_range, tstart_local,
 							_t_processed[dm_range][t], _in_bin[dm_range], _out_bin[dm_range], &_maxshift, _max_ndms, _ndms,
 							_sigma_cutoff, dedispersion_strategy.get_sigma_constant(), dedispersion_strategy.get_max_boxcar_width_in_sec()
 							, _d_output, _dm_low, _dm_high, _dm_step, _tsamp);
 
 
-				printf("-------> list_pos:%zu; \n", list_pos);
 				//#pragma omp parallel for
-				for (int count = 0; count < list_pos; count++)
+				for (int count = previous_peak_pos; count < peak_pos; count++)
 				{
-					h_output_list[4*count]     = h_output_list[4*count]*_dm_step[dm_range] + _dm_low[dm_range];
-					h_output_list[4*count + 1] = h_output_list[4*count + 1]*_tsamp + tstart_local;
+					output_sps[4*count]     = output_sps[4*count]*_dm_step[dm_range] + _dm_low[dm_range];
+					output_sps[4*count + 1] = output_sps[4*count + 1]*_tsamp + tstart_local;
 					//h_output_list[4*count + 2] = h_output_list[4*count + 2];
 					//h_output_list[4*count + 3] = h_output_list[4*count + 3];
 				}
-				//#pragma omp parallel for
-				for (int count = 0; count < peak_pos; count++)
-				{
-					h_peak_list[4*count]     = h_peak_list[4*count]*_dm_step[dm_range] + _dm_low[dm_range];
-					h_peak_list[4*count + 1] = h_peak_list[4*count + 1]*_tsamp + tstart_local;
-					//h_output_list[4*count + 2] = h_output_list[4*count + 2];
-					//h_output_list[4*count + 3] = h_output_list[4*count + 3];
-				}
-
-				FILE *fp_out;
-				char filename[200];
-
-				if(list_pos>0)
-				{
-					sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart_local, _dm_low[dm_range], _dm_high[dm_range]);
-					//if ((fp_out=fopen(filename, "w")) == NULL) {
-					if (( fp_out = fopen(filename, "wb") ) == nullptr)
-					{
-						fprintf(stderr, "Error opening output file!\n");
-						exit(0);
-					}
-					fwrite(h_output_list, list_pos*sizeof(float), 4, fp_out);
-					fclose(fp_out);
-				}
-
-				if (peak_pos > 0)
-				{
-					sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat",tstart_local, _dm_low[dm_range],_dm_high[dm_range]);
-					//if ((fp_out=fopen(filename, "w")) == NULL) {
-					if ((fp_out = fopen(filename, "wb")) == nullptr)
-					{
-						fprintf(stderr, "Error opening output file!\n");
-						exit(0);
-					}
-					fwrite(h_peak_list, peak_pos*sizeof(float), 4, fp_out);
-					fclose(fp_out);
-				}
-
-				free(h_peak_list);
-				free(h_output_list);
-
 
 				// This is for testing purposes and should be removed or commented out
 				//analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
+
 			}
 			oldBin = _in_bin[dm_range];
 		}
@@ -253,6 +204,23 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 		tstart_local = ( tsamp_original * inc );
 		_tsamp = tsamp_original;
 		_maxshift = maxshift_original;
+	}
+
+
+	FILE *fp_out;
+	char filename[200];
+
+	if (peak_pos > 0)
+	{
+		sprintf(filename, "global_peak_analysed");
+		//if ((fp_out=fopen(filename, "w")) == NULL) {
+		if ((fp_out = fopen(filename, "wb")) == nullptr)
+		{
+			fprintf(stderr, "Error opening output file!\n");
+			exit(0);
+		}
+		fwrite(&output_sps[0], peak_pos*sizeof(float), 4, fp_out);
+		fclose(fp_out);
 	}
 
 	timer.Stop();
@@ -284,7 +252,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 	float size_gb = ( _nchans * ( _t_processed[0][0] ) * sizeof(float) * 8 ) / 1000000000.0;
 	printf("\nTelescope data throughput in Gb/s: %f", size_gb / time_in_sec);
 
-	if (dedispersion_strategy.get_enable_periodicity() == 1)
+	if (_enable_periodicity == 1)
 	{
 		//
 		GpuTimer timer;
@@ -304,7 +272,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 		printf("\nReal-time speedup factor: %f", ( tstart_local ) / ( time ));
 	}
 /*
-	if (dedispersion_strategy.get_enable_acceleration() == 1)
+	if (_enable_acceleration == 1)
 	{
 		// todo: export fdas ouput to vector once got Karel's peak finding in master
 

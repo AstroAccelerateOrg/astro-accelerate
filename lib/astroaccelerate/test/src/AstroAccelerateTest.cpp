@@ -300,8 +300,37 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		&fch1, &foff);
 
 		// dedispersion
-		DedispersionStrategy dedispersion_strategy;
-		DedispersionStrategyFile(&fp, my_argc, my_argv, dedispersion_strategy, gpu_memory);
+		//DedispersionStrategy dedispersion_strategy;
+		//DedispersionStrategyFile(&fp, my_argc, my_argv, dedispersion_strategy, gpu_memory);
+		DedispersionStrategy dedispersion_strategy
+									 (user_dm_low
+									 ,user_dm_high
+									 ,user_dm_step
+									 ,inBin
+									 ,outBin
+									 ,gpu_memory
+									 ,power
+									 ,range
+									 ,nchans
+									 ,nsamples
+									 ,nsamp
+									 ,nifs
+									 ,nbits
+									 ,tsamp
+									 ,tstart
+									 ,fch1
+									 ,foff
+									 ,sigma_cutoff
+									 ,sigma_constant
+									 ,max_boxcar_width_in_sec
+									 ,narrow
+									 ,wide
+									 ,nboots
+									 ,navdms
+									 ,ntrial_bins
+									 ,nsearch
+									 ,aggression);
+
 		// input buffer
 		unsigned short *input_buffer = nullptr;
 		size_t inputsize = 0;
@@ -311,13 +340,17 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 
 		// dedispersed data
 		DmTime<float> output_buffer(dedispersion_strategy);
+		// output of sps - assume it's a quarter of the output size
+		std::vector<float> output_sps;
+		size_t max_peak_size = (size_t) (dedispersion_strategy.get_nsamp() * dedispersion_strategy.get_nchans()/4);
+		output_sps.resize(max_peak_size*4);
 
 		astroaccelerate::AstroAccelerate<TestParams> astroaccelerate(dedispersion_strategy);
 		astroaccelerate.run_dedispersion_sps(device_id
 											,dedispersion_strategy
 											,input_buffer
 											,output_buffer
-											//,output_sps
+											,output_sps
 											);
 		//*/
 		fclose(fp);
