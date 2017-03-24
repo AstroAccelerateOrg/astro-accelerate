@@ -25,7 +25,8 @@ class DedispersionStrategyFile
         DedispersionStrategyFile(FILE** fp
 								,int argc
 								,char *argv[]
-								,DedispersionStrategy &dedispersion_strategy);
+								,DedispersionStrategy &dedispersion_strategy
+								,size_t gpu_memory);
 
         /**
         *  @brief Destructor

@@ -23,7 +23,37 @@ class DedispersionStrategy
         *  @brief Default constructor
         */
         DedispersionStrategy();
-
+        /**
+         *  @brief Parameterized constructor
+         */
+        DedispersionStrategy(float* const user_dm_low
+        					,float* const user_dm_high
+        					,float* const user_dm_step
+        					,int* const in_bin
+        					,int* const out_bin
+        					,size_t gpu_memory
+        					,int power
+        					,int range
+        					,int nchans
+        					,int nsamples
+        					,int nsamp
+        					,int nifs
+        					,int nbits
+        					,float tsamp
+        					,float tstart
+        					,float fch1
+        					,float foff
+        					,float sigma_cutoff
+							,float sigma_constant
+							,float max_boxcar_width_in_sec
+							,float narrow
+							,float wide
+							,int nboots
+							,int navdms
+							,int ntrial_bins
+							,int nsearch
+							,float aggression
+							);
         /**
         *  @brief Destructor
         */
@@ -101,12 +131,12 @@ class DedispersionStrategy
         float get_foff() const;
         unsigned int get_num_tchunks() const;
 
+
+    private:
         /**
          * @brief Computes the dedispersion strategy
          */
         void make_strategy(size_t);
-
-    private:
         // user input
         int _multi_file;
         int _enable_debug;
