@@ -77,23 +77,34 @@ class AstroAccelerate
          * sps: dm, timesample, snr, boxcar
          * fdas, f', f, SNR, DM
          */
-        void run_dedispersion_sps_fdas(unsigned device_id
+        void run_dedispersion_sps(unsigned device_id
         						  ,DedispersionStrategy &
-        						  //,size_t gpu_memory
         						  ,unsigned short *input_buffer
         						  ,DmTime<float> &output_buffer
         						  //,std::vector<float> &output_sps
         						  //,std::vector<float> &output_fdas
         						  );
         /*
-         * Current state: one function with boolean to choose
-         * In streaming process, user will call one of these three
-         * todo: add them once problem on fdas is solved (in progress)
+         * Current state: dd + sps
+         * todo: add the following functions once fdas is fully optimized (in progress)
+         * void run_dedispersion_fdas();
+         * void run_dedispersion_sps_fdas();
          */
-/*        void run_dedispersion_sps();
-          void run_dedispersion_fdas();
-          void run_dedispersion_sps_fdas();
-*/
+
+        /*
+        int get_multi_file() const;
+        int get_enable_debug() const;
+        int get_enable_analysis() const;
+        int get_enable_periodicity() const;
+        int get_enable_acceleration() const;
+        int get_output_dmt() const;
+        int get_enable_zero_dm() const;
+        int get_enable_zero_dm_with_outliers() const;
+        int get_enable_rfi() const;
+        int get_enable_fdas_custom_fft() const;
+        int get_enable_fdas_inbin() const;
+        int get_enable_fdas_norm() const;
+        */
     private:
         /**
          * @brief allocate memory for the the gpu arrays
@@ -120,6 +131,19 @@ class AstroAccelerate
         unsigned short *_d_input;
         size_t _gpu_output_size;
         float *_d_output;
+        // temporary boolean, will disappear eventually
+        int _multi_file;
+        int _enable_debug;
+        int _enable_analysis;
+        int _enable_periodicity;
+        int _enable_acceleration;
+        int _output_dmt;
+        int _enable_zero_dm;
+        int _enable_zero_dm_with_outliers;
+        int _enable_rfi;
+        int _enable_fdas_custom_fft;
+        int _enable_fdas_inbin;
+        int _enable_fdas_norm;
 
 };
 

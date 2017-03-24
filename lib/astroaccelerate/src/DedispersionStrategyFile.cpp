@@ -6,13 +6,15 @@ namespace astroaccelerate{
 	DedispersionStrategyFile::DedispersionStrategyFile(FILE** fp
 													  ,int argc
 													  ,char *argv[]
-													  ,DedispersionStrategy &dedispersion_strategy)
+													  ,DedispersionStrategy &dedispersion_strategy
+													  ,size_t gpu_memory)
 	{
 		// get user input
 		get_user_input(fp, argc, argv, dedispersion_strategy);
-
 		// get file data
 		get_file_data(fp, dedispersion_strategy);
+		//
+		dedispersion_strategy.make_strategy(gpu_memory);
 	}
 
 	DedispersionStrategyFile::~DedispersionStrategyFile()

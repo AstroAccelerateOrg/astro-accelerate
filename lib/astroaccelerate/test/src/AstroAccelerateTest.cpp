@@ -36,20 +36,86 @@ TEST_F(AstroAccelerateTest, test_dedispersion_strategy)
 	char* filename = my_argv[1] + strlen(my_argv[1]) - 13;
 	if(strcmp(filename, "ska_karel.txt") == 0)
 	{
-		// declare objects
-		DedispersionStrategy dedispersion_strategy;
-
-		// read user input
+		// Internal code variables
+		// File pointers
 		FILE *fp = nullptr;
-		DedispersionStrategyFile(&fp, my_argc, my_argv, dedispersion_strategy);
-		// check class members values after run
-		EXPECT_EQ(1, dedispersion_strategy.get_multi_file());
-		EXPECT_EQ(1, dedispersion_strategy.get_enable_debug());
-		EXPECT_EQ(1, dedispersion_strategy.get_enable_analysis());
-		EXPECT_EQ(0, dedispersion_strategy.get_enable_periodicity());
-		//EXPECT_EQ(1, dedispersion_strategy.get_enable_acceleration());
-		EXPECT_EQ(0, dedispersion_strategy.get_output_dmt());
-		EXPECT_EQ(0, dedispersion_strategy.get_enable_zero_dm());
+		// Counters and flags
+		int range = 0;
+		int enable_debug = 0;
+		int enable_analysis = 0;
+		int enable_acceleration = 0;
+		int enable_periodicity = 0;
+		int output_dmt = 0;
+		int enable_zero_dm = 0;
+		int enable_zero_dm_with_outliers = 0;
+		int enable_rfi = 0;
+		int enable_fdas_custom_fft = 0;
+		int enable_fdas_inbin = 0;
+		int enable_fdas_norm = 0;
+		int *inBin = NULL;
+		int *outBin = NULL;
+		int *ndms = NULL;
+		int maxshift = 0;
+		int max_ndms = 0;
+		int max_samps = 0;
+		int num_tchunks = 0;
+		int total_ndms = 0;
+		int multi_file = 1;
+		float max_dm = 0.0f;
+		// Memory sizes and pointers
+		float *user_dm_low = nullptr;
+		float *user_dm_high = nullptr;
+		float *user_dm_step = nullptr;
+		// Telescope parameters
+		int nchans = 0;
+		int nsamp = 0;
+		int nbits = 0;
+		int nsamples = 0;
+		int nifs = 0;
+		int nboots = -1;
+		int ntrial_bins;
+		int navdms = 1;
+		int nsearch = 3;
+		float aggression = 2.5;
+		float narrow = 0.001f;
+		float wide = 0.1f;
+		int maxshift_original;
+		double tsamp_original;
+		long int inc = 0;
+		float tstart = 0.0f;
+		float tstart_local = 0.0f;
+		float tsamp = 0.0f;
+		float fch1 = 0.0f;
+		float foff = 0.0f;
+		// Analysis variables
+		float power = 2.0f;
+		float sigma_cutoff = 6.0f;
+		float sigma_constant = 4.0f;
+		float max_boxcar_width_in_sec = 0.5f;
+		// Initialise the GPU.
+		int device_id = 0; // hard-coded, would be a parameter
+		size_t gpu_memory = 0;
+		cudaSetDevice(device_id);
+		size_t mem_free, total;
+		cudaMemGetInfo(&mem_free, &total);
+		gpu_memory = ( mem_free/4 );
+
+		// Users desired de-dispersion strategy. Pick up user defined values from the CLI.
+		get_user_input(&fp, my_argc, my_argv, &multi_file, &enable_debug, &enable_analysis,
+		&enable_periodicity, &enable_acceleration, &output_dmt, &enable_zero_dm,
+		&enable_zero_dm_with_outliers, &enable_rfi, &enable_fdas_custom_fft,
+		&enable_fdas_inbin, &enable_fdas_norm, &nboots, &ntrial_bins, &navdms,
+		&narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff, &sigma_constant, &max_boxcar_width_in_sec,
+		&range, &user_dm_low, &user_dm_high, &user_dm_step);
+		// Reads telescope parameters from the header of the input file and then counts the number of samples in the input data file.
+		get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp, &tstart,
+		&fch1, &foff);
+
+		// dedispersion
+		DedispersionStrategy dedispersion_strategy;
+		DedispersionStrategyFile(&fp, my_argc, my_argv, dedispersion_strategy, gpu_memory);
+
+		//
 		EXPECT_EQ(-1, dedispersion_strategy.get_nboots());
 		EXPECT_EQ(0, dedispersion_strategy.get_ntrial_bins());
 		EXPECT_EQ(1, dedispersion_strategy.get_navdms());
@@ -92,8 +158,7 @@ TEST_F(AstroAccelerateTest, test_dedispersion_strategy)
 		EXPECT_EQ(2, dedispersion_strategy.get_out_bin()[3]);
 		EXPECT_EQ(4, dedispersion_strategy.get_out_bin()[4]);
 		EXPECT_EQ(4, dedispersion_strategy.get_out_bin()[5]);
-		// get file data
-		// check if it updates correctly
+		//
 		EXPECT_EQ(4096, dedispersion_strategy.get_nchans());
 		EXPECT_EQ(0, dedispersion_strategy.get_nsamples());
 		EXPECT_EQ(234496, dedispersion_strategy.get_nsamp());
@@ -103,22 +168,6 @@ TEST_F(AstroAccelerateTest, test_dedispersion_strategy)
 		EXPECT_FLOAT_EQ(50000, dedispersion_strategy.get_tstart());
 		EXPECT_FLOAT_EQ(1550, dedispersion_strategy.get_fch1());
 		EXPECT_NEAR(-0.073242, dedispersion_strategy.get_foff(), 0.000001);
-		//EXPECT_FLOAT_EQ(-0.073242, dedispersion_strategy.get_foff());
-		// it fails the test:
-		// Value of: dedispersion_strategy.get_foff()
-		// Actual: -0.073242188
-		// Expected: -0.073242
-		// Which is: -0.073242001
-		//
-		// Initialise the GPU.
-		int device_id = 0; // hard-coded, would be a parameter
-		size_t gpu_memory = 0;
-		cudaSetDevice(device_id);
-		size_t mem_free, total;
-		cudaMemGetInfo(&mem_free, &total);
-		gpu_memory = ( mem_free/4 );
-		// Call the strategy method
-		dedispersion_strategy.make_strategy(gpu_memory);
 		//
 		EXPECT_NEAR(0.000000, dedispersion_strategy.get_dmshifts()[0], 0.000001);
 		EXPECT_NEAR(0.000002, dedispersion_strategy.get_dmshifts()[10], 0.000001);
@@ -160,6 +209,11 @@ TEST_F(AstroAccelerateTest, test_dedispersion_strategy)
 		EXPECT_EQ(10224, dedispersion_strategy.get_t_processed()[5][0]);
 		//*/
 		fclose(fp);
+		free(inBin);
+		free(outBin);
+		free(user_dm_low);
+		free(user_dm_high);
+		free(user_dm_step);
 	}
 }
 
@@ -173,64 +227,106 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		// Internal code variables
 		// File pointers
 		FILE *fp = nullptr;
-		//
-		astroaccelerate::DedispersionStrategy dedispersion_strategy;
-		// Input buffer
-		size_t inputsize = 0;
-		unsigned short *input_buffer = NULL;
-		DedispersionStrategyFile(&fp, my_argc, my_argv, dedispersion_strategy);
-
-		// read user input
-		//dedispersion_strategy.get_user_input(&fp, my_argc, my_argv);
-		// get file data
-		//dedispersion_strategy.get_file_data(&fp);
-		//
-		// Allocate memory on host.
-		allocate_memory_cpu_input(dedispersion_strategy.get_nsamp()
-								  ,dedispersion_strategy.get_nchans()
-								  ,&input_buffer
-								  ,&inputsize);
-		// Store the recorded telescope data contained in the input filterbank file
-		// in the allocated memory.
-		get_recorded_data(&fp
-						  ,dedispersion_strategy.get_nsamp()
-						  ,dedispersion_strategy.get_nchans()
-						  ,dedispersion_strategy.get_nbits()
-						  ,&input_buffer
-						  ,&inputsize);
-		//
-		//
+		// Counters and flags
+		int range = 0;
+		int enable_debug = 0;
+		int enable_analysis = 0;
+		int enable_acceleration = 0;
+		int enable_periodicity = 0;
+		int output_dmt = 0;
+		int enable_zero_dm = 0;
+		int enable_zero_dm_with_outliers = 0;
+		int enable_rfi = 0;
+		int enable_fdas_custom_fft = 0;
+		int enable_fdas_inbin = 0;
+		int enable_fdas_norm = 0;
+		int *inBin = NULL;
+		int *outBin = NULL;
+		int *ndms = NULL;
+		int maxshift = 0;
+		int max_ndms = 0;
+		int max_samps = 0;
+		int num_tchunks = 0;
+		int total_ndms = 0;
+		int multi_file = 1;
+		float max_dm = 0.0f;
+		// Memory sizes and pointers
+		float *user_dm_low = nullptr;
+		float *user_dm_high = nullptr;
+		float *user_dm_step = nullptr;
+		// Telescope parameters
+		int nchans = 0;
+		int nsamp = 0;
+		int nbits = 0;
+		int nsamples = 0;
+		int nifs = 0;
+		int nboots = -1;
+		int ntrial_bins;
+		int navdms = 1;
+		int nsearch = 3;
+		float aggression = 2.5;
+		float narrow = 0.001f;
+		float wide = 0.1f;
+		int maxshift_original;
+		double tsamp_original;
+		long int inc = 0;
+		float tstart = 0.0f;
+		float tstart_local = 0.0f;
+		float tsamp = 0.0f;
+		float fch1 = 0.0f;
+		float foff = 0.0f;
+		// Analysis variables
+		float power = 2.0f;
+		float sigma_cutoff = 6.0f;
+		float sigma_constant = 4.0f;
+		float max_boxcar_width_in_sec = 0.5f;
+		// Initialise the GPU.
 		int device_id = 0; // hard-coded, would be a parameter
 		size_t gpu_memory = 0;
 		cudaSetDevice(device_id);
 		size_t mem_free, total;
 		cudaMemGetInfo(&mem_free, &total);
 		gpu_memory = ( mem_free/2 );
-		// Call the strategy method
-		printf("\nBefore MakeStrategy\n");
-		dedispersion_strategy.make_strategy(gpu_memory);
-		//
-		std::vector<float> output_sps;
 
-		printf("\nBefore DmTime object\n");
+		// Users desired de-dispersion strategy. Pick up user defined values from the CLI.
+		get_user_input(&fp, my_argc, my_argv, &multi_file, &enable_debug, &enable_analysis,
+		&enable_periodicity, &enable_acceleration, &output_dmt, &enable_zero_dm,
+		&enable_zero_dm_with_outliers, &enable_rfi, &enable_fdas_custom_fft,
+		&enable_fdas_inbin, &enable_fdas_norm, &nboots, &ntrial_bins, &navdms,
+		&narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff, &sigma_constant, &max_boxcar_width_in_sec,
+		&range, &user_dm_low, &user_dm_high, &user_dm_step);
+		// Reads telescope parameters from the header of the input file and then counts the number of samples in the input data file.
+		get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp, &tstart,
+		&fch1, &foff);
+
+		// dedispersion
+		DedispersionStrategy dedispersion_strategy;
+		DedispersionStrategyFile(&fp, my_argc, my_argv, dedispersion_strategy, gpu_memory);
+		// input buffer
+		unsigned short *input_buffer = nullptr;
+		size_t inputsize = 0;
+		allocate_memory_cpu_input(dedispersion_strategy.get_nsamp(), dedispersion_strategy.get_nchans(), &input_buffer,&inputsize);
+		get_recorded_data(&fp, dedispersion_strategy.get_nsamp(), dedispersion_strategy.get_nchans(), dedispersion_strategy.get_nbits(),
+						  &input_buffer, &inputsize);
+
 		// dedispersed data
 		DmTime<float> output_buffer(dedispersion_strategy);
 
-		printf("\nBefore Astro object\n");
-		// call AstroAccelerate main method here
 		astroaccelerate::AstroAccelerate<TestParams> astroaccelerate(dedispersion_strategy);
-		printf("\nBefore Astro main call\n");
-		astroaccelerate.run_dedispersion_sps_fdas(device_id
-												  ,dedispersion_strategy
-												  ,input_buffer
-												  ,output_buffer
-												  //,output_sps
-												  );
-
-		// close file
+		astroaccelerate.run_dedispersion_sps(device_id
+											,dedispersion_strategy
+											,input_buffer
+											,output_buffer
+											//,output_sps
+											);
+		//*/
 		fclose(fp);
-
-		// write output here, not in the library
+		free(inBin);
+		free(outBin);
+		free(user_dm_low);
+		free(user_dm_high);
+		free(user_dm_step);
+		free(input_buffer);
 	}
 }
 

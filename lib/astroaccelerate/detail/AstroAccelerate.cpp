@@ -20,6 +20,20 @@ AstroAccelerate<AstroAccelerateParameterType>::AstroAccelerate(DedispersionStrat
 						   	   	   	   	   	   	   	   	   	   ,_in_bin(dedispersion_strategy.get_in_bin())
 						   	   	   	   	   	   	   	   	   	   ,_out_bin(dedispersion_strategy.get_out_bin())
 {
+	//
+	_multi_file = 0;
+	_enable_debug = 0;
+	_enable_analysis = 1;
+	_enable_periodicity = 0;
+	_enable_acceleration = 0;
+	_enable_fdas_custom_fft = 1;
+	_enable_fdas_inbin = 0;
+	_enable_fdas_norm = 1;
+	_output_dmt = 0;
+	_enable_zero_dm = 0;
+	_enable_zero_dm_with_outliers = 0;
+	_enable_rfi = 0;
+	//
 	_gpu_input_size = 0;
 	_d_input = nullptr;
 	_gpu_output_size = 0;
@@ -66,13 +80,12 @@ void AstroAccelerate<AstroAccelerateParameterType>::allocate_memory_gpu(Dedisper
 }
 
 template<typename AstroAccelerateParameterType>
-void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps_fdas(unsigned device_id
-																			  ,DedispersionStrategy &dedispersion_strategy
-																			  //,size_t gpu_memory
-																			  ,unsigned short *input_buffer
-																			  ,DmTime<float> &output_buffer
-																			  //,std::vector<float> &output_sps
-																			  )
+void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigned device_id
+																		,DedispersionStrategy &dedispersion_strategy
+																		,unsigned short *input_buffer
+																		,DmTime<float> &output_buffer
+																		//,std::vector<float> &output_sps
+																		)
 {
 	//
 	long int inc = 0;

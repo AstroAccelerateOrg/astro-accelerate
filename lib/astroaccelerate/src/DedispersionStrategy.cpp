@@ -4,14 +4,15 @@ namespace astroaccelerate{
 
 	DedispersionStrategy::DedispersionStrategy()
 	{
-		_multi_file = 1;
+		//
+		_multi_file = 0;
 		_enable_debug = 0;
-		_enable_analysis = 0;
+		_enable_analysis = 1;
 		_enable_periodicity = 0;
 		_enable_acceleration = 0;
 		_enable_fdas_custom_fft = 1;
 		_enable_fdas_inbin = 0;
-		_enable_fdas_norm = 0;
+		_enable_fdas_norm = 1;
 		_output_dmt = 0;
 		_enable_zero_dm = 0;
 		_enable_zero_dm_with_outliers = 0;
@@ -24,7 +25,7 @@ namespace astroaccelerate{
 		_nsearch = 3;
 		_power = 2.0f;
 		_sigma_cutoff = 6.0f;
-		_sigma_constant = 0.4f;
+		_sigma_constant = 4.0f;
 		_max_boxcar_width_in_sec = 0.5f;
 		_wide = 0.1f;
 		_range = 0;
@@ -55,6 +56,91 @@ namespace astroaccelerate{
 		_foff = 0.0f;
 		_num_tchunks = 0;
 	}
+
+	DedispersionStrategy::DedispersionStrategy(float* const user_dm_low
+		        							  ,float* const user_dm_high
+		        							  ,float* const user_dm_step
+		        							  ,int* const in_bin
+		        							  ,int* const out_bin
+		        							  ,size_t gpu_memory
+		        							  ,int power
+		        							  ,int range
+		        							  ,int nchans
+		        							  ,int nsamples
+		        							  ,int nsamp
+		        							  ,int nifs
+		        							  ,int nbits
+		        							  ,float tsamp
+		        							  ,float tstart
+		        							  ,float fch1
+		        							  ,float foff
+		        							  ,float sigma_cutoff
+		        							  ,float sigma_constant
+		        							  ,float max_boxcar_width_in_sec
+		        							  ,float narrow
+		        							  ,float wide
+		        							  ,int nboots
+		        							  ,int navdms
+		        							  ,int ntrial_bins
+		        							  ,int nsearch
+		        							  ,float aggression
+											  )
+											  :_user_dm_low(user_dm_low)
+											  ,_user_dm_high(user_dm_high)
+											  ,_user_dm_step(user_dm_step)
+											  ,_in_bin(in_bin)
+											  ,_out_bin(out_bin)
+											  ,_power(power)
+											  ,_range(range)
+											  ,_nchans(nchans)
+											  ,_nsamples(nsamples)
+											  ,_nsamp(nsamp)
+											  ,_nifs(nifs)
+											  ,_nbits(nbits)
+											  ,_tsamp(tsamp)
+											  ,_tstart(tstart)
+											  ,_fch1(fch1)
+											  ,_foff(foff)
+											  ,_sigma_cutoff(sigma_cutoff)
+		  	  	  	  	  	  	  	  	  	  ,_sigma_constant(sigma_constant)
+											  ,_max_boxcar_width_in_sec(max_boxcar_width_in_sec)
+											  ,_narrow(narrow)
+											  ,_wide(wide)
+											  ,_nboots(nboots)
+											  ,_navdms(navdms)
+											  ,_ntrial_bins(ntrial_bins)
+											  ,_nsearch(nsearch)
+											  ,_aggression(aggression)
+		{
+		//
+		_multi_file = 0;
+		_enable_debug = 0;
+		_enable_analysis = 1;
+		_enable_periodicity = 0;
+		_enable_acceleration = 0;
+		_enable_fdas_custom_fft = 1;
+		_enable_fdas_inbin = 0;
+		_enable_fdas_norm = 1;
+		_output_dmt = 0;
+		_enable_zero_dm = 0;
+		_enable_zero_dm_with_outliers = 0;
+		_enable_rfi = 0;
+
+			_maxshift = 0;
+			_dm_low = nullptr;
+			_dm_high = nullptr;
+			_dm_step = nullptr;
+			_dmshifts = nullptr;
+			_ndms = nullptr;
+			_max_ndms = 0;
+			_total_ndms	= 0;
+			_max_dm	= 0.0f;
+			_t_processed = nullptr;
+			_max_samps = 0;
+			_num_tchunks = 0;
+			//
+			make_strategy(gpu_memory);
+		}
 
 	DedispersionStrategy::~DedispersionStrategy()
 	{
