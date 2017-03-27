@@ -373,44 +373,49 @@ void fdas_write_list(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *
 	if (cmdargs->inbin) ibin=2;
 	double tobs = TSAMP * (double)params->nsamps*ibin;
 	
-	printf("Number of peaks:%d;\n", list_size);
-	float *h_fdas_peak_list = (float*)malloc(list_size*4*sizeof(float));
-	if(h_fdas_peak_list==NULL) printf("HUH!\n");
-	checkCudaErrors(cudaMemcpy(h_fdas_peak_list, gpuarrays->d_fdas_peak_list, list_size*4*sizeof(float), cudaMemcpyDeviceToHost));
-	
-	
-	//prepare file
-	const char *dirname= "output_data";
-	struct stat st = {0};
+	if( !isnan(h_MSD[0]) || !isinf(h_MSD[0]) || !isnan(h_MSD[1]) || !isinf(h_MSD[1]) ){
+		printf("Number of peaks:%d; mean:%f; strdev:%f\n", list_size, h_MSD[0], h_MSD[1]);
+		
+		float *h_fdas_peak_list = (float*)malloc(list_size*4*sizeof(float));
+		checkCudaErrors(cudaMemcpy(h_fdas_peak_list, gpuarrays->d_fdas_peak_list, list_size*4*sizeof(float), cudaMemcpyDeviceToHost));
+		
+		
+		//prepare file
+		const char *dirname= "output_data";
+		struct stat st = {0};
 
-	if (stat(dirname, &st) == -1) {
-	printf("\nDirectory %s does not exist, creating...\n", dirname);
-	mkdir(dirname, 0700);
-	}	
-	
-	FILE *fp_c;
-	char pfname[200];
-	sprintf(pfname, "acc_list_%f.dat", dm_low + ((float)dm_count)*dm_step);
-	if ((fp_c=fopen(pfname, "w")) == NULL) {
-		fprintf(stderr, "Error opening %s file for writing: %s\n",pfname, strerror(errno));
-	}
-	
-	for(int f=0; f<list_size; f++){
-		int j;
-		double a, acc, acc1, jfreq, pow, SNR;
-		a   = h_fdas_peak_list[4*f];
-		j   = (int) h_fdas_peak_list[4*f + 1];
-		pow = h_fdas_peak_list[4*f + 2];
-		SNR = (pow-h_MSD[0])/h_MSD[1];
-		jfreq = (double)(j) / tobs;
-		acc = (double) (ZMAX - a* ACCEL_STEP);
-		acc1 = acc*SLIGHT / jfreq / tobs / tobs;
-		fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, SNR);
-	}
+		if (stat(dirname, &st) == -1) {
+			printf("\nDirectory %s does not exist, creating...\n", dirname);
+			mkdir(dirname, 0700);
+		}	
+		
+		FILE *fp_c;
+		char pfname[200];
+		sprintf(pfname, "acc_list_%f.dat", dm_low + ((float)dm_count)*dm_step);
+		if ((fp_c=fopen(pfname, "w")) == NULL) {
+			fprintf(stderr, "Error opening %s file for writing: %s\n",pfname, strerror(errno));
+		}
+		
+		for(int f=0; f<list_size; f++){
+			int j;
+			double a, acc, acc1, jfreq, pow, SNR;
+			a   = h_fdas_peak_list[4*f];
+			j   = (int) h_fdas_peak_list[4*f + 1];
+			pow = h_fdas_peak_list[4*f + 2];
+			SNR = (pow-h_MSD[0])/h_MSD[1];
+			jfreq = (double)(j) / tobs;
+			acc = (double) (ZMAX - a* ACCEL_STEP);
+			acc1 = acc*SLIGHT / jfreq / tobs / tobs;
+			fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, SNR);
+		}
 
-	fclose(fp_c);
-	
-	free(h_fdas_peak_list);
+		fclose(fp_c);
+		
+		free(h_fdas_peak_list);
+	}
+	else {
+		printf("Error: mean or standard deviation was NaN or Inf!\n");
+	}
 }
 
 void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step ) {

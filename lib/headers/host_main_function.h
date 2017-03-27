@@ -78,6 +78,7 @@ void main_function
 	float sigma_cutoff,
 	float sigma_constant,
 	float max_boxcar_width_in_sec,
-	clock_t start_time
+	clock_t start_time,
+	int candidate_algorithm
 	);
 #endif
