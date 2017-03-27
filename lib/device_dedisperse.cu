@@ -1,9 +1,9 @@
 #include <stdio.h>
 
-#include "AstroAccelerate/params.h"
-#include "AstroAccelerate/device_bin.h"
-#include "AstroAccelerate/kernel_params.h"
-#include "AstroAccelerate/kernel_functions.h"
+#include "headers/params.h"
+#include "headers/device_bin.h"
+#include "headers/kernel_params.h"
+#include "headers/kernel_functions.h"
 
 //{{{ dedisperse 
 
