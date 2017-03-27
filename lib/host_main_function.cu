@@ -169,7 +169,8 @@ void main_function
 	tsamp_original = tsamp;
 	maxshift_original = maxshift;
 
-	double start_t_per_range, end_t_per_range, *time_for_range;
+	GpuTimer range_timer;
+	double *time_for_range;
 	time_for_range = (double *) malloc(range*sizeof(time_for_range));
 	for (dm_range=0; dm_range < range; dm_range++) time_for_range[dm_range]=0;
 
@@ -216,7 +217,7 @@ void main_function
 			maxshift = maxshift_original / inBin[dm_range];
 
 			cudaDeviceSynchronize();
-			start_t_per_range = omp_get_wtime();
+			range_timer.Start();
 			load_data(dm_range, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t], maxshift, nchans, dmshifts);
 
 			if (inBin[dm_range] > oldBin)
@@ -242,8 +243,8 @@ void main_function
 			//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
 			}
 			cudaDeviceSynchronize();
-			end_t_per_range = omp_get_wtime();
-			time_for_range[dm_range] += (end_t_per_range-start_t_per_range);
+			range_timer.Stop();
+			time_for_range[dm_range] += range_timer.Elapsed()/1000.0;;
 			if (output_dmt == 1)
 			{
 				//for (int k = 0; k < ndms[dm_range]; k++)

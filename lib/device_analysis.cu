@@ -127,32 +127,6 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 	printf("Bin: %d, Mean: %f, Stddev: %f\n", 1, signal_mean_1, signal_sd_1);
 	//-------------- Calculating base level noise using outlier rejection
 	
-	//-------------- SPS	
-	timer.Start();
-	PD_SEARCH_INPLACE(output_buffer, d_SNR_taps, d_MSD, PD_MAXTAPS, nDMs, nTimesamples);
-	timer.Stop();
-	partial_time = timer.Elapsed();
-	total_time += partial_time;
-	printf("PD_SEARCH took:%f ms\n", partial_time);
-	//-------------- SPS
-
-	//-------------- Thresholding
-	timer.Start();
-	THRESHOLD(output_buffer, d_SNR_taps, d_list, gmem_pos, cutoff, nDMs, nTimesamples, PD_MAXTAPS, vals/4);
-	timer.Stop();
-	partial_time = timer.Elapsed();
-	total_time += partial_time;
-	printf("THR_WARP took:%f ms\n", partial_time);
-	//-------------- Thresholding
-
-	printf("\n%d ====> TOTAL TIME:%f\n\n", i, total_time);
-
-	cudaMemcpy(&h_list_size, gmem_pos, sizeof(int), cudaMemcpyDeviceToHost);
-	h_output_list = (float*) malloc(h_list_size*4*sizeof(float));
-	cudaMemcpy(h_output_list, d_list, h_list_size*4*sizeof(float), cudaMemcpyDeviceToHost);
-
-	float *b_list_out;
-	b_list_out = (float*) malloc(h_list_size*4*sizeof(float));
 	
 	size_t free_mem,total_mem;
 	cudaMemGetInfo(&free_mem,&total_mem);
@@ -314,3 +288,4 @@ void analysis_GPU(float *h_output_list, size_t *list_pos, size_t max_list_size, 
 	//---------------------------------------------------------------------------
 	
 }
+
