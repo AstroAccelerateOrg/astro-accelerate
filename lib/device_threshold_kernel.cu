@@ -31,7 +31,8 @@ __global__ void THR_GPU_WARP(float2 const* __restrict__ d_input, ushort *d_input
 				list_pos=list_pos+__popc(mask&((1<<local_id)-1));
 				if(list_pos<max_list_size){
 					d_output_list[4*list_pos]   = blockIdx.y*THR_WARPS_PER_BLOCK + warp_id + shift;
-					d_output_list[4*list_pos+1] = 2*DIT_value*((blockIdx.x*THR_ELEM_PER_THREAD + i)*WARP + local_id);
+					//d_output_list[4*list_pos+1] = DIT_value*2*((blockIdx.x*THR_ELEM_PER_THREAD + i)*WARP + local_id) + (float) d_input_taps[2*(pos_x + pos_y)]/2.0;
+					d_output_list[4*list_pos+1] = DIT_value*2*pos_x + (float) d_input_taps[2*(pos_x + pos_y)]/2.0;
 					d_output_list[4*list_pos+2] = R.x;
 					d_output_list[4*list_pos+3] = (float) d_input_taps[2*(pos_x + pos_y)];
 				}
@@ -44,7 +45,7 @@ __global__ void THR_GPU_WARP(float2 const* __restrict__ d_input, ushort *d_input
 				list_pos=list_pos+__popc(mask&((1<<local_id)-1));
 				if(list_pos<max_list_size){
 					d_output_list[4*list_pos]   = blockIdx.y*THR_WARPS_PER_BLOCK + warp_id + shift;
-					d_output_list[4*list_pos+1] = 2*DIT_value*((blockIdx.x*THR_ELEM_PER_THREAD + i)*WARP + local_id)+1;
+					d_output_list[4*list_pos+1] = DIT_value*( 2*pos_x + 1) + (float) d_input_taps[2*(pos_x + pos_y) + 1]/2.0;
 					d_output_list[4*list_pos+2] = R.y;
 					d_output_list[4*list_pos+3] = (float) d_input_taps[2*(pos_x + pos_y) + 1];
 				}
