@@ -16,6 +16,7 @@ acceleration
 -zero_dm
 -zero_dm_with_outliers
 -rfi
+-threshold
 fdas_custom_fft
 -fdas_inbin
 fdas_norm

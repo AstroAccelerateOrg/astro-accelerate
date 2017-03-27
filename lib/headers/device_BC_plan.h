@@ -3,6 +3,7 @@
 
 struct PulseDetection_plan {
 	int decimated_timesamples;
+	int dtm;
 	int iteration;
 	int nBoxcars;
 	int nBlocks;
