@@ -17,7 +17,7 @@ void stats_gpu(cudaEvent_t event, cudaStream_t stream, int samps, float *mean, f
 	/*
 	 // Calculate the mean
 	 double	total=0.0;
-	 #pragma omp parallel for default(shared) private(a,j) schedule(static,chunk) reduction(+:total)
+	 //#pragma omp parallel for default(shared) private(a,j) schedule(static,chunk) reduction(+:total)
 	 for(a = 0; a < trials; a++) {
 	 for(j=0;j< (samps/2);j++){
 	 total += ((double)(h_signal_power[j+(a)*(samps/2)]));
@@ -28,7 +28,7 @@ void stats_gpu(cudaEvent_t event, cudaStream_t stream, int samps, float *mean, f
 
 	 // Calculate standard deviation
 	 total = 0.0;
-	 #pragma omp parallel for default(shared) private(a,j) schedule(static,chunk) reduction(+:total)
+	 //#pragma omp parallel for default(shared) private(a,j) schedule(static,chunk) reduction(+:total)
 	 for(a = 0; a < trials; a++) {
 	 for(j=0; j<(samps/2); j++){
 	 total += (double)((h_signal_power[j+(a)*(samps/2)]-(*mean))*(h_signal_power[j+(a)*(samps/2)]-(*mean)));

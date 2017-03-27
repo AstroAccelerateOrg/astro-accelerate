@@ -94,7 +94,7 @@ void periodicity(int range, int nsamp, int max_ndms, int processed, int nboots, 
 			cudaMemcpy(h_signal, d_signal_out, sizeof(cufftComplex) * ( samps / 2 + 1 ), cudaMemcpyDeviceToHost);
 
 			h_signal_p[0 + dm_count * ( samps / 2 )] = 0.0;
-#pragma omp parallel for
+//#pragma omp parallel for
 			for (int j = 1; j < samps / 2; j++)
 			{
 				//	h_signal[j].x = h_signal[j].x-h_signal[0].x;

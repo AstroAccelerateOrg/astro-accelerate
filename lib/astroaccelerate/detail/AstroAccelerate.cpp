@@ -33,6 +33,8 @@ AstroAccelerate<AstroAccelerateParameterType>::AstroAccelerate(DedispersionStrat
 	_enable_zero_dm = 0;
 	_enable_zero_dm_with_outliers = 0;
 	_enable_rfi = 0;
+	_candidate_algorithm = 0;
+
 	//
 	_gpu_input_size = 0;
 	_d_input = nullptr;
@@ -117,7 +119,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 
 	for (int t = 0; t < _num_tchunks; ++t)
 	{
-		printf("\nt_processed:\t%d, %d", _t_processed[0][t], t);
+		//printf("\nt_processed:\t%d, %d", _t_processed[0][t], t);
 
 		load_data(-1, _in_bin, _d_input, &input_buffer[(long int) ( inc * _nchans )], _t_processed[0][t], _maxshift, _nchans, _dmshifts);
 
@@ -136,8 +138,8 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 		int oldBin = 1;
 		for (int dm_range = 0; dm_range < _range; ++dm_range)
 		{
-			printf("\n\n%f\t%f\t%f\t%d", _dm_low[dm_range], _dm_high[dm_range], _dm_step[dm_range], _ndms[dm_range]), fflush(stdout);
-			printf("\nAmount of telescope time processed: %f", tstart_local);
+			//printf("\n\n%f\t%f\t%f\t%d", _dm_low[dm_range], _dm_high[dm_range], _dm_step[dm_range], _ndms[dm_range]), fflush(stdout);
+			//printf("\nAmount of telescope time processed: %f", tstart_local);
 			_maxshift = maxshift_original / _in_bin[dm_range];
 
 			cudaDeviceSynchronize();
@@ -178,7 +180,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 				analysis_GPU(output_sps, &peak_pos, max_peak_size, dm_range, tstart_local,
 							_t_processed[dm_range][t], _in_bin[dm_range], _out_bin[dm_range], &_maxshift, _max_ndms, _ndms,
 							_sigma_cutoff, dedispersion_strategy.get_sigma_constant(), dedispersion_strategy.get_max_boxcar_width_in_sec()
-							, _d_output, _dm_low, _dm_high, _dm_step, _tsamp);
+							, _d_output, _dm_low, _dm_high, _dm_step, _tsamp, _candidate_algorithm);
 
 
 				//#pragma omp parallel for
@@ -200,13 +202,13 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 			//memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
 
 		inc = inc + _t_processed[0][t];
-		printf("\nINC:\t%ld", inc);
+		//printf("\nINC:\t%ld", inc);
 		tstart_local = ( tsamp_original * inc );
 		_tsamp = tsamp_original;
 		_maxshift = maxshift_original;
 	}
 
-
+/*
 	FILE *fp_out;
 	char filename[200];
 
@@ -222,16 +224,16 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 		fwrite(&output_sps[0], peak_pos*sizeof(float), 4, fp_out);
 		fclose(fp_out);
 	}
-
+*/
 	timer.Stop();
 	float time = timer.Elapsed() / 1000;
 
-	printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
+	//printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
-	printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)",  time);
-	printf("\nAmount of telescope time processed: %f", tstart_local);
-	printf("\nNumber of samples processed: %ld", inc);
-	printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
+	//printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)",  time);
+	//printf("\nAmount of telescope time processed: %f", tstart_local);
+	//printf("\nNumber of samples processed: %ld", inc);
+	//printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
 
 	cudaFree(_d_input);
 	cudaFree(_d_output);
@@ -241,16 +243,16 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 	double time_processed = ( tstart_local ) / tsamp_original;
 	double dm_t_processed = time_processed * dedispersion_strategy.get_total_ndms();
 	double all_processed = dm_t_processed * _nchans;
-	printf("\nGops based on %.2lf ops per channel per tsamp: %f", NOPS, ( ( NOPS * all_processed ) / ( time ) ) / 1000000000.0);
+	//printf("\nGops based on %.2lf ops per channel per tsamp: %f", NOPS, ( ( NOPS * all_processed ) / ( time ) ) / 1000000000.0);
 	int num_reg = SNUMREG;
 	float num_threads = dedispersion_strategy.get_total_ndms() * ( _t_processed[0][0] ) / ( num_reg );
 	float data_size_loaded = ( num_threads * _nchans * sizeof(ushort) ) / 1000000000;
 	float time_in_sec = time;
 	float bandwidth = data_size_loaded / time_in_sec;
-	printf("\nDevice global memory bandwidth in GB/s: %f", bandwidth);
-	printf("\nDevice shared memory bandwidth in GB/s: %f", bandwidth * ( num_reg ));
+	//printf("\nDevice global memory bandwidth in GB/s: %f", bandwidth);
+	//printf("\nDevice shared memory bandwidth in GB/s: %f", bandwidth * ( num_reg ));
 	float size_gb = ( _nchans * ( _t_processed[0][0] ) * sizeof(float) * 8 ) / 1000000000.0;
-	printf("\nTelescope data throughput in Gb/s: %f", size_gb / time_in_sec);
+	//printf("\nTelescope data throughput in Gb/s: %f", size_gb / time_in_sec);
 
 	if (_enable_periodicity == 1)
 	{
@@ -264,12 +266,12 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 		//
 		timer.Stop();
 		float time = timer.Elapsed()/1000;
-		printf("\n\n === OVERALL PERIODICITY THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
+		//printf("\n\n === OVERALL PERIODICITY THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
-		printf("\nPerformed Peroidicity Location: %f (GPU estimate)", time);
-		printf("\nAmount of telescope time processed: %f", tstart_local);
-		printf("\nNumber of samples processed: %ld", inc);
-		printf("\nReal-time speedup factor: %f", ( tstart_local ) / ( time ));
+		//printf("\nPerformed Peroidicity Location: %f (GPU estimate)", time);
+		//printf("\nAmount of telescope time processed: %f", tstart_local);
+		//printf("\nNumber of samples processed: %ld", inc);
+		//printf("\nReal-time speedup factor: %f", ( tstart_local ) / ( time ));
 	}
 /*
 	if (_enable_acceleration == 1)
@@ -307,12 +309,12 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 		//
 		timer.Stop();
 		float time = timer.Elapsed()/1000;
-		printf("\n\n === OVERALL TDAS THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
+		//printf("\n\n === OVERALL TDAS THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
-		printf("\nPerformed Acceleration Location: %lf (GPU estimate)", time);
-		printf("\nAmount of telescope time processed: %f", tstart_local);
-		printf("\nNumber of samples processed: %ld", inc);
-		printf("\nReal-time speedup factor: %lf", ( tstart_local ) / ( time ));
+		//printf("\nPerformed Acceleration Location: %lf (GPU estimate)", time);
+		//printf("\nAmount of telescope time processed: %f", tstart_local);
+		//printf("\nNumber of samples processed: %ld", inc);
+		//printf("\nReal-time speedup factor: %lf", ( tstart_local ) / ( time ));
 	}
 */
 	//free(out_tmp);

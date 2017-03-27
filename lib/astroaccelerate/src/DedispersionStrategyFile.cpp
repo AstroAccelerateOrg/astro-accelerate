@@ -98,6 +98,8 @@ namespace astroaccelerate{
 					dedispersion_strategy._enable_zero_dm_with_outliers = 1;
 				if (strcmp(string, "rfi") == 0)
 					dedispersion_strategy._enable_rfi = 1;
+				if (strcmp(string, "threshold") == 0)
+				 	dedispersion_strategy._candidate_algorithm = 1;
 				if (strcmp(string, "fdas_custom_fft") == 0)
 					dedispersion_strategy._enable_fdas_custom_fft = 1;
 				if (strcmp(string, "fdas_inbin") == 0)

@@ -22,6 +22,7 @@ namespace astroaccelerate{
 		_navdms	= 1;
 		_narrow = 0.001f;
 		_aggression = 2.5;
+		_candidate_algorithm=0;
 		_nsearch = 3;
 		_power = 2.0f;
 		_sigma_cutoff = 6.0f;
@@ -125,21 +126,22 @@ namespace astroaccelerate{
 		_enable_zero_dm = 0;
 		_enable_zero_dm_with_outliers = 0;
 		_enable_rfi = 0;
+		_candidate_algorithm = 0;
 
-			_maxshift = 0;
-			_dm_low = nullptr;
-			_dm_high = nullptr;
-			_dm_step = nullptr;
-			_dmshifts = nullptr;
-			_ndms = nullptr;
-			_max_ndms = 0;
-			_total_ndms	= 0;
-			_max_dm	= 0.0f;
-			_t_processed = nullptr;
-			_max_samps = 0;
-			_num_tchunks = 0;
-			//
-			make_strategy(gpu_memory);
+		_maxshift = 0;
+		_dm_low = nullptr;
+		_dm_high = nullptr;
+		_dm_step = nullptr;
+		_dmshifts = nullptr;
+		_ndms = nullptr;
+		_max_ndms = 0;
+		_total_ndms	= 0;
+		_max_dm	= 0.0f;
+		_t_processed = nullptr;
+		_max_samps = 0;
+		_num_tchunks = 0;
+		//
+		make_strategy(gpu_memory);
 		}
 
 	DedispersionStrategy::~DedispersionStrategy()
@@ -254,7 +256,7 @@ namespace astroaccelerate{
 				_max_ndms = _ndms[i];
 			_total_ndms = _total_ndms + _ndms[i];
 		}
-		printf("\nMaximum number of dm trials in any of the range steps:\t%d", _max_ndms);
+		//printf("\nMaximum number of dm trials in any of the range steps:\t%d", _max_ndms);
 
 		_dm_low[0] = _user_dm_low[0];
 		_dm_high[0] = _ndms[0] * _user_dm_step[0];
@@ -287,15 +289,15 @@ namespace astroaccelerate{
 		_max_dm = ceil(_dm_high[_range - 1]);
 
 		_maxshift = ( maxshift_high + 2 * ( SNUMREG * SDIVINT ) );
-		printf("\nRange:\t%d, MAXSHIFT:\t%d, Scrunch value:\t%d", _range - 1, _maxshift, _in_bin[_range - 1]);
-		printf("\nMaximum dispersive delay:\t%.2f (s)", _maxshift * _tsamp);
+		//printf("\nRange:\t%d, MAXSHIFT:\t%d, Scrunch value:\t%d", _range - 1, _maxshift, _in_bin[_range - 1]);
+		//printf("\nMaximum dispersive delay:\t%.2f (s)", _maxshift * _tsamp);
 
 		if (_maxshift >= _nsamp)	{
 			printf("\n\nERROR!! Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial\n\n");
 			exit(1);
 		}
 
-		printf("\nDiagonal DM:\t%f", ( _tsamp * _nchans * 0.0001205 * powf(( _fch1 + ( _foff * ( _nchans / 2 ) ) ), 3.0) ) / ( -_foff * _nchans ));
+		//printf("\nDiagonal DM:\t%f", ( _tsamp * _nchans * 0.0001205 * powf(( _fch1 + ( _foff * ( _nchans / 2 ) ) ), 3.0) ) / ( -_foff * _nchans ));
 		if (_maxshift >= _nsamp)	{
 			printf("ERROR!! Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial");
 			exit(1);
@@ -339,7 +341,7 @@ namespace astroaccelerate{
 					_t_processed[i][0] = _t_processed[i][0] * ( SDIVINT * ( SNUMREG ) );
 				}
 				_num_tchunks = 1;
-				printf("\nIn 1\n");
+				//printf("\nIn 1\n");
 			}
 			else {
 				// We have case 3)
@@ -375,7 +377,7 @@ namespace astroaccelerate{
 					_t_processed[i][num_blocks - 1] = _t_processed[i][num_blocks - 1] * ( SDIVINT * ( SNUMREG ) );
 				}
 				_num_tchunks = num_blocks;
-				printf("\nIn 3\n");
+				//printf("\nIn 3\n");
 				printf("\nnum_blocks:\t%d", num_blocks);
 			}
 		}
@@ -405,7 +407,7 @@ namespace astroaccelerate{
 					_t_processed[i][0] = _t_processed[i][0] * ( SDIVINT * ( SNUMREG ) );
 				}
 				_num_tchunks = 1;
-				printf("\nIn 2\n");
+				//printf("\nIn 2\n");
 			}
 			else {
 				// We have case 4)
@@ -439,15 +441,15 @@ namespace astroaccelerate{
 					_t_processed[i][num_blocks] = _t_processed[i][num_blocks] * ( SDIVINT * ( SNUMREG ) );
 				}
 				_num_tchunks = num_blocks + 1;
-				printf("\nIn 4\n");
+				//printf("\nIn 4\n");
 			}
 		}
-		printf("\nMaxshift memory needed:\t%lu MB", _nchans * _maxshift * sizeof(unsigned short) / 1024 / 1024);
+		//printf("\nMaxshift memory needed:\t%lu MB", _nchans * _maxshift * sizeof(unsigned short) / 1024 / 1024);
 		if (_nchans < _max_ndms)	{
-			printf("\nOutput memory needed:\t%lu MB", _max_ndms * _maxshift * sizeof(float) / 1024 / 1024);
+			//printf("\nOutput memory needed:\t%lu MB", _max_ndms * _maxshift * sizeof(float) / 1024 / 1024);
 		}
 		else {
-			printf("\nOutput memory needed:\t%lu MB", _nchans * _maxshift * sizeof(float) / 1024 / 1024);
+			//printf("\nOutput memory needed:\t%lu MB", _nchans * _maxshift * sizeof(float) / 1024 / 1024);
 		}
 	}
 
