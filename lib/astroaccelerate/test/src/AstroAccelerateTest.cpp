@@ -62,6 +62,7 @@ TEST_F(AstroAccelerateTest, test_dedispersion_strategy)
 		int total_ndms = 0;
 		int multi_file = 1;
 		float max_dm = 0.0f;
+		int candidate_algorithm=0;
 		// Memory sizes and pointers
 		float *user_dm_low = nullptr;
 		float *user_dm_high = nullptr;
@@ -106,7 +107,7 @@ TEST_F(AstroAccelerateTest, test_dedispersion_strategy)
 		&enable_zero_dm_with_outliers, &enable_rfi, &enable_fdas_custom_fft,
 		&enable_fdas_inbin, &enable_fdas_norm, &nboots, &ntrial_bins, &navdms,
 		&narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff, &sigma_constant, &max_boxcar_width_in_sec,
-		&range, &user_dm_low, &user_dm_high, &user_dm_step);
+		&range, &user_dm_low, &user_dm_high, &user_dm_step, &candidate_algorithm);
 		// Reads telescope parameters from the header of the input file and then counts the number of samples in the input data file.
 		get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp, &tstart,
 		&fch1, &foff);
@@ -250,6 +251,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		int total_ndms = 0;
 		int multi_file = 1;
 		float max_dm = 0.0f;
+		int candidate_algorithm=0;
 		// Memory sizes and pointers
 		float *user_dm_low = nullptr;
 		float *user_dm_high = nullptr;
@@ -294,7 +296,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		&enable_zero_dm_with_outliers, &enable_rfi, &enable_fdas_custom_fft,
 		&enable_fdas_inbin, &enable_fdas_norm, &nboots, &ntrial_bins, &navdms,
 		&narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff, &sigma_constant, &max_boxcar_width_in_sec,
-		&range, &user_dm_low, &user_dm_high, &user_dm_step);
+		&range, &user_dm_low, &user_dm_high, &user_dm_step, &candidate_algorithm);
 		// Reads telescope parameters from the header of the input file and then counts the number of samples in the input data file.
 		get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp, &tstart,
 		&fch1, &foff);
@@ -338,6 +340,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		get_recorded_data(&fp, dedispersion_strategy.get_nsamp(), dedispersion_strategy.get_nchans(), dedispersion_strategy.get_nbits(),
 						  &input_buffer, &inputsize);
 
+		printf("\nAA is starting\n");
 		// dedispersed data
 		DmTime<float> output_buffer(dedispersion_strategy);
 		// output of sps - assume it's a quarter of the output size

@@ -143,6 +143,8 @@ class AstroAccelerate
         int _enable_fdas_custom_fft;
         int _enable_fdas_inbin;
         int _enable_fdas_norm;
+        int _candidate_algorithm;
+
 
 };
 

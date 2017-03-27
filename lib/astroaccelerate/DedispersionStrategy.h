@@ -96,6 +96,7 @@ class DedispersionStrategy
         int get_navdms() const;
         float get_narrow() const;
         float get_aggression() const;
+        int get_candidate_algorithm() const;
         int get_nsearch() const;
         float get_power() const;
         float get_sigma_cutoff() const;
@@ -155,6 +156,7 @@ class DedispersionStrategy
         int _navdms;
         float _narrow;
         float _aggression;
+        int _candidate_algorithm;
         int _nsearch;
         float _power;
         float _sigma_cutoff;
