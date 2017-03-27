@@ -32,44 +32,18 @@ do
 							if [ $trial -eq 1 ]; then
 								cd ../lib
 								pwd
-								rm AstroAccelerate/params.h
-								echo "#define ACCMAX 350" > ./params.txt
-								echo "#define ACCSTEP 11" >> ./params.txt
+								rm headers/params.h
+
 								echo "#define UNROLLS $unroll" >> ./params.txt
 								echo "#define SNUMREG $acc" >> ./params.txt
 								echo "#define SDIVINT $divint" >> ./params.txt
 								echo "#define SDIVINDM $divindm" >> ./params.txt
 								echo "#define SFDIVINDM $divindm.0f" >> ./params.txt
-								echo "#define CARD 0" >> ./params.txt
-								echo "#define NOPSSHIFT 5" >> ./params.txt
-								echo "#define NOPSLOOP 3" >> ./params.txt
-								echo "#define NDATAPERLOOP 1" >> ./params.txt
-								echo "#define BINDIVINT 6" >> ./params.txt
-								echo "#define BINDIVINF 32" >> ./params.txt
-								echo "#define CT 256" >> ./params.txt
-								echo "#define CF 2" >> ./params.txt
-								echo "#define NOPS 4.0" >> ./params.txt
-								echo "#define STATST 128" >> ./params.txt
-								echo "#define STATSLOOP 8" >> ./params.txt
 								echo "#define FILTER_OUT_RANGES 1" >> ./params.txt
 								echo "#define RANGE_TO_KEEP $range" >> ./params.txt
 
-								echo "" >> ./params.txt
-								echo "//Added by Karel Adamek" >> ./params.txt
-								echo "#define WARP 32" >> ./params.txt
-								echo "#define HALF_WARP 16" >> ./params.txt
-								echo "#define MSD_ELEM_PER_THREAD 8" >> ./params.txt
-								echo "#define MSD_WARPS_PER_BLOCK 16" >> ./params.txt
-								echo "#define THR_ELEM_PER_THREAD 4" >> ./params.txt
-								echo "#define THR_WARPS_PER_BLOCK 4" >> ./params.txt
-								echo "#define PD_NTHREADS 512" >> ./params.txt
-								echo "#define PD_NWINDOWS 2" >> ./params.txt
-								echo "#define PD_MAXTAPS 16" >> ./params.txt
-								echo "#define PD_SMEM_SIZE 1280" >> ./params.txt
-								echo "#define PD_FIR_ACTIVE_WARPS 2" >> ./params.txt
-								echo "#define PD_FIR_NWINDOWS 2" >> ./params.txt
-
-								mv params.txt AstroAccelerate/params.h
+								cat header_template.h >> ./params.txt 
+								mv params.txt headers/params.h
 				
 								make clean
 						
@@ -81,7 +55,7 @@ do
 							./astro-accelerate.sh ../input_files/ska_ania.txt > profile_results/"$trialString"_"$paramString".dat
 
 							if [ $trial -eq 1 ]; then
-								cp ../lib/AstroAccelerate/params.h profile_results/"$paramString".h
+								cp ../lib/headers/params.h profile_results/"$paramString".h
 							fi
 
 							echo "unrolls: $unroll  acc: $acc    divint: $divint    divindm: $divindm    reg: $regcount"
@@ -104,7 +78,7 @@ do
 	optimumParamString=$(grep "$optimumParams" profile_optimum/range"$range"Stats.txt)
 	echo BEST: $optimumParamString >> profile_optimum/range${range}Stats.txt
 
-	cp ./profile_results/$optimumParams.h ../lib/AstroAccelerate/params.h
+	cp ./profile_results/$optimumParams.h ../lib/headers/params.h
 	cp ./profile_results/$optimumParams.h profile_optimum/params_$range.h
 
 	for trial in $(seq "$numTrials")

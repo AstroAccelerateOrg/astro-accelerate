@@ -16,8 +16,8 @@ done
 cat "$kernelTemplatePrefix"_footer_template.cu >> $kernelFilename
 
 
-kernelFunctionsFilename=../lib/AstroAccelerate/kernel_functions.h
-kernelFunctionsTemplatePrefix=../lib/AstroAccelerate/kernel_functions
+kernelFunctionsFilename=../lib/headers/kernel_functions.h
+kernelFunctionsTemplatePrefix=../lib/headers/kernel_functions
 rm $kernelFunctionsFilename
 
 for range in `seq 0 $maxRange`

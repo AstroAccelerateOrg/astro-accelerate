@@ -11,4 +11,4 @@ do
 	echo $paramString | sed 's/[^0-9^_]//g' | awk -v var="$range" -F "_" '{print "#define UNROLLS_" var" "$1"\n#define SNUMREG_" var " "$2"\n#define SDIVINT_" var " "$3"\n#define SDIVINDM_" var " "$4"\n#define SFDIVINDM_" var " "$4".0f"}' >> kernel_params.h
 done
 
-cp kernel_params.h ../lib/AstroAccelerate/kernel_params.h
+cp kernel_params.h ../lib/headers/kernel_params.h
