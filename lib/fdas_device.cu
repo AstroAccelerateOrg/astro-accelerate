@@ -4,8 +4,8 @@
 
 #include <stdio.h>
 #include <cuda_runtime.h>
-#include "AstroAccelerate/fdas_device.h"
-#include "AstroAccelerate/params.h"
+#include "headers/fdas_device.h"
+#include "headers/params.h"
 
 static __device__ __inline__ float2 Get_W_value(int N, int m){
 	float2 ctemp;
@@ -20,14 +20,14 @@ static __device__ __inline__ float2 Get_W_value_inverse(int N, int m){
 	ctemp.y=sinf( 2.0f*3.141592654f*fdividef( (float)(m), (float)(N)) );
 	return(ctemp);
 }
-
+/*
 static __device__ __inline__ float2 Get_W_value_float(float N, float m){
 	float2 ctemp;
 	ctemp.x=-cosf( 6.283185f*fdividef( m, N) - 3.141592654f );
 	ctemp.y=sinf( 6.283185f*fdividef( m, N) - 3.141592654f );
 	return(ctemp);
 }
-
+*/
 static __device__ __inline__ void do_FFT_no_reorder(float2 *s_input, int N, int bits){ // in-place
 	float2 A_DFT_value, B_DFT_value, ftemp2, ftemp;
 	float2 WB;
@@ -106,10 +106,8 @@ static __device__ __inline__ void do_IFFT_no_reorder(float2 *s_input, int N, int
 
 	int local_id, warp_id;
 	int j, m_param;
-	int load_id, i, n;
 	int parity, itemp;
 	int A_read_index,B_read_index;
-	int A_write_index,B_write_index;
 	int PoT, PoTp1, q;
 	int Nhalf;
 
@@ -220,8 +218,6 @@ __global__ void cuda_overlap_copy(float2* d_ext_data, float2* d_cpx_signal, int 
 {
   int tid = blockIdx.x * blockDim.x + threadIdx.x;
   int numthreads = blockDim.x * gridDim.x; 
-  int end_blk_ext = (total_blocks - 1) * KERNLEN; 
-  int end_blk_sig = (total_blocks - 1) * sigblock;
 
   //initialize the array  
   for (int i = tid; i < sig_tot_convlen; i += numthreads){
@@ -299,9 +295,6 @@ __global__ void cuda_ffdotpow_concat_2d(float2* d_ffdot_plane_cpx, float* d_ffdo
    int by = blockIdx.y;
    int tidx = bx* blockDim.x + tx;
    int tidy = by* blockDim.y + ty;
-   int xthreads = blockDim.x * gridDim.x;
-   int ffdotlen = NKERN * sig_totlen;
-   int ffdotlencpx = NKERN * sig_tot_convlen;
      
    for (int i = 0; i < total_blocks; ++i){
      if (tidx < sigblock){
@@ -320,8 +313,6 @@ __global__ void cuda_ffdotpow_concat_2d(float2* d_ffdot_plane_cpx, float* d_ffdo
    int bx = blockIdx.x;
    int by = blockIdx.y;
    int tidx = bx* blockDim.x + tx;
-   int xthreads = blockDim.x * gridDim.x;
-   unsigned int ffdotlen = NKERN * sig_totlen * 2;
 
    __shared__ float2 local_data[PTBSIZEX + 1];
    __shared__ float local_data_inbin[2*PTBSIZEX];
@@ -373,7 +364,7 @@ __global__ void cuda_ffdotpow_concat_2d_ndm_inbin(float2* d_ffdot_plane_cpx, flo
   int bx = blockIdx.x;
   int by = blockIdx.y;
   int tidx = bx* blockDim.x + tx;
-  int xthreads = blockDim.x * gridDim.x;
+  //int xthreads = blockDim.x * gridDim.x;
   unsigned int ffdotlen = NKERN * sig_totlen;
   unsigned int ffdotlencpx = NKERN * sig_tot_convlen;
   //   int inbin = 2; //temporary, for test
@@ -462,7 +453,7 @@ __global__ void cuda_convolve_customfft_wes_no_reorder02(float2* d_kernel, float
   float2 W;
   int local_id, warp_id;
   int j, m_param;
-  int load_id, i, n;
+  //int load_id, i, n;
   int parity, itemp;
   int A_read_index,B_read_index;
   //  int A_write_index,B_write_index;
@@ -696,7 +687,7 @@ __global__ void cuda_convolve_customfft_wes_no_reorder02_inbin(float2* d_kernel,
   float2 W;
   int local_id, warp_id;
   int j, m_param;
-  int load_id, i, n;
+  //int load_id, i, n;
   int parity, itemp;
   int A_read_index,B_read_index;
   //  int A_write_index,B_write_index;

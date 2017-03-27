@@ -1,11 +1,11 @@
-#include "AstroAccelerate/headers_mains.h"
-#include "AstroAccelerate/host_main_function.h" // Added by Nassim.O
-#include "AstroAccelerate/host_debug.h"
-#include "AstroAccelerate/host_get_user_input.h"
-#include "AstroAccelerate/host_get_file_data.h"
-#include "AstroAccelerate/host_allocate_memory.h"
-#include "AstroAccelerate/host_get_recorded_data.h"
-#include "AstroAccelerate/params.h"
+#include "headers/headers_mains.h"
+#include "headers/host_main_function.h" // Added by Nassim.O
+#include "headers/host_debug.h"
+#include "headers/host_get_user_input.h"
+#include "headers/host_get_file_data.h"
+#include "headers/host_allocate_memory.h"
+#include "headers/host_get_recorded_data.h"
+#include "headers/params.h"
 
 int main(int argc, char* argv[])
 {
@@ -78,6 +78,8 @@ int main(int argc, char* argv[])
 	// Analysis variables
 	float power = 2.0f;
 	float sigma_cutoff = 6.0f;
+	float sigma_constant = 4.0f;
+	float max_boxcar_width_in_sec = 0.5f;
 
 	// Timing parameters
 	clock_t start_time = clock();
@@ -87,7 +89,7 @@ int main(int argc, char* argv[])
 	    &enable_periodicity, &enable_acceleration, &output_dmt, &enable_zero_dm,
 	    &enable_zero_dm_with_outliers, &enable_rfi, &enable_fdas_custom_fft,
 	    &enable_fdas_inbin, &enable_fdas_norm, &nboots, &ntrial_bins, &navdms,
-	    &narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff,
+	    &narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff, &sigma_constant, &max_boxcar_width_in_sec,
 	    &range, &user_dm_low, &user_dm_high, &user_dm_step);
 	if (enable_debug == 1)
 		debug(1, start_time, range, outBin, enable_debug, enable_analysis,
@@ -95,6 +97,7 @@ int main(int argc, char* argv[])
 		user_dm_high, user_dm_step, dm_low, dm_high, dm_step, ndms, nchans,
 		nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm,
 		nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
+		
 
 	// Reads telescope parameters from the header of the input file and then counts the number of samples in the input data file.
 	get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp, &tstart,
@@ -147,7 +150,7 @@ int main(int argc, char* argv[])
 	  navdms, nsearch, aggression, narrow, wide, maxshift_original,
 	  tsamp_original, inc, tstart, tstart_local, tsamp, fch1, foff,
 	  // Analysis variables
-	  power, sigma_cutoff, start_time
+	  power, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, start_time
 	);
 
 	// write output here, not in the library

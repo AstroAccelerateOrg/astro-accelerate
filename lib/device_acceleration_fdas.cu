@@ -11,10 +11,10 @@
 #include <helper_cuda.h>
 #include <cuda_profiler_api.h>
 //
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include "helper_cuda.h"
-#include "AstroAccelerate/fdas.h"
-#include "AstroAccelerate/fdas_host.h"
+#include "headers/fdas.h"
+#include "headers/fdas_host.h"
 
 void acceleration_fdas(int range,
 					   int nsamp,
@@ -37,15 +37,16 @@ void acceleration_fdas(int range,
 					   float tsamp,
 					   int enable_custom_fft,
 					   int enable_inbin,
-					   int enable_norm)
+					   int enable_norm,
+					   float sigma_constant)
 {
 
 	fdas_params params;
-	fdas_new_acc_sig acc_sig;
+	// fdas_new_acc_sig acc_sig;
 	cmd_args cmdargs;
 	fdas_gpuarrays gpuarrays;
 	fdas_cufftplan fftplans;
-	float *acc_signal = NULL;
+	//float *acc_signal = NULL;
 	struct timeval t_start, t_end;
 	double t_gpu = 0.0, t_gpu_i = 0.0;
 
@@ -54,7 +55,7 @@ void acceleration_fdas(int range,
 	cmdargs.nsig = 0; //
 	cmdargs.duty = 0.10; //
 	cmdargs.iter = 1; //
-	cmdargs.writef = 1; //
+	cmdargs.writef = 0; //
 	cmdargs.zval = 4; //
 	cmdargs.mul = 1024; //
 	cmdargs.wsig = 0; //
@@ -84,7 +85,7 @@ void acceleration_fdas(int range,
 		cmdargs.norm = 0; //
 
 	//get signal parameters
-	acc_sig.nsamps = cmdargs.mul * 8192;  //
+	/*acc_sig.nsamps = cmdargs.mul * 8192;  //
 	acc_sig.freq0 = cmdargs.freq0; //
 	acc_sig.mul = cmdargs.mul; 	//
 	acc_sig.zval = cmdargs.zval; //
@@ -92,7 +93,7 @@ void acceleration_fdas(int range,
 	acc_sig.nharms = cmdargs.nharms; //
 	acc_sig.duty = cmdargs.duty; //
 	acc_sig.sigamp = cmdargs.sigamp; //
-
+*/
 	int nearest = (int) floorf(log2f((float) processed));
 	printf("\nnearest:\t%d", nearest);
 	int samps = (int) powf(2.0, nearest);
@@ -118,7 +119,8 @@ void acceleration_fdas(int range,
 	params.extlen = params.nblocks * KERNLEN; //signal array extended to array of separate N=KERNLEN segments
 	params.ffdotlen = params.siglen * NKERN; // total size of ffdot complex plane in fourier bins
 	params.ffdotlen_cpx = params.extlen * NKERN; // total size of ffdot powers plane in fourier bins
-
+	params.max_list_length = params.ffdotlen/4;
+	
 	if (cmdargs.inbin)
 		params.ffdotlen = params.ffdotlen * 2;
 
@@ -144,6 +146,7 @@ void acceleration_fdas(int range,
 		size_t mem_ffdot = params.ffdotlen * sizeof(float); // total size of ffdot plane powers in bytes
 		size_t mem_ffdot_cpx = params.ffdotlen_cpx * sizeof(float2); // total size of ffdot plane powers in bytes
 		size_t mem_kern_array = KERNLEN * NKERN * sizeof(float2);
+		size_t mem_max_list_size = params.max_list_length*4*sizeof(float);
 		size_t mem_signals = (params.nsamps * sizeof(float)) + (params.siglen * sizeof(float2)) + (params.extlen * sizeof(float2));
 
 		//Determining memory usage
@@ -153,9 +156,9 @@ void acceleration_fdas(int range,
 		size_t mfree, mtotal;
 
 		if (cmdargs.basic)
-			mem_tot_needed = mem_ffdot + mem_ffdot_cpx + mem_kern_array + mem_signals;
+			mem_tot_needed = mem_ffdot + mem_ffdot_cpx + mem_kern_array + mem_signals + mem_max_list_size; // KA added + mem_max_list_size
 		if (cmdargs.kfft)
-			mem_tot_needed = mem_ffdot + mem_kern_array + mem_signals;
+			mem_tot_needed = mem_ffdot + mem_kern_array + mem_signals + mem_max_list_size; // KA added + mem_max_list_size
 		checkCudaErrors(cudaMemGetInfo(&mfree, &mtotal));
 
 		// get available memory info
@@ -168,6 +171,7 @@ void acceleration_fdas(int range,
 		gpuarrays.mem_ffdot = mem_ffdot;
 		gpuarrays.mem_ffdot_cpx = mem_ffdot_cpx;
 		gpuarrays.mem_ipedge = params.nblocks * 2;
+		gpuarrays.mem_max_list_size = mem_max_list_size;
 
 		printf("Total memory needed on GPU for arrays to process 1 DM: %.4f GB\nfloat ffdot plane (for power spectrum) = %.4f GB.\nTemplate array %.4f GB\nOne dimensional signals %.4f\n1 GB = %f",
 				(double) mem_tot_needed / gbyte, (double) (mem_ffdot) / gbyte, (double) mem_kern_array / gbyte, (double) mem_signals / gbyte, gbyte);
@@ -200,10 +204,8 @@ void acceleration_fdas(int range,
 		int titer=1;
 
 		// FFT
-		for (int i = 0; i < range; i++)
-		{
-			for (int dm_count = 0; dm_count < ndms[i] - 1; ++dm_count)
-			{
+		for (int i = 0; i < range; i++) {
+			for (int dm_count = 0; dm_count < ndms[i] - 1; ++dm_count) {
 
 				//first time PCIe transfer and print timing
 				gettimeofday(&t_start, NULL); //don't time transfer
@@ -217,8 +219,7 @@ void acceleration_fdas(int range,
 				printf("\n\nAverage vector transfer time of %d float samples (%.2f Mb) from 1000 iterations: %f ms\n\n", params.nsamps, (float)(gpuarrays.mem_insig)/mbyte, t_gpu_i);
 
 				cudaProfilerStart(); //exclude cuda initialization ops
-				if(cmdargs.basic)
-				{
+				if(cmdargs.basic) {
 					gettimeofday(&t_start, NULL); //don't time transfer
 				    fdas_cuda_basic(&fftplans, &gpuarrays, &cmdargs, &params );
 				    cudaDeviceSynchronize();
@@ -226,26 +227,62 @@ void acceleration_fdas(int range,
 				    t_gpu = (double) (t_end.tv_sec + (t_end.tv_usec / 1000000.0)  - t_start.tv_sec - (t_start.tv_usec/ 1000000.0)) * 1000.0;
 				    t_gpu_i = (t_gpu / (double)iter);
 				    printf("\n\nConvolution using basic algorithm with cuFFT\nTotal process took: %f ms per iteration \nTotal time %d iterations: %f ms\n", t_gpu_i, iter, t_gpu);
-				 }
+				}
 
-				 #ifndef NOCUST
-				 if (cmdargs.kfft)
-				 {
-					 printf("\nMain: running FDAS with custom fft\n");
-				     gettimeofday(&t_start, NULL); //don't time transfer
-				  	fdas_cuda_customfft(&fftplans, &gpuarrays, &cmdargs, &params);
-
-				     cudaDeviceSynchronize();
-				     gettimeofday(&t_end, NULL);
-				     t_gpu = (double) (t_end.tv_sec + (t_end.tv_usec / 1000000.0)  - t_start.tv_sec - (t_start.tv_usec/ 1000000.0)) * 1000.0;
-				     t_gpu_i = (t_gpu / (double)iter);
-				     printf("\n\nConvolution using custom FFT:\nTotal process took: %f ms\n per iteration \nTotal time %d iterations: %f ms\n", t_gpu_i, iter, t_gpu);
-				 }
-				 #endif
-				 if(cmdargs.writef)
-				 {
-					 fdas_write_ffdot(&gpuarrays, &cmdargs, &params, dm_low[i], dm_count, dm_step[i]);
-				 }
+				#ifndef NOCUST
+				if (cmdargs.kfft) {
+					printf("\nMain: running FDAS with custom fft\n");
+					gettimeofday(&t_start, NULL); //don't time transfer
+					fdas_cuda_customfft(&fftplans, &gpuarrays, &cmdargs, &params);
+					cudaDeviceSynchronize();
+					gettimeofday(&t_end, NULL);
+					t_gpu = (double) (t_end.tv_sec + (t_end.tv_usec / 1000000.0)  - t_start.tv_sec - (t_start.tv_usec/ 1000000.0)) * 1000.0;
+					t_gpu_i = (t_gpu / (double)iter);
+					printf("\n\nConvolution using custom FFT:\nTotal process took: %f ms\n per iteration \nTotal time %d iterations: %f ms\n", t_gpu_i, iter, t_gpu);
+				}
+				#endif
+				// Calculating base level noise and peak find
+				if(cmdargs.basic || cmdargs.kfft){
+					//------------- Testing BLN
+					//float signal_mean, signal_sd;
+					//------------- Testing BLN
+					
+					int ibin=1;
+					if (cmdargs.inbin) ibin=2;
+					
+					unsigned int list_size;
+					float *d_MSD;
+					float h_MSD[3];
+					if ( cudaSuccess != cudaMalloc((void**) &d_MSD, sizeof(float)*3)) printf("Allocation error!\n");
+					unsigned int *gmem_fdas_peak_pos;
+					if ( cudaSuccess != cudaMalloc((void**) &gmem_fdas_peak_pos, 1*sizeof(int))) printf("Allocation error!\n");
+					cudaMemset((void*) gmem_fdas_peak_pos, 0, sizeof(int));
+					
+					// This might be bit iffy since when interbining is done values are correlated
+					printf("Dimensions for BLN: ibin:%d; siglen:%d;\n", ibin, params.siglen);
+					BLN(gpuarrays.d_ffdot_pwr, d_MSD, 32, 32, NKERN, ibin*params.siglen, 0, sigma_constant);
+					////------------- Testing BLN
+					//checkCudaErrors(cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost));
+					//signal_mean=h_MSD[0]; signal_sd=h_MSD[1];
+					//MSD_limited(gpuarrays.d_ffdot_pwr, d_MSD, NKERN, ibin*params.siglen, 0);
+					//checkCudaErrors(cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost));
+					//printf("BLN: mean:%f; sd:%f || MSD: mean:%f; sd:%f\n", signal_mean, signal_sd, h_MSD[0], h_MSD[1]);
+					////------------- Testing BLN
+					
+					
+					PEAK_FIND_FOR_FDAS(gpuarrays.d_ffdot_pwr, gpuarrays.d_fdas_peak_list, d_MSD, NKERN, ibin*params.siglen, cmdargs.thresh, params.max_list_length, gmem_fdas_peak_pos, dm_count*dm_step[i] + dm_low[i]);
+					
+					checkCudaErrors(cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost));
+					checkCudaErrors(cudaMemcpy(&list_size, gmem_fdas_peak_pos, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+					if(list_size>0)
+						fdas_write_list(&gpuarrays, &cmdargs, &params, h_MSD, dm_low[i], dm_count, dm_step[i], list_size);
+					
+					cudaFree(d_MSD);
+					cudaFree(gmem_fdas_peak_pos);
+				}
+				if(cmdargs.writef) {
+					fdas_write_ffdot(&gpuarrays, &cmdargs, &params, dm_low[i], dm_count, dm_step[i]);
+				}
   				// Call sofias code here pass...
 				// output_buffer[i][dm_count],
 			}

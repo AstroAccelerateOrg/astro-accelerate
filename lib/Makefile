@@ -20,10 +20,10 @@ GENCODE_FLAGS   := $(GENCODE_SM61)
 
 ifeq ($(cache),off)
         NVCCFLAGS := $(INC) -g -lineinfo -Xcompiler -fopenmp -O3 -lm --use_fast_math\
-         --ptxas-options=-v -Xptxas -dlcm=cg $(GENCODE_FLAGS) -std=c++11
+         --ptxas-options=-v -Xptxas -dlcm=cg $(GENCODE_FLAGS)
 else
         NVCCFLAGS := $(INC) -g -lineinfo -Xcompiler -fopenmp -O3 -lm --use_fast_math\
-         --ptxas-options=-v -lcuda -lcudart  -lcurand -lcufft -Xptxas -dlcm=cg $(GENCODE_FLAGS) -std=c++11
+         --ptxas-options=-v -lcuda -lcudart  -lcurand -lcufft -Xptxas -dlcm=cg $(GENCODE_FLAGS)
 endif
 
 #ifeq ($(gpu),sm_35)
@@ -34,7 +34,7 @@ endif
 all:	${BUILD_DIR} $(BUILD_DIR)/dedisperse-gpu ${ASTROLIB_DIR} ${ASTROLIB_DIR}/libastrolib.a
 
 $(BUILD_DIR)/%.o : %.cu
-	nvcc -o $@ -c $(NVCCFLAGS) $< 
+	nvcc -o $@ -c $(NVCCFLAGS) $<
 
 $(BUILD_DIR)/%.o : %.cpp
 	nvcc -o $@ -c $(NVCCFLAGS) $<
@@ -48,21 +48,21 @@ ${ASTROLIB_DIR}:
 ${BUILD_DIR}:
 	mkdir -p ${BUILD_DIR}	
 
-$(BUILD_DIR)/main.o : 					AstroAccelerate/headers_mains.h
-$(BUILD_DIR)/host_main_function.o:		AstroAccelerate/host_main_function.h 
-$(BUILD_DIR)/host_allocate_memory.o:	AstroAccelerate/host_allocate_memory.h
-$(BUILD_DIR)/host_acceleration.o:		AstroAccelerate/host_acceleration.h
-$(BUILD_DIR)/host_analysis.o:			AstroAccelerate/host_analysis.h 
-$(BUILD_DIR)/host_periods.o:			AstroAccelerate/host_periods.h 
-$(BUILD_DIR)/host_debug.o:	 			AstroAccelerate/host_debug.h
-$(BUILD_DIR)/host_get_file_data.o: 		AstroAccelerate/host_get_file_data.h
-$(BUILD_DIR)/host_get_user_input.o:	 	AstroAccelerate/host_get_user_input.h
-$(BUILD_DIR)/host_get_recorded_data.o:	AstroAccelerate/host_get_recorded_data.h
-$(BUILD_DIR)/host_help.o:	 			AstroAccelerate/host_help.h
-$(BUILD_DIR)/host_rfi.o:	 			AstroAccelerate/host_rfi.h
-$(BUILD_DIR)/host_stratagy.o:	 		AstroAccelerate/host_stratagy.h
-$(BUILD_DIR)/host_statistics.o:	 		AstroAccelerate/host_statistics.h
-$(BUILD_DIR)/host_write_file.o:	 		AstroAccelerate/host_write_file.h
+$(BUILD_DIR)/main.o : 					headers/headers_mains.h
+$(BUILD_DIR)/host_main_function.o:		headers/host_main_function.h 
+$(BUILD_DIR)/host_allocate_memory.o:	headers/host_allocate_memory.h
+$(BUILD_DIR)/host_acceleration.o:		headers/host_acceleration.h
+$(BUILD_DIR)/host_analysis.o:			headers/host_analysis.h 
+$(BUILD_DIR)/host_periods.o:			headers/host_periods.h 
+$(BUILD_DIR)/host_debug.o:	 			headers/host_debug.h
+$(BUILD_DIR)/host_get_file_data.o: 		headers/host_get_file_data.h
+$(BUILD_DIR)/host_get_user_input.o:	 	headers/host_get_user_input.h
+$(BUILD_DIR)/host_get_recorded_data.o:	headers/host_get_recorded_data.h
+$(BUILD_DIR)/host_help.o:	 			headers/host_help.h
+$(BUILD_DIR)/host_rfi.o:	 			headers/host_rfi.h
+$(BUILD_DIR)/host_stratagy.o:	 		headers/host_stratagy.h
+$(BUILD_DIR)/host_statistics.o:	 		headers/host_statistics.h
+$(BUILD_DIR)/host_write_file.o:	 		headers/host_write_file.h
 
 
 #$(BUILD_DIR)/device_main.o:	device_main.cu

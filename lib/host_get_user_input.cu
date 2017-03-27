@@ -3,10 +3,11 @@
  */
 
 #include <stdio.h>
-#include "AstroAccelerate/params.h"
-#include "AstroAccelerate/host_help.h"
+#include <wordexp.h>
+#include "headers/params.h"
+#include "headers/host_help.h"
 
-void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *enable_debug, int *enable_analysis, int *enable_periodicity, int *enable_acceleration, int *output_dmt, int *enable_zero_dm, int *enable_zero_dm_with_outliers, int *enable_rfi, int *enable_fdas_custom_fft, int *enable_fdas_inbin, int *enable_fdas_norm, int *nboots, int *ntrial_bins, int *navdms, float *narrow, float *wide, float *aggression, int *nsearch, int **inBin, int **outBin, float *power, float *sigma_cutoff, int *range, float **user_dm_low, float **user_dm_high, float **user_dm_step)
+void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *enable_debug, int *enable_analysis, int *enable_periodicity, int *enable_acceleration, int *output_dmt, int *enable_zero_dm, int *enable_zero_dm_with_outliers, int *enable_rfi, int *enable_fdas_custom_fft, int *enable_fdas_inbin, int *enable_fdas_norm, int *nboots, int *ntrial_bins, int *navdms, float *narrow, float *wide, float *aggression, int *nsearch, int **inBin, int **outBin, float *power, float *sigma_cutoff, float *sigma_constant, float *max_boxcar_width_in_sec, int *range, float **user_dm_low, float **user_dm_high, float **user_dm_step)
 {
 
 	FILE *fp_in = NULL;
@@ -31,7 +32,11 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 		( *range ) = 0;
 		while (!feof(fp_in))
 		{
-			fscanf(fp_in, "%s", string);
+			if ( fscanf(fp_in, "%s", string) == 0 )
+			{
+				fprintf(stderr, "failed to read input\n");
+				exit(0);
+			}
 			if (strcmp(string, "range") == 0)
 				( *range )++;
 		}
@@ -45,13 +50,21 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 
 		for (i = 0; i < *range; i++)
 		{
-			fscanf(fp_in, "%s %f %f %f %d %d\n", string, &( *user_dm_low )[i], &( *user_dm_high )[i], &( *user_dm_step )[i], &( *inBin )[i], &( *outBin )[i]);
+			if (fscanf(fp_in, "%s %f %f %f %d %d\n", string, &( *user_dm_low )[i], &( *user_dm_high )[i], &( *user_dm_step )[i], &( *inBin )[i], &( *outBin )[i]) !=6 )
+			{
+				fprintf(stderr, "failed to read input\n");
+				exit(0);
+			}
 		}
 
 		rewind(fp_in);
 		while (!feof(fp_in))
 		{
-			fscanf(fp_in, "%s", string);
+			if ( fscanf(fp_in, "%s", string) == 0 )
+			{
+				fprintf(stderr, "failed to read input\n");
+				exit(0);
+			}
 			if (strcmp(string, "debug") == 0)
 				*enable_debug = 1;
 			if (strcmp(string, "analysis") == 0)
@@ -68,7 +81,7 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 				*enable_zero_dm_with_outliers = 1;
 			if (strcmp(string, "rfi") == 0)
 				*enable_rfi = 1;
-			if (strcmp(string, "fdas_custon_fft") == 0)
+			if (strcmp(string, "fdas_custom_fft") == 0)
 				*enable_fdas_custom_fft = 1;
 			if (strcmp(string, "fdas_inbin") == 0)
 				*enable_fdas_inbin = 1;
@@ -77,31 +90,94 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 			if (strcmp(string, "multi_file") == 0)
 				*multi_file = 1;
 			if (strcmp(string, "sigma_cutoff") == 0)
-				fscanf(fp_in, "%f", sigma_cutoff);
+			{
+				if ( fscanf(fp_in, "%f", sigma_cutoff) == 0 )
+				{
+					fprintf(stderr, "failed to read input\n");
+					exit(0);
+				}
+			}
 			if (strcmp(string, "narrow") == 0)
-				fscanf(fp_in, "%f", narrow);
+			{
+				if ( fscanf(fp_in, "%f", narrow) == 0 )
+				{
+					fprintf(stderr, "failed to read input\n");
+					exit(0);
+				}
+			}
 			if (strcmp(string, "wide") == 0)
-				fscanf(fp_in, "%f", wide);
+			{
+				if ( fscanf(fp_in, "%f", wide) == 0 )
+				{
+					fprintf(stderr, "failed to read input\n");
+					exit(0);
+				}
+			}
 			if (strcmp(string, "nboots") == 0)
-				fscanf(fp_in, "%d", nboots);
+			{
+				if ( fscanf(fp_in, "%d", nboots) == 0 )
+				{
+					fprintf(stderr, "failed to read input\n");
+					exit(0);
+				}
+			}
 			if (strcmp(string, "navdms") == 0)
-				fscanf(fp_in, "%d", navdms);
+			{
+				if ( fscanf(fp_in, "%d", navdms) == 0 )
+				{
+					fprintf(stderr, "failed to read input\n");
+					exit(0);
+				}
+			}
 			if (strcmp(string, "nwindows") == 0)
-				fscanf(fp_in, "%d", ntrial_bins);
+			{
+				if ( fscanf(fp_in, "%d", ntrial_bins) == 0 )
+				{
+					fprintf(stderr, "failed to read input\n");
+					exit(0);
+				}
+			}
 			if (strcmp(string, "nsearch") == 0)
-				fscanf(fp_in, "%d", nsearch);
+			{
+				if ( fscanf(fp_in, "%d", nsearch) == 0 )
+				{
+					fprintf(stderr, "failed to read input\n");
+					exit(0);
+				}
+			}
 			if (strcmp(string, "aggression") == 0)
-				fscanf(fp_in, "%f", aggression);
+			{
+				if ( fscanf(fp_in, "%f", aggression) == 0 )
+				{
+					fprintf(stderr, "failed to read input\n");
+					exit(0);
+				}
+			}
 			if (strcmp(string, "power") == 0)
-				fscanf(fp_in, "%f", power);
+			{
+				if ( fscanf(fp_in, "%f", power) == 0 )
+				{
+					fprintf(stderr, "failed to read input\n");
+					exit(0);
+				}
+			}
 			if (strcmp(string, "file") == 0)
 			{
-				fscanf(fp_in, "%s", string);
-				if (( *fp = fopen(string, "rb") ) == NULL)
+				// this command expand "~" to "home/username/"
+			    wordexp_t expanded_string;
+
+				if ( fscanf(fp_in, "%s", string) == 0 )
+				{
+					fprintf(stderr, "failed to read input\n");
+					exit(0);
+				}
+				wordexp(string, &expanded_string, 0);
+			    if (( *fp = fopen(expanded_string.we_wordv[0], "rb") ) == NULL)
 				{
 					fprintf(stderr, "Invalid data file!\n");
 					exit(0);
 				}
+				wordfree(&expanded_string);
 			}
 		}
 

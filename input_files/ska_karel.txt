@@ -5,8 +5,10 @@ range	500  900  0.4  2 2
 range	900  1200 0.6  4 4
 range	1200 1500 0.8  4 4
 sigma_cutoff	7
+sigma_constant  4.0
+max_boxcar_width_in_sec 0.5
 analysis
--acceleration
+acceleration
 -periodicity
 -output_dmt
 -zero_dm
@@ -16,4 +18,4 @@ fdas_custom_fft
 -fdas_inbin
 fdas_norm
 debug
-file /home/nassim/filterbank/bper_0.0025.fil
+file ~/filterbank/bper_0.0025.fil

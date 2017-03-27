@@ -1,6 +1,6 @@
 //Added by Karel Adamek
 
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include "device_SNR_limited_kernel.cu"
 
 int Choose_dim(int grid_dim)
@@ -43,9 +43,9 @@ void SNR_limited_init()
 int SNR_limited(float *d_FIR_input, float *d_SNR_output, float *d_SNR_taps, float *d_MSD, int nTaps, int nDMs, int nTimesamples, int offset)
 {
 	//---------> Task specific
-	int nBlocks_x, nBlocks_y, nBlocks_total, nSteps_x, nSteps_y, nRest, nThreads,
-	    nElements, epw; //epw = elements per warp 32 for float 64 for float2
-
+	int nBlocks_x, nBlocks_y, nSteps_x, nSteps_y, nRest, nThreads, // int nBlocks_total;
+	    epw; //epw = elements per warp 32 for float 64 for float2
+	// int nElements;
 	//---------> CUDA block and CUDA grid parameters
 	// Determining in x direction (direction of data alignment)
 	epw = 32;
@@ -61,8 +61,8 @@ int SNR_limited(float *d_FIR_input, float *d_SNR_output, float *d_SNR_taps, floa
 	nSteps_y = Choose_dim(nDMs);
 	nBlocks_y = nDMs / nSteps_y;
 
-	nBlocks_total = nBlocks_x * nBlocks_y;
-	nElements = nBlocks_total * nSteps_x * epw * nSteps_y;
+	//nBlocks_total = nBlocks_x * nBlocks_y;
+	//nElements = nBlocks_total * nSteps_x * epw * nSteps_y;
 
 	nThreads = nSteps_y * WARP;
 

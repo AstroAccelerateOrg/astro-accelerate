@@ -1,45 +1,49 @@
-#include "AstroAccelerate/headers_mains.h"
-#include "AstroAccelerate/device_bin.h"
-#include "AstroAccelerate/device_init.h"
-#include "AstroAccelerate/device_dedisperse.h"
-#include "AstroAccelerate/device_dedispersion_kernel.h"
-#include "AstroAccelerate/device_zero_dm.h"
-#include "AstroAccelerate/device_zero_dm_outliers.h"
-#include "AstroAccelerate/device_rfi.h"
+#include "headers/headers_mains.h"
+#include "headers/device_bin.h"
+#include "headers/device_init.h"
+#include "headers/device_dedisperse.h"
+#include "headers/device_dedispersion_kernel.h"
+#include "headers/device_zero_dm.h"
+#include "headers/device_zero_dm_outliers.h"
+#include "headers/device_rfi.h"
 
-#include "AstroAccelerate/device_SPS_inplace_kernel.h" //Added by KA
-#include "AstroAccelerate/device_SPS_inplace.h" //Added by KA
-#include "AstroAccelerate/device_MSD_grid.h" //Added by KA
-#include "AstroAccelerate/device_MSD_plane.h" //Added by KA
-#include "AstroAccelerate/device_MSD_limited.h" //Added by KA
-#include "AstroAccelerate/device_SNR_limited.h" //Added by KA
-#include "AstroAccelerate/device_threshold.h" //Added by KA
-#include "AstroAccelerate/device_single_FIR.h" //Added by KA
-#include "AstroAccelerate/device_analysis.h" //Added by KA
+#include "headers/device_BLN.h" //Added by KA
+#include "headers/device_SPS_inplace_kernel.h" //Added by KA
+#include "headers/device_SPS_inplace.h" //Added by KA
+#include "headers/device_MSD_grid.h" //Added by KA
+#include "headers/device_MSD_plane.h" //Added by KA
+#include "headers/device_MSD_limited.h" //Added by KA
+#include "headers/device_SNR_limited.h" //Added by KA
+#include "headers/device_threshold.h" //Added by KA
+#include "headers/device_single_FIR.h" //Added by KA
+#include "headers/device_analysis.h" //Added by KA
 
-#include "AstroAccelerate/device_load_data.h"
-#include "AstroAccelerate/device_corner_turn.h"
-#include "AstroAccelerate/device_save_data.h"
-#include "AstroAccelerate/host_acceleration.h"
-#include "AstroAccelerate/host_allocate_memory.h"
-#include "AstroAccelerate/host_analysis.h"
-#include "AstroAccelerate/host_periods.h"
-#include "AstroAccelerate/host_debug.h"
-#include "AstroAccelerate/host_get_file_data.h"
-#include "AstroAccelerate/host_get_recorded_data.h"
-#include "AstroAccelerate/host_get_user_input.h"
-#include "AstroAccelerate/host_help.h"
-#include "AstroAccelerate/host_rfi.h"
-#include "AstroAccelerate/host_stratagy.h"
-#include "AstroAccelerate/host_write_file.h"
+#include "headers/device_peak_find.h" //Added by KA
+
+#include "headers/device_load_data.h"
+#include "headers/device_corner_turn.h"
+#include "headers/device_save_data.h"
+#include "headers/host_acceleration.h"
+#include "headers/host_allocate_memory.h"
+#include "headers/host_analysis.h"
+#include "headers/host_periods.h"
+#include "headers/host_debug.h"
+#include "headers/host_get_file_data.h"
+#include "headers/host_get_recorded_data.h"
+#include "headers/host_get_user_input.h"
+#include "headers/host_help.h"
+#include "headers/host_rfi.h"
+#include "headers/host_stratagy.h"
+#include "headers/host_write_file.h"
+
 // fdas
-#include "AstroAccelerate/device_acceleration_fdas.h"
+#include "headers/device_acceleration_fdas.h"
 
-#include "AstroAccelerate/host_main_function.h"
+#include "headers/host_main_function.h"
 
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 
-
+#include "timer.h"
 
 void main_function
 	(
@@ -116,6 +120,8 @@ void main_function
 	// Analysis variables
 	float power,
 	float sigma_cutoff,
+	float sigma_constant,
+	float max_boxcar_width_in_sec,
 	clock_t start_time
 	)
 {
@@ -244,9 +250,71 @@ void main_function
 				//	write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, output_buffer[dm_range][k], gpu_outputsize, dm_low, dm_high);
 				//write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
 			}
-			if (enable_analysis == 1) 
-			{
-				analysis_GPU(dm_range, tstart_local, t_processed[dm_range][t], ( t_processed[dm_range][t] + maxshift ), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, d_output, dm_low, dm_high, dm_step, tsamp);
+			if (enable_analysis == 1) {
+				// TODO: put the file export back to analysis I leaving it here at the moment since for interface we need to output from the analysis.
+				float *h_output_list;
+				float *h_peak_list;
+				size_t max_list_size, max_peak_size;
+				size_t list_pos, peak_pos;
+				max_list_size = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 ); // we can store 1/2 of the input plane
+				max_peak_size = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 );
+				h_output_list = (float*) malloc(max_list_size*4*sizeof(float)); // Allocations
+				h_peak_list   = (float*) malloc(max_list_size*4*sizeof(float));
+				
+				list_pos=0;
+				peak_pos=0;
+				
+				analysis_GPU(h_output_list, &list_pos, max_list_size, h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp);
+				
+				
+				printf("-------> list_pos:%zu; \n", list_pos);
+				#pragma omp parallel for
+				for (int count = 0; count < list_pos; count++){
+					h_output_list[4*count]     = h_output_list[4*count]*dm_step[dm_range] + dm_low[dm_range];
+					h_output_list[4*count + 1] = h_output_list[4*count + 1]*tsamp + tstart_local;
+					//h_output_list[4*count + 2] = h_output_list[4*count + 2];
+					//h_output_list[4*count + 3] = h_output_list[4*count + 3];
+					
+				}
+				
+				#pragma omp parallel for
+				for (int count = 0; count < peak_pos; count++){
+					h_peak_list[4*count]     = h_peak_list[4*count]*dm_step[dm_range] + dm_low[dm_range];
+					h_peak_list[4*count + 1] = h_peak_list[4*count + 1]*tsamp + tstart_local;
+					//h_output_list[4*count + 2] = h_output_list[4*count + 2];
+					//h_output_list[4*count + 3] = h_output_list[4*count + 3];
+				}
+
+				FILE *fp_out;
+				char filename[200];
+				
+				if(list_pos>0){
+					sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart_local, dm_low[dm_range], dm_high[dm_range]);
+					//if ((fp_out=fopen(filename, "w")) == NULL) {
+					if (( fp_out = fopen(filename, "wb") ) == NULL)	{
+						fprintf(stderr, "Error opening output file!\n");
+						exit(0);
+					}
+					fwrite(h_output_list, list_pos*sizeof(float), 4, fp_out);
+					fclose(fp_out);
+				}
+				
+				if(peak_pos>0){
+					sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart_local, dm_low[dm_range], dm_high[dm_range]);
+					//if ((fp_out=fopen(filename, "w")) == NULL) {
+					if (( fp_out = fopen(filename, "wb") ) == NULL)	{
+						fprintf(stderr, "Error opening output file!\n");
+						exit(0);
+					}
+					fwrite(h_peak_list, peak_pos*sizeof(float), 4, fp_out);
+					fclose(fp_out);
+				}
+				
+				
+				free(h_peak_list);
+				free(h_output_list);
+				
+				
 				// This is for testing purposes and should be removed or commented out
 				//analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
 			}
@@ -324,7 +392,7 @@ void main_function
 		timer.Start();
 		// acceleration(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
 		acceleration_fdas(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff,
-						  output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, enable_fdas_custom_fft, enable_fdas_inbin, enable_fdas_norm);
+						  output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, enable_fdas_custom_fft, enable_fdas_inbin, enable_fdas_norm, sigma_constant);
 		//
 		timer.Stop();
 		float time = timer.Elapsed()/1000;

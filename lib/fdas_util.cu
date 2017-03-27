@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include "AstroAccelerate/fdas_util.h"
+#include "headers/fdas_util.h"
 #include <getopt.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -80,6 +80,7 @@ void read_command_line(int argc, char *argv[], cmd_args *args)
     case 0:
       print_usage();
       exit(EXIT_FAILURE);
+      break;
 
     case 1 : 
       args->nharms = atoi(optarg); 
@@ -214,7 +215,7 @@ int read_input_file(char *fname, float **array)
     exit(-1);
   }
   len = fs.st_size/sizeof(float);
-  printf("\nfilelen in floats: %d\n",len);
+  printf("\nfilelen in floats: %zu\n",len);
   *array = (float*)malloc(len*sizeof(float));
   if(*array==NULL){
     printf("\narray allocation failed! %s\n",strerror(errno));

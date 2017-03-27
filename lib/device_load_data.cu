@@ -1,4 +1,4 @@
-//#include "AstroAccelerate/device_dedispersion_kernel.h"
+//#include "headers/device_dedispersion_kernel.h"
 
 //extern "C" void load_data(int i, float *device_pointer, float *host_pointer, size_t size, int nsamp, int maxshift, int nchans, int t_processed_s, int t_processed_c, float *dmshifts);
 

@@ -1,7 +1,7 @@
 //#include <omp.h>
 #include <time.h>
 #include <stdio.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 #include "device_corner_turn_kernel.cu"
 
 //{{{ Corner-turn 

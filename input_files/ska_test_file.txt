@@ -1,8 +1,10 @@
 range	0    150  0.1  1 1
 range	150  300  0.2  1 1
 sigma_cutoff	6
--analysis
--acceleration
+sigma_constant  4.0
+max_boxcar_width_in_sec 0.5
+analysis
+acceleration
 -periodicity
 -output_dmt
 -zero_dm

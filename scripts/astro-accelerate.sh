@@ -25,6 +25,7 @@ rm -f global*
 rm -f fourier*
 rm -f harmonic*
 rm -f candidate*
+rm -f peak*
 
 time $build_dir/dedisperse-gpu $input_file
 
@@ -33,5 +34,6 @@ cat fourier-* > global_periods.dat
 cat fourier_inter* > global_interbin.dat
 cat harmo* > global_harmonics.dat
 cat candidate* > global_candidates.dat
+cat peak* > global_peaks.dat
 
 echo "Written output to $job_dir"

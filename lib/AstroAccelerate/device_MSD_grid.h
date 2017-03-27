@@ -1,8 +1,0 @@
-#ifndef __MSD_GRID__
-#define __MSD_GRID__
-
-extern void MSD_grid_init(void);
-extern int MSD_grid(float *d_input, float *d_output, int CellDim_x, int CellDim_y, int nDMs, int nTimesamples);
-
-#endif
-

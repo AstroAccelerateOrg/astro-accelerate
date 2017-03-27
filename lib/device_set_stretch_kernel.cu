@@ -3,7 +3,7 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "AstroAccelerate/params.h"
+#include "headers/params.h"
 
 //{{{ Set stretch
 __global__ void set_stretch_kernel(int samps, float mean, float *d_input)
