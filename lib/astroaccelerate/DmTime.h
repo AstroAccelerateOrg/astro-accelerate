@@ -26,9 +26,22 @@ class DmTime
         float** operator[](std::size_t dm_range) { return _data[dm_range]; };
 
     private:
+        /**
+         * @brief Size of the dedispersion plan
+         */
         std::size_t _ouput_size;
+        /**
+         * @brief Number of dms for each dm range
+         */
         std::vector<std::size_t> _ndms;
+        /**
+         * @brief Number of dm range
+         */
         std::size_t _range;
+        /**
+         * @brief Dedispersion plan
+         * @details time * dms * power of signal
+         */
         ValueType*** _data; // contiguous memory block
 };
 

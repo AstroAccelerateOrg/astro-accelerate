@@ -60,43 +60,13 @@ class DedispersionStrategy
         ~DedispersionStrategy();
 
         /**
-        *  @brief Setters
-        */
-        void set_range(int range);
-        void set_nchans(int nchans);
-        void set_fch1(float fch1);
-        void set_foff(float fch1);
-        void set_ndms(int ndms);
-        void set_max_ndms(int max_ndms);
-        void set_user_dm_low(float* dm_low);
-        void set_user_dm_high(float* dm_high);
-        void set_user_dm_step(float* dm_step);
-        void set_dmshifts(float* dmshifts);
-        void set_max_dm(float max_dm);
-        // todo: sort variables and add relevant setters only
-        // waiting for variables dic
-
-        /**
         *  @brief Getters
         */
-        int get_multi_file() const;
-        int get_enable_debug() const;
-        int get_enable_analysis() const;
-        int get_enable_periodicity() const;
-        int get_enable_acceleration() const;
-        int get_output_dmt() const;
-        int get_enable_zero_dm() const;
-        int get_enable_zero_dm_with_outliers() const;
-        int get_enable_rfi() const;
-        int get_enable_fdas_custom_fft() const;
-        int get_enable_fdas_inbin() const;
-        int get_enable_fdas_norm() const;
         int get_nboots() const ;
         int get_ntrial_bins() const;
         int get_navdms() const;
         float get_narrow() const;
         float get_aggression() const;
-        int get_candidate_algorithm() const;
         int get_nsearch() const;
         float get_power() const;
         float get_sigma_cutoff() const;
@@ -132,65 +102,166 @@ class DedispersionStrategy
         float get_foff() const;
         unsigned int get_num_tchunks() const;
 
-
     private:
         /**
          * @brief Computes the dedispersion strategy
+         *
          */
         void make_strategy(size_t);
         // user input
-        int _multi_file;
-        int _enable_debug;
-        int _enable_analysis;
-        int _enable_periodicity;
-        int _enable_acceleration;
-        int _output_dmt;
-        int _enable_zero_dm;
-        int _enable_zero_dm_with_outliers;
-        int _enable_rfi;
-        int _enable_fdas_custom_fft;
-        int _enable_fdas_inbin;
-        int _enable_fdas_norm;
+        /**
+         * @brief ---
+         */
         int _nboots;
+        /**
+         * @brief ---
+         */
         int _ntrial_bins;
+        /**
+         * @brief ---
+         */
         int _navdms;
+        /**
+         * @brief ---
+         */
         float _narrow;
+        /**
+         * @brief ---
+         */
         float _aggression;
-        int _candidate_algorithm;
+        /**
+         * @brief ---
+         */
         int _nsearch;
+        /**
+         * @brief ---
+         */
         float _power;
+        /**
+         * @brief The threshold for single pulse detection, multiple of standard deviation
+         */
         float _sigma_cutoff;
+        /**
+         * @brief ---
+         */
         float _sigma_constant;
+        /**
+         * @brief ---
+         */
         float _max_boxcar_width_in_sec;
+        /**
+         * @brief ---
+         */
         float _wide;
+        /**
+         * @brief The number of dm ranges
+         */
         int _range;
+        /**
+         * @brief An array containing lowest band of each dm range, specified by the user
+         */
         float* _user_dm_low;
+        /**
+         * @brief An array containing lowest band of each dm range, specified by the user
+         */
         float* _user_dm_high;
+        /**
+         * @brief An array containing lowest band of each dm range, specified by the user
+         */
         float* _user_dm_step;
+        /**
+         * @brief ---
+         */
         int* _in_bin;
+        /**
+         * @brief ---
+         */
         int* _out_bin;
         // dedispersion strategy
         // todo: move from float* to vector<float>
+        /**
+         * @brief Value used to make sure that dms from dm_low to dm_high are used
+         */
         int _maxshift;
+        /**
+         * @brief An array containing the lowest bound of each dm range
+         */
         float* _dm_low;
+        /**
+         * @brief An array containing the highest bound of each dm range
+         */
         float* _dm_high;
+        /**
+         * @brief An array containing the step size of each dm range
+         */
         float* _dm_step;
+        /**
+         * @brief An array containing a constant associated with each channel to perform dedispersion algorithm
+         */
         float* _dmshifts;
+        /**
+         * @brief An array containing the number of dms for each range
+         */
         int* _ndms;
+        /**
+         * @brief The maximum number of dm
+         */
         int _max_ndms;
+        /**
+         * @brief The total number of dm
+         */
         int _total_ndms;
+        /**
+         * @brief The highest dm value
+         */
         float _max_dm;
+        /**
+         * @brief The number of time samples required to search for a dm in each dm range
+         */
         int** _t_processed;
+        /**
+         * @brief The number of bits of the input data
+         */
         int _nbits;
+        /**
+         * @brief The number of IF channels
+         */
         int _nifs;
+        /**
+         * @brief ---
+         */
         float _tstart;
+        /**
+         * @brief Time sample value
+         */
         float _tsamp;
+        /**
+         * @brief The number of time samples
+         */
         int _nsamp;
+        /**
+         * @brief ---
+         */
         int _nsamples;
+        /**
+         * @brief
+         */
         int _max_samps;
+        /**
+         * @brief The number of frequency channels
+         */
         int _nchans;
+        /**
+         * @brief The frequency of the first channel
+         */
         float _fch1;
+        /**
+         * @brief The width of a channel
+         */
         float  _foff;
+        /**
+         * @brief The number of chunks the data are divided in
+         */
         unsigned int _num_tchunks;
 };
 

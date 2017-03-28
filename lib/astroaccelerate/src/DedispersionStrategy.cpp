@@ -5,24 +5,11 @@ namespace astroaccelerate{
 	DedispersionStrategy::DedispersionStrategy()
 	{
 		//
-		_multi_file = 0;
-		_enable_debug = 0;
-		_enable_analysis = 1;
-		_enable_periodicity = 0;
-		_enable_acceleration = 0;
-		_enable_fdas_custom_fft = 1;
-		_enable_fdas_inbin = 0;
-		_enable_fdas_norm = 1;
-		_output_dmt = 0;
-		_enable_zero_dm = 0;
-		_enable_zero_dm_with_outliers = 0;
-		_enable_rfi = 0;
 		_nboots = -1;
 		_ntrial_bins = 0;
 		_navdms	= 1;
 		_narrow = 0.001f;
 		_aggression = 2.5;
-		_candidate_algorithm=0;
 		_nsearch = 3;
 		_power = 2.0f;
 		_sigma_cutoff = 6.0f;
@@ -114,20 +101,6 @@ namespace astroaccelerate{
 											  ,_aggression(aggression)
 		{
 		//
-		_multi_file = 0;
-		_enable_debug = 0;
-		_enable_analysis = 1;
-		_enable_periodicity = 0;
-		_enable_acceleration = 0;
-		_enable_fdas_custom_fft = 1;
-		_enable_fdas_inbin = 0;
-		_enable_fdas_norm = 1;
-		_output_dmt = 0;
-		_enable_zero_dm = 0;
-		_enable_zero_dm_with_outliers = 0;
-		_enable_rfi = 0;
-		_candidate_algorithm = 0;
-
 		_maxshift = 0;
 		_dm_low = nullptr;
 		_dm_high = nullptr;
@@ -159,18 +132,6 @@ namespace astroaccelerate{
 	// Setters
 
 	// Getters
-	int DedispersionStrategy::get_multi_file() const { return _multi_file;}
-	int DedispersionStrategy::get_enable_debug() const { return _enable_debug;}
-	int DedispersionStrategy::get_enable_analysis() const { return _enable_analysis;}
-	int DedispersionStrategy::get_enable_periodicity() const { return _enable_periodicity;}
-	int DedispersionStrategy::get_enable_acceleration() const { return _enable_acceleration;}
-	int DedispersionStrategy::get_output_dmt() const { return _output_dmt;}
-	int DedispersionStrategy::get_enable_zero_dm() const { return _enable_zero_dm;}
-	int DedispersionStrategy::get_enable_zero_dm_with_outliers() const { return _enable_zero_dm_with_outliers;}
-	int DedispersionStrategy::get_enable_rfi() const { return _enable_rfi;}
-	int DedispersionStrategy::get_enable_fdas_custom_fft() const { return _enable_fdas_custom_fft;}
-	int DedispersionStrategy::get_enable_fdas_inbin() const { return _enable_fdas_inbin;}
-	int DedispersionStrategy::get_enable_fdas_norm() const { return _enable_fdas_norm;}
 	int DedispersionStrategy::get_nboots() const { return _nboots;}
 	int DedispersionStrategy::get_ntrial_bins() const { return _ntrial_bins;}
 	int DedispersionStrategy::get_navdms() const { return _navdms;}
