@@ -13,14 +13,16 @@ namespace astroaccelerate {
     /**
      * @brief  Dedispersion Strategy File
      *
-     * @details This object files Dedispersion Strategy based on an input file
+     * @details This object fills the Dedispersion Strategy based on an input file.
+     * 			This class is intended for users who want to analyse data based on filterbank files as they would do with the C/Cuda master branch
      *
      */
 class DedispersionStrategyFile
 {
     public:
         /**
-        *  @brief Default constructor
+        *  @brief Constructor
+        *  @details Computes dedispersion strategy based on an input file
         */
         DedispersionStrategyFile(FILE** fp
 								,int argc
@@ -36,7 +38,7 @@ class DedispersionStrategyFile
     private:
         /**
         *  @brief   Get the user input
-        *  @details This function read the user input file and stores it
+        *  @details This function read the user input file and stores it. It essentially mirrors the master branch behaviour
         *
         */
         void get_user_input(FILE** fp
@@ -44,7 +46,7 @@ class DedispersionStrategyFile
         					,char *argv[]
         					,DedispersionStrategy &dedispersion_strategy);
         /**
-         * @brief Read telescope parameters from the header of the input file
+         * @brief Read telescope parameters from the header of the input file. It essentially mirrors the master branch behaviour
          */
         void get_file_data(FILE **
         				  ,DedispersionStrategy &DedispersionStrategy);

@@ -34,7 +34,6 @@ AstroAccelerate<AstroAccelerateParameterType>::AstroAccelerate(DedispersionStrat
 	_enable_zero_dm_with_outliers = 0;
 	_enable_rfi = 0;
 	_candidate_algorithm = 0;
-
 	//
 	_gpu_input_size = 0;
 	_d_input = nullptr;

@@ -5,7 +5,7 @@ namespace astroaccelerate {
 
 /**
  * @brief		This object carries the parameters needed by the astroaccelerate kernels
- * 				Not used yet
+ * 				It is not used yet
  * 
  * @details
  * 
