@@ -57,7 +57,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 
 		if (inBin[i - 1] > 1) {
 			*maxshift = (int) ceil(( ( (*dm_low)[i - 1] + (*dm_step)[i - 1] * (*ndms)[i - 1] ) * ( *dmshifts )[nchans - 1] ) / ( tsamp ));
-			*maxshift = (int) ceil((float) ( *maxshift + ( (float) ( SDIVINT * ( SNUMREG ) ) ) ) / (float) inBin[i - 1]) / (float) ( SDIVINT * ( SNUMREG ) );
+			*maxshift = (int) ceil((float) ( *maxshift + ( (float) ( SDIVINT * ( SNUMREG ) ) ) ) / (float) inBin[i - 1]) / (float) ( SDIVINT * ( SNUMREG ) ) + 1;
 			*maxshift = ( *maxshift ) * ( SDIVINT * ( SNUMREG ) ) * inBin[i - 1];
 			if (( *maxshift ) > maxshift_high)
 				maxshift_high = ( *maxshift );
@@ -66,7 +66,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 
 	if (inBin[range - 1] > 1) {
 		*maxshift = (int) ceil(( ( ( *dm_low )[range - 1] + ( *dm_step )[range - 1] * ( *ndms )[range - 1] ) * ( *dmshifts )[nchans - 1] ) / ( tsamp ));
-		*maxshift = (int) ceil((float) ( *maxshift + ( (float) ( SDIVINT * ( SNUMREG ) ) ) ) / (float) inBin[range - 1]) / (float) ( SDIVINT * ( SNUMREG ) );
+		*maxshift = (int) ceil((float) ( *maxshift + ( (float) ( SDIVINT * ( SNUMREG ) ) ) ) / (float) inBin[range - 1]) / (float) ( SDIVINT * ( SNUMREG ) ) + 1;
 		*maxshift = *maxshift * ( SDIVINT * ( SNUMREG ) ) * inBin[range - 1];
 		if (( *maxshift ) > maxshift_high)
 			maxshift_high = ( *maxshift );
