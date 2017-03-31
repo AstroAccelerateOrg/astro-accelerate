@@ -140,6 +140,9 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	//-------------- Calculating base level noise using outlier rejection
 	
 	//-------------- Linear approximation
+	float *d_list;
+	if ( cudaSuccess != cudaMalloc((void **) &d_list, sizeof(float)*nDMs*nTimesamples)) printf("Allocation error! SNR\n");
+	
 	float signal_mean_16, signal_sd_16, modifier;
 	timer.Start(); 
 	MSD_limited(output_buffer, d_MSD, nDMs, nTimesamples, 128); 
@@ -173,6 +176,8 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	partial_time = timer.Elapsed(); 
 	total_time += partial_time; 
 	printf("Linear sd took:%f ms\n", partial_time); 
+	
+	cudaFree(d_list);
 	//-------------- Linear approximation
 	
 	
