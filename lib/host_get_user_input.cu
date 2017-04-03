@@ -107,6 +107,14 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 					exit(0);
 				}
 			}
+			if (strcmp(string, "sigma_constant") == 0)
+			{
+				if ( fscanf(fp_in, "%f", sigma_constant) == 0 )
+				{
+					fprintf(stderr, "failed to read input\n");
+					exit(0);
+				}
+			}
 			if (strcmp(string, "narrow") == 0)
 			{
 				if ( fscanf(fp_in, "%f", narrow) == 0 )
