@@ -126,18 +126,59 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	total_time = 0;
 	
 	//-------------- Calculating base level noise using outlier rejection
-	timer.Start();
-	BLN(output_buffer, d_MSD, 32, 32, nDMs, nTimesamples, 0, sigma_constant); // Those 128 are there because there was a problem with data, I'm not sure if it is still the case.
-	timer.Stop();
-	partial_time = timer.Elapsed();
-	total_time += partial_time;
-	printf("MSD limited took:%f ms\n", partial_time);
-	
-	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost);
-	signal_mean_1 = h_MSD[0];
-	signal_sd_1 = h_MSD[1];
-	printf("Bin: %d, Mean: %f, Stddev: %f\n", 1, signal_mean_1, signal_sd_1);
+	//timer.Start();
+	//BLN(output_buffer, d_MSD, 32, 32, nDMs, nTimesamples, 0, sigma_constant); // Those 128 are there because there was a problem with data, I'm not sure if it is still the case.
+	//timer.Stop();
+	//partial_time = timer.Elapsed();
+	//total_time += partial_time;
+	//printf("MSD limited took:%f ms\n", partial_time);
+	//
+	//cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost);
+	//signal_mean_1 = h_MSD[0];
+	//signal_sd_1 = h_MSD[1];
+	//printf("Bin: %d, Mean: %f, Stddev: %f\n", 1, signal_mean_1, signal_sd_1);
 	//-------------- Calculating base level noise using outlier rejection
+	
+	//-------------- Linear approximation
+	float *d_list;
+	if ( cudaSuccess != cudaMalloc((void **) &d_list, sizeof(float)*nDMs*nTimesamples)) printf("Allocation error! SNR\n");
+	
+	float signal_mean_16, signal_sd_16, modifier;
+	timer.Start(); 
+	MSD_limited(output_buffer, d_MSD, nDMs, nTimesamples, 128); 
+	timer.Stop(); 
+	partial_time = timer.Elapsed(); 
+	total_time += partial_time; 
+	printf("MSD limited took:%f ms\n", partial_time); 
+	
+	
+	timer.Start(); 
+	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	signal_mean_1 = h_MSD[0]; 
+	signal_sd_1 = h_MSD[1]; 
+	printf("MSD Bin: %d, Mean: %f, Stddev: %f\n", 1, signal_mean_1, signal_sd_1); 
+	
+	
+	offset = PD_FIR(output_buffer, d_list, PD_MAXTAPS, nDMs, nTimesamples); 
+	MSD_limited(d_list, d_MSD, nDMs, nTimesamples, offset); 
+	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	signal_mean_16 = h_MSD[0]; 
+	signal_sd_16 = h_MSD[1]; 
+	printf("MSD Bin: %d, Mean: %f, Stddev: %f\n", PD_MAXTAPS, signal_mean_16, signal_sd_16); 
+	
+	
+	h_MSD[0] = signal_mean_1; 
+	h_MSD[2] = ( signal_sd_16 - signal_sd_1 )/( (float) ( PD_MAXTAPS - 1 ) ); 
+	h_MSD[1] = signal_sd_1; 
+	modifier = h_MSD[1]; 
+	cudaMemcpy(d_MSD, h_MSD, 3*sizeof(float), cudaMemcpyHostToDevice); 
+	timer.Stop(); 
+	partial_time = timer.Elapsed(); 
+	total_time += partial_time; 
+	printf("Linear sd took:%f ms\n", partial_time); 
+	
+	cudaFree(d_list);
+	//-------------- Linear approximation
 	
 	
 	size_t free_mem,total_mem;
@@ -191,7 +232,8 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 		for(int f=0; f<DM_list.size(); f++) {
 			//-------------- SPS BLN
 			timer.Start();
-			offset=PD_SEARCH_LONG_BLN_IF(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD, &PD_plan, max_iteration, DM_list[f], nTimesamples);
+			//PD_SEARCH_LONG_BLN_IF(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD, &PD_plan, max_iteration, DM_list[f], nTimesamples);
+			PD_SEARCH_LONG_BLN_IF_LINAPPROX(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD, &PD_plan, max_iteration, DM_list[f], nTimesamples);
 			timer.Stop();
 			partial_time = timer.Elapsed();
 			total_time += partial_time;
