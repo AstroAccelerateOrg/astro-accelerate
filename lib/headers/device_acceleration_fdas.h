@@ -23,6 +23,7 @@ void acceleration_fdas(int range,
 					   int enable_custom_fft,
 					   int enable_inbin,
 					   int enable_norm,
-					   float sigma_constant);
+					   float sigma_constant,
+					   int enable_output_ffdot_plan,
+					   int enable_output_fdas_list);
 #endif
-
