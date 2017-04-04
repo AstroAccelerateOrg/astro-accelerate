@@ -5,6 +5,8 @@ sigma_cutoff	8
 sigma_constant 2.0
 analysis
 acceleration
+-output_ffdot_plan
+-output_fdas_list
 -periodicity
 -output_dmt
 -zero_dm
