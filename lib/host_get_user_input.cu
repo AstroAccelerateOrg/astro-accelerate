@@ -91,9 +91,25 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 				*enable_fdas_norm = 1;
 			if (strcmp(string, "multi_file") == 0)
 				*multi_file = 1;
+			if (strcmp(string, "max_boxcar_width_in_sec") == 0)
+			{
+				if ( fscanf(fp_in, "%f", max_boxcar_width_in_sec) == 0 )
+				{
+					fprintf(stderr, "failed to read input\n");
+					exit(0);
+				}
+			}
 			if (strcmp(string, "sigma_cutoff") == 0)
 			{
 				if ( fscanf(fp_in, "%f", sigma_cutoff) == 0 )
+				{
+					fprintf(stderr, "failed to read input\n");
+					exit(0);
+				}
+			}
+			if (strcmp(string, "sigma_constant") == 0)
+			{
+				if ( fscanf(fp_in, "%f", sigma_constant) == 0 )
 				{
 					fprintf(stderr, "failed to read input\n");
 					exit(0);

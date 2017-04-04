@@ -28,10 +28,11 @@ void AstroAccelerateTest::TearDown()
 }
 
 class TestParams : public AstroAccelerateParameters<TestParams> {};
-
+/*
 // test dedispersion strategy class
 TEST_F(AstroAccelerateTest, test_dedispersion_strategy)
 {
+
 	// Following is ok for ska_karel.txt
 	char* filename = my_argv[1] + strlen(my_argv[1]) - 13;
 	if(strcmp(filename, "ska_karel.txt") == 0)
@@ -208,7 +209,7 @@ TEST_F(AstroAccelerateTest, test_dedispersion_strategy)
 		EXPECT_EQ(20448, dedispersion_strategy.get_t_processed()[3][0]);
 		EXPECT_EQ(10224, dedispersion_strategy.get_t_processed()[4][0]);
 		EXPECT_EQ(10224, dedispersion_strategy.get_t_processed()[5][0]);
-		//*/
+		//
 		fclose(fp);
 		free(inBin);
 		free(outBin);
@@ -217,7 +218,7 @@ TEST_F(AstroAccelerateTest, test_dedispersion_strategy)
 		free(user_dm_step);
 	}
 }
-
+*/
 // test AstroAccelerate class
 TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 {

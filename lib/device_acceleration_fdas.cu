@@ -206,6 +206,7 @@ void acceleration_fdas(int range,
 
 		// FFT
 		for (int i = 0; i < range; i++) {
+			processed=samps/inBin[i];
 			for (int dm_count = 0; dm_count < ndms[i] - 1; ++dm_count) {
 
 				//first time PCIe transfer and print timing
