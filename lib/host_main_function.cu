@@ -60,6 +60,8 @@ void main_function
 	int enable_debug,
 	int enable_analysis,
 	int enable_acceleration,
+	int enable_output_ffdot_plan,
+	int enable_output_fdas_list,
 	int enable_periodicity,
 	int output_dmt,
 	int enable_zero_dm,
@@ -319,7 +321,7 @@ void main_function
 		timer.Start();
 		// acceleration(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
 		acceleration_fdas(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff,
-						  output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, enable_fdas_custom_fft, enable_fdas_inbin, enable_fdas_norm, sigma_constant);
+						  output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, enable_fdas_custom_fft, enable_fdas_inbin, enable_fdas_norm, sigma_constant, enable_output_ffdot_plan, enable_output_fdas_list);
 		//
 		timer.Stop();
 		float time = timer.Elapsed()/1000;
