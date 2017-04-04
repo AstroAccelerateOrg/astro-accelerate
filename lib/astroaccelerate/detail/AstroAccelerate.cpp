@@ -207,7 +207,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 		_maxshift = maxshift_original;
 	}
 
-/*
+
 	FILE *fp_out;
 	char filename[200];
 
@@ -223,16 +223,16 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 		fwrite(&output_sps[0], peak_pos*sizeof(float), 4, fp_out);
 		fclose(fp_out);
 	}
-*/
+
 	timer.Stop();
 	float time = timer.Elapsed() / 1000;
 
 	//printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
-	//printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)",  time);
-	//printf("\nAmount of telescope time processed: %f", tstart_local);
-	//printf("\nNumber of samples processed: %ld", inc);
-	//printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
+	printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)",  time);
+	printf("\nAmount of telescope time processed: %f", tstart_local);
+	printf("\nNumber of samples processed: %ld", inc);
+	printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
 
 	cudaFree(_d_input);
 	cudaFree(_d_output);
