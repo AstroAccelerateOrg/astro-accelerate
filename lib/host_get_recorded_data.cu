@@ -68,6 +68,7 @@ void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned sho
 		printf("\n\n========================= ERROR =============================\n");
 		printf(" This is a SKA prototype code and only runs with 4 and 8 bit data\n");
 		printf("\n===============================================================\n");
+		exit(0);
 	}
 
 	//}}}
