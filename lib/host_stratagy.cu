@@ -143,14 +143,14 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 			//int num_blocks = (int) floor(( (float) nsamp - ( *maxshift ) )) / ( (float) ( samp_block_size ) ) + 1;
 
 			// Find the common integer amount of samples between all bins
-			int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) inBin[range - 1] ) / (float) ( SDIVINT*SNUMREG ));
+			int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) inBin[range - 1] ) / (float) ( SDIVINT*2*SNUMREG ));
 			local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * inBin[range - 1];
 			
 			int num_blocks = (int) floor(( (float) nsamp - ( *maxshift ) )) / ( (float) ( local_t_processed ) ) + 1;
 
 			// Work out the remaining fraction to be processed
 			int remainder = ( nsamp - ( (num_blocks-1)*local_t_processed ) - (*maxshift) );
-			remainder = (int) floor((float) remainder / (float) inBin[range - 1]) / (float) ( SDIVINT*SNUMREG );
+			remainder = (int) floor((float) remainder / (float) inBin[range - 1]) / (float) ( SDIVINT*2*SNUMREG );
 			remainder = remainder * ( SDIVINT*2*SNUMREG ) * inBin[range - 1];
 
 			for (i = 0; i < range; i++)	{
