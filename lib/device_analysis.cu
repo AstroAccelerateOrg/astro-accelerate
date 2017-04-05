@@ -141,7 +141,9 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	
 	//-------------- Linear approximation
 	float *d_list;
-	if ( cudaSuccess != cudaMalloc((void **) &d_list, sizeof(float)*nDMs*nTimesamples)) printf("Allocation error! SNR\n");
+	size_t mem_size;
+	mem_size =sizeof(float)*(size_t)nDMs*(size_t)nTimesamples;
+	if ( cudaSuccess != cudaMalloc((void **) &d_list, mem_size)) printf("Allocation error! SNR\n");
 	
 	float signal_mean_16, signal_sd_16, modifier;
 	timer.Start(); 
