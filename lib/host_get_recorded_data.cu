@@ -63,11 +63,40 @@ void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned sho
 		}
 		free(temp_buffer);
 	}
+	else if (nbits == 1)
+	{
+		// each byte stores 8 frequency data
+		int nb_bytes = nchans/8;
+
+		// Allocate a temporary buffer to store a line of frequency data
+		unsigned char *temp_buffer = (unsigned char *) malloc(nb_bytes * sizeof(unsigned char));
+
+		// Read in the data, transpose it and store it in the input buffer
+		total_data = 0;
+
+		while (!feof(*fp))
+		{
+			if (fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp) != nb_bytes)
+				break;
+
+			for (c = 0; c < nb_bytes; c++)
+			{
+				for(int i=0; i<8; i++){
+					unsigned char mask =  1 << i;
+					unsigned char masked_char = temp_buffer[c] & mask;
+					unsigned char bit = masked_char >> i;
+					( *input_buffer )[ (c*8) + i + total_data * ( nchans )] = (unsigned short)bit;
+				}
+			}
+			total_data++;
+		}
+		free(temp_buffer);
+	}
 	else
 	{
-		printf("\n\n========================= ERROR =============================\n");
-		printf(" This is a SKA prototype code and only runs with 4 and 8 bit data\n");
-		printf("\n===============================================================\n");
+		printf("\n\n========================= ERROR ====================================\n");
+		printf(    " This is a SKA prototype code and only runs with 1, 4 and 8 bit data\n");
+		printf("\n======================================================================\n");
 		exit(0);
 	}
 
