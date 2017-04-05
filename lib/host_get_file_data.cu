@@ -191,6 +191,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 		printf("\n\n======================= ERROR ==================\n");
 		printf(" Currently this code only runs with 4 and 8 bit data\n");
 		printf("\n==================================================\n");
+		exit(0);
 	}
 
 	// Move the file pointer back to the end of the header
