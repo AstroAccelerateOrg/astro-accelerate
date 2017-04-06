@@ -249,7 +249,7 @@ namespace astroaccelerate{
 		}
 		_max_dm = ceil(_dm_high[_range - 1]);
 
-		_maxshift = ( maxshift_high + 2 * ( SNUMREG * SDIVINT ) );
+		_maxshift = ( maxshift_high +  ( SNUMREG * 2 * SDIVINT ) );
 		//printf("\nRange:\t%d, MAXSHIFT:\t%d, Scrunch value:\t%d", _range - 1, _maxshift, _in_bin[_range - 1]);
 		//printf("\nMaximum dispersive delay:\t%.2f (s)", _maxshift * _tsamp);
 
@@ -318,26 +318,26 @@ namespace astroaccelerate{
 				int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) _in_bin[_range - 1] ) / (float) ( SDIVINT * 2 * SNUMREG ));
 				local_t_processed = local_t_processed * ( SDIVINT * 2 * SNUMREG ) * _in_bin[_range - 1];
 
-				int num_blocks = (int) floor(( (float) _nsamp - _maxshift )) / ( (float) ( local_t_processed ) ) + 1;
+				int num_blocks = (int) floor(( (float) _nsamp - ((float)_maxshift) )) / ( (float) ( local_t_processed ) );
 
 				// Work out the remaining fraction to be processed
-				int remainder = ( _nsamp - ( ( num_blocks - 1 ) * local_t_processed ) - _maxshift );
+				int remainder =  _nsamp - ( num_blocks * local_t_processed ) - _maxshift;
 				remainder = (int) floor((float) remainder / (float) _in_bin[_range - 1]) / (float) ( SDIVINT * 2 * SNUMREG );
 				remainder = remainder * ( SDIVINT * 2 * SNUMREG ) * _in_bin[_range - 1];
 
 				for (i = 0; i < _range; i++)	{
 					// Allocate memory to hold the values of nsamps to be processed
-					_t_processed[i] = (int *) malloc(num_blocks * sizeof(int));
+					_t_processed[i] = (int *) malloc( (num_blocks+1) * sizeof(int));
 					// Remember the last block holds less!
-					for (j = 0; j < num_blocks - 1; j++) {
+					for (j = 0; j < num_blocks ; j++) {
 						_t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) _in_bin[i] ) / (float) ( SDIVINT * 2 * SNUMREG ));
 						_t_processed[i][j] = _t_processed[i][j] * ( SDIVINT * 2 * SNUMREG );
 					}
 					// fractional bit
-					_t_processed[i][num_blocks - 1] = (int) floor(( (float) ( remainder ) / (float) _in_bin[i] ) / (float) ( SDIVINT * 2 * SNUMREG ));
-					_t_processed[i][num_blocks - 1] = _t_processed[i][num_blocks - 1] * ( SDIVINT * 2 * SNUMREG );
+					_t_processed[i][num_blocks] = (int) floor(( (float) ( remainder ) / (float) _in_bin[i] ) / (float) ( SDIVINT * 2 * SNUMREG ));
+					_t_processed[i][num_blocks] = _t_processed[i][num_blocks] * ( SDIVINT * 2 * SNUMREG );
 				}
-				_num_tchunks = num_blocks;
+				_num_tchunks = num_blocks + 1;
 				//printf("\nIn 3\n");
 				printf("\nnum_blocks:\t%d", num_blocks);
 			}

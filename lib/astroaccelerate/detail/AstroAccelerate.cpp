@@ -50,7 +50,7 @@ template<typename AstroAccelerateParameterType>
 void AstroAccelerate<AstroAccelerateParameterType>::allocate_memory_gpu(DedispersionStrategy const &dedispersion_strategy)
 {
 	int time_samps = dedispersion_strategy.get_t_processed()[0][0] + dedispersion_strategy.get_maxshift();
-	_gpu_input_size = time_samps * (size_t) dedispersion_strategy.get_nchans() * sizeof(unsigned short);
+	_gpu_input_size = (size_t)time_samps * (size_t) dedispersion_strategy.get_nchans() * sizeof(unsigned short);
 
 	//printf("\n gpu inputsize: %d\n", (int)(_gpu_input_size/1024/1024));
 	cudaError_t rc1 = ( cudaMalloc((void **)&_d_input, _gpu_input_size) );
@@ -62,11 +62,11 @@ void AstroAccelerate<AstroAccelerateParameterType>::allocate_memory_gpu(Dedisper
 
 	if (dedispersion_strategy.get_nchans() < dedispersion_strategy.get_max_ndms())
 	{
-		_gpu_output_size = time_samps * dedispersion_strategy.get_max_ndms() * sizeof(float);
+		_gpu_output_size = (size_t)time_samps * (size_t)dedispersion_strategy.get_max_ndms() * sizeof(float);
 	}
 	else
 	{
-		_gpu_output_size = time_samps * dedispersion_strategy.get_nchans() * sizeof(float);
+		_gpu_output_size = (size_t)time_samps * (size_t)dedispersion_strategy.get_nchans() * sizeof(float);
 	}
 	//printf("\n gpu outputsize: %d\n", (int)(_gpu_output_size /1024/1024));
 	cudaError_t rc2 = ( cudaMalloc((void **)&_d_output, _gpu_output_size) );
@@ -229,10 +229,10 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 
 	//printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
-	printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)",  time);
-	printf("\nAmount of telescope time processed: %f", tstart_local);
-	printf("\nNumber of samples processed: %ld", inc);
-	printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
+	//printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)",  time);
+	//printf("\nAmount of telescope time processed: %f", tstart_local);
+	//printf("\nNumber of samples processed: %ld", inc);
+	//printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
 
 	cudaFree(_d_input);
 	cudaFree(_d_output);
