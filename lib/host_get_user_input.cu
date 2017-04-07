@@ -7,7 +7,7 @@
 #include "headers/params.h"
 #include "headers/host_help.h"
 
-void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *enable_debug, int *enable_analysis, int *enable_periodicity, int *enable_acceleration, int *enable_output_ffdot_plan, int *enable_output_fdas_list, int *output_dmt, int *enable_zero_dm, int *enable_zero_dm_with_outliers, int *enable_rfi, int *enable_fdas_custom_fft, int *enable_fdas_inbin, int *enable_fdas_norm, int *nboots, int *ntrial_bins, int *navdms, float *narrow, float *wide, float *aggression, int *nsearch, int **inBin, int **outBin, float *power, float *sigma_cutoff, float *sigma_constant, float *max_boxcar_width_in_sec, int *range, float **user_dm_low, float **user_dm_high, float **user_dm_step, int *candidate_algorithm)
+void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *enable_debug, int *enable_analysis, int *enable_periodicity, int *enable_acceleration, int *enable_output_ffdot_plan, int *enable_output_fdas_list, int *output_dmt, int *enable_zero_dm, int *enable_zero_dm_with_outliers, int *enable_rfi, int *enable_fdas_custom_fft, int *enable_fdas_inbin, int *enable_fdas_norm, int *nboots, int *ntrial_bins, int *navdms, float *narrow, float *wide, float *aggression, int *nsearch, int **inBin, int **outBin, float *power, float *sigma_cutoff, float *sigma_constant, float *max_boxcar_width_in_sec, int *range, float **user_dm_low, float **user_dm_high, float **user_dm_step, int *candidate_algorithm, float **selected_dm_low, float **selected_dm_high, int *nb_selected_dm)
 {
 
 	FILE *fp_in = NULL;
@@ -39,6 +39,8 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 			}
 			if (strcmp(string, "range") == 0)
 				( *range )++;
+			if (strcmp(string, "selected_dm") == 0)
+				( *nb_selected_dm )++;
 		}
 		rewind(fp_in);
 
@@ -55,7 +57,7 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 		int temp_in_bin = 0;
 		int temp_out_bin= 0;
 
-		// read dm range if enable
+		// read dm range if enabled
 		i=0;
 		while (!feof(fp_in))
 		{
@@ -74,8 +76,32 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 				i++;
 			}
 		}
-
 		rewind(fp_in);
+
+		//
+		*selected_dm_low  = (float *) malloc(( *nb_selected_dm ) * sizeof(float));
+		*selected_dm_high = (float *) malloc(( *nb_selected_dm ) * sizeof(float));
+		// temporary variables to read selected dm range
+		float temp_selected_low  = 0;
+		float temp_selected_high = 0;
+		// read selected dm range if enabled
+		i=0;
+		while (!feof(fp_in))
+		{
+			if ( fscanf(fp_in, "%s %f %f\n", string, &temp_selected_low, &temp_selected_high) == 0 )
+			{
+				fprintf(stderr, "failed to read input\n");
+				exit(0);
+			}
+			if (strcmp(string, "selected_dm") == 0)
+			{
+				(*selected_dm_low)[i]  = temp_selected_low;
+				(*selected_dm_high)[i] = temp_selected_high;
+				i++;
+			}
+		}
+		rewind(fp_in);
+
 		while (!feof(fp_in))
 		{
 			if ( fscanf(fp_in, "%s", string) == 0 )
