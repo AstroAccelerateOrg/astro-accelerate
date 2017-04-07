@@ -48,12 +48,30 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 		*outBin = (int *) malloc(( *range ) * sizeof(int));
 		*inBin = (int *) malloc(( *range ) * sizeof(int));
 
-		for (i = 0; i < *range; i++)
+		// temporary variables to read dm range
+		float temp_low  = 0;
+		float temp_high = 0;
+		float temp_step = 0;
+		int temp_in_bin = 0;
+		int temp_out_bin= 0;
+
+		// read dm range if enable
+		i=0;
+		while (!feof(fp_in))
 		{
-			if (fscanf(fp_in, "%s %f %f %f %d %d\n", string, &( *user_dm_low )[i], &( *user_dm_high )[i], &( *user_dm_step )[i], &( *inBin )[i], &( *outBin )[i]) !=6 )
+			if ( fscanf(fp_in, "%s %f %f %f %d %d\n", string, &temp_low, &temp_high, &temp_step, &temp_in_bin, &temp_out_bin) == 0 )
 			{
 				fprintf(stderr, "failed to read input\n");
 				exit(0);
+			}
+			if (strcmp(string, "range") == 0)
+			{
+				(*user_dm_low)[i]  = temp_low;
+				(*user_dm_high)[i] = temp_high;
+				(*user_dm_step)[i] = temp_step;
+				(*inBin)[i]  = temp_in_bin;
+				(*outBin)[i] = temp_out_bin;
+				i++;
 			}
 		}
 
