@@ -143,7 +143,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	float *d_list;
 	if ( cudaSuccess != cudaMalloc((void **) &d_list, sizeof(float)*nDMs*nTimesamples)) printf("Allocation error! SNR\n");
 	
-	float signal_mean_16, signal_sd_16, modifier;
+	float signal_mean_16, signal_sd_16;
 	timer.Start(); 
 	MSD_limited(output_buffer, d_MSD, nDMs, nTimesamples, 128); 
 	timer.Stop(); 
@@ -170,15 +170,29 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	h_MSD[0] = signal_mean_1; 
 	h_MSD[2] = ( signal_sd_16 - signal_sd_1 )/( (float) ( PD_MAXTAPS - 1 ) ); 
 	h_MSD[1] = signal_sd_1; 
-	modifier = h_MSD[1]; 
+	printf("Final: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD[0], h_MSD[1], h_MSD[2]);
 	cudaMemcpy(d_MSD, h_MSD, 3*sizeof(float), cudaMemcpyHostToDevice); 
+	
 	timer.Stop(); 
 	partial_time = timer.Elapsed(); 
 	total_time += partial_time; 
-	printf("Linear sd took:%f ms\n", partial_time); 
+	printf("Linear sd took:%f ms\n", total_time); 
 	
 	cudaFree(d_list);
 	//-------------- Linear approximation
+	
+	//-------------- One Call linear approximation
+	timer.Start(); 
+	MSD_linear_approximation(output_buffer, d_MSD, PD_MAXTAPS, nDMs, nTimesamples, 0);
+	timer.Stop();
+	partial_time = timer.Elapsed(); 
+	total_time += partial_time; 
+	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	printf("One kernel: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD[0], h_MSD[1], h_MSD[2]);
+	printf("One kernel took:%f ms\n", partial_time); 
+	//-------------- One Call linear approximation
+	
+	
 	
 	
 	size_t free_mem,total_mem;
