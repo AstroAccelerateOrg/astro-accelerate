@@ -46,7 +46,7 @@ do
 
 					cd ../scripts/
 
-					./astro-accelerate.sh ../input_files/ska_tune.txt > profile_results/u"$unroll"_a"$acc"_t"$divint"_dm"$divindm"_r"$regcount".dat
+					./astro-accelerate.sh ../input_files/one_bit.txt > profile_results/u"$unroll"_a"$acc"_t"$divint"_dm"$divindm"_r"$regcount".dat
 					cp ../lib/AstroAccelerate/params.h profile_results/u"$unroll"_a"$acc"_t"$divint"_dm"$divindm"_r"$regcount".h
 			
 					echo "unrolls: $unroll	acc: $acc    divint: $divint    divindm: $divindm    reg: $regcount"

@@ -9,6 +9,8 @@ sigma_constant  4.0
 max_boxcar_width_in_sec 0.5
 analysis
 acceleration
+-output_ffdot_plan
+-output_fdas_list
 -periodicity
 -output_dmt
 -zero_dm
@@ -19,4 +21,4 @@ fdas_custom_fft
 -fdas_inbin
 fdas_norm
 debug
-file /home/nassim/filterbank/bper_0.0025.fil
+file ~/filterbank/bper_0.0025.fil
