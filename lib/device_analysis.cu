@@ -139,6 +139,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	//printf("Bin: %d, Mean: %f, Stddev: %f\n", 1, signal_mean_1, signal_sd_1);
 	//-------------- Calculating base level noise using outlier rejection
 	
+	/*
 	//-------------- Linear approximation
 	float *d_list;
 	size_t mem_size;
@@ -182,6 +183,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	
 	cudaFree(d_list);
 	//-------------- Linear approximation
+	*/
 	
 	//-------------- One Call linear approximation
 	timer.Start(); 
