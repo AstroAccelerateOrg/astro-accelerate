@@ -1,4 +1,4 @@
--range	0    150  0.1  1 1
+range	0    150  0.1  1 1
 range	150  300  0.2  1 1
 range	300  500  0.25 2 2 
 range	500  900  0.4  2 2
@@ -9,7 +9,7 @@ sigma_cutoff	7
 sigma_constant  4.0
 max_boxcar_width_in_sec 0.5
 analysis
-acceleration
+-acceleration
 -output_ffdot_plan
 -output_fdas_list
 -periodicity
