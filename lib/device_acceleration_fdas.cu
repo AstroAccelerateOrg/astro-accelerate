@@ -38,7 +38,9 @@ void acceleration_fdas(int range,
 					   int enable_custom_fft,
 					   int enable_inbin,
 					   int enable_norm,
-					   float sigma_constant)
+					   float sigma_constant,
+					   int enable_output_ffdot_plan,
+					   int enable_output_fdas_list)
 {
 
 	fdas_params params;
@@ -55,7 +57,7 @@ void acceleration_fdas(int range,
 	cmdargs.nsig = 0; //
 	cmdargs.duty = 0.10; //
 	cmdargs.iter = 1; //
-	cmdargs.writef = 0; //
+	cmdargs.writef = 1; //
 	cmdargs.zval = 4; //
 	cmdargs.mul = 1024; //
 	cmdargs.wsig = 0; //
@@ -205,6 +207,7 @@ void acceleration_fdas(int range,
 
 		// FFT
 		for (int i = 0; i < range; i++) {
+			processed=samps/inBin[i];
 			for (int dm_count = 0; dm_count < ndms[i] - 1; ++dm_count) {
 
 				//first time PCIe transfer and print timing
@@ -269,18 +272,20 @@ void acceleration_fdas(int range,
 					//printf("BLN: mean:%f; sd:%f || MSD: mean:%f; sd:%f\n", signal_mean, signal_sd, h_MSD[0], h_MSD[1]);
 					////------------- Testing BLN
 					
-					
 					PEAK_FIND_FOR_FDAS(gpuarrays.d_ffdot_pwr, gpuarrays.d_fdas_peak_list, d_MSD, NKERN, ibin*params.siglen, cmdargs.thresh, params.max_list_length, gmem_fdas_peak_pos, dm_count*dm_step[i] + dm_low[i]);
 					
 					checkCudaErrors(cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost));
 					checkCudaErrors(cudaMemcpy(&list_size, gmem_fdas_peak_pos, sizeof(unsigned int), cudaMemcpyDeviceToHost));
-					if(list_size>0)
-						fdas_write_list(&gpuarrays, &cmdargs, &params, h_MSD, dm_low[i], dm_count, dm_step[i], list_size);
-					
+					if (enable_output_fdas_list == 1)
+					{
+						if(list_size>0)
+							fdas_write_list(&gpuarrays, &cmdargs, &params, h_MSD, dm_low[i], dm_count, dm_step[i], list_size);
+					}
 					cudaFree(d_MSD);
 					cudaFree(gmem_fdas_peak_pos);
 				}
-				if(cmdargs.writef) {
+				if (enable_output_ffdot_plan == 1)
+				{
 					fdas_write_ffdot(&gpuarrays, &cmdargs, &params, dm_low[i], dm_count, dm_step[i]);
 				}
   				// Call sofias code here pass...

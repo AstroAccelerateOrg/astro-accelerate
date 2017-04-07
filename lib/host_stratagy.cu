@@ -77,7 +77,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 	}
 	*max_dm = ceil(( *dm_high )[range - 1]);
 
-	*maxshift = ( maxshift_high + 2 * ( SNUMREG * SDIVINT ) );
+	*maxshift = ( maxshift_high + ( SNUMREG * 2 * SDIVINT ) );
 	printf("\nRange:\t%d, MAXSHIFT:\t%d, Scrunch value:\t%d", range - 1, *maxshift, inBin[range - 1]);
 	printf("\nMaximum dispersive delay:\t%.2f (s)", *maxshift * tsamp);
 
@@ -136,36 +136,35 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 			// We have case 3)
 			// Work out how many time samples we can fit into ram 
 			int samp_block_size = max_tsamps - ( *maxshift );
-			//int samp_block_size = max_tsamps;
 
 			// Work out how many blocks of time samples we need to complete the processing
 			// upto nsamp-maxshift
 			//int num_blocks = (int) floor(( (float) nsamp - ( *maxshift ) )) / ( (float) ( samp_block_size ) ) + 1;
 
 			// Find the common integer amount of samples between all bins
-			int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) inBin[range - 1] ) / (float) ( SDIVINT*SNUMREG ));
+			int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) inBin[range - 1] ) / (float) ( SDIVINT*2*SNUMREG ));
 			local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * inBin[range - 1];
 			
-			int num_blocks = (int) floor(( (float) nsamp - ( *maxshift ) )) / ( (float) ( local_t_processed ) ) + 1;
+			int num_blocks = (int) floor(( (float) nsamp - (float)( *maxshift ) )) / ( (float) ( local_t_processed ) );
 
 			// Work out the remaining fraction to be processed
-			int remainder = ( nsamp - ( (num_blocks-1)*local_t_processed ) - (*maxshift) );
-			remainder = (int) floor((float) remainder / (float) inBin[range - 1]) / (float) ( SDIVINT*SNUMREG );
+			int remainder =  nsamp -  (num_blocks*local_t_processed ) - (*maxshift) ;
+			remainder = (int) floor((float) remainder / (float) inBin[range - 1]) / (float) ( SDIVINT*2*SNUMREG );
 			remainder = remainder * ( SDIVINT*2*SNUMREG ) * inBin[range - 1];
 
 			for (i = 0; i < range; i++)	{
 				// Allocate memory to hold the values of nsamps to be processed
-				( *t_processed )[i] = (int *) malloc(num_blocks * sizeof(int));
+				( *t_processed )[i] = (int *) malloc((num_blocks + 1) * sizeof(int));
 				// Remember the last block holds less!
-				for (j = 0; j < num_blocks - 1; j++) {
+				for (j = 0; j < num_blocks; j++) {
 					( *t_processed )[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) inBin[i] ) / (float) ( SDIVINT*2*SNUMREG ));
 					( *t_processed )[i][j] = ( *t_processed )[i][j] * ( SDIVINT*2*SNUMREG );
 				}
 				// fractional bit
-				( *t_processed )[i][num_blocks - 1] = (int) floor(( (float) ( remainder ) / (float) inBin[i] ) / (float) ( SDIVINT*2*SNUMREG ));
-				( *t_processed )[i][num_blocks - 1] = ( *t_processed )[i][num_blocks - 1] * ( SDIVINT*2*SNUMREG );
+				( *t_processed )[i][num_blocks] = (int) floor(( (float) ( remainder ) / (float) inBin[i] ) / (float) ( SDIVINT*2*SNUMREG ));
+				( *t_processed )[i][num_blocks] = ( *t_processed )[i][num_blocks] * ( SDIVINT*2*SNUMREG );
 			}
-			( *num_tchunks ) = num_blocks;
+			( *num_tchunks ) = num_blocks + 1;
 			printf("\nIn 3\n");
 			printf("\nnum_blocks:\t%d", num_blocks);
 		}

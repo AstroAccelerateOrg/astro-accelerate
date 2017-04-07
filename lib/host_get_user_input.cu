@@ -3,10 +3,11 @@
  */
 
 #include <stdio.h>
+#include <wordexp.h>
 #include "headers/params.h"
 #include "headers/host_help.h"
 
-void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *enable_debug, int *enable_analysis, int *enable_periodicity, int *enable_acceleration, int *output_dmt, int *enable_zero_dm, int *enable_zero_dm_with_outliers, int *enable_rfi, int *enable_fdas_custom_fft, int *enable_fdas_inbin, int *enable_fdas_norm, int *nboots, int *ntrial_bins, int *navdms, float *narrow, float *wide, float *aggression, int *nsearch, int **inBin, int **outBin, float *power, float *sigma_cutoff, float *sigma_constant, float *max_boxcar_width_in_sec, int *range, float **user_dm_low, float **user_dm_high, float **user_dm_step, int *candidate_algorithm)
+void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *enable_debug, int *enable_analysis, int *enable_periodicity, int *enable_acceleration, int *enable_output_ffdot_plan, int *enable_output_fdas_list, int *output_dmt, int *enable_zero_dm, int *enable_zero_dm_with_outliers, int *enable_rfi, int *enable_fdas_custom_fft, int *enable_fdas_inbin, int *enable_fdas_norm, int *nboots, int *ntrial_bins, int *navdms, float *narrow, float *wide, float *aggression, int *nsearch, int **inBin, int **outBin, float *power, float *sigma_cutoff, float *sigma_constant, float *max_boxcar_width_in_sec, int *range, float **user_dm_low, float **user_dm_high, float **user_dm_step, int *candidate_algorithm)
 {
 
 	FILE *fp_in = NULL;
@@ -72,6 +73,10 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 				*enable_periodicity = 1;
 			if (strcmp(string, "acceleration") == 0)
 				*enable_acceleration = 1;
+			if (strcmp(string, "output_ffdot_plan") == 0)
+				*enable_output_ffdot_plan = 1;
+			if (strcmp(string, "output_fdas_list") == 0)
+				*enable_output_fdas_list = 1;
 			if (strcmp(string, "output_dmt") == 0)
 				*output_dmt = 1;
 			if (strcmp(string, "zero_dm") == 0)
@@ -90,20 +95,26 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 				*enable_fdas_norm = 1;
 			if (strcmp(string, "multi_file") == 0)
 				*multi_file = 1;
-			if (strcmp(string, "sigma_cutoff") == 0) {
-				if ( fscanf(fp_in, "%f", sigma_cutoff) == 0 ) {
+			if (strcmp(string, "max_boxcar_width_in_sec") == 0)
+			{
+				if ( fscanf(fp_in, "%f", max_boxcar_width_in_sec) == 0 )
+				{
 					fprintf(stderr, "failed to read input\n");
 					exit(0);
 				}
 			}
-			if (strcmp(string, "sigma_constant") == 0) {
-				if ( fscanf(fp_in, "%f", sigma_constant) == 0 ) {
+			if (strcmp(string, "sigma_cutoff") == 0)
+			{
+				if ( fscanf(fp_in, "%f", sigma_cutoff) == 0 )
+				{
 					fprintf(stderr, "failed to read input\n");
 					exit(0);
 				}
 			}
-			if (strcmp(string, "max_boxcar_width_in_sec") == 0) {
-				if ( fscanf(fp_in, "%f", max_boxcar_width_in_sec) == 0 ) {
+			if (strcmp(string, "sigma_constant") == 0)
+			{
+				if ( fscanf(fp_in, "%f", sigma_constant) == 0 )
+				{
 					fprintf(stderr, "failed to read input\n");
 					exit(0);
 				}
@@ -174,16 +185,21 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 			}
 			if (strcmp(string, "file") == 0)
 			{
+				// this command expand "~" to "home/username/"
+			    wordexp_t expanded_string;
+
 				if ( fscanf(fp_in, "%s", string) == 0 )
 				{
 					fprintf(stderr, "failed to read input\n");
 					exit(0);
 				}
-				if (( *fp = fopen(string, "rb") ) == NULL)
+				wordexp(string, &expanded_string, 0);
+			    if (( *fp = fopen(expanded_string.we_wordv[0], "rb") ) == NULL)
 				{
 					fprintf(stderr, "Invalid data file!\n");
 					exit(0);
 				}
+				wordfree(&expanded_string);
 			}
 		}
 
