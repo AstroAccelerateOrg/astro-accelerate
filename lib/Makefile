@@ -34,7 +34,7 @@ endif
 all:	${BUILD_DIR} $(BUILD_DIR)/dedisperse-gpu ${ASTROLIB_DIR} ${ASTROLIB_DIR}/libastrolib.a
 
 $(BUILD_DIR)/%.o : %.cu
-	nvcc -o $@ -c $(NVCCFLAGS) $< 
+	nvcc -o $@ -c $(NVCCFLAGS) $<
 
 $(BUILD_DIR)/%.o : %.cpp
 	nvcc -o $@ -c $(NVCCFLAGS) $<

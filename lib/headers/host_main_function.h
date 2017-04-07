@@ -16,6 +16,8 @@ void main_function
 	int enable_debug,
 	int enable_analysis,
 	int enable_acceleration,
+	int enable_output_ffdot_plan,
+	int enable_output_fdas_list,
 	int enable_periodicity,
 	int output_dmt,
 	int enable_zero_dm,

@@ -88,7 +88,7 @@ int Get_max_iteration(int max_boxcar_width, std::vector<int> *BC_widths){
 	
 	if(max_boxcar_width>startTaps) iteration=(int) BC_widths->size();
 	
-	return(iteration);
+	return(1);
 }
 
 void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float sigma_constant, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, int candidate_algorithm){
@@ -141,7 +141,9 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	
 	//-------------- Linear approximation
 	float *d_list;
-	if ( cudaSuccess != cudaMalloc((void **) &d_list, sizeof(float)*nDMs*nTimesamples)) printf("Allocation error! SNR\n");
+	size_t mem_size;
+	mem_size =sizeof(float)*(size_t)nDMs*(size_t)nTimesamples;
+	if ( cudaSuccess != cudaMalloc((void **) &d_list, mem_size)) printf("Allocation error! SNR\n");
 	
 	float signal_mean_16, signal_sd_16;
 	timer.Start(); 
