@@ -1,15 +1,13 @@
+#define UNROLLS 16
+#define SNUMREG 10
+#define SDIVINT 10
+#define SDIVINDM 50
+#define SFDIVINDM 50.0f
+#define FILTER_OUT_RANGES 1
+#define RANGE_TO_KEEP 1
 #define ACCMAX 350
 #define ACCSTEP 11
-
-#define UNROLLS 16
-#define SNUMREG 12
-#define SDIVINT 12
-#define SDIVINDM 40
-#define SFDIVINDM 40.0f
-#define FILTER_OUT_RANGES 1
-#define RANGE_TO_KEEP 0
-
-#define CARD 0
+#define CARD 1
 #define NOPSSHIFT 5
 #define NOPSLOOP 3
 #define NDATAPERLOOP 1

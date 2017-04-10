@@ -12,7 +12,7 @@ mkdir profile_results
 rm profile_optimum_averaged/stats.txt
 
 unroll=16
-for unroll in {16,32,64}
+for unroll in {16,32}
 do
 	for acc in {6,8,10,12,14}
 	do
@@ -38,7 +38,7 @@ do
 							echo "#define SFDIVINDM $divindm.0f" >> ./params.txt
 							echo "#define FILTER_OUT_RANGES 0" >> ./params.txt
 							echo "#define RANGE_TO_KEEP 0" >> ./params.txt
-							cat header_template.h >> ./params.txt
+							cat ../scripts/header_template.h >> ./params.txt
 							mv params.txt headers/params.h
 			
 							make clean
@@ -49,7 +49,7 @@ do
 							cd ../scripts/
 						fi
 
-						./astro-accelerate.sh ../input_files/ska_ania.txt > profile_results/"$trialString"_"$paramString".dat
+						./astro-accelerate.sh ../input_files/ska_b2.txt > profile_results/"$trialString"_"$paramString".dat
 
 						if [ $trial -eq 1 ]; then
 							cp ../lib/headers/params.h profile_results/$paramString.h

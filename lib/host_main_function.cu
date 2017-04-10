@@ -208,6 +208,7 @@ void main_function
 					bin_gpu(d_input, d_output, nchans, t_processed[dm_range - 1][t] + maxshift * inBin[dm_range]);
 					( tsamp ) = ( tsamp ) * 2.0f;
 				}
+				oldBin = inBin[dm_range];
 				continue;
 			}
 			// END AB
@@ -217,7 +218,7 @@ void main_function
 			maxshift = maxshift_original / inBin[dm_range];
 
 			cudaDeviceSynchronize();
-			range_timer.Start();
+			//range_timer.Start();
 			load_data(dm_range, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t], maxshift, nchans, dmshifts);
 
 			if (inBin[dm_range] > oldBin)
@@ -243,8 +244,8 @@ void main_function
 			//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
 			}
 			cudaDeviceSynchronize();
-			range_timer.Stop();
-			time_for_range[dm_range] += range_timer.Elapsed()/1000.0;;
+	//		range_timer.Stop();
+			//time_for_range[dm_range] += range_timer.Elapsed()/1000.0;;
 			if (output_dmt == 1)
 			{
 				//for (int k = 0; k < ndms[dm_range]; k++)
@@ -336,7 +337,7 @@ void main_function
 
 	printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
-	printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)",  time);
+	printf("\n(Performed Brute-Force Dedispersion: %f (GPU estimate)",  time);
 	printf("\nAmount of telescope time processed: %f", tstart_local);
 	printf("\nNumber of samples processed: %ld", inc);
 	printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);

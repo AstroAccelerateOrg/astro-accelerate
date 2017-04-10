@@ -13,7 +13,7 @@ do
 	rm profile_optimum/range${range}Stats.txt
 	rm -rf profile_results
 	mkdir profile_results
-	for unroll in {16,32,64}
+	for unroll in {4,8,16,32}
 	do
 		for acc in {6,8,10,12,14}
 		do
@@ -42,7 +42,7 @@ do
 								echo "#define FILTER_OUT_RANGES 1" >> ./params.txt
 								echo "#define RANGE_TO_KEEP $range" >> ./params.txt
 
-								cat header_template.h >> ./params.txt 
+								cat ../scripts/header_template.h >> ./params.txt 
 								mv params.txt headers/params.h
 				
 								make clean
@@ -52,7 +52,7 @@ do
 								cd ../scripts/
 							fi
 
-							./astro-accelerate.sh ../input_files/ska_ania.txt > profile_results/"$trialString"_"$paramString".dat
+							./astro-accelerate.sh ../input_files/ska_low.txt > profile_results/"$trialString"_"$paramString".dat
 
 							if [ $trial -eq 1 ]; then
 								cp ../lib/headers/params.h profile_results/"$paramString".h
