@@ -125,7 +125,10 @@ void main_function
 	float sigma_constant,
 	float max_boxcar_width_in_sec,
 	clock_t start_time,
-	int candidate_algorithm
+	int candidate_algorithm,
+	int nb_selected_dm,
+	float *selected_dm_low,
+	float *selected_dm_high
 	)
 {
 	// Initialise the GPU.	
