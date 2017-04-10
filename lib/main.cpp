@@ -166,6 +166,7 @@ int main(int argc, char* argv[])
 	fclose(fp);
 
 	free(output_buffer);
+	free(t_processed);
 	free(dm_low);
 	free(dm_high);
 	free(dm_step);
