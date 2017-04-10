@@ -205,6 +205,7 @@ void main_function
 			if (FILTER_OUT_RANGES && dm_range!=RANGE_TO_KEEP) {
 				if (inBin[dm_range] > oldBin)
 				{
+					maxshift = maxshift_original / inBin[dm_range];
 					bin_gpu(d_input, d_output, nchans, t_processed[dm_range - 1][t] + maxshift * inBin[dm_range]);
 					( tsamp ) = ( tsamp ) * 2.0f;
 				}
@@ -218,7 +219,7 @@ void main_function
 			maxshift = maxshift_original / inBin[dm_range];
 
 			cudaDeviceSynchronize();
-			//range_timer.Start();
+			range_timer.Start();
 			load_data(dm_range, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t], maxshift, nchans, dmshifts);
 
 			if (inBin[dm_range] > oldBin)
@@ -244,8 +245,8 @@ void main_function
 			//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
 			}
 			cudaDeviceSynchronize();
-	//		range_timer.Stop();
-			//time_for_range[dm_range] += range_timer.Elapsed()/1000.0;;
+			range_timer.Stop();
+			time_for_range[dm_range] += range_timer.Elapsed()/1000.0;;
 			if (output_dmt == 1)
 			{
 				//for (int k = 0; k < ndms[dm_range]; k++)
