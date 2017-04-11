@@ -128,7 +128,8 @@ void main_function
 	int candidate_algorithm,
 	int nb_selected_dm,
 	float *selected_dm_low,
-	float *selected_dm_high
+	float *selected_dm_high,
+	int analysis_debug
 	)
 {
 	// Initialise the GPU.	
@@ -221,7 +222,7 @@ void main_function
 
 			dedisperse(dm_range, t_processed[dm_range][t], inBin, dmshifts, d_input, d_output, nchans, ( t_processed[dm_range][t] + maxshift ), maxshift, &tsamp, dm_low, dm_high, dm_step, ndms);
 
-			if (enable_acceleration == 1)
+			if ( (enable_acceleration == 1) || (analysis_debug ==1) )
 			{
 				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
 				//save_data(d_output, out_tmp, gpu_outputsize);
@@ -243,16 +244,33 @@ void main_function
 				//write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
 			}
 			if (enable_analysis == 1) {
-				float *h_peak_list;
-				size_t max_peak_size;
-				size_t peak_pos;
-				max_peak_size = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 );
-				h_peak_list   = (float*) malloc(max_peak_size*4*sizeof(float));
 				
-				peak_pos=0;
-				analysis_GPU(h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp, candidate_algorithm);
-								
-				free(h_peak_list);
+				printf("\n VALUE OF ANALYSIS DEBUG IS %d\n", analysis_debug);
+
+				if (analysis_debug == 1)
+				{
+					float *out_tmp;
+					gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
+					out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
+					memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
+					save_data(d_output, out_tmp, gpu_outputsize);
+					analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp, max_boxcar_width_in_sec);
+					free(out_tmp);
+				}
+				else
+				{
+					float *h_peak_list;
+					size_t max_peak_size;
+					size_t peak_pos;
+					max_peak_size = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 );
+					h_peak_list   = (float*) malloc(max_peak_size*4*sizeof(float));
+
+					peak_pos=0;
+					analysis_GPU(h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp, candidate_algorithm);
+
+					free(h_peak_list);
+				}
+
 				// This is for testing purposes and should be removed or commented out
 				//analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
 			}
