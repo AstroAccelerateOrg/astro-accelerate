@@ -29,6 +29,7 @@ int main(int argc, char* argv[])
 	int enable_fdas_norm = 0;
 	int enable_output_ffdot_plan = 0;
 	int enable_output_fdas_list = 0;
+	int analysis_debug = 0;
     int *inBin = NULL;
 	int *outBin = NULL;
 	int *ndms = NULL;
@@ -98,7 +99,7 @@ int main(int argc, char* argv[])
 	    &enable_fdas_inbin, &enable_fdas_norm, &nboots, &ntrial_bins, &navdms,
 	    &narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff,
 	    &sigma_constant, &max_boxcar_width_in_sec, &range, &user_dm_low, &user_dm_high,
-	    &user_dm_step, &candidate_algorithm, &selected_dm_low, &selected_dm_high, &nb_selected_dm);
+	    &user_dm_step, &candidate_algorithm, &selected_dm_low, &selected_dm_high, &nb_selected_dm, &analysis_debug);
 	if (enable_debug == 1)
 		debug(1, start_time, range, outBin, enable_debug, enable_analysis,
 		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
@@ -158,7 +159,7 @@ int main(int argc, char* argv[])
 	  tsamp_original, inc, tstart, tstart_local, tsamp, fch1, foff,
 	  // Analysis variables
 	  power, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, start_time, candidate_algorithm,
-	  nb_selected_dm, selected_dm_low, selected_dm_high
+	  nb_selected_dm, selected_dm_low, selected_dm_high, analysis_debug
 	);
 
 	// write output here, not in the library

@@ -23,4 +23,5 @@ fdas_custom_fft
 -fdas_inbin
 fdas_norm
 debug
+-analysis_debug
 file ~/filterbank/ska-mid-b2.fil
