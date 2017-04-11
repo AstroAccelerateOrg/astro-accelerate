@@ -84,6 +84,7 @@ void main_function
 	int candidate_algorithm,
 	int nb_selected_dm,
 	float *selected_dm_low,
-	float *selected_dm_high
+	float *selected_dm_high,
+	int analysis_debug
 	);
 #endif
