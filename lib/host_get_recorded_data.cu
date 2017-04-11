@@ -63,6 +63,31 @@ void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned sho
 		}
 		free(temp_buffer);
 	}
+	else if (nbits == 2)
+	{
+		// Allocate a temporary buffer to store a line of frequency data
+		// each byte stores 4 frequency data
+		int nb_bytes = nchans/4;
+		unsigned char *temp_buffer = (unsigned char *) malloc(nb_bytes * sizeof(unsigned char));
+		// Read in the data, transpose it and store it in the input buffer
+		total_data = 0;
+		// 00001111
+		char mask = 0x03;
+		while (!feof(*fp))
+		{
+			if (fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp) != nb_bytes)
+				break;
+			for (c = 0; c < nb_bytes; c++)
+			{
+				( *input_buffer )[ (c*4) + total_data * ( nchans )]     = (unsigned short)( (temp_buffer[c] >> 2) & mask );
+				( *input_buffer )[ (c*4) + 1 + total_data * ( nchans )] = (unsigned short)( (temp_buffer[c] >> 4) & mask );
+				( *input_buffer )[ (c*4) + 2 + total_data * ( nchans )] = (unsigned short)( (temp_buffer[c] >> 6) & mask );
+				( *input_buffer )[ (c*4) + 3 + total_data * ( nchans )] = (unsigned short)( temp_buffer[c] & mask );
+			}
+			total_data++;
+		}
+		free(temp_buffer);
+	}
 	else if (nbits == 1)
 	{
 		// each byte stores 8 frequency data

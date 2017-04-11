@@ -186,6 +186,31 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 		*nsamp = total_data - 1;
 		free(temp_buffer);
 	}
+	else if (( *nbits ) == 2)
+	{
+		// Allocate a tempory buffer to store a line of frequency data
+		// each byte stores 2 frequency data
+		// assumption: nchans is a multiple of 2
+//		if ((*nchans / 4) != 0)
+//		{
+//			printf("\nNumber of frequency channels must be divisible by 8 with 1 bit data samples\n");
+//			exit(0);
+//		}
+		int nb_bytes = *nchans/4;
+		unsigned char *temp_buffer = (unsigned char *) malloc( nb_bytes * sizeof(unsigned char));
+		total_data = 0;
+		while (!feof(*fp))
+		{
+			if (((fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp)) != nb_bytes) && (total_data == 0))
+			{
+				fprintf(stderr, "\nError while reading file\n");
+				exit(0);
+			}
+			total_data++;
+		}
+		*nsamp = total_data - 1;
+		free(temp_buffer);
+	}
 	else if (( *nbits ) == 1)
 	{
 		// Allocate a tempory buffer to store a line of frequency data
