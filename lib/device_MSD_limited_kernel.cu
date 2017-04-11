@@ -188,7 +188,8 @@ __global__ void MSD_GPU_LA_ALL(float const* __restrict__ d_input, float *d_outpu
 	float M_b, S_b, j_b;
 	float ftemp;
 	// FIR variables
-	int d, gpos, spos, local_id;
+	int d, spos, local_id;
+	size_t gpos;
 	float2 ftemp1, ftemp2, ftemp3;
 	float Bw[2];
 
