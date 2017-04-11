@@ -1,10 +1,15 @@
 //Added by Karel Adamek
+//#define SPS_LONG_DEBUG
 
 #include <vector>
 
 #include "headers/params.h"
 #include "headers/device_BC_plan.h"
 #include "device_SPS_long_kernel.cu"
+
+size_t Get_memory_requirement_of_SPS(){
+	return((size_t) (5.5*sizeof(float) + 2*sizeof(ushort)));
+}
 
 void Assign_parameters(int f, std::vector<PulseDetection_plan> *PD_plan, int *decimated_timesamples, int *dtm, int *iteration, int *nBoxcars, int *nBlocks, int *output_shift, int *shift, int *startTaps, int *unprocessed_samples, int *total_ut){
 	*decimated_timesamples = PD_plan->operator[](f).decimated_timesamples;
@@ -43,7 +48,9 @@ int PD_SEARCH_LONG_BLN_IF(float *d_input, float *d_boxcar_values, float *d_decim
 	Assign_parameters(0, PD_plan, &decimated_timesamples, &dtm, &iteration, &nBoxcars, &nBlocks, &output_shift, &shift, &startTaps, &unprocessed_samples, &total_ut);
 	gridSize.x=nBlocks; gridSize.y=nDMs; gridSize.z=1;
 	blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
+	#ifdef SPS_LONG_DEBUG
 	printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration ,nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
+	#endif
 	if(nBlocks>0) PD_GPU_1st_float1_BLN_IF<<<gridSize,blockSize>>>( d_input, d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD, decimated_timesamples, nBoxcars, dtm);
 	
 	
@@ -51,7 +58,9 @@ int PD_SEARCH_LONG_BLN_IF(float *d_input, float *d_boxcar_values, float *d_decim
 		Assign_parameters(f, PD_plan, &decimated_timesamples, &dtm, &iteration, &nBoxcars, &nBlocks, &output_shift, &shift, &startTaps, &unprocessed_samples, &total_ut);
 		gridSize.x=nBlocks; gridSize.y=nDMs; gridSize.z=1;
 		blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
+		#ifdef SPS_LONG_DEBUG
 		printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration, nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
+		#endif
 		if( (f%2) == 0 ) {
 			if(nBlocks>0) PD_GPU_Nth_float1_BLN_IF<<<gridSize,blockSize>>>(&d_input[shift], &d_boxcar_values[nDMs*(nTimesamples>>1)], d_boxcar_values, d_decimated, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], d_MSD, decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
 		}
@@ -84,7 +93,9 @@ int PD_SEARCH_LONG_BLN_IF_LINAPPROX(float *d_input, float *d_boxcar_values, floa
 	Assign_parameters(0, PD_plan, &decimated_timesamples, &dtm, &iteration, &nBoxcars, &nBlocks, &output_shift, &shift, &startTaps, &unprocessed_samples, &total_ut);
 	gridSize.x=nBlocks; gridSize.y=nDMs; gridSize.z=1;
 	blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
+	#ifdef SPS_LONG_DEBUG
 	printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration ,nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
+	#endif
 	if(nBlocks>0) PD_GPU_1st_float1_BLN_IF_LA<<<gridSize,blockSize>>>( d_input, d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD, decimated_timesamples, nBoxcars, dtm);
 	
 	
@@ -92,7 +103,9 @@ int PD_SEARCH_LONG_BLN_IF_LINAPPROX(float *d_input, float *d_boxcar_values, floa
 		Assign_parameters(f, PD_plan, &decimated_timesamples, &dtm, &iteration, &nBoxcars, &nBlocks, &output_shift, &shift, &startTaps, &unprocessed_samples, &total_ut);
 		gridSize.x=nBlocks; gridSize.y=nDMs; gridSize.z=1;
 		blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
+		#ifdef SPS_LONG_DEBUG
 		printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration, nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
+		#endif
 		if( (f%2) == 0 ) {
 			if(nBlocks>0) PD_GPU_Nth_float1_BLN_IF_LA<<<gridSize,blockSize>>>(&d_input[shift], &d_boxcar_values[nDMs*(nTimesamples>>1)], d_boxcar_values, d_decimated, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], d_MSD, decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
 		}

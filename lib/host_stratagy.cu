@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, int *total_ndms, float *max_dm, float power, int nchans, int nsamp, float fch1, float foff, float tsamp, int range, float *user_dm_low, float *user_dm_high, float *user_dm_step, float **dm_low, float **dm_high, float **dm_step, int **ndms, float **dmshifts, int *inBin, int ***t_processed, size_t *gpu_memory) {
+void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, int *total_ndms, float *max_dm, float power, int nchans, int nsamp, float fch1, float foff, float tsamp, int range, float *user_dm_low, float *user_dm_high, float *user_dm_step, float **dm_low, float **dm_high, float **dm_step, int **ndms, float **dmshifts, int *inBin, int ***t_processed, size_t *gpu_memory, size_t SPS_mem_requirement) {
 	// This method relies on defining points when nsamps is a multiple of
 	// nchans - bin on the diagonal or a fraction of it.
 
@@ -109,8 +109,9 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 		// without increasing the memory needed
 
 		// Maximum number of samples we can fit in our GPU RAM is then given by:
-		max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short) * ( (*max_ndms) + nchans ) ) ); // maximum number of timesamples we can fit into GPU memory
-
+		//max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short) * ( (*max_ndms) + nchans ) ) ); // maximum number of timesamples we can fit into GPU memory
+		max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short)*nchans + sizeof(float)*(*max_ndms) + (size_t)(SPS_mem_requirement*MIN_DMS_PER_SPS_RUN ))); // maximum number of timesamples we can fit into GPU memory
+		
 		// Check that we dont have an out of range maxshift:
 		if (( *maxshift ) > max_tsamps)	{
 			printf("\nERROR!! Your GPU doens't have enough memory for this number of dispersion trials.");
@@ -174,7 +175,8 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 		// without increasing the memory needed. Set the output buffer to be as large as the input buffer:
 
 		// Maximum number of samples we can fit in our GPU RAM is then given by:
-		max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + 2 * sizeof(unsigned short) ) ) );
+		//max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + 2 * sizeof(unsigned short) ) ) );
+		max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + sizeof(unsigned short) )+ SPS_mem_requirement*MIN_DMS_PER_SPS_RUN ));
 
 		// Check that we dont have an out of range maxshift:
 		if (( *maxshift ) > max_tsamps) {
