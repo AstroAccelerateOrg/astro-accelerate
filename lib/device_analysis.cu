@@ -1,4 +1,4 @@
-//#define OLD_THRESHOLD
+//#define GPU_ANALYSIS_DEBUG
 
 #include <vector>
 #include <stdio.h>
@@ -8,15 +8,12 @@
 #include "headers/device_BC_plan.h"
 #include "headers/device_peak_find.h"
 #include "headers/device_BLN.h"
-#include "headers/device_MSD_plane.h"
 #include "headers/device_MSD_limited.h"
-#include "headers/device_SNR_limited.h"
-#include "headers/device_SPS_inplace.h"
+#include "headers/device_SPS_long.h"
 #include "headers/device_threshold.h"
 #include "headers/device_single_FIR.h"
 
 #include "timer.h"
-
 
 void Create_PD_plan(std::vector<PulseDetection_plan> *PD_plan, std::vector<int> *BC_widths, int nDMs, int nTimesamples){
 	int Elements_per_block, itemp, nRest;
@@ -105,7 +102,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	
 
 	double total_time, partial_time;
-	float signal_mean_1, signal_sd_1;//, modifier;
+	
 	//float max, min, threshold;
 	int offset, max_iteration;
 	int t_BC_widths[10]={PD_MAXTAPS,16,16,16,8,8,8,8,8,8};
@@ -115,13 +112,15 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 
 	//---------------------------------------------------------------------------
 	//----------> GPU part
-	printf("\n GPU analysis part\n\n");
-	printf("Dimensions nDMs:%d; nTimesamples:%d; inBin:%d; outBin:%d; maxshift:%d; \n", ndms[i], t_processed, inBin, outBin, *maxshift);
+	printf("\n----------> GPU analysis part\n\n");
+	printf("     Dimensions nDMs:%d; nTimesamples:%d; inBin:%d; outBin:%d; maxshift:%d; \n", ndms[i], t_processed, inBin, outBin, *maxshift);
 	GpuTimer timer;
 	
 	float h_MSD[3];
 	float *d_MSD;
-	if ( cudaSuccess != cudaMalloc((void**) &d_MSD, sizeof(float)*3)) printf("Allocation error!\n");
+	checkCudaErrors(cudaGetLastError());
+	if ( cudaSuccess != cudaMalloc((void**) &d_MSD, sizeof(float)*3)) {printf("Allocation error!\n"); exit(201);}
+	
 
 	total_time = 0;
 	
@@ -139,13 +138,15 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	//printf("Bin: %d, Mean: %f, Stddev: %f\n", 1, signal_mean_1, signal_sd_1);
 	//-------------- Calculating base level noise using outlier rejection
 	
+	/*
 	//-------------- Linear approximation
+	float signal_mean_1, signal_sd_1;
 	float *d_list;
 	size_t mem_size;
 	mem_size =sizeof(float)*(size_t)nDMs*(size_t)nTimesamples;
 	if ( cudaSuccess != cudaMalloc((void **) &d_list, mem_size)) printf("Allocation error! SNR\n");
 	
-	float signal_mean_16, signal_sd_16, modifier;
+	float signal_mean_16, signal_sd_16;
 	timer.Start(); 
 	MSD_limited(output_buffer, d_MSD, nDMs, nTimesamples, 128); 
 	timer.Stop(); 
@@ -172,21 +173,38 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	h_MSD[0] = signal_mean_1; 
 	h_MSD[2] = ( signal_sd_16 - signal_sd_1 )/( (float) ( PD_MAXTAPS - 1 ) ); 
 	h_MSD[1] = signal_sd_1; 
-	modifier = h_MSD[1]; 
+	printf("Final: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD[0], h_MSD[1], h_MSD[2]);
 	cudaMemcpy(d_MSD, h_MSD, 3*sizeof(float), cudaMemcpyHostToDevice); 
+	
 	timer.Stop(); 
 	partial_time = timer.Elapsed(); 
 	total_time += partial_time; 
-	printf("Linear sd took:%f ms\n", partial_time); 
+	printf("Linear sd took:%f ms\n", total_time); 
 	
 	cudaFree(d_list);
 	//-------------- Linear approximation
+	*/
+	
+	//-------------- One Call linear approximation
+	timer.Start(); 
+	MSD_linear_approximation(output_buffer, d_MSD, PD_MAXTAPS, nDMs, nTimesamples, 0);
+	timer.Stop();
+	partial_time = timer.Elapsed(); 
+	total_time += partial_time; 
+	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	printf("     MSD linear approximation: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD[0], h_MSD[1], h_MSD[2]);
+	#ifdef GPU_ANALYSIS_DEBUG
+	printf("     One kernel took:%f ms\n", partial_time); 
+	#endif
+	//-------------- One Call linear approximation
+	
+	
 	
 	
 	size_t free_mem,total_mem;
 	cudaMemGetInfo(&free_mem,&total_mem);
-	printf("Memory required by boxcar filters:%0.3f MB\n",(4.5*vals*sizeof(float) + 2*vals*sizeof(ushort))/(1024.0*1024) );
-	printf("Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
+	printf("     Memory required by boxcar filters:%0.3f MB\n",(4.5*vals*sizeof(float) + 2*vals*sizeof(ushort))/(1024.0*1024) );
+	printf("     Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
 	
 	std::vector<int> DM_list;
 	unsigned long int max_timesamples=(free_mem*0.95)/(5.5*sizeof(float) + 2*sizeof(ushort));
@@ -203,9 +221,11 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	for(int f=0; f<nRepeats; f++) DM_list.push_back(DMs_per_cycle);
 	if(nRest>0) DM_list.push_back(nRest);
 	
+	printf("     SPS will run %d batches each containing %d DM trials. Remainder %d DM trials\n", (int) DM_list.size(), DMs_per_cycle, nRest);
+	
 	
 	max_iteration = Get_max_iteration(max_boxcar_width/inBin, &BC_widths);
-	printf("Selected iteration:%d; for maximum boxcar width:%d;\n", max_iteration, max_boxcar_width/inBin);
+	printf("     Selected iteration:%d; for maximum boxcar width:%d;\n", max_iteration, max_boxcar_width/inBin);
 	Create_PD_plan(&PD_plan, &BC_widths, 1, nTimesamples);
 	
 	if(DM_list.size()>0){
@@ -239,10 +259,14 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 			timer.Stop();
 			partial_time = timer.Elapsed();
 			total_time += partial_time;
+			#ifdef GPU_ANALYSIS_DEBUG
 			printf("PD_SEARCH took:%f ms\n", partial_time);
+			#endif
 			//-------------- SPS BLN
 
-			printf("BC_shift:%d; DMs_per_cycle:%d; f*DMs_per_cycle:%d; max_iteration:%d; offset:%d;\n", DM_shift*nTimesamples, DM_list[f], DM_shift, max_iteration, offset);			
+			#ifdef GPU_ANALYSIS_DEBUG
+			printf("BC_shift:%d; DMs_per_cycle:%d; f*DMs_per_cycle:%d; max_iteration:%d; offset:%d;\n", DM_shift*nTimesamples, DM_list[f], DM_shift, max_iteration, offset);
+			#endif
 			
 			if(candidate_algorithm==1){
 				//-------------- Thresholding
@@ -251,7 +275,9 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 				timer.Stop();
 				partial_time = timer.Elapsed();
 				total_time += partial_time;
+				#ifdef GPU_ANALYSIS_DEBUG
 				printf("THR_WARP took:%f ms\n", partial_time);
+				#endif
 				//-------------- Thresholding
 			}
 			else {
@@ -261,12 +287,16 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 				timer.Stop();
 				partial_time = timer.Elapsed();
 				total_time += partial_time;
+				#ifdef GPU_ANALYSIS_DEBUG
 				printf("PEAK_FIND took:%f ms\n", partial_time);
+				#endif
 				//-------------- Peak finding
 			}
 			
 			cudaMemcpy(&temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost);
+			#ifdef GPU_ANALYSIS_DEBUG
 			printf("temp_peak_pos:%d; host_pos:%d; max:%d;\n", temp_peak_pos, (*peak_pos), (int) max_peak_size);
+			#endif
 			if( ((*peak_pos) + temp_peak_pos)<max_peak_size){
 				cudaMemcpy(&h_peak_list[(*peak_pos)*4], d_peak_list, temp_peak_pos*4*sizeof(float), cudaMemcpyDeviceToHost);
 				*peak_pos = (*peak_pos) + temp_peak_pos;
@@ -284,7 +314,6 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 		}
 		
 		//------------------------> Output
-		printf("-------> peak_pos:%zu; \n", (*peak_pos));
 		#pragma omp parallel for
 		for (int count = 0; count < (*peak_pos); count++){
 			h_peak_list[4*count]     = h_peak_list[4*count]*dm_step[i] + dm_low[i];
@@ -329,7 +358,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	else printf("Error not enough memory to search for pulses\n");
 
 	
-	printf("\n====> TOTAL TIME:%f\n\n", total_time);
+	printf("\n====> TOTAL TIME OF SPS:%f\n\n", total_time);
 
 	cudaFree(d_MSD);
 	//----------> GPU part
