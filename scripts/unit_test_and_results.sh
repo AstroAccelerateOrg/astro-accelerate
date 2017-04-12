@@ -9,6 +9,13 @@ fi
 
 LOCATION=$1
 
+rm -rf ../output/*
+rm -rf ../output/tests/*
+
+mkdir ../input_files/tests
+mkdir ../output/tests
+
+
 for i in $(ls $LOCATION/*.fil)
 do
 	echo $i
