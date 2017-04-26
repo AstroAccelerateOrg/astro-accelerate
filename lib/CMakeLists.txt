@@ -15,7 +15,7 @@ include_directories(${PROJECT_BINARY_DIR})
 # in dependency order
 include(Backward.cmake)
 #SUBPACKAGE(utils) # not dependent on any other subpackage
-SUBPACKAGE(astroaccelerate)
+SUBPACKAGE(astro-accelerate)
 
 # should come after all SUBPACKGE directives
 include_subpackage_files()
@@ -50,3 +50,8 @@ endif(ENABLE_CUDA)
 #add_library(${CMAKE_PROJECT_NAME}_test_utils ${test_utils_src_cpu})
 #target_include_directories(${CMAKE_PROJECT_NAME}_test_utils PUBLIC ${GTEST_INCLUDE_DIR})
 
+install(TARGETS ${CMAKE_PROJECT_NAME} DESTINATION ${LIBRARY_INSTALL_DIR})
+file(GLOB include_files "${CMAKE_CURRENT_SOURCE_DIR}/astro-accelerate/*.h")
+install(FILES ${include_files} DESTINATION ${INCLUDE_INSTALL_DIR}/astro-accelerate)
+install(DIRECTORY astro-accelerate/detail DESTINATION ${INCLUDE_INSTALL_DIR}/astro-accelerate)
+install(DIRECTORY headers DESTINATION ${INCLUDE_INSTALL_DIR})

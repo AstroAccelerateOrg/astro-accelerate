@@ -28,7 +28,7 @@
 #===============================================================================
 
 # project name and specify the minumum cmake version.
-project(astro_accelerate C CXX)
+project(astro-accelerate C CXX)
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 
 # cmake setup.
@@ -77,7 +77,7 @@ configure_file(${PROJECT_SOURCE_DIR}/cmake/version.h.in
 install(FILES ${PROJECT_BINARY_DIR}/${CMAKE_PROJECT_NAME}/version.h
     DESTINATION ${INCLUDE_INSTALL_DIR})
 
-# === process through the astro_accelerate tree:
+# === process through the astro-accelerate tree:
 add_subdirectory(lib)
 
 # === Print build options summary.

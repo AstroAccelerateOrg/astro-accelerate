@@ -1,7 +1,7 @@
 #ifndef ASTROACCELERATE_ACC_FDAS_H_
 #define ASTROACCELERATE_ACC_FDAS_H_
 
-#include "../astroaccelerate/DmTime.h"
+#include "../astro-accelerate/DmTime.h"
 
 void acceleration_fdas(int range,
 					   int nsamp,
