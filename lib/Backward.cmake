@@ -18,7 +18,6 @@ set(lib_src_cuda
     host_get_user_input.cu
     host_help.cu
     host_periods.cu
-    host_main_function.h
     host_rfi.cu
     host_statistics.cu
     host_stratagy.cu
