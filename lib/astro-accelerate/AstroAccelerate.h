@@ -100,11 +100,15 @@ class AstroAccelerate
          *
          */
         void run_dedispersion_sps(unsigned device_id
-        						  ,DedispersionStrategy &dedispersion_strategy
-        						  ,unsigned short *input_buffer
-        						  ,DmTime<float> &output_buffer
-        						  ,std::vector<float> &output_sps
-        						  );
+                                  ,unsigned char *input_buffer
+                                  ,DmTime<float> &output_buffer
+                                  ,std::vector<float> &output_sps
+                                  );
+        void run_dedispersion_sps(unsigned device_id
+        			  ,unsigned short *input_buffer
+        			  ,DmTime<float> &output_buffer
+        			  ,std::vector<float> &output_sps
+        			  );
         /*
          * Current state: dd + sps
          * todo: add the following functions once fdas is fully optimized (in progress)
@@ -130,7 +134,7 @@ class AstroAccelerate
         /**
          * @brief This function allocates memory for the the gpu arrays based on the dedispersion strategy
          */
-        void allocate_memory_gpu(DedispersionStrategy const &);
+        void allocate_memory_gpu();
 
         /**
          * @brief The number of chunks the data are divided in
@@ -191,6 +195,19 @@ class AstroAccelerate
         /**
          * @brief ---
          */
+        
+        int   _nsamp;
+        float _sigma_constant;
+        float _max_boxcar_width_in_sec;
+        int   _nboots;
+        int   _ntrial_bins;
+        float _navdms;
+        float _narrow;
+        float _wide;
+        int   _nsearch;
+        float _aggression; 
+        int _total_ndms;
+
         int* _out_bin;
         /**
          * @brief Size of the gpu input buffer

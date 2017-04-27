@@ -346,16 +346,13 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		DmTime<float> output_buffer(dedispersion_strategy);
 		// output of sps - assume it's a quarter of the output size
 		std::vector<float> output_sps;
-		size_t max_peak_size = (size_t) (dedispersion_strategy.get_nsamp() * dedispersion_strategy.get_nchans()/4);
-		output_sps.resize(max_peak_size*4);
 
 		astroaccelerate::AstroAccelerate<TestParams> astroaccelerate(dedispersion_strategy);
 		astroaccelerate.run_dedispersion_sps(device_id
-											,dedispersion_strategy
-											,input_buffer
-											,output_buffer
-											,output_sps
-											);
+						,input_buffer
+						,output_buffer
+						,output_sps
+						);
 		//*/
 		fclose(fp);
 		free(inBin);
