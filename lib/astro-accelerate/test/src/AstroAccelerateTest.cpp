@@ -302,6 +302,8 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp, &tstart,
 		&fch1, &foff);
 
+
+		std::vector<float> bin_frequencies(6, 1.0);
 		// dedispersion
 		//DedispersionStrategy dedispersion_strategy;
 		//DedispersionStrategyFile(&fp, my_argc, my_argv, dedispersion_strategy, gpu_memory);
@@ -321,8 +323,6 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 									 ,nbits
 									 ,tsamp
 									 ,tstart
-									 ,fch1
-									 ,foff
 									 ,sigma_cutoff
 									 ,sigma_constant
 									 ,max_boxcar_width_in_sec
@@ -332,7 +332,8 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 									 ,navdms
 									 ,ntrial_bins
 									 ,nsearch
-									 ,aggression);
+									 ,aggression
+                                                                         ,bin_frequencies);
 
 		// input buffer
 		unsigned short *input_buffer = nullptr;
