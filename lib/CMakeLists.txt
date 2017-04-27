@@ -1,10 +1,10 @@
 include(subpackage)
 
 # define the astro_accelerate libraries
-set(ASTRO_ACCELERATE_LIBRARIES ${CMAKE_PROJECT_NAME} ${DEPENDENCY_LIBRARIES})
+set(ASTRO_ACCELERATE_LIBRARIES ${PROJECT_NAME} ${DEPENDENCY_LIBRARIES})
 
 # define the astro_accelerate test_utils libraries
-#set(ASTRO_ACCELERATE_TEST_UTILS ${CMAKE_PROJECT_NAME}_test_utils)
+#set(ASTRO_ACCELERATE_TEST_UTILS ${PROJECT_NAME}_test_utils)
 #list(APPEND ASTRO_ACCELERATE_TEST_UTILS ${PANDA_TEST_LIBRARIES})
 
 # ensure we can access our headers with #include "headers/...."
@@ -24,17 +24,17 @@ include_subpackage_files()
 if(ENABLE_CUDA)
   cuda_compile(cuda_objects ${lib_src_cuda}) 
   list(APPEND cuda_objects ${lib_obj_cuda})
-  cuda_generate_link_file(cuda_link_file ${CMAKE_PROJECT_NAME} ${cuda_objects})
+  cuda_generate_link_file(cuda_link_file ${PROJECT_NAME} ${cuda_objects})
   list(APPEND cuda_objects ${cuda_link_file})
 endif(ENABLE_CUDA)
 
 # -- the main library target
-add_library(${CMAKE_PROJECT_NAME} ${lib_src_cpu} ${cuda_objects})
-set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+add_library(${PROJECT_NAME} ${lib_src_cpu} ${cuda_objects})
+set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
 if(ENABLE_CUDA)
-  cuda_add_cufft_to_target(${CMAKE_PROJECT_NAME})
-  target_link_libraries(${CMAKE_PROJECT_NAME}
+  cuda_add_cufft_to_target(${PROJECT_NAME})
+  target_link_libraries(${PROJECT_NAME}
         ${CUDA_LIBRARIES}
         ${CUDA_curand_LIBRARY}
   )
@@ -47,10 +47,10 @@ if(ENABLE_CUDA)
 endif(ENABLE_CUDA)
 
 # test_utils library target
-#add_library(${CMAKE_PROJECT_NAME}_test_utils ${test_utils_src_cpu})
-#target_include_directories(${CMAKE_PROJECT_NAME}_test_utils PUBLIC ${GTEST_INCLUDE_DIR})
+#add_library(${PROJECT_NAME}_test_utils ${test_utils_src_cpu})
+#target_include_directories(${PROJECT_NAME}_test_utils PUBLIC ${GTEST_INCLUDE_DIR})
 
-install(TARGETS ${CMAKE_PROJECT_NAME} DESTINATION ${LIBRARY_INSTALL_DIR})
+install(TARGETS ${PROJECT_NAME} DESTINATION ${LIBRARY_INSTALL_DIR})
 file(GLOB include_files "${CMAKE_CURRENT_SOURCE_DIR}/astro-accelerate/*.h")
 install(FILES ${include_files} DESTINATION ${INCLUDE_INSTALL_DIR}/astro-accelerate)
 install(DIRECTORY astro-accelerate/detail DESTINATION ${INCLUDE_INSTALL_DIR}/astro-accelerate)
