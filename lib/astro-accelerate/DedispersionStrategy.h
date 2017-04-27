@@ -6,6 +6,7 @@
 #include "../headers/host_help.h"
 
 #include <stdio.h>
+#include <vector>
 
 namespace astroaccelerate {
 
@@ -41,8 +42,6 @@ class DedispersionStrategy
         			,int nbits
         			,float tsamp
         			,float tstart
-        			,float fch1
-        			,float foff
         			,float sigma_cutoff
 				,float sigma_constant
 				,float max_boxcar_width_in_sec
@@ -53,6 +52,7 @@ class DedispersionStrategy
 				,int ntrial_bins
 				,int nsearch
 				,float aggression
+                                ,std::vector<float> const & bin_frequencies
 				);
         /**
         *  @brief Destructor
@@ -98,8 +98,6 @@ class DedispersionStrategy
         int get_nsamples() const;
         int get_max_samps() const;
         int get_nchans() const;
-        float get_fch1() const;
-        float get_foff() const;
         unsigned int get_num_tchunks() const;
 
         void resize(size_t number_of_samples, size_t gpu_memory);
@@ -256,17 +254,11 @@ class DedispersionStrategy
          */
         int _nchans;
         /**
-         * @brief The frequency of the first channel
-         */
-        float _fch1;
-        /**
-         * @brief The width of a channel
-         */
-        float  _foff;
-        /**
          * @brief The number of chunks the data are divided in
          */
         unsigned int _num_tchunks;
+	
+        std::vector<float> _bin_frequencies;
 };
 
 } // namespace astroaccelerate
