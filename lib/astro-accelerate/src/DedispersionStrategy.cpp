@@ -172,6 +172,12 @@ namespace astroaccelerate{
 	float DedispersionStrategy::get_foff() const { return _foff;}
 	unsigned int DedispersionStrategy::get_num_tchunks() const { return _num_tchunks;}
 
+        void DedispersionStrategy::resize(size_t const number_of_samples, size_t const gpu_memory)
+        {
+            _nsamp = number_of_samples;
+            make_strategy(gpu_memory);
+        }
+
 	void DedispersionStrategy::make_strategy(size_t const gpu_memory)
 	{
 		// This method relies on defining points when nsamps is a multiple of
