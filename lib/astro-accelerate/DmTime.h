@@ -23,6 +23,7 @@ class DmTime
         ~DmTime();
         std::size_t number_of_dm_ranges() const;
         std::size_t output_size() const;
+        std::vector<std::size_t> const& nsamples() const;
         float** operator[](std::size_t dm_range) { return _data[dm_range]; };
 
     private:
@@ -30,6 +31,11 @@ class DmTime
          * @brief Size of the dedispersion plan
          */
         std::size_t _ouput_size;
+
+        /**
+         * @brief The number of time samples for the set of DM trials in each range
+         */
+        std::vector<std::size_t> _nsamples;
         /**
          * @brief Number of dms for each dm range
          */

@@ -5,6 +5,7 @@ namespace astroaccelerate {
 template<typename ValueType>
 DmTime<ValueType>::DmTime(DedispersionStrategy const& dedispersion_strategy)
 {
+    _nsamples.clear();
 	std::size_t number_of_dm_ranges = dedispersion_strategy.get_range();
     _ndms.reserve(number_of_dm_ranges);
     _data = (ValueType ***) malloc(number_of_dm_ranges*sizeof(ValueType **));
@@ -15,6 +16,7 @@ DmTime<ValueType>::DmTime(DedispersionStrategy const& dedispersion_strategy)
     	int total_samps = 0;
     	for (int k = 0; k < dedispersion_strategy.get_num_tchunks(); ++k)
     		total_samps += dedispersion_strategy.get_t_processed()[_range][k];
+        _nsamples.push_back(total_samps);
         _data[_range] = (ValueType **) malloc(dm_block_size*sizeof(ValueType *));
         if (_data[_range] == NULL)
         {
