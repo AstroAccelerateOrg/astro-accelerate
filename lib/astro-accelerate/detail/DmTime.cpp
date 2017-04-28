@@ -65,4 +65,16 @@ std::size_t DmTime<ValueType>::output_size() const
     return _ouput_size;
 }
 
+template<typename ValueType>
+std::vector<std::size_t> const& DmTime<ValueType>::nsamples() const
+{
+    return _nsamples;
+}
+
+template<typename ValueType>
+std::size_t DmTime<ValueType>::max_nsamples() const
+{
+    return *std::max_element(_nsamples.begin(),_nsamples.end());
+}
+
 } // namespace astroaccelerate

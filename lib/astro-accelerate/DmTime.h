@@ -3,6 +3,7 @@
 
 #include "DedispersionStrategy.h"
 #include <vector>
+#include <algorithm>
 #include <assert.h>
 
 namespace astroaccelerate {
@@ -24,6 +25,7 @@ class DmTime
         std::size_t number_of_dm_ranges() const;
         std::size_t output_size() const;
         std::vector<std::size_t> const& nsamples() const;
+        std::size_t max_nsamples() const;
         float** operator[](std::size_t dm_range) { return _data[dm_range]; };
 
     private:
