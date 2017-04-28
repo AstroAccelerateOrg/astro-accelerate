@@ -4,21 +4,32 @@ namespace astroaccelerate {
 
 template<typename AstroAccelerateParameterType>
 AstroAccelerate<AstroAccelerateParameterType>::AstroAccelerate(DedispersionStrategy  &dedispersion_strategy)
-						   	   	   	   	   	   	   	   	   	   : _num_tchunks(dedispersion_strategy.get_num_tchunks())
-						   	   	   	   	   	   	   	   	   	   ,_range(dedispersion_strategy.get_range())
-						   	   	   	   	   	   	   	   	   	   ,_nchans(dedispersion_strategy.get_nchans())
-						   	   	   	   	   	   	   	   	   	   ,_maxshift(dedispersion_strategy.get_maxshift())
-						   	   	   	   	   	   	   	   	   	   ,_tsamp(dedispersion_strategy.get_tsamp())
-						   	   	   	   	   	   	   	   	   	   ,_max_ndms(dedispersion_strategy.get_max_ndms())
-						   	   	   	   	   	   	   	   	   	   ,_sigma_cutoff(dedispersion_strategy.get_sigma_cutoff())
-						   	   	   	   	   	   	   	   	   	   ,_ndms(dedispersion_strategy.get_ndms())
-						   	   	   	   	   	   	   	   	   	   ,_dmshifts(dedispersion_strategy.get_dmshifts())
-						   	   	   	   	   	   	   	   	   	   ,_t_processed(dedispersion_strategy.get_t_processed())
-						   	   	   	   	   	   	   	   	   	   ,_dm_low(dedispersion_strategy.get_dm_low())
-						   	   	   	   	   	   	   	   	   	   ,_dm_high(dedispersion_strategy.get_dm_high())
-						   	   	   	   	   	   	   	   	   	   ,_dm_step(dedispersion_strategy.get_dm_step())
-						   	   	   	   	   	   	   	   	   	   ,_in_bin(dedispersion_strategy.get_in_bin())
-						   	   	   	   	   	   	   	   	   	   ,_out_bin(dedispersion_strategy.get_out_bin())
+						   	      : _num_tchunks(dedispersion_strategy.get_num_tchunks())
+						   	      ,_range(dedispersion_strategy.get_range())
+						   	      ,_nchans(dedispersion_strategy.get_nchans())
+						   	      ,_maxshift(dedispersion_strategy.get_maxshift())
+						   	      ,_tsamp(dedispersion_strategy.get_tsamp())
+						   	      ,_max_ndms(dedispersion_strategy.get_max_ndms())
+						   	      ,_sigma_cutoff(dedispersion_strategy.get_sigma_cutoff())
+						   	      ,_ndms(dedispersion_strategy.get_ndms())
+						   	      ,_dmshifts(dedispersion_strategy.get_dmshifts())
+						   	      ,_t_processed(dedispersion_strategy.get_t_processed())
+						   	      ,_dm_low(dedispersion_strategy.get_dm_low())
+						   	      ,_dm_high(dedispersion_strategy.get_dm_high())
+						   	      ,_dm_step(dedispersion_strategy.get_dm_step())
+						   	      ,_in_bin(dedispersion_strategy.get_in_bin())
+						   	      ,_out_bin(dedispersion_strategy.get_out_bin())
+                                                              ,_nsamp(dedispersion_strategy.get_nsamp())
+                                                              ,_sigma_constant(dedispersion_strategy.get_sigma_constant())
+                                                              ,_max_boxcar_width_in_sec(dedispersion_strategy.get_max_boxcar_width_in_sec())
+                                                              ,_total_ndms(dedispersion_strategy.get_total_ndms())
+                                                              ,_nboots(dedispersion_strategy.get_nboots())
+                                                              ,_ntrial_bins(dedispersion_strategy.get_ntrial_bins())
+                                                              ,_navdms(dedispersion_strategy.get_navdms())
+                                                              ,_narrow(dedispersion_strategy.get_narrow())
+                                                              ,_wide(dedispersion_strategy.get_wide())
+                                                              ,_nsearch(dedispersion_strategy.get_nsearch())
+                                                              ,_aggression(dedispersion_strategy.get_aggression())
 {
 	//
 	_multi_file = 0;
@@ -47,10 +58,10 @@ AstroAccelerate<AstroAccelerateParameterType>::~AstroAccelerate()
 }
 
 template<typename AstroAccelerateParameterType>
-void AstroAccelerate<AstroAccelerateParameterType>::allocate_memory_gpu(DedispersionStrategy const &dedispersion_strategy)
+void AstroAccelerate<AstroAccelerateParameterType>::allocate_memory_gpu()
 {
-	int time_samps = dedispersion_strategy.get_t_processed()[0][0] + dedispersion_strategy.get_maxshift();
-	_gpu_input_size = (size_t)time_samps * (size_t) dedispersion_strategy.get_nchans() * sizeof(unsigned short);
+	int time_samps = _t_processed[0][0] + _maxshift;
+	_gpu_input_size = (size_t)time_samps * (size_t)_nchans * sizeof(unsigned short);
 
 	//printf("\n gpu inputsize: %d\n", (int)(_gpu_input_size/1024/1024));
 	cudaError_t rc1 = ( cudaMalloc((void **)&_d_input, _gpu_input_size) );
@@ -60,13 +71,13 @@ void AstroAccelerate<AstroAccelerateParameterType>::allocate_memory_gpu(Dedisper
 	    exit(0);
 	}
 
-	if (dedispersion_strategy.get_nchans() < dedispersion_strategy.get_max_ndms())
+	if (_nchans < _max_ndms)
 	{
-		_gpu_output_size = (size_t)time_samps * (size_t)dedispersion_strategy.get_max_ndms() * sizeof(float);
+		_gpu_output_size = (size_t)time_samps * (size_t)_max_ndms * sizeof(float);
 	}
 	else
 	{
-		_gpu_output_size = (size_t)time_samps * (size_t)dedispersion_strategy.get_nchans() * sizeof(float);
+		_gpu_output_size = (size_t)time_samps * (size_t)_nchans * sizeof(float);
 	}
 	//printf("\n gpu outputsize: %d\n", (int)(_gpu_output_size /1024/1024));
 	cudaError_t rc2 = ( cudaMalloc((void **)&_d_output, _gpu_output_size) );
@@ -75,33 +86,75 @@ void AstroAccelerate<AstroAccelerateParameterType>::allocate_memory_gpu(Dedisper
 	    printf("Could not allocate gpu memory: %d", rc2);
 	    exit(0);
 	}
-
-
 	( cudaMemset(_d_output, 0, _gpu_output_size) );
 }
 
 template<typename AstroAccelerateParameterType>
 void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigned device_id
-																		,DedispersionStrategy &dedispersion_strategy
-																		,unsigned short *input_buffer
-																		,DmTime<float> &output_buffer
-																		,std::vector<float> &output_sps
-																		)
+									,unsigned char *input_buffer
+								        ,DmTime<float> &output_buffer
+									,std::vector<float> &output_sps
+									)
+{
+        //GpuTimer timer;
+        //timer.Start();
+	unsigned short *input_buffer_cast = nullptr;
+	size_t inputsize = _nsamp * _nchans * sizeof(unsigned short);
+	input_buffer_cast = (unsigned short *) malloc(inputsize);
+        if (input_buffer_cast == nullptr)
+            throw std::bad_alloc();
+        
+
+ 
+	try
+        {
+	    // cast to unsigned short
+	    for (int i = 0; i < _nchans; ++i)
+            {
+                for (int j = 0; i < _nsamp; ++j)
+                {
+                    input_buffer_cast[ (i*_nsamp) + j] = (unsigned short)(input_buffer_cast[ (i*_nsamp) + j]);
+                }
+            }
+            //timer.Stop();
+            //float time = timer.Elapsed() / 1000;
+            //printf("\n:Time to cast: %g (GPU estimate)",  time);
+
+            // call dd + sps
+            run_dedispersion_sps(device_id
+                    ,input_buffer_cast
+                    ,output_buffer
+                    ,output_sps
+                    );
+        
+        } 
+        catch(...)
+        {
+            free(input_buffer_cast);
+            throw;
+        }
+
+        // free mem
+	free(input_buffer_cast);
+}
+
+template<typename AstroAccelerateParameterType>
+void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigned device_id
+									,unsigned short *input_buffer
+									,DmTime<float> &output_buffer
+									,std::vector<float> &output_sps
+									)
 {
 	//
 	long int inc = 0;
 	float tstart_local = 0.0f;
 
 	// allocate memory gpu
-	allocate_memory_gpu(dedispersion_strategy);
-	//
-
-	//output_sps.resize(output_buffer.output_size()/sizeof(float));
+	allocate_memory_gpu();
 
 	//printf("\nDe-dispersing...\n");
 	GpuTimer timer;
 	timer.Start();
-
 
 	float tsamp_original = _tsamp;
 	int maxshift_original = _maxshift;
@@ -110,11 +163,12 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 	//out_tmp = (float *) malloc(( _t_processed[0][0] + _maxshift ) * _max_ndms * sizeof(float));
 	//memset(out_tmp, 0.0f, _t_processed[0][0] + _maxshift * _max_ndms * sizeof(float));
 
-
 	// assume we store size of the output size
 	// so max number of candidates is a quarter of it
-	size_t max_peak_size = output_sps.size() / 4;
-	size_t  peak_pos = 0;
+	size_t max_peak_size = (size_t) (_nsamp * _nchans/4);
+	output_sps.resize(max_peak_size*4);
+        
+        size_t peak_pos=0;
 
 	for (int t = 0; t < _num_tchunks; ++t)
 	{
@@ -178,7 +232,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 				size_t previous_peak_pos = peak_pos;
 				analysis_GPU(output_sps, &peak_pos, max_peak_size, dm_range, tstart_local,
 							_t_processed[dm_range][t], _in_bin[dm_range], _out_bin[dm_range], &_maxshift, _max_ndms, _ndms,
-							_sigma_cutoff, dedispersion_strategy.get_sigma_constant(), dedispersion_strategy.get_max_boxcar_width_in_sec()
+							_sigma_cutoff, _sigma_constant, _max_boxcar_width_in_sec
 							, _d_output, _dm_low, _dm_high, _dm_step, _tsamp, _candidate_algorithm);
 
 
@@ -240,11 +294,11 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 	//free(input_buffer);
 
 	double time_processed = ( tstart_local ) / tsamp_original;
-	double dm_t_processed = time_processed * dedispersion_strategy.get_total_ndms();
+	double dm_t_processed = time_processed * _total_ndms;
 	double all_processed = dm_t_processed * _nchans;
 	//printf("\nGops based on %.2lf ops per channel per tsamp: %f", NOPS, ( ( NOPS * all_processed ) / ( time ) ) / 1000000000.0);
 	int num_reg = SNUMREG;
-	float num_threads = dedispersion_strategy.get_total_ndms() * ( _t_processed[0][0] ) / ( num_reg );
+	float num_threads = _total_ndms * ( _t_processed[0][0] ) / ( num_reg );
 	float data_size_loaded = ( num_threads * _nchans * sizeof(ushort) ) / 1000000000;
 	float time_in_sec = time;
 	float bandwidth = data_size_loaded / time_in_sec;
@@ -259,9 +313,8 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 		GpuTimer timer;
 		timer.Start();
 		//
-		periodicity(_range, dedispersion_strategy.get_nsamp(), _max_ndms, inc, dedispersion_strategy.get_nboots(), dedispersion_strategy.get_ntrial_bins(),
-					dedispersion_strategy.get_navdms(), dedispersion_strategy.get_narrow(), dedispersion_strategy.get_wide(), dedispersion_strategy.get_nsearch(),
-					dedispersion_strategy.get_aggression(), dedispersion_strategy.get_sigma_cutoff(), output_buffer, _ndms, _in_bin, _dm_low, _dm_high, _dm_step, tsamp_original);
+		periodicity(_range, _nsamp, _max_ndms, inc, _nboots, _ntrial_bins, _navdms, _narrow, _wide, _nsearch,	_aggression, _sigma_cutoff, output_buffer, 
+                _ndms, _in_bin, _dm_low, _dm_high, _dm_step, tsamp_original);
 		//
 		timer.Stop();
 		float time = timer.Elapsed()/1000;
@@ -284,17 +337,17 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 		timer.Start();
 		// acceleration(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
 		acceleration_fdas(_range
-						  ,dedispersion_strategy.get_nsamp()
+						  ,_nsamp
 						  ,_max_ndms
 						  ,inc
-						  ,dedispersion_strategy.get_nboots()
-						  ,dedispersion_strategy.get_ntrial_bins()
-						  ,dedispersion_strategy.get_navdms()
-						  ,dedispersion_strategy.get_narrow()
-						  ,dedispersion_strategy.get_wide()
-						  ,dedispersion_strategy.get_nsearch()
-						  ,dedispersion_strategy.get_aggression()
-						  ,dedispersion_strategy.get_sigma_cutoff()
+						  ,_nboots
+						  ,_ntrial_bins
+						  ,_navdms
+						  ,_narrow
+						  ,_wide
+						  ,_nsearch
+						  ,_aggression
+						  ,_sigma_cutoff
 						  ,output_buffer
 						  ,_ndms
 						  ,_in_bin
@@ -302,9 +355,9 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 						  ,_dm_high
 						  ,_dm_step
 						  ,tsamp_original
-						  ,dedispersion_strategy.get_enable_fdas_custom_fft()
-						  ,dedispersion_strategy.get_enable_fdas_inbin()
-						  ,dedispersion_strategy.get_enable_fdas_norm());
+						  ,1
+						  ,0
+						  ,1);
 		//
 		timer.Stop();
 		float time = timer.Elapsed()/1000;

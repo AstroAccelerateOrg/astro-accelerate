@@ -40,8 +40,6 @@ namespace astroaccelerate{
 		_nsamples = 0;
 		_max_samps = 0;
 		_nchans = 0;
-		_fch1 = 0.0f;
-		_foff = 0.0f;
 		_num_tchunks = 0;
 	}
 
@@ -60,8 +58,6 @@ namespace astroaccelerate{
 		        							  ,int nbits
 		        							  ,float tsamp
 		        							  ,float tstart
-		        							  ,float fch1
-		        							  ,float foff
 		        							  ,float sigma_cutoff
 		        							  ,float sigma_constant
 		        							  ,float max_boxcar_width_in_sec
@@ -72,6 +68,7 @@ namespace astroaccelerate{
 		        							  ,int ntrial_bins
 		        							  ,int nsearch
 		        							  ,float aggression
+                                                                                  ,std::vector<float> const &bin_frequencies
 											  )
 											  :_user_dm_low(user_dm_low)
 											  ,_user_dm_high(user_dm_high)
@@ -87,8 +84,6 @@ namespace astroaccelerate{
 											  ,_nbits(nbits)
 											  ,_tsamp(tsamp)
 											  ,_tstart(tstart)
-											  ,_fch1(fch1)
-											  ,_foff(foff)
 											  ,_sigma_cutoff(sigma_cutoff)
 		  	  	  	  	  	  	  	  	  	  ,_sigma_constant(sigma_constant)
 											  ,_max_boxcar_width_in_sec(max_boxcar_width_in_sec)
@@ -99,6 +94,7 @@ namespace astroaccelerate{
 											  ,_ntrial_bins(ntrial_bins)
 											  ,_nsearch(nsearch)
 											  ,_aggression(aggression)
+                                                                                          ,_bin_frequencies(bin_frequencies)
 		{
 		//
 		_maxshift = 0;
@@ -168,9 +164,13 @@ namespace astroaccelerate{
 	int DedispersionStrategy::get_nsamples() const { return _nsamples;}
 	int DedispersionStrategy::get_max_samps() const { return _max_samps;}
 	int DedispersionStrategy::get_nchans() const { return _nchans;}
-	float DedispersionStrategy::get_fch1() const { return _fch1;}
-	float DedispersionStrategy::get_foff() const { return _foff;}
 	unsigned int DedispersionStrategy::get_num_tchunks() const { return _num_tchunks;}
+
+        void DedispersionStrategy::resize(size_t const number_of_samples, size_t const gpu_memory)
+        {
+            _nsamp = number_of_samples;
+            make_strategy(gpu_memory);
+        }
 
 	void DedispersionStrategy::make_strategy(size_t const gpu_memory)
 	{
@@ -181,9 +181,6 @@ namespace astroaccelerate{
 		int maxshift_high = 0;
 
 		float n;
-		float fmin = ( _fch1 + ( _foff * _nchans ) );
-		float fmin_pow = powf(fmin, _power);
-		float fmax_pow = powf(_fch1, _power);
 
 		_dm_low = (float *) malloc(( _range ) * sizeof(float));
 		_dm_high = (float *) malloc(( _range ) * sizeof(float));
@@ -199,14 +196,14 @@ namespace astroaccelerate{
 			// Calculate time independent dm shifts
 			for (c = 0; c < _nchans; c++)
 			{
-				( _dmshifts )[c] = 4148.741601f * ( ( 1.0 / pow(( _fch1 + ( _foff * c ) ), _power) ) - ( 1.0 / pow(_fch1, _power) ) );
+				( _dmshifts )[c] = 4148.741601f * ( _bin_frequencies[c] );
 			}
 		}
 		else {
 			// Calculate time independent dm shifts
 			for (c = 0; c < _nchans; c++)
 			{
-				_dmshifts[c] = (float) ( 4148.741601f * ( ( 1.0 / pow((double) ( _fch1 + ( _foff * c ) ), _power) ) - ( 1.0 / pow((double) _fch1, _power) ) ) );
+				_dmshifts[c] = (float) ( 4148.741601f * ( _bin_frequencies[c]) );
 			}
 		}
 

@@ -302,6 +302,8 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp, &tstart,
 		&fch1, &foff);
 
+
+		std::vector<float> bin_frequencies(6, 1.0);
 		// dedispersion
 		//DedispersionStrategy dedispersion_strategy;
 		//DedispersionStrategyFile(&fp, my_argc, my_argv, dedispersion_strategy, gpu_memory);
@@ -321,8 +323,6 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 									 ,nbits
 									 ,tsamp
 									 ,tstart
-									 ,fch1
-									 ,foff
 									 ,sigma_cutoff
 									 ,sigma_constant
 									 ,max_boxcar_width_in_sec
@@ -332,7 +332,8 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 									 ,navdms
 									 ,ntrial_bins
 									 ,nsearch
-									 ,aggression);
+									 ,aggression
+                                                                         ,bin_frequencies);
 
 		// input buffer
 		unsigned short *input_buffer = nullptr;
@@ -346,16 +347,13 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		DmTime<float> output_buffer(dedispersion_strategy);
 		// output of sps - assume it's a quarter of the output size
 		std::vector<float> output_sps;
-		size_t max_peak_size = (size_t) (dedispersion_strategy.get_nsamp() * dedispersion_strategy.get_nchans()/4);
-		output_sps.resize(max_peak_size*4);
 
 		astroaccelerate::AstroAccelerate<TestParams> astroaccelerate(dedispersion_strategy);
 		astroaccelerate.run_dedispersion_sps(device_id
-											,dedispersion_strategy
-											,input_buffer
-											,output_buffer
-											,output_sps
-											);
+						,input_buffer
+						,output_buffer
+						,output_sps
+						);
 		//*/
 		fclose(fp);
 		free(inBin);
