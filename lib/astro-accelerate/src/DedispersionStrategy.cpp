@@ -68,7 +68,7 @@ namespace astroaccelerate{
 		        							  ,int ntrial_bins
 		        							  ,int nsearch
 		        							  ,float aggression
-                                                                                  ,std::vector<float> const &bin_frequencies
+		        							  ,std::vector<float> const &bin_frequencies
 											  )
 											  :_user_dm_low(user_dm_low)
 											  ,_user_dm_high(user_dm_high)
@@ -94,7 +94,7 @@ namespace astroaccelerate{
 											  ,_ntrial_bins(ntrial_bins)
 											  ,_nsearch(nsearch)
 											  ,_aggression(aggression)
-                                                                                          ,_bin_frequencies(bin_frequencies)
+											  ,_bin_frequencies(bin_frequencies)
 		{
 		//
 		_maxshift = 0;
@@ -166,11 +166,11 @@ namespace astroaccelerate{
 	int DedispersionStrategy::get_nchans() const { return _nchans;}
 	unsigned int DedispersionStrategy::get_num_tchunks() const { return _num_tchunks;}
 
-        void DedispersionStrategy::resize(size_t const number_of_samples, size_t const gpu_memory)
-        {
-            _nsamp = number_of_samples;
-            make_strategy(gpu_memory);
-        }
+    void DedispersionStrategy::resize(size_t const number_of_samples, size_t const gpu_memory)
+    {
+        _nsamp = number_of_samples;
+        make_strategy(gpu_memory);
+    }
 
 	void DedispersionStrategy::make_strategy(size_t const gpu_memory)
 	{
