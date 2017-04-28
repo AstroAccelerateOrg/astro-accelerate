@@ -53,11 +53,11 @@ if(NOT LIBRARY_INSTALL_DIR)
 endif(NOT LIBRARY_INSTALL_DIR)
 
 if(NOT INCLUDE_INSTALL_DIR)
-    set(INCLUDE_INSTALL_DIR "include/${CMAKE_PROJECT_NAME}")
+    set(INCLUDE_INSTALL_DIR "include/${PROJECT_NAME}")
 endif(NOT INCLUDE_INSTALL_DIR)
 
 if(NOT MODULES_INSTALL_DIR)
-    set (MODULES_INSTALL_DIR "share/${CMAKE_PROJECT_NAME}")
+    set (MODULES_INSTALL_DIR "share/${PROJECT_NAME}")
 endif(NOT MODULES_INSTALL_DIR)
 
 if(NOT DOC_INSTALL_DIR)
@@ -73,8 +73,8 @@ include(dependencies)
 
 # create a header file with the project version.
 configure_file(${PROJECT_SOURCE_DIR}/cmake/version.h.in
-    ${PROJECT_BINARY_DIR}/${CMAKE_PROJECT_NAME}/version.h)
-install(FILES ${PROJECT_BINARY_DIR}/${CMAKE_PROJECT_NAME}/version.h
+    ${PROJECT_BINARY_DIR}/${PROJECT_NAME}/version.h)
+install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}/version.h
     DESTINATION ${INCLUDE_INSTALL_DIR})
 
 # === process through the astro-accelerate tree:
@@ -85,7 +85,7 @@ set(DEBUG_PRINT ON)
 if (DEBUG_PRINT)
     message(STATUS "")
     message(STATUS "****************************************************************************")
-    message(STATUS " name: ${CMAKE_PROJECT_NAME} version: ${PROJECT_VERSION}")
+    message(STATUS " name: ${PROJECT_NAME} version: ${PROJECT_VERSION}")
     message(STATUS "")
     message(STATUS "")
     message(STATUS " Compiler Options:")

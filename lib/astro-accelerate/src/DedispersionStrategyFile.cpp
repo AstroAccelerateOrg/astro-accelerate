@@ -287,7 +287,7 @@ namespace astroaccelerate{
 						}
 						dedispersion_strategy._tstart = (float) temp;
 					}
-					else if (strcmp(string, "fch1") == 0)
+/*					else if (strcmp(string, "fch1") == 0)
 					{
 						if (fread(&temp, sizeof(double), 1, *fp) != 1)
 						{
@@ -305,8 +305,8 @@ namespace astroaccelerate{
 						}
 						dedispersion_strategy._foff = (float) temp;
 					}
-					else if (strcmp(string, "nchans") == 0)
-					{
+*/					else if (strcmp(string, "nchans") == 0)
+         				{
 						if (fread(&(dedispersion_strategy._nchans), sizeof(int), 1, *fp) != 1)
 						{
 							fprintf(stderr, "\nError while reading file\n");
