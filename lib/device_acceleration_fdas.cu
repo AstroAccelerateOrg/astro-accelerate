@@ -108,7 +108,6 @@ void acceleration_fdas(int range,
 	fdas_print_params_h();
 
 	// prepare signal
-
 	params.offset = presto_z_resp_halfwidth((double) ZMAX, 0); //array offset when we pick signal points for the overlp-save method
 	printf(" Calculated overlap-save offsets: %d\n", params.offset);
 
@@ -184,6 +183,26 @@ void acceleration_fdas(int range,
 		}
 		getLastCudaError("\nCuda Error\n");
 
+		/*
+		 * -- calculate total number of streams which can be processed
+		 * int number_dm_concurrently = (mfree / mem_tot_needed) - 1;
+		 *
+		 * -- create as many streams as we have arrays
+		 * cudaStream_t *stream_list = malloc(number_dm_concurrently * sizeof(cudaStream_t));
+		 * for (int ii = 0; ii < number_dm_concurrently; ++ii)
+		 * {
+    	 *      cudaStreamCreate(&stream_list[ii]);
+		 * }
+		 *
+		 * -- a list of arrays
+		 * gpuarrays *gpuarrays_list = malloc(number_dm_concurrently * sizeof(gpuarrays));
+		 * -- allocate memory -> create a function which uses cudaMallocHost to alloc pinned memory
+		 * for (int ii = 0; ii < number_dm_concurrently; ++ii)
+		 * {
+		 *     fdas_alloc_gpu_arrays(&gpuarrays_list[ii], &cmdargs);
+		 * 	   getLastCudaError("\nCuda Error\n");
+		 * }
+		 */
 		fdas_alloc_gpu_arrays(&gpuarrays, &cmdargs);
 		getLastCudaError("\nCuda Error\n");
 
@@ -194,9 +213,23 @@ void acceleration_fdas(int range,
 		printf(" done.\n");
 		getLastCudaError("\nCuda Error\n");
 
+		/*
+		 * -- do the operation above for each stream
+		 * for (int ii = 0; ii < number_dm_concurrently; ++ii)
+		 * {
+		 *     fdas_create_acc_kernels(gpuarrays_list[ii].d_kernel, &cmdargs);
+		 *     getLastCudaError("\nCuda Error\n");
+		 * }
+		 *
+		 */
 		//Create cufft plans
 		fdas_cuda_create_fftplans(&fftplans, &params);
 		getLastCudaError("\nCuda Error\n");
+
+		/*
+		 * Is 1 plan per stream needed here ?
+		 *
+		 */
 
 		// Starting main acceleration search
 		//cudaGetLastError(); //reset errors
@@ -204,6 +237,13 @@ void acceleration_fdas(int range,
 
 		int iter=cmdargs.iter;
 		int titer=1;
+
+		/*
+		 * for (int ii = 0; ii < number_dm_concurrently; ++ii)
+		 * {
+		 *
+		 *
+		 */
 
 		// FFT
 		for (int i = 0; i < range; i++) {
@@ -213,7 +253,11 @@ void acceleration_fdas(int range,
 				//first time PCIe transfer and print timing
 				gettimeofday(&t_start, NULL); //don't time transfer
 				checkCudaErrors( cudaMemcpy(gpuarrays.d_in_signal, output_buffer[i][dm_count], processed*sizeof(float), cudaMemcpyHostToDevice));
-				//checkCudaErrors( cudaMemcpy(gpuarrays.d_in_signal, acc_signal, params.nsamps*sizeof(float), cudaMemcpyHostToDevice));
+
+				/*
+				 * checkCudaErrors( cudaMemcpyAsync(gpuarrays_list[i].d_in_signal, output_buffer[i][dm_count], processed*sizeof(float), cudaMemcpyHostToDevice, stream_list[ii]));
+				 *
+				 */
 
 				cudaDeviceSynchronize();
 				gettimeofday(&t_end, NULL);
@@ -225,6 +269,9 @@ void acceleration_fdas(int range,
 				if(cmdargs.basic) {
 					gettimeofday(&t_start, NULL); //don't time transfer
 				    fdas_cuda_basic(&fftplans, &gpuarrays, &cmdargs, &params );
+				    /*
+				     * Same question about fftplans here
+				     */
 				    cudaDeviceSynchronize();
 				    gettimeofday(&t_end, NULL);
 				    t_gpu = (double) (t_end.tv_sec + (t_end.tv_usec / 1000000.0)  - t_start.tv_sec - (t_start.tv_usec/ 1000000.0)) * 1000.0;
@@ -237,6 +284,9 @@ void acceleration_fdas(int range,
 					printf("\nMain: running FDAS with custom fft\n");
 					gettimeofday(&t_start, NULL); //don't time transfer
 					fdas_cuda_customfft(&fftplans, &gpuarrays, &cmdargs, &params);
+					/*
+					 * Same question about fftplans here
+					 */
 					cudaDeviceSynchronize();
 					gettimeofday(&t_end, NULL);
 					t_gpu = (double) (t_end.tv_sec + (t_end.tv_usec / 1000000.0)  - t_start.tv_sec - (t_start.tv_usec/ 1000000.0)) * 1000.0;
@@ -249,7 +299,6 @@ void acceleration_fdas(int range,
 					//------------- Testing BLN
 					//float signal_mean, signal_sd;
 					//------------- Testing BLN
-					
 					int ibin=1;
 					if (cmdargs.inbin) ibin=2;
 					
@@ -292,6 +341,7 @@ void acceleration_fdas(int range,
 				// output_buffer[i][dm_count],
 			}
 		}
+
 	}
 
 	if (cmdargs.search)
@@ -300,6 +350,18 @@ void acceleration_fdas(int range,
 	    cufftDestroy(fftplans.forwardplan);
 	    // releasing GPU arrays
 	    fdas_free_gpu_arrays(&gpuarrays, &cmdargs);
+
+	    /* -- release what has to be released
+	     * -- don't forget it's pinned memory here so write a function which uses cudaFreeHost
+	     * for (int ii = 0; ii < number_dm_concurrently; ++ii)
+		 * {
+		 *     fdas_free_gpu_arrays(&gpuarrays_list[ii], &cmdargs);
+		 * }
+		 * for (int ii = 0; ii < number_dm_concurrently; ++ii)
+		 * {
+		 *     cudaStreamDestroy(&stream_list[i]);
+		 * }
+	     */
 	}
 
 }
