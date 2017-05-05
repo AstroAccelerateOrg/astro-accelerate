@@ -1,0 +1,15 @@
+range	0    25   0.01 1 1
+range	25   50   0.02 2 2
+range	50   100  0.05 4 4 
+range	100  250  0.1  8 8
+range	250  500  0.2  16 16
+range	500  700  0.25 16 16
+-range	700  1000 0.5  32 32
+-range	1000 3000 1.0  64 64
+sigma_cutoff	6
+-analysis
+-acceleration
+-periodicity
+-output_dmt
+debug
+file /home/ania/ska-mid-b1.fil

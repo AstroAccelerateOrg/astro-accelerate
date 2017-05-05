@@ -2,6 +2,7 @@
 
 maxThreads=1024
 numTrials=5
+inputFileName=ska_low.txt
 
 rm -rf profile_optimum_averaged
 mkdir profile_optimum_averaged
@@ -18,7 +19,7 @@ do
 	do
 		for divint in {6,8,10,12,14}
 		do
-			for divindm in {32,40,50,60}
+			for divindm in {32,40,48,56,64}
 			do
 				threads=$(echo "$divint * $divindm" | bc)
 				if [ $threads -le $maxThreads ]; then
@@ -49,7 +50,7 @@ do
 							cd ../scripts/
 						fi
 
-						./astro-accelerate.sh ../input_files/ska_b2.txt > profile_results/"$trialString"_"$paramString".dat
+						./astro-accelerate.sh ../input_files/"$inputFileName" > profile_results/"$trialString"_"$paramString".dat
 
 						if [ $trial -eq 1 ]; then
 							cp ../lib/headers/params.h profile_results/$paramString.h
