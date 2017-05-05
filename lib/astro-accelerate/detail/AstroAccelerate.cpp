@@ -63,30 +63,43 @@ void AstroAccelerate<AstroAccelerateParameterType>::allocate_memory_gpu()
 	int time_samps = _t_processed[0][0] + _maxshift;
 	_gpu_input_size = (size_t)time_samps * (size_t)_nchans * sizeof(unsigned short);
 
-	//printf("\n gpu inputsize: %d\n", (int)(_gpu_input_size/1024/1024));
 	cudaError_t rc1 = ( cudaMalloc((void **)&_d_input, _gpu_input_size) );
 	if (rc1 != cudaSuccess)
 	{
-	    printf("Could not allocate gpu memory: %d", rc1);
-	    exit(0);
+		throw std::bad_alloc();
 	}
 
-	if (_nchans < _max_ndms)
+	try
 	{
-		_gpu_output_size = (size_t)time_samps * (size_t)_max_ndms * sizeof(float);
+		if (_nchans < _max_ndms)
+	    {
+		    _gpu_output_size = (size_t)time_samps * (size_t)_max_ndms * sizeof(float);
+	    }
+	    else
+	    {
+		    _gpu_output_size = (size_t)time_samps * (size_t)_nchans * sizeof(float);
+	    }
 	}
-	else
+	catch(...)
 	{
-		_gpu_output_size = (size_t)time_samps * (size_t)_nchans * sizeof(float);
+		cudaFree(_d_input);
+		throw;
 	}
-	//printf("\n gpu outputsize: %d\n", (int)(_gpu_output_size /1024/1024));
+
 	cudaError_t rc2 = ( cudaMalloc((void **)&_d_output, _gpu_output_size) );
 	if (rc2 != cudaSuccess)
 	{
-	    printf("Could not allocate gpu memory: %d", rc2);
-	    exit(0);
+		throw std::bad_alloc();
 	}
-	( cudaMemset(_d_output, 0, _gpu_output_size) );
+	try
+	{
+		cudaMemset(_d_output, 0, _gpu_output_size);
+	}
+	catch(...)
+	{
+		cudaFree(_d_output);
+		throw;
+	}
 }
 
 template<typename AstroAccelerateParameterType>
@@ -101,12 +114,9 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 	unsigned short *input_buffer_cast = nullptr;
 	size_t inputsize = _nsamp * _nchans * sizeof(unsigned short);
 	input_buffer_cast = (unsigned short *) malloc(inputsize);
-        if (input_buffer_cast == nullptr)
-            throw std::bad_alloc();
-        
-
- 
-	try
+    if (input_buffer_cast == nullptr)
+        throw std::bad_alloc();
+ 	try
         {
 	    // cast to unsigned short
 	    for (int i = 0; i < _nchans; ++i)
