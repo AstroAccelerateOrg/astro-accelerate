@@ -83,5 +83,69 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 	}
 }
 
+
+//__launch_bounds__(SDIVINT*SDIVINDM)
+__global__ void shared_dedisperse_kernel_16(int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep)
+{
+	int i, c;
+	int shift;
+
+	ushort temp_f;
+	int local, unroll;
+
+	float findex = ( threadIdx.x * 2 );
+	float local_kernel_one[SNUMREG];
+	float local_kernel_two[SNUMREG];
+
+	for (i = 0; i < SNUMREG; i++)
+	{
+		local_kernel_one[i] = 0.0f;
+		local_kernel_two[i] = 0.0f;
+	}
+
+	int idx = ( threadIdx.x + ( threadIdx.y * SDIVINT ) );
+	int nsamp_counter = ( idx + ( blockIdx.x * ( 2 * SNUMREG * SDIVINT ) ) );
+
+	float shift_two = ( mstartdm + ( __int2float_rz(blockIdx.y) * SFDIVINDM * mdmstep ) );
+	float shift_one = ( __int2float_rz(threadIdx.y) * mdmstep );
+
+	for (c = 0; c < i_nchans; c ++)
+	{
+
+		__syncthreads();
+
+			temp_f = ( __ldg(( d_input + ( __float2int_rz(dm_shifts[c] * shift_two) ) ) + ( nsamp_counter )) );
+
+			f_line[0][idx].x = temp_f;
+			if (idx > 0)
+			{
+				f_line[0][idx - 1].y = temp_f;
+			}
+			shift = __float2int_rz(shift_one * dm_shifts[c] + findex);
+
+		nsamp_counter = ( nsamp_counter + i_nsamp );
+
+		__syncthreads();
+
+		for (i = 0; i < SNUMREG; i++)
+		{
+			unroll = ( i * 2 * SDIVINT );
+			local = *(int*) &f_line[0][( shift + unroll )];
+			local_kernel_one[i] += ( (ushort2*) ( &local ) )->x;
+			local_kernel_two[i] += ( (ushort2*) ( &local ) )->y;
+		}
+	}
+
+	// Write the accumulators to the output array. 
+	local = ( ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + ( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + 2 * threadIdx.x;
+
+	#pragma unroll
+	for (i = 0; i < SNUMREG; i++)
+	{
+		*( (float2*) ( d_output + local + ( i * 2 * SDIVINT ) ) ) = make_float2(local_kernel_one[i] / i_nchans / bin, local_kernel_two[i] / i_nchans / bin);
+	}
+}
+
+
 #endif
 
