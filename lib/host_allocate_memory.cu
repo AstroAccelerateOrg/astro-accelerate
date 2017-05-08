@@ -50,16 +50,17 @@ void allocate_memory_gpu(FILE **fp, size_t gpu_memory, int maxshift, int num_tch
 {
 
 	int time_samps = t_processed[0][0] + maxshift;
-	*gpu_inputsize = time_samps * (size_t) nchans * sizeof(unsigned short);
+	printf("\n\n\n%d\n\n\n", time_samps), fflush(stdout);
+	*gpu_inputsize = (size_t) time_samps * (size_t) nchans * sizeof(unsigned short);
 	( cudaMalloc((void **) d_input, *gpu_inputsize) );
 
 	if (nchans < max_ndms)
 	{
-		*gpu_outputsize = time_samps * max_ndms * sizeof(float);
+		*gpu_outputsize = (size_t)time_samps * (size_t)max_ndms * sizeof(float);
 	}
 	else
 	{
-		*gpu_outputsize = time_samps * nchans * sizeof(float);
+		*gpu_outputsize = (size_t)time_samps * (size_t)nchans * sizeof(float);
 	}
 	( cudaMalloc((void **) d_output, *gpu_outputsize) );
 

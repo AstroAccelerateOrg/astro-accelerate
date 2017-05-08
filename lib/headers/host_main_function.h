@@ -16,6 +16,8 @@ void main_function
 	int enable_debug,
 	int enable_analysis,
 	int enable_acceleration,
+	int enable_output_ffdot_plan,
+	int enable_output_fdas_list,
 	int enable_periodicity,
 	int output_dmt,
 	int enable_zero_dm,
@@ -79,6 +81,10 @@ void main_function
 	float sigma_constant,
 	float max_boxcar_width_in_sec,
 	clock_t start_time,
-	int candidate_algorithm
+	int candidate_algorithm,
+	int nb_selected_dm,
+	float *selected_dm_low,
+	float *selected_dm_high,
+	int analysis_debug
 	);
 #endif

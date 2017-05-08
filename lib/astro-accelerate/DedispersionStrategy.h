@@ -63,7 +63,7 @@ class DedispersionStrategy
         *  @brief Getters
         */
         int get_nboots() const ;
-       int get_ntrial_bins() const;
+        int get_ntrial_bins() const;
         int get_navdms() const;
         float get_narrow() const;
         float get_aggression() const;
@@ -257,7 +257,10 @@ class DedispersionStrategy
          * @brief The number of chunks the data are divided in
          */
         unsigned int _num_tchunks;
-	
+        /*
+         * Frequencies (MHz)
+         *
+         */
         std::vector<float> _bin_frequencies;
 };
 

@@ -1,13 +1,24 @@
 #!/bin/bash
 
-rm ../input_files/tests/*
-rm -rf ../output/57*
+if [ $# -eq 0 ]
+	then
+    		echo "No arguments supplied."
+		echo "You must supply a directory location."
+		exit
+fi
+
+LOCATION=$1
+
+rm -rf ../output/*
 rm -rf ../output/tests/*
 
 mkdir ../input_files/tests
+mkdir ../output/tests
 
-for i in $(ls ~/filterbank/unit_tests/*)
+
+for i in $(ls $LOCATION/*.fil)
 do
+	echo $i
 	cat ../input_files/header > input.txt
 	echo "file $i" >> input.txt
 	j=$(echo $i | awk -F"/" '{print $6}')
@@ -20,7 +31,7 @@ do
 	./astro-accelerate.sh $i
 done
 
-for i in $(ls ../output/5*/gl*frb*)
+for i in $(ls ../output/*/gl*frb*)
 do
 	j=$(echo $i | awk -F"/" '{print $3}'| awk -F"." '{print $1}')
 	echo $j
@@ -36,7 +47,7 @@ do
 	gnuplot $i
 done
 
-convert -delay 150 -loop 0 *.png ani.gif
+convert -delay 125 -loop 0 *.png ani.gif
 
 mv *.png ../output/tests/
 mv *.gif ../output/tests/
