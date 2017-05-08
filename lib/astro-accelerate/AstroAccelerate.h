@@ -116,20 +116,6 @@ class AstroAccelerate
          * void run_dedispersion_sps_fdas();
          */
 
-        /*
-        int get_multi_file() const;
-        int get_enable_debug() const;
-        int get_enable_analysis() const;
-        int get_enable_periodicity() const;
-        int get_enable_acceleration() const;
-        int get_output_dmt() const;
-        int get_enable_zero_dm() const;
-        int get_enable_zero_dm_with_outliers() const;
-        int get_enable_rfi() const;
-        int get_enable_fdas_custom_fft() const;
-        int get_enable_fdas_inbin() const;
-        int get_enable_fdas_norm() const;
-        */
     private:
         /**
          * @brief This function allocates memory for the the gpu arrays based on the dedispersion strategy
@@ -207,6 +193,7 @@ class AstroAccelerate
         int   _nsearch;
         float _aggression; 
         int _total_ndms;
+        int _nbits;
 
         int* _out_bin;
         /**
