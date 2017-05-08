@@ -132,7 +132,9 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		&fch1, &foff);
 
 
-		std::vector<float> bin_frequencies(6, 1.0);
+		std::vector<float> bin_frequencies(nchans, 0.0);
+
+
 		// dedispersion
 		//DedispersionStrategy dedispersion_strategy;
 		//DedispersionStrategyFile(&fp, my_argc, my_argv, dedispersion_strategy, gpu_memory);
