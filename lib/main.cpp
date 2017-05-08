@@ -15,6 +15,7 @@ int main(int argc, char* argv[])
 	// Counters and flags
 	int i, t, dm_range;
 	int range = 0;
+	int nb_selected_dm = 0;
 	int enable_debug = 0;
 	int enable_analysis = 0;
 	int enable_acceleration = 0;
@@ -26,6 +27,9 @@ int main(int argc, char* argv[])
 	int enable_fdas_custom_fft = 0;
 	int enable_fdas_inbin = 0;
 	int enable_fdas_norm = 0;
+	int enable_output_ffdot_plan = 0;
+	int enable_output_fdas_list = 0;
+	int analysis_debug = 0;
     int *inBin = NULL;
 	int *outBin = NULL;
 	int *ndms = NULL;
@@ -54,6 +58,8 @@ int main(int argc, char* argv[])
 	float *dm_low = NULL;
 	float *dm_high = NULL;
 	float *dm_step = NULL;
+	float *selected_dm_low = NULL;
+	float *selected_dm_high = NULL;
 	// Telescope parameters
 	int nchans = 0;
 	int nsamp = 0;
@@ -87,11 +93,13 @@ int main(int argc, char* argv[])
 
 	// Users desired de-dispersion strategy. Pick up user defined values from the CLI.
 	get_user_input(&fp, argc, argv, &multi_file, &enable_debug, &enable_analysis,
-	    &enable_periodicity, &enable_acceleration, &output_dmt, &enable_zero_dm,
+	    &enable_periodicity, &enable_acceleration, &enable_output_ffdot_plan,
+	    &enable_output_fdas_list, &output_dmt, &enable_zero_dm,
 	    &enable_zero_dm_with_outliers, &enable_rfi, &enable_fdas_custom_fft,
 	    &enable_fdas_inbin, &enable_fdas_norm, &nboots, &ntrial_bins, &navdms,
-	    &narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff, &sigma_constant, &max_boxcar_width_in_sec,
-	    &range, &user_dm_low, &user_dm_high, &user_dm_step, &candidate_algorithm);
+	    &narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff,
+	    &sigma_constant, &max_boxcar_width_in_sec, &range, &user_dm_low, &user_dm_high,
+	    &user_dm_step, &candidate_algorithm, &selected_dm_low, &selected_dm_high, &nb_selected_dm, &analysis_debug);
 	if (enable_debug == 1)
 		debug(1, start_time, range, outBin, enable_debug, enable_analysis,
 		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
@@ -99,7 +107,6 @@ int main(int argc, char* argv[])
 		nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm,
 		nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 		
-
 	// Reads telescope parameters from the header of the input file and then counts the number of samples in the input data file.
 	get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp, &tstart,
 	    &fch1, &foff);
@@ -135,8 +142,8 @@ int main(int argc, char* argv[])
 	  // File pointers
 	  fp,
 	  // Counters and flags
-	  i, t, dm_range, range, enable_debug, enable_analysis, enable_acceleration,
-	  enable_periodicity, output_dmt, enable_zero_dm, enable_zero_dm_with_outliers,
+	  i, t, dm_range, range, enable_debug, enable_analysis, enable_acceleration, enable_output_ffdot_plan,
+	  enable_output_fdas_list, enable_periodicity, output_dmt, enable_zero_dm, enable_zero_dm_with_outliers,
 	  enable_rfi, enable_fdas_custom_fft, enable_fdas_inbin, enable_fdas_norm, inBin,
 	  outBin, ndms, maxshift, max_ndms, max_samps, num_tchunks, total_ndms, multi_file, max_dm,
 	  // Memory sizes and pointers
@@ -148,7 +155,8 @@ int main(int argc, char* argv[])
 	  navdms, nsearch, aggression, narrow, wide, maxshift_original,
 	  tsamp_original, inc, tstart, tstart_local, tsamp, fch1, foff,
 	  // Analysis variables
-	  power, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, start_time, candidate_algorithm
+	  power, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, start_time, candidate_algorithm,
+	  nb_selected_dm, selected_dm_low, selected_dm_high, analysis_debug
 	);
 
 	// write output here, not in the library
@@ -156,6 +164,19 @@ int main(int argc, char* argv[])
 	fclose(fp);
 
 	free(output_buffer);
+	free(t_processed);
+	free(dm_low);
+	free(dm_high);
+	free(dm_step);
+	free(dmshifts);
+	free(user_dm_low);
+	free(user_dm_high);
+	free(user_dm_step);
+	if (nb_selected_dm > 0)
+	{
+		free(selected_dm_low);
+		free(selected_dm_high);
+	}
 
 	return 0;
 

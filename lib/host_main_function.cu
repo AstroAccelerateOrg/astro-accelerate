@@ -1,4 +1,7 @@
 #include "headers/headers_mains.h"
+
+#include <helper_cuda.h>
+
 #include "headers/device_bin.h"
 #include "headers/device_init.h"
 #include "headers/device_dedisperse.h"
@@ -14,6 +17,7 @@
 #include "headers/device_MSD_plane.h" //Added by KA
 #include "headers/device_MSD_limited.h" //Added by KA
 #include "headers/device_SNR_limited.h" //Added by KA
+#include "headers/device_SPS_long.h" //Added by KA
 #include "headers/device_threshold.h" //Added by KA
 #include "headers/device_single_FIR.h" //Added by KA
 #include "headers/device_analysis.h" //Added by KA
@@ -57,6 +61,8 @@ void main_function
 	int enable_debug,
 	int enable_analysis,
 	int enable_acceleration,
+	int enable_output_ffdot_plan,
+	int enable_output_fdas_list,
 	int enable_periodicity,
 	int output_dmt,
 	int enable_zero_dm,
@@ -120,32 +126,45 @@ void main_function
 	float sigma_constant,
 	float max_boxcar_width_in_sec,
 	clock_t start_time,
-	int candidate_algorithm
+	int candidate_algorithm,
+	int nb_selected_dm,
+	float *selected_dm_low,
+	float *selected_dm_high,
+	int analysis_debug
 	)
 {
+
 	// Initialise the GPU.	
 	init_gpu(argc, argv, enable_debug, &gpu_memory);
 	if(enable_debug == 1) debug(2, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
+	checkCudaErrors(cudaGetLastError());
+	
 	// Calculate the dedispersion stratagy.
 	stratagy(&maxshift, &max_samps, &num_tchunks, &max_ndms, &total_ndms, &max_dm, power, nchans, nsamp, fch1, foff, tsamp, range, user_dm_low, user_dm_high, user_dm_step,
-                 &dm_low, &dm_high, &dm_step, &ndms, &dmshifts, inBin, &t_processed, &gpu_memory);
+                 &dm_low, &dm_high, &dm_step, &ndms, &dmshifts, inBin, &t_processed, &gpu_memory, Get_memory_requirement_of_SPS());
 	if(enable_debug == 1) debug(4, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
+	checkCudaErrors(cudaGetLastError());
+	
 	// Allocate memory on host and device.
 	allocate_memory_cpu_output(&fp, gpu_memory, maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output,
                         &gpu_inputsize, &gpu_outputsize, &inputsize, &outputsize);
 	if(enable_debug == 1) debug(5, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
+	checkCudaErrors(cudaGetLastError());
+	
 	// Allocate memory on host and device.
 	allocate_memory_gpu(&fp, gpu_memory, maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output,
                         &gpu_inputsize, &gpu_outputsize, &inputsize, &outputsize);
 	if(enable_debug == 1) debug(5, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
+	checkCudaErrors(cudaGetLastError());
+	
 	// Clip RFI
 
 	//rfi(nsamp, nchans, &input_buffer);
@@ -174,46 +193,67 @@ void main_function
 	for (t = 0; t < num_tchunks; t++)
 	{
 		printf("\nt_processed:\t%d, %d", t_processed[0][t], t);
+		
+		checkCudaErrors(cudaGetLastError());
 
 		load_data(-1, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
 
+		checkCudaErrors(cudaGetLastError());
 		
 		if (enable_zero_dm)
 		{
 			zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
 		}
 		
+		checkCudaErrors(cudaGetLastError());
+		
 		if (enable_zero_dm_with_outliers)
 		{
 			zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
 	 	}
+		
+		checkCudaErrors(cudaGetLastError());
 	
 		corner_turn(d_input, d_output, nchans, t_processed[0][t] + maxshift);
+		
+		checkCudaErrors(cudaGetLastError());
 		
 		if (enable_rfi)
 		{
  			rfi_gpu(d_input, nchans, t_processed[0][t]+maxshift);
 		}
-
+		
+		checkCudaErrors(cudaGetLastError());
+		
 		int oldBin = 1;
-		for (dm_range = 0; dm_range < range; dm_range++)
-		{
+		for (dm_range = 0; dm_range < range; dm_range++) {
 			printf("\n\n%f\t%f\t%f\t%d", dm_low[dm_range], dm_high[dm_range], dm_step[dm_range], ndms[dm_range]), fflush(stdout);
 			printf("\nAmount of telescope time processed: %f", tstart_local);
 			maxshift = maxshift_original / inBin[dm_range];
 
+			checkCudaErrors(cudaGetLastError());
+			
 			cudaDeviceSynchronize();
+			
+			checkCudaErrors(cudaGetLastError());
+			
 			load_data(dm_range, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t], maxshift, nchans, dmshifts);
-
+			
+			checkCudaErrors(cudaGetLastError());
+			
 			if (inBin[dm_range] > oldBin)
 			{
 				bin_gpu(d_input, d_output, nchans, t_processed[dm_range - 1][t] + maxshift * inBin[dm_range]);
 				( tsamp ) = ( tsamp ) * 2.0f;
 			}
-
+			
+			checkCudaErrors(cudaGetLastError());
+			
 			dedisperse(dm_range, t_processed[dm_range][t], inBin, dmshifts, d_input, d_output, nchans, ( t_processed[dm_range][t] + maxshift ), maxshift, &tsamp, dm_low, dm_high, dm_step, ndms);
-
-			if (enable_acceleration == 1)
+		
+			checkCudaErrors(cudaGetLastError());
+			
+			if ( (enable_acceleration == 1) || (analysis_debug ==1) )
 			{
 				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
 				//save_data(d_output, out_tmp, gpu_outputsize);
@@ -234,17 +274,37 @@ void main_function
 				//	write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, output_buffer[dm_range][k], gpu_outputsize, dm_low, dm_high);
 				//write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
 			}
+			
+			checkCudaErrors(cudaGetLastError());
+			
 			if (enable_analysis == 1) {
-				float *h_peak_list;
-				size_t max_peak_size;
-				size_t peak_pos;
-				max_peak_size = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 );
-				h_peak_list   = (float*) malloc(max_peak_size*4*sizeof(float));
 				
-				peak_pos=0;
-				analysis_GPU(h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp, candidate_algorithm);
-								
-				free(h_peak_list);
+				printf("\n VALUE OF ANALYSIS DEBUG IS %d\n", analysis_debug);
+
+				if (analysis_debug == 1)
+				{
+					float *out_tmp;
+					gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
+					out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
+					memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
+					save_data(d_output, out_tmp, gpu_outputsize);
+					analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp, max_boxcar_width_in_sec);
+					free(out_tmp);
+				}
+				else
+				{
+					float *h_peak_list;
+					size_t max_peak_size;
+					size_t peak_pos;
+					max_peak_size = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 );
+					h_peak_list   = (float*) malloc(max_peak_size*4*sizeof(float));
+
+					peak_pos=0;
+					analysis_GPU(h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp, candidate_algorithm);
+
+					free(h_peak_list);
+				}
+
 				// This is for testing purposes and should be removed or commented out
 				//analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
 			}
@@ -316,7 +376,7 @@ void main_function
 		timer.Start();
 		// acceleration(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
 		acceleration_fdas(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff,
-						  output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, enable_fdas_custom_fft, enable_fdas_inbin, enable_fdas_norm, sigma_constant);
+						  output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, enable_fdas_custom_fft, enable_fdas_inbin, enable_fdas_norm, sigma_constant, enable_output_ffdot_plan, enable_output_fdas_list);
 		//
 		timer.Stop();
 		float time = timer.Elapsed()/1000;
