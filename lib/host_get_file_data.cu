@@ -143,7 +143,25 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 	}
 	else
 */
-	 if (( *nbits ) == 8)
+	if (( *nbits ) == 16)
+	{
+		// Allocate a tempory buffer to store a line of frequency data
+		unsigned short *temp_buffer = (unsigned short *) malloc(( *nchans ) * sizeof(unsigned short));
+
+		total_data = 0;
+		while (!feof(*fp))
+		{
+			if (((fread(temp_buffer, sizeof(unsigned short), ( *nchans ), *fp)) != (*nchans)) && (total_data == 0))
+			{
+				fprintf(stderr, "\nError while reading file\n");
+				exit(0);
+			}
+			total_data++;
+		}
+		*nsamp = total_data - 1;
+		free(temp_buffer);
+	}
+	else if (( *nbits ) == 8)
 	{
 		// Allocate a tempory buffer to store a line of frequency data
 		unsigned char *temp_buffer = (unsigned char *) malloc(( *nchans ) * sizeof(unsigned char));
@@ -240,7 +258,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 	else
 	{
 		printf("\n\n======================= ERROR ==========================\n");
-		printf(    " Currently this code only runs with 1, 4 and 8 bit data \n");
+		printf(    " Currently this code only runs with 1, 2, 4 8 and 16 bit data \n");
 		printf(  "\n========================================================\n");
 		exit(0);
 	}
