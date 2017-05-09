@@ -7,6 +7,8 @@
 void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned short *d_input, float *d_output, int nchans, int nsamp, int maxshift, float *tsamp, float *dm_low, float *dm_high, float *dm_step, int *ndms, int nbits)
 {
 
+	int failsafe = 0;
+
 	if(nbits == 16) {
 
 		float shift_one = ( SDIVINDM - 1 ) * ( dm_step[i] / ( *tsamp ) );
@@ -44,7 +46,8 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 		else
 		{
 			printf("\nERROR: smem line length is too short.\nRun the auto tuner again!\n");
-			exit(0);
+			failsafe = 1;
+		//	exit(0);
 		}
 
 	}
@@ -86,9 +89,29 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 		else
 		{
 			printf("\nERROR: smem line length is too short.\nRun the auto tuner again!\n");
-			exit(0);
+			failsafe = 1;
+		//	exit(0);
 		}
 
+	}
+	if(failsafe != 0 )
+	{
+			printf("\nUsing fallback failsafe kernel");
+
+			//{{{ Dedisperse data on the GPU 
+			float startdm = dm_low[i];
+
+			int divisions_in_t = SDIVINT;
+			int divisions_in_dm = SDIVINDM;
+			int num_blocks_t = t_processed / ( divisions_in_t );
+			int num_blocks_dm = ndms[i] / divisions_in_dm;
+
+
+			dim3 threads_per_block(divisions_in_t, divisions_in_dm);
+			dim3 num_blocks(num_blocks_t, num_blocks_dm);
+
+			cudaFuncSetCacheConfig(cache_dedisperse_kernel, cudaFuncCachePreferL1);
+			cache_dedisperse_kernel<<<num_blocks, threads_per_block>>>(inBin[i], d_input, d_output, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
 	}
 }
 
