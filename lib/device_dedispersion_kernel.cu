@@ -12,7 +12,6 @@ __device__  __shared__ ushort2 f_line[UNROLLS][ARRAYSIZE + 1];
 
 //{{{ shared_dedisperse_loop
 
-//__launch_bounds__(SDIVINT*SDIVINDM)
 __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep)
 {
 	int i, j, c;
@@ -74,17 +73,14 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 	// Write the accumulators to the output array. 
 	local = ( ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + ( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + 2 * threadIdx.x;
 
-#pragma unroll
+	#pragma unroll
 	for (i = 0; i < SNUMREG; i++)
 	{
 		*( (float2*) ( d_output + local + ( i * 2 * SDIVINT ) ) ) = make_float2(local_kernel_one[i] / i_nchans / bin, local_kernel_two[i] / i_nchans / bin);
-//		d_output[local + (i*2*SDIVINT)    ] = (local_kernel_one[i])/i_nchans;
-//		d_output[local + (i*2*SDIVINT) + 1] = (local_kernel_two[i])/i_nchans;
 	}
 }
 
 
-//__launch_bounds__(SDIVINT*SDIVINDM)
 __global__ void shared_dedisperse_kernel_16(int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep)
 {
 	int i, c;
@@ -146,6 +142,37 @@ __global__ void shared_dedisperse_kernel_16(int bin, unsigned short *d_input, fl
 	}
 }
 
+__global__ void cache_dedisperse_kernel(int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep)
+{
+	int   shift;	
+	float local_kernel;
 
+	int t  = blockIdx.x * SDIVINT  + threadIdx.x;
+	
+	// Initialise the time accumulators
+	local_kernel = 0.0f;
+
+	float shift_temp = mstartdm + ((blockIdx.y * SDIVINDM + threadIdx.y) * mdmstep);
+	
+	// Loop over the frequency channels.
+        for(int c = 0; c < i_nchans; c++) {
+
+
+		// Calculate the initial shift for this given frequency
+		// channel (c) at the current despersion measure (dm) 
+		// ** dm is constant for this thread!!**
+		shift = (c * (i_nsamp) + t) + __float2int_rz (dm_shifts[c] * shift_temp);
+		
+		local_kernel += (float)__ldg(&d_input[shift]);
+	}
+
+	// Write the accumulators to the output array. 
+	shift = ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + t;
+
+	d_output[shift] = (local_kernel / i_nchans / bin);
+
+}
 #endif
+
+
 
