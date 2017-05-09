@@ -1,5 +1,5 @@
 //Added by Karel Adamek
-#define MSD_DEBUG
+//#define MSD_DEBUG
 
 #include "headers/params.h"
 #include "device_MSD_limited_kernel.cu"
@@ -204,9 +204,8 @@ int MSD_linear_approximation(float *d_input, float *d_MSD_T, int nTaps, int nDMs
 	cudaMemcpy(h_MSD_T, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost); 
 	cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
 	float modifier = ( h_MSD_T[1] - h_MSD_T_base[1] )/( (float) ( nTaps - 1 ) );	
-	printf("GPU results after T taps: Mean: %e, Standard deviation: %e; j:%e;\n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
+	printf("Output: Mean: %e, Standard deviation: %e; modifier:%e;\n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
 	printf("GPU results after 1 taps: Mean: %e, Standard deviation: %e; Number of elements:%d;\n", h_MSD_T_base[0], h_MSD_T_base[1], (int) h_MSD_T_base[2]);
-	printf("Modifier:%f\n", modifier);
 	printf("---------------------------<\n");
 	#endif
 	//---------> De-allocation of temporary memory
