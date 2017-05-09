@@ -15,6 +15,7 @@
 
 #include "timer.h"
 
+/*
 //---------------------------------------------------------------------------------
 //-------> Kahan MSD
 void d_kahan_summation(float *signal, int nDMs, int nTimesamples, int offset, float *result, float *error){
@@ -74,7 +75,7 @@ void MSD_Kahan(float *h_input, int nDMs, int nTimesamples, int offset, double *m
 }
 //-------> Kahan MSD
 //---------------------------------------------------------------------------------
-
+*/
 
 
 void Create_PD_plan(std::vector<PulseDetection_plan> *PD_plan, std::vector<int> *BC_widths, int nDMs, int nTimesamples){
@@ -247,6 +248,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	//-------------- Linear approximation
 	*/
 	
+	/*
 	//-------------- CPU check
 	float *h_temp;
 	double signal_mean, signal_sd;
@@ -256,7 +258,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	MSD_Kahan(h_temp, nDMs, nTimesamples, 0, &signal_mean, &signal_sd);
 	printf("MSD_kahan: after 1 tap   Mean: %e, Standard deviation: %e;\n",signal_mean, signal_sd);
 	//-------------- CPU check
-	
+	*/
 	
 	//-------------- One Call linear approximation
 	timer.Start(); 
