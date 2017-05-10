@@ -24,4 +24,5 @@ fdas_custom_fft
 fdas_norm
 debug
 -analysis_debug
+-failsafe
 file ~/filterbank/ska-mid-b2-full.fil
