@@ -8,8 +8,11 @@
 #define OUTPUT_TO_FILE 1
 #define OUTPUT_TO_LIST 0
 
-void analysis_CPU(int i, float tstart, int t_processed, int nsamp, int nchans, int maxshift, int max_ndms, int *ndms, int *outBin, float cutoff, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp) {
+void analysis_CPU(int i, float tstart, int t_processed, int nsamp, int nchans, int maxshift, int max_ndms, int *ndms, int *outBin, float cutoff, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, float max_boxcar_width_in_sec) {
 
+	int max_boxcar_width = (int) (max_boxcar_width_in_sec/tsamp);
+
+	printf("-------- CPU analysis --------\n");
 	FILE	*fp_out;
 	char	filename[200];
 
@@ -103,14 +106,17 @@ void analysis_CPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 		}
 	}
 
+	int taps=1;
 	bin_factor = outBin[i];
+	bin_factor = (max_boxcar_width)/outBin[i];
 	remaining_time=remaining_time/2;
 	vals=vals/2;
 	counter=1;
 
-	while(bin_factor > 1) {
+	while(bin_factor > 1 && remaining_time>1) {
 		// Calculate standard deviation
 		total = 0;
+		taps=taps*2;
 
 		stddev = stddev_orig/((float)sqrt(2.0f*powf(2,(counter-1)))); // Stddev for data sample
 		// Print mean and stddev
@@ -122,13 +128,13 @@ void analysis_CPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 				if((binned_output[remaining_time*dm_count + k]-mean)/(stddev) >= cutoff && binned_output[remaining_time*dm_count + k]+(mean)>0.0f) {
 					//---------------- Modified ---------------
 					if(OUTPUT_TO_FILE)
-						fprintf(fp_out, "%f, %f, %f, %d, %d\n", ((float)k)*tsamp+start_time, dm_low[i] + ((float)dm_count)*dm_step[i], (output_buffer[remaining_time*dm_count + k]-mean)/stddev_orig, i, 1);
+						fprintf(fp_out, "%f, %f, %f, %d, %d\n", ((float)k*taps)*tsamp+start_time, dm_low[i] + ((float)dm_count)*dm_step[i], (output_buffer[remaining_time*dm_count + k]-mean)/stddev, i, taps);
 						//                                                      time       |           DM                            |        SNR                                                   |  | Taps 
 					if(OUTPUT_TO_LIST){
 						if(pos<max_list_size){
 							output_list[4*pos]=((float)k)*tsamp+start_time;
 							output_list[4*pos+1]=dm_low[i] + ((float)dm_count)*dm_step[i];
-							output_list[4*pos+2]=(output_buffer[remaining_time*dm_count + k]-mean)/stddev_orig;
+							output_list[4*pos+2]=(output_buffer[remaining_time*dm_count + k]-mean)/stddev;
 							output_list[4*pos+3]=1;
 							pos++;
 						}

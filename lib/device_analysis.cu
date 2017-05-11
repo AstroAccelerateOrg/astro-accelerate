@@ -15,6 +15,69 @@
 
 #include "timer.h"
 
+/*
+//---------------------------------------------------------------------------------
+//-------> Kahan MSD
+void d_kahan_summation(float *signal, int nDMs, int nTimesamples, int offset, float *result, float *error){
+	double sum;
+	double sum_error;
+	double a,b;
+	
+	sum=0;
+	sum_error=0;
+	for(int d=0;d<nDMs; d++){
+		for(int s=0; s<(nTimesamples-offset); s++){
+			a=signal[(size_t) (d*nTimesamples + s)]-sum_error;
+			b=sum+a;
+			sum_error=(b-sum);
+			sum_error=sum_error-a;
+			sum=b;
+		}
+	}
+	*result=sum;
+	*error=sum_error;
+}
+
+void d_kahan_sd(float *signal, int nDMs, int nTimesamples, int offset, double mean, float *result, float *error){
+	double sum;
+	double sum_error;
+	double a,b,dtemp;
+	
+	sum=0;
+	sum_error=0;
+	for(int d=0;d<nDMs; d++){
+		for(int s=0; s<(nTimesamples-offset); s++){
+			dtemp=(signal[(size_t) (d*nTimesamples + s)]-sum_error - mean);
+			a=dtemp*dtemp;
+			b=sum+a;
+			sum_error=(b-sum);
+			sum_error=sum_error-a;
+			sum=b;
+		}
+	}
+	*result=sum;
+	*error=sum_error;
+}
+
+
+void MSD_Kahan(float *h_input, int nDMs, int nTimesamples, int offset, double *mean, double *sd){
+	float error, signal_mean, signal_sd;
+	int nElements=nDMs*(nTimesamples-offset);
+	
+	d_kahan_summation(h_input, nDMs, nTimesamples, offset, &signal_mean, &error);
+	signal_mean=signal_mean/nElements;
+	
+	d_kahan_sd(h_input, nDMs, nTimesamples, offset, signal_mean, &signal_sd, &error);
+	signal_sd=sqrt(signal_sd/nElements);
+
+	*mean=signal_mean;
+	*sd=signal_sd;
+}
+//-------> Kahan MSD
+//---------------------------------------------------------------------------------
+*/
+
+
 void Create_PD_plan(std::vector<PulseDetection_plan> *PD_plan, std::vector<int> *BC_widths, int nDMs, int nTimesamples){
 	int Elements_per_block, itemp, nRest;
 	PulseDetection_plan PDmp;
@@ -183,6 +246,18 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	
 	cudaFree(d_list);
 	//-------------- Linear approximation
+	*/
+	
+	/*
+	//-------------- CPU check
+	float *h_temp;
+	double signal_mean, signal_sd;
+	h_temp = (float *)malloc( ((size_t) nDMs*nTimesamples)*sizeof(float));
+	memset(h_temp, 0.0, ((size_t) nDMs*nTimesamples)*sizeof(float));
+	cudaMemcpy( h_temp, output_buffer, ((size_t) nDMs*nTimesamples)*sizeof(float), cudaMemcpyDeviceToHost);
+	MSD_Kahan(h_temp, nDMs, nTimesamples, 0, &signal_mean, &signal_sd);
+	printf("MSD_kahan: after 1 tap   Mean: %e, Standard deviation: %e;\n",signal_mean, signal_sd);
+	//-------------- CPU check
 	*/
 	
 	//-------------- One Call linear approximation
