@@ -18,3 +18,5 @@ threshold
 -fdas_inbin
 -fdas_norm
 debug
+-failsafe
+-analysis_debug

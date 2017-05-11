@@ -15,7 +15,28 @@ void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned sho
 	unsigned long int total_data;
 
 	//{{{ Load in the raw data from the input file and transpose
-	if (nbits == 8)
+	if (nbits == 16)
+	{
+
+		// Allocate a tempory buffer to store a line of frequency data
+		unsigned short *temp_buffer = (unsigned short *) malloc(nchans * sizeof(unsigned short));
+
+		// Read in the data, transpose it and store it in the input buffer
+		total_data = 0;
+		while (!feof(*fp))
+		{
+
+			if (fread(temp_buffer, sizeof(unsigned short), nchans, *fp) != nchans)
+				break;
+			for (c = 0; c < nchans; c++)
+			{
+				( *input_buffer )[c + total_data * ( nchans )] = (unsigned short) temp_buffer[c];
+			}
+			total_data++;
+		}
+		free(temp_buffer);
+	}
+	else if (nbits == 8)
 	{
 
 		// Allocate a tempory buffer to store a line of frequency data
@@ -63,6 +84,31 @@ void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned sho
 		}
 		free(temp_buffer);
 	}
+	else if (nbits == 2)
+	{
+		// Allocate a temporary buffer to store a line of frequency data
+		// each byte stores 4 frequency data
+		int nb_bytes = nchans/4;
+		unsigned char *temp_buffer = (unsigned char *) malloc(nb_bytes * sizeof(unsigned char));
+		// Read in the data, transpose it and store it in the input buffer
+		total_data = 0;
+		// 00001111
+		char mask = 0x03;
+		while (!feof(*fp))
+		{
+			if (fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp) != nb_bytes)
+				break;
+			for (c = 0; c < nb_bytes; c++)
+			{
+				( *input_buffer )[ (c*4) + total_data * ( nchans )]     = (unsigned short)( (temp_buffer[c] >> 6) & mask );
+				( *input_buffer )[ (c*4) + 1 + total_data * ( nchans )] = (unsigned short)( (temp_buffer[c] >> 4) & mask );
+				( *input_buffer )[ (c*4) + 2 + total_data * ( nchans )] = (unsigned short)( (temp_buffer[c] >> 2) & mask );
+				( *input_buffer )[ (c*4) + 3 + total_data * ( nchans )] = (unsigned short)( temp_buffer[c] & mask );
+			}
+			total_data++;
+		}
+		free(temp_buffer);
+	}
 	else if (nbits == 1)
 	{
 		// each byte stores 8 frequency data
@@ -95,7 +141,7 @@ void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned sho
 	else
 	{
 		printf("\n\n========================= ERROR ====================================\n");
-		printf(    " This is a SKA prototype code and only runs with 1, 4 and 8 bit data\n");
+		printf(    " This is a SKA prototype code and only runs with 1, 2, 4 8 and 16 bit data\n");
 		printf("\n======================================================================\n");
 		exit(0);
 	}
