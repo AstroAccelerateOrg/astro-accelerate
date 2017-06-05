@@ -130,7 +130,8 @@ void main_function
 	int nb_selected_dm,
 	float *selected_dm_low,
 	float *selected_dm_high,
-	int analysis_debug
+	int analysis_debug,
+	int failsafe
 	)
 {
 
@@ -249,7 +250,7 @@ void main_function
 			
 			checkCudaErrors(cudaGetLastError());
 			
-			dedisperse(dm_range, t_processed[dm_range][t], inBin, dmshifts, d_input, d_output, nchans, ( t_processed[dm_range][t] + maxshift ), maxshift, &tsamp, dm_low, dm_high, dm_step, ndms, nbits);
+			dedisperse(dm_range, t_processed[dm_range][t], inBin, dmshifts, d_input, d_output, nchans, ( t_processed[dm_range][t] + maxshift ), maxshift, &tsamp, dm_low, dm_high, dm_step, ndms, nbits, failsafe);
 		
 			checkCudaErrors(cudaGetLastError());
 			

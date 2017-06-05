@@ -41,6 +41,7 @@ int main(int argc, char* argv[])
 	int multi_file = 1;
 	float max_dm = 0.0f;
 	int candidate_algorithm=0;
+	int failsafe = 0;
 	// Memory sizes and pointers
 	size_t inputsize = 0;
 	size_t outputsize = 0;
@@ -99,7 +100,7 @@ int main(int argc, char* argv[])
 	    &enable_fdas_inbin, &enable_fdas_norm, &nboots, &ntrial_bins, &navdms,
 	    &narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff,
 	    &sigma_constant, &max_boxcar_width_in_sec, &range, &user_dm_low, &user_dm_high,
-	    &user_dm_step, &candidate_algorithm, &selected_dm_low, &selected_dm_high, &nb_selected_dm, &analysis_debug);
+	    &user_dm_step, &candidate_algorithm, &selected_dm_low, &selected_dm_high, &nb_selected_dm, &analysis_debug, &failsafe);
 	if (enable_debug == 1)
 		debug(1, start_time, range, outBin, enable_debug, enable_analysis,
 		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
@@ -156,7 +157,7 @@ int main(int argc, char* argv[])
 	  tsamp_original, inc, tstart, tstart_local, tsamp, fch1, foff,
 	  // Analysis variables
 	  power, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, start_time, candidate_algorithm,
-	  nb_selected_dm, selected_dm_low, selected_dm_high, analysis_debug
+	  nb_selected_dm, selected_dm_low, selected_dm_high, analysis_debug, failsafe
 	);
 
 	// write output here, not in the library

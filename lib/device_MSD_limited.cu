@@ -134,10 +134,10 @@ int MSD_linear_approximation(float *d_input, float *d_MSD_T, int nTaps, int nDMs
 	
 	nBlocks_x=0; nRest=0;
 
-	nSteps_x=2*PD_NTHREADS-nTaps;
+	nSteps_x=2*PD_NTHREADS-nTaps+4;
 	nBlocks_x=nBlocks_x + (nTimesamples-offset)/(nSteps_x);
 	nRest=nTimesamples - offset - nBlocks_x*nSteps_x;
-	if(nRest>0) nBlocks_x++; // if nRest<64 then it means a lot of branching in the kernel and error it induces would be generally small.
+	if(nRest>3*nTaps) nBlocks_x++; // if nRest<64 then it means a lot of branching in the kernel and error it induces would be generally small.
 	//printf("nSteps_x:%d;b nBlocks_x:%d; nRest:%d; \n", nSteps_x, nBlocks_x, nRest);
 	
 	
@@ -167,7 +167,9 @@ int MSD_linear_approximation(float *d_input, float *d_MSD_T, int nTaps, int nDMs
 	printf("\n\n");
 	printf("----------------> MSD debug:\n");
 	printf("Kernel for calculating partials:\n");
-	printf("ThreadBlocks (TB) in x:%d; Elements processed by TB in x:%d; Remainder in x:%d is processed\n", nBlocks_x, nSteps_x, nRest);
+	printf("ThreadBlocks (TB) in x:%d; Elements processed by TB in x:%d; Remainder in x:%d", nBlocks_x, nSteps_x, nRest);
+	if(nRest>3*nTaps) printf(" is processed\n");
+	else printf(" is not processed\n");
 	printf("ThreadBlocks (TB) in y:%d; Elements processed by TB in y:%d; Remainder in y:%d is processed\n", nBlocks_y, nSteps_y, 0);
 	printf("gridSize=(%d,%d,%d)\n", gridSize.x, gridSize.y, gridSize.z);
 	printf("blockSize=(%d,%d,%d)\n", blockSize.x, blockSize.y, blockSize.z);
@@ -179,7 +181,7 @@ int MSD_linear_approximation(float *d_input, float *d_MSD_T, int nTaps, int nDMs
 	printf("Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
 	printf("gridSize=(%d,%d,%d)\n", final_gridSize.x, final_gridSize.y, final_gridSize.z);
 	printf("blockSize=(%d,%d,%d)\n", final_blockSize.x, final_blockSize.y, final_blockSize.z);	
-	printf("---------------------------<\n");
+	printf("\n");
 	#endif
 	
 	// ----------------------------------------------->
@@ -193,10 +195,19 @@ int MSD_linear_approximation(float *d_input, float *d_MSD_T, int nTaps, int nDMs
 	
 	//---------> MSD
 	MSD_init();
-	MSD_GPU_LA_ALL<<<gridSize,blockSize>>>(d_input, d_output, d_output_taps, nSteps_y, nTaps, nTimesamples, offset);
-	MSD_GPU_limited_final<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
-	MSD_GPU_limited_final_create_linear_approx<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, nTaps, nBlocks_total);
-		
+	MSD_GPU_LA_ALL_func<<<gridSize,blockSize>>>(d_input, d_output, d_output_taps, nSteps_y, nTaps, nTimesamples, offset);
+	MSD_GPU_limited_final_func<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
+	MSD_GPU_limited_final_create_linear_approx_func<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, nTaps, nBlocks_total);
+	
+	#ifdef MSD_DEBUG
+	float h_MSD_T[3], h_MSD_T_base[3];
+	cudaMemcpy(h_MSD_T, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
+	float modifier = ( h_MSD_T[1] - h_MSD_T_base[1] )/( (float) ( nTaps - 1 ) );	
+	printf("Output: Mean: %e, Standard deviation: %e; modifier:%e;\n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
+	printf("GPU results after 1 taps: Mean: %e, Standard deviation: %e; Number of elements:%d;\n", h_MSD_T_base[0], h_MSD_T_base[1], (int) h_MSD_T_base[2]);
+	printf("---------------------------<\n");
+	#endif
 	//---------> De-allocation of temporary memory
 	cudaFree(d_output);
 	cudaFree(d_output_taps);

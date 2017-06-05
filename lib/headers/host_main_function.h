@@ -85,6 +85,7 @@ void main_function
 	int nb_selected_dm,
 	float *selected_dm_low,
 	float *selected_dm_high,
-	int analysis_debug
+	int analysis_debug,
+	int failsafe
 	);
 #endif

@@ -54,6 +54,35 @@ class DedispersionStrategy
 				,float aggression
                                 ,std::vector<float> const & bin_frequencies
 				);
+
+        DedispersionStrategy(float* const user_dm_low
+        			,float* const user_dm_high
+        			,float* const user_dm_step
+        			,int* const in_bin
+        			,int* const out_bin
+        			,size_t gpu_memory
+        			,int power
+        			,int range
+        			,int nchans
+        			,int nsamples
+        			,int nsamp
+        			,int nifs
+        			,int nbits
+        			,float tsamp
+        			,float tstart
+        			,float fch1
+        			,float foff
+        			,float sigma_cutoff
+				,float sigma_constant
+				,float max_boxcar_width_in_sec
+				,float narrow
+				,float wide
+				,int nboots
+				,int navdms
+				,int ntrial_bins
+				,int nsearch
+				,float aggression
+        	);
         /**
         *  @brief Destructor
         */
@@ -108,6 +137,8 @@ class DedispersionStrategy
          *
          */
         void make_strategy(size_t gpu_memory);
+
+        void make_strategy(size_t gpu_memory, int foo);
         
  
 	// user input
@@ -262,6 +293,9 @@ class DedispersionStrategy
          *
          */
         std::vector<float> _bin_frequencies;
+
+        float _fch1;
+        float _foff;
 };
 
 } // namespace astroaccelerate

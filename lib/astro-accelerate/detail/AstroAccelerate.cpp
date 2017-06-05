@@ -216,7 +216,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 			}
 
 			dedisperse(dm_range, _t_processed[dm_range][t], _in_bin, _dmshifts, _d_input, _d_output, _nchans,
-				( _t_processed[dm_range][t] + _maxshift ), _maxshift, &_tsamp, _dm_low, _dm_high, _dm_step, _ndms, _nbits);
+				( _t_processed[dm_range][t] + _maxshift ), _maxshift, &_tsamp, _dm_low, _dm_high, _dm_step, _ndms, _nbits, 0);
 
 	//		if (_enable_acceleration == 1)
 	//		{
@@ -278,6 +278,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 
 	if (peak_pos > 0)
 	{
+		printf("\n should write to file\n");
 		sprintf(filename, "global_peak_analysed");
 		//if ((fp_out=fopen(filename, "w")) == NULL) {
 		if ((fp_out = fopen(filename, "wb")) == nullptr)
@@ -292,12 +293,12 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 	timer.Stop();
 	float time = timer.Elapsed() / 1000;
 
-	//printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
+	printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
-	//printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)",  time);
-	//printf("\nAmount of telescope time processed: %f", tstart_local);
-	//printf("\nNumber of samples processed: %ld", inc);
-	//printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
+	printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)",  time);
+	printf("\nAmount of telescope time processed: %f", tstart_local);
+	printf("\nNumber of samples processed: %ld", inc);
+	printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
 
 	cudaFree(_d_input);
 	cudaFree(_d_output);

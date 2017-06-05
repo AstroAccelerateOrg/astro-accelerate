@@ -34,8 +34,8 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 {
 	// Following is ok for ska_karel.txt
 	char* filename = my_argv[1] + strlen(my_argv[1]) - 13;
-	if(strcmp(filename, "ska_karel.txt") == 0)
-	{
+	//if(strcmp(filename, "ska_karel.txt") == 0)
+	//{
 		// Internal code variables
 		// File pointers
 		FILE *fp = NULL;
@@ -68,6 +68,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		int multi_file = 1;
 		float max_dm = 0.0f;
 		int candidate_algorithm=0;
+		int failsafe = 0;
 		// Memory sizes and pointers
 		size_t outputsize = 0;
 		size_t gpu_outputsize = 0;
@@ -126,7 +127,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		    &enable_fdas_inbin, &enable_fdas_norm, &nboots, &ntrial_bins, &navdms,
 		    &narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff,
 		    &sigma_constant, &max_boxcar_width_in_sec, &range, &user_dm_low, &user_dm_high,
-		    &user_dm_step, &candidate_algorithm, &selected_dm_low, &selected_dm_high, &nb_selected_dm, &analysis_debug);
+		    &user_dm_step, &candidate_algorithm, &selected_dm_low, &selected_dm_high, &nb_selected_dm, &analysis_debug, &failsafe);
 		// Reads telescope parameters from the header of the input file and then counts the number of samples in the input data file.
 		get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp, &tstart,
 		&fch1, &foff);
@@ -138,7 +139,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		// dedispersion
 		//DedispersionStrategy dedispersion_strategy;
 		//DedispersionStrategyFile(&fp, my_argc, my_argv, dedispersion_strategy, gpu_memory);
-		DedispersionStrategy dedispersion_strategy
+		/*DedispersionStrategy dedispersion_strategy
 									 (user_dm_low
 									 ,user_dm_high
 									 ,user_dm_step
@@ -165,6 +166,38 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 									 ,nsearch
 									 ,aggression
                                      ,bin_frequencies);
+*/
+
+		DedispersionStrategy dedispersion_strategy
+											 (user_dm_low
+											 ,user_dm_high
+											 ,user_dm_step
+											 ,inBin
+											 ,outBin
+											 ,gpu_memory
+											 ,power
+											 ,range
+											 ,nchans
+											 ,nsamples
+											 ,nsamp
+											 ,nifs
+											 ,nbits
+											 ,tsamp
+											 ,tstart
+											 ,fch1
+											 ,foff
+											 ,sigma_cutoff
+											 ,sigma_constant
+											 ,max_boxcar_width_in_sec
+											 ,narrow
+											 ,wide
+											 ,nboots
+											 ,navdms
+											 ,ntrial_bins
+											 ,nsearch
+		,aggression);
+
+
 
 		// input buffer
 		unsigned short *input_buffer = nullptr;
@@ -194,7 +227,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		free(user_dm_step);
 		free(input_buffer);
 	}
-}
+//}
 
 } // namespace test
 } // namespace astroaccelerate
