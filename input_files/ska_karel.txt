@@ -24,4 +24,5 @@ fdas_custom_fft
 fdas_norm
 debug
 -analysis_debug
+-failsafe
 file ~/filterbank/bper_0.0025.fil
