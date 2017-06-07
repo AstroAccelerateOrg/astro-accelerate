@@ -41,6 +41,9 @@ namespace astroaccelerate{
 		_max_samps = 0;
 		_nchans = 0;
 		_num_tchunks = 0;
+		_fch1 = 0;
+		_foff = 0;
+		_SPS_mem_requirement = 0;
 	}
 
 	DedispersionStrategy::DedispersionStrategy(float* const user_dm_low
@@ -111,6 +114,7 @@ namespace astroaccelerate{
 		_t_processed = nullptr;
 		_max_samps = 0;
 		_num_tchunks = 0;
+		_SPS_mem_requirement=Get_memory_requirement_of_SPS();
 		//
 		make_strategy(gpu_memory);
 		}
@@ -183,9 +187,11 @@ namespace astroaccelerate{
 			_t_processed = nullptr;
 			_max_samps = 0;
 			_num_tchunks = 0;
+			_SPS_mem_requirement=Get_memory_requirement_of_SPS();
 			//
 			make_strategy(gpu_memory, 0);
 	}
+
 	DedispersionStrategy::~DedispersionStrategy()
 	{
 		// free all the pointers
@@ -351,7 +357,9 @@ namespace astroaccelerate{
 			// without increasing the memory needed
 
 			// Maximum number of samples we can fit in our GPU RAM is then given by:
-			max_tsamps = (int) ( ( gpu_memory ) / ( sizeof(unsigned short) * ( _max_ndms  + _nchans ) ) );
+			//max_tsamps = (unsigned int) ( ( gpu_memory ) / ( sizeof(unsigned short) * ( _max_ndms  + _nchans ) ) );
+			max_tsamps = (unsigned int) ( (gpu_memory) / ( sizeof(unsigned short)*_nchans + sizeof(float)*(_max_ndms) +
+						 (size_t)(_SPS_mem_requirement*MIN_DMS_PER_SPS_RUN )));
 
 			// Check that we dont have an out of range maxshift:
 			if (_maxshift  > max_tsamps)	{
@@ -417,7 +425,8 @@ namespace astroaccelerate{
 			// without increasing the memory needed. Set the output buffer to be as large as the input buffer:
 
 			// Maximum number of samples we can fit in our GPU RAM is then given by:
-			max_tsamps = (int) ( ( gpu_memory ) / ( _nchans * ( sizeof(float) + 2 * sizeof(unsigned short) ) ) );
+			//max_tsamps = (int) ( ( gpu_memory ) / ( _nchans * ( sizeof(float) + 2 * sizeof(unsigned short) ) ) );
+			max_tsamps = (unsigned int) ( ( gpu_memory ) / ( _nchans * ( sizeof(float) + sizeof(unsigned short) )+ _SPS_mem_requirement*MIN_DMS_PER_SPS_RUN ));
 
 			// Check that we dont have an out of range maxshift:
 			if (_maxshift > max_tsamps) {
@@ -483,6 +492,9 @@ namespace astroaccelerate{
 			//printf("\nOutput memory needed:\t%lu MB", _nchans * _maxshift * sizeof(float) / 1024 / 1024);
 		}
 	}
+
+
+
 
 	void DedispersionStrategy::make_strategy(size_t const gpu_memory, int foo)
 		{
@@ -593,7 +605,9 @@ namespace astroaccelerate{
 				// without increasing the memory needed
 
 				// Maximum number of samples we can fit in our GPU RAM is then given by:
-				max_tsamps = (int) ( ( gpu_memory ) / ( sizeof(unsigned short) * ( _max_ndms  + _nchans ) ) );
+				//max_tsamps = (int) ( ( gpu_memory ) / ( sizeof(unsigned short) * ( _max_ndms  + _nchans ) ) );
+				max_tsamps = (unsigned int) ( (gpu_memory) / ( sizeof(unsigned short)*_nchans + sizeof(float)*(_max_ndms)
+						     + (size_t)(_SPS_mem_requirement*MIN_DMS_PER_SPS_RUN )));
 
 				// Check that we dont have an out of range maxshift:
 				if (_maxshift  > max_tsamps)	{
@@ -659,7 +673,9 @@ namespace astroaccelerate{
 				// without increasing the memory needed. Set the output buffer to be as large as the input buffer:
 
 				// Maximum number of samples we can fit in our GPU RAM is then given by:
-				max_tsamps = (int) ( ( gpu_memory ) / ( _nchans * ( sizeof(float) + 2 * sizeof(unsigned short) ) ) );
+				//max_tsamps = (unsigned int) ( ( gpu_memory ) / ( _nchans * ( sizeof(float) + sizeof(unsigned short) )+ SPS_mem_requirement*MIN_DMS_PER_SPS_RUN ));
+				max_tsamps = (unsigned int) ( ( gpu_memory ) / ( _nchans * ( sizeof(float) + sizeof(unsigned short) )
+						     + _SPS_mem_requirement*MIN_DMS_PER_SPS_RUN ));
 
 				// Check that we dont have an out of range maxshift:
 				if (_maxshift > max_tsamps) {

@@ -20,6 +20,7 @@
 #include "../headers/device_MSD_plane.h" //Added by KA
 #include "../headers/device_MSD_limited.h" //Added by KA
 #include "../headers/device_SNR_limited.h" //Added by KA
+#include "../headers/device_SPS_long.h" //Added by KA
 #include "../headers/device_threshold.h" //Added by KA
 #include "../headers/device_single_FIR.h" //Added by KA
 #include "../headers/device_analysis.h" //Added by KA

@@ -112,7 +112,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		float max_boxcar_width_in_sec = 0.5f;
 
 		// Initialise the GPU.
-		int device_id = 0; // hard-coded, would be a parameter
+		int device_id = 0;
 		size_t gpu_memory = 0;
 		cudaSetDevice(device_id);
 		size_t mem_free, total;
