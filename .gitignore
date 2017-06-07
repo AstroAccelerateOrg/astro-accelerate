@@ -14,4 +14,4 @@ CMakeFiles/
 *.new
 *.ori
 
-asstrolib/libastrolib.a
+astrolib/libastrolib.a

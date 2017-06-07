@@ -5,6 +5,8 @@
 #include "../headers/headers_mains.h"
 #include "../headers/host_help.h"
 
+#include "../headers/device_SPS_long.h"
+
 #include <stdio.h>
 #include <vector>
 
@@ -296,6 +298,8 @@ class DedispersionStrategy
 
         float _fch1;
         float _foff;
+
+        size_t _SPS_mem_requirement;
 };
 
 } // namespace astroaccelerate

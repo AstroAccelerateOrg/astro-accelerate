@@ -110,8 +110,8 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 									,std::vector<float> &output_sps
 									)
 {
-        //GpuTimer timer;
-        //timer.Start();
+    //GpuTimer timer;
+    //timer.Start();
 	unsigned short *input_buffer_cast = nullptr;
 	size_t inputsize = _nsamp * _nchans * sizeof(unsigned short);
 	input_buffer_cast = (unsigned short *) malloc(inputsize);
@@ -162,7 +162,6 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 
 	// allocate memory gpu
 	allocate_memory_gpu();
-
 	//printf("\nDe-dispersing...\n");
 	GpuTimer timer;
 	timer.Start();
@@ -179,14 +178,13 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 	size_t max_peak_size = (size_t) (_nsamp * _nchans/4);
 	output_sps.resize(max_peak_size*4);
         
-        size_t peak_pos=0;
+    size_t peak_pos=0;
 
 	for (int t = 0; t < _num_tchunks; ++t)
 	{
 		//printf("\nt_processed:\t%d, %d", _t_processed[0][t], t);
 
 		load_data(-1, _in_bin, _d_input, &input_buffer[(long int) ( inc * _nchans )], _t_processed[0][t], _maxshift, _nchans, _dmshifts);
-
 
 		if (_enable_zero_dm)
 			zero_dm(_d_input, _nchans, _t_processed[0][t]+_maxshift);
@@ -207,6 +205,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 			_maxshift = maxshift_original / _in_bin[dm_range];
 
 			cudaDeviceSynchronize();
+
 			load_data(dm_range, _in_bin, _d_input, &input_buffer[(long int) ( inc * _nchans )], _t_processed[dm_range][t], _maxshift, _nchans, _dmshifts);
 
 			if (_in_bin[dm_range] > oldBin)
@@ -246,7 +245,6 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 							_sigma_cutoff, _sigma_constant, _max_boxcar_width_in_sec
 							, _d_output, _dm_low, _dm_high, _dm_step, _tsamp, _candidate_algorithm);
 
-
 				//#pragma omp parallel for
 				for (int count = previous_peak_pos; count < peak_pos; count++)
 				{
@@ -255,7 +253,6 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 					//h_output_list[4*count + 2] = h_output_list[4*count + 2];
 					//h_output_list[4*count + 3] = h_output_list[4*count + 3];
 				}
-
 				// This is for testing purposes and should be removed or commented out
 				//analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
 

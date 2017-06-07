@@ -19,12 +19,14 @@ if(ENABLE_CUDA)
   list(APPEND CUDA_NVCC_FLAGS_DEBUG --debug; --device-debug; --generate-line-info -Xcompiler)
   #list(APPEND CUDA_NVCC_FLAGS_DEBUG --debug; --device-debug; --generate-line-info -Xcompiler "-Werror")
 
-  list(APPEND CUDA_NVCC_FLAGS -arch compute_35) # minumum compute level (AstroAccelerate restriction)
-  #list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_60,code=sm_61) # P100
-  list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_61,code=sm_61) # P100
-  list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_52,code=sm_52) # TitanX
+  list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_35,code=sm_35) # Kepler
+  list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_37,code=sm_37) # Kepler
   list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_50,code=sm_50) # Maxwell
-  list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_37,code=sm_37) # K80
+  list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_52,code=sm_52) # Maxwell
+  list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_53,code=sm_53) # Maxwell
+  list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_60,code=sm_60) # Pascal
+  list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_61,code=sm_61) # Pascal
+
 
   set(CMAKE_CXX_FLAGS "-DENABLE_CUDA ${CMAKE_CXX_FLAGS}")
 
