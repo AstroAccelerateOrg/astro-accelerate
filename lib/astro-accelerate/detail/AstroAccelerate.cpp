@@ -163,8 +163,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 	// allocate memory gpu
 	allocate_memory_gpu();
 	//printf("\nDe-dispersing...\n");
-	GpuTimer timer;
-	timer.Start();
+
 
 	float tsamp_original = _tsamp;
 	int maxshift_original = _maxshift;
@@ -173,11 +172,14 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 	//out_tmp = (float *) malloc(( _t_processed[0][0] + _maxshift ) * _max_ndms * sizeof(float));
 	//memset(out_tmp, 0.0f, _t_processed[0][0] + _maxshift * _max_ndms * sizeof(float));
 
-	// assume we store size of the output size
-	// so max number of candidates is a quarter of it
-	size_t max_peak_size = (size_t) (_nsamp * _nchans/4);
-	output_sps.resize(max_peak_size*4);
-        
+	// can't knopw the size of the list beforehand. Arbitrary value here, will be deleted soonish
+	size_t max_peak_size = 1000000;
+
+	output_sps.resize(max_peak_size);
+
+	GpuTimer timer;
+	timer.Start();
+
     size_t peak_pos=0;
 
 	for (int t = 0; t < _num_tchunks; ++t)
@@ -217,26 +219,16 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 			dedisperse(dm_range, _t_processed[dm_range][t], _in_bin, _dmshifts, _d_input, _d_output, _nchans,
 				( _t_processed[dm_range][t] + _maxshift ), _maxshift, &_tsamp, _dm_low, _dm_high, _dm_step, _ndms, _nbits, 0);
 
-	//		if (_enable_acceleration == 1)
-	//		{
-				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
-				//save_data(d_output, out_tmp, gpu_outputsize);
 
-				//#pragma omp parallel for
-				for (int k = 0; k < _ndms[dm_range]; ++k)
+			//if ( (_enable_acceleration == 1) )
+			//{
+				/*for (int k = 0; k < _ndms[dm_range]; ++k)
 				{
 					//memcpy(&output_buffer[dm_range][k][inc / inBin[dm_range]], &out_tmp[k * t_processed[dm_range][t]], sizeof(float) * t_processed[dm_range][t]);
 					save_data_offset(_d_output, k * _t_processed[dm_range][t], output_buffer[dm_range][k], inc / _in_bin[dm_range], sizeof(float) * _t_processed[dm_range][t]);
-				}
-				//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
-	//		}
+				}*/
+			//}
 
-//			if (_output_dmt == 1)
-//			{
-				//for (int k = 0; k < ndms[dm_range]; k++)
-				//	write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, output_buffer[dm_range][k], gpu_outputsize, dm_low, dm_high);
-				//write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
-//			}
 			if (_enable_analysis == 1)
 			{
 				size_t previous_peak_pos = peak_pos;
@@ -275,7 +267,6 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 
 	if (peak_pos > 0)
 	{
-		printf("\n should write to file\n");
 		sprintf(filename, "global_peak_analysed");
 		//if ((fp_out=fopen(filename, "w")) == NULL) {
 		if ((fp_out = fopen(filename, "wb")) == nullptr)

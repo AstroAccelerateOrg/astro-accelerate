@@ -340,7 +340,6 @@ void analysis_GPU(std::vector<float> &h_peak_list, size_t *peak_pos, size_t max_
 			#endif
 			
 			if(candidate_algorithm==1){
-				printf("\nI'm here\n");
 				//-------------- Thresholding
 				timer.Start();
 				THRESHOLD(d_output_SNR, d_output_taps, d_peak_list, gmem_peak_pos, cutoff, DM_list[f], nTimesamples, DM_shift, &PD_plan, max_iteration, local_max_list_size);
@@ -353,7 +352,6 @@ void analysis_GPU(std::vector<float> &h_peak_list, size_t *peak_pos, size_t max_
 				//-------------- Thresholding
 			}
 			else {
-				printf("\nI'm there\n");
 				//-------------- Peak finding
 				timer.Start();
 				PEAK_FIND(d_output_SNR, d_output_taps, d_peak_list, DM_list[f], nTimesamples, cutoff, local_max_list_size, gmem_peak_pos, DM_shift, &PD_plan, max_iteration);
@@ -371,12 +369,10 @@ void analysis_GPU(std::vector<float> &h_peak_list, size_t *peak_pos, size_t max_
 			//printf("temp_peak_pos:%d; host_pos:%d; max:%d;\n", temp_peak_pos, (*peak_pos), (int) max_peak_size);
 			#endif
 			if( ((*peak_pos) + temp_peak_pos)<max_peak_size){
-				printf("\nIn device analysis, peak pos is %d \n", *peak_pos);
-				printf("\nIn device analysis, temp pos is %d \n", temp_peak_pos);
 				cudaMemcpy(&h_peak_list[(*peak_pos)*4], d_peak_list, temp_peak_pos*4*sizeof(float), cudaMemcpyDeviceToHost);
 				*peak_pos = (*peak_pos) + temp_peak_pos;
 			}
-			//else printf("Error peak list is too small!\n");
+			else printf("Error peak list is too small!\n");
 
 
 			//---------> Old thresholding code.
