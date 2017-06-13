@@ -111,14 +111,6 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		float sigma_constant = 4.0f;
 		float max_boxcar_width_in_sec = 0.5f;
 
-		// Initialise the GPU.
-		int device_id = 0;
-		size_t gpu_memory = 0;
-		cudaSetDevice(device_id);
-		size_t mem_free, total;
-		cudaMemGetInfo(&mem_free, &total);
-		gpu_memory = ( mem_free/2 );
-
 		// Users desired de-dispersion strategy. Pick up user defined values from the CLI.
 		get_user_input(&fp, my_argc, my_argv, &multi_file, &enable_debug, &enable_analysis,
 		    &enable_periodicity, &enable_acceleration, &enable_output_ffdot_plan,
@@ -133,7 +125,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		&fch1, &foff);
 
 
-		std::vector<float> bin_frequencies(nchans, 0.0);
+		//std::vector<float> bin_frequencies(nchans, 0.0);
 
 
 		// dedispersion
@@ -167,6 +159,15 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 									 ,aggression
                                      ,bin_frequencies);
 */
+
+
+		// Initialise the GPU.
+		int device_id = 0;
+		size_t gpu_memory = 0;
+		cudaSetDevice(device_id);
+		size_t mem_free, total;
+		cudaMemGetInfo(&mem_free, &total);
+		gpu_memory = ( mem_free );
 
 		DedispersionStrategy dedispersion_strategy
 											 (user_dm_low
