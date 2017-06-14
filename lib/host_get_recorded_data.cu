@@ -15,7 +15,56 @@ void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned sho
 	unsigned long int total_data;
 
 	//{{{ Load in the raw data from the input file and transpose
-	if (nbits == 16)
+	if (nbits == 32)
+	{
+		// Allocate a tempory buffer to store a line of frequency data
+		float *temp_buffer = (float *) malloc(nchans * sizeof(float));
+
+		// Allocate floats to hold the mimimum and maximum value in the input data
+		float max = -10000000000;
+		float min = 10000000000;
+
+		// Allocate a variable to hold the file pointer position
+		fpos_t file_loc;
+
+		// Set the file pointer position
+		fgetpos(*fp, &file_loc);
+		
+		// Find the minimum and maximum values in the input file.
+		while (!feof(*fp))
+		{
+			if (fread(temp_buffer, sizeof(float), nchans, *fp) != nchans)
+				break;
+			for (c = 0; c < nchans; c++)
+			{
+				if(temp_buffer[c] > max) max = temp_buffer[c];
+				if(temp_buffer[c] < min) min = temp_buffer[c];
+			}
+		}
+
+		// Calculate the bin size in a distribution of unsigned shorts for the input data.
+		float bin = (max - min) / 65535.0f;
+
+		printf("\n Conversion Parameters: %f\t%f\t%f", min, max, bin);
+
+		// Move the file pointer back to the end of the header
+		fsetpos(*fp, &file_loc);
+
+		// Read in the data, scale to an unsigned short range, transpose it and store it in the input buffer
+		total_data = 0;
+		while (!feof(*fp))
+		{
+			if (fread(temp_buffer, sizeof(float), nchans, *fp) != nchans)
+				break;
+			for (c = 0; c < nchans; c++)
+			{
+				( *input_buffer )[c + total_data * ( nchans )] = (unsigned short) ((temp_buffer[c]-min)/bin);
+			}
+			total_data++;
+		}
+		free(temp_buffer);
+	} 
+	else if (nbits == 16)
 	{
 
 		// Allocate a tempory buffer to store a line of frequency data
@@ -140,9 +189,9 @@ void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned sho
 	}
 	else
 	{
-		printf("\n\n========================= ERROR ====================================\n");
-		printf(    " This is a SKA prototype code and only runs with 1, 2, 4 8 and 16 bit data\n");
-		printf("\n======================================================================\n");
+		printf("\n\n=============================== ERROR ====================================\n");
+		printf(    " This is a SKA prototype code and only runs with 4, 8, 16 and 32 bit data\n");
+		printf(  "\n==========================================================================\n");
 		exit(0);
 	}
 
