@@ -46,7 +46,7 @@
 #include "../headers/host_main_function.h"
 //
 #include "../headers/params.h"
-#include "timer.h"
+#include "../timer.h"
 
 #include <vector>
 
