@@ -10,8 +10,8 @@
 #include "params.h"
 
 // Stores temporary shift values
-__device__ __constant__ float dm_shifts[15500];
-__device__ __constant__ int   i_nsamp, i_nchans, i_t_processed_s, i_t_processed_c;
+//__device__ __constant__ float dm_shifts[15500];
+//__device__ __constant__ int   i_nsamp, i_nchans, i_t_processed_s, i_t_processed_c;
 //__device__ __shared__ float fa_line[ARRAYSIZE+1];
 __device__ __shared__ float2 fa_line[ARRAYSIZE+1];
 __device__ __shared__ float2 fb_line[ARRAYSIZE+1];
