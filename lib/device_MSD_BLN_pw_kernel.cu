@@ -729,8 +729,8 @@ __global__ void MSD_GPU_LA_ALL_Nth_pw_rejection(float const* __restrict__ d_inpu
 	ushort EpT, limit;
 	float2 ftemp1, ftemp2, ftemp3;
 	float Bw[2];
-	float signal_mean = d_MSD_T_base[0];
-	float signal_sd = d_MSD_T_base[1];
+	//float signal_mean = d_MSD_T_base[0];
+	//float signal_sd = d_MSD_T_base[1];
 	float signal_mean_taps = d_MSD_T[0];
 	float signal_sd_taps = d_MSD_T[1];
 	

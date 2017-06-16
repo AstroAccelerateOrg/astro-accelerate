@@ -124,7 +124,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 	}
 
 	fgetpos(*fp, &file_loc);
-/*
+
 	if (( *nbits ) == 32)
 	{
 		// Allocate a tempory buffer to store a line of frequency data
@@ -138,12 +138,9 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 			total_data++;
 		}
 		*nsamp = total_data - 1;
-
 		free(temp_buffer);
 	}
-	else
-*/
-	if (( *nbits ) == 16)
+	else if (( *nbits ) == 16)
 	{
 		// Allocate a tempory buffer to store a line of frequency data
 		unsigned short *temp_buffer = (unsigned short *) malloc(( *nchans ) * sizeof(unsigned short));
