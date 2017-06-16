@@ -7,7 +7,7 @@
 #include <cuda_runtime.h>
 #include "headers/params.h"
 
-__device__ __constant__ float c_sqrt_taps[PD_MAXTAPS + 1];
+//__device__ __constant__ float c_sqrt_taps[PD_MAXTAPS + 1];
 
 __global__ void PD_SEARCH_GPU(float const* __restrict__ d_input, float *d_output, float *d_output_taps, float *d_MSD, int maxTaps, int nTimesamples)
 {
