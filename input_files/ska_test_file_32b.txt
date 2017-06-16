@@ -25,4 +25,4 @@ threshold
 debug
 -analysis_debug
 -failsafe
-file ~/filterbank/ska-mid-b2.fil
+file /mnt/data/filterbank/ska_mb2_32bits.fil
