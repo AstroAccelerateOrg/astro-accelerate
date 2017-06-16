@@ -9,7 +9,7 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 
 	if (failsafe == 0)
 	{
-		if(nbits == 16)
+		if(nbits == 16 || nbits == 32)
 		{
 			float shift_one = ( SDIVINDM - 1 ) * ( dm_step[i] / ( *tsamp ) );
 			int shifta = (int) floorf(shift_one * dmshifts[nchans - 1]) + ( SDIVINT - 1 ) * 2;

@@ -1,6 +1,4 @@
 //#define GPU_ANALYSIS_DEBUG
-#define GPU_ANALYSIS_EXPORT
-//#define GPU_ANALYSIS_REPORT_DATA
 
 #include <vector>
 #include <stdio.h>
