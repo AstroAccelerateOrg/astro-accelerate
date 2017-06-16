@@ -315,7 +315,7 @@ int Get_max_iteration(int max_boxcar_width, std::vector<int> *BC_widths){
 }
 
 
-void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float sigma_constant, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, int candidate_algorithm){
+void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float sigma_constant, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, int candidate_algorithm, int enable_sps_baselinenoise){
 	int max_boxcar_width = (int) (max_boxcar_width_in_sec/tsamp);
 	//unsigned long int j;
 	unsigned long int vals;
@@ -478,8 +478,13 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 			//PD_SEARCH_LONG_BLN(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD, &PD_plan, max_iteration, DM_list[f], nTimesamples);
 			//PD_SEARCH_LONG_BLN_EACH(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, &PD_plan, max_iteration, DM_list[f], nTimesamples, sigma_constant);
 			//PD_SEARCH_LONG_LINAPPROX(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD, &PD_plan, max_iteration, DM_list[f], nTimesamples);
-			PD_SEARCH_LONG_LINAPPROX_EACH(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, &PD_plan, max_iteration, DM_list[f], nTimesamples);
-			//PD_SEARCH_LONG_BLN_LINAPPROX_EACH(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, &PD_plan, max_iteration, DM_list[f], nTimesamples, sigma_constant);
+			if(enable_sps_baselinenoise){
+				PD_SEARCH_LONG_BLN_LINAPPROX_EACH(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, &PD_plan, max_iteration, DM_list[f], nTimesamples, sigma_constant);
+			}
+			else {
+				PD_SEARCH_LONG_LINAPPROX_EACH(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, &PD_plan, max_iteration, DM_list[f], nTimesamples);
+			}
+			//
 			timer.Stop();
 			partial_time = timer.Elapsed();
 			total_time += partial_time;
