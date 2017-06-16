@@ -102,7 +102,9 @@ void acceleration_fdas(int range,
 	processed=samps;
 	printf("\nsamps:\t%d", samps);
 
+
 	params.nsamps = samps;
+	params.tsamp = tsamp;
 
 	/// Print params.h
 	fdas_print_params_h();
