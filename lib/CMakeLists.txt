@@ -52,7 +52,7 @@ endif(ENABLE_CUDA)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ${LIBRARY_INSTALL_DIR})
 file(GLOB include_files "${CMAKE_CURRENT_SOURCE_DIR}/astro-accelerate/*.h")
-list(APPEND include_files "${CMAKE_CURRENT_SOURCE_DIR}/timer.h")
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/timer.h" DESTINATION ${INCLUDE_INSTALL_DIR})
 install(FILES ${include_files} DESTINATION ${INCLUDE_INSTALL_DIR}/astro-accelerate)
 install(DIRECTORY astro-accelerate/detail DESTINATION ${INCLUDE_INSTALL_DIR}/astro-accelerate)
 install(DIRECTORY headers DESTINATION ${INCLUDE_INSTALL_DIR})
