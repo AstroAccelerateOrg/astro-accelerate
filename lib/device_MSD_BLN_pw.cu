@@ -1,6 +1,6 @@
 //Added by Karel Adamek
 //#define MSD_BLN_DEBUG
-//#define MSD_BLN_END
+#define MSD_BLN_END
 
 #include "headers/params.h"
 #include "device_MSD_BLN_pw_kernel.cu"
@@ -194,7 +194,6 @@ int MSD_BLN_LA_pw_normal(float *d_input, float *d_MSD_T, int nTaps, int nDMs, in
 		h_MSD_break_old[0] = h_MSD_break[0]; h_MSD_break_old[1] = h_MSD_break[1]; h_MSD_break_old[2] = h_MSD_break[2];
 		cudaMemcpy(h_MSD_break, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost);
 		if( (h_MSD_break_old[1]-h_MSD_break[1])<1e-4 ) {
-			printf("---------> BREAKING!\n");
 			break;
 		}
 		#endif
@@ -337,7 +336,6 @@ int MSD_BLN_LA_Nth_pw_normal(float *d_input, float *d_bv_in, float *d_MSD_T, flo
 		h_MSD_break_old[0] = h_MSD_break[0]; h_MSD_break_old[1] = h_MSD_break[1]; h_MSD_break_old[2] = h_MSD_break[2];
 		cudaMemcpy(h_MSD_break, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost);
 		if( (h_MSD_break_old[1]-h_MSD_break[1])<1e-4 ) {
-			printf("---------> BREAKING!\n");
 			break;
 		}
 		#endif
