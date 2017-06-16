@@ -1,4 +1,6 @@
 #include "../DedispersionStrategy.h"
+#include <cstdlib>
+#include <algorithm>
 
 namespace astroaccelerate{
 
@@ -271,19 +273,11 @@ namespace astroaccelerate{
 		//{{{ Calculate maxshift, the number of dms for this bin and
 		//the highest value of dm to be calculated in this bin
 
-		if (_power != 2.0) {
-			// Calculate time independent dm shifts
-			for (c = 0; c < _nchans; c++)
-			{
-				( _dmshifts )[c] = 4148.741601f * ( _bin_frequencies[c] );
-			}
-		}
-		else {
-			// Calculate time independent dm shifts
-			for (c = 0; c < _nchans; c++)
-			{
-				_dmshifts[c] = (float) ( 4148.741601f * ( _bin_frequencies[c]) );
-			}
+		float ftop = *std::max_element(_bin_frequencies.begin(),_bin_frequencies.end());
+
+		for (c = 0; c < _nchans; c++)
+		{
+		    _dmshifts[c] = std::abs((float)(4148.741601f * ((1.0 / pow(_bin_frequencies[c], 2.0f )) - (1.0 / pow(ftop, 2.0f)))));
 		}
 
 		for (i = 0; i < _range; i++)	{
