@@ -1,5 +1,5 @@
 //Added by Karel Adamek
-#define MSD_BLN_DEBUG
+//#define MSD_BLN_DEBUG
 //#define MSD_BLN_END
 
 #include "headers/params.h"

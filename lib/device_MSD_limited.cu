@@ -1,5 +1,5 @@
 //Added by Karel Adamek
-#define MSD_DEBUG
+//#define MSD_DEBUG
 
 #include "headers/params.h"
 #include "device_MSD_limited_kernel.cu"

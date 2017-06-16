@@ -609,7 +609,6 @@ __global__ void MSD_GPU_final_create_LA_Nth(float *d_input, float *d_output, flo
 	//----------------------------------------------
 	//---- Writing data
 	if (threadIdx.x == 0) {
-		printf("mean:%f; stDev:%f;\n",M/j,sqrt(S / j));
 		d_output[0] = d_MSD_base[0];
 		d_output[1] = d_MSD_base[1];
 		d_output[2] = (sqrt(S / j) - d_MSD_base[1])/( (float) nTaps);
