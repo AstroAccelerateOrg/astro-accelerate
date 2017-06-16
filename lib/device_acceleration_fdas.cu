@@ -312,7 +312,7 @@ void acceleration_fdas(int range,
 					
 					// This might be bit iffy since when interbining is done values are correlated
 					printf("Dimensions for BLN: ibin:%d; siglen:%d;\n", ibin, params.siglen);
-					BLN(gpuarrays.d_ffdot_pwr, d_MSD, 32, 32, NKERN, ibin*params.siglen, 0, sigma_constant);
+					MSD_BLN_grid(gpuarrays.d_ffdot_pwr, d_MSD, 32, 32, NKERN, ibin*params.siglen, 0, sigma_constant);
 					////------------- Testing BLN
 					//checkCudaErrors(cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost));
 					//signal_mean=h_MSD[0]; signal_sd=h_MSD[1];

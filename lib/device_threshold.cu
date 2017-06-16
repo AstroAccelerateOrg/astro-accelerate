@@ -1,4 +1,8 @@
 //Added by Karel Adamek
+//#define THRESHOLD_DEBUG
+
+#include <helper_cuda.h>
+
 #include "headers/device_BC_plan.h"
 
 #include "headers/params.h"
@@ -26,7 +30,7 @@ int THRESHOLD(float *d_input, ushort *d_input_taps, float *d_output_list, int *g
 		//local_offset = (offset>>f);
 		local_offset = PD_plan->operator[](f).unprocessed_samples;
 		if( (decimated_timesamples-local_offset)>0 ){
-			Elements_per_block = 2*WARP*THR_ELEM_PER_THREAD;
+			Elements_per_block = WARP*THR_ELEM_PER_THREAD;
 			nBlocks = (decimated_timesamples-local_offset)/Elements_per_block;
 			nRest = (decimated_timesamples-local_offset) - nBlocks*Elements_per_block;
 			if(nRest>0) nBlocks++;
@@ -38,8 +42,10 @@ int THRESHOLD(float *d_input, ushort *d_input_taps, float *d_output_list, int *g
 			blockSize.x=WARP*THR_WARPS_PER_BLOCK; blockSize.y=1; blockSize.z=1;
 			
 			output_offset = nDMs*PD_plan->operator[](f).output_shift;
-			THR_GPU_WARP<<<gridSize, blockSize>>>((float2 *) &d_input[output_offset>>1], &d_input_taps[output_offset], d_output_list, gmem_pos, threshold, decimated_timesamples, decimated_timesamples-local_offset, shift, max_list_size, (1<<f));
 			
+			THR_GPU_WARP<<<gridSize, blockSize>>>(&d_input[output_offset], &d_input_taps[output_offset], d_output_list, gmem_pos, threshold, decimated_timesamples, decimated_timesamples-local_offset, shift, max_list_size, (1<<f));
+			
+			checkCudaErrors(cudaGetLastError());
 		}
 	}
 
