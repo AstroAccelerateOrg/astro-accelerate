@@ -81,6 +81,9 @@ namespace astroaccelerate{
 											  ,_in_bin(in_bin)
 											  ,_out_bin(out_bin)
 											  ,_power(power)
+											  ,_sigma_cutoff(sigma_cutoff)
+		  	  	  	  	  	  	  	  	  	  ,_sigma_constant(sigma_constant)
+											  ,_max_boxcar_width_in_sec(max_boxcar_width_in_sec)
 											  ,_range(range)
 											  ,_nchans(nchans)
 											  ,_nsamples(nsamples)
@@ -89,9 +92,6 @@ namespace astroaccelerate{
 											  ,_nbits(nbits)
 											  ,_tsamp(tsamp)
 											  ,_tstart(tstart)
-											  ,_sigma_cutoff(sigma_cutoff)
-		  	  	  	  	  	  	  	  	  	  ,_sigma_constant(sigma_constant)
-											  ,_max_boxcar_width_in_sec(max_boxcar_width_in_sec)
 											  ,_narrow(narrow)
 											  ,_wide(wide)
 											  ,_nboots(nboots)
@@ -149,13 +149,24 @@ namespace astroaccelerate{
 			        							  ,int nsearch
 			        							  ,float aggression
 												  )
-												  :_user_dm_low(user_dm_low)
+												  : _nboots(nboots)
+												  ,_ntrial_bins(ntrial_bins)
+												  ,_navdms(navdms)
+												  ,_narrow(narrow)
+												  ,_aggression(aggression)
+												  ,_nsearch(nsearch)
+                                                  ,_gpu_memory(gpu_memory)
+												  ,_power(power)
+												  ,_sigma_cutoff(sigma_cutoff)
+			  	  	  	  	  	  	  	  	  	  ,_sigma_constant(sigma_constant)
+												  ,_max_boxcar_width_in_sec(max_boxcar_width_in_sec)
+												  ,_wide(wide)
+												  ,_range(range)
+												  ,_user_dm_low(user_dm_low)
 												  ,_user_dm_high(user_dm_high)
 												  ,_user_dm_step(user_dm_step)
 												  ,_in_bin(in_bin)
 												  ,_out_bin(out_bin)
-												  ,_power(power)
-												  ,_range(range)
 												  ,_nchans(nchans)
 												  ,_nsamples(nsamples)
 												  ,_nsamp(nsamp)
@@ -165,16 +176,6 @@ namespace astroaccelerate{
 												  ,_tstart(tstart)
 												  ,_fch1(fch1)
 												  ,_foff(foff)
-												  ,_sigma_cutoff(sigma_cutoff)
-			  	  	  	  	  	  	  	  	  	  ,_sigma_constant(sigma_constant)
-												  ,_max_boxcar_width_in_sec(max_boxcar_width_in_sec)
-												  ,_narrow(narrow)
-												  ,_wide(wide)
-												  ,_nboots(nboots)
-												  ,_navdms(navdms)
-												  ,_ntrial_bins(ntrial_bins)
-												  ,_nsearch(nsearch)
-												  ,_aggression(aggression)
 			{
 			//
 			_maxshift = 0;
@@ -209,6 +210,11 @@ namespace astroaccelerate{
 	// Setters
 
 	// Getters
+    std::size_t DedispersionStrategy::get_gpu_memory() const
+    {
+        return _gpu_memory;
+    }
+
 	int DedispersionStrategy::get_nboots() const { return _nboots;}
 	int DedispersionStrategy::get_ntrial_bins() const { return _ntrial_bins;}
 	int DedispersionStrategy::get_navdms() const { return _navdms;}
@@ -255,6 +261,7 @@ namespace astroaccelerate{
 
 	void DedispersionStrategy::make_strategy(size_t const gpu_memory)
 	{
+        _gpu_memory = gpu_memory;
 		// This method relies on defining points when nsamps is a multiple of
 		// nchans - bin on the diagonal or a fraction of it.
 
@@ -388,9 +395,14 @@ namespace astroaccelerate{
 
 				// Find the common integer amount of samples between all bins
 				int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) _in_bin[_range - 1] ) / (float) ( SDIVINT * 2 * SNUMREG ));
-				local_t_processed = local_t_processed * ( SDIVINT * 2 * SNUMREG ) * _in_bin[_range - 1];
+				int num_blocks;
+                if(local_t_processed == 0) { 
+                    num_blocks = 0;
 
-				int num_blocks = (int) floor(( (float) _nsamp - ((float)_maxshift) )) / ( (float) ( local_t_processed ) );
+                } else {
+                    local_t_processed = local_t_processed * ( SDIVINT * 2 * SNUMREG ) * _in_bin[_range - 1];
+                    num_blocks = (int) floor(( (float) _nsamp - ((float)_maxshift) )) / ( (float) ( local_t_processed ) );
+                }
 
 				// Work out the remaining fraction to be processed
 				int remainder =  _nsamp - ( num_blocks * local_t_processed ) - _maxshift;

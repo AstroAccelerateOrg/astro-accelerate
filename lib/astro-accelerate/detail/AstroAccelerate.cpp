@@ -293,18 +293,18 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 	//free(out_tmp);
 	//free(input_buffer);
 
-	double time_processed = ( tstart_local ) / tsamp_original;
-	double dm_t_processed = time_processed * _total_ndms;
-	double all_processed = dm_t_processed * _nchans;
+	//double time_processed = ( tstart_local ) / tsamp_original;
+	//double dm_t_processed = time_processed * _total_ndms;
+	//double all_processed = dm_t_processed * _nchans;
 	//printf("\nGops based on %.2lf ops per channel per tsamp: %f", NOPS, ( ( NOPS * all_processed ) / ( time ) ) / 1000000000.0);
-	int num_reg = SNUMREG;
-	float num_threads = _total_ndms * ( _t_processed[0][0] ) / ( num_reg );
-	float data_size_loaded = ( num_threads * _nchans * sizeof(ushort) ) / 1000000000;
-	float time_in_sec = time;
-	float bandwidth = data_size_loaded / time_in_sec;
+	//int num_reg = SNUMREG;
+	//float num_threads = _total_ndms * ( _t_processed[0][0] ) / ( num_reg );
+	//float data_size_loaded = ( num_threads * _nchans * sizeof(ushort) ) / 1000000000;
+	//float time_in_sec = time;
+//	float bandwidth = data_size_loaded / time_in_sec;
 	//printf("\nDevice global memory bandwidth in GB/s: %f", bandwidth);
 	//printf("\nDevice shared memory bandwidth in GB/s: %f", bandwidth * ( num_reg ));
-	float size_gb = ( _nchans * ( _t_processed[0][0] ) * sizeof(float) * 8 ) / 1000000000.0;
+	//float size_gb = ( _nchans * ( _t_processed[0][0] ) * sizeof(float) * 8 ) / 1000000000.0;
 	//printf("\nTelescope data throughput in Gb/s: %f", size_gb / time_in_sec);
 
 	if (_enable_periodicity == 1)
@@ -317,7 +317,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
                 _ndms, _in_bin, _dm_low, _dm_high, _dm_step, tsamp_original);
 		//
 		timer.Stop();
-		float time = timer.Elapsed()/1000;
+		//float time = timer.Elapsed()/1000;
 		//printf("\n\n === OVERALL PERIODICITY THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
 		//printf("\nPerformed Peroidicity Location: %f (GPU estimate)", time);
