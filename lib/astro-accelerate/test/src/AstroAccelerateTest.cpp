@@ -33,14 +33,13 @@ class TestParams : public AstroAccelerateParameters<TestParams> {};
 TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 {
 	// Following is ok for ska_karel.txt
-	char* filename = my_argv[1] + strlen(my_argv[1]) - 13;
+	//char* filename = my_argv[1] + strlen(my_argv[1]) - 13;
 	//if(strcmp(filename, "ska_karel.txt") == 0)
 	//{
 		// Internal code variables
 		// File pointers
 		FILE *fp = NULL;
 		// Counters and flags
-		int i, t, dm_range;
 		int range = 0;
 		int nb_selected_dm = 0;
 		int enable_debug = 0;
@@ -59,28 +58,13 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		int analysis_debug = 0;
 	    int *inBin = NULL;
 		int *outBin = NULL;
-		int *ndms = NULL;
-		int maxshift = 0;
-		int max_ndms = 0;
-		int max_samps = 0;
-		int num_tchunks = 0;
-		int total_ndms = 0;
 		int multi_file = 1;
-		float max_dm = 0.0f;
 		int candidate_algorithm=0;
 		int failsafe = 0;
 		// Memory sizes and pointers
-		size_t outputsize = 0;
-		size_t gpu_outputsize = 0;
-		unsigned short *d_input = NULL;
-		float *d_output = NULL;
-		float *dmshifts = NULL;
 		float *user_dm_low = NULL;
 		float *user_dm_high = NULL;
 		float *user_dm_step = NULL;
-		float *dm_low = NULL;
-		float *dm_high = NULL;
-		float *dm_step = NULL;
 		float *selected_dm_low = NULL;
 		float *selected_dm_high = NULL;
 		// Telescope parameters
@@ -89,7 +73,6 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		int nbits = 0;
 		int nsamples = 0;
 		int nifs = 0;
-		int **t_processed;
 		int nboots = -1;
 		int ntrial_bins;
 		int navdms = 1;
@@ -97,11 +80,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		float aggression = 2.5;
 		float narrow = 0.001f;
 		float wide = 0.1f;
-		int maxshift_original;
-		double tsamp_original;
-		long int inc = 0;
 		float tstart = 0.0f;
-		float tstart_local = 0.0f;
 		float tsamp = 0.0f;
 		float fch1 = 0.0f;
 		float foff = 0.0f;
@@ -131,7 +110,8 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		// dedispersion
 		//DedispersionStrategy dedispersion_strategy;
 		//DedispersionStrategyFile(&fp, my_argc, my_argv, dedispersion_strategy, gpu_memory);
-		/*DedispersionStrategy dedispersion_strategy
+		/*
+		DedispersionStrategy dedispersion_strategy
 									 (user_dm_low
 									 ,user_dm_high
 									 ,user_dm_step
@@ -158,8 +138,8 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 									 ,nsearch
 									 ,aggression
                                      ,bin_frequencies);
-*/
-
+        }
+        */
 
 		// Initialise the GPU.
 		int device_id = 0;
@@ -195,8 +175,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 											 ,nboots
 											 ,navdms
 											 ,ntrial_bins
-											 ,nsearch
-		,aggression);
+											 ,nsearch ,aggression);
 
 
 

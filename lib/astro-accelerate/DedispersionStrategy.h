@@ -12,15 +12,15 @@
 
 namespace astroaccelerate {
 
-    /**
-     * @brief  Dedispersion Strategy
-     *
-     * @details This object carries the dedispersion strategy
-     *
-     */
+/**
+ * @brief  Dedispersion Strategy
+ *
+ * @details This object carries the dedispersion strategy
+ *
+ */
 class DedispersionStrategy
 {
-	friend class DedispersionStrategyFile;
+    friend class DedispersionStrategyFile;
     public:
         /**
         *  @brief Default constructor
@@ -30,61 +30,61 @@ class DedispersionStrategy
          *  @brief Parameterized constructor
          */
         DedispersionStrategy(float* const user_dm_low
-        			,float* const user_dm_high
-        			,float* const user_dm_step
-        			,int* const in_bin
-        			,int* const out_bin
-        			,size_t gpu_memory
-        			,int power
-        			,int range
-        			,int nchans
-        			,int nsamples
-        			,int nsamp
-        			,int nifs
-        			,int nbits
-        			,float tsamp
-        			,float tstart
-        			,float sigma_cutoff
-				,float sigma_constant
-				,float max_boxcar_width_in_sec
-				,float narrow
-				,float wide
-				,int nboots
-				,int navdms
-				,int ntrial_bins
-				,int nsearch
-				,float aggression
+                    ,float* const user_dm_high
+                    ,float* const user_dm_step
+                    ,int* const in_bin
+                    ,int* const out_bin
+                    ,size_t gpu_memory
+                    ,int power
+                    ,int range
+                    ,int nchans
+                    ,int nsamples
+                    ,int nsamp
+                    ,int nifs
+                    ,int nbits
+                    ,float tsamp
+                    ,float tstart
+                    ,float sigma_cutoff
+                ,float sigma_constant
+                ,float max_boxcar_width_in_sec
+                ,float narrow
+                ,float wide
+                ,int nboots
+                ,int navdms
+                ,int ntrial_bins
+                ,int nsearch
+                ,float aggression
                                 ,std::vector<float> const & bin_frequencies
-				);
+                );
 
         DedispersionStrategy(float* const user_dm_low
-        			,float* const user_dm_high
-        			,float* const user_dm_step
-        			,int* const in_bin
-        			,int* const out_bin
-        			,size_t gpu_memory
-        			,int power
-        			,int range
-        			,int nchans
-        			,int nsamples
-        			,int nsamp
-        			,int nifs
-        			,int nbits
-        			,float tsamp
-        			,float tstart
-        			,float fch1
-        			,float foff
-        			,float sigma_cutoff
-				,float sigma_constant
-				,float max_boxcar_width_in_sec
-				,float narrow
-				,float wide
-				,int nboots
-				,int navdms
-				,int ntrial_bins
-				,int nsearch
-				,float aggression
-        	);
+                    ,float* const user_dm_high
+                    ,float* const user_dm_step
+                    ,int* const in_bin
+                    ,int* const out_bin
+                    ,size_t gpu_memory
+                    ,int power
+                    ,int range
+                    ,int nchans
+                    ,int nsamples
+                    ,int nsamp
+                    ,int nifs
+                    ,int nbits
+                    ,float tsamp
+                    ,float tstart
+                    ,float fch1
+                    ,float foff
+                    ,float sigma_cutoff
+                ,float sigma_constant
+                ,float max_boxcar_width_in_sec
+                ,float narrow
+                ,float wide
+                ,int nboots
+                ,int navdms
+                ,int ntrial_bins
+                ,int nsearch
+                ,float aggression
+            );
         /**
         *  @brief Destructor
         */
@@ -132,6 +132,7 @@ class DedispersionStrategy
         unsigned int get_num_tchunks() const;
 
         void resize(size_t number_of_samples, size_t gpu_memory);
+        std::size_t get_gpu_memory() const;
 
     private:
         /**
@@ -143,7 +144,7 @@ class DedispersionStrategy
         void make_strategy(size_t gpu_memory, int foo);
         
  
-	// user input
+    // user input
         /**
          * @brief ---
          */
@@ -171,6 +172,8 @@ class DedispersionStrategy
         /**
          * @brief ---
          */
+        std::size_t _gpu_memory;
+
         float _power;
         /**
          * @brief The threshold for single pulse detection, multiple of standard deviation
