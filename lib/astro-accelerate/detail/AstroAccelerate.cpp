@@ -156,6 +156,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 									,std::vector<float> &output_sps
 									)
 {
+	cudaSetDevice(device_id);
 	//
 	long int inc = 0;
 	float tstart_local = 0.0f;
