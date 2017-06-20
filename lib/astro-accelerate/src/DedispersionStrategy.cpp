@@ -39,7 +39,6 @@ namespace astroaccelerate{
 		_tstart = 0.0f;
 		_tsamp = 0.0f;
 		_nsamp = 0;
-		_nsamples = 0;
 		_max_samps = 0;
 		_nchans = 0;
 		_num_tchunks = 0;
@@ -57,7 +56,6 @@ namespace astroaccelerate{
 		        							  ,int power
 		        							  ,int range
 		        							  ,int nchans
-		        							  ,int nsamples
 		        							  ,int nsamp
 		        							  ,int nifs
 		        							  ,int nbits
@@ -86,7 +84,6 @@ namespace astroaccelerate{
 											  ,_max_boxcar_width_in_sec(max_boxcar_width_in_sec)
 											  ,_range(range)
 											  ,_nchans(nchans)
-											  ,_nsamples(nsamples)
 											  ,_nsamp(nsamp)
 											  ,_nifs(nifs)
 											  ,_nbits(nbits)
@@ -130,7 +127,6 @@ namespace astroaccelerate{
 			        							  ,int power
 			        							  ,int range
 			        							  ,int nchans
-			        							  ,int nsamples
 			        							  ,int nsamp
 			        							  ,int nifs
 			        							  ,int nbits
@@ -168,7 +164,6 @@ namespace astroaccelerate{
 												  ,_in_bin(in_bin)
 												  ,_out_bin(out_bin)
 												  ,_nchans(nchans)
-												  ,_nsamples(nsamples)
 												  ,_nsamp(nsamp)
 												  ,_nifs(nifs)
 												  ,_nbits(nbits)
@@ -248,7 +243,6 @@ namespace astroaccelerate{
 	float DedispersionStrategy::get_tstart() const { return _tstart;}
 	float DedispersionStrategy::get_tsamp() const { return _tsamp;}
 	int DedispersionStrategy::get_nsamp() const { return _nsamp;}
-	int DedispersionStrategy::get_nsamples() const { return _nsamples;}
 	int DedispersionStrategy::get_max_samps() const { return _max_samps;}
 	int DedispersionStrategy::get_nchans() const { return _nchans;}
 	unsigned int DedispersionStrategy::get_num_tchunks() const { return _num_tchunks;}

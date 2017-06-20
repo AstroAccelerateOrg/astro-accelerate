@@ -121,7 +121,6 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 									 ,power
 									 ,range
 									 ,nchans
-									 ,nsamples
 									 ,nsamp
 									 ,nifs
 									 ,nbits
@@ -159,7 +158,6 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 											 ,power
 											 ,range
 											 ,nchans
-											 ,nsamples
 											 ,nsamp
 											 ,nifs
 											 ,nbits

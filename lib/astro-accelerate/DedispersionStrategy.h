@@ -38,7 +38,6 @@ class DedispersionStrategy
                     ,int power
                     ,int range
                     ,int nchans
-                    ,int nsamples
                     ,int nsamp
                     ,int nifs
                     ,int nbits
@@ -66,7 +65,6 @@ class DedispersionStrategy
                     ,int power
                     ,int range
                     ,int nchans
-                    ,int nsamples
                     ,int nsamp
                     ,int nifs
                     ,int nbits
@@ -126,7 +124,6 @@ class DedispersionStrategy
         float get_tstart() const;
         float get_tsamp() const;
         int get_nsamp() const;
-        int get_nsamples() const;
         int get_max_samps() const;
         int get_nchans() const;
         unsigned int get_num_tchunks() const;
@@ -277,10 +274,6 @@ class DedispersionStrategy
          * @brief The number of time samples
          */
         int _nsamp;
-        /**
-         * @brief ---
-         */
-        int _nsamples;
         /**
          * @brief
          */
