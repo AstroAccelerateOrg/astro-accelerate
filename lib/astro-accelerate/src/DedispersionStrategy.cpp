@@ -73,32 +73,31 @@ namespace astroaccelerate{
 		        							  ,float aggression
 		        							  ,std::vector<float> const &bin_frequencies
 											  )
-											  :_user_dm_low(user_dm_low)
-											  ,_user_dm_high(user_dm_high)
-											  ,_user_dm_step(user_dm_step)
-											  ,_in_bin(in_bin)
-											  ,_out_bin(out_bin)
-											  ,_power(power)
-											  ,_sigma_cutoff(sigma_cutoff)
-		  	  	  	  	  	  	  	  	  	  ,_sigma_constant(sigma_constant)
-											  ,_max_boxcar_width_in_sec(max_boxcar_width_in_sec)
-											  ,_range(range)
-											  ,_nchans(nchans)
-											  ,_nsamp(nsamp)
-											  ,_nifs(nifs)
-											  ,_nbits(nbits)
-											  ,_tsamp(tsamp)
-											  ,_tstart(tstart)
-											  ,_narrow(narrow)
-											  ,_wide(wide)
-											  ,_nboots(nboots)
-											  ,_navdms(navdms)
-											  ,_ntrial_bins(ntrial_bins)
-											  ,_nsearch(nsearch)
-											  ,_aggression(aggression)
-											  ,_bin_frequencies(bin_frequencies)
-		{
-		//
+              :_nboots(nboots)
+              ,_ntrial_bins(ntrial_bins)
+              ,_navdms(navdms)
+              ,_narrow(narrow)
+              ,_aggression(aggression)
+              ,_nsearch(nsearch)
+              ,_power(power)
+              ,_sigma_cutoff(sigma_cutoff)
+              ,_sigma_constant(sigma_constant)
+              ,_max_boxcar_width_in_sec(max_boxcar_width_in_sec)
+              ,_wide(wide)
+              ,_range(range)
+              ,_user_dm_low(user_dm_low)
+              ,_user_dm_high(user_dm_high)
+              ,_user_dm_step(user_dm_step)
+              ,_in_bin(in_bin)
+              ,_out_bin(out_bin)
+              ,_nbits(nbits)
+              ,_nifs(nifs)
+              ,_tstart(tstart)
+              ,_tsamp(tsamp)
+              ,_nsamp(nsamp)
+              ,_nchans(nchans)
+              ,_bin_frequencies(bin_frequencies)
+    {
 		_fch1=0;
 		_foff=0;
 		_maxshift = 0;
@@ -116,7 +115,7 @@ namespace astroaccelerate{
 		_SPS_mem_requirement=Get_memory_requirement_of_SPS();
 		//
 		make_strategy(gpu_memory);
-		}
+    }
 
 	DedispersionStrategy::DedispersionStrategy(float* const user_dm_low
 			        							  ,float* const user_dm_high
@@ -145,49 +144,48 @@ namespace astroaccelerate{
 			        							  ,int nsearch
 			        							  ,float aggression
 												  )
-												  : _nboots(nboots)
-												  ,_ntrial_bins(ntrial_bins)
-												  ,_navdms(navdms)
-												  ,_narrow(narrow)
-												  ,_aggression(aggression)
-												  ,_nsearch(nsearch)
-                                                  ,_gpu_memory(gpu_memory)
-												  ,_power(power)
-												  ,_sigma_cutoff(sigma_cutoff)
-			  	  	  	  	  	  	  	  	  	  ,_sigma_constant(sigma_constant)
-												  ,_max_boxcar_width_in_sec(max_boxcar_width_in_sec)
-												  ,_wide(wide)
-												  ,_range(range)
-												  ,_user_dm_low(user_dm_low)
-												  ,_user_dm_high(user_dm_high)
-												  ,_user_dm_step(user_dm_step)
-												  ,_in_bin(in_bin)
-												  ,_out_bin(out_bin)
-												  ,_nchans(nchans)
-												  ,_nsamp(nsamp)
-												  ,_nifs(nifs)
-												  ,_nbits(nbits)
-												  ,_tsamp(tsamp)
-												  ,_tstart(tstart)
-												  ,_fch1(fch1)
-												  ,_foff(foff)
-			{
-			//
-			_maxshift = 0;
-			_dm_low = nullptr;
-			_dm_high = nullptr;
-			_dm_step = nullptr;
-			_dmshifts = nullptr;
-			_ndms = nullptr;
-			_max_ndms = 0;
-			_total_ndms	= 0;
-			_max_dm	= 0.0f;
-			_t_processed = nullptr;
-			_max_samps = 0;
-			_num_tchunks = 0;
-			_SPS_mem_requirement=Get_memory_requirement_of_SPS();
-			//
-			make_strategy(gpu_memory, 0);
+              : _nboots(nboots)
+              ,_ntrial_bins(ntrial_bins)
+              ,_navdms(navdms)
+              ,_narrow(narrow)
+              ,_aggression(aggression)
+              ,_nsearch(nsearch)
+              ,_gpu_memory(gpu_memory)
+              ,_power(power)
+              ,_sigma_cutoff(sigma_cutoff)
+              ,_sigma_constant(sigma_constant)
+              ,_max_boxcar_width_in_sec(max_boxcar_width_in_sec)
+              ,_wide(wide)
+              ,_range(range)
+              ,_user_dm_low(user_dm_low)
+              ,_user_dm_high(user_dm_high)
+              ,_user_dm_step(user_dm_step)
+              ,_in_bin(in_bin)
+              ,_out_bin(out_bin)
+              ,_nbits(nbits)
+              ,_nifs(nifs)
+              ,_tstart(tstart)
+              ,_tsamp(tsamp)
+              ,_nsamp(nsamp)
+              ,_nchans(nchans)
+              ,_fch1(fch1)
+              ,_foff(foff)
+    {
+        _maxshift = 0;
+        _dm_low = nullptr;
+        _dm_high = nullptr;
+        _dm_step = nullptr;
+        _dmshifts = nullptr;
+        _ndms = nullptr;
+        _max_ndms = 0;
+        _total_ndms	= 0;
+        _max_dm	= 0.0f;
+        _t_processed = nullptr;
+        _max_samps = 0;
+        _num_tchunks = 0;
+        _SPS_mem_requirement=Get_memory_requirement_of_SPS();
+        //
+        make_strategy(gpu_memory, 0);
 	}
 
 	DedispersionStrategy::~DedispersionStrategy()
@@ -249,6 +247,9 @@ namespace astroaccelerate{
 
     void DedispersionStrategy::resize(size_t const number_of_samples, size_t const gpu_memory)
     {
+        if(number_of_samples == (std::size_t)_nsamp && gpu_memory == _gpu_memory) {
+            return;
+        }
         _nsamp = number_of_samples;
         make_strategy(gpu_memory);
     }
@@ -319,17 +320,8 @@ namespace astroaccelerate{
 			maxshift_high = (int) ceil(( ( _dm_low[_range - 1] + _dm_step[_range - 1] * ( _ndms[_range - 1] ) ) * _dmshifts[_nchans - 1] ) / _tsamp);
 		}
 		_max_dm = ceil(_dm_high[_range - 1]);
-
 		_maxshift = ( maxshift_high +  ( SNUMREG * 2 * SDIVINT ) );
-		//printf("\nRange:\t%d, MAXSHIFT:\t%d, Scrunch value:\t%d", _range - 1, _maxshift, _in_bin[_range - 1]);
-		//printf("\nMaximum dispersive delay:\t%.2f (s)", _maxshift * _tsamp);
 
-		if (_maxshift >= _nsamp)	{
-			printf("\n\nERROR!! Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial\n\n");
-			exit(1);
-		}
-
-		//printf("\nDiagonal DM:\t%f", ( _tsamp * _nchans * 0.0001205 * powf(( _fch1 + ( _foff * ( _nchans / 2 ) ) ), 3.0) ) / ( -_foff * _nchans ));
 		if (_maxshift >= _nsamp)	{
 			printf("ERROR!! Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial");
 			exit(1);
@@ -416,8 +408,6 @@ namespace astroaccelerate{
 					_t_processed[i][num_blocks] = _t_processed[i][num_blocks] * ( SDIVINT * 2 * SNUMREG );
 				}
 				_num_tchunks = num_blocks + 1;
-				//printf("\nIn 3\n");
-				printf("\nnum_blocks:\t%d", num_blocks);
 			}
 		}
 		else {
@@ -496,7 +486,7 @@ namespace astroaccelerate{
 
 
 
-	void DedispersionStrategy::make_strategy(size_t const gpu_memory, int foo)
+	void DedispersionStrategy::make_strategy(size_t const gpu_memory, int /*wtf*/)
 		{
 			// This method relies on defining points when nsamps is a multiple of
 			// nchans - bin on the diagonal or a fraction of it.
@@ -505,9 +495,6 @@ namespace astroaccelerate{
 			int maxshift_high = 0;
 
 			float n;
-			float fmin = ( _fch1 + ( _foff * _nchans ) );
-			float fmin_pow = powf(fmin, _power);
-			float fmax_pow = powf(_fch1, _power);
 
 			_dm_low = (float *) malloc(( _range ) * sizeof(float));
 			_dm_high = (float *) malloc(( _range ) * sizeof(float));
