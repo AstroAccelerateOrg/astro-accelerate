@@ -331,7 +331,7 @@ namespace astroaccelerate{
 					}
 					else if (strcmp(string, "nsamples") == 0)
 					{
-						if (fread(&(dedispersion_strategy._nsamples), sizeof(int), 1, *fp) != 1)
+						if (fread(&(dedispersion_strategy._nsamp), sizeof(int), 1, *fp) != 1)
 						{
 							fprintf(stderr, "\nError while reading file\n");
 							exit(0);
