@@ -182,10 +182,13 @@ class AstroAccelerate
         /**
          * @brief ---
          */
+        int* _out_bin;
         
         int   _nsamp;
         float _sigma_constant;
         float _max_boxcar_width_in_sec;
+        int _total_ndms;
+
         int   _nboots;
         int   _ntrial_bins;
         float _navdms;
@@ -193,10 +196,8 @@ class AstroAccelerate
         float _wide;
         int   _nsearch;
         float _aggression; 
-        int _total_ndms;
         int _nbits;
 
-        int* _out_bin;
         /**
          * @brief Size of the gpu input buffer
          */
