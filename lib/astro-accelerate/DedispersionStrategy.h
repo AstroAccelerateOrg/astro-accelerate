@@ -138,7 +138,7 @@ class DedispersionStrategy
          */
         void make_strategy(size_t gpu_memory);
 
-        void make_strategy(size_t gpu_memory, int foo);
+        void make_strategy(size_t gpu_memory, int);
         
  
     // user input

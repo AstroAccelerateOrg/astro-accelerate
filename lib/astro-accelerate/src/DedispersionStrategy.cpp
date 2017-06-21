@@ -486,8 +486,9 @@ namespace astroaccelerate{
 
 
 
-	void DedispersionStrategy::make_strategy(size_t const gpu_memory, int /*wtf*/)
+	void DedispersionStrategy::make_strategy(size_t const gpu_memory, int)
 		{
+			// this function is here for testing purposes, will be deleted ...
 			// This method relies on defining points when nsamps is a multiple of
 			// nchans - bin on the diagonal or a fraction of it.
 
