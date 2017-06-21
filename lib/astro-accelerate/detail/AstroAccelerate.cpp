@@ -174,7 +174,11 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 	//memset(out_tmp, 0.0f, _t_processed[0][0] + _maxshift * _max_ndms * sizeof(float));
 
 	// can't knopw the size of the list beforehand. Arbitrary value here, will be deleted soonish
-	size_t max_peak_size = 1000000;
+	size_t max_peak_size = 0;
+
+	for (int t = 0; t < _num_tchunks; t++)
+	    for (int dm_range = 0; dm_range < _range; dm_range++)
+	        max_peak_size += (size_t) ( _ndms[dm_range]*_t_processed[dm_range][t]/2 );
 
 	output_sps.resize(max_peak_size);
 
