@@ -31,6 +31,7 @@
 #define PD_FIR_ACTIVE_WARPS 2
 #define PD_FIR_NWINDOWS 2
 #define MIN_DMS_PER_SPS_RUN 64
+#define MSD_PW_NTHREADS 512
 
 /**** FDAS parameters ******/
 /*Params for benchmarks */

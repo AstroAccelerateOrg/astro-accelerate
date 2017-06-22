@@ -10,9 +10,12 @@
 #include "headers/device_zero_dm_outliers.h"
 #include "headers/device_rfi.h"
 
-#include "headers/device_BLN.h" //Added by KA
+
 #include "headers/device_SPS_inplace_kernel.h" //Added by KA
 #include "headers/device_SPS_inplace.h" //Added by KA
+#include "headers/device_MSD_BLN_grid.h" //Added by KA
+#include "headers/device_MSD_BLN_pw.h" //Added by KA
+//#include "headers/device_MSD_BLN_pw_dp.h" //Added by KA
 #include "headers/device_MSD_grid.h" //Added by KA
 #include "headers/device_MSD_plane.h" //Added by KA
 #include "headers/device_MSD_limited.h" //Added by KA
@@ -71,6 +74,7 @@ void main_function
 	int enable_zero_dm,
 	int enable_zero_dm_with_outliers,
 	int enable_rfi,
+	int enable_sps_baselinenoise,
 	int enable_fdas_custom_fft,
 	int enable_fdas_inbin,
 	int enable_fdas_norm,
@@ -304,7 +308,7 @@ void main_function
 					h_peak_list   = (float*) malloc(max_peak_size*4*sizeof(float));
 
 					peak_pos=0;
-					analysis_GPU(h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp, candidate_algorithm);
+					analysis_GPU(h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp, candidate_algorithm, enable_sps_baselinenoise);
 
 					free(h_peak_list);
 				}
