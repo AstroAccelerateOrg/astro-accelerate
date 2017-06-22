@@ -19,6 +19,7 @@ analysis
 -zero_dm_with_outliers
 -rfi
 threshold
+-baselinenoise
 -fdas_custom_fft
 -fdas_inbin
 -fdas_norm
