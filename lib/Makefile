@@ -23,7 +23,7 @@ ifeq ($(cache),off)
          --ptxas-options=-v -Xptxas -dlcm=cg $(GENCODE_FLAGS)
 else
         NVCCFLAGS := $(INC) -g -lineinfo -Xcompiler -fopenmp -O3 -lm --use_fast_math\
-         --ptxas-options=-v -lcuda -lcudart  -lcurand -lcufft -Xptxas -dlcm=cg $(GENCODE_FLAGS)
+         --ptxas-options=-v -lcuda -lcudart  -lcurand -lcufft -lcudadevrt -Xptxas -dlcm=cg $(GENCODE_FLAGS)
 endif
 
 #ifeq ($(gpu),sm_35)

@@ -1,13 +1,13 @@
 // Added by Karel Adamek 
 
-#ifndef BLN_KERNEL_H_
-#define BLN_KERNEL_H_
+#ifndef MSD_BLN_GRID_KERNEL_H_
+#define MSD_BLN_GRID_KERNEL_H_
 
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "headers/params.h"
 
-__global__ void BLN_MSD_GPU_grid(float const* __restrict__ d_input, float *d_output, int x_steps, int y_steps, int nColumns, int msd) {
+__global__ void MSD_BLN_grid_calculate_partials(float const* __restrict__ d_input, float *d_output, int x_steps, int y_steps, int nColumns, int msd) {
 	extern __shared__ float Ms_Ss[];
 	
 	int warp_id, local_id, dim_y, pos;
@@ -96,7 +96,7 @@ __global__ void BLN_MSD_GPU_grid(float const* __restrict__ d_input, float *d_out
 	}
 }
 
-__global__ void BLN_outlier_rejection(float const* __restrict__ d_input, float *d_output, int size, float nElements, float multiplier) {
+__global__ void MSD_BLN_grid_outlier_rejection(float const* __restrict__ d_input, float *d_output, int size, float nElements, float multiplier) {
 	__shared__ float Ms[WARP*WARP];
 	__shared__ float Ss[WARP*WARP];
 	__shared__ float js[WARP*WARP];
