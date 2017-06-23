@@ -5,6 +5,7 @@
 #include "DmTime.h"
 //
 #include "../headers/headers_mains.h"
+
 #include "../headers/device_bin.h"
 #include "../headers/device_init.h"
 #include "../headers/device_dedisperse.h"
@@ -12,10 +13,13 @@
 #include "../headers/device_zero_dm.h"
 #include "../headers/device_zero_dm_outliers.h"
 #include "../headers/device_rfi.h"
-// sps
-#include "../headers/device_BLN.h" //Added by KA
+
+
 #include "../headers/device_SPS_inplace_kernel.h" //Added by KA
 #include "../headers/device_SPS_inplace.h" //Added by KA
+#include "../headers/device_MSD_BLN_grid.h" //Added by KA
+#include "../headers/device_MSD_BLN_pw.h" //Added by KA
+//#include "headers/device_MSD_BLN_pw_dp.h" //Added by KA
 #include "../headers/device_MSD_grid.h" //Added by KA
 #include "../headers/device_MSD_plane.h" //Added by KA
 #include "../headers/device_MSD_limited.h" //Added by KA
@@ -24,8 +28,9 @@
 #include "../headers/device_threshold.h" //Added by KA
 #include "../headers/device_single_FIR.h" //Added by KA
 #include "../headers/device_analysis.h" //Added by KA
+
 #include "../headers/device_peak_find.h" //Added by KA
-//
+
 #include "../headers/device_load_data.h"
 #include "../headers/device_corner_turn.h"
 #include "../headers/device_save_data.h"
@@ -41,13 +46,15 @@
 #include "../headers/host_rfi.h"
 #include "../headers/host_stratagy.h"
 #include "../headers/host_write_file.h"
+
 // fdas
 #include "../headers/device_acceleration_fdas.h"
-#include "../headers/host_main_function.h"
-//
-#include "../headers/params.h"
-#include "../timer.h"
 
+#include "../headers/host_main_function.h"
+
+#include "../headers/params.h"
+
+#include "../timer.h"
 #include <vector>
 
 namespace astroaccelerate {
@@ -269,6 +276,10 @@ class AstroAccelerate
          * @brief 1 to use old thresholding code, 0 to use new peak finding code
          */
         int _candidate_algorithm;
+        /**
+         * @brief 1 to use old thresholding code, 0 to use new peak finding code
+         */
+        int _enable_sps_baselinenoise;
 };
 
 } // namespace astroaccelerate
