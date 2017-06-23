@@ -46,6 +46,7 @@ AstroAccelerate<AstroAccelerateParameterType>::AstroAccelerate(DedispersionStrat
 	_enable_zero_dm_with_outliers = 0;
 	_enable_rfi = 0;
 	_candidate_algorithm = 0;
+	_enable_sps_baselinenoise = 0;
 	//
 	_gpu_input_size = 0;
 	_d_input = nullptr;
@@ -208,7 +209,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 		for (int dm_range = 0; dm_range < _range; ++dm_range)
 		{
 			//printf("\n\n%f\t%f\t%f\t%d", _dm_low[dm_range], _dm_high[dm_range], _dm_step[dm_range], _ndms[dm_range]), fflush(stdout);
-			//printf("\nAmount of telescope time processed: %f", tstart_local);
+			printf("\nAmount of telescope time processed: %f", tstart_local);
 			_maxshift = maxshift_original / _in_bin[dm_range];
 
 			cudaDeviceSynchronize();
@@ -240,7 +241,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 				analysis_GPU(output_sps, &peak_pos, max_peak_size, dm_range, tstart_local,
 							_t_processed[dm_range][t], _in_bin[dm_range], _out_bin[dm_range], &_maxshift, _max_ndms, _ndms,
 							_sigma_cutoff, _sigma_constant, _max_boxcar_width_in_sec
-							, _d_output, _dm_low, _dm_high, _dm_step, _tsamp, _candidate_algorithm);
+							, _d_output, _dm_low, _dm_high, _dm_step, _tsamp, _candidate_algorithm, _enable_sps_baselinenoise);
 
 				//#pragma omp parallel for
 				for (int count = previous_peak_pos; count < peak_pos; count++)

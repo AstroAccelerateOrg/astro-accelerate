@@ -1,0 +1,172 @@
+// Added by Karel Adamek 
+
+#ifndef MSD_BLN_PW_DP_KERNEL_H_
+#define MSD_BLN_PW_DP_KERNEL_H_
+
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include "headers/params.h"
+
+
+__global__ void MSD_BLN_pw_no_rejection_dp(float const* __restrict__ d_input, float *d_output, int y_steps, int nTimesamples, int offset) {
+	__shared__ float s_input[3*MSD_BLN_PW_NTHREADS];
+	float M, S, j, ftemp;
+	
+	int spos = blockIdx.x*MSD_BLN_PW_NTHREADS + threadIdx.x;
+	int gpos = blockIdx.y*y_steps*nTimesamples + spos;
+	M=0;	S=0;	j=0;
+	if( spos<(nTimesamples-offset) ){
+		
+		ftemp=__ldg(&d_input[gpos]);
+		Initiate( &M, &S, &j, ftemp);
+		
+		gpos = gpos + nTimesamples;
+		for (int yf = 1; yf < y_steps; yf++) {
+			ftemp=__ldg(&d_input[gpos]);
+			Add_one( &M, &S, &j, ftemp);
+			gpos = gpos + nTimesamples;
+		}
+	}
+	
+	s_input[threadIdx.x] = M;
+	s_input[blockDim.x + threadIdx.x] = S;
+	s_input[2*blockDim.x + threadIdx.x] = j;
+	
+	__syncthreads();
+	
+	Reduce_SM( &M, &S, &j, s_input );
+	Reduce_WARP( &M, &S, &j);
+	
+	//----------------------------------------------
+	//---- Writing data
+	if (threadIdx.x == 0) {
+		gpos = blockIdx.y*gridDim.x + blockIdx.x;
+		d_output[3*gpos] = M;
+		d_output[3*gpos + 1] = S;
+		d_output[3*gpos + 2] = j;
+	}
+}
+
+
+__global__ void MSD_BLN_pw_rejection_dp(float const* __restrict__ d_input, float *d_output, int y_steps, int nTimesamples, int offset, float bln_sigma_constant, float signal_mean, float signal_sd) {
+	__shared__ float s_input[3*MSD_BLN_PW_NTHREADS];
+	float M, S, j, ftemp;
+	
+	int spos = blockIdx.x*MSD_BLN_PW_NTHREADS + threadIdx.x;
+	int gpos = blockIdx.y*y_steps*nTimesamples + spos;
+	M=0;	S=0;	j=0;
+	if( spos<(nTimesamples-offset) ){
+		
+		for (int yf = 0; yf < y_steps; yf++) {
+			ftemp=__ldg(&d_input[gpos]);
+			if( (ftemp > (signal_mean - bln_sigma_constant*signal_sd)) && (ftemp < (signal_mean + bln_sigma_constant*signal_sd)) ){
+				if(j==0){
+					Initiate( &M, &S, &j, ftemp);
+				}
+				else{
+					Add_one( &M, &S, &j, ftemp);
+				}			
+			}
+			gpos = gpos + nTimesamples;
+		}
+		
+	}
+	
+	s_input[threadIdx.x] = M;
+	s_input[blockDim.x + threadIdx.x] = S;
+	s_input[2*blockDim.x + threadIdx.x] = j;
+	
+	__syncthreads();
+	
+	Reduce_SM( &M, &S, &j, s_input );
+	Reduce_WARP( &M, &S, &j);
+	
+	//----------------------------------------------
+	//---- Writing data
+	if (threadIdx.x == 0) {
+		gpos = blockIdx.y*gridDim.x + blockIdx.x;
+		d_output[3*gpos] = M;
+		d_output[3*gpos + 1] = S;
+		d_output[3*gpos + 2] = j;
+	}
+}
+
+
+__global__ void MSD_BLN_pw_dp_kernel(float const* __restrict__ d_input, float *d_output, float *d_MSD, ushort nBlocks_x, ushort nBlocks_y, int nTimesamples, int nDMs, int offset, float bln_sigma_constant) {
+	__shared__ float s_input[3*WARP*WARP];
+	// n_blocks_x is number of threadblocks in x (time-sample;column) direction
+	// n_blocks_y is number of threadblocks in y (DM;row) direction (nDMs must be multiple of n_blocks_y
+	// number of steps in y-direction is given as steps_y=nDMs/n_blocks_y
+	// number of steps in x-direction is given by NTHREADS and EPT elements per thread
+	
+	// calculate mean and StrDev
+	float signal_mean, signal_sd;
+	float M, S, j;
+	
+	//----------------------------------------------
+	//---- Calculating of mean and StrDev
+	__syncthreads();
+	if(threadIdx.x == 0){
+		dim3 gridSize(nBlocks_x, nBlocks_y, 1);
+		dim3 blockSize(MSD_BLN_PW_NTHREADS, 1, 1);
+		MSD_BLN_pw_no_rejection_dp<<<gridSize,blockSize>>>(d_input, d_output, nDMs/nBlocks_y, nTimesamples, offset);
+		
+		cudaDeviceSynchronize(); //wait until child kernels finishes
+	}
+	__syncthreads(); //all threads must wait until data from child kernel are ready
+	
+	Sum_partials_regular( &M, &S, &j, d_output, s_input, nBlocks_x*nBlocks_y);
+	//---- Calculating of mean and StrDev
+	//----------------------------------------------
+	
+	
+	if(threadIdx.x==0){
+		signal_mean = M/j;
+		signal_sd = sqrt(S/j);
+		s_input[0]=signal_mean;
+		s_input[1]=signal_sd;
+		printf("Base: mean:%f; sd:%f\n", signal_mean, signal_sd);
+	}
+	__syncthreads();
+	signal_mean = s_input[0];
+	signal_sd = s_input[1];
+	
+	
+	//----------------------------------------------
+	//---- Point-wise outlier rejection
+	for(int i=0; i<5; i++){
+		__syncthreads();
+		if(threadIdx.x == 0){
+			dim3 gridSize(nBlocks_x, nBlocks_y, 1);
+			dim3 blockSize(MSD_BLN_PW_NTHREADS, 1, 1);
+			MSD_BLN_pw_rejection_dp<<<gridSize,blockSize>>>(d_input, d_output, nDMs/nBlocks_y, nTimesamples, offset, bln_sigma_constant, signal_mean, signal_sd);
+			cudaDeviceSynchronize(); //wait until child kernels finishes
+		}
+		__syncthreads();  //all threads must wait until data from child kernel are ready
+	
+		Sum_partials_nonregular( &M, &S, &j, d_output, s_input, nBlocks_x*nBlocks_y);
+		
+		if(threadIdx.x==0){
+			signal_mean = M/j;
+			signal_sd = sqrt(S/j);
+			s_input[0]=signal_mean;
+			s_input[1]=signal_sd;
+			printf("Iteration: mean:%f; sd:%f\n", signal_mean, signal_sd);
+		}
+		__syncthreads();
+		signal_mean = s_input[0];
+		signal_sd = s_input[1];
+	
+	}
+	//---- Point-wise outlier rejection
+	//----------------------------------------------
+	
+	if(threadIdx.x==0){
+		d_MSD[0] = signal_mean;
+		d_MSD[1] = signal_sd;
+		d_MSD[2] = j;
+	}
+}
+
+
+#endif
