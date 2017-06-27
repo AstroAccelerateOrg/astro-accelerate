@@ -123,6 +123,12 @@ class AstroAccelerate
          * void run_dedispersion_fdas();
          * void run_dedispersion_sps_fdas();
          */
+        void run_fdas(unsigned device_id
+                	 ,DmTime<float> &output_buffer
+                	 ,std::vector<float> &output_fdas
+                	 );
+
+        void get_processed_time();
 
     private:
         /**
@@ -191,10 +197,14 @@ class AstroAccelerate
          */
         int* _out_bin;
         
+
+        long int _inc;
+
         int   _nsamp;
         float _sigma_constant;
         float _max_boxcar_width_in_sec;
         int _total_ndms;
+        float _tsamp_original;
 
         int   _nboots;
         int   _ntrial_bins;
@@ -277,7 +287,7 @@ class AstroAccelerate
          */
         int _candidate_algorithm;
         /**
-         * @brief 1 to use old thresholding code, 0 to use new peak finding code
+         * @brief 1 to [...], 0 to [...] // TODO: complete it
          */
         int _enable_sps_baselinenoise;
 };
