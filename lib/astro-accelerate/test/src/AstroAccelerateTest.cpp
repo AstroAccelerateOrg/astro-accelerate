@@ -192,9 +192,8 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 											 ,nboots
 											 ,navdms
 											 ,ntrial_bins
-											 ,nsearch ,aggression);
-
-
+											 ,nsearch
+											 ,aggression);
 
 		// input buffer
 		unsigned short *input_buffer = nullptr;
@@ -215,6 +214,11 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 						,output_buffer
 						,output_sps
 						);
+
+
+		std::vector<float> output_fdas;
+		//astroaccelerate.run_fdas(device_id, output_buffer, output_fdas);
+
 		//*/
 		fclose(fp);
 		free(inBin);
