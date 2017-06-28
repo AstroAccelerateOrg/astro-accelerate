@@ -57,7 +57,7 @@ AstroAccelerate<AstroAccelerateParameterType>::AstroAccelerate(DedispersionStrat
 }
 
 template<typename AstroAccelerateParameterType>
-void AstroAccelerate<AstroAccelerateParameterType>::get_processed_time()
+long int AstroAccelerate<AstroAccelerateParameterType>::get_processed_time()
 {
 	return _inc;
 }

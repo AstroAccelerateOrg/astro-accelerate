@@ -128,7 +128,7 @@ class AstroAccelerate
                 	 ,std::vector<float> &output_fdas
                 	 );
 
-        void get_processed_time();
+        long int get_processed_time();
 
     private:
         /**
