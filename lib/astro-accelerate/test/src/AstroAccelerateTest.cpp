@@ -87,7 +87,6 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 	int nbits = 0;
 	int nsamples = 0;
 	int nifs = 0;
-	int **t_processed;
 	int nboots = -1;
 	int ntrial_bins;
 	int navdms = 1;
@@ -95,11 +94,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 	float aggression = 2.5;
 	float narrow = 0.001f;
 	float wide = 0.1f;
-	int maxshift_original;
-	double tsamp_original;
-	long int inc = 0;
 	float tstart = 0.0f;
-	float tstart_local = 0.0f;
 	float tsamp = 0.0f;
 	float fch1 = 0.0f;
 	float foff = 0.0f;

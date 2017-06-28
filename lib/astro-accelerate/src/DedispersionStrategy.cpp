@@ -55,7 +55,6 @@ namespace astroaccelerate{
 		        							  ,size_t gpu_memory
 		        							  ,int power
 		        							  ,int range
-		        							  ,int nchans
 		        							  ,int nsamp
 		        							  ,int nifs
 		        							  ,int nbits
@@ -95,7 +94,7 @@ namespace astroaccelerate{
               ,_tstart(tstart)
               ,_tsamp(tsamp)
               ,_nsamp(nsamp)
-              ,_nchans(nchans)
+              ,_nchans(bin_frequencies.size())
               ,_bin_frequencies(bin_frequencies)
     {
 		_fch1=0;
