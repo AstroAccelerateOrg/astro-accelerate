@@ -32,6 +32,7 @@ class TestParams : public AstroAccelerateParameters<TestParams> {};
 // test AstroAccelerate class
 TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 {
+	/*
 	// Internal code variables
 	// File pointers
 	FILE *fp = NULL;
@@ -117,43 +118,6 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp, &tstart,
 		&fch1, &foff);
 
-
-		//std::vector<float> bin_frequencies(nchans, 0.0);
-
-
-		// dedispersion
-		//DedispersionStrategy dedispersion_strategy;
-		//DedispersionStrategyFile(&fp, my_argc, my_argv, dedispersion_strategy, gpu_memory);
-		/*
-		DedispersionStrategy dedispersion_strategy
-									 (user_dm_low
-									 ,user_dm_high
-									 ,user_dm_step
-									 ,inBin
-									 ,outBin
-									 ,gpu_memory
-									 ,power
-									 ,range
-									 ,nchans
-									 ,nsamp
-									 ,nifs
-									 ,nbits
-									 ,tsamp
-									 ,tstart
-									 ,sigma_cutoff
-									 ,sigma_constant
-									 ,max_boxcar_width_in_sec
-									 ,narrow
-									 ,wide
-									 ,nboots
-									 ,navdms
-									 ,ntrial_bins
-									 ,nsearch
-									 ,aggression
-                                     ,bin_frequencies);
-        }
-        */
-
 		// Initialise the GPU.
 		int device_id = 0;
 		size_t gpu_memory = 0;
@@ -214,7 +178,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		std::vector<float> output_fdas;
 		//astroaccelerate.run_fdas(device_id, output_buffer, output_fdas);
 
-		//*/
+
 		fclose(fp);
 		free(inBin);
 		free(outBin);
@@ -222,6 +186,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		free(user_dm_high);
 		free(user_dm_step);
 		free(input_buffer);
+		*/
 	}
 //}
 
