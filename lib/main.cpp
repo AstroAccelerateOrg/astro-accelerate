@@ -24,6 +24,7 @@ int main(int argc, char* argv[])
 	int enable_zero_dm = 0;
 	int enable_zero_dm_with_outliers = 0;
 	int enable_rfi = 0;
+	int enable_sps_baselinenoise=0;
 	int enable_fdas_custom_fft = 0;
 	int enable_fdas_inbin = 0;
 	int enable_fdas_norm = 0;
@@ -100,7 +101,7 @@ int main(int argc, char* argv[])
 	    &enable_fdas_inbin, &enable_fdas_norm, &nboots, &ntrial_bins, &navdms,
 	    &narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff,
 	    &sigma_constant, &max_boxcar_width_in_sec, &range, &user_dm_low, &user_dm_high,
-	    &user_dm_step, &candidate_algorithm, &selected_dm_low, &selected_dm_high, &nb_selected_dm, &analysis_debug, &failsafe);
+	    &user_dm_step, &candidate_algorithm, &enable_sps_baselinenoise, &selected_dm_low, &selected_dm_high, &nb_selected_dm, &analysis_debug, &failsafe);
 	if (enable_debug == 1)
 		debug(1, start_time, range, outBin, enable_debug, enable_analysis,
 		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
@@ -145,7 +146,7 @@ int main(int argc, char* argv[])
 	  // Counters and flags
 	  i, t, dm_range, range, enable_debug, enable_analysis, enable_acceleration, enable_output_ffdot_plan,
 	  enable_output_fdas_list, enable_periodicity, output_dmt, enable_zero_dm, enable_zero_dm_with_outliers,
-	  enable_rfi, enable_fdas_custom_fft, enable_fdas_inbin, enable_fdas_norm, inBin,
+	  enable_rfi, enable_sps_baselinenoise, enable_fdas_custom_fft, enable_fdas_inbin, enable_fdas_norm, inBin,
 	  outBin, ndms, maxshift, max_ndms, max_samps, num_tchunks, total_ndms, multi_file, max_dm,
 	  // Memory sizes and pointers
 	  inputsize, outputsize, gpu_inputsize, gpu_outputsize, gpu_memory,

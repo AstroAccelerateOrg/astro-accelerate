@@ -59,6 +59,7 @@ typedef struct{
   unsigned int ffdotlen;
   unsigned int ffdotlen_cpx;
   float scale;
+  float tsamp;
 }fdas_params;
 
 //function declarations
