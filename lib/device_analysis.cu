@@ -7,7 +7,9 @@
 
 #include "headers/device_BC_plan.h"
 #include "headers/device_peak_find.h"
-#include "headers/device_BLN.h"
+#include "headers/device_MSD_BLN_grid.h"
+#include "headers/device_MSD_BLN_pw.h"
+//#include "headers/device_MSD_BLN_pw_dp.h"
 #include "headers/device_MSD_limited.h"
 #include "headers/device_SPS_long.h"
 #include "headers/device_threshold.h"
@@ -15,7 +17,7 @@
 
 #include "timer.h"
 
-/*
+
 //---------------------------------------------------------------------------------
 //-------> Kahan MSD
 void d_kahan_summation(float *signal, int nDMs, int nTimesamples, int offset, float *result, float *error){
@@ -69,10 +71,171 @@ void MSD_Kahan(float *h_input, int nDMs, int nTimesamples, int offset, double *m
 	*mean=signal_mean;
 	*sd=signal_sd;
 }
+
+void MSD_on_GPU(float *h_input, float *d_input, float *d_MSD, float *signal_mean, float *signal_sd, float *signal_mean_bln, float *signal_sd_bln, float *signal_mean_bl_bln, float *signal_sd_bl_bln, int nDMs, int nTimesamples, int offset, float sigma_constant, float *MSD_limited_time, float *MSD_BLN_pw_time, float *MSD_BLN_grid_time){
+	GpuTimer timer;
+	float h_MSD[3];
+	cudaMemcpy( d_input, h_input, ((size_t) nDMs*nTimesamples)*sizeof(float), cudaMemcpyHostToDevice);
+	
+	timer.Start();
+	MSD_limited(d_input, d_MSD, nDMs, nTimesamples, offset);
+	timer.Stop();
+	(*MSD_limited_time) = timer.Elapsed();
+	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	(*signal_mean) = h_MSD[0];
+	(*signal_sd)   = h_MSD[1];
+	
+	
+	timer.Start();
+	MSD_BLN_pw(d_input, d_MSD, nDMs, nTimesamples, offset, sigma_constant);
+	timer.Stop();
+	(*MSD_BLN_pw_time) = timer.Elapsed();
+	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	(*signal_mean_bln) = h_MSD[0];
+	(*signal_sd_bln)   = h_MSD[1];
+	
+	
+	timer.Start();
+	MSD_BLN_grid(d_input, d_MSD, 32, 32, nDMs, nTimesamples, offset, sigma_constant);
+	timer.Stop();
+	(*MSD_BLN_grid_time) = timer.Elapsed();
+	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	(*signal_mean_bl_bln) = h_MSD[0];
+	(*signal_sd_bl_bln)   = h_MSD[1];
+}
+
+void MSD_on_GPU_LA(float *h_input, float *d_input, float *d_MSD, float *h_MSD_LA, float *h_MSD_BLN_LA, int nDMs, int nTimesamples, int offset, float sigma_constant){
+	cudaMemcpy( d_input, h_input, ((size_t) nDMs*nTimesamples)*sizeof(float), cudaMemcpyHostToDevice);
+	
+	MSD_linear_approximation(d_input, d_MSD, 32, nDMs, nTimesamples, offset);
+	cudaMemcpy(h_MSD_LA, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost);
+	
+	
+	MSD_BLN_LA_pw_normal(d_input, d_MSD, 32, nDMs, nTimesamples, offset, sigma_constant);
+	cudaMemcpy(h_MSD_BLN_LA, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+}
+
+void MSD_on_GPU_halfed(float *h_input, float *d_input, float *d_MSD, float *signal_mean, float *signal_sd, float *signal_mean_bln, float *signal_sd_bln, int nDMs, int nTimesamples, int offset, float sigma_constant){
+	float h_MSD[3];
+	float *h_temp;
+	int dt=nTimesamples/2;
+	h_temp = new float[nDMs*dt];
+	
+	for(int d=0; d<nDMs; d++){
+		for(int s=0; s<dt; s++){
+			h_temp[d*dt + s] = h_input[d*nTimesamples + 2*s];
+		}
+	}
+	
+	cudaMemcpy( d_input, h_temp, ((size_t) nDMs*dt)*sizeof(float), cudaMemcpyHostToDevice);
+	
+	MSD_limited(d_input, d_MSD, nDMs, dt, offset/2);
+	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	(*signal_mean) = h_MSD[0];
+	(*signal_sd)   = h_MSD[1];
+	
+	
+	MSD_BLN_pw(d_input, d_MSD, nDMs, dt, offset/2, sigma_constant);
+	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	(*signal_mean_bln) = h_MSD[0];
+	(*signal_sd_bln)   = h_MSD[1];
+	
+	delete [] h_temp;
+}
 //-------> Kahan MSD
 //---------------------------------------------------------------------------------
-*/
 
+
+void Calculate_FIR(float *input, float *output, int nTaps, int nDMs, int nTimesamples, int ut) {
+	int d,s,t;
+	float ftemp;
+	
+	for(d=0; d<nDMs; d++){
+		for(s=0; s<nTimesamples-ut; s++){
+			ftemp=0;
+			for(t=0; t<nTaps; t++){
+				ftemp+=input[d*nTimesamples + s + t];
+			}
+			output[d*nTimesamples + s]=ftemp;
+		}
+	}	
+}
+
+void Decimate_in_time(float *h_input, float *h_CPU_decimate, int DIT_value, int DIT_factor, int nDMs, int nTimesamples, int offset){
+	float ftemp;
+	int decimated_timesamples;
+	
+	decimated_timesamples=nTimesamples/(DIT_value*DIT_factor);
+	for(int d=0; d<nDMs; d++){
+		for(int s=0; s<decimated_timesamples; s++){
+			ftemp=0;
+			for(int t=0; t<DIT_factor; t++){
+				ftemp = ftemp + h_input[d*decimated_timesamples*DIT_factor + s*DIT_factor + t];
+			}
+			h_CPU_decimate[d*decimated_timesamples + s]=ftemp;
+		}
+	}
+}
+
+void Export_data(float *input, size_t nDMs, size_t nTimesamples, char *filename){
+	FILE *fp_out;
+	char mod_filename[200];
+	
+	sprintf(mod_filename,"%s.dat",filename);
+	if (( fp_out = fopen(filename, "wb") ) == NULL)	{
+		fprintf(stderr, "Error opening output file!\n");
+		exit(0);
+	}
+	fwrite(input, (nDMs*nTimesamples)*sizeof(float), 4, fp_out);
+	fclose(fp_out);
+	
+	for(int d=0; d<nDMs; d++){
+		sprintf(mod_filename,"%s_dm%d.dat",filename,d);
+		if (( fp_out = fopen(filename, "wb") ) == NULL)	{
+			fprintf(stderr, "Error opening output file!\n");
+			exit(0);
+		}
+		fwrite(&input[d*nTimesamples], nTimesamples*sizeof(float), 4, fp_out);
+		fclose(fp_out);		
+	}
+}
+
+void export_file_nDM_nTimesamples(float *data, int nDMs, int nTimesamples, char *filename) {
+	FILE *file_out;
+	char str[200];
+
+	sprintf(str, "%s_DM.dat", filename);
+	if (( file_out = fopen(str, "w") ) == NULL)	{
+		fprintf(stderr, "Error opening output file!\n");
+		exit(0);
+	}
+
+	printf("export nDMs\n");
+	for (int s = 0; s < nTimesamples; s++) {
+		for (int d = 0; d < nDMs; d++) {
+			fprintf(file_out, "%f ", data[d*nTimesamples + s]);
+		}
+		fprintf(file_out, "\n");
+	}
+
+	fclose(file_out);
+
+	sprintf(str, "%s_Time.dat", filename);
+	if (( file_out = fopen(str, "w") ) == NULL)	{
+		fprintf(stderr, "Error opening output file!\n");
+		exit(0);
+	}
+
+	printf("export nTimesamples\n");
+	for (int d = 0; d < nDMs; d++) {
+		for (int s = 0; s < nTimesamples; s++) {
+			fprintf(file_out, "%f ", data[d*nTimesamples + s]);
+		}
+		fprintf(file_out, "\n");
+	}
+
+	fclose(file_out);
+}
 
 void Create_PD_plan(std::vector<PulseDetection_plan> *PD_plan, std::vector<int> *BC_widths, int nDMs, int nTimesamples){
 	int Elements_per_block, itemp, nRest;
@@ -144,10 +307,11 @@ int Get_max_iteration(int max_boxcar_width, std::vector<int> *BC_widths){
 	
 	if(max_boxcar_width>startTaps) iteration=(int) BC_widths->size();
 	
-	return(1);
+	return(iteration);
 }
 
-void analysis_GPU(std::vector<float> &h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float sigma_constant, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, int candidate_algorithm){
+
+void analysis_GPU(std::vector<float> &h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float sigma_constant, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, int candidate_algorithm, int enable_sps_baselinenoise){
 	int max_boxcar_width = (int) (max_boxcar_width_in_sec/tsamp);
 	//unsigned long int j;
 	unsigned long int vals;
@@ -163,9 +327,8 @@ void analysis_GPU(std::vector<float> &h_peak_list, size_t *peak_pos, size_t max_
 	double total_time, partial_time;
 
 	//float max, min, threshold;
-	int offset, max_iteration;
+	int max_iteration;
 	int t_BC_widths[10]={PD_MAXTAPS,16,16,16,8,8,8,8,8,8};
-	//int t_BC_widths[10]={PD_MAXTAPS,32,32,32,32,32,32,32,32,32};
 	std::vector<int> BC_widths(t_BC_widths,t_BC_widths+sizeof(t_BC_widths)/sizeof(int));
 	std::vector<PulseDetection_plan> PD_plan;
 
@@ -183,67 +346,6 @@ void analysis_GPU(std::vector<float> &h_peak_list, size_t *peak_pos, size_t max_
 
 	total_time = 0;
 	
-	//-------------- Calculating base level noise using outlier rejection
-	//timer.Start();
-	//BLN(output_buffer, d_MSD, 32, 32, nDMs, nTimesamples, 0, sigma_constant); // Those 128 are there because there was a problem with data, I'm not sure if it is still the case.
-	//timer.Stop();
-	//partial_time = timer.Elapsed();
-	//total_time += partial_time;
-	//printf("MSD limited took:%f ms\n", partial_time);
-	//
-	//cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost);
-	//signal_mean_1 = h_MSD[0];
-	//signal_sd_1 = h_MSD[1];
-	//printf("Bin: %d, Mean: %f, Stddev: %f\n", 1, signal_mean_1, signal_sd_1);
-	//-------------- Calculating base level noise using outlier rejection
-	
-	/*
-	//-------------- Linear approximation
-	float signal_mean_1, signal_sd_1;
-	float *d_list;
-	size_t mem_size;
-	mem_size =sizeof(float)*(size_t)nDMs*(size_t)nTimesamples;
-	if ( cudaSuccess != cudaMalloc((void **) &d_list, mem_size)) printf("Allocation error! SNR\n");
-	
-	float signal_mean_16, signal_sd_16;
-	timer.Start(); 
-	MSD_limited(output_buffer, d_MSD, nDMs, nTimesamples, 128); 
-	timer.Stop(); 
-	partial_time = timer.Elapsed(); 
-	total_time += partial_time; 
-	printf("MSD limited took:%f ms\n", partial_time); 
-	
-	
-	timer.Start(); 
-	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
-	signal_mean_1 = h_MSD[0]; 
-	signal_sd_1 = h_MSD[1]; 
-	printf("MSD Bin: %d, Mean: %f, Stddev: %f\n", 1, signal_mean_1, signal_sd_1); 
-	
-	
-	offset = PD_FIR(output_buffer, d_list, PD_MAXTAPS, nDMs, nTimesamples); 
-	MSD_limited(d_list, d_MSD, nDMs, nTimesamples, offset); 
-	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
-	signal_mean_16 = h_MSD[0]; 
-	signal_sd_16 = h_MSD[1]; 
-	printf("MSD Bin: %d, Mean: %f, Stddev: %f\n", PD_MAXTAPS, signal_mean_16, signal_sd_16); 
-	
-	
-	h_MSD[0] = signal_mean_1; 
-	h_MSD[2] = ( signal_sd_16 - signal_sd_1 )/( (float) ( PD_MAXTAPS - 1 ) ); 
-	h_MSD[1] = signal_sd_1; 
-	printf("Final: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD[0], h_MSD[1], h_MSD[2]);
-	cudaMemcpy(d_MSD, h_MSD, 3*sizeof(float), cudaMemcpyHostToDevice); 
-	
-	timer.Stop(); 
-	partial_time = timer.Elapsed(); 
-	total_time += partial_time; 
-	printf("Linear sd took:%f ms\n", total_time); 
-	
-	cudaFree(d_list);
-	//-------------- Linear approximation
-	*/
-	
 	/*
 	//-------------- CPU check
 	float *h_temp;
@@ -256,6 +358,7 @@ void analysis_GPU(std::vector<float> &h_peak_list, size_t *peak_pos, size_t max_
 	//-------------- CPU check
 	*/
 	
+	/*
 	//-------------- One Call linear approximation
 	timer.Start(); 
 	MSD_linear_approximation(output_buffer, d_MSD, PD_MAXTAPS, nDMs, nTimesamples, 0);
@@ -268,9 +371,52 @@ void analysis_GPU(std::vector<float> &h_peak_list, size_t *peak_pos, size_t max_
 	//printf("     One kernel took:%f ms\n", partial_time);
 	#endif
 	//-------------- One Call linear approximation
+	*/
 	
+	/*
+	//-------------- Base level noise point-wise
+	timer.Start(); 
+	MSD_BLN_pw(output_buffer, d_MSD, nDMs, nTimesamples, 0, sigma_constant);
+	timer.Stop();
+	partial_time = timer.Elapsed(); 
+	total_time += partial_time; 
+	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	printf("     MSD BLN point-wise: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD[0], h_MSD[1], h_MSD[2]);
+	#ifdef GPU_ANALYSIS_DEBUG
+	printf("     MSD BLN point-wise kernel took:%f ms\n", partial_time); 
+	#endif
+	//-------------- Base level noise point-wise
+	*/
+
+	/*
+	//-------------- BLN_LA
+	timer.Start(); 
+	MSD_BLN_LA_pw_normal(output_buffer, d_MSD, nDMs, nTimesamples, PD_MAXTAPS, 0, sigma_constant);
+	timer.Stop();
+	partial_time = timer.Elapsed(); 
+	total_time += partial_time; 
+	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	printf("     MSD BLN linear approximation: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD[0], h_MSD[1], h_MSD[2]);
+	#ifdef GPU_ANALYSIS_DEBUG
+	printf("     BLN LA took:%f ms\n", partial_time); 
+	#endif
+	//-------------- BLN_LA
+	*/
 	
-	
+	/*
+	//-------------- Base level noise grid
+	timer.Start(); 
+	MSD_BLN_grid(output_buffer, d_MSD, 32, 32, nDMs, nTimesamples, 0, sigma_constant);
+	timer.Stop();
+	partial_time = timer.Elapsed(); 
+	total_time += partial_time; 
+	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	printf("     MSD BLN grid: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD[0], h_MSD[1], h_MSD[2]);
+	#ifdef GPU_ANALYSIS_DEBUG
+	printf("     MSD BLN grid kernel took:%f ms\n", partial_time); 
+	#endif
+	//-------------- Base level noise grid
+	*/
 	
 	size_t free_mem,total_mem;
 	cudaMemGetInfo(&free_mem,&total_mem);
@@ -306,7 +452,7 @@ void analysis_GPU(std::vector<float> &h_peak_list, size_t *peak_pos, size_t max_
 		if ( cudaSuccess != cudaMalloc((void**) &d_peak_list, sizeof(float)*DMs_per_cycle*nTimesamples)) printf("Allocation error! peaks\n");
 		
 		float *d_decimated;
-		if ( cudaSuccess != cudaMalloc((void **) &d_decimated,  sizeof(float)*((DMs_per_cycle*nTimesamples)/2))) printf("Allocation error! dedispered\n");
+		if ( cudaSuccess != cudaMalloc((void **) &d_decimated,  sizeof(float)*(((DMs_per_cycle*nTimesamples)/2)+PD_MAXTAPS) )) printf("Allocation error! dedispered\n");
 		
 		float *d_boxcar_values;
 		if ( cudaSuccess != cudaMalloc((void **) &d_boxcar_values,  sizeof(float)*DMs_per_cycle*nTimesamples)) printf("Allocation error! boxcars\n");
@@ -325,8 +471,16 @@ void analysis_GPU(std::vector<float> &h_peak_list, size_t *peak_pos, size_t max_
 		for(int f=0; f<DM_list.size(); f++) {
 			//-------------- SPS BLN
 			timer.Start();
-			//PD_SEARCH_LONG_BLN_IF(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD, &PD_plan, max_iteration, DM_list[f], nTimesamples);
-			PD_SEARCH_LONG_BLN_IF_LINAPPROX(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD, &PD_plan, max_iteration, DM_list[f], nTimesamples);
+			//PD_SEARCH_LONG_BLN(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD, &PD_plan, max_iteration, DM_list[f], nTimesamples);
+			//PD_SEARCH_LONG_BLN_EACH(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, &PD_plan, max_iteration, DM_list[f], nTimesamples, sigma_constant);
+			//PD_SEARCH_LONG_LINAPPROX(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD, &PD_plan, max_iteration, DM_list[f], nTimesamples);
+			if(enable_sps_baselinenoise){
+				PD_SEARCH_LONG_BLN_LINAPPROX_EACH(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, &PD_plan, max_iteration, DM_list[f], nTimesamples, sigma_constant);
+			}
+			else {
+				PD_SEARCH_LONG_LINAPPROX_EACH(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, &PD_plan, max_iteration, DM_list[f], nTimesamples);
+			}
+			//
 			timer.Stop();
 			partial_time = timer.Elapsed();
 			total_time += partial_time;
@@ -334,7 +488,9 @@ void analysis_GPU(std::vector<float> &h_peak_list, size_t *peak_pos, size_t max_
 			//printf("PD_SEARCH took:%f ms\n", partial_time);
 			#endif
 			//-------------- SPS BLN
-
+			
+			checkCudaErrors(cudaGetLastError());
+			
 			#ifdef GPU_ANALYSIS_DEBUG
 			//printf("BC_shift:%d; DMs_per_cycle:%d; f*DMs_per_cycle:%d; max_iteration:%d; offset:%d;\n", DM_shift*nTimesamples, DM_list[f], DM_shift, max_iteration, offset);
 			#endif
@@ -363,13 +519,19 @@ void analysis_GPU(std::vector<float> &h_peak_list, size_t *peak_pos, size_t max_
 				#endif
 				//-------------- Peak finding
 			}
-
-			cudaMemcpy(&temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost);
+			
+			checkCudaErrors(cudaGetLastError());
+			
+			checkCudaErrors(cudaMemcpy(&temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost));
 			#ifdef GPU_ANALYSIS_DEBUG
-			//printf("temp_peak_pos:%d; host_pos:%d; max:%d;\n", temp_peak_pos, (*peak_pos), (int) max_peak_size);
+			//printf("temp_peak_pos:%d; host_pos:%zu; max:%zu; local_max:%d;\n", temp_peak_pos, (*peak_pos), max_peak_size, local_max_list_size);
 			#endif
+			if( temp_peak_pos>=local_max_list_size ) {
+				printf("     Maximum list size reached! Increase list size or increase sigma cutoff.\n");
+				temp_peak_pos=local_max_list_size;
+			}
 			if( ((*peak_pos) + temp_peak_pos)<max_peak_size){
-				cudaMemcpy(&h_peak_list[(*peak_pos)*4], d_peak_list, temp_peak_pos*4*sizeof(float), cudaMemcpyDeviceToHost);
+				checkCudaErrors(cudaMemcpy(&h_peak_list[(*peak_pos)*4], d_peak_list, temp_peak_pos*4*sizeof(float), cudaMemcpyDeviceToHost));
 				*peak_pos = (*peak_pos) + temp_peak_pos;
 			}
 			else printf("Error peak list is too small!\n");
@@ -428,8 +590,8 @@ void analysis_GPU(std::vector<float> &h_peak_list, size_t *peak_pos, size_t max_
 	}
 	else printf("Error not enough memory to search for pulses\n");
 
-
 	//printf("\n====> TOTAL TIME OF SPS:%f\n\n", total_time);
+
 
 	cudaFree(d_MSD);
 	//----------> GPU part

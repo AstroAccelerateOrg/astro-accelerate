@@ -46,11 +46,20 @@ AstroAccelerate<AstroAccelerateParameterType>::AstroAccelerate(DedispersionStrat
 	_enable_zero_dm_with_outliers = 0;
 	_enable_rfi = 0;
 	_candidate_algorithm = 0;
+	_enable_sps_baselinenoise = 0;
+	_inc = 0;
+	_tsamp_original = _tsamp;
 	//
 	_gpu_input_size = 0;
 	_d_input = nullptr;
 	_gpu_output_size = 0;
 	_d_output = nullptr;
+}
+
+template<typename AstroAccelerateParameterType>
+void AstroAccelerate<AstroAccelerateParameterType>::get_processed_time()
+{
+	return _inc;
 }
 
 template<typename AstroAccelerateParameterType>
@@ -158,7 +167,6 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 {
 	cudaSetDevice(device_id);
 	//
-	long int inc = 0;
 	float tstart_local = 0.0f;
 
 	// allocate memory gpu
@@ -166,7 +174,6 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 	//printf("\nDe-dispersing...\n");
 
 
-	float tsamp_original = _tsamp;
 	int maxshift_original = _maxshift;
 
 	//float *out_tmp;
@@ -174,7 +181,11 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 	//memset(out_tmp, 0.0f, _t_processed[0][0] + _maxshift * _max_ndms * sizeof(float));
 
 	// can't knopw the size of the list beforehand. Arbitrary value here, will be deleted soonish
-	size_t max_peak_size = 1000000;
+	size_t max_peak_size = 0;
+
+	for (int t = 0; t < _num_tchunks; t++)
+	    for (int dm_range = 0; dm_range < _range; dm_range++)
+	        max_peak_size += (size_t) ( _ndms[dm_range]*_t_processed[dm_range][t]/2 );
 
 	output_sps.resize(max_peak_size);
 
@@ -187,7 +198,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 	{
 		//printf("\nt_processed:\t%d, %d", _t_processed[0][t], t);
 
-		load_data(-1, _in_bin, _d_input, &input_buffer[(long int) ( inc * _nchans )], _t_processed[0][t], _maxshift, _nchans, _dmshifts);
+		load_data(-1, _in_bin, _d_input, &input_buffer[(long int) ( _inc * _nchans )], _t_processed[0][t], _maxshift, _nchans, _dmshifts);
 
 		if (_enable_zero_dm)
 			zero_dm(_d_input, _nchans, _t_processed[0][t]+_maxshift);
@@ -209,7 +220,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 
 			cudaDeviceSynchronize();
 
-			load_data(dm_range, _in_bin, _d_input, &input_buffer[(long int) ( inc * _nchans )], _t_processed[dm_range][t], _maxshift, _nchans, _dmshifts);
+			load_data(dm_range, _in_bin, _d_input, &input_buffer[(long int) ( _inc * _nchans )], _t_processed[dm_range][t], _maxshift, _nchans, _dmshifts);
 
 			if (_in_bin[dm_range] > oldBin)
 			{
@@ -220,23 +231,13 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 			dedisperse(dm_range, _t_processed[dm_range][t], _in_bin, _dmshifts, _d_input, _d_output, _nchans,
 				( _t_processed[dm_range][t] + _maxshift ), _maxshift, &_tsamp, _dm_low, _dm_high, _dm_step, _ndms, _nbits, 0);
 
-
-			//if ( (_enable_acceleration == 1) )
-			//{
-				/*for (int k = 0; k < _ndms[dm_range]; ++k)
-				{
-					//memcpy(&output_buffer[dm_range][k][inc / inBin[dm_range]], &out_tmp[k * t_processed[dm_range][t]], sizeof(float) * t_processed[dm_range][t]);
-					save_data_offset(_d_output, k * _t_processed[dm_range][t], output_buffer[dm_range][k], inc / _in_bin[dm_range], sizeof(float) * _t_processed[dm_range][t]);
-				}*/
-			//}
-
 			if (_enable_analysis == 1)
 			{
 				size_t previous_peak_pos = peak_pos;
 				analysis_GPU(output_sps, &peak_pos, max_peak_size, dm_range, tstart_local,
 							_t_processed[dm_range][t], _in_bin[dm_range], _out_bin[dm_range], &_maxshift, _max_ndms, _ndms,
 							_sigma_cutoff, _sigma_constant, _max_boxcar_width_in_sec
-							, _d_output, _dm_low, _dm_high, _dm_step, _tsamp, _candidate_algorithm);
+							, _d_output, _dm_low, _dm_high, _dm_step, _tsamp, _candidate_algorithm, _enable_sps_baselinenoise);
 
 				//#pragma omp parallel for
 				for (int count = previous_peak_pos; count < peak_pos; count++)
@@ -255,14 +256,14 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 
 			//memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
 
-		inc = inc + _t_processed[0][t];
-		//printf("\nINC:\t%ld", inc);
-		tstart_local = ( tsamp_original * inc );
-		_tsamp = tsamp_original;
+		_inc = _inc + _t_processed[0][t];
+		//printf("\nINC:\t%ld", _inc);
+		tstart_local = ( _tsamp_original * _inc );
+		_tsamp = _tsamp_original;
 		_maxshift = maxshift_original;
 	}
 
-
+/*
 	FILE *fp_out;
 	char filename[200];
 
@@ -278,23 +279,23 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 		fwrite(&output_sps[0], peak_pos*sizeof(float), 4, fp_out);
 		fclose(fp_out);
 	}
-
+*/
 	timer.Stop();
 	float time = timer.Elapsed() / 1000;
 
-	printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
+	/*printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
 	printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)",  time);
 	printf("\nAmount of telescope time processed: %f", tstart_local);
-	printf("\nNumber of samples processed: %ld", inc);
+	printf("\nNumber of samples processed: %ld", _inc);
 	printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
-
+*/
 	cudaFree(_d_input);
 	cudaFree(_d_output);
 	//free(out_tmp);
 	//free(input_buffer);
 
-	//double time_processed = ( tstart_local ) / tsamp_original;
+	//double time_processed = ( tstart_local ) / _tsamp_original;
 	//double dm_t_processed = time_processed * _total_ndms;
 	//double all_processed = dm_t_processed * _nchans;
 	//printf("\nGops based on %.2lf ops per channel per tsamp: %f", NOPS, ( ( NOPS * all_processed ) / ( time ) ) / 1000000000.0);
@@ -314,8 +315,8 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 		GpuTimer timer;
 		timer.Start();
 		//
-		periodicity(_range, _nsamp, _max_ndms, inc, _nboots, _ntrial_bins, _navdms, _narrow, _wide, _nsearch,	_aggression, _sigma_cutoff, output_buffer, 
-                _ndms, _in_bin, _dm_low, _dm_high, _dm_step, tsamp_original);
+		periodicity(_range, _nsamp, _max_ndms, _inc, _nboots, _ntrial_bins, _navdms, _narrow, _wide, _nsearch,	_aggression, _sigma_cutoff, output_buffer,
+                _ndms, _in_bin, _dm_low, _dm_high, _dm_step, _tsamp_original);
 		//
 		timer.Stop();
 		//float time = timer.Elapsed()/1000;
@@ -323,56 +324,66 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 
 		//printf("\nPerformed Peroidicity Location: %f (GPU estimate)", time);
 		//printf("\nAmount of telescope time processed: %f", tstart_local);
-		//printf("\nNumber of samples processed: %ld", inc);
+		//printf("\nNumber of samples processed: %ld", _inc);
 		//printf("\nReal-time speedup factor: %f", ( tstart_local ) / ( time ));
 	}
-/*
-	if (_enable_acceleration == 1)
-	{
-		// todo: export fdas ouput to vector once got Karel's peak finding in master
 
-		// Input needed for fdas is output_buffer which is DDPlan
-		// Assumption: gpu memory is free and available
-		//
-		GpuTimer timer;
-		timer.Start();
-		// acceleration(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
-		acceleration_fdas(_range
-						  ,_nsamp
-						  ,_max_ndms
-						  ,inc
-						  ,_nboots
-						  ,_ntrial_bins
-						  ,_navdms
-						  ,_narrow
-						  ,_wide
-						  ,_nsearch
-						  ,_aggression
-						  ,_sigma_cutoff
-						  ,output_buffer
-						  ,_ndms
-						  ,_in_bin
-						  ,_dm_low
-						  ,_dm_high
-						  ,_dm_step
-						  ,tsamp_original
-						  ,1
-						  ,0
-						  ,1);
-		//
-		timer.Stop();
-		float time = timer.Elapsed()/1000;
-		//printf("\n\n === OVERALL TDAS THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
-
-		//printf("\nPerformed Acceleration Location: %lf (GPU estimate)", time);
-		//printf("\nAmount of telescope time processed: %f", tstart_local);
-		//printf("\nNumber of samples processed: %ld", inc);
-		//printf("\nReal-time speedup factor: %lf", ( tstart_local ) / ( time ));
-	}
-*/
 	//free(out_tmp);
 	cudaFree(_d_input);
 	cudaFree(_d_output);
 }
+
+template<typename AstroAccelerateParameterType>
+void AstroAccelerate<AstroAccelerateParameterType>::run_fdas(unsigned device_id
+        	 	 	 	 	 	 	 	 	 	 	 	 	 ,DmTime<float> &output_buffer
+       	 	 	 	 	 	 	 	 	 	 	 	 	 	 ,std::vector<float> &output_fdas
+															 )
+{
+
+	cudaSetDevice(device_id);
+	output_fdas.resize(1000000);
+	// Assumption: gpu memory is free and available
+	//
+	GpuTimer timer;
+	timer.Start();
+	acceleration_fdas(_range
+					 ,_nsamp
+					 ,_max_ndms
+					 ,_inc
+					 ,_nboots
+					 ,_ntrial_bins
+					 ,_navdms
+					 ,_narrow
+					 ,_wide
+					 ,_nsearch
+					 ,_aggression
+					 ,_sigma_cutoff
+					 ,output_buffer
+					 ,_ndms
+					 ,_in_bin
+					 ,_dm_low
+					 ,_dm_high
+					 ,_dm_step
+					 ,_tsamp_original
+					 ,1 // custom fft on
+					 ,0 // inbin off
+					 ,1 // norm on
+					 ,_sigma_constant // sigma constant
+					 ,0 // don't output ffdot plan
+					 ,0 // output list
+					 );
+
+	//
+	timer.Stop();
+	float time = timer.Elapsed()/1000;
+	//printf("\n\n === OVERALL TDAS THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
+
+	printf("\nPerformed Acceleration Location: %lf (GPU estimate)", time);
+	//printf("\nAmount of telescope time processed: %f", tstart_local);
+	printf("\nNumber of samples processed: %ld", _inc);
+	//printf("\nReal-time speedup factor: %lf", ( tstart_local ) / ( time ));
+}
+
+
 
 } // namespace astroaccelerate

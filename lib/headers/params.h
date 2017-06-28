@@ -31,20 +31,19 @@
 #define PD_FIR_ACTIVE_WARPS 2
 #define PD_FIR_NWINDOWS 2
 #define MIN_DMS_PER_SPS_RUN 64
+#define MSD_PW_NTHREADS 512
 
 /**** FDAS parameters ******/
 /*Params for benchmarks */
-#define TSAMP 0.000064
-//#define NSAMPS 4194304 // 2^22
 #define SLIGHT 299792458.0
 #define RADIX 1
 #define NEXP 10
 #define POTWO (1 << NEXP)
 #define KERNLEN RADIX*POTWO
-#define ACCEL_STEP (float)(2.0) //1 //default acceleration step
-#define ACCEL_STEP_R (float)(1/ACCEL_STEP)
+#define ACCEL_STEP (float)(1.0) //1 //default acceleration step
+#define ACCEL_STEP_R (float)(1.0f/ACCEL_STEP)
 #define ZMAX 96
-#define NKERN (ZMAX + 1)
+#define NKERN ((2*ZMAX)/ACCEL_STEP) + 1
 //#define ZLO  -(int)((ZMAX/ACCEL_STEP) )
 #define TBSIZEX 32
 #define TBSIZEY 1

@@ -17,7 +17,7 @@
 void  fdas_print_params_h()
 {
   printf("\n\nParameters defined in params.h:\n\t-------------------\n");
-  printf("\nSampling time: TSAMP %g\n", TSAMP);
+//  printf("\nSampling time: TSAMP %g\n", TSAMP);
   printf("\nSpeed of light: SLIGHT %g\n", SLIGHT);
   printf("\nTemplate length for FFT: KERNLEN = RADIX*POTWO %d\n", KERNLEN);
   printf("\nAcceleration step in fourier bins (z): ACCEL_STEP %f\n", ACCEL_STEP);
@@ -371,7 +371,7 @@ void fdas_cuda_customfft(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cm
 void fdas_write_list(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float *h_MSD, float dm_low, int dm_count, float dm_step, unsigned int list_size){
 	int ibin=1;
 	if (cmdargs->inbin) ibin=2;
-	double tobs = TSAMP * (double)params->nsamps*ibin;
+	double tobs = (double)params->tsamp* (double)params->nsamps*ibin;
 	
 	if( !isnan(h_MSD[0]) || !isinf(h_MSD[0]) || !isnan(h_MSD[1]) || !isinf(h_MSD[1]) ){
 		printf("Number of peaks:%d; mean:%f; strdev:%f\n", list_size, h_MSD[0], h_MSD[1]);
@@ -481,7 +481,7 @@ void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params 
     exit(1);
   }
   float pow, sigma;
-  double tobs = TSAMP * (double)params->nsamps*ibin;
+  double tobs = (double)params->tsamp * (double)params->nsamps*ibin;
   unsigned int numindep = params->siglen*(NKERN+1)*ACCEL_STEP/6.95; // taken from PRESTO
 
   //write to file
