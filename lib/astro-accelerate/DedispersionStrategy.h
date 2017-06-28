@@ -30,20 +30,19 @@ class DedispersionStrategy
          *  @brief Parameterized constructor
          */
         DedispersionStrategy(float* const user_dm_low
-                    ,float* const user_dm_high
-                    ,float* const user_dm_step
-                    ,int* const in_bin
-                    ,int* const out_bin
-                    ,size_t gpu_memory
-                    ,int power
-                    ,int range
-                    ,int nchans
-                    ,int nsamp
-                    ,int nifs
-                    ,int nbits
-                    ,float tsamp
-                    ,float tstart
-                    ,float sigma_cutoff
+                ,float* const user_dm_high
+                ,float* const user_dm_step
+                ,int* const in_bin
+                ,int* const out_bin
+                ,size_t gpu_memory
+                ,int power
+                ,int range
+                ,int nsamp
+                ,int nifs
+                ,int nbits
+                ,float tsamp
+                ,float tstart
+                ,float sigma_cutoff
                 ,float sigma_constant
                 ,float max_boxcar_width_in_sec
                 ,float narrow
@@ -53,7 +52,7 @@ class DedispersionStrategy
                 ,int ntrial_bins
                 ,int nsearch
                 ,float aggression
-                                ,std::vector<float> const & bin_frequencies
+                ,std::vector<float> const & bin_frequencies
                 );
 
         DedispersionStrategy(float* const user_dm_low

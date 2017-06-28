@@ -6,6 +6,7 @@ set(
     gtest_AstroAccelerate_src
     src/gtest_AstroAccelerate.cpp
     src/AstroAccelerateTest.cpp
+    src/DmTimeTest.cpp
 )
 add_executable(gtest_AstroAccelerate ${gtest_AstroAccelerate_src} )
 target_link_libraries(gtest_AstroAccelerate ${ASTRO_ACCELERATE_TEST_UTILS} ${ASTRO_ACCELERATE_LIBRARIES} ${GTEST_LIBRARIES})
