@@ -484,7 +484,7 @@ namespace astroaccelerate{
 			//printf("\nOutput memory needed:\t%lu MB", _nchans * _maxshift * sizeof(float) / 1024 / 1024);
 		//}
         _dedispersed_time_samples = 0;
-		for (int t = 0; t < _num_tchunks; ++t)
+		for (unsigned t = 0; t < _num_tchunks; ++t)
 			_dedispersed_time_samples += _t_processed[0][t];
 	}
 
