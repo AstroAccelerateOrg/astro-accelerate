@@ -384,7 +384,7 @@ namespace astroaccelerate{
 				// Find the common integer amount of samples between all bins
 				int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) _in_bin[_range - 1] ) / (float) ( SDIVINT * 2 * SNUMREG ));
 				int num_blocks;
-                if(local_t_processed == 0) { 
+                if(local_t_processed == 0) {
                     num_blocks = 0;
 
                 } else {
@@ -483,12 +483,10 @@ namespace astroaccelerate{
 		//else {
 			//printf("\nOutput memory needed:\t%lu MB", _nchans * _maxshift * sizeof(float) / 1024 / 1024);
 		//}
+        _dedispersed_time_samples = 0;
 		for (int t = 0; t < _num_tchunks; ++t)
 			_dedispersed_time_samples += _t_processed[0][t];
 	}
-
-
-
 
 	void DedispersionStrategy::make_strategy(size_t const gpu_memory, int)
 		{
