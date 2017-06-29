@@ -106,6 +106,7 @@ TEST_F(DedispersionStrategyTest, test_channel_freq_order_consistency)
     );
 
     ASSERT_EQ(ds_1.get_maxshift(), ds_2.get_maxshift());
+    ASSERT_EQ(ds_1.get_dedispersed_time_samples(), ds_2.get_dedispersed_time_samples());
     // TODO check other params are thesame where appropriate
 }
 
@@ -157,7 +158,8 @@ TEST_F(DedispersionStrategyTest, test_medium_number_of_samples_single_dm_range)
     ASSERT_EQ(nsamples, ds.get_nsamp());
     
     // TODO verify the calculation of the number of variables we expect is sane
-    //ASSERT_NE(0, ds.get_processed_time());
+    ASSERT_NE(0, ds.get_dedispersed_time_samples());
+    ASSERT_NE(0, ds.get_maxshift());
 }
 
 TEST_F(DedispersionStrategyTest, test_overlapping_dm_ranges)
