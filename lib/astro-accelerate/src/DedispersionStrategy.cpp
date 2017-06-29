@@ -45,6 +45,7 @@ namespace astroaccelerate{
 		_fch1 = 0;
 		_foff = 0;
 		_SPS_mem_requirement = 0;
+		_dedispersed_time_samples = 0;
 	}
 
 	DedispersionStrategy::DedispersionStrategy(float* const user_dm_low
@@ -112,6 +113,7 @@ namespace astroaccelerate{
 		_max_samps = 0;
 		_num_tchunks = 0;
 		_SPS_mem_requirement=Get_memory_requirement_of_SPS();
+		_dedispersed_time_samples = 0;
 		//
 		make_strategy(gpu_memory);
     }
@@ -243,6 +245,7 @@ namespace astroaccelerate{
 	int DedispersionStrategy::get_max_samps() const { return _max_samps;}
 	int DedispersionStrategy::get_nchans() const { return _nchans;}
 	unsigned int DedispersionStrategy::get_num_tchunks() const { return _num_tchunks;}
+	std::size_t DedispersionStrategy::get__dedispersed_time_samples() const {return _dedispersed_time_samples;}
 
     void DedispersionStrategy::resize(size_t const number_of_samples, size_t const gpu_memory)
     {
@@ -474,12 +477,14 @@ namespace astroaccelerate{
 			}
 		}
 		//printf("\nMaxshift memory needed:\t%lu MB", _nchans * _maxshift * sizeof(unsigned short) / 1024 / 1024);
-		if (_nchans < _max_ndms)	{
+		//if (_nchans < _max_ndms)	{
 			//printf("\nOutput memory needed:\t%lu MB", _max_ndms * _maxshift * sizeof(float) / 1024 / 1024);
-		}
-		else {
+		//}
+		//else {
 			//printf("\nOutput memory needed:\t%lu MB", _nchans * _maxshift * sizeof(float) / 1024 / 1024);
-		}
+		//}
+		for (int t = 0; t < _num_tchunks; ++t)
+			_dedispersed_time_samples += _t_processed[0][t];
 	}
 
 
