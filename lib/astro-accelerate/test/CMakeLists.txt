@@ -6,6 +6,7 @@ set(
     gtest_AstroAccelerate_src
     src/gtest_AstroAccelerate.cpp
     src/AstroAccelerateTest.cpp
+    src/DedispersionStrategyTest.cpp
     src/DmTimeTest.cpp
 )
 add_executable(gtest_AstroAccelerate ${gtest_AstroAccelerate_src} )
