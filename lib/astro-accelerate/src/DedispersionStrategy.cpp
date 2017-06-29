@@ -245,7 +245,7 @@ namespace astroaccelerate{
 	int DedispersionStrategy::get_max_samps() const { return _max_samps;}
 	int DedispersionStrategy::get_nchans() const { return _nchans;}
 	unsigned int DedispersionStrategy::get_num_tchunks() const { return _num_tchunks;}
-	std::size_t DedispersionStrategy::get__dedispersed_time_samples() const {return _dedispersed_time_samples;}
+	std::size_t DedispersionStrategy::get_dedispersed_time_samples() const {return _dedispersed_time_samples;}
 
     void DedispersionStrategy::resize(size_t const number_of_samples, size_t const gpu_memory)
     {
