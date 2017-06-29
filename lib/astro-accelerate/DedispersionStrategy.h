@@ -130,6 +130,9 @@ class DedispersionStrategy
         void resize(size_t number_of_samples, size_t gpu_memory);
         std::size_t get_gpu_memory() const;
 
+        std::size_t get__dedispersed_time_samples() const;
+
+
     private:
         /**
          * @brief Computes the dedispersion strategy
@@ -295,6 +298,15 @@ class DedispersionStrategy
         float _foff;
 
         size_t _SPS_mem_requirement;
+
+        /*
+         * Dedispersed time samples
+         *
+         */
+        std::size_t _dedispersed_time_samples;
+
+
+
 };
 
 } // namespace astroaccelerate
