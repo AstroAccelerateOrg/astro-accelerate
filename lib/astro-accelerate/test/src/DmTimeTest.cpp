@@ -42,11 +42,11 @@ TEST_F(DmTimeTest, test_dmtime_single_dm_range)
 
     unsigned nsamples(1<<16);
     astroaccelerate::DedispersionStrategy ds(
-        user_dm_low.data()
-        , user_dm_high.data()
-        , user_dm_step.data()
-        , in_bin.data()
-        , out_bin.data()
+        user_dm_low
+        , user_dm_high
+        , user_dm_step
+        , in_bin
+        , out_bin
         , 0.5e9 //gpu_memory
         , 8 //power
         , (int) user_dm_low.size()
@@ -90,11 +90,11 @@ TEST_F(DmTimeTest, test_dmtime_multi_dm_range)
 
     unsigned nsamples(1<<16);
     astroaccelerate::DedispersionStrategy ds(
-        user_dm_low.data()
-        , user_dm_high.data()
-        , user_dm_step.data()
-        , in_bin.data()
-        , out_bin.data()
+        user_dm_low
+        , user_dm_high
+        , user_dm_step
+        , in_bin
+        , out_bin
         , 0.5e9 //gpu_memory
         , 8 //power
         , (int) user_dm_low.size()

@@ -29,11 +29,11 @@ class DedispersionStrategy
         /**
          *  @brief Parameterized constructor
          */
-        DedispersionStrategy(float* const user_dm_low
-                ,float* const user_dm_high
-                ,float* const user_dm_step
-                ,int* const in_bin
-                ,int* const out_bin
+        DedispersionStrategy(std::vector<float> const user_dm_low
+                ,std::vector<float> const user_dm_high
+                ,std::vector<float> const user_dm_step
+                ,std::vector<int> const in_bin
+                ,std::vector<int> const out_bin
                 ,size_t gpu_memory
                 ,int power
                 ,int range
@@ -55,11 +55,11 @@ class DedispersionStrategy
                 ,std::vector<float> const & bin_frequencies
                 );
 
-        DedispersionStrategy(float* const user_dm_low
-                    ,float* const user_dm_high
-                    ,float* const user_dm_step
-                    ,int* const in_bin
-                    ,int* const out_bin
+        DedispersionStrategy(std::vector<float> const user_dm_low
+                    ,std::vector<float> const user_dm_high
+                    ,std::vector<float> const user_dm_step
+                    ,std::vector<int> const in_bin
+                    ,std::vector<int> const out_bin
                     ,size_t gpu_memory
                     ,int power
                     ,int range
@@ -102,11 +102,11 @@ class DedispersionStrategy
         float get_max_boxcar_width_in_sec() const;
         float get_wide() const;
         int get_range() const;
-        float* get_user_dm_low() const;
-        float* get_user_dm_high() const;
-        float* get_user_dm_step() const;
-        int* get_in_bin() const;
-        int* get_out_bin() const;
+        std::vector<float> get_user_dm_low() const;
+        std::vector<float> get_user_dm_high() const;
+        std::vector<float>get_user_dm_step() const;
+        int* get_in_bin();
+        int* get_out_bin();
         //
         int get_maxshift() const;
         float* get_dm_low() const;
@@ -197,23 +197,23 @@ class DedispersionStrategy
         /**
          * @brief An array containing lowest band of each dm range, specified by the user
          */
-        float* _user_dm_low;
+        std::vector<float> _user_dm_low;
         /**
          * @brief An array containing lowest band of each dm range, specified by the user
          */
-        float* _user_dm_high;
+        std::vector<float> _user_dm_high;
         /**
          * @brief An array containing lowest band of each dm range, specified by the user
          */
-        float* _user_dm_step;
+        std::vector<float> _user_dm_step;
         /**
          * @brief ---
          */
-        int* _in_bin;
+        std::vector<int> _in_bin;
         /**
          * @brief ---
          */
-        int* _out_bin;
+        std::vector<int> _out_bin;
         // dedispersion strategy
         // todo: move from float* to vector<float>
         /**

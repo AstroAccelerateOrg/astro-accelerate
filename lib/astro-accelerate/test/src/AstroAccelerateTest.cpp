@@ -31,7 +31,7 @@ class TestParams : public AstroAccelerateParameters<TestParams> {};
 // test AstroAccelerate class
 TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 {
-	/*
+/*
 	// Internal code variables
 	// File pointers
 	FILE *fp = NULL;
@@ -117,6 +117,21 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp, &tstart,
 		&fch1, &foff);
 
+		std::vector<float> vec_user_dm_low(range);
+		std::vector<float> vec_user_dm_high(range);
+		std::vector<float> vec_user_dm_step(range);
+		std::vector<int> vec_inBin(range);
+		std::vector<int> vec_outBin(range);
+
+		for(int i = 0; i < range; ++i)
+		{
+			vec_user_dm_low[i] = user_dm_low[i];
+			vec_user_dm_high[i] = user_dm_high[i];
+			vec_user_dm_step[i] = user_dm_step[i];
+			vec_inBin[i] = inBin[i];
+			vec_outBin[i] = outBin[i];
+		}
+
 		// Initialise the GPU.
 		int device_id = 0;
 		size_t gpu_memory = 0;
@@ -126,11 +141,11 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		gpu_memory = ( mem_free );
 
 		DedispersionStrategy dedispersion_strategy
-											 (user_dm_low
-											 ,user_dm_high
-											 ,user_dm_step
-											 ,inBin
-											 ,outBin
+											 (vec_user_dm_low
+											 ,vec_user_dm_high
+											 ,vec_user_dm_step
+											 ,vec_inBin
+											 ,vec_outBin
 											 ,gpu_memory
 											 ,power
 											 ,range
@@ -185,7 +200,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		free(user_dm_high);
 		free(user_dm_step);
 		free(input_buffer);
-		*/
+*/
 }
 //}
 

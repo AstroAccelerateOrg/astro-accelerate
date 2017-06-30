@@ -52,11 +52,11 @@ TEST_F(DedispersionStrategyTest, test_channel_freq_order_consistency)
     }
 
     astroaccelerate::DedispersionStrategy ds_1(
-        user_dm_low.data()
-        , user_dm_high.data()
-        , user_dm_step.data()
-        , in_bin.data()
-        , out_bin.data()
+        user_dm_low
+        , user_dm_high
+        , user_dm_step
+        , in_bin
+        , out_bin
         , 0.5e9 //gpu_memory
         , 8 //power
         , (int) user_dm_low.size()
@@ -79,11 +79,11 @@ TEST_F(DedispersionStrategyTest, test_channel_freq_order_consistency)
     );
 
     astroaccelerate::DedispersionStrategy ds_2(
-        user_dm_low.data()
-        , user_dm_high.data()
-        , user_dm_step.data()
-        , in_bin.data()
-        , out_bin.data()
+        user_dm_low
+        , user_dm_high
+        , user_dm_step
+        , in_bin
+        , out_bin
         , 0.5e9 //gpu_memory
         , 8 //power
         , (int) user_dm_low.size()
@@ -129,11 +129,11 @@ TEST_F(DedispersionStrategyTest, test_medium_number_of_samples_single_dm_range)
 
     unsigned nsamples(1<<16);
     astroaccelerate::DedispersionStrategy ds(
-        user_dm_low.data()
-        , user_dm_high.data()
-        , user_dm_step.data()
-        , in_bin.data()
-        , out_bin.data()
+        user_dm_low
+        , user_dm_high
+        , user_dm_step
+        , in_bin
+        , out_bin
         , 0.5e9 //gpu_memory
         , 8 //power
         , (int) user_dm_low.size()
@@ -186,11 +186,11 @@ TEST_F(DedispersionStrategyTest, test_overlapping_dm_ranges)
 
     std::unique_ptr<astroaccelerate::DedispersionStrategy> ds_ptr;
     ASSERT_THROW(ds_ptr.reset(new astroaccelerate::DedispersionStrategy(
-        user_dm_low.data()
-        , user_dm_high.data()
-        , user_dm_step.data()
-        , in_bin.data()
-        , out_bin.data()
+        user_dm_low
+        , user_dm_high
+        , user_dm_step
+        , in_bin
+        , out_bin
         , 0.5e9 //gpu_memory
         , 8 //power
         , (int) user_dm_low.size()

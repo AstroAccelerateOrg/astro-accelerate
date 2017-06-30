@@ -19,11 +19,6 @@ namespace astroaccelerate{
 		_max_boxcar_width_in_sec = 0.5f;
 		_wide = 0.1f;
 		_range = 0;
-		_user_dm_low = nullptr;
-		_user_dm_high = nullptr;
-		_user_dm_step = nullptr;
-		_in_bin = nullptr;
-		_out_bin = nullptr;
 		_maxshift = 0;
 		_dm_low = nullptr;
 		_dm_high = nullptr;
@@ -48,11 +43,11 @@ namespace astroaccelerate{
 		_dedispersed_time_samples = 0;
 	}
 
-	DedispersionStrategy::DedispersionStrategy(float* const user_dm_low
-		        							  ,float* const user_dm_high
-		        							  ,float* const user_dm_step
-		        							  ,int* const in_bin
-		        							  ,int* const out_bin
+	DedispersionStrategy::DedispersionStrategy(std::vector<float> const user_dm_low
+		        							  ,std::vector<float> const user_dm_high
+		        							  ,std::vector<float> const user_dm_step
+		        							  ,std::vector<int> const in_bin
+		        							  ,std::vector<int> const out_bin
 		        							  ,size_t gpu_memory
 		        							  ,int power
 		        							  ,int range
@@ -118,11 +113,11 @@ namespace astroaccelerate{
 		make_strategy(gpu_memory);
     }
 
-	DedispersionStrategy::DedispersionStrategy(float* const user_dm_low
-			        							  ,float* const user_dm_high
-			        							  ,float* const user_dm_step
-			        							  ,int* const in_bin
-			        							  ,int* const out_bin
+	DedispersionStrategy::DedispersionStrategy(std::vector<float> const user_dm_low
+			        							  ,std::vector<float> const user_dm_high
+			        							  ,std::vector<float> const user_dm_step
+			        							  ,std::vector<int> const in_bin
+			        							  ,std::vector<int> const out_bin
 			        							  ,size_t gpu_memory
 			        							  ,int power
 			        							  ,int range
@@ -221,11 +216,11 @@ namespace astroaccelerate{
 	float DedispersionStrategy::get_max_boxcar_width_in_sec() const { return _max_boxcar_width_in_sec;}
 	float DedispersionStrategy::get_wide() const { return _wide;}
 	int DedispersionStrategy::get_range() const { return _range;}
-	float* DedispersionStrategy::get_user_dm_low() const { return _user_dm_low;}
-	float* DedispersionStrategy::get_user_dm_high() const { return _user_dm_high;}
-	float* DedispersionStrategy::get_user_dm_step() const { return _user_dm_step;}
-	int* DedispersionStrategy::get_in_bin() const { return _in_bin;}
-	int* DedispersionStrategy::get_out_bin() const { return _out_bin;}
+	std::vector<float> DedispersionStrategy::get_user_dm_low() const { return _user_dm_low;}
+	std::vector<float> DedispersionStrategy::get_user_dm_high() const { return _user_dm_high;}
+	std::vector<float> DedispersionStrategy::get_user_dm_step() const { return _user_dm_step;}
+	int* DedispersionStrategy::get_in_bin() { return _in_bin.data();}
+	int* DedispersionStrategy::get_out_bin() { return _out_bin.data();}
 	//
 	int DedispersionStrategy::get_maxshift() const { return _maxshift;}
 	float* DedispersionStrategy::get_dm_low() const {  return _dm_low;}
