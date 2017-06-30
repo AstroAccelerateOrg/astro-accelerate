@@ -1,7 +1,6 @@
 #include "AstroAccelerateTest.h"
 #include "../../AstroAccelerateParameters.h"
 #include "../../DedispersionStrategy.h"
-#include "../../DedispersionStrategyFile.h"
 #include "../../DmTime.h"
 #include "../../AstroAccelerate.h"
 
@@ -187,7 +186,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		free(user_dm_step);
 		free(input_buffer);
 		*/
-	}
+}
 //}
 
 } // namespace test
