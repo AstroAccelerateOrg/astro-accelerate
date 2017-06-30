@@ -161,21 +161,15 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
                            )
 {
    cudaSetDevice(device_id);
-   //
+  
    float tstart_local = 0.0f;
 
    // allocate memory gpu
    allocate_memory_gpu();
-   //printf("\nDe-dispersing...\n");
-
 
    int maxshift_original = _maxshift;
 
-   //float *out_tmp;
-   //out_tmp = (float *) malloc(( _t_processed[0][0] + _maxshift ) * _max_ndms * sizeof(float));
-   //memset(out_tmp, 0.0f, _t_processed[0][0] + _maxshift * _max_ndms * sizeof(float));
-
-   // can't knopw the size of the list beforehand. Arbitrary value here, will be deleted soonish
+   // can't know the size of the list beforehand. Arbitrary value here, will be deleted soonish
    size_t max_peak_size = 0;
 
    for (int t = 0; t < _num_tchunks; t++)
