@@ -236,17 +236,11 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
                //h_output_list[4*count + 2] = h_output_list[4*count + 2];
                //h_output_list[4*count + 3] = h_output_list[4*count + 3];
             }
-            // This is for testing purposes and should be removed or commented out
-            //analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
-
          }
          oldBin = _in_bin[dm_range];
       }
 
-         //memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
-
       _inc = _inc + _t_processed[0][t];
-      //printf("\nINC:\t%ld", _inc);
       tstart_local = ( _tsamp_original * _inc );
       _tsamp = _tsamp_original;
       _maxshift = maxshift_original;
@@ -271,19 +265,6 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
 */
    timer.Stop();
    float time = timer.Elapsed() / 1000;
-
-   /*
-   printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
-
-   printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)",  time);
-   printf("\nAmount of telescope time processed: %f", tstart_local);
-   printf("\nNumber of samples processed: %ld", _inc);
-   printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
-*/
-   cudaFree(_d_input);
-   cudaFree(_d_output);
-   //free(out_tmp);
-   //free(input_buffer);
 
    //double time_processed = ( tstart_local ) / _tsamp_original;
    //double dm_t_processed = time_processed * _total_ndms;
@@ -318,7 +299,6 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
       //printf("\nReal-time speedup factor: %f", ( tstart_local ) / ( time ));
    }
 
-   //free(out_tmp);
    cudaFree(_d_input);
    cudaFree(_d_output);
 }
