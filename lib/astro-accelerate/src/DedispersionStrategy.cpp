@@ -480,7 +480,7 @@ namespace astroaccelerate{
 		//}
         _dedispersed_time_samples = 0;
 		for (unsigned t = 0; t < _num_tchunks; ++t)
-			_dedispersed_time_samples += _t_processed[0][t];
+			_dedispersed_time_samples += (_t_processed[0][t] * _in_bin[0]);
 	}
 
 	void DedispersionStrategy::make_strategy(size_t const gpu_memory, int)
