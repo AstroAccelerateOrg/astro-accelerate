@@ -201,30 +201,36 @@ int MSD_linear_approximation(float *d_input, float *d_MSD_T, int nTaps, int nDMs
 	printf("\n");
 	#endif
 	
-	//---------> Allocation of temporary memory
-	if ( cudaSuccess != cudaMalloc((void **) &d_output, nBlocks_total*3*sizeof(float))) {printf("Allocation error!\n"); exit(1001);}
-	if ( cudaSuccess != cudaMalloc((void **) &d_output_taps, nBlocks_total*3*sizeof(float))) {printf("Allocation error!\n"); exit(1001);}
-	if ( cudaSuccess != cudaMalloc((void **) &d_MSD_T_base, sizeof(float)*3)) {printf("Allocation error!\n"); exit(1001);}
-	
-	//---------> MSD
-	MSD_init();
-	MSD_GPU_LA_ALL<<<gridSize,blockSize>>>(d_input, d_output, d_output_taps, nSteps_y, nTaps, nTimesamples, offset);
-	MSD_GPU_final_regular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
-	MSD_GPU_final_create_LA<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, nTaps, nBlocks_total);
-	
-	#ifdef MSD_DEBUG
-	float h_MSD_T[3], h_MSD_T_base[3];
-	cudaMemcpy(h_MSD_T, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost); 
-	cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
-	printf("Output: Mean: %e, Standard deviation: %e; modifier:%e;\n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
-	printf("GPU results after 1 taps: Mean: %e, Standard deviation: %e; Number of elements:%d;\n", h_MSD_T_base[0], h_MSD_T_base[1], (int) h_MSD_T_base[2]);
-	printf("---------------------------<\n");
-	#endif
-	
-	//---------> De-allocation of temporary memory
-	cudaFree(d_output);
-	cudaFree(d_output_taps);
-	cudaFree(d_MSD_T_base);
+	if(nBlocks_total>0){
+		//---------> Allocation of temporary memory
+		if ( cudaSuccess != cudaMalloc((void **) &d_output, nBlocks_total*3*sizeof(float))) {printf("Allocation error!\n"); exit(1001);}
+		if ( cudaSuccess != cudaMalloc((void **) &d_output_taps, nBlocks_total*3*sizeof(float))) {printf("Allocation error!\n"); exit(1001);}
+		if ( cudaSuccess != cudaMalloc((void **) &d_MSD_T_base, sizeof(float)*3)) {printf("Allocation error!\n"); exit(1001);}
+		
+		//---------> MSD
+		MSD_init();
+		MSD_GPU_LA_ALL<<<gridSize,blockSize>>>(d_input, d_output, d_output_taps, nSteps_y, nTaps, nTimesamples, offset);
+		MSD_GPU_final_regular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
+		MSD_GPU_final_create_LA<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, nTaps, nBlocks_total);
+		
+		#ifdef MSD_DEBUG
+		float h_MSD_T[3], h_MSD_T_base[3];
+		cudaMemcpy(h_MSD_T, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+		cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
+		printf("Output: Mean: %e, Standard deviation: %e; modifier:%e;\n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
+		printf("GPU results after 1 taps: Mean: %e, Standard deviation: %e; Number of elements:%d;\n", h_MSD_T_base[0], h_MSD_T_base[1], (int) h_MSD_T_base[2]);
+		printf("---------------------------<\n");
+		#endif
+		
+		//---------> De-allocation of temporary memory
+		cudaFree(d_output);
+		cudaFree(d_output_taps);
+		cudaFree(d_MSD_T_base);
+	}
+	else {
+		printf("Number of time samples is too small! Increase number of samples send to the boxcar filters. (MSD_linear_approximation)\n");
+		exit(1002);
+	}
 	
 	if(nRest<64) return(nRest);
 	else return(0);	
@@ -284,33 +290,38 @@ int MSD_LA_Nth(float *d_input, float *d_bv_in, float *d_MSD_T, float *d_MSD_DIT,
 	printf("\n");
 	#endif
 	
-	//---------> Allocation of temporary memory
-	if ( cudaSuccess != cudaMalloc((void **) &d_output, nBlocks_total*3*sizeof(float))) {printf("Allocation error!\n"); exit(1001);}
-	if ( cudaSuccess != cudaMalloc((void **) &d_output_FIR, nBlocks_total*3*sizeof(float))) {printf("Allocation error!\n"); exit(1001);}
-	if ( cudaSuccess != cudaMalloc((void **) &d_MSD_T_base, sizeof(float)*3)) {printf("Allocation error!\n"); exit(1001);}
-	
-	
-	//---------> MSD
-	MSD_init();
-	MSD_GPU_LA_ALL_Nth<<<gridSize,blockSize>>>(d_input, d_bv_in, d_output, d_output_FIR, nSteps_y, nTaps, nTimesamples, offset);
-	MSD_GPU_final_regular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
-	MSD_GPU_final_create_LA_Nth<<<final_gridSize, final_blockSize>>>(d_output_FIR, d_MSD_T, d_MSD_T_base, d_MSD_DIT, nTaps, nBlocks_total, DIT_value);
-	
-	#ifdef MSD_DEBUG
-	float h_MSD_T[4], h_MSD_T_base[3], h_MSD_DIT[3];
-	cudaMemcpy(h_MSD_T, d_MSD_T, 4*sizeof(float), cudaMemcpyDeviceToHost); 
-	cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
-	cudaMemcpy(h_MSD_DIT, d_MSD_DIT, 3*sizeof(float), cudaMemcpyDeviceToHost);
-	printf("d_MSD_T: BV Mean: %f, Standard deviation: %f; modifier:%f; DIT Mean:%f\n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2], h_MSD_T[3]);
-	printf("MSD for d_bv_in: Mean: %f, Standard deviation: %f; Number of elements:%d;\n", h_MSD_T_base[0], h_MSD_T_base[1], (int) h_MSD_T_base[2]);
-	printf("MSD for DIT: Mean: %f, Standard deviation: %f; Number of elements:%d;\n", h_MSD_DIT[0], h_MSD_DIT[1], (int) h_MSD_DIT[2]);
-	printf("---------------------------<\n");
-	#endif
-	
-	//---------> De-allocation of temporary memory
-	cudaFree(d_output);
-	cudaFree(d_output_FIR);
-	cudaFree(d_MSD_T_base);
+	if(nBlocks_total>0){
+		//---------> Allocation of temporary memory
+		if ( cudaSuccess != cudaMalloc((void **) &d_output, nBlocks_total*3*sizeof(float))) {printf("Allocation error!\n"); exit(1001);}
+		if ( cudaSuccess != cudaMalloc((void **) &d_output_FIR, nBlocks_total*3*sizeof(float))) {printf("Allocation error!\n"); exit(1001);}
+		if ( cudaSuccess != cudaMalloc((void **) &d_MSD_T_base, sizeof(float)*3)) {printf("Allocation error!\n"); exit(1001);}
+		
+		//---------> MSD
+		MSD_init();
+		MSD_GPU_LA_ALL_Nth<<<gridSize,blockSize>>>(d_input, d_bv_in, d_output, d_output_FIR, nSteps_y, nTaps, nTimesamples, offset);
+		MSD_GPU_final_regular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
+		MSD_GPU_final_create_LA_Nth<<<final_gridSize, final_blockSize>>>(d_output_FIR, d_MSD_T, d_MSD_T_base, d_MSD_DIT, nTaps, nBlocks_total, DIT_value);
+		
+		#ifdef MSD_DEBUG
+		float h_MSD_T[4], h_MSD_T_base[3], h_MSD_DIT[3];
+		cudaMemcpy(h_MSD_T, d_MSD_T, 4*sizeof(float), cudaMemcpyDeviceToHost); 
+		cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
+		cudaMemcpy(h_MSD_DIT, d_MSD_DIT, 3*sizeof(float), cudaMemcpyDeviceToHost);
+		printf("d_MSD_T: BV Mean: %f, Standard deviation: %f; modifier:%f; DIT Mean:%f\n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2], h_MSD_T[3]);
+		printf("MSD for d_bv_in: Mean: %f, Standard deviation: %f; Number of elements:%d;\n", h_MSD_T_base[0], h_MSD_T_base[1], (int) h_MSD_T_base[2]);
+		printf("MSD for DIT: Mean: %f, Standard deviation: %f; Number of elements:%d;\n", h_MSD_DIT[0], h_MSD_DIT[1], (int) h_MSD_DIT[2]);
+		printf("---------------------------<\n");
+		#endif
+		
+		//---------> De-allocation of temporary memory
+		cudaFree(d_output);
+		cudaFree(d_output_FIR);
+		cudaFree(d_MSD_T_base);
+	}
+	else {
+		printf("Number of time samples is too small! Increase number of samples send to the boxcar filters. (MSD_LA_Nth)\n");
+		exit(1002);
+	}
 
 	
 	if(nRest<64) return(nRest);

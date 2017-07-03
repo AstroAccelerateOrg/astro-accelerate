@@ -155,68 +155,74 @@ int MSD_BLN_LA_pw_normal(float *d_input, float *d_MSD_T, int nTaps, int nDMs, in
 	#endif
 	
 	
-	//---------> Allocation of temporary memory
-	cudaMalloc((void **) &d_output, nBlocks_total*3*sizeof(float));
-	cudaMalloc((void **) &d_output_taps, nBlocks_total*3*sizeof(float));
-	cudaMalloc((void **) &d_MSD_T_base, 3*sizeof(float));
-	
-	MSD_BLN_pw_init();
-	MSD_GPU_LA_ALL_no_rejection<<<gridSize_LA,blockSize>>>(d_input, d_output, d_output_taps, nSteps_y, nTaps, nTimesamples, offset);
-	MSD_BLN_pw_no_rejection<<<gridSize,blockSize>>>(d_input, d_output, nSteps_y, nTimesamples, offset);
-	MSD_GPU_final_regular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
-	MSD_GPU_final_regular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, nBlocks_total_LA);
-	//MSD_GPU_limited_final_create_linear_approx_regular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, nTaps, nBlocks_total);
-	
-	#ifdef MSD_BLN_DEBUG
-	cudaMemcpy(h_MSD_T, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost); 
-	cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
-	printf("d_MSD_T: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
-	printf("d_MSD_T_base: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T_base[0], h_MSD_T_base[1], h_MSD_T_base[2]);
-	#endif
-	#ifdef MSD_BLN_END
-	cudaMemcpy(h_MSD_break, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost);
-	#endif
-	
-	for(int i=0; i<5; i++){
-		MSD_GPU_LA_ALL_pw_rejection<<<gridSize_LA,blockSize>>>(d_input, d_output, d_output_taps, d_MSD_T, d_MSD_T_base, bln_sigma_constant, nSteps_y, nTaps, nTimesamples, offset);
-		MSD_BLN_pw_rejection_normal<<<gridSize,blockSize>>>(d_input, d_output, d_MSD_T_base, nSteps_y, nTimesamples, offset, bln_sigma_constant);
-		MSD_GPU_final_nonregular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
-		MSD_GPU_final_nonregular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, nBlocks_total_LA);
-		//MSD_GPU_limited_final_create_linear_approx_nonregular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, nTaps, nBlocks_total);
+	if(nBlocks_total>0 && nBlocks_total_LA>0){
+		//---------> Allocation of temporary memory
+		cudaMalloc((void **) &d_output, nBlocks_total*3*sizeof(float));
+		cudaMalloc((void **) &d_output_taps, nBlocks_total*3*sizeof(float));
+		cudaMalloc((void **) &d_MSD_T_base, 3*sizeof(float));
+		
+		MSD_BLN_pw_init();
+		MSD_GPU_LA_ALL_no_rejection<<<gridSize_LA,blockSize>>>(d_input, d_output, d_output_taps, nSteps_y, nTaps, nTimesamples, offset);
+		MSD_BLN_pw_no_rejection<<<gridSize,blockSize>>>(d_input, d_output, nSteps_y, nTimesamples, offset);
+		MSD_GPU_final_regular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
+		MSD_GPU_final_regular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, nBlocks_total_LA);
+		//MSD_GPU_limited_final_create_linear_approx_regular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, nTaps, nBlocks_total);
+		
 		#ifdef MSD_BLN_DEBUG
-		printf("-------------------\n");
 		cudaMemcpy(h_MSD_T, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost); 
 		cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
 		printf("d_MSD_T: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
 		printf("d_MSD_T_base: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T_base[0], h_MSD_T_base[1], h_MSD_T_base[2]);
 		#endif
 		#ifdef MSD_BLN_END
-		h_MSD_break_old[0] = h_MSD_break[0]; h_MSD_break_old[1] = h_MSD_break[1]; h_MSD_break_old[2] = h_MSD_break[2];
 		cudaMemcpy(h_MSD_break, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost);
-		if( (h_MSD_break_old[1]-h_MSD_break[1])<1e-4 ) {
-			break;
-		}
 		#endif
+		
+		for(int i=0; i<5; i++){
+			MSD_GPU_LA_ALL_pw_rejection<<<gridSize_LA,blockSize>>>(d_input, d_output, d_output_taps, d_MSD_T, d_MSD_T_base, bln_sigma_constant, nSteps_y, nTaps, nTimesamples, offset);
+			MSD_BLN_pw_rejection_normal<<<gridSize,blockSize>>>(d_input, d_output, d_MSD_T_base, nSteps_y, nTimesamples, offset, bln_sigma_constant);
+			MSD_GPU_final_nonregular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
+			MSD_GPU_final_nonregular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, nBlocks_total_LA);
+			//MSD_GPU_limited_final_create_linear_approx_nonregular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, nTaps, nBlocks_total);
+			#ifdef MSD_BLN_DEBUG
+			printf("-------------------\n");
+			cudaMemcpy(h_MSD_T, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+			cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
+			printf("d_MSD_T: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
+			printf("d_MSD_T_base: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T_base[0], h_MSD_T_base[1], h_MSD_T_base[2]);
+			#endif
+			#ifdef MSD_BLN_END
+			h_MSD_break_old[0] = h_MSD_break[0]; h_MSD_break_old[1] = h_MSD_break[1]; h_MSD_break_old[2] = h_MSD_break[2];
+			cudaMemcpy(h_MSD_break, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost);
+			if( (h_MSD_break_old[1]-h_MSD_break[1])<1e-4 ) {
+				break;
+			}
+			#endif
+		}
+		//MSD_GPU_LA_ALL_pw_rejection<<<gridSize,blockSize>>>(d_input, d_output, d_output_taps, d_MSD_T, d_MSD_T_base, bln_sigma_constant, nSteps_y, nTaps, nTimesamples, offset);
+		//MSD_BLN_pw_rejection_normal<<<gridSize,blockSize>>>(d_input, d_output, d_MSD_T_base, nSteps_y, nTimesamples, offset, bln_sigma_constant);
+		//MSD_GPU_final_nonregular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
+		//MSD_GPU_final_nonregular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, nBlocks_total);
+		MSD_GPU_final_create_LA_nonregular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, nTaps, nBlocks_total_LA);
+		
+		#ifdef MSD_BLN_DEBUG
+		printf("-------------------\n");
+		cudaMemcpy(h_MSD_T, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+		cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
+		printf("Final output: Mean base: %f, StDev base: %f; Modifier:%f; \n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
+		printf("d_MSD_T_base: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T_base[0], h_MSD_T_base[1], h_MSD_T_base[2]);
+		printf("-----------------------------<\n");
+		#endif	
+		
+		cudaFree(d_output);
+		cudaFree(d_output_taps);
+		cudaFree(d_MSD_T_base);
+		//-------------------------------
 	}
-	//MSD_GPU_LA_ALL_pw_rejection<<<gridSize,blockSize>>>(d_input, d_output, d_output_taps, d_MSD_T, d_MSD_T_base, bln_sigma_constant, nSteps_y, nTaps, nTimesamples, offset);
-	//MSD_BLN_pw_rejection_normal<<<gridSize,blockSize>>>(d_input, d_output, d_MSD_T_base, nSteps_y, nTimesamples, offset, bln_sigma_constant);
-	//MSD_GPU_final_nonregular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
-	//MSD_GPU_final_nonregular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, nBlocks_total);
-	MSD_GPU_final_create_LA_nonregular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, nTaps, nBlocks_total_LA);
-	
-	#ifdef MSD_BLN_DEBUG
-	printf("-------------------\n");
-	cudaMemcpy(h_MSD_T, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost); 
-	cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
-	printf("Final output: Mean base: %f, StDev base: %f; Modifier:%f; \n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
-	printf("d_MSD_T_base: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T_base[0], h_MSD_T_base[1], h_MSD_T_base[2]);
-	printf("-----------------------------<\n");
-	#endif	
-	
-	cudaFree(d_output);
-	cudaFree(d_output_taps);
-	cudaFree(d_MSD_T_base);
-	//-------------------------------
+	else {
+		printf("Number of time samples is too small! Increase number of samples send to the boxcar filters. (MSD_BLN_LA_pw_normal)\n");
+		exit(1002);
+	}
 	
 	return(0);
 }
@@ -297,68 +303,73 @@ int MSD_BLN_LA_Nth_pw_normal(float *d_input, float *d_bv_in, float *d_MSD_T, flo
 	printf("\n");
 	#endif
 	
-	
-	//---------> Allocation of temporary memory
-	cudaMalloc((void **) &d_output, nBlocks_total*3*sizeof(float));
-	cudaMalloc((void **) &d_output_taps, nBlocks_total*3*sizeof(float));
-	cudaMalloc((void **) &d_MSD_T_base, 3*sizeof(float));
-	
-	MSD_BLN_pw_init();
-	MSD_GPU_LA_ALL_Nth_no_rejection<<<gridSize_LA,blockSize>>>(d_input, d_bv_in, d_output, d_output_taps, nSteps_y, nTaps, nTimesamples, offset);
-	MSD_BLN_pw_no_rejection<<<gridSize,blockSize>>>(d_bv_in, d_output, nSteps_y, nTimesamples, offset);
-	MSD_GPU_final_regular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
-	MSD_GPU_final_regular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, nBlocks_total_LA);
-	//MSD_GPU_limited_final_create_linear_approx_regular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, nTaps, nBlocks_total);
-	
-	#ifdef MSD_BLN_DEBUG
-	cudaMemcpy(h_MSD_T, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost); 
-	cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
-	printf("d_MSD_T: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
-	printf("d_MSD_T_base: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T_base[0], h_MSD_T_base[1], h_MSD_T_base[2]);
-	#endif
-	#ifdef MSD_BLN_END
-	cudaMemcpy(h_MSD_break, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost);
-	#endif
-	for(int i=0; i<5; i++){
-		MSD_GPU_LA_ALL_Nth_pw_rejection<<<gridSize_LA,blockSize>>>(d_input, d_bv_in, d_output, d_output_taps, d_MSD_T, d_MSD_T_base, bln_sigma_constant, nSteps_y, nTaps, nTimesamples, offset);
-		MSD_BLN_pw_rejection_normal<<<gridSize,blockSize>>>(d_bv_in, d_output, d_MSD_T_base, nSteps_y, nTimesamples, offset, bln_sigma_constant);
-		MSD_GPU_final_nonregular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
-		MSD_GPU_final_nonregular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, nBlocks_total_LA);
-		//MSD_GPU_limited_final_create_linear_approx_nonregular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, nTaps, nBlocks_total);
+	if(nBlocks_total>0 && nBlocks_total_LA>0){
+		//---------> Allocation of temporary memory
+		cudaMalloc((void **) &d_output, nBlocks_total*3*sizeof(float));
+		cudaMalloc((void **) &d_output_taps, nBlocks_total*3*sizeof(float));
+		cudaMalloc((void **) &d_MSD_T_base, 3*sizeof(float));
+		
+		MSD_BLN_pw_init();
+		MSD_GPU_LA_ALL_Nth_no_rejection<<<gridSize_LA,blockSize>>>(d_input, d_bv_in, d_output, d_output_taps, nSteps_y, nTaps, nTimesamples, offset);
+		MSD_BLN_pw_no_rejection<<<gridSize,blockSize>>>(d_bv_in, d_output, nSteps_y, nTimesamples, offset);
+		MSD_GPU_final_regular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
+		MSD_GPU_final_regular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, nBlocks_total_LA);
+		//MSD_GPU_limited_final_create_linear_approx_regular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, nTaps, nBlocks_total);
+		
 		#ifdef MSD_BLN_DEBUG
-		printf("-------------------\n");
 		cudaMemcpy(h_MSD_T, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost); 
 		cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
 		printf("d_MSD_T: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
 		printf("d_MSD_T_base: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T_base[0], h_MSD_T_base[1], h_MSD_T_base[2]);
 		#endif
 		#ifdef MSD_BLN_END
-		h_MSD_break_old[0] = h_MSD_break[0]; h_MSD_break_old[1] = h_MSD_break[1]; h_MSD_break_old[2] = h_MSD_break[2];
 		cudaMemcpy(h_MSD_break, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost);
-		if( (h_MSD_break_old[1]-h_MSD_break[1])<1e-4 ) {
-			break;
-		}
 		#endif
+		for(int i=0; i<5; i++){
+			MSD_GPU_LA_ALL_Nth_pw_rejection<<<gridSize_LA,blockSize>>>(d_input, d_bv_in, d_output, d_output_taps, d_MSD_T, d_MSD_T_base, bln_sigma_constant, nSteps_y, nTaps, nTimesamples, offset);
+			MSD_BLN_pw_rejection_normal<<<gridSize,blockSize>>>(d_bv_in, d_output, d_MSD_T_base, nSteps_y, nTimesamples, offset, bln_sigma_constant);
+			MSD_GPU_final_nonregular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
+			MSD_GPU_final_nonregular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, nBlocks_total_LA);
+			//MSD_GPU_limited_final_create_linear_approx_nonregular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, nTaps, nBlocks_total);
+			#ifdef MSD_BLN_DEBUG
+			printf("-------------------\n");
+			cudaMemcpy(h_MSD_T, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+			cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
+			printf("d_MSD_T: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
+			printf("d_MSD_T_base: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T_base[0], h_MSD_T_base[1], h_MSD_T_base[2]);
+			#endif
+			#ifdef MSD_BLN_END
+			h_MSD_break_old[0] = h_MSD_break[0]; h_MSD_break_old[1] = h_MSD_break[1]; h_MSD_break_old[2] = h_MSD_break[2];
+			cudaMemcpy(h_MSD_break, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost);
+			if( (h_MSD_break_old[1]-h_MSD_break[1])<1e-4 ) {
+				break;
+			}
+			#endif
+		}
+		//MSD_GPU_LA_ALL_Nth_pw_rejection<<<gridSize,blockSize>>>(d_input, d_bv_in, d_output, d_output_taps, d_MSD_T, d_MSD_T_base, bln_sigma_constant, nSteps_y, nTaps, nTimesamples, offset);
+		//MSD_BLN_pw_rejection_normal<<<gridSize,blockSize>>>(d_bv_in, d_output, d_MSD_T_base, nSteps_y, nTimesamples, offset, bln_sigma_constant);
+		//MSD_GPU_final_nonregular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
+		MSD_GPU_final_create_LA_Nth_nonregular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, d_MSD_DIT, nTaps, nBlocks_total_LA, DIT_value);
+		//MSD_GPU_limited_final_create_linear_approx_nonregular_final_Nth<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, d_MSD_DIT, nTaps, nBlocks_total, DIT_value);
+		
+		#ifdef MSD_BLN_DEBUG
+		printf("-------------------\n");
+		cudaMemcpy(h_MSD_T, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+		cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
+		printf("Final output: Mean base: %f, StDev base: %f; Modifier:%f; \n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
+		printf("d_MSD_T_base: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T_base[0], h_MSD_T_base[1], h_MSD_T_base[2]);
+		printf("-----------------------------<\n");
+		#endif
+		
+		cudaFree(d_output);
+		cudaFree(d_output_taps);
+		cudaFree(d_MSD_T_base);
+		//-------------------------------
 	}
-	//MSD_GPU_LA_ALL_Nth_pw_rejection<<<gridSize,blockSize>>>(d_input, d_bv_in, d_output, d_output_taps, d_MSD_T, d_MSD_T_base, bln_sigma_constant, nSteps_y, nTaps, nTimesamples, offset);
-	//MSD_BLN_pw_rejection_normal<<<gridSize,blockSize>>>(d_bv_in, d_output, d_MSD_T_base, nSteps_y, nTimesamples, offset, bln_sigma_constant);
-	//MSD_GPU_final_nonregular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD_T_base, nBlocks_total);
-	MSD_GPU_final_create_LA_Nth_nonregular<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, d_MSD_DIT, nTaps, nBlocks_total_LA, DIT_value);
-	//MSD_GPU_limited_final_create_linear_approx_nonregular_final_Nth<<<final_gridSize, final_blockSize>>>(d_output_taps, d_MSD_T, d_MSD_T_base, d_MSD_DIT, nTaps, nBlocks_total, DIT_value);
-	
-	#ifdef MSD_BLN_DEBUG
-	printf("-------------------\n");
-	cudaMemcpy(h_MSD_T, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost); 
-	cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
-	printf("Final output: Mean base: %f, StDev base: %f; Modifier:%f; \n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
-	printf("d_MSD_T_base: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T_base[0], h_MSD_T_base[1], h_MSD_T_base[2]);
-	printf("-----------------------------<\n");
-	#endif
-	
-	cudaFree(d_output);
-	cudaFree(d_output_taps);
-	cudaFree(d_MSD_T_base);
-	//-------------------------------
+	else {
+		printf("Number of time samples is too small! Increase number of samples send to the boxcar filters. (MSD_BLN_LA_Nth_pw_normal)\n");
+		exit(1002);
+	}
 	
 	return(0);
 }
