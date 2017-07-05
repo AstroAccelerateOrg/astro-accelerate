@@ -181,7 +181,10 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
    GpuTimer timer;
    timer.Start();
 
-    size_t peak_pos=0;
+   size_t peak_pos=0;
+
+   // This value must be set to zero between calls
+   _inc = 0L;
 
    for (int t = 0; t < _num_tchunks; ++t)
    {
