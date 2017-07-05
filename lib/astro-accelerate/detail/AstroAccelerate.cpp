@@ -131,7 +131,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
             {
                 for (int j = 0; j < _nsamp; ++j)
                 {
-                    input_buffer_cast[ (i*_nsamp) + j] = (unsigned short)(input_buffer_cast[ (i*_nsamp) + j]);
+                    input_buffer_cast[ (i*_nsamp) + j] = (unsigned short)(input_buffer[ (i*_nsamp) + j]);
                 }
             }
 
@@ -141,8 +141,8 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
                     ,output_buffer
                     ,output_sps
                     );
-        
-    } 
+
+    }
     catch(...)
     {
         free(input_buffer_cast);
@@ -161,7 +161,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
                            )
 {
    cudaSetDevice(device_id);
-  
+
    float tstart_local = 0.0f;
 
    // allocate memory gpu
