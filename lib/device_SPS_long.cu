@@ -256,7 +256,7 @@ int PD_SEARCH_LONG_LINAPPROX_EACH(float *d_input, float *d_boxcar_values, float 
 	#endif
 	#ifdef SPS_LONG_LOG
 	float h_MSD_LOG[4];
-	int log_DIT_value;
+	int log_DIT_value, error;
 	std::vector<MSD_values> log;
 	MSD_values log_temp;
 	#endif
@@ -303,12 +303,14 @@ int PD_SEARCH_LONG_LINAPPROX_EACH(float *d_input, float *d_boxcar_values, float 
 		printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration, nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
 		#endif
 		if( (f%2) == 0 ) {
-			MSD_LA_Nth(&d_input[shift], &d_boxcar_values[nDMs*(nTimesamples>>1)], d_MSD_Nth, d_MSD, nBoxcars, nDMs, decimated_timesamples, 3*unprocessed_samples, (1<<iteration));
-			if(nBlocks>0) PD_GPU_Nth_LA_EACH<<<gridSize,blockSize>>>(&d_input[shift], &d_boxcar_values[nDMs*(nTimesamples>>1)], d_boxcar_values, d_decimated, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], d_MSD_Nth, decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
+			error = MSD_LA_Nth(&d_input[shift], &d_boxcar_values[nDMs*(nTimesamples>>1)], d_MSD_Nth, d_MSD, nBoxcars, nDMs, decimated_timesamples, 3*unprocessed_samples, (1<<iteration));
+			if(nBlocks>0 && error==0) PD_GPU_Nth_LA_EACH<<<gridSize,blockSize>>>(&d_input[shift], &d_boxcar_values[nDMs*(nTimesamples>>1)], d_boxcar_values, d_decimated, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], d_MSD_Nth, decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
+			else printf("WARNING: Pulse search does not have enough data!\n");
 		}
 		else {
-			MSD_LA_Nth(&d_decimated[shift], d_boxcar_values, d_MSD_Nth, d_MSD, nBoxcars, nDMs, decimated_timesamples, 3*unprocessed_samples, (1<<iteration));
-			if(nBlocks>0) PD_GPU_Nth_LA_EACH<<<gridSize,blockSize>>>(&d_decimated[shift], d_boxcar_values, &d_boxcar_values[nDMs*(nTimesamples>>1)], d_input, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], d_MSD_Nth, decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
+			error = MSD_LA_Nth(&d_decimated[shift], d_boxcar_values, d_MSD_Nth, d_MSD, nBoxcars, nDMs, decimated_timesamples, 3*unprocessed_samples, (1<<iteration));
+			if(nBlocks>0 && error==0) PD_GPU_Nth_LA_EACH<<<gridSize,blockSize>>>(&d_decimated[shift], d_boxcar_values, &d_boxcar_values[nDMs*(nTimesamples>>1)], d_input, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], d_MSD_Nth, decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
+			else printf("WARNING: Pulse search does not have enough data!\n");
 		}
 		
 		#ifdef SPS_LONG_DEBUG
