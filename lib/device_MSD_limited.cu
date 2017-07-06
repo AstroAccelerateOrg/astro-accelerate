@@ -248,7 +248,7 @@ int MSD_LA_Nth(float *d_input, float *d_bv_in, float *d_MSD_T, float *d_MSD_DIT,
 	nSteps_x  = 2*PD_NTHREADS-nTaps+4;
 	nBlocks_x = (int) ((nTimesamples-offset)/nSteps_x);
 	nRest     = nTimesamples - offset - nBlocks_x*nSteps_x;
-	if(nRest>128) nBlocks_x++;
+	if(nRest>0) nBlocks_x++;
 	
 	nSteps_y = Choose_divider(nDMs,64);
 	nBlocks_y=nDMs/nSteps_y;
@@ -273,6 +273,7 @@ int MSD_LA_Nth(float *d_input, float *d_bv_in, float *d_MSD_T, float *d_MSD_DIT,
 	printf("\n\n");
 	printf("----------------> MSD debug:\n");
 	printf("Kernel for calculating partials: (MSD_LA_Nth)\n");
+	printf("nTimesamples:%d; offset:%d, nDMs:%d;\n", nTimesamples, offset, nDMs);
 	printf("ThreadBlocks (TB) in x:%d; Elements processed by TB in x:%d; Remainder in x:%d", nBlocks_x, nSteps_x, nRest);
 	if(nRest>3*nTaps) printf(" is processed\n");
 	else printf(" is not processed\n");
@@ -319,12 +320,10 @@ int MSD_LA_Nth(float *d_input, float *d_bv_in, float *d_MSD_T, float *d_MSD_DIT,
 		cudaFree(d_MSD_T_base);
 	}
 	else {
-		printf("Number of time samples is too small! Increase number of samples send to the boxcar filters. (MSD_LA_Nth)\n");
-		exit(1002);
+		printf("WARNING: Number of time samples is too small! Increase number of samples send to the boxcar filters. (MSD_LA_Nth)\n");
+		return(1);
 	}
 
-	
-	if(nRest<64) return(nRest);
-	else return(0);
+	return(0);
 }
 
