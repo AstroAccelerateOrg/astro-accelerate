@@ -14,10 +14,10 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 			float shift_one = ( SDIVINDM - 1 ) * ( dm_step[i] / ( *tsamp ) );
 			int shifta = (int) floorf(shift_one * dmshifts[nchans - 1]) + ( SDIVINT - 1 ) * 2;
 			int lineshift = shifta + ( ( SNUMREG - 1 ) * 2 * SDIVINT );
-			printf("\n%f", dm_step[i] / ( *tsamp ));
-			printf("\n%f", dmshifts[nchans - 1]);
-			printf("\n%d", shifta);
-			printf("\nlineshift:\t%d", lineshift);
+//			printf("\n%f", dm_step[i] / ( *tsamp ));
+//			printf("\n%f", dmshifts[nchans - 1]);
+//			printf("\n%d", shifta);
+//			printf("\nlineshift:\t%d", lineshift);
 
 			// Check to see if the threadblock will load a shared memory line that
 			// is long enough for the algorithm to run without an out of bounds
@@ -25,7 +25,7 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 			if (( ( SDIVINT - 1 ) + ( ( SDIVINDM - 1 ) * SDIVINT ) - 1 ) > lineshift)
 			{
 
-				printf("\nUsing fast shared memory kernel");
+//				printf("\nUsing fast shared memory kernel");
 
 				//{{{ Dedisperse data on the GPU
 				float startdm = dm_low[i];
@@ -55,10 +55,10 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 			float shift_one = ( SDIVINDM - 1 ) * ( dm_step[i] / ( *tsamp ) );
 			int shifta = (int) floorf(shift_one * dmshifts[nchans - 1]) + ( SDIVINT - 1 ) * 2;
 			int lineshift = shifta + ( ( SNUMREG - 1 ) * 2 * SDIVINT );
-			printf("\n%f", dm_step[i] / ( *tsamp ));
-			printf("\n%f", dmshifts[nchans - 1]);
-			printf("\n%d", shifta);
-			printf("\nlineshift:\t%d", lineshift);
+	//		printf("\n%f", dm_step[i] / ( *tsamp ));
+	//		printf("\n%f", dmshifts[nchans - 1]);
+	//		printf("\n%d", shifta);
+	//		printf("\nlineshift:\t%d", lineshift);
 
 			// Check to see if the threadblock will load a shared memory line that
 			// is long enough for the algorithm to run without an out of bounds
@@ -66,7 +66,7 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 			if (( ( SDIVINT - 1 ) + ( ( SDIVINDM - 1 ) * SDIVINT ) - 1 ) > lineshift)
 			{
 
-				printf("\nUsing fast shared memory kernel");
+	//			printf("\nUsing fast shared memory kernel");
 
 				//{{{ Dedisperse data on the GPU
 				float startdm = dm_low[i];

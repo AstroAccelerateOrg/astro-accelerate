@@ -214,7 +214,7 @@ void export_file_nDM_nTimesamples(float *data, int nDMs, int nTimesamples, char 
 		exit(0);
 	}
 
-	printf("export nDMs\n");
+//	printf("export nDMs\n");
 	for (int s = 0; s < nTimesamples; s++) {
 		for (int d = 0; d < nDMs; d++) {
 			fprintf(file_out, "%f ", data[d*nTimesamples + s]);
@@ -230,7 +230,7 @@ void export_file_nDM_nTimesamples(float *data, int nDMs, int nTimesamples, char 
 		exit(0);
 	}
 
-	printf("export nTimesamples\n");
+//	printf("export nTimesamples\n");
 	for (int d = 0; d < nDMs; d++) {
 		for (int s = 0; s < nTimesamples; s++) {
 			fprintf(file_out, "%f ", data[d*nTimesamples + s]);
@@ -338,8 +338,8 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 
 	//---------------------------------------------------------------------------
 	//----------> GPU part
-	printf("\n----------> GPU analysis part\n");
-	printf("     Dimensions nDMs:%d; nTimesamples:%d; inBin:%d; outBin:%d; maxshift:%d; \n", ndms[i], t_processed, inBin, outBin, *maxshift);
+//	printf("\n----------> GPU analysis part\n");
+//	printf("     Dimensions nDMs:%d; nTimesamples:%d; inBin:%d; outBin:%d; maxshift:%d; \n", ndms[i], t_processed, inBin, outBin, *maxshift);
 	GpuTimer timer;
 	
 	float h_MSD[3];
@@ -424,8 +424,8 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	
 	size_t free_mem,total_mem;
 	cudaMemGetInfo(&free_mem,&total_mem);
-	printf("     Memory required by boxcar filters:%0.3f MB\n",(4.5*vals*sizeof(float) + 2*vals*sizeof(ushort))/(1024.0*1024) );
-	printf("     Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
+//	printf("     Memory required by boxcar filters:%0.3f MB\n",(4.5*vals*sizeof(float) + 2*vals*sizeof(ushort))/(1024.0*1024) );
+//	printf("     Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
 	
 	std::vector<int> DM_list;
 	unsigned long int max_timesamples=(free_mem*0.95)/(5.5*sizeof(float) + 2*sizeof(ushort));
@@ -442,11 +442,11 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	for(int f=0; f<nRepeats; f++) DM_list.push_back(DMs_per_cycle);
 	if(nRest>0) DM_list.push_back(nRest);
 	
-	printf("     SPS will run %d batches each containing %d DM trials. Remainder %d DM trials\n", (int) DM_list.size(), DMs_per_cycle, nRest);
+//	printf("     SPS will run %d batches each containing %d DM trials. Remainder %d DM trials\n", (int) DM_list.size(), DMs_per_cycle, nRest);
 	
 	
 	max_iteration = Get_max_iteration(max_boxcar_width/inBin, &BC_widths);
-	printf("     Selected iteration:%d; for maximum boxcar width:%d;\n", max_iteration, max_boxcar_width/inBin);
+//	printf("     Selected iteration:%d; for maximum boxcar width:%d;\n", max_iteration, max_boxcar_width/inBin);
 	Create_PD_plan(&PD_plan, &BC_widths, 1, nTimesamples);
 	
 	if(DM_list.size()>0){
@@ -489,14 +489,14 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 			partial_time = timer.Elapsed();
 			total_time += partial_time;
 			#ifdef GPU_ANALYSIS_DEBUG
-			printf("PD_SEARCH took:%f ms\n", partial_time);
+		//	printf("PD_SEARCH took:%f ms\n", partial_time);
 			#endif
 			//-------------- SPS BLN
 			
 			checkCudaErrors(cudaGetLastError());
 			
 			#ifdef GPU_ANALYSIS_DEBUG
-			printf("BC_shift:%d; DMs_per_cycle:%d; f*DMs_per_cycle:%d; max_iteration:%d;\n", DM_shift*nTimesamples, DM_list[f], DM_shift, max_iteration);
+			//printf("BC_shift:%d; DMs_per_cycle:%d; f*DMs_per_cycle:%d; max_iteration:%d;\n", DM_shift*nTimesamples, DM_list[f], DM_shift, max_iteration);
 			#endif
 			
 			if(candidate_algorithm==1){
@@ -507,7 +507,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 				partial_time = timer.Elapsed();
 				total_time += partial_time;
 				#ifdef GPU_ANALYSIS_DEBUG
-				printf("THR_WARP took:%f ms\n", partial_time);
+				//printf("THR_WARP took:%f ms\n", partial_time);
 				#endif
 				//-------------- Thresholding
 			}
@@ -519,7 +519,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 				partial_time = timer.Elapsed();
 				total_time += partial_time;
 				#ifdef GPU_ANALYSIS_DEBUG
-				printf("PEAK_FIND took:%f ms\n", partial_time);
+				//printf("PEAK_FIND took:%f ms\n", partial_time);
 				#endif
 				//-------------- Peak finding
 			}
@@ -528,7 +528,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 			
 			checkCudaErrors(cudaMemcpy(&temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost));
 			#ifdef GPU_ANALYSIS_DEBUG
-			printf("temp_peak_pos:%d; host_pos:%zu; max:%zu; local_max:%d;\n", temp_peak_pos, (*peak_pos), max_peak_size, local_max_list_size);
+			//printf("temp_peak_pos:%d; host_pos:%zu; max:%zu; local_max:%d;\n", temp_peak_pos, (*peak_pos), max_peak_size, local_max_list_size);
 			#endif
 			if( temp_peak_pos>=local_max_list_size ) {
 				printf("     Maximum list size reached! Increase list size or increase sigma cutoff.\n");
@@ -538,7 +538,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 				checkCudaErrors(cudaMemcpy(&h_peak_list[(*peak_pos)*4], d_peak_list, temp_peak_pos*4*sizeof(float), cudaMemcpyDeviceToHost));
 				*peak_pos = (*peak_pos) + temp_peak_pos;
 			}
-			else printf("Error peak list is too small!\n");
+			else//printf("Error peak list is too small!\n");
 			
 
 			//---------> Old thresholding code.
@@ -595,8 +595,8 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	else printf("Error not enough memory to search for pulses\n");
 
 	
-	printf("\n     TOTAL TIME OF SPS:%f ms\n", total_time);
-	printf("----------<\n\n");
+//	printf("\n     TOTAL TIME OF SPS:%f ms\n", total_time);
+//	printf("----------<\n\n");
 
 	cudaFree(d_MSD);
 	//----------> GPU part

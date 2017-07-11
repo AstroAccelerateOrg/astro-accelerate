@@ -1,11 +1,11 @@
 #define ACCMAX 350
 #define ACCSTEP 11
-#define UNROLLS 16
-#define SNUMREG 12
-#define SDIVINT 12
+#define UNROLLS 8
+#define SNUMREG 14
+#define SDIVINT 14
 #define SDIVINDM 40
 #define SFDIVINDM 40.0f
-#define CARD 0
+#define CARD 1
 #define NOPSSHIFT 5
 #define NOPSLOOP 3
 #define NDATAPERLOOP 1
@@ -40,10 +40,10 @@
 #define NEXP 10
 #define POTWO (1 << NEXP)
 #define KERNLEN RADIX*POTWO
-#define ACCEL_STEP (float)(1.0) //1 //default acceleration step
+#define ACCEL_STEP (float)(2.0) //1 //default acceleration step
 #define ACCEL_STEP_R (float)(1.0f/ACCEL_STEP)
 #define ZMAX 96
-#define NKERN ((2*ZMAX)/ACCEL_STEP) + 1
+#define NKERN (ZMAX + 1)
 //#define ZLO  -(int)((ZMAX/ACCEL_STEP) )
 #define TBSIZEX 32
 #define TBSIZEY 1
@@ -51,3 +51,5 @@
 #define PTBSIZEY 1
 //custom fft params (K. Adamek)
 #define TAPS 8
+
+#define SKADMS 50

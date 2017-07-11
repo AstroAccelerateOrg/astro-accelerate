@@ -42,7 +42,7 @@ void allocate_memory_cpu_output(FILE **fp, size_t gpu_memory, int maxshift, int 
 //			memset((*output_buffer)[i][j],0.0f,(total_samps)*sizeof(float));
 		}
 		*outputsize += ( total_samps ) * ndms[i] * sizeof(float);
-		printf("\noutput size: %llu", (unsigned long long) sizeof( *output_buffer ) / 1024 / 1024 / 1024);
+		//printf("\noutput size: %llu", (unsigned long long) sizeof( *output_buffer ) / 1024 / 1024 / 1024);
 	}
 }
 
@@ -50,7 +50,7 @@ void allocate_memory_gpu(FILE **fp, size_t gpu_memory, int maxshift, int num_tch
 {
 
 	int time_samps = t_processed[0][0] + maxshift;
-	printf("\n\n\n%d\n\n\n", time_samps), fflush(stdout);
+	//printf("\n\n\n%d\n\n\n", time_samps), fflush(stdout);
 	*gpu_inputsize = (size_t) time_samps * (size_t) nchans * sizeof(unsigned short);
 	( cudaMalloc((void **) d_input, *gpu_inputsize) );
 

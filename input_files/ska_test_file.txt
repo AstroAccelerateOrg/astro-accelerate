@@ -8,9 +8,9 @@ range	1500 2000 1.0  4 4
 range	2000 3000 2.0  8 8
 sigma_cutoff	6
 sigma_constant  4.0
-max_boxcar_width_in_sec 0.5
+max_boxcar_width_in_sec 0.05
 analysis
--acceleration
+acceleration
 -output_ffdot_plan
 -output_fdas_list
 -periodicity
@@ -18,12 +18,13 @@ analysis
 -zero_dm
 -zero_dm_with_outliers
 -rfi
-threshold
+-threshold
 -baselinenoise
--fdas_custom_fft
+fdas_custom_fft
 -fdas_inbin
 -fdas_norm
-debug
+-debug
 -analysis_debug
 -failsafe
-file ~/filterbank/ska-mid-b2.fil
+-file /data/otus/warmour/filterbank/ska-mid-b2-full.fil
+file /data/otus/warmour/filterbank/ska-mid-b2.fil

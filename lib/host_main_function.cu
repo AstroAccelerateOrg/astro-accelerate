@@ -2,6 +2,9 @@
 
 #include <helper_cuda.h>
 
+#include <sys/time.h>
+
+
 #include "headers/device_bin.h"
 #include "headers/device_init.h"
 #include "headers/device_dedisperse.h"
@@ -142,6 +145,8 @@ void main_function
 	)
 {
 
+
+
 	// Initialise the GPU.	
 	init_gpu(argc, argv, enable_debug, &gpu_memory);
 	if(enable_debug == 1) debug(2, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
@@ -186,6 +191,7 @@ void main_function
 	 fwrite(input_buffer, nchans*nsamp*sizeof(unsigned short), 1, fp_o);
 	 */
 
+
 	printf("\nDe-dispersing...");
 	GpuTimer timer;
 	timer.Start();
@@ -200,7 +206,7 @@ void main_function
 
 	for (t = 0; t < num_tchunks; t++)
 	{
-		printf("\nt_processed:\t%d, %d", t_processed[0][t], t);
+//		printf("\nt_processed:\t%d, %d", t_processed[0][t], t);
 		
 		checkCudaErrors(cudaGetLastError());
 
@@ -235,8 +241,8 @@ void main_function
 		
 		int oldBin = 1;
 		for (dm_range = 0; dm_range < range; dm_range++) {
-			printf("\n\n%f\t%f\t%f\t%d", dm_low[dm_range], dm_high[dm_range], dm_step[dm_range], ndms[dm_range]), fflush(stdout);
-			printf("\nAmount of telescope time processed: %f", tstart_local);
+			//printf("\n\n%f\t%f\t%f\t%d", dm_low[dm_range], dm_high[dm_range], dm_step[dm_range], ndms[dm_range]), fflush(stdout);
+			//printf("\nAmount of telescope time processed: %f", tstart_local);
 			maxshift = maxshift_original / inBin[dm_range];
 
 			checkCudaErrors(cudaGetLastError());
@@ -287,7 +293,7 @@ void main_function
 			
 			if (enable_analysis == 1) {
 				
-				printf("\n VALUE OF ANALYSIS DEBUG IS %d\n", analysis_debug);
+				//printf("\n VALUE OF ANALYSIS DEBUG IS %d\n", analysis_debug);
 
 				if (analysis_debug == 1)
 				{
@@ -322,7 +328,7 @@ void main_function
 		//memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
 
 		inc = inc + t_processed[0][t];
-		printf("\nINC:\t%ld", inc);
+		//printf("\nINC:\t%ld", inc);
 		tstart_local = ( tsamp_original * inc );
 		tsamp = tsamp_original;
 		maxshift = maxshift_original;
@@ -333,10 +339,196 @@ void main_function
 
 	printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
-	printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)",  time);
+	printf("\nPerformed Brute-Force Dedispersion: %g (GPU estimate)",  time);
 	printf("\nAmount of telescope time processed: %f", tstart_local);
 	printf("\nNumber of samples processed: %ld", inc);
 	printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
+
+
+	printf("\n\n\nBeginning 3 beams per node simulation for SPS andd FDAS...\n\n\n");
+
+	inc = 0;
+	tsamp_original = tsamp;
+	maxshift_original = maxshift;
+
+	//float *out_tmp;
+	//out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
+	//memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
+
+	int fdas_count=0;
+        struct timeval d_start, d_end;
+        struct timeval f_start, f_end;
+        double d_gpu = 0.0, d_gpu_i = 0.0;
+        double f_gpu = 0.0, f_gpu_i = 0.0;
+
+	int iter = 1;
+
+	for (t = 0; t < num_tchunks; t++)
+	{
+
+	timer.Start();
+// WA:SKA Added a loop to simulate the processing of three distinct beams.
+
+
+gettimeofday(&d_start, NULL); //don't time transfer
+
+for(int z=0; z<3; z++) {
+
+//printf("\nt_processed:\t%d, %d", t_processed[0][t], t);
+		
+		checkCudaErrors(cudaGetLastError());
+
+		load_data(-1, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
+
+		checkCudaErrors(cudaGetLastError());
+		
+		if (enable_zero_dm)
+		{
+			zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
+		}
+		
+		checkCudaErrors(cudaGetLastError());
+		
+		if (enable_zero_dm_with_outliers)
+		{
+			zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
+	 	}
+		
+		checkCudaErrors(cudaGetLastError());
+	
+		corner_turn(d_input, d_output, nchans, t_processed[0][t] + maxshift);
+		
+		checkCudaErrors(cudaGetLastError());
+		
+		if (enable_rfi)
+		{
+ 			rfi_gpu(d_input, nchans, t_processed[0][t]+maxshift);
+		}
+		
+		checkCudaErrors(cudaGetLastError());
+		
+		int oldBin = 1;
+		for (dm_range = 0; dm_range < range; dm_range++) {
+		//	printf("\n\n%f\t%f\t%f\t%d", dm_low[dm_range], dm_high[dm_range], dm_step[dm_range], ndms[dm_range]), fflush(stdout);
+		//	printf("\nAmount of telescope time processed: %f", tstart_local);
+			maxshift = maxshift_original / inBin[dm_range];
+
+			checkCudaErrors(cudaGetLastError());
+			
+			cudaDeviceSynchronize();
+			
+			checkCudaErrors(cudaGetLastError());
+			
+			load_data(dm_range, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t], maxshift, nchans, dmshifts);
+			
+			checkCudaErrors(cudaGetLastError());
+			
+			if (inBin[dm_range] > oldBin)
+			{
+				bin_gpu(d_input, d_output, nchans, t_processed[dm_range - 1][t] + maxshift * inBin[dm_range]);
+				( tsamp ) = ( tsamp ) * 2.0f;
+			}
+			
+			checkCudaErrors(cudaGetLastError());
+			
+			dedisperse(dm_range, t_processed[dm_range][t], inBin, dmshifts, d_input, d_output, nchans, ( t_processed[dm_range][t] + maxshift ), maxshift, &tsamp, dm_low, dm_high, dm_step, ndms, nbits, failsafe);
+		
+			checkCudaErrors(cudaGetLastError());
+			
+			if ( (enable_acceleration == 1) || (analysis_debug ==1) )
+			{
+				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
+				//save_data(d_output, out_tmp, gpu_outputsize);
+
+				//#pragma omp parallel for
+				for (int k = 0; k < ndms[dm_range]; k++)
+				{
+					//memcpy(&output_buffer[dm_range][k][inc / inBin[dm_range]], &out_tmp[k * t_processed[dm_range][t]], sizeof(float) * t_processed[dm_range][t]);
+
+					save_data_offset(d_output, k * t_processed[dm_range][t], output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
+				}
+			//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
+			}
+
+			if (output_dmt == 1)
+			{
+				//for (int k = 0; k < ndms[dm_range]; k++)
+				//	write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, output_buffer[dm_range][k], gpu_outputsize, dm_low, dm_high);
+				//write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
+			}
+			
+			checkCudaErrors(cudaGetLastError());
+			
+			if (enable_analysis == 1) {
+				
+		//		printf("\n VALUE OF ANALYSIS DEBUG IS %d\n", analysis_debug);
+
+				if (analysis_debug == 1)
+				{
+					float *out_tmp;
+					gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
+					out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
+					memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
+					save_data(d_output, out_tmp, gpu_outputsize);
+					analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp, max_boxcar_width_in_sec);
+					free(out_tmp);
+				}
+				else
+				{
+					float *h_peak_list;
+					size_t max_peak_size;
+					size_t peak_pos;
+					max_peak_size = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 );
+					h_peak_list   = (float*) malloc(max_peak_size*4*sizeof(float));
+
+					peak_pos=0;
+					analysis_GPU(h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp, candidate_algorithm, enable_sps_baselinenoise);
+
+					free(h_peak_list);
+				}
+
+				// This is for testing purposes and should be removed or commented out
+				//analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
+			}
+			oldBin = inBin[dm_range];
+		}
+
+		//memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
+
+}
+
+gettimeofday(&d_end, NULL);
+
+gettimeofday(&f_start, NULL); //don't time transfer
+              acceleration_fdas(1, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff,
+                                                  output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, enable_fdas_custom_fft, enable_fdas_inbin, enable_fdas_norm, sigma_constant, enable_output_ffdot_plan, enable_output_fdas_list);
+fdas_count+=SKADMS;
+
+gettimeofday(&f_end, NULL); //don't time transfer
+
+
+
+		inc = inc + t_processed[0][t];
+		printf("\nINC:\t%ld", inc);
+		tstart_local = ( tsamp_original * inc );
+		tsamp = tsamp_original;
+		maxshift = maxshift_original;
+
+	timer.Stop();
+	time = timer.Elapsed() / 1000;
+
+        d_gpu = (double) (d_end.tv_sec + (d_end.tv_usec / 1000000.0)  - d_start.tv_sec - (d_start.tv_usec/ 1000000.0));
+	d_gpu_i = (d_gpu /(double)iter);
+
+	f_gpu = (double) (f_end.tv_sec + (f_end.tv_usec / 1000000.0)  - f_start.tv_sec - (f_start.tv_usec/ 1000000.0));
+        f_gpu_i = (f_gpu /(double)iter);
+
+
+	printf("\nPerformed SPS on 3 beams. \nProcessed 3x %lf(s) of telescope data in %lf(s) \nPerformed %dx 2^23 point acceleration trials with %d templates in %lf(s) \n REAL-TIME PERFORMANCE %lf\n\n", t_processed[0][t]*tsamp_original, d_gpu_i, SKADMS, NKERN, f_gpu_i, (t_processed[0][t]*tsamp_original)/(d_gpu_i+f_gpu_i));
+
+	}
+
+	//printf("\n\n === OVERALL SKA 3 BEAMS THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
 	cudaFree(d_input);
 	cudaFree(d_output);
@@ -356,7 +548,7 @@ void main_function
 	printf("\nDevice shared memory bandwidth in GB/s: %f", bandwidth * ( num_reg ));
 	float size_gb = ( nchans * ( t_processed[0][0] ) * sizeof(float) * 8 ) / 1000000000.0;
 	printf("\nTelescope data throughput in Gb/s: %f", size_gb / time_in_sec);
-
+/*
 	if (enable_periodicity == 1)
 	{
 		//
@@ -395,4 +587,5 @@ void main_function
 		printf("\nNumber of samples processed: %ld", inc);
 		printf("\nReal-time speedup factor: %lf", ( tstart_local ) / ( time ));
 	}
+*/
 }

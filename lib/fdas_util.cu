@@ -84,111 +84,111 @@ void read_command_line(int argc, char *argv[], cmd_args *args)
 
     case 1 : 
       args->nharms = atoi(optarg); 
-      printf("\n nharm = %d\n", args->nharms);
+      //printf("\n nharm = %d\n", args->nharms);
       break;
 
     case 2 :
       args->nsig = atoi(optarg); 
-      printf("\n nsig = %d\n", args->nsig);
+      //printf("\n nsig = %d\n", args->nsig);
       break;
 
     case 3 : 
       args->duty = 0.01*atof(optarg); 
-      printf("\n duty cycle requested: %f\n", args->duty); 
+     // printf("\n duty cycle requested: %f\n", args->duty); 
       break;
 
     case 4 : 
       args->iter = atoi(optarg); 
-      printf("\n Number of iterations to run: %d\n", args->iter); 
+   //   printf("\n Number of iterations to run: %d\n", args->iter); 
       break;
 
     case 5 : 
       args->writef = atoi(optarg); 
       if (args->writef) 
-	printf("\n Will write result data output to file for plots \n"); 
+//	printf("\n Will write result data output to file for plots \n"); 
       break;
 
     case 6 : 
       args->zval = atoi(optarg); 
-      printf("\n Acceleration value in bins (z) is set to %d\n", args->zval); 
+  //    printf("\n Acceleration value in bins (z) is set to %d\n", args->zval); 
       break;
 
     case 7 : 
       args->wsig = 1; 
-      printf("\n Will write time series to binary file\n"); 
+   //   printf("\n Will write time series to binary file\n"); 
       break;
 
     case 8 : 
       args->search = 1; 
-      printf("\n Will perform full search\n"); 
+    //  printf("\n Will perform full search\n"); 
       break;
 
     case 9 : 
       args->thresh = atof(optarg); 
-      printf("\n Power threshold =  %f\n", args->thresh); 
+   //   printf("\n Power threshold =  %f\n", args->thresh); 
       break;
 
     case 10 : 
       args->freq0 = atof(optarg); 
-      printf("\n Signal central frequency =  %f\n", args->freq0); 
+    //  printf("\n Signal central frequency =  %f\n", args->freq0); 
       break;
 
     case 11 : 
       args->sigamp = atof(optarg); 
-      printf("\n Signal amplitude: %.2f \n", args->sigamp); 
+   //   printf("\n Signal amplitude: %.2f \n", args->sigamp); 
       break;
 
 
     case 12 : 
       args->afname=optarg; 
       sprintf(args->afname,"%s",optarg);
-      printf("\n accelerated signal filename : %s \n",args->afname); 
+   //   printf("\n accelerated signal filename : %s \n",args->afname); 
       break;
 
     case 13 : 
       args->nfname=optarg; 
       sprintf(args->nfname,"%s",optarg);
-      printf("\n noise filename : %s \n",args->nfname); 
+   //   printf("\n noise filename : %s \n",args->nfname); 
       break;
 
     case 14 : 
       args->devid = atoi(optarg);
-      printf("\nDevice requested: %d \n", args->devid); 
+    //  printf("\nDevice requested: %d \n", args->devid); 
       break;
 
     case 15 : 
       args->basic = 1;
-      printf("\n Will run basic search \n"); 
+   //   printf("\n Will run basic search \n"); 
       break;
 
     case 16 : 
       args->kfft = 1;
-      printf("\n Will run search using custom FFT \n"); 
+    //  printf("\n Will run search using custom FFT \n"); 
       break;
 
     case 17 : 
       args->mul = atoi(optarg); 
-      printf("\n Number of points in time series is %d =  8192*%d\n", args->mul*8192, args->mul); 
+    //  printf("\n Number of points in time series is %d =  8192*%d\n", args->mul*8192, args->mul); 
       break;
 
     case 18 : 
       args->inbin=1; 
-      printf("\n Will perform Interbinning on the complex output \n"); 
+    //  printf("\n Will perform Interbinning on the complex output \n"); 
       break;
 
     case 19 : 
       args->norm=1; 
-      printf("\n Will perform normalization \n"); 
+    //  printf("\n Will perform normalization \n"); 
       break;
 
     default:
-      print_usage(); 
+    //  print_usage(); 
       exit(EXIT_FAILURE);
     }
   }
   //  printf("\noptind = %d, argc = %d\n",optind,argc);
   if (optind < argc || optind == 1) {
-    print_usage(); 
+ //   print_usage(); 
     exit(EXIT_FAILURE);
   }
 

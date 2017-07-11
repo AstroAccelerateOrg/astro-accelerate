@@ -110,7 +110,11 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 
 		// Maximum number of samples we can fit in our GPU RAM is then given by:
 		//max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short) * ( (*max_ndms) + nchans ) ) ); // maximum number of timesamples we can fit into GPU memory
-		max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short)*nchans + sizeof(float)*(*max_ndms) + (size_t)(SPS_mem_requirement*MIN_DMS_PER_SPS_RUN ))); // maximum number of timesamples we can fit into GPU memory
+		//max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short)*nchans + sizeof(float)*(*max_ndms) + (size_t)(SPS_mem_requirement*MIN_DMS_PER_SPS_RUN ))); // maximum number of timesamples we can fit into GPU memory
+
+// WA:SKA Modified so that the code processes data in 13 second chunks (meaning that approximatly 10 seconds of data will be de-dispersed and searched for single pulses).
+
+		max_tsamps = (unsigned int) ( (3120140625) / ( sizeof(unsigned short)*nchans + sizeof(float)*(*max_ndms) + (size_t)(SPS_mem_requirement*MIN_DMS_PER_SPS_RUN ))); 
 		
 		// Check that we dont have an out of range maxshift:
 		if (( *maxshift ) > max_tsamps)	{
@@ -176,7 +180,11 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 
 		// Maximum number of samples we can fit in our GPU RAM is then given by:
 		//max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + 2 * sizeof(unsigned short) ) ) );
-		max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + sizeof(unsigned short) )+ SPS_mem_requirement*MIN_DMS_PER_SPS_RUN ));
+		//max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + sizeof(unsigned short) )+ SPS_mem_requirement*MIN_DMS_PER_SPS_RUN ));
+
+// WA:SKA Modified so that the code processes data in 13 second chunks (meaning that approximatly 10 seconds of data will be de-dispersed and searched for single pulses).
+                max_tsamps = (unsigned int) ( (3120140625) / ( sizeof(unsigned short)*nchans + sizeof(float)*(*max_ndms) + (size_t)(SPS_mem_requirement*MIN_DMS_PER_SPS_RUN )));           
+
 
 		// Check that we dont have an out of range maxshift:
 		if (( *maxshift ) > max_tsamps) {

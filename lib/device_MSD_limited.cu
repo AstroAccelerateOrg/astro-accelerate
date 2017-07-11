@@ -185,8 +185,8 @@ int MSD_linear_approximation(float *d_input, float *d_MSD_T, int nTaps, int nDMs
 	printf("----------------> MSD debug:\n");
 	printf("Kernel for calculating partials:\n");
 	printf("ThreadBlocks (TB) in x:%d; Elements processed by TB in x:%d; Remainder in x:%d", nBlocks_x, nSteps_x, nRest);
-	if(nRest>3*nTaps) printf(" is processed\n");
-	else printf(" is not processed\n");
+	if(nRest>3*nTaps)//printf(" is processed\n");
+	else//printf(" is not processed\n");
 	printf("ThreadBlocks (TB) in y:%d; Elements processed by TB in y:%d; Remainder in y:%d is processed\n", nBlocks_y, nSteps_y, 0);
 	printf("gridSize=(%d,%d,%d)\n", gridSize.x, gridSize.y, gridSize.z);
 	printf("blockSize=(%d,%d,%d)\n", blockSize.x, blockSize.y, blockSize.z);
@@ -275,8 +275,8 @@ int MSD_LA_Nth(float *d_input, float *d_bv_in, float *d_MSD_T, float *d_MSD_DIT,
 	printf("Kernel for calculating partials: (MSD_LA_Nth)\n");
 	printf("nTimesamples:%d; offset:%d, nDMs:%d;\n", nTimesamples, offset, nDMs);
 	printf("ThreadBlocks (TB) in x:%d; Elements processed by TB in x:%d; Remainder in x:%d", nBlocks_x, nSteps_x, nRest);
-	if(nRest>3*nTaps) printf(" is processed\n");
-	else printf(" is not processed\n");
+	if(nRest>3*nTaps)//printf(" is processed\n");
+	else//printf(" is not processed\n");
 	printf("ThreadBlocks (TB) in y:%d; Elements processed by TB in y:%d; Remainder in y:%d is processed\n", nBlocks_y, nSteps_y, 0);
 	printf("gridSize=(%d,%d,%d)\n", gridSize.x, gridSize.y, gridSize.z);
 	printf("blockSize=(%d,%d,%d)\n", blockSize.x, blockSize.y, blockSize.z);
