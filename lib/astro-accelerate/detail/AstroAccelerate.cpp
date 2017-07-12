@@ -253,7 +253,14 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
       tstart_local = ( _tsamp_original * _inc );
       _tsamp = _tsamp_original;
       _maxshift = maxshift_original;
+
    }
+   /**
+    * Ewan: I think that the peak_pos variable gives a running total of the number of
+    * candidates returned during the searches. Therefore we can resize the array to this
+    * value to make it equal to the true number of returned candidates.
+    */
+   output_sps.resize(peak_pos*4);
 
 /*
    FILE *fp_out;
