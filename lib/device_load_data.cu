@@ -11,7 +11,7 @@ void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short
 	if (i == -1)
 	{
 		int length = ( t_processed + maxshift );
-		size_t size = nchans * length * sizeof(unsigned short);
+		size_t size = (size_t)nchans * (size_t)length * sizeof(unsigned short);
 		cudaMemcpyToSymbol(dm_shifts, dmshifts, nchans * sizeof(float));
 		cudaMemcpy(device_pointer, host_pointer, size, cudaMemcpyHostToDevice);
 		cudaMemcpyToSymbol(i_nchans, &nchans, sizeof(int));

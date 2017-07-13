@@ -11,8 +11,8 @@
 #define NDATAPERLOOP 1
 #define BINDIVINT 8
 #define BINDIVINF 32
-#define CT 32
-#define CF 8
+#define CT 128
+#define CF 2
 #define NOPS 4.0
 #define STATST 128
 #define STATSLOOP 8
