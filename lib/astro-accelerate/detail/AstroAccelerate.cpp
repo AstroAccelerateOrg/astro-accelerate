@@ -98,6 +98,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::allocate_memory_gpu()
    cudaError_t rc2 = ( cudaMalloc((void **)&_d_output, _gpu_output_size) );
    if (rc2 != cudaSuccess)
    {
+      cudaFree(_d_input);
       throw std::bad_alloc();
    }
    try
@@ -106,6 +107,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::allocate_memory_gpu()
    }
    catch(...)
    {
+      cudaFree(_d_input);
       cudaFree(_d_output);
       throw;
    }
@@ -166,162 +168,169 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
    // allocate memory gpu
    allocate_memory_gpu();
 
-   int maxshift_original = _maxshift;
+   try {
+       int maxshift_original = _maxshift;
 
-   // can't know the size of the list beforehand. Arbitrary value here, will be deleted soonish
-   size_t max_peak_size = 0;
+       // can't know the size of the list beforehand. Arbitrary value here, will be deleted soonish
+       size_t max_peak_size = 0;
 
-   for (int t = 0; t < _num_tchunks; t++)
-       for (int dm_range = 0; dm_range < _range; dm_range++)
-           max_peak_size += (size_t) ( _ndms[dm_range]*_t_processed[dm_range][t]/2 );
+       for (int t = 0; t < _num_tchunks; t++)
+           for (int dm_range = 0; dm_range < _range; dm_range++)
+               max_peak_size += (size_t) ( _ndms[dm_range]*_t_processed[dm_range][t]/2 );
 
-   output_sps.resize(max_peak_size);
+       output_sps.resize(max_peak_size);
 
-   GpuTimer timer;
-   timer.Start();
+       GpuTimer timer;
+       timer.Start();
 
-   size_t peak_pos=0;
+       size_t peak_pos=0;
 
-   // This value must be set to zero between calls
-   _inc = 0L;
+       // This value must be set to zero between calls
+       _inc = 0L;
 
-   for (int t = 0; t < _num_tchunks; ++t)
-   {
-      //printf("\nt_processed:\t%d, %d", _t_processed[0][t], t);
+       for (int t = 0; t < _num_tchunks; ++t)
+       {
+          //printf("\nt_processed:\t%d, %d", _t_processed[0][t], t);
 
-      load_data(-1, _in_bin, _d_input, &input_buffer[(long int) ( _inc * _nchans )], _t_processed[0][t], _maxshift, _nchans, _dmshifts);
+          load_data(-1, _in_bin, _d_input, &input_buffer[(long int) ( _inc * _nchans )], _t_processed[0][t], _maxshift, _nchans, _dmshifts);
 
-      if (_enable_zero_dm)
-         zero_dm(_d_input, _nchans, _t_processed[0][t]+_maxshift);
+          if (_enable_zero_dm)
+             zero_dm(_d_input, _nchans, _t_processed[0][t]+_maxshift);
 
-      if (_enable_zero_dm_with_outliers)
-         zero_dm_outliers(_d_input, _nchans, _t_processed[0][t]+_maxshift);
+          if (_enable_zero_dm_with_outliers)
+             zero_dm_outliers(_d_input, _nchans, _t_processed[0][t]+_maxshift);
 
-      corner_turn(_d_input, _d_output, _nchans, _t_processed[0][t] + _maxshift);
+          corner_turn(_d_input, _d_output, _nchans, _t_processed[0][t] + _maxshift);
 
-      if (_enable_rfi)
-          rfi_gpu(_d_input, _nchans, _t_processed[0][t]+_maxshift);
+          if (_enable_rfi)
+              rfi_gpu(_d_input, _nchans, _t_processed[0][t]+_maxshift);
 
-      int oldBin = 1;
-      for (int dm_range = 0; dm_range < _range; ++dm_range)
-      {
-         //printf("\n\n%f\t%f\t%f\t%d", _dm_low[dm_range], _dm_high[dm_range], _dm_step[dm_range], _ndms[dm_range]), fflush(stdout);
-         //printf("\nAmount of telescope time processed: %f", tstart_local);
-         _maxshift = maxshift_original / _in_bin[dm_range];
+          int oldBin = 1;
+          for (int dm_range = 0; dm_range < _range; ++dm_range)
+          {
+             //printf("\n\n%f\t%f\t%f\t%d", _dm_low[dm_range], _dm_high[dm_range], _dm_step[dm_range], _ndms[dm_range]), fflush(stdout);
+             //printf("\nAmount of telescope time processed: %f", tstart_local);
+             _maxshift = maxshift_original / _in_bin[dm_range];
 
-         cudaDeviceSynchronize();
+             cudaDeviceSynchronize();
 
-         load_data(dm_range, _in_bin, _d_input, &input_buffer[(long int) ( _inc * _nchans )], _t_processed[dm_range][t], _maxshift, _nchans, _dmshifts);
+             load_data(dm_range, _in_bin, _d_input, &input_buffer[(long int) ( _inc * _nchans )], _t_processed[dm_range][t], _maxshift, _nchans, _dmshifts);
 
-         if (_in_bin[dm_range] > oldBin)
-         {
-            bin_gpu(_d_input, _d_output, _nchans, _t_processed[dm_range - 1][t] + _maxshift * _in_bin[dm_range]);
-            _tsamp = _tsamp * 2.0f;
-         }
+             if (_in_bin[dm_range] > oldBin)
+             {
+                bin_gpu(_d_input, _d_output, _nchans, _t_processed[dm_range - 1][t] + _maxshift * _in_bin[dm_range]);
+                _tsamp = _tsamp * 2.0f;
+             }
 
-         dedisperse(dm_range, _t_processed[dm_range][t], _in_bin, _dmshifts, _d_input, _d_output, _nchans,
-            ( _t_processed[dm_range][t] + _maxshift ), _maxshift, &_tsamp, _dm_low, _dm_high, _dm_step, _ndms, _nbits, 0);
+             dedisperse(dm_range, _t_processed[dm_range][t], _in_bin, _dmshifts, _d_input, _d_output, _nchans,
+                ( _t_processed[dm_range][t] + _maxshift ), _maxshift, &_tsamp, _dm_low, _dm_high, _dm_step, _ndms, _nbits, 0);
 
-         if (_enable_analysis == 1)
-         {
-            size_t previous_peak_pos = peak_pos;
-            analysis_GPU(output_sps, &peak_pos, max_peak_size, dm_range, tstart_local,
-                     _t_processed[dm_range][t], _in_bin[dm_range], _out_bin[dm_range], &_maxshift, _max_ndms, _ndms,
-                     _sigma_cutoff, _sigma_constant, _max_boxcar_width_in_sec
-                     , _d_output, _dm_low, _dm_high, _dm_step, _tsamp, _candidate_algorithm, _enable_sps_baselinenoise);
+             if (_enable_analysis == 1)
+             {
+                size_t previous_peak_pos = peak_pos;
+                analysis_GPU(output_sps, &peak_pos, max_peak_size, dm_range, tstart_local,
+                         _t_processed[dm_range][t], _in_bin[dm_range], _out_bin[dm_range], &_maxshift, _max_ndms, _ndms,
+                         _sigma_cutoff, _sigma_constant, _max_boxcar_width_in_sec
+                         , _d_output, _dm_low, _dm_high, _dm_step, _tsamp, _candidate_algorithm, _enable_sps_baselinenoise);
 
-            //#pragma omp parallel for
-            for (int count = previous_peak_pos; count < peak_pos; count++)
-            {
-               output_sps[4*count]     = output_sps[4*count]*_dm_step[dm_range] + _dm_low[dm_range];
-               output_sps[4*count + 1] = output_sps[4*count + 1]*_tsamp + tstart_local;
-               //h_output_list[4*count + 2] = h_output_list[4*count + 2];
-               //h_output_list[4*count + 3] = h_output_list[4*count + 3];
-            }
-            // This is for testing purposes and should be removed or commented out
-            //analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
+                //#pragma omp parallel for
+                for (int count = previous_peak_pos; count < peak_pos; count++)
+                {
+                   output_sps[4*count]     = output_sps[4*count]*_dm_step[dm_range] + _dm_low[dm_range];
+                   output_sps[4*count + 1] = output_sps[4*count + 1]*_tsamp + tstart_local;
+                   //h_output_list[4*count + 2] = h_output_list[4*count + 2];
+                   //h_output_list[4*count + 3] = h_output_list[4*count + 3];
+                }
+                // This is for testing purposes and should be removed or commented out
+                //analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
 
-         }
-         oldBin = _in_bin[dm_range];
-      }
+             }
+             oldBin = _in_bin[dm_range];
+          }
 
-         //memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
+             //memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
 
-      _inc = _inc + _t_processed[0][t];
-      //printf("\nINC:\t%ld", _inc);
-      tstart_local = ( _tsamp_original * _inc );
-      _tsamp = _tsamp_original;
-      _maxshift = maxshift_original;
+          _inc = _inc + _t_processed[0][t];
+          //printf("\nINC:\t%ld", _inc);
+          tstart_local = ( _tsamp_original * _inc );
+          _tsamp = _tsamp_original;
+          _maxshift = maxshift_original;
 
-   }
-   /**
-    * Ewan: I think that the peak_pos variable gives a running total of the number of
-    * candidates returned during the searches. Therefore we can resize the array to this
-    * value to make it equal to the true number of returned candidates.
+       }
+       /**
+        * Ewan: I think that the peak_pos variable gives a running total of the number of
+        * candidates returned during the searches. Therefore we can resize the array to this
+        * value to make it equal to the true number of returned candidates.
+        */
+       output_sps.resize(peak_pos*4);
+
+    /*
+       FILE *fp_out;
+       char filename[200];
+       if (peak_pos > 0)
+       {
+          sprintf(filename, "global_peak_analysed");
+          //if ((fp_out=fopen(filename, "w")) == NULL) {
+          if ((fp_out = fopen(filename, "wb")) == nullptr)
+          {
+             fprintf(stderr, "Error opening output file!\n");
+             exit(0);
+          }
+          fwrite(&output_sps[0], peak_pos*sizeof(float), 4, fp_out);
+          fclose(fp_out);
+       }
     */
-   output_sps.resize(peak_pos*4);
+       timer.Stop();
+       float time = timer.Elapsed() / 1000;
 
-/*
-   FILE *fp_out;
-   char filename[200];
-   if (peak_pos > 0)
-   {
-      sprintf(filename, "global_peak_analysed");
-      //if ((fp_out=fopen(filename, "w")) == NULL) {
-      if ((fp_out = fopen(filename, "wb")) == nullptr)
-      {
-         fprintf(stderr, "Error opening output file!\n");
-         exit(0);
-      }
-      fwrite(&output_sps[0], peak_pos*sizeof(float), 4, fp_out);
-      fclose(fp_out);
+       /*
+       printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
+       printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)",  time);
+       printf("\nAmount of telescope time processed: %f", tstart_local);
+       printf("\nNumber of samples processed: %ld", _inc);
+       printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
+    */
+
+       //free(out_tmp);
+       //free(input_buffer);
+
+       //double time_processed = ( tstart_local ) / _tsamp_original;
+       //double dm_t_processed = time_processed * _total_ndms;
+       //double all_processed = dm_t_processed * _nchans;
+       //printf("\nGops based on %.2lf ops per channel per tsamp: %f", NOPS, ( ( NOPS * all_processed ) / ( time ) ) / 1000000000.0);
+       //int num_reg = SNUMREG;
+       //float num_threads = _total_ndms * ( _t_processed[0][0] ) / ( num_reg );
+       //float data_size_loaded = ( num_threads * _nchans * sizeof(ushort) ) / 1000000000;
+       //float time_in_sec = time;
+    //   float bandwidth = data_size_loaded / time_in_sec;
+       //printf("\nDevice global memory bandwidth in GB/s: %f", bandwidth);
+       //printf("\nDevice shared memory bandwidth in GB/s: %f", bandwidth * ( num_reg ));
+       //float size_gb = ( _nchans * ( _t_processed[0][0] ) * sizeof(float) * 8 ) / 1000000000.0;
+       //printf("\nTelescope data throughput in Gb/s: %f", size_gb / time_in_sec);
+
+       if (_enable_periodicity == 1)
+       {
+          //
+          GpuTimer timer;
+          timer.Start();
+          //
+          periodicity(_range, _nsamp, _max_ndms, _inc, _nboots, _ntrial_bins, _navdms, _narrow, _wide, _nsearch,   _aggression, _sigma_cutoff, output_buffer,
+                    _ndms, _in_bin, _dm_low, _dm_high, _dm_step, _tsamp_original);
+          //
+          timer.Stop();
+          //float time = timer.Elapsed()/1000;
+          //printf("\n\n === OVERALL PERIODICITY THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
+
+          //printf("\nPerformed Peroidicity Location: %f (GPU estimate)", time);
+          //printf("\nAmount of telescope time processed: %f", tstart_local);
+          //printf("\nNumber of samples processed: %ld", _inc);
+          //printf("\nReal-time speedup factor: %f", ( tstart_local ) / ( time ));
+       }
    }
-*/
-   timer.Stop();
-   float time = timer.Elapsed() / 1000;
-
-   /*
-   printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
-   printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)",  time);
-   printf("\nAmount of telescope time processed: %f", tstart_local);
-   printf("\nNumber of samples processed: %ld", _inc);
-   printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
-*/
-
-   //free(out_tmp);
-   //free(input_buffer);
-
-   //double time_processed = ( tstart_local ) / _tsamp_original;
-   //double dm_t_processed = time_processed * _total_ndms;
-   //double all_processed = dm_t_processed * _nchans;
-   //printf("\nGops based on %.2lf ops per channel per tsamp: %f", NOPS, ( ( NOPS * all_processed ) / ( time ) ) / 1000000000.0);
-   //int num_reg = SNUMREG;
-   //float num_threads = _total_ndms * ( _t_processed[0][0] ) / ( num_reg );
-   //float data_size_loaded = ( num_threads * _nchans * sizeof(ushort) ) / 1000000000;
-   //float time_in_sec = time;
-//   float bandwidth = data_size_loaded / time_in_sec;
-   //printf("\nDevice global memory bandwidth in GB/s: %f", bandwidth);
-   //printf("\nDevice shared memory bandwidth in GB/s: %f", bandwidth * ( num_reg ));
-   //float size_gb = ( _nchans * ( _t_processed[0][0] ) * sizeof(float) * 8 ) / 1000000000.0;
-   //printf("\nTelescope data throughput in Gb/s: %f", size_gb / time_in_sec);
-
-   if (_enable_periodicity == 1)
-   {
-      //
-      GpuTimer timer;
-      timer.Start();
-      //
-      periodicity(_range, _nsamp, _max_ndms, _inc, _nboots, _ntrial_bins, _navdms, _narrow, _wide, _nsearch,   _aggression, _sigma_cutoff, output_buffer,
-                _ndms, _in_bin, _dm_low, _dm_high, _dm_step, _tsamp_original);
-      //
-      timer.Stop();
-      //float time = timer.Elapsed()/1000;
-      //printf("\n\n === OVERALL PERIODICITY THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
-
-      //printf("\nPerformed Peroidicity Location: %f (GPU estimate)", time);
-      //printf("\nAmount of telescope time processed: %f", tstart_local);
-      //printf("\nNumber of samples processed: %ld", _inc);
-      //printf("\nReal-time speedup factor: %f", ( tstart_local ) / ( time ));
+   catch(...) {
+        cudaFree(_d_input);
+        cudaFree(_d_output);
+        throw;
    }
 
    //free(out_tmp);
