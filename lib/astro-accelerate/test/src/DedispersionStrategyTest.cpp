@@ -64,7 +64,6 @@ TEST_F(DedispersionStrategyTest, test_channel_freq_order_consistency)
         , 1 //nifs -- not used by DedispersionStrategy
         , 8 //nbits -- not used by DedispersionStrategy
         , 150e-3 //tsamp (assumed to be in seconds)
-        , 55000.0000//tf_data.start_time().value() // is this used?
         , 6 //sigma_cutoff
         , 6 //sigma_constant
         , 0.5 //max_boxcar_width_in_sec
@@ -91,7 +90,6 @@ TEST_F(DedispersionStrategyTest, test_channel_freq_order_consistency)
         , 1 //nifs -- not used by DedispersionStrategy
         , 8 //nbits -- not used by DedispersionStrategy
         , 150e-3 //tsamp (assumed to be in seconds)
-        , 55000.0000//tf_data.start_time().value() // is this used?
         , 6 //sigma_cutoff
         , 6 //sigma_constant
         , 0.5 //max_boxcar_width_in_sec
@@ -141,7 +139,6 @@ TEST_F(DedispersionStrategyTest, test_medium_number_of_samples_single_dm_range)
         , 1 //nifs -- not used by DedispersionStrategy
         , 8 //nbits -- not used by DedispersionStrategy
         , 150e-3 //tsamp (assumed to be in seconds)
-        , 55000.0000//tf_data.start_time().value() // is this used?
         , 6 //sigma_cutoff
         , 6 //sigma_constant
         , 0.5 //max_boxcar_width_in_sec
@@ -198,7 +195,6 @@ TEST_F(DedispersionStrategyTest, test_overlapping_dm_ranges)
         , 1 //nifs -- not used by DedispersionStrategy
         , 8 //nbits -- not used by DedispersionStrategy
         , 150e-3 //tsamp (assumed to be in seconds)
-        , 55000.0000//tf_data.start_time().value() // is this used?
         , 6 //sigma_cutoff
         , 6 //sigma_constant
         , 0.5 //max_boxcar_width_in_sec

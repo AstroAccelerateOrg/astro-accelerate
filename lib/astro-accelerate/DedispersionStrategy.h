@@ -41,7 +41,6 @@ class DedispersionStrategy
                 ,int nifs
                 ,int nbits
                 ,float tsamp
-                ,float tstart
                 ,float sigma_cutoff
                 ,float sigma_constant
                 ,float max_boxcar_width_in_sec
@@ -68,7 +67,6 @@ class DedispersionStrategy
                     ,int nifs
                     ,int nbits
                     ,float tsamp
-                    ,float tstart
                     ,float fch1
                     ,float foff
                     ,float sigma_cutoff
@@ -120,7 +118,6 @@ class DedispersionStrategy
         int** get_t_processed() const;
         int get_nbits() const;
         int get_nifs() const;
-        float get_tstart() const;
         float get_tsamp() const;
         int get_nsamp() const;
         int get_max_samps() const;
@@ -264,10 +261,7 @@ class DedispersionStrategy
          * @brief The number of IF channels
          */
         int _nifs;
-        /**
-         * @brief ---
-         */
-        float _tstart;
+
         /**
          * @brief Time sample value
          */
