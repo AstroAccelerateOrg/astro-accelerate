@@ -19,20 +19,19 @@ AstroAccelerate<AstroAccelerateParameterType>::AstroAccelerate(DedispersionStrat
                               ,_dm_step(dedispersion_strategy.get_dm_step())
                               ,_in_bin(dedispersion_strategy.get_in_bin())
                               ,_out_bin(dedispersion_strategy.get_out_bin())
-                                  ,_nsamp(dedispersion_strategy.get_nsamp())
-                                  ,_sigma_constant(dedispersion_strategy.get_sigma_constant())
-                                  ,_max_boxcar_width_in_sec(dedispersion_strategy.get_max_boxcar_width_in_sec())
-                                  ,_total_ndms(dedispersion_strategy.get_total_ndms())
-                                  ,_nboots(dedispersion_strategy.get_nboots())
-                                  ,_ntrial_bins(dedispersion_strategy.get_ntrial_bins())
-                                  ,_navdms(dedispersion_strategy.get_navdms())
-                                  ,_narrow(dedispersion_strategy.get_narrow())
-                                  ,_wide(dedispersion_strategy.get_wide())
-                                  ,_nsearch(dedispersion_strategy.get_nsearch())
-                                  ,_aggression(dedispersion_strategy.get_aggression())
-                                  ,_nbits(dedispersion_strategy.get_nbits())
+                              ,_nsamp(dedispersion_strategy.get_nsamp())
+                              ,_sigma_constant(dedispersion_strategy.get_sigma_constant())
+                              ,_max_boxcar_width_in_sec(dedispersion_strategy.get_max_boxcar_width_in_sec())
+                              ,_total_ndms(dedispersion_strategy.get_total_ndms())
+                              ,_nboots(dedispersion_strategy.get_nboots())
+                              ,_ntrial_bins(dedispersion_strategy.get_ntrial_bins())
+                              ,_navdms(dedispersion_strategy.get_navdms())
+                              ,_narrow(dedispersion_strategy.get_narrow())
+                              ,_wide(dedispersion_strategy.get_wide())
+                              ,_nsearch(dedispersion_strategy.get_nsearch())
+                              ,_aggression(dedispersion_strategy.get_aggression())
+                              ,_nbits(dedispersion_strategy.get_nbits())
 {
-   //
    _multi_file = 0;
    _enable_debug = 0;
    _enable_analysis = 1;
@@ -59,7 +58,7 @@ AstroAccelerate<AstroAccelerateParameterType>::AstroAccelerate(DedispersionStrat
 template<typename AstroAccelerateParameterType>
 long int AstroAccelerate<AstroAccelerateParameterType>::get_processed_time()
 {
-   return _inc;
+    return _inc;
 }
 
 template<typename AstroAccelerateParameterType>

@@ -54,7 +54,6 @@ TEST_F(DmTimeTest, test_dmtime_single_dm_range)
         , 1 //nifs -- not used by DedispersionStrategy
         , 8 //nbits -- not used by DedispersionStrategy
         , 150e-3 //tsamp (assumed to be in seconds)
-        , 55000.0000//tf_data.start_time().value() // is this used?
         , 6 //sigma_cutoff
         , 6 //sigma_constant
         , 0.5 //max_boxcar_width_in_sec
@@ -102,7 +101,6 @@ TEST_F(DmTimeTest, test_dmtime_multi_dm_range)
         , 1 //nifs -- not used by DedispersionStrategy
         , 8 //nbits -- not used by DedispersionStrategy
         , 150e-3 //tsamp (assumed to be in seconds)
-        , 55000.0000//tf_data.start_time().value() // is this used?
         , 6 //sigma_cutoff
         , 6 //sigma_constant
         , 0.5 //max_boxcar_width_in_sec
