@@ -242,6 +242,19 @@ namespace astroaccelerate{
             return;
         }
         _nsamp = number_of_samples;
+
+        // clean up buffers before reallocating them
+        free(_dm_low);
+        free(_dm_high);
+        free(_dm_step);
+        free(_ndms);
+        free(_dmshifts);
+        for (int i = 0; i < _range; i++)
+        {
+            free(_t_processed[i]);
+        }
+        free(_t_processed);
+
         make_strategy(gpu_memory);
     }
 
@@ -257,14 +270,37 @@ namespace astroaccelerate{
 		float n;
 
 		_dm_low = (float *) malloc(( _range ) * sizeof(float));
+        if(!_dm_low) {
+            throw std::bad_alloc();
+        }
 		_dm_high = (float *) malloc(( _range ) * sizeof(float));
+        if(!_dm_high) {
+            free(_dm_low);
+            throw std::bad_alloc();
+        }
 		_dm_step = (float *) malloc(( _range ) * sizeof(float));
+        if(!_dm_step) {
+            free(_dm_low);
+            free(_dm_high);
+            throw std::bad_alloc();
+        }
 		_ndms = (int *) malloc(( _range ) * sizeof(int));
+        if(!_ndms) {
+            free(_dm_low);
+            free(_dm_high);
+            free(_dm_step);
+            throw std::bad_alloc();
+        }
 
 		_dmshifts = (float *) malloc(_nchans * sizeof(float));
+        if(!_dmshifts) {
+            free(_dm_low);
+            free(_dm_high);
+            free(_dm_step);
+            free(_ndms);
+            throw std::bad_alloc();
+        }
 
-		//{{{ Calculate maxshift, the number of dms for this bin and
-		//the highest value of dm to be calculated in this bin
 
 		float ftop = *std::max_element(_bin_frequencies.begin(),_bin_frequencies.end());
 
@@ -329,6 +365,14 @@ namespace astroaccelerate{
 
 		// Allocate memory to store the t_processed ranges:
 		_t_processed = (int **) malloc(_range * sizeof(int *));
+        if(!_t_processed) {
+            free(_dm_low);
+            free(_dm_high);
+            free(_dm_step);
+            free(_ndms);
+            free(_dmshifts);
+            throw std::bad_alloc();
+        }
 
 		if (_nchans < _max_ndms ) {
 			// This means that we can cornerturn into the allocated output buffer
@@ -354,6 +398,18 @@ namespace astroaccelerate{
 				local_t_processed = local_t_processed * ( SDIVINT * 2 * SNUMREG ) * _in_bin[_range - 1];
 				for (i = 0; i < _range; i++)	{
 					_t_processed[i] = (int *) malloc(sizeof(int));
+                    if(!_t_processed[i]) {
+                        free(_dm_low);
+                        free(_dm_high);
+                        free(_dm_step);
+                        free(_ndms);
+                        free(_dmshifts);
+                        for(int j=0; j<i; ++j) {
+                            free(_t_processed[j]);
+                        }
+                        free(_t_processed);
+                        throw std::bad_alloc();
+                    }
 					_t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) _in_bin[i] ) / (float) ( SDIVINT * 2 * SNUMREG ));
 					_t_processed[i][0] = _t_processed[i][0] * ( SDIVINT * 2 * SNUMREG );
 				}
@@ -389,6 +445,18 @@ namespace astroaccelerate{
 				for (i = 0; i < _range; i++)	{
 					// Allocate memory to hold the values of nsamps to be processed
 					_t_processed[i] = (int *) malloc( (num_blocks+1) * sizeof(int));
+                    if(!_t_processed[i]) {
+                        free(_dm_low);
+                        free(_dm_high);
+                        free(_dm_step);
+                        free(_ndms);
+                        free(_dmshifts);
+                        for(int j=0; j<i; ++j) {
+                            free(_t_processed[j]);
+                        }
+                        free(_t_processed);
+                        throw std::bad_alloc();
+                    }
 					// Remember the last block holds less!
 					for (j = 0; j < num_blocks ; j++) {
 						_t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) _in_bin[i] ) / (float) ( SDIVINT * 2 * SNUMREG ));
@@ -424,6 +492,18 @@ namespace astroaccelerate{
 				local_t_processed = local_t_processed * ( SDIVINT * 2 * SNUMREG ) * _in_bin[_range - 1];
 				for (i = 0; i < _range; i++) {
 					_t_processed[i] = (int *) malloc(sizeof(int));
+                    if(!_t_processed[i]) {
+                        free(_dm_low);
+                        free(_dm_high);
+                        free(_dm_step);
+                        free(_ndms);
+                        free(_dmshifts);
+                        for(int j=0; j<i; ++j) {
+                            free(_t_processed[j]);
+                        }
+                        free(_t_processed);
+                        throw std::bad_alloc();
+                    }
 					_t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) _in_bin[i] ) / (float) ( SDIVINT * 2 * SNUMREG ));
 					_t_processed[i][0] = _t_processed[i][0] * ( SDIVINT * 2 * SNUMREG );
 				}
@@ -452,6 +532,18 @@ namespace astroaccelerate{
 				for (i = 0; i < _range; i++)	{
 					// Allocate memory to hold the values of nsamps to be processed
 					_t_processed[i] = (int *) malloc(( num_blocks + 1 ) * sizeof(int));
+                    if(!_t_processed[i]) {
+                        free(_dm_low);
+                        free(_dm_high);
+                        free(_dm_step);
+                        free(_ndms);
+                        free(_dmshifts);
+                        for(int j=0; j<i; ++j) {
+                            free(_t_processed[j]);
+                        }
+                        free(_t_processed);
+                        throw std::bad_alloc();
+                    }
 					// Remember the last block holds less!
 					for (j = 0; j < num_blocks; j++) {
 						_t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) _in_bin[i] ) / (float) ( SDIVINT * 2 * SNUMREG ));
