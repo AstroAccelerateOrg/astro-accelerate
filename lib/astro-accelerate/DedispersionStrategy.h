@@ -55,21 +55,21 @@ class DedispersionStrategy
                 );
 
         DedispersionStrategy(std::vector<float> const user_dm_low
-                    ,std::vector<float> const user_dm_high
-                    ,std::vector<float> const user_dm_step
-                    ,std::vector<int> const in_bin
-                    ,std::vector<int> const out_bin
-                    ,size_t gpu_memory
-                    ,int power
-                    ,int range
-                    ,int nchans
-                    ,int nsamp
-                    ,int nifs
-                    ,int nbits
-                    ,float tsamp
-                    ,float fch1
-                    ,float foff
-                    ,float sigma_cutoff
+                ,std::vector<float> const user_dm_high
+                ,std::vector<float> const user_dm_step
+                ,std::vector<int> const in_bin
+                ,std::vector<int> const out_bin
+                ,size_t gpu_memory
+                ,int power
+                ,int range
+                ,int nchans
+                ,int nsamp
+                ,int nifs
+                ,int nbits
+                ,float tsamp
+                ,float fch1
+                ,float foff
+                ,float sigma_cutoff
                 ,float sigma_constant
                 ,float max_boxcar_width_in_sec
                 ,float narrow
