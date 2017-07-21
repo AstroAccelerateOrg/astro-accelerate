@@ -699,7 +699,7 @@ __global__ void PD_GPU_Nth_LA_EACH(float const* __restrict__ d_input, float *d_b
 	float2 ftemp1, ftemp2, ftemp3, SNR;
 	ushort2 taps, taps1, taps2;
 	float BV_mean=d_MSD[0];
-	float DIT_mean=d_MSD[0];
+	float DIT_mean=d_MSD[3];
 	float signal_sd=d_MSD[1];
 	float modifier=d_MSD[2];
 	
