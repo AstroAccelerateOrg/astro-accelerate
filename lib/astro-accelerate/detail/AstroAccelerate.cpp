@@ -346,7 +346,6 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_fdas(unsigned device_id
 {
 
    cudaSetDevice(device_id);
-   output_fdas.resize(1000000);
    // Assumption: gpu memory is free and available
    //
    GpuTimer timer;
@@ -376,6 +375,7 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_fdas(unsigned device_id
                 ,_sigma_constant // sigma constant
                 ,0 // don't output ffdot plan
                 ,0 // output list
+                ,output_fdas
                 );
 
    //
