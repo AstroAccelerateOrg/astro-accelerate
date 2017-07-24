@@ -154,7 +154,6 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 											 ,nifs
 											 ,nbits
 											 ,tsamp
-											 ,tstart
 											 ,fch1
 											 ,foff
 											 ,sigma_cutoff
@@ -175,7 +174,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		get_recorded_data(&fp, dedispersion_strategy.get_nsamp(), dedispersion_strategy.get_nchans(), dedispersion_strategy.get_nbits(),
 						  &input_buffer, &inputsize);
 
-		printf("\nAA is starting\n");
+		printf("\nDD + SPS starting\n");
 		// dedispersed data
 		DmTime<float> output_buffer(dedispersion_strategy);
 		// output of sps - assume it's a quarter of the output size
@@ -188,8 +187,13 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 						,output_sps
 						);
 
-
-		std::vector<float> output_fdas;
+		/*
+		 * Note: this function was written with a buggy fdas in the master, so it's not running.
+		 * A fix has been done on the fdas code in the master, merging it to the interface should allow this function to run.
+		 * It's basically filling a vector of candidates in the same was as in run_dedispersion_sps
+		 */
+		//printf("\nFDAS is starting\n");
+		//std::vector<float> output_fdas;
 		//astroaccelerate.run_fdas(device_id, output_buffer, output_fdas);
 
 

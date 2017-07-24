@@ -41,7 +41,8 @@ void acceleration_fdas(int range,
 					   int enable_norm,
 					   float sigma_constant,
 					   int enable_output_ffdot_plan,
-					   int enable_output_fdas_list)
+					   int enable_output_fdas_list,
+					   std::vector<float> &output_fdas)
 {
 
 	fdas_params params;
@@ -331,7 +332,7 @@ void acceleration_fdas(int range,
 						if (enable_output_fdas_list == 1)
 						{
 							if(list_size>0)
-								fdas_write_list(&gpuarrays, &cmdargs, &params, h_MSD, dm_low[i], dm_count, dm_step[i], list_size);
+								fdas_write_list(&gpuarrays, &cmdargs, &params, h_MSD, dm_low[i], dm_count, dm_step[i], list_size, output_fdas);
 						}
 						cudaFree(d_MSD);
 						cudaFree(gmem_fdas_peak_pos);
