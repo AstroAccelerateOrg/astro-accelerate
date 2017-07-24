@@ -10,7 +10,7 @@ void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short
 	//{{{ Copy data and set up the GPU constants/variables.
 	if (i == -1)
 	{
-		int length = ( t_processed + maxshift );
+		long int length = ( t_processed + maxshift );
 		size_t size = nchans * length * sizeof(unsigned short);
 		cudaMemcpyToSymbol(dm_shifts, dmshifts, nchans * sizeof(float));
 		cudaMemcpy(device_pointer, host_pointer, size, cudaMemcpyHostToDevice);
@@ -20,7 +20,7 @@ void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short
 	}
 	else if (i > 0)
 	{
-		int length = ( t_processed + maxshift );
+		long int length = ( t_processed + maxshift );
 		cudaMemcpyToSymbol(i_nsamp, &length, sizeof(int));
 		cudaMemcpyToSymbol(i_t_processed_s, &t_processed, sizeof(int));
 	}

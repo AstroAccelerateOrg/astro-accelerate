@@ -292,7 +292,7 @@ void Create_PD_plan(std::vector<PulseDetection_plan> *PD_plan, std::vector<int> 
 }
 
 
-int Get_max_iteration(int max_boxcar_width, std::vector<int> *BC_widths){
+int Get_max_iteration(int max_boxcar_width, std::vector<int> *BC_widths, int *max_width_performed){
 	int startTaps, iteration;
 	
 	startTaps = 0;
@@ -305,14 +305,18 @@ int Get_max_iteration(int max_boxcar_width, std::vector<int> *BC_widths){
 		}
 	}
 	
-	if(max_boxcar_width>startTaps) iteration=(int) BC_widths->size();
+	if(max_boxcar_width>startTaps) {
+		iteration=(int) BC_widths->size();
+	}
 	
+	*max_width_performed=startTaps;
 	return(iteration);
 }
 
 
 void analysis_GPU(std::vector<float> &h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float sigma_constant, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, int candidate_algorithm, int enable_sps_baselinenoise){
 	int max_boxcar_width = (int) (max_boxcar_width_in_sec/tsamp);
+	int max_width_performed=0;
 	//unsigned long int j;
 	unsigned long int vals;
 	int nTimesamples = t_processed;
@@ -440,9 +444,10 @@ void analysis_GPU(std::vector<float> &h_peak_list, size_t *peak_pos, size_t max_
 	
 	//printf("     SPS will run %d batches each containing %d DM trials. Remainder %d DM trials\n", (int) DM_list.size(), DMs_per_cycle, nRest);
 	
-	
-	max_iteration = Get_max_iteration(max_boxcar_width/inBin, &BC_widths);
-	//printf("     Selected iteration:%d; for maximum boxcar width:%d;\n", max_iteration, max_boxcar_width/inBin);
+
+	max_iteration = Get_max_iteration(max_boxcar_width/inBin, &BC_widths, &max_width_performed);
+	printf("     Selected iteration:%d; maximum boxcar width requested:%d; maximum boxcar width performed:%d;\n", max_iteration, max_boxcar_width/inBin, max_width_performed);
+
 	Create_PD_plan(&PD_plan, &BC_widths, 1, nTimesamples);
 	
 	if(DM_list.size()>0){
