@@ -409,10 +409,11 @@ void fdas_write_list(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *
 			a   = h_fdas_peak_list[current_size +(4*f)];
 			j   = (int) h_fdas_peak_list[current_size + (4*f + 1)];
 			pow = h_fdas_peak_list[current_size + (4*f + 2)];
-			SNR = (pow-h_MSD[0])/h_MSD[1];
-			jfreq = (double)(j) / tobs;
+			h_fdas_peak_list[current_size + (4*f + 1)] = (double)(j) / tobs;
+			h_fdas_peak_list[current_size + (4*f + 2)] = (pow-h_MSD[0])/h_MSD[1];
 			acc = (double) (ZMAX - a* ACCEL_STEP);
 			acc1 = acc*SLIGHT / jfreq / tobs / tobs;
+			h_fdas_peak_list[current_size + (4*f + 3)] = dm_low + ((float)dm_count)*dm_step;
 			//fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, SNR);
 		}
 
