@@ -1,3 +1,6 @@
+#ifndef ASTROACCELERATE_DEVICE_MAIN__
+#define ASTROACCELERATE_DEVICE_MAIN__
+
 #include "headers/headers_mains.h"
 #include "device_dedispersion_kernel.cu"
 #include "device_corner_turn_kernel.cu"
@@ -44,3 +47,5 @@
 
 // fdas
 #include "device_acceleration_fdas.cu"
+
+#endif 

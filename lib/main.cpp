@@ -120,10 +120,7 @@ int main(int argc, char* argv[])
 		nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
 	// Allocate memory on host.
-	allocate_memory_cpu_input(&fp, gpu_memory, maxshift, num_tchunks, max_ndms,
-	  total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer,
-	  &output_buffer, &d_input, &d_output, &gpu_inputsize, &gpu_outputsize,
-	  &inputsize, &outputsize);
+	allocate_memory_cpu_input(nsamp, nchans, &input_buffer,&inputsize);
 	if (enable_debug == 1)
 		debug(5, start_time, range, outBin, enable_debug, enable_analysis,
 		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,

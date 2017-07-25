@@ -3,8 +3,9 @@
 #include <cufft.h>
 #include <math.h>
 #include "headers/params.h"
+#include "headers/host_periods.h"
 
-void periodicity(int range, int nsamp, int max_ndms, int processed, int nboots, int num_trial_bins, int navdms, float narrow, float wide, int nsearch, float aggression, float cutoff, float ***output_buffer, int *ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp)
+void periodicity(int range, int nsamp, int max_ndms, int processed, int nboots, int num_trial_bins, int navdms, float narrow, float wide, int nsearch, float aggression, float cutoff, astroaccelerate::DmTime<float> output_buffer, int *ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp)
 {
 
 	// Example FFT....
@@ -93,7 +94,7 @@ void periodicity(int range, int nsamp, int max_ndms, int processed, int nboots, 
 			cudaMemcpy(h_signal, d_signal_out, sizeof(cufftComplex) * ( samps / 2 + 1 ), cudaMemcpyDeviceToHost);
 
 			h_signal_p[0 + dm_count * ( samps / 2 )] = 0.0;
-#pragma omp parallel for
+//#pragma omp parallel for
 			for (int j = 1; j < samps / 2; j++)
 			{
 				//	h_signal[j].x = h_signal[j].x-h_signal[0].x;

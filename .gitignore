@@ -1,5 +1,9 @@
 build/
 output/
+cmake/CMakeCache.txt
+cmake/CMakeFiles
+CMakeCache.txt
+CMakeFiles/
 
 *.project
 *.cproject
@@ -10,4 +14,4 @@ output/
 *.new
 *.ori
 
-asstrolib/libastrolib.a
+astrolib/libastrolib.a

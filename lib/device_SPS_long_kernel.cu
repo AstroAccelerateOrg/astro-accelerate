@@ -685,8 +685,6 @@ __global__ void PD_GPU_Nth_LA(float const* __restrict__ d_input, float *d_bv_in,
 	}
 }
 
-
-
 __global__ void PD_GPU_Nth_LA_EACH(float const* __restrict__ d_input, float *d_bv_in, float *d_bv_out, float *d_decimated, float *d_output_SNR, ushort *d_output_taps, float *d_MSD, const int nTimesamples, const int nBoxcars, const int startTaps, const int DIT_value, const int dtm) {
 	__shared__ float2 s_input[PD_NTHREADS];
 	__shared__ float2 s_BV[PD_NTHREADS];
@@ -811,7 +809,5 @@ __global__ void PD_GPU_Nth_LA_EACH(float const* __restrict__ d_input, float *d_b
 		if(spos<dtm) d_bv_out[blockIdx.y*dtm + spos] = s_input[threadIdx.x].x;
 	}
 }
-
-
 
 #endif

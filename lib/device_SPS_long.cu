@@ -105,9 +105,10 @@ int PD_SEARCH_LONG_BLN_EACH(float *d_input, float *d_boxcar_values, float *d_dec
 	//Note: Musim udelat dve SNR jeden pro BV_in and dalsi pro decimated values. Celkove rms je pak rms(BV) + sqrt(ntaps)*rms(decimated)
 	MSD_BLN_pw(d_input, d_MSD_BV, nDMs, decimated_timesamples, 0, sigma_constant);
 	#ifdef SPS_LONG_DEBUG
+
 	cudaMemcpy(h_MSD_BV, d_MSD_BV, 3*sizeof(float), cudaMemcpyDeviceToHost);
-	printf("     MSD BLN point-wise: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD_BV[0], h_MSD_BV[1], h_MSD_BV[2]);
-	printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration ,nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
+	//printf("     MSD BLN point-wise: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD_BV[0], h_MSD_BV[1], h_MSD_BV[2]);
+	//printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration ,nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
 	#endif
 	
 	if(nBlocks>0) PD_GPU_1st_BLN<<<gridSize,blockSize>>>( d_input, d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD_BV, decimated_timesamples, nBoxcars, dtm);
@@ -118,7 +119,7 @@ int PD_SEARCH_LONG_BLN_EACH(float *d_input, float *d_boxcar_values, float *d_dec
 		gridSize.x=nBlocks; gridSize.y=nDMs; gridSize.z=1;
 		blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
 		#ifdef SPS_LONG_DEBUG
-		printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration, nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
+		//printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration, nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
 		#endif
 		if( (f%2) == 0 ) {
 			MSD_BLN_pw(d_input, d_MSD_DIT, nDMs, decimated_timesamples, 0, sigma_constant);
@@ -217,9 +218,10 @@ int PD_SEARCH_LONG_LINAPPROX_EACH(float *d_input, float *d_boxcar_values, float 
 	blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
 	MSD_linear_approximation(d_input, d_MSD, nBoxcars, nDMs, decimated_timesamples, 0);
 	#ifdef SPS_LONG_DEBUG
+
 	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost);
-	printf("     MSD linear approximation: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD[0], h_MSD[1], h_MSD[2]);
-	printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration ,nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
+	//printf("     MSD linear approximation: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD[0], h_MSD[1], h_MSD[2]);
+	//printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration ,nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
 	#endif
 	if(nBlocks>0) PD_GPU_1st_LA<<<gridSize,blockSize>>>( d_input, d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD, decimated_timesamples, nBoxcars, dtm);
 	
@@ -229,7 +231,7 @@ int PD_SEARCH_LONG_LINAPPROX_EACH(float *d_input, float *d_boxcar_values, float 
 		gridSize.x=nBlocks; gridSize.y=nDMs; gridSize.z=1;
 		blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
 		#ifdef SPS_LONG_DEBUG
-		printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration, nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
+		//printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration, nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
 		#endif
 		if( (f%2) == 0 ) {
 			error = MSD_LA_Nth(&d_input[shift], &d_boxcar_values[nDMs*(nTimesamples>>1)], d_MSD_Nth, d_MSD, nBoxcars, nDMs, decimated_timesamples, 3*unprocessed_samples, (1<<iteration));
@@ -251,9 +253,6 @@ int PD_SEARCH_LONG_LINAPPROX_EACH(float *d_input, float *d_boxcar_values, float 
 	cudaFree(d_MSD);
 	return(0);
 }
-
-
-
 
 int PD_SEARCH_LONG_BLN_LINAPPROX_EACH(float *d_input, float *d_boxcar_values, float *d_decimated, float *d_output_SNR, ushort *d_output_taps, std::vector<PulseDetection_plan> *PD_plan, int max_iteration, int nDMs, int nTimesamples, float sigma_constant) {
 	//---------> Task specific
@@ -312,4 +311,3 @@ int PD_SEARCH_LONG_BLN_LINAPPROX_EACH(float *d_input, float *d_boxcar_values, fl
 	cudaFree(d_MSD);
 	return(0);
 }
-

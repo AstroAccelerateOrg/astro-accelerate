@@ -1,4 +1,4 @@
-	/* FDAS host functions */
+/* FDAS host functions */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -132,11 +132,9 @@ void fdas_create_acc_sig(fdas_new_acc_sig *acc_sig, cmd_args *cmdargs)
   double omega = 2*M_PI*acc_sig->freq0;
   double accel;
   double tobs;
-
   // gaussian distribution from C++ <random>
   std::default_random_engine rgen;
   std::normal_distribution<float> gdist(0.0,cmdargs->nsig);
-
   tobs = (double) (TSAMP*acc_sig->nsamps);
   accel = ((double)acc_sig->zval * SLIGHT) / (acc_sig->freq0*tobs*tobs);
   printf("\n\npreparing test signal, observation time = %f s, %d nsamps f0 = %f Hz with %d harmonics\n", tobs, acc_sig->nsamps, acc_sig->freq0, acc_sig->nharms);
@@ -158,9 +156,7 @@ void fdas_create_acc_sig(fdas_new_acc_sig *acc_sig, cmd_args *cmdargs)
   //Write to file 
   char afname[200];
   sprintf(afname, "data/acc_sig_8192x%d_%dharms_%dduty_%.3fHz_%dz_%dnsigma.dat",  acc_sig->mul,  acc_sig->nharms, (int)( acc_sig->duty*100.0),  acc_sig->freq0,  acc_sig->zval, acc_sig->nsig );
-
   write_output_file(afname, &acc_sig->acc_signal, acc_sig->nsamps );
-
   free(acc_sig->acc_signal);
 }
 */
@@ -372,7 +368,7 @@ void fdas_cuda_customfft(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cm
 }
 #endif
 
-void fdas_write_list(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float *h_MSD, float dm_low, int dm_count, float dm_step, unsigned int list_size){
+void fdas_write_list(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float *h_MSD, float dm_low, int dm_count, float dm_step, unsigned int list_size, std::vector<float> &h_fdas_peak_list){
 	int ibin=1;
 	if (cmdargs->inbin) ibin=2;
 	double tobs = (double)params->tsamp* (double)params->nsamps*ibin;
@@ -380,9 +376,16 @@ void fdas_write_list(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *
 	if( !isnan(h_MSD[0]) || !isinf(h_MSD[0]) || !isnan(h_MSD[1]) || !isinf(h_MSD[1]) ){
 		printf("Number of peaks:%d; mean:%f; strdev:%f\n", list_size, h_MSD[0], h_MSD[1]);
 		
+		//float *h_fdas_peak_list = (float*)malloc(list_size*4*sizeof(float));
+		//checkCudaErrors(cudaMemcpy(h_fdas_peak_list, gpuarrays->d_fdas_peak_list, list_size*4*sizeof(float), cudaMemcpyDeviceToHost));
+
+		unsigned current_size = h_fdas_peak_list.size();
+		h_fdas_peak_list.resize(current_size+(list_size*4));
+
+
 		float *h_fdas_peak_list = (float*)malloc(list_size*4*sizeof(float));
-		checkCudaErrors(cudaMemcpy(h_fdas_peak_list, gpuarrays->d_fdas_peak_list, list_size*4*sizeof(float), cudaMemcpyDeviceToHost));
-		
+		checkCudaErrors(cudaMemcpy(&h_fdas_peak_list[current_size], gpuarrays->d_fdas_peak_list, list_size*4*sizeof(float), cudaMemcpyDeviceToHost));
+
 		
 		//prepare file
 		const char *dirname= "output_data";
@@ -393,29 +396,30 @@ void fdas_write_list(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *
 			mkdir(dirname, 0700);
 		}	
 		
-		FILE *fp_c;
-		char pfname[200];
-		sprintf(pfname, "acc_list_%f.dat", dm_low + ((float)dm_count)*dm_step);
-		if ((fp_c=fopen(pfname, "w")) == NULL) {
-			fprintf(stderr, "Error opening %s file for writing: %s\n",pfname, strerror(errno));
-		}
+		//FILE *fp_c;
+		//char pfname[200];
+		//sprintf(pfname, "acc_list_%f.dat", dm_low + ((float)dm_count)*dm_step);
+		//if ((fp_c=fopen(pfname, "w")) == NULL) {
+		//	fprintf(stderr, "Error opening %s file for writing: %s\n",pfname, strerror(errno));
+		//}
 		
 		for(int f=0; f<list_size; f++){
 			int j;
 			double a, acc, acc1, jfreq, pow, SNR;
-			a   = h_fdas_peak_list[4*f];
-			j   = (int) h_fdas_peak_list[4*f + 1];
-			pow = h_fdas_peak_list[4*f + 2];
-			SNR = (pow-h_MSD[0])/h_MSD[1];
-			jfreq = (double)(j) / tobs;
+			a   = h_fdas_peak_list[current_size +(4*f)];
+			j   = (int) h_fdas_peak_list[current_size + (4*f + 1)];
+			pow = h_fdas_peak_list[current_size + (4*f + 2)];
+			h_fdas_peak_list[current_size + (4*f + 1)] = (double)(j) / tobs;
+			h_fdas_peak_list[current_size + (4*f + 2)] = (pow-h_MSD[0])/h_MSD[1];
 			acc = (double) (ZMAX - a* ACCEL_STEP);
 			acc1 = acc*SLIGHT / jfreq / tobs / tobs;
-			fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, SNR);
+			h_fdas_peak_list[current_size + (4*f + 3)] = dm_low + ((float)dm_count)*dm_step;
+			//fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, SNR);
 		}
 
-		fclose(fp_c);
+		//fclose(fp_c);
 		
-		free(h_fdas_peak_list);
+		//free(h_fdas_peak_list);
 	}
 	else {
 		printf("Error: mean or standard deviation was NaN or Inf!\n");

@@ -1,6 +1,8 @@
 #ifndef ASTROACCELERATE_ACC_FDAS_H_
 #define ASTROACCELERATE_ACC_FDAS_H_
 
+#include "../astro-accelerate/DmTime.h"
+
 void acceleration_fdas(int range,
 					   int nsamp,
 					   int max_ndms,
@@ -13,7 +15,7 @@ void acceleration_fdas(int range,
 					   int nsearch,
 					   float aggression,
 					   float cutoff,
-					   float ***output_buffer,
+					   astroaccelerate::DmTime<float> &output_buffer,
 					   int *ndms,
 					   int *inBin,
 					   float *dm_low,
@@ -25,5 +27,6 @@ void acceleration_fdas(int range,
 					   int enable_norm,
 					   float sigma_constant,
 					   int enable_output_ffdot_plan,
-					   int enable_output_fdas_list);
+					   int enable_output_fdas_list,
+					   std::vector<float> &output_fdas);
 #endif

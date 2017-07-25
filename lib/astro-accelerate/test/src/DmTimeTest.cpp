@@ -1,0 +1,121 @@
+#include "DmTimeTest.h"
+#include "../../DmTime.h"
+
+
+namespace astroaccelerate {
+namespace test {
+
+
+DmTimeTest::DmTimeTest()
+    : ::testing::Test()
+{
+}
+
+DmTimeTest::~DmTimeTest()
+{
+}
+
+void DmTimeTest::SetUp()
+{
+}
+
+void DmTimeTest::TearDown()
+{
+}
+
+TEST_F(DmTimeTest, test_dmtime_single_dm_range)
+{
+    std::vector<float> user_dm_low({0});
+    std::vector<float> user_dm_high({60});
+    std::vector<float> user_dm_step({10});
+    std::vector<int> in_bin({1});
+    std::vector<int> out_bin({1});
+
+    // add some frequencies
+    std::vector<float> chan_frequencies;
+    float freq = 1000;
+    for(unsigned i=0; i < 10; ++i )
+    {
+        chan_frequencies.push_back(freq);
+        freq -= 30;
+    }
+
+    unsigned nsamples(1<<16);
+    astroaccelerate::DedispersionStrategy ds(
+        user_dm_low
+        , user_dm_high
+        , user_dm_step
+        , in_bin
+        , out_bin
+        , 0.5e9 //gpu_memory
+        , 8 //power
+        , (int) user_dm_low.size()
+        , nsamples 
+        , 1 //nifs -- not used by DedispersionStrategy
+        , 8 //nbits -- not used by DedispersionStrategy
+        , 150e-3 //tsamp (assumed to be in seconds)
+        , 6 //sigma_cutoff
+        , 6 //sigma_constant
+        , 0.5 //max_boxcar_width_in_sec
+        , 0 //narrow -- not used
+        , 0 //wide -- not used
+        , 0 //nboots -- not used
+        , 0 //navdms -- not used
+        , 0 //ntrial_bins -- not used
+        , 0 //nsearch -- not used
+        , 0 //aggression -- not used
+        , chan_frequencies //chan frequency array
+    );
+    DmTime<float> dm_time(ds);
+    ASSERT_EQ(ds.get_maxshift(), nsamples - dm_time.max_nsamples());
+}
+
+TEST_F(DmTimeTest, test_dmtime_multi_dm_range)
+{
+    std::vector<float> user_dm_low({10, 300, 600});
+    std::vector<float> user_dm_high({100, 580, 1000});
+    std::vector<float> user_dm_step({20, 40, 50});
+    std::vector<int> in_bin({1,1,1});
+    std::vector<int> out_bin({1,1,1});
+
+    // add some frequencies
+    std::vector<float> chan_frequencies;
+    float freq = 1000;
+    for(unsigned i=0; i < 10; ++i )
+    {
+        chan_frequencies.push_back(freq);
+        freq -= 30;
+    }
+
+    unsigned nsamples(1<<16);
+    astroaccelerate::DedispersionStrategy ds(
+        user_dm_low
+        , user_dm_high
+        , user_dm_step
+        , in_bin
+        , out_bin
+        , 0.5e9 //gpu_memory
+        , 8 //power
+        , (int) user_dm_low.size()
+        , nsamples 
+        , 1 //nifs -- not used by DedispersionStrategy
+        , 8 //nbits -- not used by DedispersionStrategy
+        , 150e-3 //tsamp (assumed to be in seconds)
+        , 6 //sigma_cutoff
+        , 6 //sigma_constant
+        , 0.5 //max_boxcar_width_in_sec
+        , 0 //narrow -- not used
+        , 0 //wide -- not used
+        , 0 //nboots -- not used
+        , 0 //navdms -- not used
+        , 0 //ntrial_bins -- not used
+        , 0 //nsearch -- not used
+        , 0 //aggression -- not used
+        , chan_frequencies //chan frequency array
+    );
+    DmTime<float> dm_time(ds);
+    ASSERT_EQ(ds.get_maxshift(), nsamples - dm_time.max_nsamples());
+}
+
+} // namespace test
+} // namespace astroaccelerate
