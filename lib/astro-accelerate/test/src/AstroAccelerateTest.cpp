@@ -187,6 +187,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 						,output_sps
 						);
 
+                */
 		/*
 		 * Note: this function was written with a buggy fdas in the master, so it's not running.
 		 * A fix has been done on the fdas code in the master, merging it to the interface should allow this function to run.
@@ -195,8 +196,8 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		//printf("\nFDAS is starting\n");
 		//std::vector<float> output_fdas;
 		//astroaccelerate.run_fdas(device_id, output_buffer, output_fdas);
-
-
+  
+                /*
 		fclose(fp);
 		free(inBin);
 		free(outBin);
@@ -204,7 +205,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		free(user_dm_high);
 		free(user_dm_step);
 		free(input_buffer);
-*/
+		*/
 }
 //}
 
