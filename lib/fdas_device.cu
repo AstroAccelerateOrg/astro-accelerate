@@ -236,14 +236,14 @@ __global__ void cuda_overlap_copy(float2* d_ext_data, float2* d_cpx_signal, int 
 
 __global__ void cuda_overlap_copy_smallblk(float2* d_ext_data, float2* d_cpx_signal, int sigblock, int sig_rfftlen, int sig_tot_convlen, int kern_offset, int total_blocks)
 {
-  int tid = blockIdx.x * blockDim.x + threadIdx.x;
+  int tid = blockIdx.x*KERNLEN + threadIdx.x;
   int read_idx = blockIdx.x*sigblock - kern_offset + threadIdx.x;
   int write_idx = blockIdx.x*KERNLEN + threadIdx.x;
 
   //initialize the array  
   if (tid < sig_tot_convlen){
     d_ext_data[tid].x = 0.0f;
-    d_ext_data[tid].y =0.0f;
+    d_ext_data[tid].y = 0.0f;
   }
 
   if (threadIdx.x >= kern_offset && blockIdx.x == 0 ) //first block
@@ -634,10 +634,10 @@ __global__ void cuda_convolve_customfft_wes_no_reorder02(float2* d_kernel, float
     }
         
 	__syncthreads();
-    if(tx < sigblock){
-      d_ffdot_pw[i*sig_totlen + index] = pwcalc(s_input[tx +offset]);
+    if(tx >= offset && tx < sigblock + offset){
+      d_ffdot_pw[i*sig_totlen + index - offset] = pwcalc(s_input[tx]);
 
-      d_ffdot_pw[(ZMAX - i )*sig_totlen + index] = pwcalc(s_input_trans[tx+offset]);
+      d_ffdot_pw[(ZMAX - i )*sig_totlen + index - offset] = pwcalc(s_input_trans[tx]);
     }
   }
 
