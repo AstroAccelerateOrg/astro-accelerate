@@ -200,6 +200,20 @@ void fdas_create_acc_kernels(cufftComplex* d_kernel, cmd_args *cmdargs )
     presto_place_complex_kernel(tempkern, numkern, (h_kernel+ii*KERNLEN), KERNLEN);
     free(tempkern);
   }
+  
+  //!TEST!: replace templates here. Template width: numkern; padded width: KERNLEN
+  for (ii = 0; ii < NKERN; ii++){
+		int boxcar_width=ii*4;
+		for(int f=0; f<KERNLEN; f++){
+			h_kernel[ii*KERNLEN + f].x = 0;
+			h_kernel[ii*KERNLEN + f].y = 0;
+	  
+			if(f<boxcar_width/2) h_kernel[ii*KERNLEN + f].x = 1.0;
+			if(f>=(KERNLEN-boxcar_width/2)) h_kernel[ii*KERNLEN + f].x = 1.0;
+		}
+	}
+  //!TEST!: replace templates here. Template width: numkern; padded width: KERNLEN
+  
   checkCudaErrors( cudaMemcpy( d_kernel, h_kernel, KERNLEN*sizeof(float2)* NKERN, cudaMemcpyHostToDevice) ); // upload kernels to GPU
 
 #ifndef NOCUST
@@ -215,8 +229,7 @@ void fdas_create_acc_kernels(cufftComplex* d_kernel, cmd_args *cmdargs )
 
 }
 
-void fdas_cuda_create_fftplans(fdas_cufftplan *fftplans, fdas_params *params)
-{
+void fdas_cuda_create_fftplans(fdas_cufftplan *fftplans, fdas_params *params) {
   /*check plan memory overhead and create plans */
   double mbyte = 1024.0*1024.0;
   //double gbyte = mbyte*1024.0;
@@ -243,10 +256,10 @@ void fdas_cuda_create_fftplans(fdas_cufftplan *fftplans, fdas_params *params)
   int *rinembed = rn, *ronembed = rn;
   int ridist = rn[0], rodist = params->rfftlen;
  
-  cufftCreate(&fftplans->realplan);
-  checkCudaErrors(cufftMakePlanMany( fftplans->realplan, nrank, rn, rinembed, istride, ridist, ronembed, ostride, rodist, CUFFT_R2C, 1, &rworksize));
-  cudaDeviceSynchronize();
-  getLastCudaError("\nCuda Error real fft plan\n");
+	cufftCreate(&fftplans->realplan);
+	checkCudaErrors(cufftMakePlanMany( fftplans->realplan, nrank, rn, rinembed, istride, ridist, ronembed, ostride, rodist, CUFFT_R2C, 1, &rworksize));
+	cudaDeviceSynchronize();
+	getLastCudaError("\nCuda Error real fft plan\n");
 
   // forward batched plan - same used for inverse
   checkCudaErrors(cufftCreate(&fftplans->forwardplan));
@@ -333,7 +346,20 @@ void fdas_cuda_customfft(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cm
   dim3 cblocks(params->nblocks, NKERN/2); 
 
   //real fft
-  cufftExecR2C(fftplans->realplan, gpuarrays->d_in_signal, gpuarrays->d_fft_signal);
+  //cufftExecR2C(fftplans->realplan, gpuarrays->d_in_signal, gpuarrays->d_fft_signal);
+  float2 *f2temp;
+  float *ftemp;
+  ftemp = (float *)malloc(params->rfftlen*sizeof(float));
+  f2temp = (float2 *)malloc(params->rfftlen*sizeof(float2));
+  checkCudaErrors( cudaMemcpy(ftemp, gpuarrays->d_in_signal, (params->rfftlen)*sizeof(float), cudaMemcpyDeviceToHost));
+  for(int f=0; f<params->rfftlen; f++){
+	  f2temp[f].x = ftemp[f];
+	  f2temp[f].y = ftemp[f];
+  }
+  checkCudaErrors( cudaMemcpy(gpuarrays->d_fft_signal, f2temp, (params->rfftlen)*sizeof(float2), cudaMemcpyHostToDevice));
+  free(ftemp);
+  free(f2temp);
+  
 
   if (cmdargs->norm){
     //  PRESTO deredden - remove red noise.
@@ -422,11 +448,12 @@ void fdas_write_list(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *
 	}
 }
 
+/*
 void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step ) {
   int ibin=1;
   if (cmdargs->inbin)
     ibin=2;
-  /* Download, threshold and write ffdot data to file */
+  // Download, threshold and write ffdot data to file
   //int nsamps = params->nsamps;
 
   printf("\n\nWrite data for signal with %d samples\nf-fdot size=%u\n",params->nsamps, params->ffdotlen);
@@ -503,6 +530,95 @@ void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params 
 				double acc1 = acc*SLIGHT / jfreq / tobs / tobs;
 				fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, sigma);
 			}    
+		}
+	}
+
+  fclose(fp_c);
+  printf("\nFinished writing file %s\n",pfname);
+    
+  free(h_ffdotpwr);
+
+}
+*/
+
+void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step ) {
+  int ibin=1;
+  if (cmdargs->inbin)
+    ibin=2;
+  /* Download, threshold and write ffdot data to file */
+  //int nsamps = params->nsamps;
+
+  printf("\n\nWrite data for signal with %d samples\nf-fdot size=%u\n",params->nsamps, params->ffdotlen);
+  float *h_ffdotpwr = (float*)malloc(params->ffdotlen* sizeof(float));
+  //download data
+  checkCudaErrors(cudaMemcpy(h_ffdotpwr, gpuarrays->d_ffdot_pwr, params->ffdotlen*sizeof(float), cudaMemcpyDeviceToHost));
+
+  // calculating statistics
+  double total = 0.0;
+  double mean;
+  double stddev;
+  // unsigned int j;
+  for ( int j = 0; j < params->ffdotlen; ++j){
+	total += (double)(h_ffdotpwr[j]);
+    if(isnan(total)){
+      printf("\nnan detected during sum for mean at j=%d\nValue at j:%f\n",j,h_ffdotpwr[j]);
+      exit(1);
+    }
+  }
+  
+  mean = total / ((double)(params->ffdotlen)); 
+
+  printf("\ntotal ffdot:%lf\tmean ffdot: %lf", total, mean);
+      
+  // Calculate standard deviation
+  total = 0.0;
+  for ( int j = 0; j < params->ffdotlen; ++j){
+    total += ((double)h_ffdotpwr[j] - mean ) * ((double)h_ffdotpwr[j] - mean);
+    if(isnan(total)||isinf(total)){
+      printf("\ninf/nan detected during sum for mean at j=%d\nValue at j:%f\n",j,h_ffdotpwr[j]);
+      exit(1);
+    }
+  }
+  stddev = sqrt(abs(total) / (double)(params->ffdotlen - 1)); 
+  printf("\nmean ffdot: %f\tstd ffdot: %lf\n", mean, stddev);
+
+  //prepare file
+  const char *dirname= "output_data";
+  struct stat st = {0};
+
+  if (stat(dirname, &st) == -1) {
+    printf("\nDirectory %s does not exist, creating...\n", dirname);
+    mkdir(dirname, 0700);
+  }
+
+  FILE *fp_c;
+  char pfname[200];
+//  char *infilename;
+//  infilename = basename(cmdargs->afname);
+// filename needs to be acc_dm_%f, dm_low[i] + ((float)dm_count)*dm_step[i]
+  //sprintf(pfname, "%s/out_inbin%d_%s",dirname,ibin,infilename);
+  sprintf(pfname, "acc_%f.dat", dm_low + ((float)dm_count)*dm_step);
+  printf("\nwriting results to file %s\n",pfname);
+  if ((fp_c=fopen(pfname, "w")) == NULL) {
+    fprintf(stderr, "Error opening %s file for writing: %s\n",pfname, strerror(errno));
+    exit(1);
+  }
+  float pow, sigma;
+  double tobs = (double)params->tsamp * (double)params->nsamps*ibin;
+  unsigned int numindep = params->siglen*(NKERN+1)*ACCEL_STEP/6.95; // taken from PRESTO
+
+  //write to file
+  printf("\nWriting ffdot data to file...\n");
+
+	for(int a = 0; a < NKERN; a++) {
+		double acc = (double) (ZMAX - a* ACCEL_STEP);
+		for( int j = 0; j < ibin*params->siglen; j++){
+			pow =  h_ffdotpwr[a * ibin*params->siglen + j]; //(h_ffdotpwr[a * params->siglen + j]-mean)/stddev;
+				sigma = candidate_sigma(pow, cmdargs->nharms, numindep);//power, number of harmonics, number of independed searches=1...2^harms
+				//  sigma=1.0;
+				double jfreq = (double)(j) / tobs;
+				double acc1 = acc*SLIGHT / jfreq / tobs / tobs;
+				fprintf(fp_c, "%u\t%u\t%f\n", a, j, pow); 
 		}
 	}
 
