@@ -203,7 +203,7 @@ void fdas_create_acc_kernels(cufftComplex* d_kernel, cmd_args *cmdargs )
   
   //!TEST!: replace templates here. Template width: numkern; padded width: KERNLEN
   for (ii = 0; ii < NKERN; ii++){
-		int boxcar_width=ii*4;
+		int boxcar_width=ii*2;
 		for(int f=0; f<KERNLEN; f++){
 			h_kernel[ii*KERNLEN + f].x = 0;
 			h_kernel[ii*KERNLEN + f].y = 0;
@@ -354,7 +354,7 @@ void fdas_cuda_customfft(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cm
   checkCudaErrors( cudaMemcpy(ftemp, gpuarrays->d_in_signal, (params->rfftlen)*sizeof(float), cudaMemcpyDeviceToHost));
   for(int f=0; f<params->rfftlen; f++){
 	  f2temp[f].x = ftemp[f];
-	  f2temp[f].y = ftemp[f];
+	  f2temp[f].y = 0;
   }
   checkCudaErrors( cudaMemcpy(gpuarrays->d_fft_signal, f2temp, (params->rfftlen)*sizeof(float2), cudaMemcpyHostToDevice));
   free(ftemp);
