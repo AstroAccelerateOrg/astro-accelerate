@@ -590,52 +590,50 @@ __global__ void cuda_convolve_customfft_wes_no_reorder02(float2* d_kernel, float
 //    __syncthreads();
       
     for(q=6;q<=NEXP;q++){
-      if(threadIdx.x<KERNLEN/2){
-	m_param = threadIdx.x & (PoT - 1);
-	j=threadIdx.x>>(q-1);
-	  
-	W=Get_W_value_inverse(PoTp1,m_param);
+		__syncthreads();
+		if(threadIdx.x<KERNLEN/2){
+			m_param = threadIdx.x & (PoT - 1);
+			j=threadIdx.x>>(q-1);
+			
+			W=Get_W_value_inverse(PoTp1,m_param);
+			
+			A_read_index=j*PoTp1 + m_param;
+			B_read_index=j*PoTp1 + m_param + PoT;
+			
+			//1st template
+			ftemp  = s_input[A_read_index];
+			ftemp2 = s_input[B_read_index];
+			//2nd template
+			stemp  = s_input_trans[A_read_index];
+			stemp2 = s_input_trans[B_read_index];
+			
+			//1st template
+			A_DFT_value.x=ftemp.x + W.x*ftemp2.x - W.y*ftemp2.y;
+			A_DFT_value.y=ftemp.y + W.x*ftemp2.y + W.y*ftemp2.x;
+			//2nd template
+			sA_DFT_value.x=stemp.x + W.x*stemp2.x - W.y*stemp2.y;
+			sA_DFT_value.y=stemp.y + W.x*stemp2.y + W.y*stemp2.x;
+			
+			//1st template	  
+			B_DFT_value.x=ftemp.x - W.x*ftemp2.x + W.y*ftemp2.y;
+			B_DFT_value.y=ftemp.y - W.x*ftemp2.y - W.y*ftemp2.x;
+			//2nd template
+			sB_DFT_value.x=stemp.x - W.x*stemp2.x + W.y*stemp2.y;
+			sB_DFT_value.y=stemp.y - W.x*stemp2.y - W.y*stemp2.x;
+			
+			PoT=PoT<<1;
+			PoTp1=PoTp1<<1;		
 
-	A_read_index=j*PoTp1 + m_param;
-	B_read_index=j*PoTp1 + m_param + PoT;
-	  
-	//1st template
-	ftemp  = s_input[A_read_index];
-	ftemp2 = s_input[B_read_index];
-	//2nd template
-	stemp  = s_input_trans[A_read_index];
-	stemp2 = s_input_trans[B_read_index];
-	
-	//1st template
-	A_DFT_value.x=ftemp.x + W.x*ftemp2.x - W.y*ftemp2.y;
-	A_DFT_value.y=ftemp.y + W.x*ftemp2.y + W.y*ftemp2.x;
-	//2nd template
-	sA_DFT_value.x=stemp.x + W.x*stemp2.x - W.y*stemp2.y;
-	sA_DFT_value.y=stemp.y + W.x*stemp2.y + W.y*stemp2.x;
-	
-	//1st template	  
-	B_DFT_value.x=ftemp.x - W.x*ftemp2.x + W.y*ftemp2.y;
-	B_DFT_value.y=ftemp.y - W.x*ftemp2.y - W.y*ftemp2.x;
-	//2nd template
-	sB_DFT_value.x=stemp.x - W.x*stemp2.x + W.y*stemp2.y;
-	sB_DFT_value.y=stemp.y - W.x*stemp2.y - W.y*stemp2.x;
-	
-	PoT=PoT<<1;
-	PoTp1=PoTp1<<1;		
-     // }
-      // __syncthreads();
-     // if(threadIdx.x<KERNLEN/2){
-	//1st template	  
-	s_input[A_read_index]=A_DFT_value;
-	s_input[B_read_index]=B_DFT_value;
-	//2nd template	  
-	s_input_trans[A_read_index]=sA_DFT_value;
-	s_input_trans[B_read_index]=sB_DFT_value;
-	
-      }
+			//1st template	  
+			s_input[A_read_index]=A_DFT_value;
+			s_input[B_read_index]=B_DFT_value;
+			//2nd template	  
+			s_input_trans[A_read_index]=sA_DFT_value;
+			s_input_trans[B_read_index]=sB_DFT_value;
+		}
     }
         
-       __syncthreads();
+	__syncthreads();
     if(tx < sigblock){
       d_ffdot_pw[i*sig_totlen + index] = pwcalc(s_input[tx +offset]);
 
