@@ -51,3 +51,6 @@
 #define PTBSIZEY 1
 //custom fft params (K. Adamek)
 #define TAPS 8
+
+// Test for FDAS (define it to perform test)
+#define FDAS_TEST
