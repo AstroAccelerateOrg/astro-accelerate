@@ -296,6 +296,7 @@ int counter=0;
 				//	printf("\nMain: running FDAS with custom fft\n");
 					gettimeofday(&t_start, NULL); //don't time transfer
 					fdas_cuda_customfft(&fftplans, &gpuarrays, &cmdargs, &params);
+					checkCudaErrors(cudaGetLastError());
 					/*
 					 * Same question about fftplans here
 					 */

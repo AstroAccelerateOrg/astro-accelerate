@@ -28,6 +28,9 @@ static __device__ __inline__ float2 Get_W_value_float(float N, float m){
 	return(ctemp);
 }
 */
+
+//----------------- Forward no reorder FFTs
+
 static __device__ __inline__ void do_FFT_no_reorder(float2 *s_input, int N, int bits){ // in-place
 	float2 A_DFT_value, B_DFT_value, ftemp2, ftemp;
 	float2 WB;
@@ -98,6 +101,217 @@ static __device__ __inline__ void do_FFT_no_reorder(float2 *s_input, int N, int 
 		
 	//-------> END
 }
+
+static __device__ __inline__ void do_FFT_CT_DIF_2elem_no_reorder(float2 *s_input){
+	float2 A_DFT_value, B_DFT_value;
+	float2 W;
+	float2 Aftemp, Bftemp;
+
+	int local_id, warp_id;
+	int j, m_param, parity;
+	int A_read_index, B_read_index;
+	int PoT, PoTm1, q;
+	
+	local_id = threadIdx.x & (WARP - 1);
+	warp_id = threadIdx.x/WARP;
+	
+	
+	//-----> FFT
+	//-->
+	PoTm1 = (KERNLEN>>1);
+	PoT   = KERNLEN;
+
+	for(q=(NEXP-1);q>4;q--){
+		__syncthreads();
+		m_param = threadIdx.x & (PoTm1 - 1);
+		j=threadIdx.x>>q;
+		
+		W=Get_W_value(PoT, m_param);
+
+		A_read_index=j*PoT + m_param;
+		B_read_index=j*PoT + m_param + PoTm1;
+		
+		Aftemp = s_input[A_read_index];
+		Bftemp = s_input[B_read_index];
+		
+		A_DFT_value.x = Aftemp.x + Bftemp.x;
+		A_DFT_value.y = Aftemp.y + Bftemp.y;
+		
+		B_DFT_value.x = W.x*(Aftemp.x - Bftemp.x) - W.y*(Aftemp.y - Bftemp.y);
+		B_DFT_value.y = W.x*(Aftemp.y - Bftemp.y) + W.y*(Aftemp.x - Bftemp.x);
+		
+		s_input[A_read_index]=A_DFT_value;
+		s_input[B_read_index]=B_DFT_value;
+		
+		PoT=PoT>>1;
+		PoTm1=PoTm1>>1;
+	}
+
+	__syncthreads();
+	A_DFT_value=s_input[local_id + warp_id*2*WARP];
+	B_DFT_value=s_input[local_id + warp_id*2*WARP + WARP];
+	
+	for(q=4;q>=0;q--){
+		m_param = (local_id & (PoT - 1));
+		j = m_param>>q;
+		parity=(1-j*2);
+		W = Get_W_value(PoT, j*(m_param-PoTm1));
+		
+		Aftemp.x = parity*A_DFT_value.x + __shfl_xor(A_DFT_value.x, PoTm1);
+		Aftemp.y = parity*A_DFT_value.y + __shfl_xor(A_DFT_value.y, PoTm1);
+		Bftemp.x = parity*B_DFT_value.x + __shfl_xor(B_DFT_value.x, PoTm1);
+		Bftemp.y = parity*B_DFT_value.y + __shfl_xor(B_DFT_value.y, PoTm1);
+		
+		A_DFT_value.x = W.x*Aftemp.x - W.y*Aftemp.y; 
+		A_DFT_value.y = W.x*Aftemp.y + W.y*Aftemp.x;
+		B_DFT_value.x = W.x*Bftemp.x - W.y*Bftemp.y; 
+		B_DFT_value.y = W.x*Bftemp.y + W.y*Bftemp.x;
+		
+		PoT=PoT>>1;
+		PoTm1=PoTm1>>1;
+	}
+	
+	s_input[local_id + warp_id*2*WARP] = A_DFT_value;
+	s_input[local_id + warp_id*2*WARP + WARP] = B_DFT_value;
+	
+	__syncthreads();
+}
+
+static __device__ __inline__ void do_FFT_CT_DIF_4elem_no_reorder(float2 *s_input){
+	float2 A_DFT_value, B_DFT_value, C_DFT_value, D_DFT_value;
+	float2 W;
+	float2 Aftemp, Bftemp, Cftemp, Dftemp;
+
+	int local_id, warp_id;
+	int j, m_param, parity;
+	int A_read_index, B_read_index, C_read_index, D_read_index;
+	int PoT, PoTm1, q;
+	
+	local_id = threadIdx.x & (WARP - 1);
+	warp_id = threadIdx.x/WARP;
+	
+	
+	//-----> FFT
+	//-->
+	PoTm1 = (KERNLEN>>1);
+	PoT   = KERNLEN;
+	
+	//Highest iteration
+	m_param = threadIdx.x;
+	j=0;
+	A_read_index = m_param;
+	B_read_index = m_param + PoTm1;
+	C_read_index = m_param + (PoTm1>>1);
+	D_read_index = m_param + 3*(PoTm1>>1);
+	
+	W=Get_W_value(PoT, m_param);
+	
+	Aftemp = s_input[A_read_index];
+	Bftemp = s_input[B_read_index];
+	Cftemp = s_input[C_read_index];
+	Dftemp = s_input[D_read_index];
+	
+	A_DFT_value.x = Aftemp.x + Bftemp.x;
+	A_DFT_value.y = Aftemp.y + Bftemp.y;
+	B_DFT_value.x = W.x*(Aftemp.x - Bftemp.x) - W.y*(Aftemp.y - Bftemp.y);
+	B_DFT_value.y = W.x*(Aftemp.y - Bftemp.y) + W.y*(Aftemp.x - Bftemp.x);
+	
+	C_DFT_value.x = Cftemp.x + Dftemp.x;
+	C_DFT_value.y = Cftemp.y + Dftemp.y;
+	D_DFT_value.x = W.y*(Cftemp.x - Dftemp.x) + W.x*(Cftemp.y - Dftemp.y);
+	D_DFT_value.y = W.y*(Cftemp.y - Dftemp.y) - W.x*(Cftemp.x - Dftemp.x);
+	
+	s_input[A_read_index]=A_DFT_value;
+	s_input[B_read_index]=B_DFT_value;
+	s_input[C_read_index]=C_DFT_value;
+	s_input[D_read_index]=D_DFT_value;
+	
+	PoT=PoT>>1;
+	PoTm1=PoTm1>>1;
+	
+	for(q=(NEXP-2);q>4;q--){
+		__syncthreads();
+		m_param = threadIdx.x & (PoTm1 - 1);
+		j=threadIdx.x>>q;
+		
+		W=Get_W_value(PoT, m_param);
+
+		A_read_index=j*(PoT<<1) + m_param;
+		B_read_index=j*(PoT<<1) + m_param + PoTm1;
+		C_read_index=j*(PoT<<1) + m_param + PoT;
+		D_read_index=j*(PoT<<1) + m_param + 3*PoTm1;
+		
+		Aftemp = s_input[A_read_index];
+		Bftemp = s_input[B_read_index];
+		Cftemp = s_input[C_read_index];
+		Dftemp = s_input[D_read_index];
+		
+		A_DFT_value.x = Aftemp.x + Bftemp.x;
+		A_DFT_value.y = Aftemp.y + Bftemp.y;
+		C_DFT_value.x = Cftemp.x + Dftemp.x;
+		C_DFT_value.y = Cftemp.y + Dftemp.y;
+		
+		B_DFT_value.x = W.x*(Aftemp.x - Bftemp.x) - W.y*(Aftemp.y - Bftemp.y);
+		B_DFT_value.y = W.x*(Aftemp.y - Bftemp.y) + W.y*(Aftemp.x - Bftemp.x);
+		D_DFT_value.x = W.x*(Cftemp.x - Dftemp.x) - W.y*(Cftemp.y - Dftemp.y);
+		D_DFT_value.y = W.x*(Cftemp.y - Dftemp.y) + W.y*(Cftemp.x - Dftemp.x);
+		
+		s_input[A_read_index]=A_DFT_value;
+		s_input[B_read_index]=B_DFT_value;
+		s_input[C_read_index]=C_DFT_value;
+		s_input[D_read_index]=D_DFT_value;
+		
+		PoT=PoT>>1;
+		PoTm1=PoTm1>>1;
+	}
+
+	__syncthreads();
+	j = local_id + (warp_id<<2)*WARP;
+	A_DFT_value = s_input[j];
+	B_DFT_value = s_input[j + WARP];
+	C_DFT_value = s_input[j + 2*WARP];
+	D_DFT_value = s_input[j + 3*WARP];
+	
+	for(q=4;q>=0;q--){
+		m_param = (local_id & (PoT - 1));
+		j = m_param>>q;
+		parity=(1-j*2);
+		W = Get_W_value(PoT, j*(m_param-PoTm1));
+		
+		Aftemp.x = parity*A_DFT_value.x + __shfl_xor(A_DFT_value.x, PoTm1);
+		Aftemp.y = parity*A_DFT_value.y + __shfl_xor(A_DFT_value.y, PoTm1);
+		Bftemp.x = parity*B_DFT_value.x + __shfl_xor(B_DFT_value.x, PoTm1);
+		Bftemp.y = parity*B_DFT_value.y + __shfl_xor(B_DFT_value.y, PoTm1);
+		Cftemp.x = parity*C_DFT_value.x + __shfl_xor(C_DFT_value.x, PoTm1);
+		Cftemp.y = parity*C_DFT_value.y + __shfl_xor(C_DFT_value.y, PoTm1);
+		Dftemp.x = parity*D_DFT_value.x + __shfl_xor(D_DFT_value.x, PoTm1);
+		Dftemp.y = parity*D_DFT_value.y + __shfl_xor(D_DFT_value.y, PoTm1);
+		
+		A_DFT_value.x = W.x*Aftemp.x - W.y*Aftemp.y; 
+		A_DFT_value.y = W.x*Aftemp.y + W.y*Aftemp.x;
+		B_DFT_value.x = W.x*Bftemp.x - W.y*Bftemp.y; 
+		B_DFT_value.y = W.x*Bftemp.y + W.y*Bftemp.x;
+		C_DFT_value.x = W.x*Cftemp.x - W.y*Cftemp.y; 
+		C_DFT_value.y = W.x*Cftemp.y + W.y*Cftemp.x;
+		D_DFT_value.x = W.x*Dftemp.x - W.y*Dftemp.y; 
+		D_DFT_value.y = W.x*Dftemp.y + W.y*Dftemp.x;
+		
+		PoT=PoT>>1;
+		PoTm1=PoTm1>>1;
+	}
+	
+	j = local_id + (warp_id<<2)*WARP;
+	s_input[j]          = A_DFT_value;
+	s_input[j + WARP]   = B_DFT_value;
+	s_input[j + 2*WARP] = C_DFT_value;
+	s_input[j + 3*WARP] = D_DFT_value;
+	
+	__syncthreads();
+}
+
+//----------------- Forward no reorder FFTs
+
+//----------------- Inverse no reorder FFTs
 
 static __device__ __inline__ void do_IFFT_no_reorder(float2 *s_input, int N, int bits){ // in-place
 	float2 A_DFT_value, B_DFT_value;
@@ -202,6 +416,575 @@ static __device__ __inline__ void do_IFFT_no_reorder(float2 *s_input, int N, int
 	}
 }
 
+static __device__ __inline__ void do_IFFT_mk11_2elem_2vertical_no_reorder(float2 *s_input_1, float2 *s_input_2){
+	float2 A_DFT_value1, B_DFT_value1;
+	float2 A_DFT_value2, B_DFT_value2;
+	float2 W;
+	float2 Aftemp1, Bftemp1;
+	float2 Aftemp2, Bftemp2;
+
+	int local_id, warp_id;
+	int j, m_param;
+	int parity, itemp;
+	int A_read_index, B_read_index;
+	int PoT, PoTp1, q;
+	
+	local_id = threadIdx.x & (WARP - 1);
+	warp_id = threadIdx.x/WARP;
+
+	//-----> FFT
+	//-->
+	PoT=1;
+	PoTp1=2;	
+
+	//--> First iteration
+	itemp=local_id&1;
+	parity=(1-itemp*2);
+	A_DFT_value1=s_input_1[local_id + (warp_id<<1)*WARP];
+	B_DFT_value1=s_input_1[local_id + (warp_id<<1)*WARP + WARP];
+	A_DFT_value2=s_input_2[local_id + (warp_id<<1)*WARP];
+	B_DFT_value2=s_input_2[local_id + (warp_id<<1)*WARP + WARP];
+	
+	__syncthreads();
+	
+	A_DFT_value1.x=parity*A_DFT_value1.x + __shfl_xor(A_DFT_value1.x,1);
+	A_DFT_value1.y=parity*A_DFT_value1.y + __shfl_xor(A_DFT_value1.y,1);
+	B_DFT_value1.x=parity*B_DFT_value1.x + __shfl_xor(B_DFT_value1.x,1);
+	B_DFT_value1.y=parity*B_DFT_value1.y + __shfl_xor(B_DFT_value1.y,1);
+	
+	A_DFT_value2.x=parity*A_DFT_value2.x + __shfl_xor(A_DFT_value2.x,1);
+	A_DFT_value2.y=parity*A_DFT_value2.y + __shfl_xor(A_DFT_value2.y,1);
+	B_DFT_value2.x=parity*B_DFT_value2.x + __shfl_xor(B_DFT_value2.x,1);
+	B_DFT_value2.y=parity*B_DFT_value2.y + __shfl_xor(B_DFT_value2.y,1);
+	
+	
+	//--> Second through Fifth iteration (no synchronization)
+	PoT=2;
+	PoTp1=4;
+	for(q=1;q<5;q++){
+		m_param = (local_id & (PoTp1 - 1));
+		itemp = m_param>>q;
+		parity=((itemp<<1)-1);
+		W = Get_W_value_inverse(PoTp1, itemp*m_param);
+		
+		Aftemp1.x = W.x*A_DFT_value1.x - W.y*A_DFT_value1.y;
+		Aftemp1.y = W.x*A_DFT_value1.y + W.y*A_DFT_value1.x;
+		Bftemp1.x = W.x*B_DFT_value1.x - W.y*B_DFT_value1.y;
+		Bftemp1.y = W.x*B_DFT_value1.y + W.y*B_DFT_value1.x;
+		
+		Aftemp2.x = W.x*A_DFT_value2.x - W.y*A_DFT_value2.y;
+		Aftemp2.y = W.x*A_DFT_value2.y + W.y*A_DFT_value2.x;
+		Bftemp2.x = W.x*B_DFT_value2.x - W.y*B_DFT_value2.y;
+		Bftemp2.y = W.x*B_DFT_value2.y + W.y*B_DFT_value2.x;
+		
+		A_DFT_value1.x = Aftemp1.x + parity*__shfl_xor(Aftemp1.x,PoT);
+		A_DFT_value1.y = Aftemp1.y + parity*__shfl_xor(Aftemp1.y,PoT);
+		B_DFT_value1.x = Bftemp1.x + parity*__shfl_xor(Bftemp1.x,PoT);
+		B_DFT_value1.y = Bftemp1.y + parity*__shfl_xor(Bftemp1.y,PoT);
+		
+		A_DFT_value2.x = Aftemp2.x + parity*__shfl_xor(Aftemp2.x,PoT);
+		A_DFT_value2.y = Aftemp2.y + parity*__shfl_xor(Aftemp2.y,PoT);
+		B_DFT_value2.x = Bftemp2.x + parity*__shfl_xor(Bftemp2.x,PoT);
+		B_DFT_value2.y = Bftemp2.y + parity*__shfl_xor(Bftemp2.y,PoT);	
+		
+		PoT=PoT<<1;
+		PoTp1=PoTp1<<1;
+	}
+	
+	itemp = local_id + (warp_id<<1)*WARP;
+	s_input_1[itemp]          = A_DFT_value1;
+	s_input_1[itemp + WARP]   = B_DFT_value1;
+	s_input_2[itemp]          = A_DFT_value2;
+	s_input_2[itemp + WARP]   = B_DFT_value2;
+	
+	for(q=5;q<NEXP;q++){
+		__syncthreads();
+		m_param = threadIdx.x & (PoT - 1);
+		j=threadIdx.x>>q;
+		
+		W=Get_W_value_inverse(PoTp1,m_param);
+
+		A_read_index=j*PoTp1 + m_param;
+		B_read_index=j*PoTp1 + m_param + PoT;
+		
+		Aftemp1 = s_input_1[A_read_index];
+		Bftemp1 = s_input_1[B_read_index];
+		A_DFT_value1.x=Aftemp1.x + W.x*Bftemp1.x - W.y*Bftemp1.y;
+		A_DFT_value1.y=Aftemp1.y + W.x*Bftemp1.y + W.y*Bftemp1.x;		
+		B_DFT_value1.x=Aftemp1.x - W.x*Bftemp1.x + W.y*Bftemp1.y;
+		B_DFT_value1.y=Aftemp1.y - W.x*Bftemp1.y - W.y*Bftemp1.x;
+		
+		Aftemp2 = s_input_2[A_read_index];
+		Bftemp2 = s_input_2[B_read_index];
+		A_DFT_value2.x=Aftemp2.x + W.x*Bftemp2.x - W.y*Bftemp2.y;
+		A_DFT_value2.y=Aftemp2.y + W.x*Bftemp2.y + W.y*Bftemp2.x;		
+		B_DFT_value2.x=Aftemp2.x - W.x*Bftemp2.x + W.y*Bftemp2.y;
+		B_DFT_value2.y=Aftemp2.y - W.x*Bftemp2.y - W.y*Bftemp2.x;
+		
+		s_input_1[A_read_index]=A_DFT_value1;
+		s_input_1[B_read_index]=B_DFT_value1;
+		s_input_2[A_read_index]=A_DFT_value2;
+		s_input_2[B_read_index]=B_DFT_value2;
+		
+		PoT=PoT<<1;
+		PoTp1=PoTp1<<1;
+	}
+	
+	__syncthreads();
+}
+
+static __device__ __inline__ void do_IFFT_mk11_2elem_no_reorder(float2 *s_input){
+	float2 A_DFT_value, B_DFT_value;
+	float2 W;
+	float2 ftemp, ftemp2;
+
+	int local_id, warp_id;
+	int j, m_param;
+	int parity, itemp;
+	int A_read_index,B_read_index;
+	int PoT, PoTp1, q;
+	
+	local_id = threadIdx.x & (WARP - 1);
+	warp_id = threadIdx.x/WARP;
+	
+	//-----> FFT
+	//-->
+	PoT=1;
+	PoTp1=2;	
+
+	//--> First iteration
+	itemp=local_id&1;
+	parity=(1-itemp*2);
+	A_DFT_value=s_input[local_id + warp_id*2*WARP];
+	B_DFT_value=s_input[local_id + warp_id*2*WARP + WARP];
+	
+	__syncthreads();
+	
+	A_DFT_value.x=parity*A_DFT_value.x + __shfl_xor(A_DFT_value.x,1);
+	A_DFT_value.y=parity*A_DFT_value.y + __shfl_xor(A_DFT_value.y,1);
+	
+	B_DFT_value.x=parity*B_DFT_value.x + __shfl_xor(B_DFT_value.x,1);
+	B_DFT_value.y=parity*B_DFT_value.y + __shfl_xor(B_DFT_value.y,1);
+	
+	
+	//--> Second through Fifth iteration (no synchronization)
+	PoT=2;
+	PoTp1=4;
+	for(q=1;q<5;q++){
+		m_param = (local_id & (PoTp1 - 1));
+		itemp = m_param>>q;
+		parity=(itemp*2-1);
+		W = Get_W_value_inverse(PoTp1, itemp*m_param);
+		
+		ftemp2.x = W.x*A_DFT_value.x - W.y*A_DFT_value.y;
+		ftemp2.y = W.x*A_DFT_value.y + W.y*A_DFT_value.x;
+		ftemp.x = W.x*B_DFT_value.x - W.y*B_DFT_value.y;
+		ftemp.y = W.x*B_DFT_value.y + W.y*B_DFT_value.x;
+		
+		A_DFT_value.x = ftemp2.x + parity*__shfl_xor(ftemp2.x,PoT);
+		A_DFT_value.y = ftemp2.y + parity*__shfl_xor(ftemp2.y,PoT);
+		B_DFT_value.x = ftemp.x + parity*__shfl_xor(ftemp.x,PoT);
+		B_DFT_value.y = ftemp.y + parity*__shfl_xor(ftemp.y,PoT);
+		
+		PoT=PoT<<1;
+		PoTp1=PoTp1<<1;
+	}
+	
+	s_input[local_id + warp_id*2*WARP]=A_DFT_value;
+	s_input[local_id + warp_id*2*WARP + WARP]=B_DFT_value;
+	
+	for(q=5;q<NEXP;q++){
+		__syncthreads();
+		m_param = threadIdx.x & (PoT - 1);
+		j=threadIdx.x>>q;
+		
+		W=Get_W_value_inverse(PoTp1,m_param);
+
+		A_read_index=j*PoTp1 + m_param;
+		B_read_index=j*PoTp1 + m_param + PoT;
+		
+		ftemp  = s_input[A_read_index];
+		ftemp2 = s_input[B_read_index];
+		
+		A_DFT_value.x=ftemp.x + W.x*ftemp2.x - W.y*ftemp2.y;
+		A_DFT_value.y=ftemp.y + W.x*ftemp2.y + W.y*ftemp2.x;
+		
+		B_DFT_value.x=ftemp.x - W.x*ftemp2.x + W.y*ftemp2.y;
+		B_DFT_value.y=ftemp.y - W.x*ftemp2.y - W.y*ftemp2.x;
+		
+		s_input[A_read_index]=A_DFT_value;
+		s_input[B_read_index]=B_DFT_value;
+		
+		PoT=PoT<<1;
+		PoTp1=PoTp1<<1;
+	}
+	
+	__syncthreads();
+}
+
+static __device__ __inline__ void do_IFFT_mk11_4elem_no_reorder(float2 *s_input){
+	float2 A_DFT_value, B_DFT_value, C_DFT_value, D_DFT_value;
+	float2 W;
+	float2 Aftemp, Bftemp, Cftemp, Dftemp;
+
+	int local_id, warp_id;
+	int j, m_param;
+	int parity, itemp;
+	int A_read_index, B_read_index, C_read_index, D_read_index;
+	int PoT, PoTp1, q;
+	
+	local_id = threadIdx.x & (WARP - 1);
+	warp_id = threadIdx.x/WARP;
+	
+	//-----> FFT
+	//-->
+	PoT=1;
+	PoTp1=2;	
+
+	//--> First iteration
+	itemp=local_id&1;
+	parity=(1-itemp*2);
+	A_DFT_value=s_input[local_id + (warp_id<<2)*WARP];
+	B_DFT_value=s_input[local_id + (warp_id<<2)*WARP + WARP];
+	C_DFT_value=s_input[local_id + (warp_id<<2)*WARP + 2*WARP];
+	D_DFT_value=s_input[local_id + (warp_id<<2)*WARP + 3*WARP];
+	
+	__syncthreads();
+	
+	A_DFT_value.x=parity*A_DFT_value.x + __shfl_xor(A_DFT_value.x,1);
+	A_DFT_value.y=parity*A_DFT_value.y + __shfl_xor(A_DFT_value.y,1);
+	B_DFT_value.x=parity*B_DFT_value.x + __shfl_xor(B_DFT_value.x,1);
+	B_DFT_value.y=parity*B_DFT_value.y + __shfl_xor(B_DFT_value.y,1);
+	C_DFT_value.x=parity*C_DFT_value.x + __shfl_xor(C_DFT_value.x,1);
+	C_DFT_value.y=parity*C_DFT_value.y + __shfl_xor(C_DFT_value.y,1);
+	D_DFT_value.x=parity*D_DFT_value.x + __shfl_xor(D_DFT_value.x,1);
+	D_DFT_value.y=parity*D_DFT_value.y + __shfl_xor(D_DFT_value.y,1);
+	
+	
+	//--> Second through Fifth iteration (no synchronization)
+	PoT=2;
+	PoTp1=4;
+	for(q=1;q<5;q++){
+		m_param = (local_id & (PoTp1 - 1));
+		itemp = m_param>>q;
+		parity=((itemp<<1)-1);
+		W = Get_W_value_inverse(PoTp1, itemp*m_param);
+		
+		Aftemp.x = W.x*A_DFT_value.x - W.y*A_DFT_value.y;
+		Aftemp.y = W.x*A_DFT_value.y + W.y*A_DFT_value.x;
+		Bftemp.x = W.x*B_DFT_value.x - W.y*B_DFT_value.y;
+		Bftemp.y = W.x*B_DFT_value.y + W.y*B_DFT_value.x;
+		Cftemp.x = W.x*C_DFT_value.x - W.y*C_DFT_value.y;
+		Cftemp.y = W.x*C_DFT_value.y + W.y*C_DFT_value.x;
+		Dftemp.x = W.x*D_DFT_value.x - W.y*D_DFT_value.y;
+		Dftemp.y = W.x*D_DFT_value.y + W.y*D_DFT_value.x;
+		
+		A_DFT_value.x = Aftemp.x + parity*__shfl_xor(Aftemp.x,PoT);
+		A_DFT_value.y = Aftemp.y + parity*__shfl_xor(Aftemp.y,PoT);
+		B_DFT_value.x = Bftemp.x + parity*__shfl_xor(Bftemp.x,PoT);
+		B_DFT_value.y = Bftemp.y + parity*__shfl_xor(Bftemp.y,PoT);
+		C_DFT_value.x = Cftemp.x + parity*__shfl_xor(Cftemp.x,PoT);
+		C_DFT_value.y = Cftemp.y + parity*__shfl_xor(Cftemp.y,PoT);
+		D_DFT_value.x = Dftemp.x + parity*__shfl_xor(Dftemp.x,PoT);
+		D_DFT_value.y = Dftemp.y + parity*__shfl_xor(Dftemp.y,PoT);	
+		
+		PoT=PoT<<1;
+		PoTp1=PoTp1<<1;
+	}
+	
+	itemp = local_id + (warp_id<<2)*WARP;
+	s_input[itemp]          = A_DFT_value;
+	s_input[itemp + WARP]   = B_DFT_value;
+	s_input[itemp + 2*WARP] = C_DFT_value;
+	s_input[itemp + 3*WARP] = D_DFT_value;
+	
+	for(q=5;q<(NEXP-1);q++){
+		__syncthreads();
+		m_param = threadIdx.x & (PoT - 1);
+		j=threadIdx.x>>q;
+		
+		W=Get_W_value_inverse(PoTp1,m_param);
+
+		A_read_index=j*(PoTp1<<1) + m_param;
+		B_read_index=j*(PoTp1<<1) + m_param + PoT;
+		C_read_index=j*(PoTp1<<1) + m_param + PoTp1;
+		D_read_index=j*(PoTp1<<1) + m_param + 3*PoT;
+		
+		Aftemp = s_input[A_read_index];
+		Bftemp = s_input[B_read_index];
+		A_DFT_value.x=Aftemp.x + W.x*Bftemp.x - W.y*Bftemp.y;
+		A_DFT_value.y=Aftemp.y + W.x*Bftemp.y + W.y*Bftemp.x;		
+		B_DFT_value.x=Aftemp.x - W.x*Bftemp.x + W.y*Bftemp.y;
+		B_DFT_value.y=Aftemp.y - W.x*Bftemp.y - W.y*Bftemp.x;
+		
+		Cftemp = s_input[C_read_index];
+		Dftemp = s_input[D_read_index];
+		C_DFT_value.x=Cftemp.x + W.x*Dftemp.x - W.y*Dftemp.y;
+		C_DFT_value.y=Cftemp.y + W.x*Dftemp.y + W.y*Dftemp.x;		
+		D_DFT_value.x=Cftemp.x - W.x*Dftemp.x + W.y*Dftemp.y;
+		D_DFT_value.y=Cftemp.y - W.x*Dftemp.y - W.y*Dftemp.x;
+		
+		s_input[A_read_index]=A_DFT_value;
+		s_input[B_read_index]=B_DFT_value;
+		s_input[C_read_index]=C_DFT_value;
+		s_input[D_read_index]=D_DFT_value;
+		
+		PoT=PoT<<1;
+		PoTp1=PoTp1<<1;
+	}
+	
+	//last iteration
+	__syncthreads();
+	m_param = threadIdx.x;
+	
+	W=Get_W_value_inverse(PoTp1,m_param);
+    
+	A_read_index = m_param;
+	B_read_index = m_param + PoT;
+	C_read_index = m_param + (PoT>>1);
+	D_read_index = m_param + 3*(PoT>>1);
+	
+	Aftemp = s_input[A_read_index];
+	Bftemp = s_input[B_read_index];
+	A_DFT_value.x=Aftemp.x + W.x*Bftemp.x - W.y*Bftemp.y;
+	A_DFT_value.y=Aftemp.y + W.x*Bftemp.y + W.y*Bftemp.x;		
+	B_DFT_value.x=Aftemp.x - W.x*Bftemp.x + W.y*Bftemp.y;
+	B_DFT_value.y=Aftemp.y - W.x*Bftemp.y - W.y*Bftemp.x;
+	
+	Cftemp = s_input[C_read_index];
+	Dftemp = s_input[D_read_index];
+	C_DFT_value.x=Cftemp.x - W.y*Dftemp.x - W.x*Dftemp.y;
+	C_DFT_value.y=Cftemp.y - W.y*Dftemp.y + W.x*Dftemp.x;		
+	D_DFT_value.x=Cftemp.x + W.y*Dftemp.x + W.x*Dftemp.y;
+	D_DFT_value.y=Cftemp.y + W.y*Dftemp.y - W.x*Dftemp.x;
+	
+	s_input[A_read_index]=A_DFT_value;
+	s_input[B_read_index]=B_DFT_value;
+	s_input[C_read_index]=C_DFT_value;
+	s_input[D_read_index]=D_DFT_value;
+
+	__syncthreads();	
+}
+
+static __device__ __inline__ void do_IFFT_mk11_4elem_2vertical_no_reorder(float2 *s_input1, float2 *s_input2){
+	float2 A_DFT_value1, B_DFT_value1, C_DFT_value1, D_DFT_value1;
+	float2 A_DFT_value2, B_DFT_value2, C_DFT_value2, D_DFT_value2;
+	float2 W;
+	float2 Aftemp1, Bftemp1, Cftemp1, Dftemp1;
+	float2 Aftemp2, Bftemp2, Cftemp2, Dftemp2;
+
+	int local_id, warp_id;
+	int j, m_param;
+	int parity, itemp;
+	int A_read_index, B_read_index, C_read_index, D_read_index;
+	int PoT, PoTp1, q;
+	
+	local_id = threadIdx.x & (WARP - 1);
+	warp_id = threadIdx.x/WARP;
+	
+	//-----> FFT
+	//-->
+	PoT=1;
+	PoTp1=2;	
+
+	//--> First iteration
+	itemp=local_id&1;
+	parity=(1-itemp*2);
+	A_DFT_value1=s_input1[local_id + (warp_id<<2)*WARP];
+	B_DFT_value1=s_input1[local_id + (warp_id<<2)*WARP + WARP];
+	C_DFT_value1=s_input1[local_id + (warp_id<<2)*WARP + 2*WARP];
+	D_DFT_value1=s_input1[local_id + (warp_id<<2)*WARP + 3*WARP];
+	A_DFT_value2=s_input2[local_id + (warp_id<<2)*WARP];
+	B_DFT_value2=s_input2[local_id + (warp_id<<2)*WARP + WARP];
+	C_DFT_value2=s_input2[local_id + (warp_id<<2)*WARP + 2*WARP];
+	D_DFT_value2=s_input2[local_id + (warp_id<<2)*WARP + 3*WARP];
+	
+	__syncthreads();
+	
+	A_DFT_value1.x=parity*A_DFT_value1.x + __shfl_xor(A_DFT_value1.x,1);
+	A_DFT_value1.y=parity*A_DFT_value1.y + __shfl_xor(A_DFT_value1.y,1);
+	B_DFT_value1.x=parity*B_DFT_value1.x + __shfl_xor(B_DFT_value1.x,1);
+	B_DFT_value1.y=parity*B_DFT_value1.y + __shfl_xor(B_DFT_value1.y,1);
+	C_DFT_value1.x=parity*C_DFT_value1.x + __shfl_xor(C_DFT_value1.x,1);
+	C_DFT_value1.y=parity*C_DFT_value1.y + __shfl_xor(C_DFT_value1.y,1);
+	D_DFT_value1.x=parity*D_DFT_value1.x + __shfl_xor(D_DFT_value1.x,1);
+	D_DFT_value1.y=parity*D_DFT_value1.y + __shfl_xor(D_DFT_value1.y,1);
+	
+	A_DFT_value2.x=parity*A_DFT_value2.x + __shfl_xor(A_DFT_value2.x,1);
+	A_DFT_value2.y=parity*A_DFT_value2.y + __shfl_xor(A_DFT_value2.y,1);
+	B_DFT_value2.x=parity*B_DFT_value2.x + __shfl_xor(B_DFT_value2.x,1);
+	B_DFT_value2.y=parity*B_DFT_value2.y + __shfl_xor(B_DFT_value2.y,1);
+	C_DFT_value2.x=parity*C_DFT_value2.x + __shfl_xor(C_DFT_value2.x,1);
+	C_DFT_value2.y=parity*C_DFT_value2.y + __shfl_xor(C_DFT_value2.y,1);
+	D_DFT_value2.x=parity*D_DFT_value2.x + __shfl_xor(D_DFT_value2.x,1);
+	D_DFT_value2.y=parity*D_DFT_value2.y + __shfl_xor(D_DFT_value2.y,1);
+	
+	
+	//--> Second through Fifth iteration (no synchronization)
+	PoT=2;
+	PoTp1=4;
+	for(q=1;q<5;q++){
+		m_param = (local_id & (PoTp1 - 1));
+		itemp = m_param>>q;
+		parity=((itemp<<1)-1);
+		W = Get_W_value_inverse(PoTp1, itemp*m_param);
+		
+		Aftemp1.x = W.x*A_DFT_value1.x - W.y*A_DFT_value1.y;
+		Aftemp1.y = W.x*A_DFT_value1.y + W.y*A_DFT_value1.x;
+		Bftemp1.x = W.x*B_DFT_value1.x - W.y*B_DFT_value1.y;
+		Bftemp1.y = W.x*B_DFT_value1.y + W.y*B_DFT_value1.x;
+		Cftemp1.x = W.x*C_DFT_value1.x - W.y*C_DFT_value1.y;
+		Cftemp1.y = W.x*C_DFT_value1.y + W.y*C_DFT_value1.x;
+		Dftemp1.x = W.x*D_DFT_value1.x - W.y*D_DFT_value1.y;
+		Dftemp1.y = W.x*D_DFT_value1.y + W.y*D_DFT_value1.x;
+		
+		Aftemp2.x = W.x*A_DFT_value2.x - W.y*A_DFT_value2.y;
+		Aftemp2.y = W.x*A_DFT_value2.y + W.y*A_DFT_value2.x;
+		Bftemp2.x = W.x*B_DFT_value2.x - W.y*B_DFT_value2.y;
+		Bftemp2.y = W.x*B_DFT_value2.y + W.y*B_DFT_value2.x;
+		Cftemp2.x = W.x*C_DFT_value2.x - W.y*C_DFT_value2.y;
+		Cftemp2.y = W.x*C_DFT_value2.y + W.y*C_DFT_value2.x;
+		Dftemp2.x = W.x*D_DFT_value2.x - W.y*D_DFT_value2.y;
+		Dftemp2.y = W.x*D_DFT_value2.y + W.y*D_DFT_value2.x;
+		
+		A_DFT_value1.x = Aftemp1.x + parity*__shfl_xor(Aftemp1.x,PoT);
+		A_DFT_value1.y = Aftemp1.y + parity*__shfl_xor(Aftemp1.y,PoT);
+		B_DFT_value1.x = Bftemp1.x + parity*__shfl_xor(Bftemp1.x,PoT);
+		B_DFT_value1.y = Bftemp1.y + parity*__shfl_xor(Bftemp1.y,PoT);
+		C_DFT_value1.x = Cftemp1.x + parity*__shfl_xor(Cftemp1.x,PoT);
+		C_DFT_value1.y = Cftemp1.y + parity*__shfl_xor(Cftemp1.y,PoT);
+		D_DFT_value1.x = Dftemp1.x + parity*__shfl_xor(Dftemp1.x,PoT);
+		D_DFT_value1.y = Dftemp1.y + parity*__shfl_xor(Dftemp1.y,PoT);	
+		
+		A_DFT_value2.x = Aftemp2.x + parity*__shfl_xor(Aftemp2.x,PoT);
+		A_DFT_value2.y = Aftemp2.y + parity*__shfl_xor(Aftemp2.y,PoT);
+		B_DFT_value2.x = Bftemp2.x + parity*__shfl_xor(Bftemp2.x,PoT);
+		B_DFT_value2.y = Bftemp2.y + parity*__shfl_xor(Bftemp2.y,PoT);
+		C_DFT_value2.x = Cftemp2.x + parity*__shfl_xor(Cftemp2.x,PoT);
+		C_DFT_value2.y = Cftemp2.y + parity*__shfl_xor(Cftemp2.y,PoT);
+		D_DFT_value2.x = Dftemp2.x + parity*__shfl_xor(Dftemp2.x,PoT);
+		D_DFT_value2.y = Dftemp2.y + parity*__shfl_xor(Dftemp2.y,PoT);	
+		
+		PoT=PoT<<1;
+		PoTp1=PoTp1<<1;
+	}
+	
+	itemp = local_id + (warp_id<<2)*WARP;
+	s_input1[itemp]          = A_DFT_value1;
+	s_input1[itemp + WARP]   = B_DFT_value1;
+	s_input1[itemp + 2*WARP] = C_DFT_value1;
+	s_input1[itemp + 3*WARP] = D_DFT_value1;
+	
+	s_input2[itemp]          = A_DFT_value2;
+	s_input2[itemp + WARP]   = B_DFT_value2;
+	s_input2[itemp + 2*WARP] = C_DFT_value2;
+	s_input2[itemp + 3*WARP] = D_DFT_value2;
+	
+	for(q=5;q<(NEXP-1);q++){
+		__syncthreads();
+		m_param = threadIdx.x & (PoT - 1);
+		j=threadIdx.x>>q;
+		
+		W=Get_W_value_inverse(PoTp1,m_param);
+
+		A_read_index=j*(PoTp1<<1) + m_param;
+		B_read_index=j*(PoTp1<<1) + m_param + PoT;
+		C_read_index=j*(PoTp1<<1) + m_param + PoTp1;
+		D_read_index=j*(PoTp1<<1) + m_param + 3*PoT;
+		
+		Aftemp1 = s_input1[A_read_index];
+		Bftemp1 = s_input1[B_read_index];
+		A_DFT_value1.x=Aftemp1.x + W.x*Bftemp1.x - W.y*Bftemp1.y;
+		A_DFT_value1.y=Aftemp1.y + W.x*Bftemp1.y + W.y*Bftemp1.x;		
+		B_DFT_value1.x=Aftemp1.x - W.x*Bftemp1.x + W.y*Bftemp1.y;
+		B_DFT_value1.y=Aftemp1.y - W.x*Bftemp1.y - W.y*Bftemp1.x;
+		
+		Aftemp2 = s_input2[A_read_index];
+		Bftemp2 = s_input2[B_read_index];
+		A_DFT_value2.x=Aftemp2.x + W.x*Bftemp2.x - W.y*Bftemp2.y;
+		A_DFT_value2.y=Aftemp2.y + W.x*Bftemp2.y + W.y*Bftemp2.x;		
+		B_DFT_value2.x=Aftemp2.x - W.x*Bftemp2.x + W.y*Bftemp2.y;
+		B_DFT_value2.y=Aftemp2.y - W.x*Bftemp2.y - W.y*Bftemp2.x;
+		
+		Cftemp1 = s_input1[C_read_index];
+		Dftemp1 = s_input1[D_read_index];
+		C_DFT_value1.x=Cftemp1.x + W.x*Dftemp1.x - W.y*Dftemp1.y;
+		C_DFT_value1.y=Cftemp1.y + W.x*Dftemp1.y + W.y*Dftemp1.x;		
+		D_DFT_value1.x=Cftemp1.x - W.x*Dftemp1.x + W.y*Dftemp1.y;
+		D_DFT_value1.y=Cftemp1.y - W.x*Dftemp1.y - W.y*Dftemp1.x;
+
+		Cftemp2 = s_input2[C_read_index];
+		Dftemp2 = s_input2[D_read_index];
+		C_DFT_value2.x=Cftemp2.x + W.x*Dftemp2.x - W.y*Dftemp2.y;
+		C_DFT_value2.y=Cftemp2.y + W.x*Dftemp2.y + W.y*Dftemp2.x;		
+		D_DFT_value2.x=Cftemp2.x - W.x*Dftemp2.x + W.y*Dftemp2.y;
+		D_DFT_value2.y=Cftemp2.y - W.x*Dftemp2.y - W.y*Dftemp2.x;
+		
+		s_input1[A_read_index]=A_DFT_value1;
+		s_input1[B_read_index]=B_DFT_value1;
+		s_input1[C_read_index]=C_DFT_value1;
+		s_input1[D_read_index]=D_DFT_value1;
+		
+		s_input2[A_read_index]=A_DFT_value2;
+		s_input2[B_read_index]=B_DFT_value2;
+		s_input2[C_read_index]=C_DFT_value2;
+		s_input2[D_read_index]=D_DFT_value2;
+		
+		PoT=PoT<<1;
+		PoTp1=PoTp1<<1;
+	}
+	
+	//last iteration
+	__syncthreads();
+	m_param = threadIdx.x;
+	
+	W=Get_W_value_inverse(PoTp1,m_param);
+    
+	A_read_index = m_param;
+	B_read_index = m_param + PoT;
+	C_read_index = m_param + (PoT>>1);
+	D_read_index = m_param + 3*(PoT>>1);
+	
+	Aftemp1 = s_input1[A_read_index];
+	Bftemp1 = s_input1[B_read_index];
+	A_DFT_value1.x=Aftemp1.x + W.x*Bftemp1.x - W.y*Bftemp1.y;
+	A_DFT_value1.y=Aftemp1.y + W.x*Bftemp1.y + W.y*Bftemp1.x;		
+	B_DFT_value1.x=Aftemp1.x - W.x*Bftemp1.x + W.y*Bftemp1.y;
+	B_DFT_value1.y=Aftemp1.y - W.x*Bftemp1.y - W.y*Bftemp1.x;
+
+	Aftemp2 = s_input2[A_read_index];
+	Bftemp2 = s_input2[B_read_index];
+	A_DFT_value2.x=Aftemp2.x + W.x*Bftemp2.x - W.y*Bftemp2.y;
+	A_DFT_value2.y=Aftemp2.y + W.x*Bftemp2.y + W.y*Bftemp2.x;		
+	B_DFT_value2.x=Aftemp2.x - W.x*Bftemp2.x + W.y*Bftemp2.y;
+	B_DFT_value2.y=Aftemp2.y - W.x*Bftemp2.y - W.y*Bftemp2.x;	
+	
+	Cftemp1 = s_input1[C_read_index];
+	Dftemp1 = s_input1[D_read_index];
+	C_DFT_value1.x=Cftemp1.x - W.y*Dftemp1.x - W.x*Dftemp1.y;
+	C_DFT_value1.y=Cftemp1.y - W.y*Dftemp1.y + W.x*Dftemp1.x;		
+	D_DFT_value1.x=Cftemp1.x + W.y*Dftemp1.x + W.x*Dftemp1.y;
+	D_DFT_value1.y=Cftemp1.y + W.y*Dftemp1.y - W.x*Dftemp1.x;
+	
+	Cftemp2 = s_input2[C_read_index];
+	Dftemp2 = s_input2[D_read_index];
+	C_DFT_value2.x=Cftemp2.x - W.y*Dftemp2.x - W.x*Dftemp2.y;
+	C_DFT_value2.y=Cftemp2.y - W.y*Dftemp2.y + W.x*Dftemp2.x;		
+	D_DFT_value2.x=Cftemp2.x + W.y*Dftemp2.x + W.x*Dftemp2.y;
+	D_DFT_value2.y=Cftemp2.y + W.y*Dftemp2.y - W.x*Dftemp2.x;
+	
+	s_input1[A_read_index]=A_DFT_value1;
+	s_input1[B_read_index]=B_DFT_value1;
+	s_input1[C_read_index]=C_DFT_value1;
+	s_input1[D_read_index]=D_DFT_value1;	
+	
+	s_input2[A_read_index]=A_DFT_value2;
+	s_input2[B_read_index]=B_DFT_value2;
+	s_input2[C_read_index]=C_DFT_value2;
+	s_input2[D_read_index]=D_DFT_value2;
+
+	__syncthreads();	
+}
 
 /* ----------------------------------- */
 
@@ -448,16 +1231,7 @@ __global__ void cuda_convolve_customfft_wes_no_reorder02(float2* d_kernel, float
   float three;
   float four;
 
-  float2 A_DFT_value, B_DFT_value, sA_DFT_value, sB_DFT_value;
-  float2 ftemp2, ftemp, stemp2, stemp;
-  float2 W;
-  int local_id, warp_id;
-  int j, m_param;
-  //int load_id, i, n;
-  int parity, itemp;
-  int A_read_index,B_read_index;
-  //  int A_write_index,B_write_index;
-  int PoT, PoTp1, q;
+
 	
   __shared__ float2 s_input[KERNLEN]; //signal input data to FFT
   __shared__ float2 s_input_trans[KERNLEN]; //static allocation
@@ -496,145 +1270,127 @@ __global__ void cuda_convolve_customfft_wes_no_reorder02(float2* d_kernel, float
     ffdotcpx_trans.y = ((four -three) * scale);
     s_input_trans[tx] = ffdotcpx_trans;
     __syncthreads();
-    //---------
-
+    //--------------------------------------------------------------
     //inverse fft
-    local_id = threadIdx.x & (WARP - 1);
-    warp_id = threadIdx.x/WARP;
-    //-----> FFT
-    //-->
-    if(threadIdx.x<KERNLEN/2){
-      PoT=1;
-      PoTp1=2;	
-      //--> First iteration
-      itemp=local_id - (local_id&4294967294);
-      parity=(1-itemp*2);
-      //1st template
-      A_DFT_value=s_input[local_id + warp_id*2*WARP];
-      sA_DFT_value=s_input_trans[local_id + warp_id*2*WARP];
-      B_DFT_value=s_input[local_id + warp_id*2*WARP + WARP];
-      sB_DFT_value=s_input_trans[local_id + warp_id*2*WARP + WARP];
+	//do_IFFT_mk11_2elem_2vertical_no_reorder(s_input, s_input_trans);
 
-      //1st template
-      A_DFT_value.x=parity*A_DFT_value.x+ __shfl(A_DFT_value.x,local_id+parity);
-      A_DFT_value.y=parity*A_DFT_value.y+ __shfl(A_DFT_value.y,local_id+parity);
-      B_DFT_value.x=parity*B_DFT_value.x+ __shfl(B_DFT_value.x,local_id+parity);
-      B_DFT_value.y=parity*B_DFT_value.y+ __shfl(B_DFT_value.y,local_id+parity);
-      //2nd template
+	float2 A_DFT_value1, B_DFT_value1;
+	float2 A_DFT_value2, B_DFT_value2;
+	float2 W;
+	float2 Aftemp1, Bftemp1;
+	float2 Aftemp2, Bftemp2;
 
-      sA_DFT_value.x=parity*sA_DFT_value.x+ __shfl(sA_DFT_value.x,local_id+parity);
-      sA_DFT_value.y=parity*sA_DFT_value.y+ __shfl(sA_DFT_value.y,local_id+parity);
-      sB_DFT_value.x=parity*sB_DFT_value.x+ __shfl(sB_DFT_value.x,local_id+parity);
-      sB_DFT_value.y=parity*sB_DFT_value.y+ __shfl(sB_DFT_value.y,local_id+parity);
+	int local_id, warp_id;
+	int j, m_param;
+	int parity, itemp;
+	int A_read_index, B_read_index;
+	int PoT, PoTp1, q;
+	
+	local_id = threadIdx.x & (WARP - 1);
+	warp_id = threadIdx.x/WARP;
 
-      //--> First iteration end
+	if(threadIdx.x<KERNLEN/2){
+		//-----> FFT
+		//-->
+		PoT=1;
+		PoTp1=2;	
+
+		//--> First iteration
+		itemp=local_id&1;
+		parity=(1-itemp*2);
+		A_DFT_value1=s_input[local_id + (warp_id<<1)*WARP];
+		B_DFT_value1=s_input[local_id + (warp_id<<1)*WARP + WARP];
+		A_DFT_value2=s_input_trans[local_id + (warp_id<<1)*WARP];
+		B_DFT_value2=s_input_trans[local_id + (warp_id<<1)*WARP + WARP];
+	}
+	__syncthreads();
+	if(threadIdx.x<KERNLEN/2){
+		A_DFT_value1.x=parity*A_DFT_value1.x + __shfl_xor(A_DFT_value1.x,1);
+		A_DFT_value1.y=parity*A_DFT_value1.y + __shfl_xor(A_DFT_value1.y,1);
+		B_DFT_value1.x=parity*B_DFT_value1.x + __shfl_xor(B_DFT_value1.x,1);
+		B_DFT_value1.y=parity*B_DFT_value1.y + __shfl_xor(B_DFT_value1.y,1);
 		
-      PoT=2;
-      PoTp1=4;
-      float fPoT=2.0f;
-
-      for(q=2;q<6;q++){
-	m_param = local_id & (PoTp1 - 1);
-	//itemp=m_param/PoT;
-	itemp=__float2int_rz(__fdividef(__int2float_rz(m_param),fPoT));
-	parity=(1-itemp*2);
-	  
-	//	W=Get_W_value_inverse(PoT*2,m_param);
-	W.x=cosf( 2.0f*3.141592654f*fdividef( (float) m_param, (float) (PoT*2)) );
-	W.y=sinf( 2.0f*3.141592654f*fdividef( (float) m_param, (float) (PoT*2)) );
-	  
-	A_read_index=local_id+parity*itemp*PoT;
-	B_read_index=local_id+(1-itemp)*PoT;
+		A_DFT_value2.x=parity*A_DFT_value2.x + __shfl_xor(A_DFT_value2.x,1);
+		A_DFT_value2.y=parity*A_DFT_value2.y + __shfl_xor(A_DFT_value2.y,1);
+		B_DFT_value2.x=parity*B_DFT_value2.x + __shfl_xor(B_DFT_value2.x,1);
+		B_DFT_value2.y=parity*B_DFT_value2.y + __shfl_xor(B_DFT_value2.y,1);
+		
+		
+		//--> Second through Fifth iteration (no synchronization)
+		PoT=2;
+		PoTp1=4;
+		for(q=1;q<5;q++){
+			m_param = (local_id & (PoTp1 - 1));
+			itemp = m_param>>q;
+			parity=((itemp<<1)-1);
+			W = Get_W_value_inverse(PoTp1, itemp*m_param);
 			
-	//1st template
-	ftemp2.x=__shfl(A_DFT_value.x,B_read_index);
-	ftemp2.y=__shfl(A_DFT_value.y,B_read_index);				
-	//2nd template
-	stemp2.x=__shfl(sA_DFT_value.x,B_read_index);
-	stemp2.y=__shfl(sA_DFT_value.y,B_read_index);
-	
-	//1st template
-	A_DFT_value.x=__shfl(A_DFT_value.x,A_read_index) + W.x*ftemp2.x-W.y*ftemp2.y;
-	A_DFT_value.y=__shfl(A_DFT_value.y,A_read_index) + W.x*ftemp2.y+W.y*ftemp2.x;
-	//2nd template
-	sA_DFT_value.x=__shfl(sA_DFT_value.x,A_read_index) + W.x*stemp2.x-W.y*stemp2.y;
-	sA_DFT_value.y=__shfl(sA_DFT_value.y,A_read_index) + W.x*stemp2.y+W.y*stemp2.x;
-	
+			Aftemp1.x = W.x*A_DFT_value1.x - W.y*A_DFT_value1.y;
+			Aftemp1.y = W.x*A_DFT_value1.y + W.y*A_DFT_value1.x;
+			Bftemp1.x = W.x*B_DFT_value1.x - W.y*B_DFT_value1.y;
+			Bftemp1.y = W.x*B_DFT_value1.y + W.y*B_DFT_value1.x;
+			
+			Aftemp2.x = W.x*A_DFT_value2.x - W.y*A_DFT_value2.y;
+			Aftemp2.y = W.x*A_DFT_value2.y + W.y*A_DFT_value2.x;
+			Bftemp2.x = W.x*B_DFT_value2.x - W.y*B_DFT_value2.y;
+			Bftemp2.y = W.x*B_DFT_value2.y + W.y*B_DFT_value2.x;
+			
+			A_DFT_value1.x = Aftemp1.x + parity*__shfl_xor(Aftemp1.x,PoT);
+			A_DFT_value1.y = Aftemp1.y + parity*__shfl_xor(Aftemp1.y,PoT);
+			B_DFT_value1.x = Bftemp1.x + parity*__shfl_xor(Bftemp1.x,PoT);
+			B_DFT_value1.y = Bftemp1.y + parity*__shfl_xor(Bftemp1.y,PoT);
+			
+			A_DFT_value2.x = Aftemp2.x + parity*__shfl_xor(Aftemp2.x,PoT);
+			A_DFT_value2.y = Aftemp2.y + parity*__shfl_xor(Aftemp2.y,PoT);
+			B_DFT_value2.x = Bftemp2.x + parity*__shfl_xor(Bftemp2.x,PoT);
+			B_DFT_value2.y = Bftemp2.y + parity*__shfl_xor(Bftemp2.y,PoT);	
+			
+			PoT=PoT<<1;
+			PoTp1=PoTp1<<1;
+		}
+		
+		itemp = local_id + (warp_id<<1)*WARP;
+		s_input[itemp]          = A_DFT_value1;
+		s_input[itemp + WARP]   = B_DFT_value1;
+		s_input_trans[itemp]          = A_DFT_value2;
+		s_input_trans[itemp + WARP]   = B_DFT_value2;
+	}
+	for(q=5;q<NEXP;q++){
+		__syncthreads();
+		if(threadIdx.x<KERNLEN/2){
+			m_param = threadIdx.x & (PoT - 1);
+			j=threadIdx.x>>q;
+			
+			W=Get_W_value_inverse(PoTp1,m_param);
 
-	//1st template	  
-	ftemp.x=__shfl(B_DFT_value.x,B_read_index);
-	ftemp.y=__shfl(B_DFT_value.y,B_read_index);
-	//2nd template	  
-	stemp.x=__shfl(sB_DFT_value.x,B_read_index);
-	stemp.y=__shfl(sB_DFT_value.y,B_read_index);
+			A_read_index=j*PoTp1 + m_param;
+			B_read_index=j*PoTp1 + m_param + PoT;
+			
+			Aftemp1 = s_input[A_read_index];
+			Bftemp1 = s_input[B_read_index];
+			A_DFT_value1.x=Aftemp1.x + W.x*Bftemp1.x - W.y*Bftemp1.y;
+			A_DFT_value1.y=Aftemp1.y + W.x*Bftemp1.y + W.y*Bftemp1.x;		
+			B_DFT_value1.x=Aftemp1.x - W.x*Bftemp1.x + W.y*Bftemp1.y;
+			B_DFT_value1.y=Aftemp1.y - W.x*Bftemp1.y - W.y*Bftemp1.x;
+			
+			Aftemp2 = s_input_trans[A_read_index];
+			Bftemp2 = s_input_trans[B_read_index];
+			A_DFT_value2.x=Aftemp2.x + W.x*Bftemp2.x - W.y*Bftemp2.y;
+			A_DFT_value2.y=Aftemp2.y + W.x*Bftemp2.y + W.y*Bftemp2.x;		
+			B_DFT_value2.x=Aftemp2.x - W.x*Bftemp2.x + W.y*Bftemp2.y;
+			B_DFT_value2.y=Aftemp2.y - W.x*Bftemp2.y - W.y*Bftemp2.x;
+			
+			s_input[A_read_index]=A_DFT_value1;
+			s_input[B_read_index]=B_DFT_value1;
+			s_input_trans[A_read_index]=A_DFT_value2;
+			s_input_trans[B_read_index]=B_DFT_value2;
+			
+			PoT=PoT<<1;
+			PoTp1=PoTp1<<1;
+		}
+	}
 	
-	//1st template
-	B_DFT_value.x=__shfl(B_DFT_value.x,A_read_index) + W.x*ftemp.x - W.y*ftemp.y;
-	B_DFT_value.y=__shfl(B_DFT_value.y,A_read_index) + W.x*ftemp.y + W.y*ftemp.x;		
-	//2nd template
-	sB_DFT_value.x=__shfl(sB_DFT_value.x,A_read_index) + W.x*stemp.x - W.y*stemp.y;
-	sB_DFT_value.y=__shfl(sB_DFT_value.y,A_read_index) + W.x*stemp.y + W.y*stemp.x;		
-	  
-	PoT=PoT<<1;
-	fPoT=fPoT*2.0f;
-	PoTp1=PoTp1<<1;
-      }
-      //1st template
-      s_input[local_id + warp_id*2*WARP]=A_DFT_value;
-      s_input[local_id + warp_id*2*WARP + WARP]=B_DFT_value;
-      //2nd template
-      s_input_trans[local_id + warp_id*2*WARP]=sA_DFT_value;
-      s_input_trans[local_id + warp_id*2*WARP + WARP]=sB_DFT_value;
-      
-    }
-//    __syncthreads();
-      
-    for(q=6;q<=NEXP;q++){
-      if(threadIdx.x<KERNLEN/2){
-	m_param = threadIdx.x & (PoT - 1);
-	j=threadIdx.x>>(q-1);
-	  
-	W=Get_W_value_inverse(PoTp1,m_param);
-
-	A_read_index=j*PoTp1 + m_param;
-	B_read_index=j*PoTp1 + m_param + PoT;
-	  
-	//1st template
-	ftemp  = s_input[A_read_index];
-	ftemp2 = s_input[B_read_index];
-	//2nd template
-	stemp  = s_input_trans[A_read_index];
-	stemp2 = s_input_trans[B_read_index];
 	
-	//1st template
-	A_DFT_value.x=ftemp.x + W.x*ftemp2.x - W.y*ftemp2.y;
-	A_DFT_value.y=ftemp.y + W.x*ftemp2.y + W.y*ftemp2.x;
-	//2nd template
-	sA_DFT_value.x=stemp.x + W.x*stemp2.x - W.y*stemp2.y;
-	sA_DFT_value.y=stemp.y + W.x*stemp2.y + W.y*stemp2.x;
-	
-	//1st template	  
-	B_DFT_value.x=ftemp.x - W.x*ftemp2.x + W.y*ftemp2.y;
-	B_DFT_value.y=ftemp.y - W.x*ftemp2.y - W.y*ftemp2.x;
-	//2nd template
-	sB_DFT_value.x=stemp.x - W.x*stemp2.x + W.y*stemp2.y;
-	sB_DFT_value.y=stemp.y - W.x*stemp2.y - W.y*stemp2.x;
-	
-	PoT=PoT<<1;
-	PoTp1=PoTp1<<1;		
-     // }
-      // __syncthreads();
-     // if(threadIdx.x<KERNLEN/2){
-	//1st template	  
-	s_input[A_read_index]=A_DFT_value;
-	s_input[B_read_index]=B_DFT_value;
-	//2nd template	  
-	s_input_trans[A_read_index]=sA_DFT_value;
-	s_input_trans[B_read_index]=sB_DFT_value;
-	
-      }
-    }
-        
        __syncthreads();
     if(tx < sigblock){
       d_ffdot_pw[i*sig_totlen + index] = pwcalc(s_input[tx +offset]);
@@ -949,4 +1705,243 @@ __global__ void cuda_convolve_customfft_wes_no_reorder02_inbin(float2* d_kernel,
   //--------END
 }
 
+
+__global__ void GPU_CONV_kFFT_mk11_2elem_2v(float2 const* __restrict__ d_input_signal, float *d_output_plane_reduced, float2 const* __restrict__ d_templates, int useful_part_size, int offset, int nConvolutions, float scale) {
+	__shared__ float2 s_input_1[KERNLEN];
+	__shared__ float2 s_input_2[KERNLEN];
+	// Convolution
+	float2 r_templates_1[2];
+	float2 r_templates_2[2];
+	float2 signal[2];
+	int pos, t;
+	// Loading data
+	//prepare_signal(s_input_1, d_input_signal, useful_part_size, offset);
+	s_input_1[threadIdx.x]=__ldg(&d_input_signal[blockIdx.x*KERNLEN + threadIdx.x]);
+	s_input_1[threadIdx.x + (KERNLEN>>1)]=__ldg(&d_input_signal[blockIdx.x*KERNLEN + threadIdx.x + (KERNLEN>>1)]);
+
+	do_FFT_CT_DIF_2elem_no_reorder(s_input_1);
+	
+	signal[0]=s_input_1[threadIdx.x];
+	signal[1]=s_input_1[threadIdx.x + (KERNLEN>>1)];
+	
+	for(t=0; t<ZMAX/2; t++){
+		// Loading templates
+		pos = t*KERNLEN + threadIdx.x;
+		r_templates_1[0]=__ldg(&d_templates[pos]);
+		r_templates_1[1]=__ldg(&d_templates[pos + (KERNLEN>>1)]);
+		r_templates_2[0]=__ldg(&d_templates[pos]);
+		r_templates_2[1]=__ldg(&d_templates[pos + (KERNLEN>>1)]);
+
+		// Convolution
+		s_input_1[threadIdx.x].x = (r_templates_1[0].x*signal[0].x - r_templates_1[0].y*signal[0].y)*scale;
+		s_input_1[threadIdx.x].y = (r_templates_1[0].x*signal[0].y + r_templates_1[0].y*signal[0].x)*scale;
+		
+		s_input_2[threadIdx.x].x = (r_templates_2[0].x*signal[0].x + r_templates_2[0].y*signal[0].y)*scale;
+		s_input_2[threadIdx.x].y = (r_templates_2[0].x*signal[0].y - r_templates_2[0].y*signal[0].x)*scale;
+		
+		s_input_1[threadIdx.x + (KERNLEN>>1)].x = (r_templates_1[1].x*signal[1].x - r_templates_1[1].y*signal[1].y)*scale;
+		s_input_1[threadIdx.x + (KERNLEN>>1)].y = (r_templates_1[1].x*signal[1].y + r_templates_1[1].y*signal[1].x)*scale;
+		
+		s_input_2[threadIdx.x + (KERNLEN>>1)].x = (r_templates_2[1].x*signal[1].x + r_templates_2[1].y*signal[1].y)*scale;
+		s_input_2[threadIdx.x + (KERNLEN>>1)].y = (r_templates_2[1].x*signal[1].y - r_templates_2[1].y*signal[1].x)*scale;
+		
+		__syncthreads();
+		
+		//----------> IFFT
+		do_IFFT_mk11_2elem_2vertical_no_reorder(s_input_1, s_input_2);
+		//----------<
+		
+		// Saving data
+		pos = t*useful_part_size*nConvolutions + blockIdx.x*useful_part_size + threadIdx.x;
+		if( threadIdx.x>=offset && threadIdx.x<(useful_part_size+offset) ) {
+			d_output_plane_reduced[pos - offset] = pwcalc(s_input_1[threadIdx.x]);
+		}
+		if( (threadIdx.x+(KERNLEN>>1))>=offset && (threadIdx.x+(KERNLEN>>1))<(useful_part_size+offset) ) {
+			d_output_plane_reduced[pos + (KERNLEN>>1) - offset] = pwcalc(s_input_1[threadIdx.x + (KERNLEN>>1)]);
+		}
+		pos = (ZMAX-t)*useful_part_size*nConvolutions + blockIdx.x*useful_part_size + threadIdx.x;
+		if( threadIdx.x>=offset && threadIdx.x<(useful_part_size+offset) ) {
+			d_output_plane_reduced[pos - offset] = pwcalc(s_input_2[threadIdx.x]);
+		}
+		if( (threadIdx.x+(KERNLEN>>1))>=offset && (threadIdx.x+(KERNLEN>>1))<(useful_part_size+offset) ) {
+			d_output_plane_reduced[pos + (KERNLEN>>1) - offset] = pwcalc(s_input_2[threadIdx.x + (KERNLEN>>1)]);
+		}
+	}
+	
+	// now do z=0
+	pos = (ZMAX>>1)*KERNLEN + threadIdx.x;
+	r_templates_1[0]=__ldg(&d_templates[pos]);
+	r_templates_1[1]=__ldg(&d_templates[pos + (KERNLEN>>1)]);
+	
+	s_input_1[threadIdx.x].x=(r_templates_1[0].x*signal[0].x - r_templates_1[0].y*signal[0].y)*scale;
+	s_input_1[threadIdx.x].y=(r_templates_1[0].x*signal[0].y + r_templates_1[0].y*signal[0].x)*scale;
+	s_input_1[threadIdx.x + (KERNLEN>>1)].x=(r_templates_1[1].x*signal[1].x - r_templates_1[1].y*signal[1].y)*scale;
+	s_input_1[threadIdx.x + (KERNLEN>>1)].y=(r_templates_1[1].x*signal[1].y + r_templates_1[1].y*signal[1].x)*scale;
+	
+	__syncthreads();
+	
+	//call inverse fft
+	do_IFFT_mk11_2elem_no_reorder(s_input_1);
+	
+	pos = (ZMAX/2)*useful_part_size*nConvolutions + blockIdx.x*useful_part_size + threadIdx.x;
+	if( threadIdx.x>=offset && threadIdx.x<(useful_part_size+offset) ) {
+		d_output_plane_reduced[pos - offset] = pwcalc(s_input_1[threadIdx.x]);
+	}
+	if( (threadIdx.x+(KERNLEN>>1))>=offset && (threadIdx.x+(KERNLEN>>1))<(useful_part_size+offset) ) {
+		d_output_plane_reduced[pos + (KERNLEN>>1) - offset] = pwcalc(s_input_1[threadIdx.x + (KERNLEN>>1)]);
+	}
+}
+
+
+__global__ void GPU_CONV_kFFT_mk11_4elem_2v(float2 const* __restrict__ d_input_signal, float *d_output_plane_reduced, float2 const* __restrict__ d_templates, int useful_part_size, int offset, int nConvolutions, float scale) {
+	__shared__ float2 s_input_1[KERNLEN];
+	__shared__ float2 s_input_2[KERNLEN];
+	// Convolution
+	float2 r_templates_1[4];
+	//float2 r_templates_2[4];
+	float2 signal[4];
+	float xx, yy, xy, yx;
+	int pos, t;
+	// Loading data
+	//prepare_signal(s_input_1, d_input_signal, useful_part_size, offset);
+	
+	s_input_1[threadIdx.x]                  = __ldg(&d_input_signal[blockIdx.x*KERNLEN + threadIdx.x]);
+	s_input_1[threadIdx.x + (KERNLEN>>2)]   = __ldg(&d_input_signal[blockIdx.x*KERNLEN + threadIdx.x + (KERNLEN>>2)]);
+	s_input_1[threadIdx.x + (KERNLEN>>1)]   = __ldg(&d_input_signal[blockIdx.x*KERNLEN + threadIdx.x + (KERNLEN>>1)]);
+	s_input_1[threadIdx.x + 3*(KERNLEN>>2)] = __ldg(&d_input_signal[blockIdx.x*KERNLEN + threadIdx.x + 3*(KERNLEN>>2)]);
+
+	do_FFT_CT_DIF_4elem_no_reorder(s_input_1);
+	
+	signal[0] = s_input_1[threadIdx.x];
+	signal[1] = s_input_1[threadIdx.x + (KERNLEN>>2)];
+	signal[2] = s_input_1[threadIdx.x + (KERNLEN>>1)];
+	signal[3] = s_input_1[threadIdx.x + 3*(KERNLEN>>2)];
+	
+	d_output_plane_reduced[threadIdx.x] = s_input_1[threadIdx.x].x;
+	
+	
+	for(t=0; t<ZMAX/2; t++){
+		// Loading templates
+		pos = t*KERNLEN + threadIdx.x;
+		r_templates_1[0] = __ldg(&d_templates[pos]);
+		r_templates_1[1] = __ldg(&d_templates[pos + (KERNLEN>>2)]);
+		r_templates_1[2] = __ldg(&d_templates[pos + (KERNLEN>>1)]);
+		r_templates_1[3] = __ldg(&d_templates[pos + 3*(KERNLEN>>2)]);
+		
+		//r_templates_2[0] = __ldg(&d_templates[pos]);
+		//r_templates_2[1] = __ldg(&d_templates[pos + (KERNLEN>>2)]);
+		//r_templates_2[2] = __ldg(&d_templates[pos + (KERNLEN>>1)]);
+		//r_templates_2[3] = __ldg(&d_templates[pos + 3*(KERNLEN>>2)]);
+		
+	
+		// Convolution
+		xx = r_templates_1[0].x*signal[0].x;
+		yy = r_templates_1[0].y*signal[0].y;
+		xy = r_templates_1[0].x*signal[0].y;
+		yx = r_templates_1[0].y*signal[0].x;
+		s_input_1[threadIdx.x].x                  = (xx - yy)*scale;
+		s_input_1[threadIdx.x].y                  = (xy + yx)*scale;
+		s_input_2[threadIdx.x].x                  = (xx + yy)*scale;
+		s_input_2[threadIdx.x].y                  = (-xy - yx)*scale;
+
+		xx = r_templates_1[1].x*signal[1].x;
+		yy = r_templates_1[1].y*signal[1].y;
+		xy = r_templates_1[1].x*signal[1].y;
+		yx = r_templates_1[1].y*signal[1].x;
+		s_input_1[threadIdx.x + (KERNLEN>>2)].x                  = (xx - yy)*scale;
+		s_input_1[threadIdx.x + (KERNLEN>>2)].y                  = (xy + yx)*scale;
+		s_input_2[threadIdx.x + (KERNLEN>>2)].x                  = (xx + yy)*scale;
+		s_input_2[threadIdx.x + (KERNLEN>>2)].y                  = (-xy - yx)*scale;
+		
+		xx = r_templates_1[2].x*signal[2].x;
+		yy = r_templates_1[2].y*signal[2].y;
+		xy = r_templates_1[2].x*signal[2].y;
+		yx = r_templates_1[2].y*signal[2].x;
+		s_input_1[threadIdx.x + (KERNLEN>>1)].x                  = (xx - yy)*scale;
+		s_input_1[threadIdx.x + (KERNLEN>>1)].y                  = (xy + yx)*scale;
+		s_input_2[threadIdx.x + (KERNLEN>>1)].x                  = (xx + yy)*scale;
+		s_input_2[threadIdx.x + (KERNLEN>>1)].y                  = (-xy - yx)*scale;
+		
+		xx = r_templates_1[3].x*signal[3].x;
+		yy = r_templates_1[3].y*signal[3].y;
+		xy = r_templates_1[3].x*signal[3].y;
+		yx = r_templates_1[3].y*signal[3].x;
+		s_input_1[threadIdx.x + 3*(KERNLEN>>2)].x                  = (xx - yy)*scale;
+		s_input_1[threadIdx.x + 3*(KERNLEN>>2)].y                  = (xy + yx)*scale;
+		s_input_2[threadIdx.x + 3*(KERNLEN>>2)].x                  = (xx + yy)*scale;
+		s_input_2[threadIdx.x + 3*(KERNLEN>>2)].y                  = (-xy - yx)*scale;
+		
+		__syncthreads();
+		
+		//----------> IFFT
+		do_IFFT_mk11_4elem_2vertical_no_reorder(s_input_1, s_input_2);
+		//----------<
+		
+		// Saving data
+		pos = t*useful_part_size*nConvolutions + blockIdx.x*useful_part_size + threadIdx.x;
+		if( threadIdx.x>=offset && threadIdx.x<(useful_part_size+offset) ) {
+			d_output_plane_reduced[pos - offset] = pwcalc(s_input_1[threadIdx.x]);
+		}
+		if( (threadIdx.x+(KERNLEN>>2))>=offset && (threadIdx.x+(KERNLEN>>2))<(useful_part_size+offset) ) {
+			d_output_plane_reduced[pos + (KERNLEN>>2) - offset] = pwcalc(s_input_1[threadIdx.x + (KERNLEN>>2)]);
+		}
+		if( (threadIdx.x+(KERNLEN>>1))>=offset && (threadIdx.x+(KERNLEN>>1))<(useful_part_size+offset) ) {
+			d_output_plane_reduced[pos + (KERNLEN>>1) - offset] = pwcalc(s_input_1[threadIdx.x + (KERNLEN>>1)]);
+		}
+		if( (threadIdx.x+3*(KERNLEN>>2))>=offset && (threadIdx.x+3*(KERNLEN>>2))<(useful_part_size+offset) ) {
+			d_output_plane_reduced[pos + 3*(KERNLEN>>2) - offset] = pwcalc(s_input_1[threadIdx.x + 3*(KERNLEN>>2)]);
+		}
+		
+		
+		pos = (ZMAX-t)*useful_part_size*nConvolutions + blockIdx.x*useful_part_size + threadIdx.x;
+		if( threadIdx.x>=offset && threadIdx.x<(useful_part_size+offset) ) {
+			d_output_plane_reduced[pos - offset] = pwcalc(s_input_2[threadIdx.x]);
+		}
+		if( (threadIdx.x+(KERNLEN>>2))>=offset && (threadIdx.x+(KERNLEN>>2))<(useful_part_size+offset) ) {
+			d_output_plane_reduced[pos + (KERNLEN>>2) - offset] = pwcalc(s_input_2[threadIdx.x + (KERNLEN>>2)]);
+		}
+		if( (threadIdx.x+(KERNLEN>>1))>=offset && (threadIdx.x+(KERNLEN>>1))<(useful_part_size+offset) ) {
+			d_output_plane_reduced[pos + (KERNLEN>>1) - offset] = pwcalc(s_input_2[threadIdx.x + (KERNLEN>>1)]);
+		}
+		if( (threadIdx.x+3*(KERNLEN>>2))>=offset && (threadIdx.x+3*(KERNLEN>>2))<(useful_part_size+offset) ) {
+			d_output_plane_reduced[pos + 3*(KERNLEN>>2) - offset] = pwcalc(s_input_2[threadIdx.x + 3*(KERNLEN>>2)]);
+		}
+	}
+	
+	// now do z=0
+	pos = (ZMAX>>1)*KERNLEN + threadIdx.x;
+	r_templates_1[0]=__ldg(&d_templates[pos]);
+	r_templates_1[1]=__ldg(&d_templates[pos + (KERNLEN>>2)]);
+	r_templates_1[2]=__ldg(&d_templates[pos + (KERNLEN>>1)]);
+	r_templates_1[3]=__ldg(&d_templates[pos + 3*(KERNLEN>>2)]);
+	
+	s_input_1[threadIdx.x].x                  = (r_templates_1[0].x*signal[0].x - r_templates_1[0].y*signal[0].y)*scale;
+	s_input_1[threadIdx.x].y                  = (r_templates_1[0].x*signal[0].y + r_templates_1[0].y*signal[0].x)*scale;
+	s_input_1[threadIdx.x + (KERNLEN>>2)].x   = (r_templates_1[1].x*signal[1].x - r_templates_1[1].y*signal[1].y)*scale;
+	s_input_1[threadIdx.x + (KERNLEN>>2)].y   = (r_templates_1[1].x*signal[1].y + r_templates_1[1].y*signal[1].x)*scale;
+	s_input_1[threadIdx.x + (KERNLEN>>1)].x   = (r_templates_1[2].x*signal[2].x - r_templates_1[2].y*signal[2].y)*scale;
+	s_input_1[threadIdx.x + (KERNLEN>>1)].y   = (r_templates_1[2].x*signal[2].y + r_templates_1[2].y*signal[2].x)*scale;
+	s_input_1[threadIdx.x + 3*(KERNLEN>>2)].x = (r_templates_1[3].x*signal[3].x - r_templates_1[3].y*signal[3].y)*scale;
+	s_input_1[threadIdx.x + 3*(KERNLEN>>2)].y = (r_templates_1[3].x*signal[3].y + r_templates_1[3].y*signal[3].x)*scale;
+	
+	__syncthreads();
+	
+	//call inverse fft
+	do_IFFT_mk11_4elem_no_reorder(s_input_1);
+	
+	pos = (ZMAX/2)*useful_part_size*nConvolutions + blockIdx.x*useful_part_size + threadIdx.x;
+	if( threadIdx.x>=offset && threadIdx.x<(useful_part_size+offset) ) {
+		d_output_plane_reduced[pos - offset] = pwcalc(s_input_1[threadIdx.x]);
+	}
+	if( (threadIdx.x+(KERNLEN>>2))>=offset && (threadIdx.x+(KERNLEN>>2))<(useful_part_size+offset) ) {
+		d_output_plane_reduced[pos + (KERNLEN>>2) - offset] = pwcalc(s_input_1[threadIdx.x + (KERNLEN>>2)]);
+	}
+	if( (threadIdx.x+(KERNLEN>>1))>=offset && (threadIdx.x+(KERNLEN>>1))<(useful_part_size+offset) ) {
+		d_output_plane_reduced[pos + (KERNLEN>>1) - offset] = pwcalc(s_input_1[threadIdx.x + (KERNLEN>>1)]);
+	}
+	if( (threadIdx.x+3*(KERNLEN>>2))>=offset && (threadIdx.x+3*(KERNLEN>>2))<(useful_part_size+offset) ) {
+		d_output_plane_reduced[pos + 3*(KERNLEN>>2) - offset] = pwcalc(s_input_1[threadIdx.x + 3*(KERNLEN>>2)]);
+	}
+	
+}
 #endif
