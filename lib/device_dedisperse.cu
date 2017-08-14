@@ -73,7 +73,7 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 
 				int divisions_in_t = SDIVINT;
 				int divisions_in_dm = SDIVINDM;
-				int num_blocks_t = t_processed / ( divisions_in_t * 2 * SNUMREG );
+				int num_blocks_t = t_processed / ( divisions_in_t * 4 * SNUMREG );
 				int num_blocks_dm = ndms[i] / divisions_in_dm;
 
 				dim3 threads_per_block(divisions_in_t, divisions_in_dm);
