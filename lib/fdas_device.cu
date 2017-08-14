@@ -1842,7 +1842,7 @@ __global__ void GPU_CONV_kFFT_mk11_4elem_2v(float2 const* __restrict__ d_input_s
 		s_input_1[threadIdx.x].x                  = (xx - yy)*scale;
 		s_input_1[threadIdx.x].y                  = (xy + yx)*scale;
 		s_input_2[threadIdx.x].x                  = (xx + yy)*scale;
-		s_input_2[threadIdx.x].y                  = (-xy - yx)*scale;
+		s_input_2[threadIdx.x].y                  = (xy - yx)*scale;
 
 		xx = r_templates_1[1].x*signal[1].x;
 		yy = r_templates_1[1].y*signal[1].y;
@@ -1851,7 +1851,7 @@ __global__ void GPU_CONV_kFFT_mk11_4elem_2v(float2 const* __restrict__ d_input_s
 		s_input_1[threadIdx.x + (KERNLEN>>2)].x                  = (xx - yy)*scale;
 		s_input_1[threadIdx.x + (KERNLEN>>2)].y                  = (xy + yx)*scale;
 		s_input_2[threadIdx.x + (KERNLEN>>2)].x                  = (xx + yy)*scale;
-		s_input_2[threadIdx.x + (KERNLEN>>2)].y                  = (-xy - yx)*scale;
+		s_input_2[threadIdx.x + (KERNLEN>>2)].y                  = (xy - yx)*scale;
 		
 		xx = r_templates_1[2].x*signal[2].x;
 		yy = r_templates_1[2].y*signal[2].y;
@@ -1860,7 +1860,7 @@ __global__ void GPU_CONV_kFFT_mk11_4elem_2v(float2 const* __restrict__ d_input_s
 		s_input_1[threadIdx.x + (KERNLEN>>1)].x                  = (xx - yy)*scale;
 		s_input_1[threadIdx.x + (KERNLEN>>1)].y                  = (xy + yx)*scale;
 		s_input_2[threadIdx.x + (KERNLEN>>1)].x                  = (xx + yy)*scale;
-		s_input_2[threadIdx.x + (KERNLEN>>1)].y                  = (-xy - yx)*scale;
+		s_input_2[threadIdx.x + (KERNLEN>>1)].y                  = (xy - yx)*scale;
 		
 		xx = r_templates_1[3].x*signal[3].x;
 		yy = r_templates_1[3].y*signal[3].y;
@@ -1869,7 +1869,7 @@ __global__ void GPU_CONV_kFFT_mk11_4elem_2v(float2 const* __restrict__ d_input_s
 		s_input_1[threadIdx.x + 3*(KERNLEN>>2)].x                  = (xx - yy)*scale;
 		s_input_1[threadIdx.x + 3*(KERNLEN>>2)].y                  = (xy + yx)*scale;
 		s_input_2[threadIdx.x + 3*(KERNLEN>>2)].x                  = (xx + yy)*scale;
-		s_input_2[threadIdx.x + 3*(KERNLEN>>2)].y                  = (-xy - yx)*scale;
+		s_input_2[threadIdx.x + 3*(KERNLEN>>2)].y                  = (xy - yx)*scale;
 		
 		__syncthreads();
 		
