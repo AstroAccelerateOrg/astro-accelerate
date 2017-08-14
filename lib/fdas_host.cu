@@ -201,8 +201,9 @@ void fdas_create_acc_kernels(cufftComplex* d_kernel, cmd_args *cmdargs )
     free(tempkern);
   }
   
-  //!TEST!: replace templates here. Template width: numkern; padded width: KERNLEN
-  for (ii = 0; ii < NKERN; ii++){
+	//!TEST!: replace templates here. Template width: numkern; padded width: KERNLEN
+	#ifdef FDAS_TEST
+	for (ii = 0; ii < NKERN; ii++){
 		int boxcar_width=ii*2;
 		for(int f=0; f<KERNLEN; f++){
 			h_kernel[ii*KERNLEN + f].x = 0;
@@ -212,7 +213,8 @@ void fdas_create_acc_kernels(cufftComplex* d_kernel, cmd_args *cmdargs )
 			if(f>=(KERNLEN-boxcar_width/2)) h_kernel[ii*KERNLEN + f].x = 1.0;
 		}
 	}
-  //!TEST!: replace templates here. Template width: numkern; padded width: KERNLEN
+	#endif
+	//!TEST!: replace templates here. Template width: numkern; padded width: KERNLEN
   
   checkCudaErrors( cudaMemcpy( d_kernel, h_kernel, KERNLEN*sizeof(float2)* NKERN, cudaMemcpyHostToDevice) ); // upload kernels to GPU
 
@@ -345,20 +347,25 @@ void fdas_cuda_customfft(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cm
   //int nthreads;
   dim3 cblocks(params->nblocks, NKERN/2); 
 
-  //real fft
-  //cufftExecR2C(fftplans->realplan, gpuarrays->d_in_signal, gpuarrays->d_fft_signal);
-  float2 *f2temp;
-  float *ftemp;
-  ftemp = (float *)malloc(params->rfftlen*sizeof(float));
-  f2temp = (float2 *)malloc(params->rfftlen*sizeof(float2));
-  checkCudaErrors( cudaMemcpy(ftemp, gpuarrays->d_in_signal, (params->rfftlen)*sizeof(float), cudaMemcpyDeviceToHost));
-  for(int f=0; f<params->rfftlen; f++){
-	  f2temp[f].x = ftemp[f];
-	  f2temp[f].y = 0;
-  }
-  checkCudaErrors( cudaMemcpy(gpuarrays->d_fft_signal, f2temp, (params->rfftlen)*sizeof(float2), cudaMemcpyHostToDevice));
-  free(ftemp);
-  free(f2temp);
+	//real fft
+	#ifndef FDAS_TEST
+	cufftExecR2C(fftplans->realplan, gpuarrays->d_in_signal, gpuarrays->d_fft_signal);
+	#endif
+
+	#ifdef FDAS_TEST
+	float2 *f2temp;
+	float *ftemp;
+	ftemp  = (float *)malloc(params->rfftlen*sizeof(float));
+	f2temp = (float2 *)malloc(params->rfftlen*sizeof(float2));
+	checkCudaErrors( cudaMemcpy(ftemp, gpuarrays->d_in_signal, (params->rfftlen)*sizeof(float), cudaMemcpyDeviceToHost));
+	for(int f=0; f<params->rfftlen; f++){
+		f2temp[f].x = ftemp[f];
+		f2temp[f].y = 0;
+	}
+	checkCudaErrors( cudaMemcpy(gpuarrays->d_fft_signal, f2temp, (params->rfftlen)*sizeof(float2), cudaMemcpyHostToDevice));
+	free(ftemp);
+	free(f2temp);
+	#endif
   
 
   if (cmdargs->norm){
@@ -448,7 +455,7 @@ void fdas_write_list(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *
 	}
 }
 
-/*
+
 void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step ) {
   int ibin=1;
   if (cmdargs->inbin)
@@ -539,9 +546,9 @@ void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params 
   free(h_ffdotpwr);
 
 }
-*/
 
-void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step ) {
+
+void fdas_write_test_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step ) {
   int ibin=1;
   if (cmdargs->inbin)
     ibin=2;
@@ -603,22 +610,15 @@ void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params 
     fprintf(stderr, "Error opening %s file for writing: %s\n",pfname, strerror(errno));
     exit(1);
   }
-  float pow, sigma;
-  double tobs = (double)params->tsamp * (double)params->nsamps*ibin;
-  unsigned int numindep = params->siglen*(NKERN+1)*ACCEL_STEP/6.95; // taken from PRESTO
+  float pow;
 
   //write to file
   printf("\nWriting ffdot data to file...\n");
 
 	for(int a = 0; a < NKERN; a++) {
-		double acc = (double) (ZMAX - a* ACCEL_STEP);
 		for( int j = 0; j < ibin*params->siglen; j++){
 			pow =  h_ffdotpwr[a * ibin*params->siglen + j]; //(h_ffdotpwr[a * params->siglen + j]-mean)/stddev;
-				sigma = candidate_sigma(pow, cmdargs->nharms, numindep);//power, number of harmonics, number of independed searches=1...2^harms
-				//  sigma=1.0;
-				double jfreq = (double)(j) / tobs;
-				double acc1 = acc*SLIGHT / jfreq / tobs / tobs;
-				fprintf(fp_c, "%u\t%u\t%f\n", a, j, pow); 
+			fprintf(fp_c, "%u\t%u\t%f\n", a, j, pow); 
 		}
 	}
 
