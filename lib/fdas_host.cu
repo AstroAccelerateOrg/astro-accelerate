@@ -401,6 +401,29 @@ void fdas_cuda_customfft(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cm
   }
   else{
     cuda_convolve_customfft_wes_no_reorder02<<< params->nblocks, KERNLEN >>>( gpuarrays->d_kernel, gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, params->sigblock, params->extlen, params->siglen, params->offset, params->scale);
+    //cuda_convolve_customfft_wes_no_reorder02<<< params->nblocks, KERNLEN >>>( gpuarrays->d_kernel, gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, params->sigblock, params->extlen, params->siglen, params->offset, params->scale);
+	
+	//-------------------------------------------
+	dim3 gridSize(1, 1, 1);
+	dim3 blockSize(1, 1, 1);
+	/*
+	//-------------------------------------------
+	//Two elements per thread
+	gridSize.x = params->nblocks;
+	gridSize.y = 1;
+	gridSize.z = 1;
+	blockSize.x = KERNLEN/2;
+	GPU_CONV_kFFT_mk11_2elem_2v<<<gridSize,blockSize>>>(gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, gpuarrays->d_kernel, params->sigblock, params->offset, params->nblocks, params->scale);
+	*/
+	
+	//-------------------------------------------
+	//Four elements per thread
+	gridSize.x = params->nblocks;
+	gridSize.y = 1;
+	gridSize.z = 1;
+	blockSize.x = KERNLEN/4;
+	GPU_CONV_kFFT_mk11_4elem_2v<<<gridSize,blockSize>>>(gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, gpuarrays->d_kernel, params->sigblock, params->offset, params->nblocks, params->scale);
+	
   }
 }
 #endif
