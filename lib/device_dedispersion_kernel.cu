@@ -21,13 +21,13 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 	int local, unroll;
 
 	float findex = ( threadIdx.x * 2 );
-	float local_kernel_one[SNUMREG];
-	float local_kernel_two[SNUMREG];
+	int local_kernel_one[SNUMREG];
+	int local_kernel_two[SNUMREG];
 
 	for (i = 0; i < SNUMREG; i++)
 	{
-		local_kernel_one[i] = 0.0f;
-		local_kernel_two[i] = 0.0f;
+		local_kernel_one[i] = 0;
+		local_kernel_two[i] = 0;
 	}
 
 	int idx = ( threadIdx.x + ( threadIdx.y * SDIVINT ) );
@@ -60,13 +60,18 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 		for (i = 0; i < SNUMREG; i++)
 		{
 			local = 0;
+			int stage;
 			unroll = ( i * 2 * SDIVINT );
 			for (j = 0; j < UNROLLS; j++)
 			{
-				local += *(int*) &f_line[j][( shift[j] + unroll )];
+				//local += *(int*) &f_line[j][( shift[j] + unroll )];
+				stage = *(int*) &f_line[j][( shift[j] + unroll )];
+				local += stage;
 			}
-			local_kernel_one[i] += ( (ushort2*) ( &local ) )->x;
-			local_kernel_two[i] += ( (ushort2*) ( &local ) )->y;
+			local_kernel_one[i] += (local & 0x0000FFFF);
+			//local_kernel_one[i] += ( (ushort2*) ( &local ) )->x;
+			local_kernel_two[i] += (local & 0xFFFF0000) >> 16;
+			//local_kernel_two[i] += ( (ushort2*) ( &local ) )->y;
 		}
 	}
 
@@ -76,7 +81,7 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 	#pragma unroll
 	for (i = 0; i < SNUMREG; i++)
 	{
-		*( (float2*) ( d_output + local + ( i * 2 * SDIVINT ) ) ) = make_float2(local_kernel_one[i] / i_nchans / bin, local_kernel_two[i] / i_nchans / bin);
+		*( (float2*) ( d_output + local + ( i * 2 * SDIVINT ) ) ) = make_float2((float)local_kernel_one[i] / i_nchans / bin, (float)local_kernel_two[i] / i_nchans / bin);
 	}
 }
 
