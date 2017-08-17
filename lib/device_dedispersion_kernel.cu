@@ -44,12 +44,11 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 		for (j = 0; j < UNROLLS; j++)
 		{
 			temp_f = ( __ldg(( d_input + ( __float2int_rz(dm_shifts[c + j] * shift_two) ) )  + ( nsamp_counter + ( j * i_nsamp ) )) );
-			//temp_f = ( __ldg(( d_input + ( __float2int_rz(dm_shifts[c + j] * shift_two) ) ) + 1 + ( nsamp_counter + ( j * i_nsamp ) )) );
 
 			f_line[j][idx + 1].x = temp_f;
 			f_line[j][idx    ].y = temp_f;
 
-			shift[j] = __float2int_rz(shift_one * dm_shifts[c + j] + findex);
+			shift[j] = __float2int_rz(shift_one * dm_shifts[c + j] + findex) + 1;
 		}
 
 		nsamp_counter = ( nsamp_counter + ( UNROLLS * i_nsamp ) );
@@ -59,7 +58,7 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 		for (i = 0; i < SNUMREG; i++)
 		{
 			local = 0;
-			unroll = ( i * 2 * SDIVINT + 1);
+			unroll = ( i * 2 * SDIVINT );
 			for (j = 0; j < UNROLLS; j++)
 			{
 				stage = *(int*) &f_line[j][( shift[j] + unroll )];
