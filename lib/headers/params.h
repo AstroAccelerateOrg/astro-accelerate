@@ -1,10 +1,6 @@
+//P100 8,14,12,40
 #define ACCMAX 350
 #define ACCSTEP 11
-#define UNROLLS 16
-#define SNUMREG 12
-#define SDIVINT 12
-#define SDIVINDM 40
-#define SFDIVINDM 40.0f
 #define CARD 0
 #define NOPSSHIFT 5
 #define NOPSLOOP 3
@@ -51,3 +47,9 @@
 #define PTBSIZEY 1
 //custom fft params (K. Adamek)
 #define TAPS 8
+//P100 best results
+#define UNROLLS 8
+#define SNUMREG 14
+#define SDIVINT 12
+#define SDIVINDM 40
+#define SFDIVINDM 40.0f

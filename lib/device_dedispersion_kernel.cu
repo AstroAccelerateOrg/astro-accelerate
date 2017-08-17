@@ -21,8 +21,9 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 	int shift[UNROLLS];
 	int local_kernel_one[SNUMREG];
 	int local_kernel_two[SNUMREG];
-
-	float findex = ( threadIdx.x * 2 );
+//
+//	float findex = ( threadIdx.x * 2 );
+	float findex = ( threadIdx.x );
 
 	for (i = 0; i < SNUMREG; i++)
 	{
@@ -52,6 +53,7 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 			}
 
 			shift[j] = __float2int_rz(shift_one * dm_shifts[c + j] + findex);
+//			if(blockIdx.x == 0 && blockIdx.y == 0) printf("\n%d %d", threadIdx.x, shift[j]);
 		}
 
 		nsamp_counter = ( nsamp_counter + ( UNROLLS * i_nsamp ) );
