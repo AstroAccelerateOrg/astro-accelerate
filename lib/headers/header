@@ -48,8 +48,3 @@
 //custom fft params (K. Adamek)
 #define TAPS 8
 
-#define UNROLLS 8
-#define SNUMREG 6
-#define SDIVINT 8
-#define SDIVINDM 32
-#define SFDIVINDM 32.0f
