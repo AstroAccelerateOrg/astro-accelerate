@@ -73,10 +73,7 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 
 				int divisions_in_t = SDIVINT;
 				int divisions_in_dm = SDIVINDM;
-<<<<<<< Updated upstream
-=======
 				//int num_blocks_t = t_processed / ( divisions_in_t * 2 * SNUMREG );
->>>>>>> Stashed changes
 				int num_blocks_t = t_processed / ( divisions_in_t * 4 * SNUMREG );
 				int num_blocks_dm = ndms[i] / divisions_in_dm;
 

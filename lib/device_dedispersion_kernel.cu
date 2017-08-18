@@ -14,26 +14,16 @@ __device__  __shared__ uchar4 f_line[UNROLLS][ARRAYSIZE + 1];
 
 __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep)
 {
-<<<<<<< Updated upstream
-	int i, j, c;
-	int shift[UNROLLS];
-
-	unsigned char temp_f;
-	long int local;
-	int unroll;
-=======
 	unsigned char temp_f;
 
 	int i, j, c, local_one, local_two, unroll, stage;
->>>>>>> Stashed changes
 
-	float findex = ( threadIdx.x * 4 );
-	
 	int local_kernel_one[SNUMREG];
 	int local_kernel_two[SNUMREG];
 	int local_kernel_three[SNUMREG];
 	int local_kernel_four[SNUMREG];
-<<<<<<< Updated upstream
+
+	int shift[UNROLLS];
 
 	for (i = 0; i < SNUMREG; i++)
 	{
@@ -44,22 +34,9 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 	}
 
 	int idx = ( threadIdx.x + ( threadIdx.y * SDIVINT ) );
-=======
 
-	//float findex = ( threadIdx.x * 2 );
 	float findex = ( threadIdx.x * 4) + 3;
 
-	for (i = 0; i < SNUMREG; i++)
-	{
-		local_kernel_one[i]   = 0;
-		local_kernel_two[i]   = 0;
-		local_kernel_three[i] = 0;
-		local_kernel_four[i]  = 0;
-	}
-
-	int idx 	  = ( threadIdx.x + ( threadIdx.y * SDIVINT ) );
-	//int nsamp_counter = ( idx + ( blockIdx.x * ( 2 * SNUMREG * SDIVINT ) ) );
->>>>>>> Stashed changes
 	int nsamp_counter = ( idx + ( blockIdx.x * ( 4 * SNUMREG * SDIVINT ) ) );
 
 	float shift_two = ( mstartdm + ( __int2float_rz(blockIdx.y) * SFDIVINDM * mdmstep ) );
@@ -71,19 +48,6 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 
 		for (j = 0; j < UNROLLS; j++)
 		{
-<<<<<<< Updated upstream
-			temp_f = ( __ldg(( d_input + ( __float2int_rz(dm_shifts[c + j] * shift_two) ) ) + ( nsamp_counter + ( j * i_nsamp ) )) );
-
-			f_line[j][idx].x = temp_f;
-			if (idx > 0)
-			{
-				f_line[j][idx - 1].y = temp_f;
-			} else if (idx > 1) {
-				f_line[j][idx - 2].z = temp_f;
-			} else if (idx > 2) {
-				f_line[j][idx - 3].w = temp_f;
-			}
-=======
 			temp_f = (unsigned char)( __ldg(( d_input + ( __float2int_rz(dm_shifts[c + j] * shift_two) ) )  + ( nsamp_counter + ( j * i_nsamp ) )) );
 
 			f_line[j][idx + 3].x = temp_f;
@@ -91,7 +55,6 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 			f_line[j][idx + 1].z = temp_f;
 			f_line[j][idx    ].w = temp_f;
 
->>>>>>> Stashed changes
 			shift[j] = __float2int_rz(shift_one * dm_shifts[c + j] + findex);
 		}
 
@@ -101,66 +64,32 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 
 		for (i = 0; i < SNUMREG; i++)
 		{
-<<<<<<< Updated upstream
-			local = 0;
-			unroll = ( i * 4 * SDIVINT );
-			//local = *(int*) &f_line[j][( shift[j] + unroll )];
-
-			for (j = 0; j < UNROLLS; j++)
-			{
-			//	local += *(long int*) &f_line[j][( shift[j] + unroll )];
-			//}
-			//local_kernel_one[i]   += ( (ushort4*) ( &local ) )->x;
-			//local_kernel_two[i]   += ( (ushort4*) ( &local ) )->y;
-			//local_kernel_three[i] += ( (ushort4*) ( &local ) )->z;
-			//local_kernel_four[i]  += ( (ushort4*) ( &local ) )->w;
-
-
-			local = *(int*) &f_line[j][( shift[j] + unroll )];
-			local_kernel_one[i]   += ( (uchar4*) ( &local ) )->x;
-			local_kernel_two[i]   += ( (uchar4*) ( &local ) )->y;
-			local_kernel_three[i] += ( (uchar4*) ( &local ) )->z;
-			local_kernel_four[i]  += ( (uchar4*) ( &local ) )->w;
-			}
-=======
 			local_one = 0;
 			local_two = 0;
 			unroll = ( i * 4 * SDIVINT );
-			//unroll = ( i * 2 * SDIVINT );
 			for (j = 0; j < UNROLLS; j++)
 			{
 				stage = *(int*) &f_line[j][( shift[j] + unroll )];
 				local_one += (stage & 0x00FF00FF);
 				local_two += (stage & 0xFF00FF00)>>8;
-//				local += stage;
 			}
 			local_kernel_one[i]   += (local_one & 0x0000FFFF);
 			local_kernel_two[i]   += (local_one & 0xFFFF0000) >>16;
 			local_kernel_three[i] += (local_two & 0x0000FFFF);
 			local_kernel_four[i]  += (local_two & 0xFFFF0000) >> 16;
->>>>>>> Stashed changes
 		}
 	}
 
 	// Write the accumulators to the output array. 
-<<<<<<< Updated upstream
-	int loc = ( ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + ( blockIdx.x * 4 * SNUMREG * SDIVINT ) ) + 4 * threadIdx.x;
-=======
 	local_one = ( ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + ( blockIdx.x * 4 * SNUMREG * SDIVINT ) ) + 4 * threadIdx.x;
-	//local_one = ( ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + ( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + 2 * threadIdx.x;
->>>>>>> Stashed changes
 
 	#pragma unroll
 	for (i = 0; i < SNUMREG; i++)
 	{
-<<<<<<< Updated upstream
-		*( (float4*) ( d_output + loc + ( i * 4 * SDIVINT ) ) ) = make_float4(local_kernel_one[i] / i_nchans / bin, local_kernel_two[i] / i_nchans / bin, local_kernel_three[i] / i_nchans / bin, local_kernel_four[i] / i_nchans / bin);
-=======
 		*( (float2*) ( d_output + local_one + ( i * 4 * SDIVINT ) ) ) = make_float2((float)local_kernel_one[i] / i_nchans/bin,
 											    (float)local_kernel_two[i] / i_nchans/bin);
 		*( (float2*) ( d_output + local_one + 2 + ( i * 4 * SDIVINT ) ) ) = make_float2((float)local_kernel_three[i] / i_nchans/bin,
- 	                                                                                    (float)local_kernel_four[i] / i_nchans/bin);
->>>>>>> Stashed changes
+												(float)local_kernel_three[i] / i_nchans/bin);
 	}
 }
 
