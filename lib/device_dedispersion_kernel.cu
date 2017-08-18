@@ -89,7 +89,7 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 		*( (float2*) ( d_output + local_one + ( i * 4 * SDIVINT ) ) ) = make_float2((float)local_kernel_one[i] / i_nchans/bin,
 											    (float)local_kernel_two[i] / i_nchans/bin);
 		*( (float2*) ( d_output + local_one + 2 + ( i * 4 * SDIVINT ) ) ) = make_float2((float)local_kernel_three[i] / i_nchans/bin,
-												(float)local_kernel_three[i] / i_nchans/bin);
+												(float)local_kernel_four[i] / i_nchans/bin);
 	}
 }
 
