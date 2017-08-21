@@ -377,6 +377,7 @@ void acceleration_fdas(int range,
 					//!TEST!: do not perform peak find instead export the thing to file.
 					#ifdef FDAS_TEST
 					fdas_write_test_ffdot(&gpuarrays, &cmdargs, &params, dm_low[i], dm_count, dm_step[i]);
+					exit(1);
 					#endif
 					//!TEST!: do not perform peak find instead export the thing to file.
 					
