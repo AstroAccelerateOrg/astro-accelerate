@@ -8,7 +8,7 @@
 // Stores temporary shift values
 __device__ __constant__ float dm_shifts[8192];
 __device__ __constant__ int i_nsamp, i_nchans, i_t_processed_s;
-__device__  __shared__ uchar4 f_line[UNROLLS][ARRAYSIZE + 1];
+__device__  __shared__ uchar4 f_line[UNROLLS][ARRAYSIZE + 32];
 
 //{{{ shared_dedisperse_loop
 
@@ -42,6 +42,9 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 	float shift_two = ( mstartdm + ( __int2float_rz(blockIdx.y) * SFDIVINDM * mdmstep ) );
 	float shift_one = ( __int2float_rz(threadIdx.y) * mdmstep );
 
+	idx+=(int)(idx/32);
+
+
 	for (c = 0; c < i_nchans; c += UNROLLS)
 	{
 		__syncthreads();
@@ -49,13 +52,14 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 		for (j = 0; j < UNROLLS; j++)
 		{
 			temp_f = (unsigned char)( __ldg(( d_input + ( __float2int_rz(dm_shifts[c + j] * shift_two) ) )  + ( nsamp_counter + ( j * i_nsamp ) )) );
+			
 
 			f_line[j][idx + 3].x = temp_f;
 			f_line[j][idx + 2].y = temp_f;
 			f_line[j][idx + 1].z = temp_f;
 			f_line[j][idx    ].w = temp_f;
 
-			shift[j] = __float2int_rz(shift_one * dm_shifts[c + j] + findex);
+			shift[j] = __float2int_rz(shift_one * dm_shifts[c + j] + findex + (int)(idx/32));
 		}
 
 		nsamp_counter = ( nsamp_counter + ( UNROLLS * i_nsamp ) );
