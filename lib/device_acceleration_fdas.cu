@@ -254,6 +254,57 @@ void acceleration_fdas(int range,
 
 				//first time PCIe transfer and print timing
 				gettimeofday(&t_start, NULL); //don't time transfer
+				
+				//!TEST!: put test signal here
+				#ifdef FDAS_TEST
+				printf("\n************** TEST FOR FDAS ***********************\n");
+				srand(time(NULL));
+				for(int f=0; f<processed; f++) output_buffer[i][dm_count][f]=rand() / (float)RAND_MAX;
+				
+				for(int f=15000; f<processed; f++){
+					output_buffer[i][dm_count][f] = (f%4096)/500.0;
+				}
+				
+				if (processed>15000){
+					for(int f=0; f<192; f++){
+						output_buffer[i][dm_count][f + 5300] = 10.0;
+					}
+					
+					for(int f=0; f<128; f++){
+						output_buffer[i][dm_count][f + 8626] = 10.0;
+					}
+					
+					for(int f=0; f<36; f++){
+						output_buffer[i][dm_count][f + 9626] = 10.0;
+					}
+					
+					for(int f=0; f<83; f++){
+						output_buffer[i][dm_count][f + 10626] = 10.0;
+					}
+					
+					for(int f=0; f<138; f++){
+						output_buffer[i][dm_count][f + 11626] = 10.0;
+					}
+				}
+				
+				//float2 *d_f2temp, *h_f2temp;
+				//float  *d_ftemp,  *h_ftemp;
+				//checkCudaErrors(cudaMalloc((void **) &d_ftemp,  sizeof(float)*processed));
+				//checkCudaErrors(cudaMalloc((void **) &d_f2temp, sizeof(float2)*processed));
+				//h_ftemp  = (float *)malloc(processed*sizeof(float));
+				//h_f2temp = (float2 *)malloc(processed*sizeof(float2));
+                //
+				//if (cufftPlan1d(&plan_templates, CONV_SIZE, CUFFT_R2C, nTemplates) != CUFFT_SUCCESS) printf("CUFFT error: %d", error);
+				//cufftExecC2C(plan_templates, (cufftComplex *)d_template, (cufftComplex *)d_template, CUFFT_FORWARD);
+				//cufftDestroy(plan_templates);
+				//
+				//checkCudaErrors(cudaFree(d_ftemp));
+				//checkCudaErrors(cudaFree(d_f2temp));
+				//checkCudaErrors(cudaFree(d_temp));
+				//checkCudaErrors(cudaFree(d_temp))
+				#endif
+				//!TEST!: put test signal here
+				
 				checkCudaErrors( cudaMemcpy(gpuarrays.d_in_signal, output_buffer[i][dm_count], processed*sizeof(float), cudaMemcpyHostToDevice));
 
 				/*
@@ -322,6 +373,13 @@ void acceleration_fdas(int range,
 					//checkCudaErrors(cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost));
 					//printf("BLN: mean:%f; sd:%f || MSD: mean:%f; sd:%f\n", signal_mean, signal_sd, h_MSD[0], h_MSD[1]);
 					////------------- Testing BLN
+					
+					//!TEST!: do not perform peak find instead export the thing to file.
+					#ifdef FDAS_TEST
+					fdas_write_test_ffdot(&gpuarrays, &cmdargs, &params, dm_low[i], dm_count, dm_step[i]);
+					exit(1);
+					#endif
+					//!TEST!: do not perform peak find instead export the thing to file.
 					
 					PEAK_FIND_FOR_FDAS(gpuarrays.d_ffdot_pwr, gpuarrays.d_fdas_peak_list, d_MSD, NKERN, ibin*params.siglen, cmdargs.thresh, params.max_list_length, gmem_fdas_peak_pos, dm_count*dm_step[i] + dm_low[i]);
 					

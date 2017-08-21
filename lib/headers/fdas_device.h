@@ -22,6 +22,10 @@ __global__ void cuda_convolve_customfft_wes_no_reorder02(float2* d_kernel, float
 
 __global__ void cuda_convolve_customfft_wes_no_reorder02_inbin(float2* d_kernel, float2* d_signal, float *d_ffdot_pw, int sigblock, int sig_tot_convlen, int sig_totlen, int offset, float scale, float2 *ip_edge_points);
 
+__global__ void GPU_CONV_kFFT_mk11_2elem_2v(float2 const* __restrict__ d_input_signal, float *d_output_plane_reduced, float2 const* __restrict__ d_templates, int useful_part_size, int offset, int nConvolutions, float scale);
+
+__global__ void GPU_CONV_kFFT_mk11_4elem_2v(float2 const* __restrict__ d_input_signal, float *d_output_plane_reduced, float2 const* __restrict__ d_templates, int useful_part_size, int offset, int nConvolutions, float scale);
+
 __global__ void customfft_fwd_temps_no_reorder(float2* d_signal);
 
 #endif /* FDAS_DEVICE_H */
