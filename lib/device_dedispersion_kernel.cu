@@ -8,7 +8,7 @@
 // Stores temporary shift values
 __device__ __constant__ float dm_shifts[8192];
 __device__ __constant__ int i_nsamp, i_nchans, i_t_processed_s;
-__device__  __shared__ ushort2 f_line[UNROLLS][ARRAYSIZE + 1];
+__device__  __shared__ ushort2 f_line[UNROLLS][ARRAYSIZE + 2];
 
 //{{{ shared_dedisperse_loop
 
@@ -22,7 +22,7 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 	int local_kernel_one[SNUMREG];
 	int local_kernel_two[SNUMREG];
 
-	float findex = ( threadIdx.x * 2 );
+	float findex = (( threadIdx.x * 2 ) + 1 );
 
 	for (i = 0; i < SNUMREG; i++)
 	{
@@ -48,7 +48,7 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 			f_line[j][idx + 1].x = temp_f;
 			f_line[j][idx    ].y = temp_f;
 
-			shift[j] = __float2int_rz(shift_one * dm_shifts[c + j] + findex) + 1;
+			shift[j] = __float2int_rz(shift_one * dm_shifts[c + j] + findex);
 		}
 
 		nsamp_counter = ( nsamp_counter + ( UNROLLS * i_nsamp ) );
