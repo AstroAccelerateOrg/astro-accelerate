@@ -33,6 +33,8 @@ do
 
 					cd ../scripts/
 
+					cp ../lib/headers/params.h profile_results/u"$unroll"_a"$acc"_t"$divint"_dm"$divindm"_r"$regcount".h
+
 					./astro-accelerate.sh $inFile > profile_results/u"$unroll"_a"$acc"_t"$divint"_dm"$divindm"_r"$regcount".dat
 			
 					echo "unrolls: $unroll	acc: $acc    divint: $divint    divindm: $divindm    reg: $regcount"
