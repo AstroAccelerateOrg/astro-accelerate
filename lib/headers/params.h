@@ -53,4 +53,4 @@
 #define TAPS 8
 
 // Test for FDAS (define it to perform test)
-#define FDAS_TEST
+//#define FDAS_TEST
