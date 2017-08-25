@@ -342,10 +342,9 @@ void fdas_cuda_basic(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cmd_ar
 }
 
 #ifndef NOCUST
-void fdas_cuda_customfft(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params)
-{
-  //int nthreads;
-  dim3 cblocks(params->nblocks, NKERN/2); 
+void fdas_cuda_customfft(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params) {
+	//int nthreads;
+	dim3 cblocks(params->nblocks, NKERN/2); 
 
 	//real fft
 	#ifndef FDAS_TEST
@@ -368,63 +367,62 @@ void fdas_cuda_customfft(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cm
 	#endif
   
 
-  if (cmdargs->norm){
-    //  PRESTO deredden - remove red noise.
-    // TODO: replace with GPU version
-    float2 *fftsig;
-    fftsig = (float2*)malloc((params->rfftlen)*sizeof(float2)); 
+	if (cmdargs->norm){
+		//  PRESTO deredden - remove red noise.
+		// TODO: replace with GPU version
+		float2 *fftsig;
+		fftsig = (float2*)malloc((params->rfftlen)*sizeof(float2)); 
     
-    checkCudaErrors( cudaMemcpy(fftsig, gpuarrays->d_fft_signal, (params->rfftlen)*sizeof(float2), cudaMemcpyDeviceToHost));
-    presto_dered_sig(fftsig, params->rfftlen);
-    checkCudaErrors( cudaMemcpy(gpuarrays->d_fft_signal, fftsig, (params->rfftlen)*sizeof(float2), cudaMemcpyHostToDevice));
-    free(fftsig);
-  }
+		checkCudaErrors( cudaMemcpy(fftsig, gpuarrays->d_fft_signal, (params->rfftlen)*sizeof(float2), cudaMemcpyDeviceToHost));
+		presto_dered_sig(fftsig, params->rfftlen);
+		checkCudaErrors( cudaMemcpy(gpuarrays->d_fft_signal, fftsig, (params->rfftlen)*sizeof(float2), cudaMemcpyHostToDevice));
+		free(fftsig);
+	}
 
-  //overlap-copy
-  cuda_overlap_copy_smallblk<<<params->nblocks, KERNLEN >>>(gpuarrays->d_ext_data, gpuarrays->d_fft_signal, params->sigblock, params->rfftlen, params->extlen, params->offset, params->nblocks );
+	//overlap-copy
+	cuda_overlap_copy_smallblk<<<params->nblocks, KERNLEN >>>(gpuarrays->d_ext_data, gpuarrays->d_fft_signal, params->sigblock, params->rfftlen, params->extlen, params->offset, params->nblocks );
 
-  if (cmdargs->norm){
-    //  PRESTO block median normalization
-    // TODO: replace with GPU version
-    float2 *extsig;
-    extsig = (float2*)malloc((params->extlen)*sizeof(float2));
-    checkCudaErrors( cudaMemcpy(extsig, gpuarrays->d_ext_data, (params->extlen)*sizeof(float2), cudaMemcpyDeviceToHost));
-    for(int b=0; b<params->nblocks; ++b)
-      presto_norm(extsig+b*KERNLEN, KERNLEN);
-    checkCudaErrors( cudaMemcpy(gpuarrays->d_ext_data, extsig, (params->extlen)*sizeof(float2), cudaMemcpyHostToDevice));
-    free(extsig);
-  }
+	if (cmdargs->norm){
+		//  PRESTO block median normalization
+		// TODO: replace with GPU version
+		float2 *extsig;
+		extsig = (float2*)malloc((params->extlen)*sizeof(float2));
+		checkCudaErrors( cudaMemcpy(extsig, gpuarrays->d_ext_data, (params->extlen)*sizeof(float2), cudaMemcpyDeviceToHost));
+		for(int b=0; b<params->nblocks; ++b)
+			presto_norm(extsig+b*KERNLEN, KERNLEN);
+		checkCudaErrors( cudaMemcpy(gpuarrays->d_ext_data, extsig, (params->extlen)*sizeof(float2), cudaMemcpyHostToDevice));
+		free(extsig);
+	}
 
-  // Custom FFT convolution kernel
-  if(cmdargs->inbin){
-    cuda_convolve_customfft_wes_no_reorder02_inbin<<< params->nblocks, KERNLEN >>>( gpuarrays->d_kernel, gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, params->sigblock, params->extlen, params->siglen, params->offset, params->scale, gpuarrays->ip_edge_points);
-  }
-  else{
-    cuda_convolve_customfft_wes_no_reorder02<<< params->nblocks, KERNLEN >>>( gpuarrays->d_kernel, gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, params->sigblock, params->extlen, params->siglen, params->offset, params->scale);
-    //cuda_convolve_customfft_wes_no_reorder02<<< params->nblocks, KERNLEN >>>( gpuarrays->d_kernel, gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, params->sigblock, params->extlen, params->siglen, params->offset, params->scale);
-	
-	//-------------------------------------------
-	dim3 gridSize(1, 1, 1);
-	dim3 blockSize(1, 1, 1);
-	/*
-	//-------------------------------------------
-	//Two elements per thread
-	gridSize.x = params->nblocks;
-	gridSize.y = 1;
-	gridSize.z = 1;
-	blockSize.x = KERNLEN/2;
-	GPU_CONV_kFFT_mk11_2elem_2v<<<gridSize,blockSize>>>(gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, gpuarrays->d_kernel, params->sigblock, params->offset, params->nblocks, params->scale);
-	*/
-	
-	//-------------------------------------------
-	//Four elements per thread
-	gridSize.x = params->nblocks;
-	gridSize.y = 1;
-	gridSize.z = 1;
-	blockSize.x = KERNLEN/4;
-	GPU_CONV_kFFT_mk11_4elem_2v<<<gridSize,blockSize>>>(gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, gpuarrays->d_kernel, params->sigblock, params->offset, params->nblocks, params->scale);
-	
-  }
+	// Custom FFT convolution kernel
+	if(cmdargs->inbin){
+		cuda_convolve_customfft_wes_no_reorder02_inbin<<< params->nblocks, KERNLEN >>>( gpuarrays->d_kernel, gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, params->sigblock, params->extlen, params->siglen, params->offset, params->scale, gpuarrays->ip_edge_points);
+	}
+	else{
+		//cuda_convolve_customfft_wes_no_reorder02<<< params->nblocks, KERNLEN >>>( gpuarrays->d_kernel, gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, params->sigblock, params->extlen, params->siglen, params->offset, params->scale);
+		
+		//-------------------------------------------
+		dim3 gridSize(1, 1, 1);
+		dim3 blockSize(1, 1, 1);
+		
+		/*
+		//-------------------------------------------
+		//Two elements per thread
+		gridSize.x = params->nblocks;
+		gridSize.y = 1;
+		gridSize.z = 1;
+		blockSize.x = KERNLEN/2;
+		GPU_CONV_kFFT_mk11_2elem_2v<<<gridSize,blockSize>>>(gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, gpuarrays->d_kernel, params->sigblock, params->offset, params->nblocks, params->scale);
+		*/
+		
+		//-------------------------------------------
+		//Four elements per thread
+		gridSize.x = params->nblocks;
+		gridSize.y = 1;
+		gridSize.z = 1;
+		blockSize.x = KERNLEN/4;
+		GPU_CONV_kFFT_mk11_4elem_2v<<<gridSize,blockSize>>>(gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, gpuarrays->d_kernel, params->sigblock, params->offset, params->nblocks, params->scale);
+	}
 }
 #endif
 
