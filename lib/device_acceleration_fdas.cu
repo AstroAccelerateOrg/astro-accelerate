@@ -294,7 +294,7 @@ void acceleration_fdas(int range,
 				
 				acc_sig.freq0 = 105.5;
 				acc_sig.nsamps = processed;
-				acc_sig.zval = 5;
+				acc_sig.zval = 6;
 				acc_sig.nharms = 4;
 				acc_sig.duty = 1.0/100.0;
 				acc_sig.sigamp = 1.0;
