@@ -124,10 +124,12 @@ void fdas_free_gpu_arrays(fdas_gpuarrays *arrays,  cmd_args *cmdargs)
 	// Added by KA
 	cudaFree(arrays->d_fdas_peak_list);
 }
+
 /*
 void fdas_create_acc_sig(fdas_new_acc_sig *acc_sig, cmd_args *cmdargs)
 /* Create accelerated signal with given parameters in a float array */
-/*{
+/*
+{
   double t0, tau;
   double omega = 2*M_PI*acc_sig->freq0;
   double accel;
@@ -164,6 +166,7 @@ void fdas_create_acc_sig(fdas_new_acc_sig *acc_sig, cmd_args *cmdargs)
   free(acc_sig->acc_signal);
 }
 */
+
 
 void fdas_create_acc_kernels(cufftComplex* d_kernel, cmd_args *cmdargs )
 {
@@ -202,7 +205,7 @@ void fdas_create_acc_kernels(cufftComplex* d_kernel, cmd_args *cmdargs )
   }
   
 	//!TEST!: replace templates here. Template width: numkern; padded width: KERNLEN
-	#ifdef FDAS_TEST
+	#ifdef FDAS_CONV_TEST
 	for (ii = 0; ii < NKERN; ii++){
 		int boxcar_width=ii*2;
 		for(int f=0; f<KERNLEN; f++){
@@ -288,7 +291,24 @@ void fdas_cuda_basic(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cmd_ar
     inbin = 1;
   */
   //real fft
+  #ifndef FDAS_CONV_TEST
   cufftExecR2C(fftplans->realplan, gpuarrays->d_in_signal, gpuarrays->d_fft_signal);
+  #endif
+  
+	#ifdef FDAS_CONV_TEST
+	float2 *f2temp;
+	float *ftemp;
+	ftemp  = (float *)malloc(params->rfftlen*sizeof(float));
+	f2temp = (float2 *)malloc(params->rfftlen*sizeof(float2));
+	checkCudaErrors( cudaMemcpy(ftemp, gpuarrays->d_in_signal, (params->rfftlen)*sizeof(float), cudaMemcpyDeviceToHost));
+	for(int f=0; f<params->rfftlen; f++){
+		f2temp[f].x = ftemp[f];
+		f2temp[f].y = 0;
+	}
+	checkCudaErrors( cudaMemcpy(gpuarrays->d_fft_signal, f2temp, (params->rfftlen)*sizeof(float2), cudaMemcpyHostToDevice));
+	free(ftemp);
+	free(f2temp);
+	#endif
 
   if (cmdargs->norm){
     //  PRESTO deredden - remove red noise.
@@ -347,11 +367,11 @@ void fdas_cuda_customfft(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cm
 	dim3 cblocks(params->nblocks, NKERN/2); 
 
 	//real fft
-	#ifndef FDAS_TEST
+	#ifndef FDAS_CONV_TEST
 	cufftExecR2C(fftplans->realplan, gpuarrays->d_in_signal, gpuarrays->d_fft_signal);
 	#endif
 
-	#ifdef FDAS_TEST
+	#ifdef FDAS_CONV_TEST
 	float2 *f2temp;
 	float *ftemp;
 	ftemp  = (float *)malloc(params->rfftlen*sizeof(float));
@@ -621,11 +641,7 @@ void fdas_write_test_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_pa
 
   FILE *fp_c;
   char pfname[200];
-//  char *infilename;
-//  infilename = basename(cmdargs->afname);
-// filename needs to be acc_dm_%f, dm_low[i] + ((float)dm_count)*dm_step[i]
-  //sprintf(pfname, "%s/out_inbin%d_%s",dirname,ibin,infilename);
-  sprintf(pfname, "acc_%f.dat", dm_low + ((float)dm_count)*dm_step);
+  sprintf(pfname, "acc_fdas_conv_test.dat");
   printf("\nwriting results to file %s\n",pfname);
   if ((fp_c=fopen(pfname, "w")) == NULL) {
     fprintf(stderr, "Error opening %s file for writing: %s\n",pfname, strerror(errno));
