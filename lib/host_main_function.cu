@@ -261,7 +261,7 @@ void main_function
 		
 			checkCudaErrors(cudaGetLastError());
 			
-			if ( (enable_acceleration == 1) || (analysis_debug ==1) )
+			if ( (enable_acceleration == 1) || (enable_periodicity == 1) || (analysis_debug ==1) )
 			{
 				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
 				//save_data(d_output, out_tmp, gpu_outputsize);
