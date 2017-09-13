@@ -24,8 +24,12 @@
 #include "headers/device_threshold.h" //Added by KA
 #include "headers/device_single_FIR.h" //Added by KA
 #include "headers/device_analysis.h" //Added by KA
-
+#include "headers/device_periods.h" //Added by KA
 #include "headers/device_peak_find.h" //Added by KA
+#include "headers/device_power.h"
+#include "headers/device_harmonic_summing.h"
+
+
 
 #include "headers/device_load_data.h"
 #include "headers/device_corner_turn.h"
@@ -138,7 +142,8 @@ void main_function
 	float *selected_dm_low,
 	float *selected_dm_high,
 	int analysis_debug,
-	int failsafe
+	int failsafe,
+	int nHarmonics
 	)
 {
 
@@ -363,7 +368,7 @@ void main_function
 		GpuTimer timer;
 		timer.Start();
 		//
-		periodicity(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
+		GPU_periodicity(range, nsamp, max_ndms, inc, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, nHarmonics);
 		//
 		timer.Stop();
 		float time = timer.Elapsed()/1000;
