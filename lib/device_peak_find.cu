@@ -37,3 +37,13 @@ void PEAK_FIND_FOR_FDAS(float *d_ffdot_plane, float *d_peak_list, float *d_MSD, 
 	
 	dilate_peak_find_for_fdas<<<gridSize, blockDim>>>( d_ffdot_plane, d_peak_list, d_MSD, nTimesamples, nDMs, 0, threshold, max_peak_size, gmem_peak_pos, DM_trial);
 }
+
+void Peak_find_for_periodicity_search(float *d_input_SNR, ushort *d_input_harmonics, float *d_peak_list, int nDMs, int nTimesamples, float threshold, int max_peak_size, int *gmem_peak_pos, int shift){
+	dim3 blockDim(2, 32, 1);
+	dim3 gridSize(1 + ((nTimesamples-1)/blockDim.x), 1 + ((nDMs-1)/blockDim.y), 1);
+	
+	printf("gridSize=(%d,%d,%d)\n", gridSize.x, gridSize.y, gridSize.z);
+	printf("blockDim=(%d,%d,%d)\n", blockDim.x, blockDim.y, blockDim.z);
+	
+	dilate_peak_find_for_periods<<<gridSize, blockDim>>>(d_input_SNR, d_input_harmonics, d_peak_list, nTimesamples, nDMs, 0, threshold, max_peak_size, gmem_peak_pos, shift, 1);
+}

@@ -346,7 +346,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	printf("     Dimensions nDMs:%d; nTimesamples:%d; inBin:%d; outBin:%d; maxshift:%d; \n", ndms[i], t_processed, inBin, outBin, *maxshift);
 	GpuTimer timer;
 	
-	float h_MSD[3];
+	//float h_MSD[3];
 	float *d_MSD;
 	checkCudaErrors(cudaGetLastError());
 	if ( cudaSuccess != cudaMalloc((void**) &d_MSD, sizeof(float)*3)) {printf("Allocation error!\n"); exit(201);}

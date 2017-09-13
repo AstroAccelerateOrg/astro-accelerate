@@ -53,3 +53,14 @@
 #define SDIVINT 14
 #define SDIVINDM 40
 #define SFDIVINDM 40.0f
+
+// for corner turn in shared memory corner_turn_SM(...)
+#define CT_NTHREADS 512
+#define CT_ROWS_PER_WARP 2
+#define CT_CORNER_BLOCKS 1
+
+// for periodicity harmonic summing
+#define PHS_NTHREADS 64
+
+// for power and interbin calculation
+#define PAI_NTHREADS 512

@@ -1,9 +1,11 @@
-//#include <omp.h>
 #include <stdio.h>
 #include <cufft.h>
 #include "headers/params.h"
 #include "device_power_kernel.cu"
 #include "helper_cuda.h"
+
+// define for debug info
+//#define POWER_DEBUG
 
 //{{{ Dopler Stretch 
 
@@ -26,3 +28,22 @@ void power_gpu(cudaEvent_t event, cudaStream_t stream, int samps, int acc, cufft
 
 //}}}
 
+
+void simple_power_and_interbin(float2 *d_input, float *d_power_output, float *d_interbin_output, int nTimesamples, int nDMs){
+	int n_blocks_x, n_blocks_y, itemp;
+	
+	n_blocks_x = (nTimesamples>>1)/PAI_NTHREADS;
+	n_blocks_y = nDMs;
+	itemp = (nTimesamples>>1) - n_blocks_x*PAI_NTHREADS;
+	if (itemp>0) n_blocks_x++;
+	
+	dim3 blockDim(PAI_NTHREADS, 1, 1);
+	dim3 gridSize(n_blocks_x ,n_blocks_y , 1);
+	
+	#ifdef POWER_DEBUG
+	printf("gridSize=(%d,%d,%d)\n", gridSize.x, gridSize.y, gridSize.z);
+	printf("blockDim=(%d,%d,%d)\n", blockDim.x, blockDim.y, blockDim.z);
+	#endif
+	
+	GPU_simple_power_and_interbin_kernel<<<gridSize,blockDim>>>(d_input, d_power_output, d_interbin_output, nTimesamples);
+}
