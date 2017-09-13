@@ -286,22 +286,6 @@ void acceleration_fdas(int range,
 						output_buffer[i][dm_count][f + 11626] = 10.0;
 					}
 				}
-				
-				//float2 *d_f2temp, *h_f2temp;
-				//float  *d_ftemp,  *h_ftemp;
-				//checkCudaErrors(cudaMalloc((void **) &d_ftemp,  sizeof(float)*processed));
-				//checkCudaErrors(cudaMalloc((void **) &d_f2temp, sizeof(float2)*processed));
-				//h_ftemp  = (float *)malloc(processed*sizeof(float));
-				//h_f2temp = (float2 *)malloc(processed*sizeof(float2));
-                //
-				//if (cufftPlan1d(&plan_templates, CONV_SIZE, CUFFT_R2C, nTemplates) != CUFFT_SUCCESS) printf("CUFFT error: %d", error);
-				//cufftExecC2C(plan_templates, (cufftComplex *)d_template, (cufftComplex *)d_template, CUFFT_FORWARD);
-				//cufftDestroy(plan_templates);
-				//
-				//checkCudaErrors(cudaFree(d_ftemp));
-				//checkCudaErrors(cudaFree(d_f2temp));
-				//checkCudaErrors(cudaFree(d_temp));
-				//checkCudaErrors(cudaFree(d_temp))
 				#endif
 				//!TEST!: put test signal here
 				

@@ -89,6 +89,8 @@ int main(int argc, char* argv[])
 	float sigma_cutoff = 6.0f;
 	float sigma_constant = 4.0f;
 	float max_boxcar_width_in_sec = 0.5f;
+	// Periodicity search
+	int nHarmonics = 1;
 
 	// Timing parameters
 	clock_t start_time = clock();
@@ -161,7 +163,9 @@ int main(int argc, char* argv[])
 	  tsamp_original, inc, tstart, tstart_local, tsamp, fch1, foff,
 	  // Analysis variables
 	  power, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, start_time, candidate_algorithm,
-	  nb_selected_dm, selected_dm_low, selected_dm_high, analysis_debug, failsafe
+	  nb_selected_dm, selected_dm_low, selected_dm_high, analysis_debug, failsafe,
+	  // Periodicity search
+	  nHarmonics
 	);
 
 	// write output here, not in the library
