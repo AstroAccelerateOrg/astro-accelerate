@@ -1,5 +1,5 @@
 //Added by Karel Adamek
-#define HS_DEBUG
+//#define HS_DEBUG
 
 #include "headers/params.h"
 #include "device_harmonic_summing_kernel.cu"

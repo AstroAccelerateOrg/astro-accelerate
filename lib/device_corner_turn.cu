@@ -75,7 +75,7 @@ int corner_turn(float *d_input, float *d_output, int primary_size, int secondary
 
 int corner_turn_SM(float *d_input, float *d_output, int primary_size, int secondary_size){
 	//---------> Task specific
-	int nBlocks_x, nBlocks_y, nRest, Elements_per_block, ut;
+	int nBlocks_x, nBlocks_y, nRest, Elements_per_block;
 
 	Elements_per_block=CT_CORNER_BLOCKS*WARP;
 	nBlocks_x=primary_size/Elements_per_block;
