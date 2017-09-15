@@ -33,9 +33,9 @@ void simple_power_and_interbin(float2 *d_input, float *d_power_output, float *d_
 	int n_blocks_x, n_blocks_y, itemp;
 	
 	n_blocks_x = (nTimesamples>>1)/PAI_NTHREADS;
-	n_blocks_y = nDMs;
 	itemp = (nTimesamples>>1) - n_blocks_x*PAI_NTHREADS;
 	if (itemp>0) n_blocks_x++;
+	n_blocks_y = nDMs;
 	
 	dim3 blockDim(PAI_NTHREADS, 1, 1);
 	dim3 gridSize(n_blocks_x ,n_blocks_y , 1);
@@ -45,5 +45,5 @@ void simple_power_and_interbin(float2 *d_input, float *d_power_output, float *d_
 	printf("blockDim=(%d,%d,%d)\n", blockDim.x, blockDim.y, blockDim.z);
 	#endif
 	
-	GPU_simple_power_and_interbin_kernel<<<gridSize,blockDim>>>(d_input, d_power_output, d_interbin_output, nTimesamples);
+	GPU_simple_power_and_interbin_kernel<<<gridSize,blockDim>>>(d_input, d_power_output, d_interbin_output, nTimesamples, sqrt(nTimesamples));
 }
