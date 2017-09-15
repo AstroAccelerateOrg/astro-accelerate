@@ -88,6 +88,7 @@ void main_function
 	float *selected_dm_high,
 	int analysis_debug,
 	int failsafe,
-	int nHarmonics
+	float periodicity_sigma_cutoff,
+	int periodicity_nHarmonics
 	);
 #endif
