@@ -263,6 +263,29 @@ __global__ void MSD_GPU_final_regular(float *d_input, float *d_output, int size)
 	}
 }
 
+__global__ void MSD_GPU_final_regular(float *d_input, float *d_output, float *d_pp, int size) {
+	__shared__ float s_input[3*WARP*WARP];
+
+	float M, S, j;
+	
+	Sum_partials_regular( &M, &S, &j, d_input, s_input, size);
+
+	if(d_pp[2]>0){
+		Merge(&M, &S, &j, d_pp[0], d_pp[1], d_pp[2]);
+	}
+	
+	//----------------------------------------------
+	//---- Writing data
+	if (threadIdx.x == 0) {
+		d_output[0] = M / j;
+		d_output[1] = sqrt(S / j);
+		d_output[2] = j;
+		d_pp[0] = M;
+		d_pp[1] = S;
+		d_pp[2] = j;
+	}
+}
+
 
 __global__ void MSD_GPU_final_nonregular(float *d_input, float *d_MSD, int size) {
 	__shared__ float s_input[3*WARP*WARP];
