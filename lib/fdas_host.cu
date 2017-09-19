@@ -8,6 +8,7 @@
 #include <math.h>
 #include "headers/fdas_host.h"
 #include "headers/params.h"
+#include "headers/fdas_test_parameters.h"
 //#include <helper_functions.h>
 #include <helper_cuda.h>
 #include <curand.h>
@@ -207,7 +208,7 @@ void fdas_create_acc_kernels(cufftComplex* d_kernel, cmd_args *cmdargs )
 	//!TEST!: replace templates here. Template width: numkern; padded width: KERNLEN
 	#ifdef FDAS_CONV_TEST
 	for (ii = 0; ii < NKERN; ii++){
-		int boxcar_width=ii*2;
+		int boxcar_width=ii*FDAS_TEST_FILTER_INCREMENT;
 		for(int f=0; f<KERNLEN; f++){
 			h_kernel[ii*KERNLEN + f].x = 0;
 			h_kernel[ii*KERNLEN + f].y = 0;

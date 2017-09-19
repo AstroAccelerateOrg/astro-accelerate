@@ -12,6 +12,7 @@
 #include <cuda_profiler_api.h>
 //
 #include "headers/params.h"
+#include "headers/fdas_test_parameters.h"
 #include "helper_cuda.h"
 #include "headers/fdas.h"
 #include "headers/fdas_host.h"
@@ -262,7 +263,7 @@ void acceleration_fdas(int range,
 				for(int f=0; f<processed; f++) output_buffer[i][dm_count][f]=rand() / (float)RAND_MAX;
 				
 				for(int f=15000; f<processed; f++){
-					output_buffer[i][dm_count][f] = (f%4096)/500.0;
+					output_buffer[i][dm_count][f] = (f%FDAS_TEST_TOOTH_LENGTH)/500.0;
 				}
 				
 				if (processed>15000){
@@ -292,12 +293,12 @@ void acceleration_fdas(int range,
 				double acc_sig_snr = 1.0;
 				fdas_new_acc_sig acc_sig;
 				
-				acc_sig.freq0 = 105.5;
+				acc_sig.freq0 = FDAS_TEST_FREQUENCY;
 				acc_sig.nsamps = processed;
-				acc_sig.zval = 6;
-				acc_sig.nharms = 4;
-				acc_sig.duty = 1.0/100.0;
-				acc_sig.sigamp = 1.0;
+				acc_sig.zval = FDAS_TEST_ZVALUE;
+				acc_sig.nharms = FDAS_TEST_HAMONICS;
+				acc_sig.duty = FDAS_TEST_DUTY_CYCLE/100.0;
+				acc_sig.sigamp = FDAS_TEST_SIGNAL_AMPLITUDE;
 				
 				double t0, tau;
 				double omega = 2*M_PI*acc_sig.freq0;
