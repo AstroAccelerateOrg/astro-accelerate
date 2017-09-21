@@ -49,46 +49,130 @@ public:
 	}
 };
 
-void Export_data_in_range(float *GPU_data, int nTimesamples, int nDMs, int DM_start, int DM_end, const char *filename, float dm_step, float dm_low) {
+void Export_data_in_range(float *GPU_data, int nTimesamples, int nDMs, const char *filename, float dm_step, float dm_low, float sampling_time, int outer_DM_shift, int DMs_per_file=100) {
+	char final_filename[100];
 	std::ofstream FILEOUT;
+	int lower, higher, inner_DM_shift;
+	int data_mod = 3;
+	if(DMs_per_file<0) DMs_per_file=nDMs;
 	
-	float *h_temp;
-	h_temp = new float[nTimesamples*nDMs];
-	cudaMemcpy(h_temp, GPU_data, nTimesamples*nDMs*sizeof(float), cudaMemcpyDeviceToHost);
+	float *h_data, *h_export;
+	size_t data_size = ((size_t) nTimesamples)*((size_t) nDMs);
+	size_t export_size = ((size_t) nTimesamples)*((size_t) DMs_per_file)*data_mod;
+	h_data = new float[data_size];
+	h_export = new float[export_size];
 	
-	FILEOUT.open (filename, std::ofstream::out);
-	if(DM_start==DM_end) DM_end++;
-	for(int dm=DM_start; dm<DM_end; dm++){
-		for(int t=0; t<nTimesamples; t++){
-			FILEOUT << t << " " << (dm*dm_step + dm_low) << " " << GPU_data[dm*nTimesamples + t] << std::endl;
+	checkCudaErrors(cudaMemcpy(h_data, GPU_data, data_size*sizeof(float), cudaMemcpyDeviceToHost));
+	
+	int nRepeats = nDMs/DMs_per_file;
+	int nRest = nDMs%DMs_per_file;
+	std::vector<int> chunk_size;
+	for(int f=0; f<nRepeats; f++) chunk_size.push_back(DMs_per_file);
+	if(nRest>0) chunk_size.push_back(nRest);
+	printf("Data will be exported into %d files\n", (int) chunk_size.size());
+	
+	inner_DM_shift = 0;
+	for(int i=0; i<(int) chunk_size.size(); i++){
+		lower = outer_DM_shift + inner_DM_shift;
+		higher = outer_DM_shift + inner_DM_shift + chunk_size[i];
+		sprintf(final_filename,"%s_%f_%f.dat", filename, lower*dm_step+dm_low, higher*dm_step+dm_low);
+		printf("Exporting file %s\n", final_filename);
+		
+		//for(int dm = 0; dm<chunk_size[i]; dm++){
+		//	for(int t=0; t<nTimesamples; t++){
+		//		int pos = dm*nTimesamples + t;
+		//		h_export[data_mod*pos] = (float) t;
+		//		h_export[data_mod*pos + 1] = (lower + dm)*dm_step + dm_low;
+		//		h_export[data_mod*pos + 2] = h_data[(inner_DM_shift+dm)*nTimesamples + t];
+		//	}
+		//}
+		
+		FILEOUT.open (final_filename, std::ofstream::out);
+		for(int dm = 0; dm<chunk_size[i]; dm++){
+			for(int t=0; t<nTimesamples; t++){
+				FILEOUT << t*(1.0/(sampling_time*nTimesamples)) << " " << (lower + dm)*dm_step + dm_low << " " << h_data[(inner_DM_shift+dm)*nTimesamples + t] << std::endl;
+			}
+			FILEOUT << std::endl;
+			FILEOUT << std::endl;
 		}
-		FILEOUT << std::endl;
-		FILEOUT << std::endl;
+		FILEOUT.close();
+		
+		//FILE *fp_out;
+		//if (( fp_out = fopen(final_filename, "wb") ) == NULL)	{
+		//	fprintf(stderr, "Error opening output file!\n");
+		//	exit(0);
+		//}
+		//fwrite(h_export, nTimesamples*chunk_size[i]*sizeof(float), 3, fp_out);
+		//fclose(fp_out);
+		
+		inner_DM_shift = inner_DM_shift + chunk_size[i];
 	}
-	FILEOUT.close();
 	
-	delete [] h_temp;
+	delete [] h_data;
+	delete [] h_export;
 }
 
-void Export_data_in_range(float2 *GPU_data, int nTimesamples, int nDMs, int DM_start, int DM_end, const char *filename, float dm_step, float dm_low) {
+void Export_data_in_range(float2 *GPU_data, int nTimesamples, int nDMs, const char *filename, float dm_step, float dm_low, float sampling_time, int outer_DM_shift, int DMs_per_file=100) {
+	char final_filename[100];
 	std::ofstream FILEOUT;
-
-	float *h_temp;
-	h_temp = new float[nTimesamples*nDMs];
-	cudaMemcpy(h_temp, GPU_data, nTimesamples*nDMs*sizeof(float), cudaMemcpyDeviceToHost);
+	int lower, higher, inner_DM_shift;
+	int data_mod = 4;
+	if(DMs_per_file<0) DMs_per_file=nDMs;
 	
-	FILEOUT.open (filename, std::ofstream::out);
-	if(DM_start==DM_end) DM_end++;
-	for(int dm=DM_start; dm<DM_end; dm++){
-		for(int t=0; t<nTimesamples; t++){
-			FILEOUT << t << " " << (dm*dm_step + dm_low) << " " << GPU_data[dm*nTimesamples + t].x << " " << GPU_data[dm*nTimesamples + t].y << std::endl;
+	float2 *h_data, *h_export;
+	size_t data_size = ((size_t) nTimesamples)*((size_t) nDMs);
+	size_t export_size = ((size_t) nTimesamples)*((size_t) DMs_per_file)*data_mod;
+	h_data = new float2[data_size];
+	h_export = new float2[export_size];
+	
+	checkCudaErrors(cudaMemcpy(h_data, GPU_data, data_size*sizeof(float2), cudaMemcpyDeviceToHost));
+	
+	int nRepeats = nDMs/DMs_per_file;
+	int nRest = nDMs%DMs_per_file;
+	std::vector<int> chunk_size;
+	for(int f=0; f<nRepeats; f++) chunk_size.push_back(DMs_per_file);
+	if(nRest>0) chunk_size.push_back(nRest);
+	printf("Data will be exported into %d files\n", (int) chunk_size.size());
+	
+	inner_DM_shift = 0;
+	for(int i=0; i<(int) chunk_size.size(); i++){
+		lower = outer_DM_shift + inner_DM_shift;
+		higher = outer_DM_shift + inner_DM_shift + chunk_size[i];
+		sprintf(final_filename,"%s_%f_%f.dat", filename, lower*dm_step+dm_low, higher*dm_step+dm_low);
+		printf("Exporting file %s\n", final_filename);
+		
+		//for(int dm = 0; dm<chunk_size[i]; dm++){
+		//	for(int t=0; t<nTimesamples; t++){
+		//		int pos = dm*nTimesamples + t;
+		//		h_export[data_mod*pos] = (float) t;
+		//		h_export[data_mod*pos + 1] = (lower + dm)*dm_step + dm_low;
+		//		h_export[data_mod*pos + 2] = h_data[(inner_DM_shift+dm)*nTimesamples + t];
+		//	}
+		//}
+		
+		FILEOUT.open (final_filename, std::ofstream::out);
+		for(int dm = 0; dm<chunk_size[i]; dm++){
+			for(int t=0; t<nTimesamples; t++){
+				FILEOUT << t*(1.0/(sampling_time*nTimesamples)) << " " << (lower + dm)*dm_step + dm_low << " " << h_data[(inner_DM_shift+dm)*nTimesamples + t].x << " " << h_data[(inner_DM_shift+dm)*nTimesamples + t].y << std::endl;
+			}
+			FILEOUT << std::endl;
+			FILEOUT << std::endl;
 		}
-		FILEOUT << std::endl;
-		FILEOUT << std::endl;
+		FILEOUT.close();
+		
+		//FILE *fp_out;
+		//if (( fp_out = fopen(final_filename, "wb") ) == NULL)	{
+		//	fprintf(stderr, "Error opening output file!\n");
+		//	exit(0);
+		//}
+		//fwrite(h_export, nTimesamples*chunk_size[i]*sizeof(float), 3, fp_out);
+		//fclose(fp_out);
+		
+		inner_DM_shift = inner_DM_shift + chunk_size[i];
 	}
-	FILEOUT.close();
 	
-	delete [] h_temp;
+	delete [] h_data;
+	delete [] h_export;
 }
 
 void Process_and_export_data_to_file(float *data, int size, const char *filename, int nTimesamples, float sampling_time, float dm_step, float dm_low ){
@@ -308,11 +392,11 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 				//---------<
 				
 				//-----------------------------------------------------------------------------------
-				if(i==0 && dm==0 && export_data) Export_data_in_range(d_one_A, nTimesamples, nDMs, 483, 493, "Input_data.dat", dm_step[i], dm_low[i]);
+				//if(i==0 && dm==0 && export_data) Export_data_in_range(d_one_A, nTimesamples, DMs_per_cycle, "Input_data", dm_step[i], dm_low[i], DM_shift);
 				//-----------------------------------------------------------------------------------
 				
 				//-----------------------------------------------------------------------------------
-				if(i==0 && dm==0 && export_data) Export_data_in_range(d_two_B, ((nTimesamples>>1)+1), nDMs, 483, 493, "FFT_data.dat", dm_step[i], dm_low[i]);
+				if(i==0 && dm==0 && export_data) Export_data_in_range((float2 *) d_two_B, ((nTimesamples>>1)+1), DMs_per_cycle, "FFT_data", dm_step[i], dm_low[i], tsamp, DM_shift);
 				//-----------------------------------------------------------------------------------
 				
 				checkCudaErrors(cudaGetLastError());
@@ -327,11 +411,11 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 				//---------<
 				
 				//-----------------------------------------------------------------------------------
-				if(i==0 && dm==0 && export_data) Export_data_in_range(d_half_C, nTimesamples/2, nDMs, 483, 493, "power_data.dat", dm_step[i], dm_low[i]);
+				if(i==0 && dm==0 && export_data) Export_data_in_range(d_half_C, nTimesamples/2, DMs_per_cycle, "power_data", dm_step[i], dm_low[i], tsamp, DM_shift);
 				//-----------------------------------------------------------------------------------
 				
 				//-----------------------------------------------------------------------------------
-				if(i==0 && dm==0 && export_data) Export_data_in_range(d_one_A, nTimesamples, nDMs, 483, 493, "Interbin_data.dat", dm_step[i], dm_low[i]);
+				//if(i==0 && dm==0 && export_data) Export_data_in_range(d_one_A, nTimesamples, DMs_per_cycle, "Interbin_data", dm_step[i], dm_low[i], tsamp DM_shift);
 				//-----------------------------------------------------------------------------------
 				
 				checkCudaErrors(cudaGetLastError());
