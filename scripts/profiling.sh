@@ -43,9 +43,9 @@ do
 	done
 done
 
-optimum=$(grep "Real" * | awk -F" " '{print $4" "$1}' | sort -n | tail -1 | awk -F" " '{print $2}' | awk -F"." '{print $1".h"}')
+optimum=$(grep "Real" profile_results/* | awk -F" " '{print $4" "$1}' | sort -n | tail -1 | awk -F" " '{print $2}' | awk -F"." '{print $1".h"}')
 
-cp profile_results/$optimum ../lib/headers/params.h
+cp $optimum ../lib/headers/params.h
 cd ../lib
 pwd
 make clean
