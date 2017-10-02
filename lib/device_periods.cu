@@ -16,10 +16,10 @@
 // define to see debug info
 #define GPU_PERIODICITY_SEARCH_DEBUG
 
-// define to reuse old MSD results to generate a new one (it means new MSD is calculated from more samples)
-#define PS_REUSE_MSD
+// define to reuse old MSD results to generate a new one (it means new MSD is calculated from more samples) (NOT WORKING PROPERLY)
+//#define PS_REUSE_MSD
 
-// define to use rescaling of the previous results to the final value of MSD. It is useless without PS_REUSE_MSD defined
+// define to use rescaling of the previous results to the final value of MSD. It is useless without PS_REUSE_MSD defined (NOT WORKING PROPERLY)
 //#define PS_RESCALE_AND_THRESHOLD_LIST
 
 class Candidate_list {
@@ -193,7 +193,7 @@ void Process_and_export_data_to_file(float *data, int size, const char *filename
 	}
 }
 
-void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float sigma_cutoff, float ***output_buffer, int *ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp, int nHarmonics) {
+void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float sigma_cutoff, float ***output_buffer, int *ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp, int nHarmonics, int candidate_algorithm) {
 	// processed = maximum number of time-samples through out all ranges
 	// nTimesamples = number of time-samples in given range 'i'
 	// TODO:
@@ -313,7 +313,6 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 	
 	int local_max_list_size = (input_plane_size)/4; //maximum number of peaks per batch
 	
-	#ifndef PS_RESCALE_AND_THRESHOLD_LIST
 	float *h_all_power_peaks, *h_all_interbin_peaks;
 	h_all_power_peaks  = (float *)malloc(input_plane_size*sizeof(float));  // this might be too much, but it is very conservative assumption
 	h_all_interbin_peaks  = (float *)malloc(input_plane_size*2*sizeof(float));  // this might be too much, but it is very conservative assumption
@@ -321,18 +320,13 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 	size_t max_host_interbin_peaks = (input_plane_size*2)/4;
 	size_t host_power_peak_pos;
 	size_t host_interbin_peak_pos;
-	#endif
+	
 	int temp_host_power_peak_pos, temp_host_interbin_peak_pos;
 
 	
 	for (int i = 0; i < range; i++) {
 		calc_time_per_range = 0; copy_time_per_range = 0;
-		#ifdef PS_RESCALE_AND_THRESHOLD_LIST
-		std::vector<Candidate_list> power_list;
-		std::vector<Candidate_list> interbin_list;
-		#else
 		host_power_peak_pos = 0; host_interbin_peak_pos = 0;
-		#endif
 		
 		nTimesamples = processed/inBin[i];
 		nDMs = ndms[i];
@@ -354,11 +348,6 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 		if(DM_list.size()>0){
 			DM_shift = 0;
 			for(int dm=0; dm<DM_list.size(); dm++) {
-				#ifdef PS_RESCALE_AND_THRESHOLD_LIST
-				Candidate_list local_power_list;
-				Candidate_list local_interbin_list;
-				#endif
-				
 				DMs_per_cycle = DM_list[dm];
 				printf("\tBatch %d contains %d DM trials.\n",dm,DMs_per_cycle);
 				
@@ -466,10 +455,20 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 				
 				//---------> Peak finding
 				timer.Start();
-				//Peak_find_for_periodicity_search(d_half_C, d_power_harmonics, &d_two_B[0], (nTimesamples>>1), DMs_per_cycle, per_param.sigma_cutoff, local_max_list_size, gmem_power_peak_pos, DM_shift);
-				//Peak_find_for_periodicity_search(d_one_A, d_interbin_harmonics, &d_two_B[input_plane_size], nTimesamples, DMs_per_cycle, per_param.sigma_cutoff, local_max_list_size, gmem_interbin_peak_pos, DM_shift);				
-				Peak_find_for_periodicity_search(d_power_SNR, d_power_harmonics, d_power_list, (nTimesamples>>1), DMs_per_cycle, per_param.sigma_cutoff, local_max_list_size, gmem_power_peak_pos, DM_shift);
-				Peak_find_for_periodicity_search(d_interbin_SNR, d_interbin_harmonics, d_interbin_list, nTimesamples, DMs_per_cycle, per_param.sigma_cutoff, local_max_list_size, gmem_interbin_peak_pos, DM_shift);
+				if(candidate_algorithm==1){
+					//-------------- Thresholding
+					Threshold_for_periodicity(d_power_SNR, d_power_harmonics, d_power_list, gmem_power_peak_pos, per_param.sigma_cutoff, DMs_per_cycle, (nTimesamples>>1), DM_shift, local_max_list_size);
+					Threshold_for_periodicity(d_interbin_SNR, d_interbin_harmonics, d_interbin_list, gmem_interbin_peak_pos, per_param.sigma_cutoff, DMs_per_cycle, nTimesamples, DM_shift, local_max_list_size);
+					//-------------- Thresholding
+				}
+				else {
+					//-------------- Peak finding
+					//Peak_find_for_periodicity_search(d_half_C, d_power_harmonics, &d_two_B[0], (nTimesamples>>1), DMs_per_cycle, per_param.sigma_cutoff, local_max_list_size, gmem_power_peak_pos, DM_shift);
+					//Peak_find_for_periodicity_search(d_one_A, d_interbin_harmonics, &d_two_B[input_plane_size], nTimesamples, DMs_per_cycle, per_param.sigma_cutoff, local_max_list_size, gmem_interbin_peak_pos, DM_shift);
+					Peak_find_for_periodicity_search(d_power_SNR, d_power_harmonics, d_power_list, (nTimesamples>>1), DMs_per_cycle, per_param.sigma_cutoff, local_max_list_size, gmem_power_peak_pos, DM_shift);
+					Peak_find_for_periodicity_search(d_interbin_SNR, d_interbin_harmonics, d_interbin_list, nTimesamples, DMs_per_cycle, per_param.sigma_cutoff, local_max_list_size, gmem_interbin_peak_pos, DM_shift);
+					//-------------- Peak finding
+				}
 				/*
 				SNR_limited(d_half_C, &d_two_B[0], d_power_harmonics, d_MSD, 1, DMs_per_cycle, (nTimesamples>>1), 0);
 				SNR_limited(d_one_A, &d_two_B[input_plane_size], d_interbin_harmonics, d_MSD, 1, DMs_per_cycle, nTimesamples, 0);
@@ -498,17 +497,7 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 				timer.Start();
 				
 				checkCudaErrors(cudaMemcpy(&temp_host_power_peak_pos, gmem_power_peak_pos, sizeof(int), cudaMemcpyDeviceToHost));
-				#ifdef GPU_PERIODICITY_SEARCH_DEBUG
 				printf("     -> POWER: Total number of peaks found in this range is %d; maximum number of peaks:%d;\n", temp_host_power_peak_pos, local_max_list_size);
-				#endif
-				
-				#ifdef PS_RESCALE_AND_THRESHOLD_LIST
-				local_power_list.Allocate(temp_host_power_peak_pos);
-				local_power_list.range = i;
-				checkCudaErrors(cudaMemcpy(local_power_list.data, d_power_list, temp_host_power_peak_pos*4*sizeof(float), cudaMemcpyDeviceToHost));
-				checkCudaErrors(cudaMemcpy(local_power_list.MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost));
-				power_list.push_back(local_power_list);
-				#else
 				if( (host_power_peak_pos + temp_host_power_peak_pos)<max_host_power_peaks){
 					//checkCudaErrors(cudaMemcpy(&h_all_power_peaks[host_power_peak_pos*4], d_half_C, temp_host_power_peak_pos*4*sizeof(float), cudaMemcpyDeviceToHost));
 					//checkCudaErrors(cudaMemcpy(&h_all_power_peaks[host_power_peak_pos*4], &d_two_B[0], temp_host_power_peak_pos*4*sizeof(float), cudaMemcpyDeviceToHost));
@@ -516,20 +505,10 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 					host_power_peak_pos = host_power_peak_pos + temp_host_power_peak_pos;
 				}
 				else printf("     ->      Maximum list size reached! Increase list size or increase sigma cutoff.\n");
-				#endif
+				
 				
 				checkCudaErrors(cudaMemcpy(&temp_host_interbin_peak_pos, gmem_interbin_peak_pos, sizeof(int), cudaMemcpyDeviceToHost));
-				#ifdef GPU_PERIODICITY_SEARCH_DEBUG
 				printf("     -> INTERBIN: Total number of peaks found in this range is %d; maximum number of peaks:%d;\n", temp_host_interbin_peak_pos, local_max_list_size);
-				#endif
-				
-				#ifdef PS_RESCALE_AND_THRESHOLD_LIST
-				local_interbin_list.Allocate(temp_host_power_peak_pos);
-				local_interbin_list.range = i;
-				checkCudaErrors(cudaMemcpy(local_interbin_list.data, d_power_list, temp_host_power_peak_pos*4*sizeof(float), cudaMemcpyDeviceToHost));
-				checkCudaErrors(cudaMemcpy(local_interbin_list.MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost));
-				interbin_list.push_back(local_interbin_list);
-				#else
 				if( (host_interbin_peak_pos + temp_host_interbin_peak_pos)<max_host_interbin_peaks){
 					//checkCudaErrors(cudaMemcpy(&h_all_interbin_peaks[host_interbin_peak_pos*4], d_one_A, temp_host_interbin_peak_pos*4*sizeof(float), cudaMemcpyDeviceToHost));
 					//checkCudaErrors(cudaMemcpy(&h_all_interbin_peaks[host_interbin_peak_pos*4], &d_two_B[input_plane_size], temp_host_interbin_peak_pos*4*sizeof(float), cudaMemcpyDeviceToHost));
@@ -537,7 +516,6 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 					host_interbin_peak_pos = host_interbin_peak_pos + temp_host_interbin_peak_pos;
 				}
 				else printf("     ->      Maximum list size reached! Increase list size or increase sigma cutoff.\n");
-				#endif
 				
 				timer.Stop();
 				copy_time_per_range = copy_time_per_range + timer.Elapsed();
@@ -565,11 +543,6 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 		calc_time_per_range = 0;
 		Total_copy_time = Total_copy_time + copy_time_per_range;
 		copy_time_per_range = 0;
-		
-		#ifdef PS_RESCALE_AND_THRESHOLD_LIST
-		power_list.clear();
-		interbin_list.clear();
-		#endif
 	}
 
 	periodicity_timer.Stop();
@@ -594,22 +567,8 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 	cudaFree(gmem_power_peak_pos);
 	cudaFree(gmem_interbin_peak_pos);
 	
-	#ifdef PS_RESCALE_AND_THRESHOLD_LIST
-	power_list.clear();
-	interbin_list.clear();
-	#else
 	free(h_all_power_peaks);
 	free(h_all_interbin_peaks);
-	#endif
-	
-
-	
-	
-	
-	
-	
-	
-	
 }
 
 
