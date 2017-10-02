@@ -425,7 +425,7 @@ __global__ void dilate_peak_find_for_periods(const float *d_input, ushort* d_inp
 		if(list_pos<max_peak_size){
 			d_peak_list[4*list_pos]   = idxX + shift; // DM coordinate (y)
 			d_peak_list[4*list_pos+1] = idxY*DIT_value; // time coordinate (x)
-			d_peak_list[4*list_pos+2] = my_value; // SNE value
+			d_peak_list[4*list_pos+2] = my_value; // SNR value
 			d_peak_list[4*list_pos+3] = d_input_taps[idxY*width+idxX]; // width of the boxcar
 		}
 	}

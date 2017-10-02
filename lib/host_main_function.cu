@@ -369,7 +369,7 @@ void main_function
 		GpuTimer timer;
 		timer.Start();
 		//
-		GPU_periodicity(range, nsamp, max_ndms, inc, periodicity_sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, periodicity_nHarmonics);
+		GPU_periodicity(range, nsamp, max_ndms, inc, periodicity_sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, periodicity_nHarmonics, candidate_algorithm);
 		//
 		timer.Stop();
 		float time = timer.Elapsed()/1000;
