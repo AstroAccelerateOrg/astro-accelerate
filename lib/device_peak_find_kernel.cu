@@ -348,7 +348,7 @@ __global__ void dilate_peak_find_for_fdas(const float *d_input, float *d_peak_li
 
 // width DM
 // height time
-__global__ void dilate_peak_find_for_periods(const float *d_input, ushort* d_input_taps, float *d_peak_list, const int width, const int height, const int offset, const float threshold, int max_peak_size, int *gmem_pos, int shift, int DIT_value) {
+__global__ void dilate_peak_find_for_periods(const float *d_input, ushort* d_input_taps, float *d_peak_list, const int width, const int height, const int offset, const float threshold, int max_peak_size, int *gmem_pos, int DM_shift, int DIT_value) {
     int idxX = blockDim.x * blockIdx.x + threadIdx.x;
     int idxY = blockDim.y * blockIdx.y + threadIdx.y;
     if (idxX >= width-offset) return;
@@ -423,8 +423,8 @@ __global__ void dilate_peak_find_for_periods(const float *d_input, ushort* d_inp
 	if(peak==1){
 		list_pos=atomicAdd(gmem_pos, 1);
 		if(list_pos<max_peak_size){
-			d_peak_list[4*list_pos]   = idxX + shift; // DM coordinate (y)
-			d_peak_list[4*list_pos+1] = idxY*DIT_value; // time coordinate (x)
+			d_peak_list[4*list_pos]   = idxX + DM_shift; // DM coordinate (y)
+			d_peak_list[4*list_pos+1] = idxY/DIT_value; // frequency coordinate (x)
 			d_peak_list[4*list_pos+2] = my_value; // SNR value
 			d_peak_list[4*list_pos+3] = d_input_taps[idxY*width+idxX]; // width of the boxcar
 		}

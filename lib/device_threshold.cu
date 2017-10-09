@@ -53,7 +53,7 @@ int THRESHOLD(float *d_input, ushort *d_input_taps, float *d_output_list, int *g
 }
 
 
-int Threshold_for_periodicity(float *d_input, ushort *d_input_harms, float *d_output_list, int *gmem_pos, float threshold, int primary_size, int secondary_size, int DM_shift, int max_list_size) {
+int Threshold_for_periodicity(float *d_input, ushort *d_input_harms, float *d_output_list, int *gmem_pos, float threshold, int primary_size, int secondary_size, int DM_shift, int inBin, int max_list_size) {
 	//---------> Task specific
 	int nBlocks_p, nBlocks_s;
 	
@@ -76,7 +76,7 @@ int Threshold_for_periodicity(float *d_input, ushort *d_input_harms, float *d_ou
 	
 	
 	THR_init();
-	GPU_Threshold_for_periodicity_kernel<<<gridSize, blockSize>>>(d_input, d_input_harms, d_output_list, gmem_pos, threshold, primary_size, secondary_size, DM_shift, max_list_size, 1);
+	GPU_Threshold_for_periodicity_kernel<<<gridSize, blockSize>>>(d_input, d_input_harms, d_output_list, gmem_pos, threshold, primary_size, secondary_size, DM_shift, max_list_size, inBin);
 	
 	checkCudaErrors(cudaGetLastError());
 
