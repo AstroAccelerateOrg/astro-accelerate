@@ -64,7 +64,7 @@ __global__ void GPU_Threshold_for_periodicity_kernel(float const* __restrict__ d
 				list_pos=list_pos+__popc(mask&((1<<threadIdx.x)-1));
 				if(list_pos<max_list_size){
 					d_output_list[4*list_pos]   = pos_p + DM_shift;
-					d_output_list[4*list_pos+1] = pos_s*DIT_value;
+					d_output_list[4*list_pos+1] = pos_s/DIT_value;
 					d_output_list[4*list_pos+2] = R;
 					d_output_list[4*list_pos+3] = (float) d_input_harms[pos];
 				}
