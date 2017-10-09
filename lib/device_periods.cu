@@ -457,16 +457,16 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 				timer.Start();
 				if(candidate_algorithm==1){
 					//-------------- Thresholding
-					Threshold_for_periodicity(d_power_SNR, d_power_harmonics, d_power_list, gmem_power_peak_pos, per_param.sigma_cutoff, DMs_per_cycle, (nTimesamples>>1), DM_shift, local_max_list_size);
-					Threshold_for_periodicity(d_interbin_SNR, d_interbin_harmonics, d_interbin_list, gmem_interbin_peak_pos, per_param.sigma_cutoff, DMs_per_cycle, nTimesamples, DM_shift, local_max_list_size);
+					Threshold_for_periodicity(d_power_SNR, d_power_harmonics, d_power_list, gmem_power_peak_pos, per_param.sigma_cutoff, DMs_per_cycle, (nTimesamples>>1), DM_shift, inBin[i], local_max_list_size);
+					Threshold_for_periodicity(d_interbin_SNR, d_interbin_harmonics, d_interbin_list, gmem_interbin_peak_pos, per_param.sigma_cutoff, DMs_per_cycle, nTimesamples, DM_shift, inBin[i], local_max_list_size);
 					//-------------- Thresholding
 				}
 				else {
 					//-------------- Peak finding
 					//Peak_find_for_periodicity_search(d_half_C, d_power_harmonics, &d_two_B[0], (nTimesamples>>1), DMs_per_cycle, per_param.sigma_cutoff, local_max_list_size, gmem_power_peak_pos, DM_shift);
 					//Peak_find_for_periodicity_search(d_one_A, d_interbin_harmonics, &d_two_B[input_plane_size], nTimesamples, DMs_per_cycle, per_param.sigma_cutoff, local_max_list_size, gmem_interbin_peak_pos, DM_shift);
-					Peak_find_for_periodicity_search(d_power_SNR, d_power_harmonics, d_power_list, (nTimesamples>>1), DMs_per_cycle, per_param.sigma_cutoff, local_max_list_size, gmem_power_peak_pos, DM_shift);
-					Peak_find_for_periodicity_search(d_interbin_SNR, d_interbin_harmonics, d_interbin_list, nTimesamples, DMs_per_cycle, per_param.sigma_cutoff, local_max_list_size, gmem_interbin_peak_pos, DM_shift);
+					Peak_find_for_periodicity_search(d_power_SNR, d_power_harmonics, d_power_list, (nTimesamples>>1), DMs_per_cycle, per_param.sigma_cutoff, local_max_list_size, gmem_power_peak_pos, DM_shift, inBin[i]);
+					Peak_find_for_periodicity_search(d_interbin_SNR, d_interbin_harmonics, d_interbin_list, nTimesamples, DMs_per_cycle, per_param.sigma_cutoff, local_max_list_size, gmem_interbin_peak_pos, DM_shift, inBin[i]);
 					//-------------- Peak finding
 				}
 				/*
