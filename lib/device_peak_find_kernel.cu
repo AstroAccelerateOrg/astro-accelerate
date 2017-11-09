@@ -348,7 +348,7 @@ __global__ void dilate_peak_find_for_fdas(const float *d_input, float *d_peak_li
 
 // width DM
 // height time
-__global__ void dilate_peak_find_for_periods(const float *d_input, ushort* d_input_taps, float *d_peak_list, const int width, const int height, const int offset, const float threshold, int max_peak_size, int *gmem_pos, int DM_shift, int DIT_value) {
+__global__ void dilate_peak_find_for_periods(const float *d_input, ushort* d_input_taps, float *d_peak_list, const int width, const int height, const int offset, const float threshold, int max_peak_size, int *gmem_pos, float *d_MSD, int DM_shift, int DIT_value) {
     int idxX = blockDim.x * blockIdx.x + threadIdx.x;
     int idxY = blockDim.y * blockIdx.y + threadIdx.y;
     if (idxX >= width-offset) return;
@@ -358,6 +358,8 @@ __global__ void dilate_peak_find_for_periods(const float *d_input, ushort* d_inp
     float my_value = 0.0f;
     unsigned short peak = 0u;
 	int list_pos;
+	float mean = d_MSD[0];
+	float sd   = d_MSD[1];
     //handle boundary conditions - top edge
     if (idxY == 0) {
         //Special case for width of 1
@@ -425,8 +427,10 @@ __global__ void dilate_peak_find_for_periods(const float *d_input, ushort* d_inp
 		if(list_pos<max_peak_size){
 			d_peak_list[4*list_pos]   = idxX + DM_shift; // DM coordinate (y)
 			d_peak_list[4*list_pos+1] = idxY/DIT_value; // frequency coordinate (x)
-			d_peak_list[4*list_pos+2] = my_value; // SNR value
-			d_peak_list[4*list_pos+3] = d_input_taps[idxY*width+idxX]; // width of the boxcar
+			float hrms = d_input_taps[idxY*width+idxX];
+			d_peak_list[4*list_pos+3] = hrms; // width of the boxcar
+			d_peak_list[4*list_pos+2] = inverse_white_noise(&my_value,&hrms,&mean,&sd); // SNR value
+			
 		}
 	}
 	

@@ -16,6 +16,8 @@
 //Added by Karel Adamek
 #define WARP 32
 #define HALF_WARP 16
+#define MSD_PARTIAL_SIZE 3
+#define MSD_RESULTS_SIZE 4
 #define MSD_ELEM_PER_THREAD 8
 #define MSD_WARPS_PER_BLOCK 16
 #define THR_ELEM_PER_THREAD 4
