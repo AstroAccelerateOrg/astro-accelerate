@@ -7,7 +7,7 @@
 #include <cuda_runtime.h>
 #include "headers/params.h"
 
-__global__ void SNR_GPU_limited(float *d_FIR_input, float *d_SNR_output, float *d_SNR_taps, float *d_MSD, int x_steps, int nTaps, int nColumns, int offset)
+__global__ void SNR_GPU_limited(float *d_FIR_input, float *d_SNR_output, ushort *d_SNR_taps, float *d_MSD, int x_steps, int nTaps, int nColumns, int offset)
 {
 	int local_id = threadIdx.x & ( WARP - 1 );
 	int warp_id = threadIdx.x >> 5;

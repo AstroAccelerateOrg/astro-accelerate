@@ -89,6 +89,9 @@ int main(int argc, char* argv[])
 	float sigma_cutoff = 6.0f;
 	float sigma_constant = 4.0f;
 	float max_boxcar_width_in_sec = 0.5f;
+	// Periodicity search
+	float periodicity_sigma_cutoff = 6;
+	int periodicity_nHarmonics = 1;
 
 	// Timing parameters
 	clock_t start_time = clock();
@@ -101,7 +104,7 @@ int main(int argc, char* argv[])
 	    &enable_fdas_inbin, &enable_fdas_norm, &nboots, &ntrial_bins, &navdms,
 	    &narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff,
 	    &sigma_constant, &max_boxcar_width_in_sec, &range, &user_dm_low, &user_dm_high,
-	    &user_dm_step, &candidate_algorithm, &enable_sps_baselinenoise, &selected_dm_low, &selected_dm_high, &nb_selected_dm, &analysis_debug, &failsafe);
+	    &user_dm_step, &candidate_algorithm, &enable_sps_baselinenoise, &selected_dm_low, &selected_dm_high, &nb_selected_dm, &analysis_debug, &failsafe, &periodicity_sigma_cutoff, &periodicity_nHarmonics);
 	if (enable_debug == 1)
 		debug(1, start_time, range, outBin, enable_debug, enable_analysis,
 		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
@@ -161,7 +164,9 @@ int main(int argc, char* argv[])
 	  tsamp_original, inc, tstart, tstart_local, tsamp, fch1, foff,
 	  // Analysis variables
 	  power, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, start_time, candidate_algorithm,
-	  nb_selected_dm, selected_dm_low, selected_dm_high, analysis_debug, failsafe
+	  nb_selected_dm, selected_dm_low, selected_dm_high, analysis_debug, failsafe,
+	  // Periodicity search
+	  periodicity_sigma_cutoff, periodicity_nHarmonics
 	);
 
 	// write output here, not in the library
