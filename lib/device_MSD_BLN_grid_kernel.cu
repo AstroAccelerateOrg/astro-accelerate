@@ -321,4 +321,116 @@ __global__ void MSD_BLN_grid_outlier_rejection(float const* __restrict__ d_input
 	//----------------------------------------------
 }
 
+
+
+
+__global__ void MSD_BLN_grid_outlier_rejection_new(float *d_input, float *d_output, int size, float multiplier) {
+	__shared__ float s_input[3*WARP*WARP];
+	__shared__ float s_signal_mean;
+	__shared__ float s_signal_sd;
+	float M, S, j;
+	float signal_mean, signal_sd;
+	
+	//----------------------------------------------
+	//---- Calculation of the initial MSD
+	Sum_partials_nonregular( &M, &S, &j, d_input, s_input, size);
+	
+	if(threadIdx.x==0){
+		s_signal_mean = M/j;
+		s_signal_sd   = sqrt(S/j);
+	}
+	
+	__syncthreads();
+	
+	signal_mean = s_signal_mean;
+	signal_sd   = s_signal_sd;
+	//---- Calculation of the initial MSD
+	//----------------------------------------------
+	
+
+	//----------------------------------------------
+	//---- Iterations with outlier rejection
+	for(int f=0; f<5; f++){
+		int pos;
+		float jv, Mt;
+		
+		pos = threadIdx.x;
+		if (size > blockDim.x) {
+			M = 0;	S = 0;	j = 0;
+			while (pos < size) {
+				jv = __ldg(&d_input[3*pos + 2]);
+				Mt = __ldg(&d_input[3*pos]);
+				if( ((int) jv)!=0 ) {
+					if ( (Mt/jv > (signal_mean - multiplier*signal_sd)) && (Mt/jv < (signal_mean + multiplier*signal_sd)) ) {
+						if( (int) j==0 ) {
+							M = Mt;
+							S = __ldg(&d_input[3*pos + 1]);
+							j = jv;
+						}
+						else {
+							Merge( &M, &S, &j, Mt, __ldg(&d_input[3*pos + 1]), jv);
+						}
+					}
+				}
+				pos = pos + blockDim.x;
+			}
+			
+			s_input[threadIdx.x] = M;
+			s_input[blockDim.x + threadIdx.x] = S;
+			s_input[2*blockDim.x + threadIdx.x] = j;
+			
+			__syncthreads();
+			
+			Reduce_SM( &M, &S, &j, s_input);
+			Reduce_WARP(&M, &S, &j);
+		}
+		else {
+			if(threadIdx.x == 0){
+				pos = 0;
+				M=0; S=0; j=0;
+				for(pos = 0; pos < size; pos++) {
+					jv = __ldg(&d_input[3*pos + 2]);
+					Mt = __ldg(&d_input[3*pos]);
+					if( ((int) jv)!=0 ) {
+						if ( (Mt/jv > (signal_mean - multiplier*signal_sd)) && (Mt/jv < (signal_mean + multiplier*signal_sd)) ) {
+							if( (int) j==0 ){
+								M = Mt; 
+								S = __ldg(&d_input[3*pos + 1]);
+								j = jv;
+							}
+							else {
+								Merge( &M, &S, &j, Mt, __ldg(&d_input[3*pos + 1]), jv);
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		if(threadIdx.x == 0){
+			s_signal_mean = M/j;
+			s_signal_sd   = sqrt(S/j);
+		}
+		
+		__syncthreads();
+		
+		signal_mean = s_signal_mean;
+		signal_sd   = s_signal_sd;
+	}
+	//---- Iterations with outlier rejection
+	//----------------------------------------------
+	
+	
+	
+	//----------------------------------------------
+	//---- Writing data
+	if(threadIdx.x==0){
+		d_output[0] = signal_mean;
+		d_output[1] = signal_sd;
+		d_output[2] = j;
+	}
+	//---- Writing data
+	//----------------------------------------------
+}
+
 #endif

@@ -24,8 +24,12 @@
 #include "headers/device_threshold.h" //Added by KA
 #include "headers/device_single_FIR.h" //Added by KA
 #include "headers/device_analysis.h" //Added by KA
-
+#include "headers/device_periods.h" //Added by KA
 #include "headers/device_peak_find.h" //Added by KA
+#include "headers/device_power.h"
+#include "headers/device_harmonic_summing.h"
+
+
 
 #include "headers/device_load_data.h"
 #include "headers/device_corner_turn.h"
@@ -138,7 +142,9 @@ void main_function
 	float *selected_dm_low,
 	float *selected_dm_high,
 	int analysis_debug,
-	int failsafe
+	int failsafe,
+	float periodicity_sigma_cutoff,
+	int periodicity_nHarmonics
 	)
 {
 
@@ -261,7 +267,7 @@ void main_function
 		
 			checkCudaErrors(cudaGetLastError());
 			
-			if ( (enable_acceleration == 1) || (analysis_debug ==1) )
+			if ( (enable_acceleration == 1) || (enable_periodicity == 1) || (analysis_debug ==1) )
 			{
 				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
 				//save_data(d_output, out_tmp, gpu_outputsize);
@@ -363,7 +369,7 @@ void main_function
 		GpuTimer timer;
 		timer.Start();
 		//
-		periodicity(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
+		GPU_periodicity(range, nsamp, max_ndms, inc, periodicity_sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, periodicity_nHarmonics, candidate_algorithm, enable_sps_baselinenoise, sigma_constant);
 		//
 		timer.Stop();
 		float time = timer.Elapsed()/1000;
