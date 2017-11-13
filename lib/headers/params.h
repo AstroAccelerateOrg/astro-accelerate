@@ -50,6 +50,7 @@
 //custom fft params (K. Adamek)
 #define TAPS 8
 
+
 #define UNROLLS 8
 #define SNUMREG 8
 #define SDIVINT 14
@@ -66,3 +67,8 @@
 
 // for power and interbin calculation
 #define PAI_NTHREADS 512
+
+// Test for FDAS (define it to perform test)
+//#define FDAS_CONV_TEST
+//#define FDAS_ACC_SIG_TEST
+
