@@ -24,7 +24,7 @@
 // define to reuse old MSD results to generate a new one (it means new MSD is calculated from more samples) (WORKING WITHIN SAME INBIN VALUE)
 #define PS_REUSE_MSD_WITHIN_INBIN
 
-// experimental
+// experimental and this might not be very useful with real noise
 //#define PS_REUSE_MSD_THROUGH_INBIN
 
 
@@ -769,24 +769,11 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 	// processed = maximum number of time-samples through out all ranges
 	// nTimesamples = number of time-samples in given range 'i'
 	// TODO:
-	//     ->Be more clever regarding memory allocations for cuFFT use:
-	//			const int NX = 1024;
-	//			const int BATCH = 100000;
-	//			size_t workSize;
-	//			cufftEstimate1d(NX, CUFFT_C2C, BATCH, &workSize);
-	// 	     or
-	//			cufftHandle plan;
-	//			cufftCreate(&plan);
-	//			cufftGetSize1d(plan, NX, CUFFT_C2C, BATCH, &workSize);
-	//		->Check if we can supply cuFFT with working area -> no allocation and deallocation would be neccessary
 	//      ->Use callbacks for power calculation
 	//      ->Solve peak finding problem from batch to batch (we do not want to find peaks on shared borders)
-	//      ->Interbinning which is not performed at the moment
 	//      ->max_ndms is possibly the same thing as max_nDMs! Investigate.
 	//      ->check is zero-th element does not mess up statistics
 	//      ->prepare data on the host before copying them to device
-	//      ->try to implement rescaling data in the at the end
-	//		->Revise these notes
 	//		->There must by one inBin group per stream. We cannot have batches or Pranges per stream because MSD. :(
 	
 	printf("\n");
