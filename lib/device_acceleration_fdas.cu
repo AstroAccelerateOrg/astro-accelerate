@@ -12,6 +12,7 @@
 #include <cuda_profiler_api.h>
 //
 #include "headers/params.h"
+#include "headers/fdas_test_parameters.h"
 #include "helper_cuda.h"
 #include "headers/fdas.h"
 #include "headers/fdas_host.h"
@@ -256,13 +257,13 @@ void acceleration_fdas(int range,
 				gettimeofday(&t_start, NULL); //don't time transfer
 				
 				//!TEST!: put test signal here
-				#ifdef FDAS_TEST
+				#ifdef FDAS_CONV_TEST
 				printf("\n************** TEST FOR FDAS ***********************\n");
 				srand(time(NULL));
 				for(int f=0; f<processed; f++) output_buffer[i][dm_count][f]=rand() / (float)RAND_MAX;
 				
 				for(int f=15000; f<processed; f++){
-					output_buffer[i][dm_count][f] = (f%4096)/500.0;
+					output_buffer[i][dm_count][f] = (f%FDAS_TEST_TOOTH_LENGTH)/500.0;
 				}
 				
 				if (processed>15000){
@@ -286,6 +287,44 @@ void acceleration_fdas(int range,
 						output_buffer[i][dm_count][f + 11626] = 10.0;
 					}
 				}
+				#endif
+				
+				#ifdef FDAS_ACC_SIG_TEST
+				double acc_sig_snr = 1.0;
+				fdas_new_acc_sig acc_sig;
+				
+				acc_sig.freq0 = FDAS_TEST_FREQUENCY;
+				acc_sig.nsamps = processed;
+				acc_sig.zval = FDAS_TEST_ZVALUE;
+				acc_sig.nharms = FDAS_TEST_HAMONICS;
+				acc_sig.duty = FDAS_TEST_DUTY_CYCLE/100.0;
+				acc_sig.sigamp = FDAS_TEST_SIGNAL_AMPLITUDE;
+				
+				double t0, tau;
+				double omega = 2*M_PI*acc_sig.freq0;
+				double accel;
+				double tobs;
+				double sampling_rate = 0.000064;
+				double light_speed = 2.99792458e8;
+				
+				tobs = (double) (sampling_rate*acc_sig.nsamps);
+				accel = ((double)acc_sig.zval * light_speed) / (acc_sig.freq0*tobs*tobs);
+				printf("\n\npreparing test signal, observation time = %f s, %d nsamps f0 = %f Hz with %d harmonics\n", tobs, acc_sig.nsamps, acc_sig.freq0, acc_sig.nharms);
+				printf("\nz = %d accelereation = %f m/s^2\n", acc_sig.zval, accel);
+				
+				printf("\nNow creating accelerated signal with fc=%f, accel=%f, harmonics=%d, duty cycle=%.1f%, noise=%d signal samples=%d, signal level: %.2f\n", acc_sig.freq0, accel, acc_sig.nharms, acc_sig.duty*100.0, acc_sig_snr, acc_sig.nsamps,acc_sig.sigamp);
+				
+				for ( int sd=0; sd<acc_sig.nsamps; ++sd){	    
+					t0 = sd*sampling_rate;
+					tau = t0 + (t0*(accel*t0) / light_speed /2.0);
+					if (acc_sig_snr!=0){
+						output_buffer[i][dm_count][sd] = 0;
+					}
+					for (int j = 1; j <= acc_sig.nharms; ++j){
+						output_buffer[i][dm_count][sd] += (2.0/(j*M_PI)*sin(j*M_PI*acc_sig.duty))*acc_sig.sigamp*cos(j*omega*tau); 
+					}
+				}
+				
 				#endif
 				//!TEST!: put test signal here
 				
@@ -350,25 +389,25 @@ void acceleration_fdas(int range,
 					// This might be bit iffy since when interbining is done values are correlated
 					printf("Dimensions for BLN: ibin:%d; siglen:%d;\n", ibin, params.siglen);
 					MSD_BLN_grid(gpuarrays.d_ffdot_pwr, d_MSD, 32, 32, NKERN, ibin*params.siglen, 0, sigma_constant);
-					////------------- Testing BLN
-					//checkCudaErrors(cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost));
-					//signal_mean=h_MSD[0]; signal_sd=h_MSD[1];
-					//MSD_limited(gpuarrays.d_ffdot_pwr, d_MSD, NKERN, ibin*params.siglen, 0);
-					//checkCudaErrors(cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost));
-					//printf("BLN: mean:%f; sd:%f || MSD: mean:%f; sd:%f\n", signal_mean, signal_sd, h_MSD[0], h_MSD[1]);
-					////------------- Testing BLN
 					
 					//!TEST!: do not perform peak find instead export the thing to file.
-					#ifdef FDAS_TEST
+					#ifdef FDAS_CONV_TEST
 					fdas_write_test_ffdot(&gpuarrays, &cmdargs, &params, dm_low[i], dm_count, dm_step[i]);
 					exit(1);
-					#endif
+					#endif				
 					//!TEST!: do not perform peak find instead export the thing to file.
 					
 					PEAK_FIND_FOR_FDAS(gpuarrays.d_ffdot_pwr, gpuarrays.d_fdas_peak_list, d_MSD, NKERN, ibin*params.siglen, cmdargs.thresh, params.max_list_length, gmem_fdas_peak_pos, dm_count*dm_step[i] + dm_low[i]);
 					
 					checkCudaErrors(cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost));
 					checkCudaErrors(cudaMemcpy(&list_size, gmem_fdas_peak_pos, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+					
+					#ifdef FDAS_ACC_SIG_TEST
+					fdas_write_list(&gpuarrays, &cmdargs, &params, h_MSD, dm_low[i], dm_count, dm_step[i], list_size);
+					fdas_write_ffdot(&gpuarrays, &cmdargs, &params, dm_low[i], dm_count, dm_step[i]);
+					exit(1);
+					#endif	
+					
 					if (enable_output_fdas_list == 1)
 					{
 						if(list_size>0)
