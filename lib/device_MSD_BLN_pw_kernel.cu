@@ -150,12 +150,12 @@ __global__ void MSD_BLN_pw_no_rejection(float const* __restrict__ d_input, float
 
 
 __global__ void MSD_BLN_pw_rejection_normal(float const* __restrict__ d_input, float *d_output, float *d_MSD, int y_steps, int nTimesamples, int offset, float bln_sigma_constant) {
-	__shared__ float s_input[3*MSD_PW_NTHREADS];
+	__shared__ float s_input[3*PD_NTHREADS];
 	float M, S, j, ftemp, signal_mean, signal_sd;
 	signal_mean = d_MSD[0];
 	signal_sd = d_MSD[1];
 	
-	int spos = blockIdx.x*MSD_PW_NTHREADS + threadIdx.x;
+	int spos = blockIdx.x*PD_NTHREADS + threadIdx.x;
 	int gpos = blockIdx.y*y_steps*nTimesamples + spos;
 	M=0;	S=0;	j=0;
 	if( spos<(nTimesamples-offset) ){

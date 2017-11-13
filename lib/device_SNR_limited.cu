@@ -40,7 +40,7 @@ void SNR_limited_init()
 	cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
 }
 
-int SNR_limited(float *d_FIR_input, float *d_SNR_output, float *d_SNR_taps, float *d_MSD, int nTaps, int nDMs, int nTimesamples, int offset)
+int SNR_limited(float *d_FIR_input, float *d_SNR_output, ushort *d_SNR_taps, float *d_MSD, int nTaps, int nDMs, int nTimesamples, int offset)
 {
 	//---------> Task specific
 	int nBlocks_x, nBlocks_y, nSteps_x, nSteps_y, nRest, nThreads, // int nBlocks_total;

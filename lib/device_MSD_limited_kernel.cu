@@ -207,6 +207,7 @@ __device__ void Sum_partials_nonregular(float *M, float *S, float *j, float *d_i
 
 
 // Computes partials for mean and standard deviation of the data with offset at the end
+// PD_THREADS could be replaced it is not required to be #defined
 __global__ void MSD_GPU_limited(float const* __restrict__ d_input, float *d_output, int y_steps, int nTimesamples, int offset) {
 	__shared__ float s_input[3*PD_NTHREADS];
 	float M, S, j, ftemp;
@@ -263,6 +264,29 @@ __global__ void MSD_GPU_final_regular(float *d_input, float *d_output, int size)
 	}
 }
 
+__global__ void MSD_GPU_final_regular(float *d_input, float *d_MSD, float *d_pp, int size) {
+	__shared__ float s_input[3*WARP*WARP];
+
+	float M, S, j;
+	
+	Sum_partials_regular( &M, &S, &j, d_input, s_input, size);
+
+	if(d_pp[2]>0){
+		Merge(&M, &S, &j, d_pp[0], d_pp[1], d_pp[2]);
+	}
+	
+	//----------------------------------------------
+	//---- Writing data
+	if (threadIdx.x == 0) {
+		d_MSD[0] = M / j;
+		d_MSD[1] = sqrt(S / j);
+		d_MSD[2] = j;
+		d_pp[0] = M;
+		d_pp[1] = S;
+		d_pp[2] = j;
+	}
+}
+
 
 __global__ void MSD_GPU_final_nonregular(float *d_input, float *d_MSD, int size) {
 	__shared__ float s_input[3*WARP*WARP];
@@ -278,6 +302,30 @@ __global__ void MSD_GPU_final_nonregular(float *d_input, float *d_MSD, int size)
 		d_MSD[0] = M / j;
 		d_MSD[1] = sqrt(S / j);
 		d_MSD[2] = j;
+	}
+}
+
+__global__ void MSD_GPU_final_nonregular(float *d_input, float *d_MSD, float *d_pp, int size) {
+	__shared__ float s_input[3*WARP*WARP];
+	
+	float M, S, j;
+
+	Sum_partials_nonregular( &M, &S, &j, d_input, s_input, size);
+	
+	if(d_pp[2]>0){
+		Merge(&M, &S, &j, d_pp[0], d_pp[1], d_pp[2]);
+	}
+	
+	//----------------------------------------------
+	//---- Writing data
+	if (threadIdx.x == 0) {
+		//printf("MSD_GPU_final_nonregular: mean:%f; sd:%f; j:%f; \n", M / j, sqrt(S / j), j);
+		d_MSD[0] = M / j;
+		d_MSD[1] = sqrt(S / j);
+		d_MSD[2] = j;
+		d_pp[0] = M;
+		d_pp[1] = S;
+		d_pp[2] = j;
 	}
 }
 
