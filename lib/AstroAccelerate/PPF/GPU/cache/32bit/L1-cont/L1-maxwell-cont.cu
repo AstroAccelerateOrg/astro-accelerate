@@ -147,8 +147,8 @@ void GPU_Polyphase(float2 *input, float2 *output, float *coeff, int nChannels, i
 	nColumns=Max_columns_in_memory(nTaps,nChannels);
 	nRepeats=(int) (nSpectra/nColumns);
 	Sremainder=nSpectra-nRepeats*nColumns;
-	if (DEBUG) printf("Maximum number of spectra %d which is %e MiB \n",nColumns, (double) (nColumns*nChannels*sizeof(float2)/(1024.0*1024.0))   );
-	if (DEBUG) printf("nSpectra is split into %d chunks. Sremainder: %d\n",nRepeats,Sremainder);
+	if (DEBUG) printf("Maximum number of spectra in memory is %d which is %e MB \n",nColumns, (double) (nColumns*nChannels*sizeof(float2)/(1024.0*1024.0))   );
+	//if (DEBUG) printf("nSpectra is split into %d chunks. Sremainder: %d\n",nRepeats,Sremainder);
 	
 	//---------> Channels
 	int nKernels=(int) nChannels/THREADS_PER_BLOCK; //Head size
@@ -290,7 +290,7 @@ void GPU_Polyphase(float2 *input, float2 *output, float *coeff, int nChannels, i
 	//checkCudaErrors(cudaDeviceSynchronize());
 	//-----------------------
 	
-	if (DEBUG) printf("%d %d %d %0.3f %0.3f %0.3f %0.3f %0.3f\n",nSpectra,nChannels,nTaps,fir_time, fft_time, fir_time+fft_time, transfer_in, transfer_out);
+	if (DEBUG) printf("Number of spectra: %d;\nNumber of Channels: %d;\nNumber of Taps: %d;\nFIR filter execution time: %0.3f ms;\ncuFFT execution time: %0.3f ms;\nPolyphase execution time: %0.3f ms;\nData transfer time %0.3f ms\n",nSpectra,nChannels,nTaps, fir_time, fft_time, fir_time + fft_time, transfer_in + transfer_out);
 	
 	if (DEBUG && WRITE){ 
 		char str[200];
