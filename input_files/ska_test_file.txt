@@ -22,7 +22,7 @@ analysis
 -rfi
 threshold
 -baselinenoise
--fdas_custom_fft
+fdas_custom_fft
 -fdas_inbin
 -fdas_norm
 debug

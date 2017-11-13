@@ -8,6 +8,7 @@
 #include <math.h>
 #include "headers/fdas_host.h"
 #include "headers/params.h"
+#include "headers/fdas_test_parameters.h"
 //#include <helper_functions.h>
 #include <helper_cuda.h>
 #include <curand.h>
@@ -124,10 +125,12 @@ void fdas_free_gpu_arrays(fdas_gpuarrays *arrays,  cmd_args *cmdargs)
 	// Added by KA
 	cudaFree(arrays->d_fdas_peak_list);
 }
+
 /*
 void fdas_create_acc_sig(fdas_new_acc_sig *acc_sig, cmd_args *cmdargs)
 /* Create accelerated signal with given parameters in a float array */
-/*{
+/*
+{
   double t0, tau;
   double omega = 2*M_PI*acc_sig->freq0;
   double accel;
@@ -164,6 +167,7 @@ void fdas_create_acc_sig(fdas_new_acc_sig *acc_sig, cmd_args *cmdargs)
   free(acc_sig->acc_signal);
 }
 */
+
 
 void fdas_create_acc_kernels(cufftComplex* d_kernel, cmd_args *cmdargs )
 {
@@ -202,9 +206,9 @@ void fdas_create_acc_kernels(cufftComplex* d_kernel, cmd_args *cmdargs )
   }
   
 	//!TEST!: replace templates here. Template width: numkern; padded width: KERNLEN
-	#ifdef FDAS_TEST
+	#ifdef FDAS_CONV_TEST
 	for (ii = 0; ii < NKERN; ii++){
-		int boxcar_width=ii*2;
+		int boxcar_width=ii*FDAS_TEST_FILTER_INCREMENT;
 		for(int f=0; f<KERNLEN; f++){
 			h_kernel[ii*KERNLEN + f].x = 0;
 			h_kernel[ii*KERNLEN + f].y = 0;
@@ -288,7 +292,24 @@ void fdas_cuda_basic(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cmd_ar
     inbin = 1;
   */
   //real fft
+  #ifndef FDAS_CONV_TEST
   cufftExecR2C(fftplans->realplan, gpuarrays->d_in_signal, gpuarrays->d_fft_signal);
+  #endif
+  
+	#ifdef FDAS_CONV_TEST
+	float2 *f2temp;
+	float *ftemp;
+	ftemp  = (float *)malloc(params->rfftlen*sizeof(float));
+	f2temp = (float2 *)malloc(params->rfftlen*sizeof(float2));
+	checkCudaErrors( cudaMemcpy(ftemp, gpuarrays->d_in_signal, (params->rfftlen)*sizeof(float), cudaMemcpyDeviceToHost));
+	for(int f=0; f<params->rfftlen; f++){
+		f2temp[f].x = ftemp[f];
+		f2temp[f].y = 0;
+	}
+	checkCudaErrors( cudaMemcpy(gpuarrays->d_fft_signal, f2temp, (params->rfftlen)*sizeof(float2), cudaMemcpyHostToDevice));
+	free(ftemp);
+	free(f2temp);
+	#endif
 
   if (cmdargs->norm){
     //  PRESTO deredden - remove red noise.
@@ -342,17 +363,16 @@ void fdas_cuda_basic(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cmd_ar
 }
 
 #ifndef NOCUST
-void fdas_cuda_customfft(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params)
-{
-  //int nthreads;
-  dim3 cblocks(params->nblocks, NKERN/2); 
+void fdas_cuda_customfft(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params) {
+	//int nthreads;
+	dim3 cblocks(params->nblocks, NKERN/2); 
 
 	//real fft
-	#ifndef FDAS_TEST
+	#ifndef FDAS_CONV_TEST
 	cufftExecR2C(fftplans->realplan, gpuarrays->d_in_signal, gpuarrays->d_fft_signal);
 	#endif
 
-	#ifdef FDAS_TEST
+	#ifdef FDAS_CONV_TEST
 	float2 *f2temp;
 	float *ftemp;
 	ftemp  = (float *)malloc(params->rfftlen*sizeof(float));
@@ -368,63 +388,62 @@ void fdas_cuda_customfft(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cm
 	#endif
   
 
-  if (cmdargs->norm){
-    //  PRESTO deredden - remove red noise.
-    // TODO: replace with GPU version
-    float2 *fftsig;
-    fftsig = (float2*)malloc((params->rfftlen)*sizeof(float2)); 
+	if (cmdargs->norm){
+		//  PRESTO deredden - remove red noise.
+		// TODO: replace with GPU version
+		float2 *fftsig;
+		fftsig = (float2*)malloc((params->rfftlen)*sizeof(float2)); 
     
-    checkCudaErrors( cudaMemcpy(fftsig, gpuarrays->d_fft_signal, (params->rfftlen)*sizeof(float2), cudaMemcpyDeviceToHost));
-    presto_dered_sig(fftsig, params->rfftlen);
-    checkCudaErrors( cudaMemcpy(gpuarrays->d_fft_signal, fftsig, (params->rfftlen)*sizeof(float2), cudaMemcpyHostToDevice));
-    free(fftsig);
-  }
+		checkCudaErrors( cudaMemcpy(fftsig, gpuarrays->d_fft_signal, (params->rfftlen)*sizeof(float2), cudaMemcpyDeviceToHost));
+		presto_dered_sig(fftsig, params->rfftlen);
+		checkCudaErrors( cudaMemcpy(gpuarrays->d_fft_signal, fftsig, (params->rfftlen)*sizeof(float2), cudaMemcpyHostToDevice));
+		free(fftsig);
+	}
 
-  //overlap-copy
-  cuda_overlap_copy_smallblk<<<params->nblocks, KERNLEN >>>(gpuarrays->d_ext_data, gpuarrays->d_fft_signal, params->sigblock, params->rfftlen, params->extlen, params->offset, params->nblocks );
+	//overlap-copy
+	cuda_overlap_copy_smallblk<<<params->nblocks, KERNLEN >>>(gpuarrays->d_ext_data, gpuarrays->d_fft_signal, params->sigblock, params->rfftlen, params->extlen, params->offset, params->nblocks );
 
-  if (cmdargs->norm){
-    //  PRESTO block median normalization
-    // TODO: replace with GPU version
-    float2 *extsig;
-    extsig = (float2*)malloc((params->extlen)*sizeof(float2));
-    checkCudaErrors( cudaMemcpy(extsig, gpuarrays->d_ext_data, (params->extlen)*sizeof(float2), cudaMemcpyDeviceToHost));
-    for(int b=0; b<params->nblocks; ++b)
-      presto_norm(extsig+b*KERNLEN, KERNLEN);
-    checkCudaErrors( cudaMemcpy(gpuarrays->d_ext_data, extsig, (params->extlen)*sizeof(float2), cudaMemcpyHostToDevice));
-    free(extsig);
-  }
+	if (cmdargs->norm){
+		//  PRESTO block median normalization
+		// TODO: replace with GPU version
+		float2 *extsig;
+		extsig = (float2*)malloc((params->extlen)*sizeof(float2));
+		checkCudaErrors( cudaMemcpy(extsig, gpuarrays->d_ext_data, (params->extlen)*sizeof(float2), cudaMemcpyDeviceToHost));
+		for(int b=0; b<params->nblocks; ++b)
+			presto_norm(extsig+b*KERNLEN, KERNLEN);
+		checkCudaErrors( cudaMemcpy(gpuarrays->d_ext_data, extsig, (params->extlen)*sizeof(float2), cudaMemcpyHostToDevice));
+		free(extsig);
+	}
 
-  // Custom FFT convolution kernel
-  if(cmdargs->inbin){
-    cuda_convolve_customfft_wes_no_reorder02_inbin<<< params->nblocks, KERNLEN >>>( gpuarrays->d_kernel, gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, params->sigblock, params->extlen, params->siglen, params->offset, params->scale, gpuarrays->ip_edge_points);
-  }
-  else{
-    cuda_convolve_customfft_wes_no_reorder02<<< params->nblocks, KERNLEN >>>( gpuarrays->d_kernel, gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, params->sigblock, params->extlen, params->siglen, params->offset, params->scale);
-    //cuda_convolve_customfft_wes_no_reorder02<<< params->nblocks, KERNLEN >>>( gpuarrays->d_kernel, gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, params->sigblock, params->extlen, params->siglen, params->offset, params->scale);
-	
-	//-------------------------------------------
-	dim3 gridSize(1, 1, 1);
-	dim3 blockSize(1, 1, 1);
-	/*
-	//-------------------------------------------
-	//Two elements per thread
-	gridSize.x = params->nblocks;
-	gridSize.y = 1;
-	gridSize.z = 1;
-	blockSize.x = KERNLEN/2;
-	GPU_CONV_kFFT_mk11_2elem_2v<<<gridSize,blockSize>>>(gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, gpuarrays->d_kernel, params->sigblock, params->offset, params->nblocks, params->scale);
-	*/
-	
-	//-------------------------------------------
-	//Four elements per thread
-	gridSize.x = params->nblocks;
-	gridSize.y = 1;
-	gridSize.z = 1;
-	blockSize.x = KERNLEN/4;
-	GPU_CONV_kFFT_mk11_4elem_2v<<<gridSize,blockSize>>>(gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, gpuarrays->d_kernel, params->sigblock, params->offset, params->nblocks, params->scale);
-	
-  }
+	// Custom FFT convolution kernel
+	if(cmdargs->inbin){
+		cuda_convolve_customfft_wes_no_reorder02_inbin<<< params->nblocks, KERNLEN >>>( gpuarrays->d_kernel, gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, params->sigblock, params->extlen, params->siglen, params->offset, params->scale, gpuarrays->ip_edge_points);
+	}
+	else{
+		//cuda_convolve_customfft_wes_no_reorder02<<< params->nblocks, KERNLEN >>>( gpuarrays->d_kernel, gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, params->sigblock, params->extlen, params->siglen, params->offset, params->scale);
+		
+		//-------------------------------------------
+		dim3 gridSize(1, 1, 1);
+		dim3 blockSize(1, 1, 1);
+		
+		/*
+		//-------------------------------------------
+		//Two elements per thread
+		gridSize.x = params->nblocks;
+		gridSize.y = 1;
+		gridSize.z = 1;
+		blockSize.x = KERNLEN/2;
+		GPU_CONV_kFFT_mk11_2elem_2v<<<gridSize,blockSize>>>(gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, gpuarrays->d_kernel, params->sigblock, params->offset, params->nblocks, params->scale);
+		*/
+		
+		//-------------------------------------------
+		//Four elements per thread
+		gridSize.x = params->nblocks;
+		gridSize.y = 1;
+		gridSize.z = 1;
+		blockSize.x = KERNLEN/4;
+		GPU_CONV_kFFT_mk11_4elem_2v<<<gridSize,blockSize>>>(gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, gpuarrays->d_kernel, params->sigblock, params->offset, params->nblocks, params->scale);
+	}
 }
 #endif
 
@@ -623,11 +642,7 @@ void fdas_write_test_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_pa
 
   FILE *fp_c;
   char pfname[200];
-//  char *infilename;
-//  infilename = basename(cmdargs->afname);
-// filename needs to be acc_dm_%f, dm_low[i] + ((float)dm_count)*dm_step[i]
-  //sprintf(pfname, "%s/out_inbin%d_%s",dirname,ibin,infilename);
-  sprintf(pfname, "acc_%f.dat", dm_low + ((float)dm_count)*dm_step);
+  sprintf(pfname, "acc_fdas_conv_test.dat");
   printf("\nwriting results to file %s\n",pfname);
   if ((fp_c=fopen(pfname, "w")) == NULL) {
     fprintf(stderr, "Error opening %s file for writing: %s\n",pfname, strerror(errno));
