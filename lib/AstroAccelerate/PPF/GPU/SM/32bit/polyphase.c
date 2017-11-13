@@ -107,12 +107,14 @@ int main(int argc, char* argv[]) {
 	if (DEBUG) printf("done.");
 
 	GPU_Polyphase(h_input, h_output, h_coeff, nChannels, nTaps, nSpectra);
-
+	
+	/*
 	if (DEBUG && CHECK){ 
 		printf("\nTesting FIR...\t\t");
 		FIR_check(h_input, h_output, h_coeff, nTaps, nChannels, nSpectra, &cumulative_error, &mean_error);
 		printf("Cumulative Error: %e, Mean Error: %e;",cumulative_error,mean_error);
 	}
+	*/
 	
 	if (DEBUG && CHECK){
 		printf("\nTesting FIR+FFT...\t");
