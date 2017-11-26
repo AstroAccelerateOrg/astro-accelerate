@@ -519,14 +519,18 @@ __global__ void PD_GPU_1st_LA(float const* __restrict__ d_input, float *d_bv_out
 			Bw[3] = Bw[3] + ftemp1.x; Bw[7] = Bw[7] + ftemp1.y;
 			
 			// Using constant memory
-			ftemp1.x = __fdividef( (Bw[0]-(d+1)*signal_mean) ,(signal_sd + d*modifier));     ftemp1.y = __fdividef( (Bw[4]-(d+1)*signal_mean) ,(signal_sd + d*modifier));
-			ftemp2.x = __fdividef( (Bw[1]-(d+2)*signal_mean) ,(signal_sd + (d+1)*modifier)); ftemp2.y = __fdividef( (Bw[5]-(d+2)*signal_mean) ,(signal_sd + (d+1)*modifier));
+			ftemp1.x = __fdividef( (Bw[0]-(d+1)*signal_mean) ,(signal_sd + d*modifier));
+			ftemp1.y = __fdividef( (Bw[4]-(d+1)*signal_mean) ,(signal_sd + d*modifier));
+			ftemp2.x = __fdividef( (Bw[1]-(d+2)*signal_mean) ,(signal_sd + (d+1)*modifier));
+			ftemp2.y = __fdividef( (Bw[5]-(d+2)*signal_mean) ,(signal_sd + (d+1)*modifier));
 			if(ftemp2.x>ftemp1.x) {ftemp1.x = ftemp2.x; taps1.x = d+2;} else taps1.x = d+1;
 			if(ftemp2.y>ftemp1.y) {ftemp1.y = ftemp2.y; taps1.y = d+2;} else taps1.y = d+1;
 
 			// Using constant memory
-			ftemp2.x = __fdividef( (Bw[2]-(d+3)*signal_mean) ,(signal_sd + (d+2)*modifier)); ftemp2.y = __fdividef( (Bw[6]-(d+3)*signal_mean),(signal_sd + (d+2)*modifier));
-			ftemp3.x = __fdividef( (Bw[3]-(d+4)*signal_mean) ,(signal_sd + (d+3)*modifier)); ftemp3.y = __fdividef( (Bw[7]-(d+4)*signal_mean),(signal_sd + (d+3)*modifier));
+			ftemp2.x = __fdividef( (Bw[2]-(d+3)*signal_mean) ,(signal_sd + (d+2)*modifier));
+			ftemp2.y = __fdividef( (Bw[6]-(d+3)*signal_mean),(signal_sd + (d+2)*modifier));
+			ftemp3.x = __fdividef( (Bw[3]-(d+4)*signal_mean) ,(signal_sd + (d+3)*modifier));
+			ftemp3.y = __fdividef( (Bw[7]-(d+4)*signal_mean),(signal_sd + (d+3)*modifier));
 			if(ftemp3.x>ftemp2.x) {ftemp2.x = ftemp3.x; taps2.x = d+4;} else taps2.x = d+3;
 			if(ftemp3.y>ftemp2.y) {ftemp2.y = ftemp3.y; taps2.y = d+4;} else taps2.y = d+3;
 			

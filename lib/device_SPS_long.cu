@@ -106,8 +106,8 @@ int PD_SEARCH_LONG_BLN_EACH(float *d_input, float *d_boxcar_values, float *d_dec
 	MSD_BLN_pw(d_input, d_MSD_BV, nDMs, decimated_timesamples, 0, sigma_constant);
 	#ifdef SPS_LONG_DEBUG
 	cudaMemcpy(h_MSD_BV, d_MSD_BV, 3*sizeof(float), cudaMemcpyDeviceToHost);
-	printf("     MSD BLN point-wise: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD_BV[0], h_MSD_BV[1], h_MSD_BV[2]);
-	printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration ,nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
+	printf("   decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration ,nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
+	printf("   MSD BLN point-wise: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD_BV[0], h_MSD_BV[1], h_MSD_BV[2]);
 	#endif
 	
 	if(nBlocks>0) PD_GPU_1st_BLN<<<gridSize,blockSize>>>( d_input, d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD_BV, decimated_timesamples, nBoxcars, dtm);
@@ -118,7 +118,7 @@ int PD_SEARCH_LONG_BLN_EACH(float *d_input, float *d_boxcar_values, float *d_dec
 		gridSize.x=nBlocks; gridSize.y=nDMs; gridSize.z=1;
 		blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
 		#ifdef SPS_LONG_DEBUG
-		printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration, nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
+		printf("   decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration, nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
 		#endif
 		if( (f%2) == 0 ) {
 			MSD_BLN_pw(d_input, d_MSD_DIT, nDMs, decimated_timesamples, 0, sigma_constant);
@@ -126,7 +126,7 @@ int PD_SEARCH_LONG_BLN_EACH(float *d_input, float *d_boxcar_values, float *d_dec
 			if(nBlocks>0) PD_GPU_Nth_BLN_EACH<<<gridSize,blockSize>>>(&d_input[shift], &d_boxcar_values[nDMs*(nTimesamples>>1)], d_boxcar_values, d_decimated, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], d_MSD_BV, d_MSD_DIT, decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
 		}
 		else {
-			MSD_BLN_pw(d_input, d_MSD_DIT, nDMs, decimated_timesamples, 0, sigma_constant);
+			MSD_BLN_pw(d_decimated, d_MSD_DIT, nDMs, decimated_timesamples, 0, sigma_constant);
 			MSD_BLN_pw(d_boxcar_values, d_MSD_BV, nDMs, decimated_timesamples, PD_plan->operator[](f-1).unprocessed_samples, sigma_constant);
 			if(nBlocks>0) PD_GPU_Nth_BLN_EACH<<<gridSize,blockSize>>>(&d_decimated[shift], d_boxcar_values, &d_boxcar_values[nDMs*(nTimesamples>>1)], d_input, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], d_MSD_BV, d_MSD_DIT, decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
 		}
@@ -134,8 +134,8 @@ int PD_SEARCH_LONG_BLN_EACH(float *d_input, float *d_boxcar_values, float *d_dec
 		#ifdef SPS_LONG_DEBUG
 		cudaMemcpy(h_MSD_BV, d_MSD_BV, 3*sizeof(float), cudaMemcpyDeviceToHost);
 		cudaMemcpy(h_MSD_DIT, d_MSD_DIT, 3*sizeof(float), cudaMemcpyDeviceToHost);
-		printf("     MSD BV point-wise: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD_BV[0], h_MSD_BV[1], h_MSD_BV[2]);
-		printf("     MSD DIT point-wise: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD_DIT[0], h_MSD_DIT[1], h_MSD_DIT[2]);
+		printf("   MSD BV point-wise: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD_BV[0], h_MSD_BV[1], h_MSD_BV[2]);
+		printf("   MSD DIT point-wise: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD_DIT[0], h_MSD_DIT[1], h_MSD_DIT[2]);
 		#endif
 	}
 

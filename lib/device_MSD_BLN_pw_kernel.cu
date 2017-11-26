@@ -358,7 +358,7 @@ __global__ void MSD_GPU_LA_ALL_Nth_no_rejection(float const* __restrict__ d_inpu
 	EpT = 2*MSD_PW_NTHREADS-nTaps+4;
 	limit = blockDim.x - (nTaps>>2) - 1;
 
-	// First y coordinate is separated
+	// First y iteration is separated
 	//-------------------> FIR
 	spos = blockIdx.x*(EpT) + 2*threadIdx.x;
 	gpos = blockIdx.y*y_steps*nTimesamples + spos;
@@ -384,7 +384,7 @@ __global__ void MSD_GPU_LA_ALL_Nth_no_rejection(float const* __restrict__ d_inpu
 	
 	__syncthreads();
 	
-	// Calculating FIT up to nTaps
+	// Calculating sum of nTaps elements
 	for(d=4; d<nTaps; d=d+4){
 		local_id = threadIdx.x+(d>>1);
 		if( local_id<=limit ){
