@@ -429,8 +429,8 @@ int MSD_BLN_LA_Nth_pw_normal(float *d_input, float *d_bv_in, float *d_MSD_T, flo
 		#ifdef MSD_BLN_DEBUG
 		cudaMemcpy(h_MSD_T, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost); 
 		cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
-		printf("d_MSD_T: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
-		printf("d_MSD_T_base: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T_base[0], h_MSD_T_base[1], h_MSD_T_base[2]);
+		printf("d_MSD_T (end):        Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
+		printf("d_MSD_T_base (start): Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T_base[0], h_MSD_T_base[1], h_MSD_T_base[2]);
 		#endif
 		#ifdef MSD_BLN_END
 		cudaMemcpy(h_MSD_break, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost);
@@ -445,8 +445,8 @@ int MSD_BLN_LA_Nth_pw_normal(float *d_input, float *d_bv_in, float *d_MSD_T, flo
 			printf("-------------------\n");
 			cudaMemcpy(h_MSD_T, d_MSD_T, 3*sizeof(float), cudaMemcpyDeviceToHost); 
 			cudaMemcpy(h_MSD_T_base, d_MSD_T_base, 3*sizeof(float), cudaMemcpyDeviceToHost);
-			printf("d_MSD_T: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
-			printf("d_MSD_T_base: Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T_base[0], h_MSD_T_base[1], h_MSD_T_base[2]);
+			printf("d_MSD_T (end):        Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T[0], h_MSD_T[1], h_MSD_T[2]);
+			printf("d_MSD_T_base (start): Mean: %f, StDev: %f; Elements:%f; \n", h_MSD_T_base[0], h_MSD_T_base[1], h_MSD_T_base[2]);
 			#endif
 			#ifdef MSD_BLN_END
 			h_MSD_break_old[0] = h_MSD_break[0]; h_MSD_break_old[1] = h_MSD_break[1]; h_MSD_break_old[2] = h_MSD_break[2];

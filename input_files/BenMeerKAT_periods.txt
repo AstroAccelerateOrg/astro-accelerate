@@ -6,7 +6,7 @@ range	2950 5000  4.000  16 16
 sigma_cutoff	6
 sigma_constant  4.0
 max_boxcar_width_in_sec 0.05
-periodicity_sigma_cutoff 200
+periodicity_sigma_cutoff 20
 periodicity_harmonics 32
 analysis
 -acceleration
