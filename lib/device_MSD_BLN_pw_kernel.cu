@@ -151,9 +151,11 @@ __global__ void MSD_BLN_pw_no_rejection(float const* __restrict__ d_input, float
 
 __global__ void MSD_BLN_pw_rejection_normal(float const* __restrict__ d_input, float *d_output, float *d_MSD, int y_steps, int nTimesamples, int offset, float bln_sigma_constant) {
 	__shared__ float s_input[3*PD_NTHREADS];
-	float M, S, j, ftemp, signal_mean, signal_sd;
-	signal_mean = d_MSD[0];
-	signal_sd = d_MSD[1];
+	float M, S, j, ftemp;
+	float limit_down = d_MSD[0] - bln_sigma_constant*d_MSD[1];
+	float limit_up = d_MSD[0] + bln_sigma_constant*d_MSD[1];
+	
+	//if(blockIdx.x==0 && blockIdx.y==0 && threadIdx.x==0) printf("Boundaries: [%f; %f; %f] %f %f\n", signal_mean - bln_sigma_constant*signal_sd, signal_mean, signal_mean + bln_sigma_constant*signal_sd, bln_sigma_constant, signal_sd);
 	
 	int spos = blockIdx.x*PD_NTHREADS + threadIdx.x;
 	int gpos = blockIdx.y*y_steps*nTimesamples + spos;
@@ -162,12 +164,14 @@ __global__ void MSD_BLN_pw_rejection_normal(float const* __restrict__ d_input, f
 		
 		for (int yf = 0; yf < y_steps; yf++) {
 			ftemp=__ldg(&d_input[gpos]);
-			if( (ftemp > (signal_mean - bln_sigma_constant*signal_sd)) && (ftemp < (signal_mean + bln_sigma_constant*signal_sd)) ){
+			if( (ftemp>limit_down) && (ftemp < limit_up) ){
 				if(j==0){
 					Initiate( &M, &S, &j, ftemp);
+					//if(blockIdx.x==25 && (M/j)>limup) printf("[%f; %f; %f] %f - ", M, S, j, ftemp);
 				}
 				else{
 					Add_one( &M, &S, &j, ftemp);
+					//if(blockIdx.x==25 && (M/j)>limup) printf("[%f; %f; %f] %f - ", M, S, j, ftemp);
 				}			
 			}
 			gpos = gpos + nTimesamples;
@@ -181,12 +185,21 @@ __global__ void MSD_BLN_pw_rejection_normal(float const* __restrict__ d_input, f
 	
 	__syncthreads();
 	
+	//if(blockIdx.x==25 && ((M/j)>limup || S>100000.0)) printf("Before [%f; %f; %f] - ", M, S, j);
+	
 	Reduce_SM( &M, &S, &j, s_input );
+	
+	//if(blockIdx.x==25 && threadIdx.x<32 && S>500.0) printf("[%d; %d; %d] [%f; %f; %f]\n", threadIdx.x, blockIdx.x, blockIdx.y, M, S, j);
+	//if(blockIdx.x==25 && ((M/j)>limup || S>100000.0)) printf("SM [%f; %f; %f] - ", M, S, j);
+	
 	Reduce_WARP( &M, &S, &j);
+	
+	//if(blockIdx.x==25 && ((M/j)>limup || S>100000.0)) printf("WARP [%f; %f; %f] - ", M, S, j);
 	
 	//----------------------------------------------
 	//---- Writing data
 	if (threadIdx.x == 0) {
+		//if(S>600000.0) printf("[%f; %f; %f; x:%d; y%d] - ", M, S, j, blockIdx.x, blockIdx.y);
 		gpos = blockIdx.y*gridDim.x + blockIdx.x;
 		d_output[3*gpos] = M;
 		d_output[3*gpos + 1] = S;
