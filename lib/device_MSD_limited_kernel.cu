@@ -81,18 +81,21 @@ __device__ __inline__ void Reduce_SM_regular(float *M, float *S, float *j, float
 }
 
 __device__ __inline__ void Reduce_WARP(float *M, float *S, float *j){
-	float jv;
+	float B_M, B_S, B_j;
 	
 	for (int q = HALF_WARP; q > 0; q = q >> 1) {
-		jv = __shfl_down((*j), q);
-		if(jv!=0){
+		B_M = __shfl_down((*M), q);
+		B_S = __shfl_down((*S), q);
+		B_j = __shfl_down((*j), q);
+		
+		if(B_j>0){
 			if( (*j)==0 ) {
-				(*S) = __shfl_down((*S), q);
-				(*M) = __shfl_down((*M), q);
-				(*j) = jv;
+				(*S) = B_S;
+				(*M) = B_M;
+				(*j) = B_j;
 			}
 			else {
-				Merge(M, S, j, __shfl_down((*M), q), __shfl_down((*S), q), jv);
+				Merge(M, S, j, B_M, B_S, B_j);
 			}
 		}
 	}
@@ -157,7 +160,7 @@ __device__ void Sum_partials_nonregular(float *M, float *S, float *j, float *d_i
 		(*M) = 0;	(*S) = 0;	(*j) = 0;
 		while (pos < size) {
 			jv = d_input[3*pos + 2];
-			if( ((int) jv)!=0 ){
+			if( ((int) jv)>0 ){
 				if( (int) (*j)==0 ){
 					(*M) = d_input[3*pos]; 
 					(*S) = d_input[3*pos + 1];
@@ -298,7 +301,6 @@ __global__ void MSD_GPU_final_nonregular(float *d_input, float *d_MSD, int size)
 	//----------------------------------------------
 	//---- Writing data
 	if (threadIdx.x == 0) {
-		//printf("MSD_GPU_final_nonregular: mean:%f; sd:%f; j:%f; \n", M / j, sqrt(S / j), j);
 		d_MSD[0] = M / j;
 		d_MSD[1] = sqrt(S / j);
 		d_MSD[2] = j;
@@ -319,7 +321,6 @@ __global__ void MSD_GPU_final_nonregular(float *d_input, float *d_MSD, float *d_
 	//----------------------------------------------
 	//---- Writing data
 	if (threadIdx.x == 0) {
-		//printf("MSD_GPU_final_nonregular: mean:%f; sd:%f; j:%f; \n", M / j, sqrt(S / j), j);
 		d_MSD[0] = M / j;
 		d_MSD[1] = sqrt(S / j);
 		d_MSD[2] = j;
