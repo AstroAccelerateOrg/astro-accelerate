@@ -43,7 +43,7 @@ int MSD_BLN_pw(float *d_input, float *d_MSD, int nDMs, int nTimesamples, int off
 	nSteps_x=MSD_PW_NTHREADS;
 	nBlocks_x = nBlocks_x + (nTimesamples-offset)/(nSteps_x);
 	nRest=nTimesamples - offset - nBlocks_x*nSteps_x;
-	if(nRest>32) nBlocks_x++;
+	if(nRest>0) nBlocks_x++;
 	
 	nSteps_y = Choose_divider(nDMs,64);
 	nBlocks_y=nDMs/nSteps_y;
@@ -61,6 +61,15 @@ int MSD_BLN_pw(float *d_input, float *d_MSD, int nDMs, int nTimesamples, int off
 	dim3 blockSize(MSD_PW_NTHREADS, 1, 1);
 	dim3 final_gridSize(1, 1, 1);
 	dim3 final_blockSize(nThreads, 1, 1);
+
+	#ifdef MSD_BLN_DEBUG
+	float h_MSD[3];
+	printf("nTimesamples: %d; nDMs: %d; offset:%d\n",nTimesamples, nDMs, offset);
+	printf("ThreadBlocks (TB) in x:%d; Elements processed by TB in x:%d; Remainder in x:%d", nBlocks_x, nSteps_x, nRest);
+	if(nRest>0) printf(" is processed\n");
+	else printf(" is not processed\n");
+	printf("ThreadBlocks (TB) in y:%d; Elements processed by TB in y:%d; Remainder in y:%d is processed\n", nBlocks_y, nSteps_y, 0);
+	#endif
 	
 	//---------> Allocation of temporary memory
 	cudaMalloc((void **) &d_output, nBlocks_total*3*sizeof(float));
@@ -68,10 +77,26 @@ int MSD_BLN_pw(float *d_input, float *d_MSD, int nDMs, int nTimesamples, int off
 	MSD_BLN_pw_init();
 	MSD_BLN_pw_no_rejection<<<gridSize,blockSize>>>(d_input, d_output, nDMs/nBlocks_y, nTimesamples, offset);
 	MSD_GPU_final_regular<<<final_gridSize,final_blockSize>>>(d_output, d_MSD, nBlocks_total);
+	#ifdef MSD_BLN_DEBUG
+	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	printf("Before outlier rejection: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
+	printf("---------------------------<\n");
+	#endif
 	for(int i=0; i<5; i++){
 		MSD_BLN_pw_rejection_normal<<<gridSize,blockSize>>>(d_input, d_output, d_MSD, nDMs/nBlocks_y, nTimesamples, offset, bln_sigma_constant);
 		MSD_GPU_final_nonregular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD, nBlocks_total);
+		#ifdef MSD_BLN_DEBUG
+		cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+		printf("Rejection %d: Mean: %e, Standard deviation: %e; Elements:%zu;\n", i, h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
+		printf("---------------------------<\n");
+		#endif
 	}
+
+	#ifdef MSD_BLN_DEBUG
+	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	printf("Output: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
+	printf("---------------------------<\n");
+	#endif
 	
 	cudaFree(d_output);
 	
