@@ -94,4 +94,21 @@ __global__ void PD_FIR_GPUv1(float const* __restrict__ d_input, float *d_output,
 }
 
 
+
+__global__ void Fir_L1(float const* __restrict__ d_data, float* d_output, int nTaps, int nTimesamples) {
+	int t = 0;
+	int posy = blockIdx.y;
+	int posx = blockIdx.x*blockDim.x + threadIdx.x;
+	float ftemp;
+
+	if(posx<nTimesamples-nTaps+1){
+		ftemp=0;
+		for(t=0; t<nTaps; t++){
+			ftemp += __ldg(&d_data[posy*nTimesamples + posx + t]);
+		}
+
+		d_output[posy*nTimesamples + posx] = ftemp;
+	}
+}
+
 #endif
