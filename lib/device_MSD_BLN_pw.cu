@@ -82,6 +82,17 @@ int MSD_BLN_pw(float *d_input, float *d_MSD, int nDMs, int nTimesamples, int off
 	printf("Before outlier rejection: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
 	printf("---------------------------<\n");
 	#endif
+	
+	
+		MSD_BLN_pw_rejection_up<<<gridSize,blockSize>>>(d_input, d_output, d_MSD, nDMs/nBlocks_y, nTimesamples, offset, 0.0);
+		MSD_GPU_final_nonregular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD, nBlocks_total);
+		#ifdef MSD_BLN_DEBUG
+		cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+		printf("Rejection %d: Mean: %e, Standard deviation: %e; Elements:%zu;\n", i, h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
+		printf("---------------------------<\n");
+		#endif	
+	
+	
 	for(int i=0; i<5; i++){
 		MSD_BLN_pw_rejection_normal<<<gridSize,blockSize>>>(d_input, d_output, d_MSD, nDMs/nBlocks_y, nTimesamples, offset, bln_sigma_constant);
 		MSD_GPU_final_nonregular<<<final_gridSize, final_blockSize>>>(d_output, d_MSD, nBlocks_total);
