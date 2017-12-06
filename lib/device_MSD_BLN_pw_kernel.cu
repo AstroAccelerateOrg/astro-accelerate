@@ -8,105 +8,6 @@
 #include "headers/params.h"
 
 
-/*
-//----------------------------------------------------------------------------------------
-//------------- Device functions
-__device__ __inline__ void Initiate(float *M, float *S, float *j, float element){
-	*M = element;
-	*S = 0;
-	*j = 1.0f;
-}
-
-__device__ __inline__ void Add_one(float *M, float *S, float *j, float element){
-	float ftemp;
-	*j = (*j) + 1.0f;
-	*M = (*M) + element;
-	ftemp = ( (*j)*element - (*M) );
-	*S = (*S) + 1.0f / ( (*j)*( (*j) - 1.0f ) )*ftemp*ftemp;
-}
-
-__device__ __inline__ void Merge(float *A_M, float *A_S, float *A_j, float B_M, float B_S, float B_j){
-	float ftemp;
-	
-	ftemp = ( B_j / (*A_j)*(*A_M) - B_M );
-	(*A_S) = (*A_S) + B_S + ( (*A_j) / ( B_j*( (*A_j) + B_j ) ) )*ftemp*ftemp;
-	(*A_M) = (*A_M) + B_M;
-	(*A_j) = (*A_j) + B_j;
-}
-
-__device__ __inline__ void Reduce_SM(float *M, float *S, float *j, float *s_input){
-	float jv;
-	
-	(*M)=s_input[threadIdx.x];
-	(*S)=s_input[blockDim.x + threadIdx.x];
-	(*j)=s_input[2*blockDim.x + threadIdx.x];
-	
-	for (int i = ( blockDim.x >> 1 ); i > HALF_WARP; i = i >> 1) {
-		if (threadIdx.x < i) {
-			jv = s_input[2*blockDim.x + i + threadIdx.x];
-			if( ((int) jv)!=0){
-				if( (*j)==0 ){
-					(*S) = s_input[blockDim.x + i + threadIdx.x];
-					(*M) = s_input[i + threadIdx.x];
-					(*j) = jv;
-				}
-				else {
-					Merge(M, S, j, s_input[i + threadIdx.x], s_input[blockDim.x + i + threadIdx.x], jv);
-				}
-			}
-			
-			s_input[threadIdx.x] = (*M);
-			s_input[blockDim.x + threadIdx.x] = (*S);
-			s_input[2*blockDim.x + threadIdx.x] = (*j);
-		}
-		__syncthreads();
-	}
-}
-
-__device__ __inline__ void Reduce_SM_regular(float *M, float *S, float *j, float *s_input){
-	(*M)=s_input[threadIdx.x];
-	(*S)=s_input[blockDim.x + threadIdx.x];
-	(*j)=s_input[2*blockDim.x + threadIdx.x];
-	
-	for (int i = ( blockDim.x >> 1 ); i > HALF_WARP; i = i >> 1) {
-		if (threadIdx.x < i) {
-			Merge(M, S, j, s_input[i + threadIdx.x], s_input[blockDim.x + i + threadIdx.x], s_input[2*blockDim.x + i + threadIdx.x]);
-			
-			s_input[threadIdx.x] = (*M);
-			s_input[blockDim.x + threadIdx.x] = (*S);
-			s_input[2*blockDim.x + threadIdx.x] = (*j);
-		}
-		__syncthreads();
-	}
-}
-
-__device__ __inline__ void Reduce_WARP(float *M, float *S, float *j){
-	float jv;
-	
-	for (int q = HALF_WARP; q > 0; q = q >> 1) {
-		jv = __shfl_down((*j), q);
-		if(jv!=0){
-			if( (*j)==0 ) {
-				(*S) = __shfl_down((*S), q);
-				(*M) = __shfl_down((*M), q);
-				(*j) = jv;
-			}
-			else {
-				Merge(M, S, j, __shfl_down((*M), q), __shfl_down((*S), q), jv);
-			}
-		}
-	}
-}
-
-__device__ __inline__ void Reduce_WARP_regular(float *M, float *S, float *j){
-	for (int q = HALF_WARP; q > 0; q = q >> 1) {
-		Merge(M, S, j, __shfl_down((*M), q), __shfl_down((*S), q), __shfl_down((*j), q));
-	}
-}
-//------------- Device functions
-//----------------------------------------------------------------------------------------
-*/
-
 
 __global__ void MSD_BLN_pw_no_rejection(float const* __restrict__ d_input, float *d_output, int y_steps, int nTimesamples, int offset) {
 	__shared__ float s_input[3*MSD_PW_NTHREADS];
@@ -155,8 +56,6 @@ __global__ void MSD_BLN_pw_rejection_normal(float const* __restrict__ d_input, f
 	float limit_down = d_MSD[0] - bln_sigma_constant*d_MSD[1];
 	float limit_up = d_MSD[0] + bln_sigma_constant*d_MSD[1];
 	
-	//if(blockIdx.x==0 && blockIdx.y==0 && threadIdx.x==0) printf("Boundaries: [%f; %f; %f] %f %f\n", signal_mean - bln_sigma_constant*signal_sd, signal_mean, signal_mean + bln_sigma_constant*signal_sd, bln_sigma_constant, signal_sd);
-	
 	int spos = blockIdx.x*PD_NTHREADS + threadIdx.x;
 	int gpos = blockIdx.y*y_steps*nTimesamples + spos;
 	M=0;	S=0;	j=0;
@@ -167,11 +66,9 @@ __global__ void MSD_BLN_pw_rejection_normal(float const* __restrict__ d_input, f
 			if( (ftemp>limit_down) && (ftemp < limit_up) ){
 				if(j==0){
 					Initiate( &M, &S, &j, ftemp);
-					//if(blockIdx.x==25 && (M/j)>limup) printf("[%f; %f; %f] %f - ", M, S, j, ftemp);
 				}
 				else{
 					Add_one( &M, &S, &j, ftemp);
-					//if(blockIdx.x==25 && (M/j)>limup) printf("[%f; %f; %f] %f - ", M, S, j, ftemp);
 				}			
 			}
 			gpos = gpos + nTimesamples;
@@ -185,27 +82,67 @@ __global__ void MSD_BLN_pw_rejection_normal(float const* __restrict__ d_input, f
 	
 	__syncthreads();
 	
-	//if(blockIdx.x==25 && ((M/j)>limup || S>100000.0)) printf("Before [%f; %f; %f] - ", M, S, j);
-	
 	Reduce_SM( &M, &S, &j, s_input );
 	
-	//if(blockIdx.x==25 && threadIdx.x<32 && S>500.0) printf("[%d; %d; %d] [%f; %f; %f]\n", threadIdx.x, blockIdx.x, blockIdx.y, M, S, j);
-	//if(blockIdx.x==25 && ((M/j)>limup || S>100000.0)) printf("SM [%f; %f; %f] - ", M, S, j);
-	
 	Reduce_WARP( &M, &S, &j);
-	
-	//if(blockIdx.x==25 && ((M/j)>limup || S>100000.0)) printf("WARP [%f; %f; %f] - ", M, S, j);
 	
 	//----------------------------------------------
 	//---- Writing data
 	if (threadIdx.x == 0) {
-		//if(S>600000.0) printf("[%f; %f; %f; x:%d; y%d] - ", M, S, j, blockIdx.x, blockIdx.y);
 		gpos = blockIdx.y*gridDim.x + blockIdx.x;
 		d_output[3*gpos] = M;
 		d_output[3*gpos + 1] = S;
 		d_output[3*gpos + 2] = j;
 	}
 }
+
+
+__global__ void MSD_BLN_pw_rejection_up(float const* __restrict__ d_input, float *d_output, float *d_MSD, int y_steps, int nTimesamples, int offset, float bln_sigma_constant) {
+	__shared__ float s_input[3*PD_NTHREADS];
+	float M, S, j, ftemp;
+	float limit_down = d_MSD[0] - bln_sigma_constant*d_MSD[1];
+	float limit_up = d_MSD[0] + bln_sigma_constant*d_MSD[1];
+	
+	int spos = blockIdx.x*PD_NTHREADS + threadIdx.x;
+	int gpos = blockIdx.y*y_steps*nTimesamples + spos;
+	M=0;	S=0;	j=0;
+	if( spos<(nTimesamples-offset) ){
+		
+		for (int yf = 0; yf < y_steps; yf++) {
+			ftemp=__ldg(&d_input[gpos]);
+			if( ftemp < limit_up ){
+				if(j==0){
+					Initiate( &M, &S, &j, ftemp);
+				}
+				else{
+					Add_one( &M, &S, &j, ftemp);
+				}			
+			}
+			gpos = gpos + nTimesamples;
+		}
+		
+	}
+	
+	s_input[threadIdx.x] = M;
+	s_input[blockDim.x + threadIdx.x] = S;
+	s_input[2*blockDim.x + threadIdx.x] = j;
+	
+	__syncthreads();
+	
+	Reduce_SM( &M, &S, &j, s_input );
+	
+	Reduce_WARP( &M, &S, &j);
+	
+	//----------------------------------------------
+	//---- Writing data
+	if (threadIdx.x == 0) {
+		gpos = blockIdx.y*gridDim.x + blockIdx.x;
+		d_output[3*gpos] = M;
+		d_output[3*gpos + 1] = S;
+		d_output[3*gpos + 2] = j;
+	}
+}
+
 
 
 __global__ void MSD_GPU_LA_ALL_no_rejection(float const* __restrict__ d_input, float *d_output, float *d_output_taps, int y_steps, int nTaps, int nTimesamples, int offset) {
