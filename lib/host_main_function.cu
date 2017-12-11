@@ -37,6 +37,7 @@
 #include "headers/host_acceleration.h"
 #include "headers/host_allocate_memory.h"
 #include "headers/host_analysis.h"
+#include "headers/host_export.h"
 #include "headers/host_periods.h"
 #include "headers/host_debug.h"
 #include "headers/host_get_file_data.h"
