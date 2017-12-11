@@ -247,59 +247,8 @@ void export_file_nDM_nTimesamples(float *data, int nDMs, int nTimesamples, char 
 }
 
 
-void Export_data_in_range_CPU(float *d_data_to_export, size_t nTimesamples, size_t nDMs, const char *filename, int DMs_per_file=100) {
-	char final_filename[100];
-	
-	int inner_DM_shift;
-	if(DMs_per_file<0) DMs_per_file=nDMs;
-	
-	float *h_data_to_export;
-	float *h_data;
-	
-	size_t data_size = ((size_t) nTimesamples)*((size_t) nDMs);
-	size_t export_size = ((size_t) nTimesamples)*((size_t) DMs_per_file);
-		
-	int nRepeats = nDMs/DMs_per_file;
-	int nRest = nDMs%DMs_per_file;
-	std::vector<int> chunk_size;
-	for(int f=0; f<nRepeats; f++) chunk_size.push_back(DMs_per_file);
-	if(nRest>0) chunk_size.push_back(nRest);
-	printf("Data will be exported into %d files\n", (int) chunk_size.size());
-	double percent_per_DMtrial = 100.0/(nDMs);
-	
-	h_data_to_export = new float[data_size];
-	h_data = new float[export_size*3];
-	
-	cudaMemcpy(h_data_to_export, d_data_to_export, data_size*sizeof(float), cudaMemcpyDeviceToHost);
-	
-	inner_DM_shift = 0;
-	for(int i=0; i<(int) chunk_size.size(); i++){
-		sprintf(final_filename,"%s_%d.dat", filename, i);
-		
-		for(size_t d=0; d<chunk_size[i]; d++) {
-			for(size_t t=0; t<nTimesamples; t++) {
-				h_data[3*(d*nTimesamples + t)] = (float) d;
-				h_data[3*(d*nTimesamples + t)+1] = (float) t;
-				h_data[3*(d*nTimesamples + t)+2] = h_data_to_export[d*nTimesamples+t];
-			}
-		}
-		
-		FILE *fp_out;
-		if (( fp_out = fopen(final_filename, "wb") ) == NULL) {
-			fprintf(stderr, "Error opening output file!\n");
-			exit(0);
-		}
-		fwrite(h_data, nTimesamples*chunk_size[i]*sizeof(float), 3, fp_out);
-		fclose(fp_out);
-		
-		inner_DM_shift = inner_DM_shift + chunk_size[i];
-		printf("Exported: %0.2f%\n", (float) (inner_DM_shift*percent_per_DMtrial));
-	}
-	
-	delete [] h_data_to_export;
-	delete [] h_data;
-}
-
+//---------------------------------------------------------------------------------
+//-------> Calculating MSD for whole plane
 
 void Create_dit_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vector<MSD_Data> *dit_MSD, std::vector<MSD_Data> *dit_MSD_BLN, int max_DIT_value, const char *filename, float sigma_constant){
 	GpuTimer timer, total_timer;
@@ -427,7 +376,6 @@ void Create_dit_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vector
 	checkCudaErrors(cudaFree(d_lichy));
 	checkCudaErrors(cudaFree(d_MSD));
 }
-
 
 void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vector<MSD_Data> *boxcar_MSD, std::vector<MSD_Data> *boxcar_MSD_BLN, int max_nTaps, float sigma_constant){
 	GpuTimer timer;
@@ -623,10 +571,33 @@ void Export_MSD_data(std::vector<MSD_Data> h_dit_MSD, std::vector<MSD_Data> h_di
 	FILEOUT.close();
 }
 
+void Calculate_MSD_data(float *output_buffer, size_t nTimesamples, size_t nDMs, float sigma_constant, int inBin, float dm_low, float dm_high, float tstart){
+	char filename[200];
+	int max_DIT_value = 13;
+	int max_nTaps = 128;
+	std::vector<MSD_Data> h_dit_MSD;
+	std::vector<MSD_Data> h_dit_MSD_BLN;
+	std::vector<MSD_Data> h_boxcar_MSD;
+	std::vector<MSD_Data> h_boxcar_MSD_BLN;
+	
+	size_t free_mem,total_mem;
+	cudaMemGetInfo(&free_mem,&total_mem);
+	printf("Memory available: %f; output_buffer size: %f;\n", (double) free_mem/(1024.0*1024.0), ((double) nDMs*nTimesamples*sizeof(float))/(1024.0*1024.0));
+	
+	Create_dit_MSD(output_buffer, nTimesamples/inBin, nDMs, &h_dit_MSD, &h_dit_MSD_BLN, max_DIT_value, filename, sigma_constant);
+	Create_boxcar_MSD(output_buffer, nTimesamples/inBin, nDMs, &h_boxcar_MSD, &h_boxcar_MSD_BLN, max_nTaps, sigma_constant);
+	
+	
+	sprintf(filename,"MSD_test-t_%.2f-dm_%.2f-%.2f.dat", tstart, dm_low, dm_high);
+	Export_MSD_data(h_dit_MSD, h_dit_MSD_BLN, h_boxcar_MSD, h_boxcar_MSD_BLN, filename);
+}
+
+//-------> Calculating MSD for whole plane
+//---------------------------------------------------------------------------------
 
 
 
-
+// Extend this to arbitrary size plans
 void Create_PD_plan(std::vector<PulseDetection_plan> *PD_plan, std::vector<int> *BC_widths, int nDMs, int nTimesamples){
 	int Elements_per_block, itemp, nRest;
 	PulseDetection_plan PDmp;
@@ -712,32 +683,11 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	int nTimesamples = t_processed;
 	int nDMs = ndms[i];
 	int temp_peak_pos;
-	char filename[200];
-	//double total;
 	
-	
-	int MSD_export=1;
-	if(MSD_export){
-		int max_DIT_value = 13;
-		int max_nTaps = 128;
-		std::vector<MSD_Data> h_dit_MSD;
-		std::vector<MSD_Data> h_dit_MSD_BLN;
-		std::vector<MSD_Data> h_boxcar_MSD;
-		std::vector<MSD_Data> h_boxcar_MSD_BLN;
-		
-		size_t free_mem,total_mem;
-		cudaMemGetInfo(&free_mem,&total_mem);
-		printf("Memory available: %f; output_buffer size: %f;\n", (double) free_mem/(1024.0*1024.0), ((double) nDMs*nTimesamples*sizeof(float))/(1024.0*1024.0));
-		
-		sprintf(filename,"MSD_test-t_%.2f-dm_%.2f-%.2f", tstart, dm_low[i], dm_high[i]);
-		Create_dit_MSD(output_buffer, nTimesamples, nDMs, &h_dit_MSD, &h_dit_MSD_BLN, max_DIT_value, filename, sigma_constant);
-		Create_boxcar_MSD(output_buffer, nTimesamples, nDMs, &h_boxcar_MSD, &h_boxcar_MSD_BLN, max_nTaps, sigma_constant);
-		
-		
-		sprintf(filename,"MSD_test-t_%.2f-dm_%.2f-%.2f.dat", tstart, dm_low[i], dm_high[i]);
-		Export_MSD_data(h_dit_MSD, h_dit_MSD_BLN, h_boxcar_MSD, h_boxcar_MSD_BLN, filename);
-	}
-	
+	//----------------------------------------------
+	//--- MSD profile of the data
+	Calculate_MSD_data(output_buffer, nTimesamples, nDMs, sigma_constant, inBin, dm_low[i], dm_high[i], tstart);
+	//---------------------------------------------<
 	
 
 	// Calculate the total number of values
