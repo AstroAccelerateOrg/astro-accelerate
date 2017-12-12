@@ -19,6 +19,7 @@
 #include "headers/device_MSD_grid.h" //Added by KA
 #include "headers/device_MSD_plane.h" //Added by KA
 #include "headers/device_MSD_limited.h" //Added by KA
+#include "headers/device_MSD_legacy.h" //Added by KA
 #include "headers/device_SNR_limited.h" //Added by KA
 #include "headers/device_SPS_long.h" //Added by KA
 #include "headers/device_threshold.h" //Added by KA
