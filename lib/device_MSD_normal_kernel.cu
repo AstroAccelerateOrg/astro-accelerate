@@ -1,3 +1,6 @@
+#ifndef MSD_NORMAL_KERNEL_H_
+#define MSD_NORMAL_KERNEL_H_
+
 #include "headers/params.h"
 #include "headers/device_MSD_Configuration.h"
 #include "device_MSD_shared_kernel_functions.cu"
@@ -44,3 +47,5 @@ __global__ void MSD_GPU_limited(float const* __restrict__ d_input, float *d_outp
 		d_output[3*gpos + 2] = j;
 	}
 }
+
+#endif

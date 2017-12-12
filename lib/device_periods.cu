@@ -7,10 +7,9 @@
 
 #include "headers/device_periodicity_parameters.h"
 #include "headers/device_MSD_Configuration.h"
+#include "headers/device_MSD.h"
+#include "headers/device_MSD_legacy.h"
 #include "headers/device_peak_find.h"
-#include "headers/device_MSD_BLN_grid.h"
-#include "headers/device_MSD_BLN_pw.h"
-#include "headers/device_MSD_limited.h"
 #include "headers/device_power.h"
 #include "headers/device_harmonic_summing.h"
 
@@ -670,16 +669,16 @@ void Periodicity_search(GPU_Memory_for_Periodicity_Search *gmem, Periodicity_par
 	timer.Start();
 	if(per_param.enable_outlier_rejection==1){
 		#ifdef PS_REUSE_MSD_WITHIN_INBIN
-		MSD_BLN_pw_continuous_OR(d_frequency_power, gmem->d_MSD, gmem->d_previous_partials, gmem->d_all_blocks, &batch->MSD_conf, per_param.bln_sigma_constant);
+		MSD_outlier_rejection_grid(d_frequency_power, gmem->d_MSD, gmem->d_previous_partials, gmem->d_all_blocks, &batch->MSD_conf, per_param.bln_sigma_constant);
 		#else
-		MSD_BLN_pw(d_frequency_power, gmem->d_MSD, gmem->d_all_blocks, &batch->MSD_conf, per_param.bln_sigma_constant);
+		MSD_outlier_rejection(d_frequency_power, gmem->d_MSD, gmem->d_all_blocks, &batch->MSD_conf, per_param.bln_sigma_constant);
 		#endif
 	}
 	else {
 		#ifdef PS_REUSE_MSD_WITHIN_INBIN
-		MSD_limited_continuous(d_frequency_power, gmem->d_MSD, gmem->d_previous_partials, gmem->d_all_blocks, &batch->MSD_conf);
+		MSD_normal_continuous(d_frequency_power, gmem->d_MSD, gmem->d_previous_partials, gmem->d_all_blocks, &batch->MSD_conf);
 		#else
-		MSD_limited(d_frequency_power, gmem->d_MSD, gmem->d_all_blocks, &batch->MSD_conf);
+		MSD_normal(d_frequency_power, gmem->d_MSD, gmem->d_all_blocks, &batch->MSD_conf);
 		#endif
 	}
 	timer.Stop();

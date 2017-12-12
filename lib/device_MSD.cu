@@ -42,7 +42,7 @@ int MSD_normal(float *d_input, float *d_MSD, int nDMs, int nTimesamples, int off
 	MSD_Configuration conf(nTimesamples, nDMs, offset, 0);
 	float *d_temp;
 	cudaMalloc((void **) &d_temp, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float));
-	result = MSD_limited(d_input, d_MSD, d_temp, &conf);
+	result = MSD_normal(d_input, d_MSD, d_temp, &conf);
 	cudaFree(d_temp);
 	return(result);
 }
@@ -74,7 +74,7 @@ int MSD_normal_continuous(float *d_input, float *d_MSD, float *d_previous_partia
 	MSD_Configuration conf(nTimesamples, nDMs, offset, 0);
 	float *d_temp;
 	cudaMalloc((void **) &d_temp, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float));
-	result = MSD_limited_continuous(d_input, d_MSD, d_previous_partials, d_temp, &conf);
+	result = MSD_normal_continuous(d_input, d_MSD, d_previous_partials, d_temp, &conf);
 	cudaFree(d_temp);
 	return(result);
 }
@@ -86,13 +86,14 @@ int MSD_normal_continuous(float *d_input, float *d_MSD, float *d_previous_partia
 //---------------------------------------------------------------
 //------------- MSD with outlier rejection
 
+//MSD_BLN_pw
 int MSD_outlier_rejection(float *d_input, float *d_MSD, float *d_temp, MSD_Configuration *MSD_conf, float sigma_outlier_rejection_multiplier){
 	#ifdef MSD_BLN_DEBUG
 	float h_MSD[3];
 	MSD_conf->print();
 	#endif
 	
-	MSD_BLN_pw_init();
+	MSD_init();
 	MSD_GPU_limited<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset);
 	MSD_GPU_final_regular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
 	#ifdef MSD_BLN_DEBUG
@@ -119,25 +120,26 @@ int MSD_outlier_rejection(float *d_input, float *d_MSD, float *d_temp, MSD_Confi
 	return(0);
 }
 
+
 int MSD_outlier_rejection(float *d_input, float *d_MSD, int nDMs, int nTimesamples, int offset, float sigma_outlier_rejection_multiplier) {
 	int result;
 	MSD_Configuration conf(nTimesamples, nDMs, offset, 0);
 	float *d_temp;
 	cudaMalloc((void **) &d_temp, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float));
-	result = MSD_outlier_rejection(d_input, d_MSD, d_temp, &conf, sigma_outlier_rejection_multiplier)
+	result = MSD_outlier_rejection(d_input, d_MSD, d_temp, &conf, sigma_outlier_rejection_multiplier);
 	cudaFree(d_temp);
 	return(result);
 }
 
 
-
+//MSD_BLN_pw_continuous
 int MSD_outlier_rejection_continuous(float *d_input, float *d_MSD, float *d_previous_partials, float *d_temp, MSD_Configuration *MSD_conf, float sigma_outlier_rejection_multiplier){
 	#ifdef MSD_BLN_DEBUG
 	float h_MSD[3];
 	MSD_conf->print();
 	#endif
 	
-	MSD_BLN_pw_init();
+	MSD_init();
 	MSD_GPU_limited<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset);
 	MSD_GPU_final_regular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, d_previous_partials, MSD_conf->nBlocks_total);
 	#ifdef MSD_BLN_DEBUG
@@ -164,12 +166,13 @@ int MSD_outlier_rejection_continuous(float *d_input, float *d_MSD, float *d_prev
 	return(0);
 }
 
+
 int MSD_outlier_rejection_continuous(float *d_input, float *d_MSD, float *d_previous_partials, int nDMs, int nTimesamples, int offset, float sigma_outlier_rejection_multiplier) {
 	int result;
 	MSD_Configuration conf(nTimesamples, nDMs, offset, 0);
 	float *d_temp;
 	cudaMalloc((void **) &d_temp, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float));
-	result = MSD_outlier_rejection(d_input, d_MSD, d_previous_partials, d_temp, &conf, sigma_outlier_rejection_multiplier)
+	result = MSD_outlier_rejection_continuous(d_input, d_MSD, d_previous_partials, d_temp, &conf, sigma_outlier_rejection_multiplier);
 	cudaFree(d_temp);
 	return(result);
 }
@@ -182,7 +185,7 @@ int MSD_outlier_rejection_grid(float *d_input, float *d_MSD, float *d_previous_p
 	MSD_conf->print();
 	#endif
 	
-	MSD_BLN_pw_init();
+	MSD_init();
 	MSD_GPU_limited<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset);
 	MSD_GPU_final_regular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
 	#ifdef MSD_BLN_DEBUG
@@ -221,6 +224,52 @@ int MSD_outlier_rejection_grid(float *d_input, float *d_MSD, float *d_previous_p
 //---------------------------------------------------------------
 
 
+
+
+
+//---------------------------------------------------------------
+//------------- MSD with outlier rejection on grid
+
+int MSD_grid_outlier_rejection(float *d_input, float *d_MSD, int CellDim_x, int CellDim_y, int nDMs, int nTimesamples, int offset, float multiplier){
+	//---------> Task specific
+	int GridSize_x, GridSize_y, x_steps, y_steps, nThreads;
+	GridSize_x=(nTimesamples-offset)/CellDim_x;
+	GridSize_y=nDMs/CellDim_y;
+	x_steps=CellDim_x/WARP;
+	if(CellDim_y<HALF_WARP) {
+		y_steps  = 1;
+		nThreads = WARP*CellDim_y;
+	}
+	else {
+		nThreads = WARP*HALF_WARP;
+		y_steps  = CellDim_y/HALF_WARP;
+	}
+
+	//---------> Initial phase
+	dim3 gridSize(GridSize_x, GridSize_y, 1);
+	dim3 blockSize(nThreads, 1, 1);
+
+	//---------> Final phase
+	dim3 final_gridSize(1, 1, 1);
+	dim3 final_blockSize(WARP*WARP, 1, 1);
+
+	//---------> Allocation of temporary memory
+	float *d_output;
+	cudaMalloc((void **) &d_output, GridSize_x*GridSize_y*3*sizeof(float));
+
+	//---------> MSD
+	MSD_init();
+	MSD_BLN_grid_calculate_partials<<<gridSize,blockSize,nThreads*8>>>(d_input, d_output, x_steps, y_steps, nTimesamples, 0);
+	MSD_BLN_grid_outlier_rejection<<<final_gridSize, final_blockSize>>>(d_output, d_MSD, GridSize_x*GridSize_y, (float) (CellDim_x*CellDim_y), multiplier);
+
+	//---------> De-allocation of temporary memory
+	cudaFree(d_output);
+	
+	return(1);
+}
+
+//------------- MSD with outlier rejection on grid
+//---------------------------------------------------------------
 
 
 
