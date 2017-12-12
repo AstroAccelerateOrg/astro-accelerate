@@ -8,6 +8,7 @@
 #include "headers/device_MSD_BLN_pw.h"
 //#include "headers/device_MSD_BLN_pw_dp.h"
 #include "headers/device_MSD_limited.h"
+#include "headers/device_MSD_legacy.h"
 #include "device_SPS_long_kernel.cu"
 
 

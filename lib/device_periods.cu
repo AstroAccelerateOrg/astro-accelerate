@@ -269,7 +269,6 @@ public:
 		float sampling_time = inBin_group->Prange[rangeid].range.sampling_time;
 		float nTimesamples    = inBin_group->Prange[rangeid].range.nTimesamples;
 		int nPoints_before = size();
-		int nPoints_after;
 
 		for(int c=0; c<(int)size(); c++) {
 			list[c*el+0] = list[c*el+0]*dm_step + dm_low;

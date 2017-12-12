@@ -66,17 +66,19 @@ int GPU_FIRv1_wrapper(float *d_input, float *d_output, int nTaps, unsigned int n
 
 int PPF_L1(float *d_input, float *d_output, int nDMs, int nTimesamples, int nTaps) {
 	//---------> CUDA block and CUDA grid parameters
-	int nCUDAblocks_x=(int) nTimesamples/PPF_L1_THREADS_PER_BLOCK;
-	if(nTimesamples%PPF_L1_THREADS_PER_BLOCK!=0) nCUDAblocks_x++;
+	int itemp = nTimesamples-nTaps+1;
+	int nCUDAblocks_x=(int) (itemp/PPF_L1_THREADS_PER_BLOCK);
+	//if(itemp%PPF_L1_THREADS_PER_BLOCK!=0) nCUDAblocks_x++;
 	int nCUDAblocks_y=(int) nDMs;
 	dim3 GridSize(nCUDAblocks_x, nCUDAblocks_y, 1);
 	dim3 BlockSize(PPF_L1_THREADS_PER_BLOCK, 1, 1);
 	
-	//printf("nChannels:%d; nSpectra:%d; nTaps:%d\n", nChannels, nSpectra, nTaps);
+	//printf("nTimesamples:%d; nDMs:%d; nTaps:%d\n", nTimesamples, nDMs, nTaps);
 	//printf("GridSize: [%d;%d;%d]\n", GridSize.x, GridSize.y, GridSize.z);
 	//printf("BlockSize: [%d;%d;%d]\n", BlockSize.x, BlockSize.y, BlockSize.z);
 	
-	if( (nTimesamples-nTaps+1)>0 ){
+	if( itemp>0 && GridSize.x>0 ){
+		//printf("Running...\n");
 		Fir_L1<<<GridSize, BlockSize>>>(d_input, d_output, nTaps, nTimesamples);
 	}
 	else return(-1);
