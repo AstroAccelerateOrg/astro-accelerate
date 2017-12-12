@@ -7,10 +7,8 @@
 
 #include "headers/device_BC_plan.h"
 #include "headers/device_peak_find.h"
-#include "headers/device_MSD_BLN_grid.h"
-#include "headers/device_MSD_BLN_pw.h"
-//#include "headers/device_MSD_BLN_pw_dp.h"
-#include "headers/device_MSD_limited.h"
+#include "headers/device_MSD_Configuration.h"
+#include "headers/device_MSD.h"
 #include "headers/device_MSD_legacy.h"
 #include "headers/device_SPS_long.h"
 #include "headers/device_threshold.h"
@@ -88,7 +86,7 @@ void MSD_on_GPU(float *h_input, float *d_input, float *d_MSD, float *signal_mean
 	cudaMemcpy( d_input, h_input, ((size_t) nDMs*nTimesamples)*sizeof(float), cudaMemcpyHostToDevice);
 	
 	timer.Start();
-	MSD_limited(d_input, d_MSD, nDMs, nTimesamples, offset);
+	MSD_normal(d_input, d_MSD, nDMs, nTimesamples, offset);
 	timer.Stop();
 	(*MSD_limited_time) = timer.Elapsed();
 	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
@@ -97,14 +95,14 @@ void MSD_on_GPU(float *h_input, float *d_input, float *d_MSD, float *signal_mean
 	
 	
 	timer.Start();
-	MSD_BLN_pw(d_input, d_MSD, nDMs, nTimesamples, offset, sigma_constant);
+	MSD_outlier_rejection(d_input, d_MSD, nDMs, nTimesamples, offset, sigma_constant);
 	timer.Stop();
 	(*MSD_BLN_pw_time) = timer.Elapsed();
 	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
 	(*signal_mean_bln) = h_MSD[0];
 	(*signal_sd_bln)   = h_MSD[1];
 	
-	
+	/*
 	timer.Start();
 	MSD_BLN_grid(d_input, d_MSD, 32, 32, nDMs, nTimesamples, offset, sigma_constant);
 	timer.Stop();
@@ -112,6 +110,7 @@ void MSD_on_GPU(float *h_input, float *d_input, float *d_MSD, float *signal_mean
 	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
 	(*signal_mean_bl_bln) = h_MSD[0];
 	(*signal_sd_bl_bln)   = h_MSD[1];
+	*/
 }
 
 void MSD_on_GPU_LA(float *h_input, float *d_input, float *d_MSD, float *h_MSD_LA, float *h_MSD_BLN_LA, int nDMs, int nTimesamples, int offset, float sigma_constant){
@@ -139,13 +138,13 @@ void MSD_on_GPU_halfed(float *h_input, float *d_input, float *d_MSD, float *sign
 	
 	cudaMemcpy( d_input, h_temp, ((size_t) nDMs*dt)*sizeof(float), cudaMemcpyHostToDevice);
 	
-	MSD_limited(d_input, d_MSD, nDMs, dt, offset/2);
+	MSD_normal(d_input, d_MSD, nDMs, dt, offset/2);
 	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
 	(*signal_mean) = h_MSD[0];
 	(*signal_sd)   = h_MSD[1];
 	
 	
-	MSD_BLN_pw(d_input, d_MSD, nDMs, dt, offset/2, sigma_constant);
+	MSD_outlier_rejection(d_input, d_MSD, nDMs, dt, offset/2, sigma_constant);
 	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
 	(*signal_mean_bln) = h_MSD[0];
 	(*signal_sd_bln)   = h_MSD[1];
@@ -272,14 +271,14 @@ void Create_dit_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vector
 	DIT_value = 1;
 	printf("DiT:%d; nTimesamples:%d; decimated_timesamples:%d\n", (int) DIT_value, (int) nTimesamples, (int) (nTimesamples>>1));
 	timer.Start();
-	MSD_limited(d_data, d_MSD, nTimesamples, nDMs, 0);
+	MSD_normal(d_data, d_MSD, nTimesamples, nDMs, 0);
 	timer.Stop();	MSD_time += timer.Elapsed();
 	cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 	mdtemp.taps = DIT_value; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 	dit_MSD->push_back(mdtemp);
 	
 	timer.Start();
-	MSD_BLN_pw(d_data, d_MSD, nDMs, nTimesamples, 0, sigma_constant);
+	MSD_outlier_rejection(d_data, d_MSD, nDMs, nTimesamples, 0, sigma_constant);
 	timer.Stop();	MSD_BLN_time += timer.Elapsed();
 	cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 	mdtemp.taps = DIT_value; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
@@ -298,14 +297,14 @@ void Create_dit_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vector
 	timer.Stop();	dit_time += timer.Elapsed();
 	
 	timer.Start();
-	MSD_limited(d_lichy, d_MSD, decimated_timesamples, nDMs, nRest);
+	MSD_normal(d_lichy, d_MSD, decimated_timesamples, nDMs, nRest);
 	timer.Stop();	MSD_time += timer.Elapsed();
 	cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 	mdtemp.taps = DIT_value; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 	dit_MSD->push_back(mdtemp);
 	
 	timer.Start();
-	MSD_BLN_pw(d_lichy, d_MSD, nDMs, decimated_timesamples, nRest, sigma_constant);
+	MSD_outlier_rejection(d_lichy, d_MSD, nDMs, decimated_timesamples, nRest, sigma_constant);
 	timer.Stop();	MSD_BLN_time += timer.Elapsed();
 	cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 	mdtemp.taps = DIT_value; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
@@ -329,14 +328,14 @@ void Create_dit_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vector
 			decimated_timesamples = (decimated_timesamples>>1);
 			
 			timer.Start();
-			MSD_limited(d_sudy, d_MSD, decimated_timesamples, nDMs, nRest);
+			MSD_normal(d_sudy, d_MSD, decimated_timesamples, nDMs, nRest);
 			timer.Stop();	MSD_time += timer.Elapsed();
 			cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 			mdtemp.taps = DIT_value; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 			dit_MSD->push_back(mdtemp);
 			
 			timer.Start();
-			MSD_BLN_pw(d_sudy, d_MSD, nDMs, decimated_timesamples, nRest, sigma_constant);
+			MSD_outlier_rejection(d_sudy, d_MSD, nDMs, decimated_timesamples, nRest, sigma_constant);
 			timer.Stop();	MSD_BLN_time += timer.Elapsed();
 			cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 			mdtemp.taps = DIT_value; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
@@ -350,14 +349,14 @@ void Create_dit_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vector
 			decimated_timesamples = (decimated_timesamples>>1);
 			
 			timer.Start();
-			MSD_limited(d_lichy, d_MSD, decimated_timesamples, nDMs, nRest);
+			MSD_normal(d_lichy, d_MSD, decimated_timesamples, nDMs, nRest);
 			timer.Stop();	MSD_time += timer.Elapsed();
 			cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 			mdtemp.taps = DIT_value; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 			dit_MSD->push_back(mdtemp);
 			
 			timer.Start();
-			MSD_BLN_pw(d_lichy, d_MSD, nDMs, decimated_timesamples, nRest, sigma_constant);
+			MSD_outlier_rejection(d_lichy, d_MSD, nDMs, decimated_timesamples, nRest, sigma_constant);
 			timer.Stop();	MSD_BLN_time += timer.Elapsed();
 			cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 			mdtemp.taps = DIT_value; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
@@ -388,12 +387,12 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 	
 	timer.Start();
 	
-	MSD_limited(d_data, d_MSD, nDMs, nTimesamples, 0);
+	MSD_normal(d_data, d_MSD, nDMs, nTimesamples, 0);
 	cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 	mdtemp.taps = 1; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 	boxcar_MSD->push_back(mdtemp);
 	
-	MSD_BLN_pw(d_data, d_MSD, nDMs, nTimesamples, 0, sigma_constant);
+	MSD_outlier_rejection(d_data, d_MSD, nDMs, nTimesamples, 0, sigma_constant);
 	cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 	mdtemp.taps = 1; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 	boxcar_MSD_BLN->push_back(mdtemp);
@@ -408,12 +407,12 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 			
 			nRest = PD_FIR(d_data, d_boxcar, f, nDMs, nTimesamples);
 			
-			MSD_limited(d_boxcar, d_MSD, nDMs, nTimesamples, nRest);
+			MSD_normal(d_boxcar, d_MSD, nDMs, nTimesamples, nRest);
 			cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 			mdtemp.taps = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 			boxcar_MSD->push_back(mdtemp);
 			
-			MSD_BLN_pw(d_boxcar, d_MSD, nDMs, nTimesamples, nRest, sigma_constant);
+			MSD_outlier_rejection(d_boxcar, d_MSD, nDMs, nTimesamples, nRest, sigma_constant);
 			cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 			mdtemp.taps = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 			boxcar_MSD_BLN->push_back(mdtemp);
@@ -435,12 +434,12 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 			nRest=PPF_L1(d_data, d_boxcar, nDMs, nTimesamples, f);
 			
 			if(nRest>0){
-				MSD_limited(d_boxcar, d_MSD, nDMs, nTimesamples, nRest);
+				MSD_normal(d_boxcar, d_MSD, nDMs, nTimesamples, nRest);
 				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 				mdtemp.taps = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD->push_back(mdtemp);
 				
-				MSD_BLN_pw(d_boxcar, d_MSD, nDMs, nTimesamples, nRest, sigma_constant);
+				MSD_outlier_rejection(d_boxcar, d_MSD, nDMs, nTimesamples, nRest, sigma_constant);
 				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 				mdtemp.taps = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD_BLN->push_back(mdtemp);
@@ -464,12 +463,12 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 			nRest=PPF_L1(d_data, d_boxcar, nDMs, nTimesamples, f);
 			
 			if(nRest>0){
-				MSD_limited(d_boxcar, d_MSD, nDMs, nTimesamples, nRest);
+				MSD_normal(d_boxcar, d_MSD, nDMs, nTimesamples, nRest);
 				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 				mdtemp.taps = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD->push_back(mdtemp);
 				
-				MSD_BLN_pw(d_boxcar, d_MSD, nDMs, nTimesamples, nRest, sigma_constant);
+				MSD_outlier_rejection(d_boxcar, d_MSD, nDMs, nTimesamples, nRest, sigma_constant);
 				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 				mdtemp.taps = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD_BLN->push_back(mdtemp);
@@ -493,12 +492,12 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 			nRest=PPF_L1(d_data, d_boxcar, nDMs, nTimesamples, f);
 
 			if(nRest>0){
-				MSD_limited(d_boxcar, d_MSD, nDMs, nTimesamples, nRest);
+				MSD_normal(d_boxcar, d_MSD, nDMs, nTimesamples, nRest);
 				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 				mdtemp.taps = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD->push_back(mdtemp);
 				
-				MSD_BLN_pw(d_boxcar, d_MSD, nDMs, nTimesamples, nRest, sigma_constant);
+				MSD_outlier_rejection(d_boxcar, d_MSD, nDMs, nTimesamples, nRest, sigma_constant);
 				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 				mdtemp.taps = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD_BLN->push_back(mdtemp);
@@ -522,12 +521,12 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 			nRest=PPF_L1(d_data, d_boxcar, nDMs, nTimesamples, f);
 
 			if(nRest>0){
-				MSD_limited(d_boxcar, d_MSD, nDMs, nTimesamples, nRest);
+				MSD_normal(d_boxcar, d_MSD, nDMs, nTimesamples, nRest);
 				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 				mdtemp.taps = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD->push_back(mdtemp);
 				
-				MSD_BLN_pw(d_boxcar, d_MSD, nDMs, nTimesamples, nRest, sigma_constant);
+				MSD_outlier_rejection(d_boxcar, d_MSD, nDMs, nTimesamples, nRest, sigma_constant);
 				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 				mdtemp.taps = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD_BLN->push_back(mdtemp);
@@ -551,12 +550,12 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 			nRest=PPF_L1(d_data, d_boxcar, nDMs, nTimesamples, f);
 
 			if(nRest>0){		
-				MSD_limited(d_boxcar, d_MSD, nDMs, nTimesamples, nRest);
+				MSD_normal(d_boxcar, d_MSD, nDMs, nTimesamples, nRest);
 				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 				mdtemp.taps = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD->push_back(mdtemp);
 				
-				MSD_BLN_pw(d_boxcar, d_MSD, nDMs, nTimesamples, nRest, sigma_constant);
+				MSD_outlier_rejection(d_boxcar, d_MSD, nDMs, nTimesamples, nRest, sigma_constant);
 				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 				mdtemp.taps = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD_BLN->push_back(mdtemp);
@@ -580,12 +579,12 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 			nRest=PPF_L1(d_data, d_boxcar, nDMs, nTimesamples, f);
 			
 			if(nRest>0){
-				MSD_limited(d_boxcar, d_MSD, nDMs, nTimesamples, nRest);
+				MSD_normal(d_boxcar, d_MSD, nDMs, nTimesamples, nRest);
 				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 				mdtemp.taps = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD->push_back(mdtemp);
 				
-				MSD_BLN_pw(d_boxcar, d_MSD, nDMs, nTimesamples, nRest, sigma_constant);
+				MSD_outlier_rejection(d_boxcar, d_MSD, nDMs, nTimesamples, nRest, sigma_constant);
 				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
 				mdtemp.taps = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD_BLN->push_back(mdtemp);
@@ -747,7 +746,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	
 	//----------------------------------------------
 	//--- MSD profile of the data
-	Calculate_MSD_data(output_buffer, nTimesamples, nDMs, sigma_constant, inBin, dm_low[i], dm_high[i], tstart);
+	//Calculate_MSD_data(output_buffer, nTimesamples, nDMs, sigma_constant, inBin, dm_low[i], dm_high[i], tstart);
 	//---------------------------------------------<
 	
 
@@ -812,7 +811,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	/*
 	//-------------- Base level noise point-wise
 	timer.Start(); 
-	MSD_BLN_pw(output_buffer, d_MSD, nDMs, nTimesamples, 0, sigma_constant);
+	MSD_outlier_rejection(output_buffer, d_MSD, nDMs, nTimesamples, 0, sigma_constant);
 	timer.Stop();
 	partial_time = timer.Elapsed(); 
 	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 

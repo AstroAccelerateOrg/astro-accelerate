@@ -10,16 +10,13 @@
 #include "headers/device_zero_dm_outliers.h"
 #include "headers/device_rfi.h"
 
+// MSD
+#include "headers/device_MSD_Configuration.h"
+#include "headers/device_MSD.h"
+#include "headers/device_MSD_legacy.h"
 
 #include "headers/device_SPS_inplace_kernel.h" //Added by KA
 #include "headers/device_SPS_inplace.h" //Added by KA
-#include "headers/device_MSD_BLN_grid.h" //Added by KA
-#include "headers/device_MSD_BLN_pw.h" //Added by KA
-//#include "headers/device_MSD_BLN_pw_dp.h" //Added by KA
-#include "headers/device_MSD_grid.h" //Added by KA
-#include "headers/device_MSD_plane.h" //Added by KA
-#include "headers/device_MSD_limited.h" //Added by KA
-#include "headers/device_MSD_legacy.h" //Added by KA
 #include "headers/device_SNR_limited.h" //Added by KA
 #include "headers/device_SPS_long.h" //Added by KA
 #include "headers/device_threshold.h" //Added by KA

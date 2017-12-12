@@ -5,9 +5,8 @@
 
 #include "headers/params.h"
 #include "headers/device_BC_plan.h"
-#include "headers/device_MSD_BLN_pw.h"
-//#include "headers/device_MSD_BLN_pw_dp.h"
-#include "headers/device_MSD_limited.h"
+#include "headers/device_MSD_Configuration.h"
+#include "headers/device_MSD.h"
 #include "headers/device_MSD_legacy.h"
 #include "device_SPS_long_kernel.cu"
 
@@ -104,7 +103,7 @@ int PD_SEARCH_LONG_BLN_EACH(float *d_input, float *d_boxcar_values, float *d_dec
 	gridSize.x=nBlocks; gridSize.y=nDMs; gridSize.z=1;
 	blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
 	//Note: Musim udelat dve SNR jeden pro BV_in and dalsi pro decimated values. Celkove rms je pak rms(BV) + sqrt(ntaps)*rms(decimated)
-	MSD_BLN_pw(d_input, d_MSD_BV, nDMs, decimated_timesamples, 0, sigma_constant);
+	MSD_outlier_rejection(d_input, d_MSD_BV, nDMs, decimated_timesamples, 0, sigma_constant);
 	#ifdef SPS_LONG_DEBUG
 	cudaMemcpy(h_MSD_BV, d_MSD_BV, 3*sizeof(float), cudaMemcpyDeviceToHost);
 	printf("   decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration ,nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
@@ -122,13 +121,13 @@ int PD_SEARCH_LONG_BLN_EACH(float *d_input, float *d_boxcar_values, float *d_dec
 		printf("   decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration, nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
 		#endif
 		if( (f%2) == 0 ) {
-			MSD_BLN_pw(d_input, d_MSD_DIT, nDMs, decimated_timesamples, 0, sigma_constant);
-			MSD_BLN_pw(&d_boxcar_values[nDMs*(nTimesamples>>1)], d_MSD_BV, nDMs, decimated_timesamples, PD_plan->operator[](f-1).unprocessed_samples, sigma_constant);
+			MSD_outlier_rejection(d_input, d_MSD_DIT, nDMs, decimated_timesamples, 0, sigma_constant);
+			MSD_outlier_rejection(&d_boxcar_values[nDMs*(nTimesamples>>1)], d_MSD_BV, nDMs, decimated_timesamples, PD_plan->operator[](f-1).unprocessed_samples, sigma_constant);
 			if(nBlocks>0) PD_GPU_Nth_BLN_EACH<<<gridSize,blockSize>>>(&d_input[shift], &d_boxcar_values[nDMs*(nTimesamples>>1)], d_boxcar_values, d_decimated, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], d_MSD_BV, d_MSD_DIT, decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
 		}
 		else {
-			MSD_BLN_pw(d_decimated, d_MSD_DIT, nDMs, decimated_timesamples, 0, sigma_constant);
-			MSD_BLN_pw(d_boxcar_values, d_MSD_BV, nDMs, decimated_timesamples, PD_plan->operator[](f-1).unprocessed_samples, sigma_constant);
+			MSD_outlier_rejection(d_decimated, d_MSD_DIT, nDMs, decimated_timesamples, 0, sigma_constant);
+			MSD_outlier_rejection(d_boxcar_values, d_MSD_BV, nDMs, decimated_timesamples, PD_plan->operator[](f-1).unprocessed_samples, sigma_constant);
 			if(nBlocks>0) PD_GPU_Nth_BLN_EACH<<<gridSize,blockSize>>>(&d_decimated[shift], d_boxcar_values, &d_boxcar_values[nDMs*(nTimesamples>>1)], d_input, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], d_MSD_BV, d_MSD_DIT, decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
 		}
 		
