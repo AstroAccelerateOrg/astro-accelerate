@@ -16,7 +16,7 @@ public:
 	size_t offset;
 	
 
-	int ChooseDivider(int number, int max_divider) {
+	int Choose_Divider(int number, int max_divider) {
 		int seive[12]={2, 3, 4, 5, 7, 11, 13, 17, 19, 23, 29, 31};
 		int f, nRest, nBlocks, N, N_accepted;
 
@@ -60,7 +60,7 @@ public:
 		nRest     = (nTimesamples - offset) - nBlocks.x*nSteps.x;
 		if(nRest>32) nBlocks.x++;
 
-		nSteps.y  = ChooseDivider(nDMs, 64);
+		nSteps.y  = Choose_Divider(nDMs, 64);
 		nBlocks.y = nDMs/nSteps.y;
 
 		nBlocks_total = nBlocks.x*nBlocks.y;
