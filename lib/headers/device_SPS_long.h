@@ -13,4 +13,6 @@ extern int PD_SEARCH_LONG_BLN_EACH(float *d_input, float *d_boxcar_values, float
 extern int PD_SEARCH_LONG_LINAPPROX(float *d_input, float *d_boxcar_values, float *d_decimated, float *d_output_SNR, ushort *d_output_taps, float *d_MSD, std::vector<PulseDetection_plan> *PD_plan, int max_iteration, int nDMs, int nTimesamples);
 extern int PD_SEARCH_LONG_LINAPPROX_EACH(float *d_input, float *d_boxcar_values, float *d_decimated, float *d_output_SNR, ushort *d_output_taps, std::vector<PulseDetection_plan> *PD_plan, int max_iteration, int nDMs, int nTimesamples, double *MSD_time, double *SPDT_time);
 extern int PD_SEARCH_LONG_BLN_LINAPPROX_EACH(float *d_input, float *d_boxcar_values, float *d_decimated, float *d_output_SNR, ushort *d_output_taps, std::vector<PulseDetection_plan> *PD_plan, int max_iteration, int nDMs, int nTimesamples, float sigma_constant, double *MSD_time, double *SPDT_time);
+extern int SPDT_search_long_MSD_plane(float *d_input, float *d_boxcar_values, float *d_decimated, float *d_output_SNR, ushort *d_output_taps, float *d_MSD_interpolated, std::vector<PulseDetection_plan> *PD_plan, int max_iteration, int nTimesamples, int nDMs);	
+
 #endif

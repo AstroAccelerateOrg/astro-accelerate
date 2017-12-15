@@ -110,7 +110,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 
 		// Maximum number of samples we can fit in our GPU RAM is then given by:
 		//max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short) * ( (*max_ndms) + nchans ) ) ); // maximum number of timesamples we can fit into GPU memory
-		max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short)*nchans + sizeof(float)*(*max_ndms) + (size_t)(SPS_mem_requirement*MIN_DMS_PER_SPS_RUN ))); // maximum number of timesamples we can fit into GPU memory
+		max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short)*nchans + sizeof(float)*(*max_ndms) + sizeof(float)*(3.0*(*max_ndms)/4.0) )); // maximum number of timesamples we can fit into GPU memory
 		
 		// Check that we dont have an out of range maxshift:
 		if (( *maxshift ) > max_tsamps)	{
@@ -176,7 +176,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 
 		// Maximum number of samples we can fit in our GPU RAM is then given by:
 		//max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + 2 * sizeof(unsigned short) ) ) );
-		max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + sizeof(unsigned short) )+ SPS_mem_requirement*MIN_DMS_PER_SPS_RUN ));
+		max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + sizeof(unsigned short) )+ sizeof(float)*(3.0*(*max_ndms)/4.0) ));
 
 		// Check that we dont have an out of range maxshift:
 		if (( *maxshift ) > max_tsamps) {
