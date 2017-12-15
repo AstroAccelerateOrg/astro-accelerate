@@ -58,7 +58,7 @@ public:
 		nSteps.x  = PD_NTHREADS;
 		nBlocks.x = (int)((nTimesamples-offset)/(nSteps.x));
 		nRest     = (nTimesamples - offset) - nBlocks.x*nSteps.x;
-		if(nRest>32) nBlocks.x++;
+		if(nRest>0) nBlocks.x++;
 
 		nSteps.y  = Choose_Divider(nDMs, 64);
 		nBlocks.y = nDMs/nSteps.y;
