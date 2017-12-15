@@ -669,16 +669,16 @@ void Periodicity_search(GPU_Memory_for_Periodicity_Search *gmem, Periodicity_par
 	timer.Start();
 	if(per_param.enable_outlier_rejection==1){
 		#ifdef PS_REUSE_MSD_WITHIN_INBIN
-		MSD_outlier_rejection_grid(d_frequency_power, gmem->d_MSD, gmem->d_previous_partials, gmem->d_all_blocks, &batch->MSD_conf, per_param.bln_sigma_constant);
+		MSD_outlier_rejection_grid(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, gmem->d_all_blocks, &batch->MSD_conf, per_param.bln_sigma_constant);
 		#else
-		MSD_outlier_rejection(d_frequency_power, gmem->d_MSD, gmem->d_all_blocks, &batch->MSD_conf, per_param.bln_sigma_constant);
+		MSD_outlier_rejection(gmem->d_MSD, d_frequency_power, gmem->d_all_blocks, &batch->MSD_conf, per_param.bln_sigma_constant);
 		#endif
 	}
 	else {
 		#ifdef PS_REUSE_MSD_WITHIN_INBIN
-		MSD_normal_continuous(d_frequency_power, gmem->d_MSD, gmem->d_previous_partials, gmem->d_all_blocks, &batch->MSD_conf);
+		MSD_normal_continuous(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, gmem->d_all_blocks, &batch->MSD_conf);
 		#else
-		MSD_normal(d_frequency_power, gmem->d_MSD, gmem->d_all_blocks, &batch->MSD_conf);
+		MSD_normal(gmem->d_MSD, d_frequency_power, gmem->d_all_blocks, &batch->MSD_conf);
 		#endif
 	}
 	timer.Stop();

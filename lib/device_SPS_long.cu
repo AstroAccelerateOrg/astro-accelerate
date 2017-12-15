@@ -103,7 +103,7 @@ int PD_SEARCH_LONG_BLN_EACH(float *d_input, float *d_boxcar_values, float *d_dec
 	gridSize.x=nBlocks; gridSize.y=nDMs; gridSize.z=1;
 	blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
 	//Note: Musim udelat dve SNR jeden pro BV_in and dalsi pro decimated values. Celkove rms je pak rms(BV) + sqrt(ntaps)*rms(decimated)
-	MSD_outlier_rejection(d_input, d_MSD_BV, nDMs, decimated_timesamples, 0, sigma_constant);
+	MSD_outlier_rejection(d_MSD_BV, d_input, decimated_timesamples, nDMs, 0, sigma_constant);
 	#ifdef SPS_LONG_DEBUG
 	cudaMemcpy(h_MSD_BV, d_MSD_BV, 3*sizeof(float), cudaMemcpyDeviceToHost);
 	printf("   decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration ,nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
@@ -121,13 +121,13 @@ int PD_SEARCH_LONG_BLN_EACH(float *d_input, float *d_boxcar_values, float *d_dec
 		printf("   decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d;\n",decimated_timesamples, dtm, iteration, nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut);
 		#endif
 		if( (f%2) == 0 ) {
-			MSD_outlier_rejection(d_input, d_MSD_DIT, nDMs, decimated_timesamples, 0, sigma_constant);
-			MSD_outlier_rejection(&d_boxcar_values[nDMs*(nTimesamples>>1)], d_MSD_BV, nDMs, decimated_timesamples, PD_plan->operator[](f-1).unprocessed_samples, sigma_constant);
+			MSD_outlier_rejection(d_MSD_DIT, d_input, decimated_timesamples, nDMs, 0, sigma_constant);
+			MSD_outlier_rejection(d_MSD_BV, &d_boxcar_values[nDMs*(nTimesamples>>1)], decimated_timesamples, nDMs, PD_plan->operator[](f-1).unprocessed_samples, sigma_constant);
 			if(nBlocks>0) PD_GPU_Nth_BLN_EACH<<<gridSize,blockSize>>>(&d_input[shift], &d_boxcar_values[nDMs*(nTimesamples>>1)], d_boxcar_values, d_decimated, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], d_MSD_BV, d_MSD_DIT, decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
 		}
 		else {
-			MSD_outlier_rejection(d_decimated, d_MSD_DIT, nDMs, decimated_timesamples, 0, sigma_constant);
-			MSD_outlier_rejection(d_boxcar_values, d_MSD_BV, nDMs, decimated_timesamples, PD_plan->operator[](f-1).unprocessed_samples, sigma_constant);
+			MSD_outlier_rejection(d_MSD_DIT, d_decimated, decimated_timesamples, nDMs, 0, sigma_constant);
+			MSD_outlier_rejection(d_MSD_BV, d_boxcar_values, decimated_timesamples, nDMs, PD_plan->operator[](f-1).unprocessed_samples, sigma_constant);
 			if(nBlocks>0) PD_GPU_Nth_BLN_EACH<<<gridSize,blockSize>>>(&d_decimated[shift], d_boxcar_values, &d_boxcar_values[nDMs*(nTimesamples>>1)], d_input, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], d_MSD_BV, d_MSD_DIT, decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
 		}
 		
@@ -264,6 +264,7 @@ int PD_SEARCH_LONG_LINAPPROX_EACH(float *d_input, float *d_boxcar_values, float 
 	}
 
 	cudaFree(d_MSD);
+	cudaFree(d_MSD_Nth);
 	return(0);
 }
 
@@ -341,6 +342,58 @@ int PD_SEARCH_LONG_BLN_LINAPPROX_EACH(float *d_input, float *d_boxcar_values, fl
 	}
 
 	cudaFree(d_MSD);
+	cudaFree(d_MSD_Nth);
+	return(0);
+}
+
+
+int SPDT_search_long_MSD_plane(float *d_input, float *d_boxcar_values, float *d_decimated, float *d_output_SNR, ushort *d_output_taps, float *d_MSD_interpolated, std::vector<PulseDetection_plan> *PD_plan, int max_iteration, int nTimesamples, int nDMs) {
+	//---------> CUDA block and CUDA grid parameters
+	dim3 gridSize(1, 1, 1);
+	dim3 blockSize(PD_NTHREADS, 1, 1);
+	
+	//---------> Pulse detection FIR
+	PD_SEARCH_LONG_init();
+	
+	int f;
+	int decimated_timesamples, dtm, iteration, nBoxcars, nBlocks, output_shift, shift, startTaps, unprocessed_samples, total_ut, MSD_plane_pos;
+	
+	// ----------> First iteration
+	Assign_parameters(0, PD_plan, &decimated_timesamples, &dtm, &iteration, &nBoxcars, &nBlocks, &output_shift, &shift, &startTaps, &unprocessed_samples, &total_ut);
+	MSD_plane_pos = 0;
+	gridSize.x=nBlocks; gridSize.y=nDMs; gridSize.z=1;
+	blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
+	
+	#ifdef SPS_LONG_DEBUG
+	printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d; MSD_plane_pos:%d;\n",decimated_timesamples, dtm, iteration ,nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut, MSD_plane_pos);
+	#endif
+	
+	if(nBlocks>0) SPDT_GPU_1st_plane<<<gridSize,blockSize>>>( d_input, d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, (float2 *) d_MSD_interpolated, decimated_timesamples, nBoxcars, dtm);
+	
+	checkCudaErrors(cudaGetLastError());
+	
+	for(f=1; f<max_iteration; f++){
+		MSD_plane_pos = MSD_plane_pos + nBoxcars;
+		Assign_parameters(f, PD_plan, &decimated_timesamples, &dtm, &iteration, &nBoxcars, &nBlocks, &output_shift, &shift, &startTaps, &unprocessed_samples, &total_ut);
+		gridSize.x=nBlocks; gridSize.y=nDMs; gridSize.z=1;
+		blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
+		
+		#ifdef SPS_LONG_DEBUG
+		printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d; MSD_plane_pos:%d;\n",decimated_timesamples, dtm, iteration, nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut, MSD_plane_pos);
+		#endif
+		
+		if( (f%2) == 0 ) {
+			if(nBlocks>0) 
+				SPDT_GPU_Nth_plane<<<gridSize,blockSize>>>(&d_input[shift], &d_boxcar_values[nDMs*(nTimesamples>>1)], d_boxcar_values, d_decimated, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], (float2 *) &d_MSD_interpolated[MSD_plane_pos*2], decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
+		}
+		else {
+			if(nBlocks>0) 
+				SPDT_GPU_Nth_plane<<<gridSize,blockSize>>>(&d_decimated[shift], d_boxcar_values, &d_boxcar_values[nDMs*(nTimesamples>>1)], d_input, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], (float2 *) &d_MSD_interpolated[MSD_plane_pos*2], decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
+		}
+		
+		checkCudaErrors(cudaGetLastError());
+	}
+
 	return(0);
 }
 

@@ -388,8 +388,7 @@ void acceleration_fdas(int range,
 					
 					// This might be bit iffy since when interbining is done values are correlated
 					printf("Dimensions for BLN: ibin:%d; siglen:%d;\n", ibin, params.siglen);
-					MSD_grid_outlier_rejection(gpuarrays.d_ffdot_pwr, d_MSD, 32, 32, NKERN, ibin*params.siglen, 0, sigma_constant);
-					//MSD_outlier_rejection(gpuarrays.d_ffdot_pwr, d_MSD, NKERN, ibin*params.siglen, 0, sigma_constant);
+					MSD_grid_outlier_rejection(d_MSD, gpuarrays.d_ffdot_pwr, 32, 32, ibin*params.siglen, NKERN, 0, sigma_constant);
 					
 					//!TEST!: do not perform peak find instead export the thing to file.
 					#ifdef FDAS_CONV_TEST

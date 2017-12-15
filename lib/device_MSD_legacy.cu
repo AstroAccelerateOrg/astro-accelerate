@@ -150,7 +150,6 @@ int MSD_linear_approximation(float *d_input, float *d_MSD_T, int nTaps, int nDMs
 	}
 	else {
 		printf("Number of time samples is too small! Increase number of samples send to the boxcar filters. (MSD_linear_approximation)\n");
-		exit(1002);
 	}
 	
 	if(nRest<64) return(nRest);
@@ -390,7 +389,6 @@ int MSD_BLN_LA_pw_normal(float *d_input, float *d_MSD_T, int nTaps, int nDMs, in
 	}
 	else {
 		printf("Number of time samples is too small! Increase number of samples send to the boxcar filters. (MSD_BLN_LA_pw_normal)\n");
-		exit(1002);
 	}
 	
 	return(0);
@@ -537,7 +535,6 @@ int MSD_BLN_LA_Nth_pw_normal(float *d_input, float *d_bv_in, float *d_MSD_T, flo
 	}
 	else {
 		printf("Number of time samples is too small! Increase number of samples send to the boxcar filters. (MSD_BLN_LA_Nth_pw_normal)\n");
-		exit(1002);
 	}
 	
 	return(0);
