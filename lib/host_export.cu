@@ -44,7 +44,7 @@ void Export_DD_data(int range, float ***dedispersed_data, size_t max_nTimesample
 		
 			inner_DM_shift = 0;
 			for(int i=0; i<(int) chunk_size.size(); i++){
-				sprintf(final_filename,"%s_%d_%d.dat", base_filename, range, i);
+				sprintf(final_filename,"%s_%d_%d.dat", base_filename, r, i);
 				
 				for(size_t d=0; d<chunk_size[i]; d++) {
 					for(size_t t=0; t<nTimesamples; t++) {
