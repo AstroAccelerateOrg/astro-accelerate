@@ -352,11 +352,14 @@ void main_function
 	free(input_buffer);
 	
 	#ifdef EXPORT_DD_DATA
-		int DMs_per_file;
+		size_t DMs_per_file;
 		int *ranges_to_export;
 		ranges_to_export = new int[range];
 		for(int f=0; f<range; f++) ranges_to_export[f]=1;
+		printf("\n\n");
+		printf("Exporting dedispersion data...\n");
 		DMs_per_file = Calculate_sd_per_file_from_file_size(1000, inc, 1);
+		printf("  DM per file: %d;\n", DMs_per_file);
 		Export_DD_data(range, output_buffer, inc, ndms, inBin, dm_low, dm_high, dm_step, "DD_data", ranges_to_export, DMs_per_file);
 		delete[] ranges_to_export;
 	#endif
