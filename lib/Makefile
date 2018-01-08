@@ -16,6 +16,7 @@ GENCODE_SM52	:= -gencode arch=compute_52,code=sm_52 # Maxwell
 GENCODE_SM53	:= -gencode arch=compute_53,code=sm_53 # Maxwell
 GENCODE_SM60	:= -gencode arch=compute_60,code=sm_60 # Pascal
 GENCODE_SM61	:= -gencode arch=compute_61,code=sm_61 # Pascal
+GENCODE_SM70	:= -gencode arch=compute_70,code=sm_70 # Volta
 GENCODE_FLAGS   := $(GENCODE_SM61)
 
 ifeq ($(cache),off)
