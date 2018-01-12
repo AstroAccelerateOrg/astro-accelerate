@@ -48,7 +48,7 @@
 #define PTBSIZEX 64
 #define PTBSIZEY 1
 //custom fft params (K. Adamek)
-#define TAPS 8
+
 
 // for corner turn in shared memory corner_turn_SM(...)
 #define CT_NTHREADS 512

@@ -231,6 +231,7 @@ __global__ void MSD_GPU_final_regular(float *d_input, float *d_MSD, float *d_pp,
 	Sum_partials_regular( &M, &S, &j, d_input, s_input, size);
 
 	if(d_pp[2]>0){
+		//Merge(&M, &S, &j, d_pp[0]*d_pp[2], (d_pp[1]*d_pp[1])*d_pp[2], d_pp[2]);
 		Merge(&M, &S, &j, d_pp[0], d_pp[1], d_pp[2]);
 	}
 	

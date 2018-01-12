@@ -53,6 +53,37 @@ int THRESHOLD(float *d_input, ushort *d_input_taps, float *d_output_list, int *g
 }
 
 
+int Threshold_for_periodicity_old(float *d_input, ushort *d_input_harms, float *d_output_list,  int *gmem_pos, float *d_MSD, float threshold, int primary_size, int secondary_size, int DM_shift, int inBin, int max_list_size) {
+	//---------> Task specific
+	int nBlocks_p, nBlocks_s;
+	
+	dim3 gridSize(1, 1, 1);
+	dim3 blockSize(WARP, WARP/2, 1);
+	
+	nBlocks_p = (int) (primary_size/(blockSize.x*THR_ELEM_PER_THREAD));
+	if( (primary_size%(blockSize.x*THR_ELEM_PER_THREAD))!=0 ) nBlocks_p++;
+	
+	nBlocks_s = (int) (secondary_size/blockSize.y);
+	if( (secondary_size%blockSize.y)!=0 ) nBlocks_s++;
+	
+	gridSize.x = nBlocks_p;
+	gridSize.y = nBlocks_s;
+	gridSize.z = 1;
+	
+	#ifdef THRESHOLD_DEBUG
+	printf("Primary:%d; Secondary:%d\n", primary_size, secondary_size);
+	printf("gridSize: [%d; %d; %d]\n", gridSize.x, gridSize.y, gridSize.z);
+	printf("blockSize: [%d; %d; %d]\n", blockSize.x, blockSize.y, blockSize.z);
+	#endif
+	
+	THR_init();
+	GPU_Threshold_for_periodicity_kernel_old<<<gridSize, blockSize>>>(d_input, d_input_harms, d_output_list, gmem_pos, d_MSD, threshold, primary_size, secondary_size, DM_shift, max_list_size, inBin);
+	
+	checkCudaErrors(cudaGetLastError());
+
+	return (0);
+}
+
 int Threshold_for_periodicity(float *d_input, ushort *d_input_harms, float *d_output_list,  int *gmem_pos, float *d_MSD, float threshold, int primary_size, int secondary_size, int DM_shift, int inBin, int max_list_size) {
 	//---------> Task specific
 	int nBlocks_p, nBlocks_s;
