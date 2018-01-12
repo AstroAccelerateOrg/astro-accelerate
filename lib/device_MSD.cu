@@ -320,9 +320,9 @@ void MSD_plane_profile_debug(float *d_MSD, int DIT_value, int nTimesamples){
 }
 
 
-void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, float *d_input_data, float *d_MSD_DIT_previous, float *d_sudy, float *d_lichy, float *d_MSD_workarea, size_t nTimesamples, size_t nDMs, int nDecimations, int max_width_performed, float OR_sigma_multiplier, int enable_outlier_rejection, bool high_memory, bool perform_continuous){
+void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, float *d_input_data, float *d_MSD_DIT_previous, float *d_sudy, float *d_lichy, float *d_MSD_workarea, size_t nTimesamples, size_t nDMs, int nDecimations, int max_width_performed, float OR_sigma_multiplier, int enable_outlier_rejection, bool high_memory, bool perform_continuous, double *total_time, double *dit_time, double *MSD_time){
 	GpuTimer timer, total_timer;
-	double dit_time=0, MSD_time=0;
+	double t_dit_time=0, t_MSD_time=0;
 	int nRest;
 	size_t decimated_timesamples;
 	int DIT_value;
@@ -335,7 +335,7 @@ void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, fl
 	
 	timer.Start();
 	Do_MSD(d_MSD_DIT, d_input_data, d_MSD_DIT_previous, d_MSD_workarea, nTimesamples, nDMs, 0, OR_sigma_multiplier, enable_outlier_rejection, perform_continuous);
-	timer.Stop();	MSD_time += timer.Elapsed();
+	timer.Stop();	t_MSD_time += timer.Elapsed();
 	h_MSD_DIT_widths->push_back(DIT_value);
 	#ifdef MSD_PLANE_DEBUG
 	printf("    MSD format: [ mean ; StDev ; nElements ]\n");
@@ -354,11 +354,11 @@ void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, fl
 		timer.Start();
 		nRest = GPU_DiT_v2_wrapper(d_input_data, d_lichy, nDMs, nTimesamples);
 		decimated_timesamples = (nTimesamples>>1);
-		timer.Stop();	dit_time += timer.Elapsed();
+		timer.Stop();	t_dit_time += timer.Elapsed();
 		
 		timer.Start();
 		Do_MSD(&d_MSD_DIT[MSD_RESULTS_SIZE], d_lichy, &d_MSD_DIT_previous[MSD_RESULTS_SIZE], d_MSD_workarea, decimated_timesamples, nDMs, nRest, OR_sigma_multiplier, enable_outlier_rejection, perform_continuous);
-		timer.Stop();	MSD_time += timer.Elapsed();
+		timer.Stop();	t_MSD_time += timer.Elapsed();
 		h_MSD_DIT_widths->push_back(DIT_value);
 		
 		#ifdef MSD_PLANE_DEBUG
@@ -367,7 +367,7 @@ void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, fl
 		
 		timer.Start();
 		nRest = GPU_DiT_v2_wrapper(d_lichy, d_sudy, nDMs, decimated_timesamples);
-		timer.Stop();	dit_time += timer.Elapsed();
+		timer.Stop();	t_dit_time += timer.Elapsed();
 	}
 	else {
 		//printf("Low memory: DIT=2 is split in two\n");
@@ -377,31 +377,30 @@ void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, fl
 		timer.Start();
 		nRest = GPU_DiT_v2_wrapper(d_input_data, d_lichy, nDMs_half, nTimesamples);
 		decimated_timesamples = (nTimesamples>>1);
-		timer.Stop();	dit_time += timer.Elapsed();
+		timer.Stop();	t_dit_time += timer.Elapsed();
 
 		timer.Start();
 		Do_MSD_continuous(&d_MSD_DIT[MSD_RESULTS_SIZE], d_lichy, &d_MSD_DIT[2*MSD_RESULTS_SIZE], d_MSD_workarea, decimated_timesamples, nDMs_half, nRest, OR_sigma_multiplier, enable_outlier_rejection);
-		timer.Stop();	MSD_time += timer.Elapsed();
-		h_MSD_DIT_widths->push_back(DIT_value);
+		timer.Stop();	t_MSD_time += timer.Elapsed();
 		
 		timer.Start();
 		nRest = GPU_DiT_v2_wrapper(d_lichy, d_sudy, nDMs_half, decimated_timesamples);
-		timer.Stop();	dit_time += timer.Elapsed();
+		timer.Stop();	t_dit_time += timer.Elapsed();
 		
 		// second half of the decimation
 		timer.Start();
 		nRest = GPU_DiT_v2_wrapper(&d_input_data[nDMs_half*nTimesamples], d_lichy, nDMs_half, nTimesamples);
 		decimated_timesamples = (nTimesamples>>1);
-		timer.Stop();	dit_time += timer.Elapsed();
+		timer.Stop();	t_dit_time += timer.Elapsed();
 
 		timer.Start();
 		Do_MSD_continuous(&d_MSD_DIT[MSD_RESULTS_SIZE], d_lichy, &d_MSD_DIT[2*MSD_RESULTS_SIZE], d_MSD_workarea, decimated_timesamples, nDMs_half, nRest, OR_sigma_multiplier, enable_outlier_rejection);
-		timer.Stop();	MSD_time += timer.Elapsed();
+		timer.Stop();	t_MSD_time += timer.Elapsed();
 		h_MSD_DIT_widths->push_back(DIT_value);
 		
 		timer.Start();
 		nRest = GPU_DiT_v2_wrapper(d_lichy, &d_sudy[nDMs_half*(decimated_timesamples>>1)], nDMs_half, decimated_timesamples);
-		timer.Stop();	dit_time += timer.Elapsed();
+		timer.Stop();	t_dit_time += timer.Elapsed();
 		
 		#ifdef MSD_PLANE_DEBUG
 		MSD_plane_profile_debug(&d_MSD_DIT[MSD_RESULTS_SIZE], DIT_value, decimated_timesamples);
@@ -413,7 +412,7 @@ void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, fl
 	
 	timer.Start();
 	Do_MSD(&d_MSD_DIT[2*MSD_RESULTS_SIZE], d_sudy, &d_MSD_DIT_previous[2*MSD_RESULTS_SIZE], d_MSD_workarea, decimated_timesamples, nDMs, nRest, OR_sigma_multiplier, enable_outlier_rejection, perform_continuous);
-	timer.Stop();	MSD_time += timer.Elapsed();
+	timer.Stop();	t_MSD_time += timer.Elapsed();
 	h_MSD_DIT_widths->push_back(DIT_value);	
 	
 	#ifdef MSD_PLANE_DEBUG
@@ -432,24 +431,24 @@ void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, fl
 			if(f%2==0){
 				timer.Start();
 				nRest = GPU_DiT_v2_wrapper(d_lichy, d_sudy, nDMs, decimated_timesamples);
-				timer.Stop();	dit_time += timer.Elapsed();
+				timer.Stop();	t_dit_time += timer.Elapsed();
 				if(nRest<0) break;
 				decimated_timesamples = (decimated_timesamples>>1);
 
 				timer.Start();
 				Do_MSD(&d_MSD_DIT[f*MSD_RESULTS_SIZE], d_sudy, &d_MSD_DIT_previous[f*MSD_RESULTS_SIZE], d_MSD_workarea, decimated_timesamples, nDMs, nRest, OR_sigma_multiplier, enable_outlier_rejection, perform_continuous);
-				timer.Stop();	MSD_time += timer.Elapsed();
+				timer.Stop();	t_MSD_time += timer.Elapsed();
 			}
 			else {
 				timer.Start();
 				nRest = GPU_DiT_v2_wrapper(d_sudy, d_lichy, nDMs, decimated_timesamples);
-				timer.Stop();	dit_time += timer.Elapsed();
+				timer.Stop();	t_dit_time += timer.Elapsed();
 				if(nRest<0) break;
 				decimated_timesamples = (decimated_timesamples>>1);
 
 				timer.Start();
 				Do_MSD(&d_MSD_DIT[f*MSD_RESULTS_SIZE], d_lichy, &d_MSD_DIT_previous[f*MSD_RESULTS_SIZE], d_MSD_workarea, decimated_timesamples, nDMs, nRest, OR_sigma_multiplier, enable_outlier_rejection, perform_continuous);
-				timer.Stop();	MSD_time += timer.Elapsed();
+				timer.Stop();	t_MSD_time += timer.Elapsed();
 			}
 			h_MSD_DIT_widths->push_back(DIT_value);
 			
@@ -504,10 +503,12 @@ void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, fl
 	checkCudaErrors(cudaGetLastError());
 	
 	total_timer.Stop();
-	double total_time = total_timer.Elapsed();
+	(*total_time) = total_timer.Elapsed();
+	(*dit_time) = t_dit_time;
+	(*MSD_time) = t_MSD_time;
 	
 	#ifdef GPU_PARTIAL_TIMER
-		printf("    MSD of input plane: Total time: %f ms; DiT time: %f ms; MSD time: %f ms;\n", total_time, dit_time, MSD_time);
+		printf("    MSD of input plane: Total time: %f ms; DiT time: %f ms; MSD time: %f ms;\n", (*total_time), (*dit_time), (*MSD_time));
 	#endif
 }
 
@@ -671,7 +672,7 @@ void Get_MSD_plane_profile_memory_requirements(size_t *MSD_profile_size_in_bytes
 //		Add checks if there is enough timesamples to do DIT.
 // Note: By separating DIT = 2 into two parts we slightly decreasing precision if compared to non spit case, because outlier rejection has fewer points to work with. This could be a problem if we have a plane small enough to fit into memory but we still plit it in two.
 //		Add branch that would not split DIT=2 if there is enough memory. 
-void MSD_plane_profile(float *d_MSD_interpolated, float *d_input_data, float *d_MSD_DIT_previous, float *workarea, bool high_memory, size_t primary_dimension, size_t secondary_dimension, std::vector<int> *boxcar_widths, float tstart, float dm_low, float dm_high, float OR_sigma_multiplier, int enable_outlier_rejection, bool perform_continuous){
+void MSD_plane_profile(float *d_MSD_interpolated, float *d_input_data, float *d_MSD_DIT_previous, float *workarea, bool high_memory, size_t primary_dimension, size_t secondary_dimension, std::vector<int> *boxcar_widths, float tstart, float dm_low, float dm_high, float OR_sigma_multiplier, int enable_outlier_rejection, bool perform_continuous, double *total_time, double *dit_time, double *MSD_time){
 	int boxcar_widths_size = (int) boxcar_widths->size();
 	int max_boxcar_width = boxcar_widths->operator[](boxcar_widths_size-1);
 	int nDecimations = ((int) floorf(log2f((float)max_boxcar_width))) + 1;
@@ -685,7 +686,7 @@ void MSD_plane_profile(float *d_MSD_interpolated, float *d_input_data, float *d_
 	d_MSD_DIT = &workarea[datasize/2];
 	d_MSD_workarea = &workarea[datasize/2 + (nDecimations+1)*MSD_RESULTS_SIZE];
 	
-	MSD_of_input_plane(d_MSD_DIT, &h_MSD_DIT_widths, d_input_data, d_MSD_DIT_previous, d_sudy, d_lichy, d_MSD_workarea, primary_dimension, secondary_dimension, nDecimations, max_boxcar_width, OR_sigma_multiplier, enable_outlier_rejection, high_memory, perform_continuous);
+	MSD_of_input_plane(d_MSD_DIT, &h_MSD_DIT_widths, d_input_data, d_MSD_DIT_previous, d_sudy, d_lichy, d_MSD_workarea, primary_dimension, secondary_dimension, nDecimations, max_boxcar_width, OR_sigma_multiplier, enable_outlier_rejection, high_memory, perform_continuous, total_time, dit_time, MSD_time);
 	
 	#ifdef MSD_PLANE_DEBUG
 		printf("    Number of calculated MSD values: %d; number of interpolated MSD values: %d;\n",nDIT_widths, boxcar_widths_size);

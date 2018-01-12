@@ -1,6 +1,6 @@
-#define GPU_ANALYSIS_DEBUG
-#define MSD_PLANE_EXPORT
-#define GPU_PARTIAL_TIMER
+//#define GPU_ANALYSIS_DEBUG
+//#define MSD_PLANE_EXPORT
+//#define GPU_PARTIAL_TIMER
 #define GPU_TIMER
 
 
@@ -1087,7 +1087,11 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	max_iteration = Get_max_iteration(max_boxcar_width/inBin, &BC_widths, &max_width_performed);
 	printf("  Selected iteration:%d; maximum boxcar width requested:%d; maximum boxcar width performed:%d;\n", max_iteration, max_boxcar_width/inBin, max_width_performed);
 	Create_PD_plan(&PD_plan, &BC_widths, 1, nTimesamples);
+	std::vector<int> h_boxcar_widths;
+	Create_list_of_boxcar_widths(&h_boxcar_widths, &BC_widths);
 	
+	
+	/*
 	//---------------------------------------------
 	//------- Calculation of MSD for whole plane
 	timer.Start();
@@ -1095,13 +1099,12 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	int MSD_INTER_SIZE = 2;
 	float *d_MSD_DIT, *d_MSD_interpolated;
 	int nDIT_widths, nboxcar_Widths, nDecimations;
-	std::vector<int> h_boxcar_widths;
 	std::vector<int> h_MSD_DIT_widths;
 	
 	nDecimations = ((int) floorf(log2f((float)max_width_performed))) + 1;
 	nDIT_widths = nDecimations + 1;
 	
-	Create_list_of_boxcar_widths(&h_boxcar_widths, &BC_widths);
+	
 	nboxcar_Widths = h_boxcar_widths.size();
 	
 	cudaMalloc((void **) &d_MSD_DIT, nDIT_widths*MSD_RESULTS_SIZE*sizeof(float));
@@ -1124,27 +1127,30 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	//printf("Konec\n");
 	//------- Calculation of MSD for whole plane
 	//---------------------------------------------
+	*/
 	
 	
 	
 	
 	//-------------------------------------------------------------------------
 	//------------ Using MSD_plane_profile
-	//size_t MSD_profile_size_in_bytes, MSD_DIT_profile_size_in_bytes, workarea_size_in_bytes;
-	//cudaMemGetInfo(&free_mem,&total_mem);
-	//Get_MSD_plane_profile_memory_requirements(&MSD_profile_size_in_bytes, &MSD_DIT_profile_size_in_bytes, &workarea_size_in_bytes, nTimesamples, nDMs, &h_boxcar_widths);
-	//printf("Memory available: %f; Memory required: %f;\n", (double) free_mem/(1024.0*1024.0), ((double) workarea_size_in_bytes)/(1024.0*1024.0));
-	//float *new_MSD_interpolated;
-	//float *new_MSD_DIT = NULL;
-	//float *temporary_workarea;
-	//cudaMalloc((void **) &new_MSD_interpolated, MSD_profile_size_in_bytes);
-	//workarea_size_in_bytes = (size_t) (free_mem*0.9);
-	//cudaMalloc((void **) &temporary_workarea, workarea_size_in_bytes);
-	//
-	//MSD_plane_profile(new_MSD_interpolated, output_buffer, new_MSD_DIT, temporary_workarea, false, nTimesamples, nDMs, &h_boxcar_widths, tstart, dm_low[i], dm_high[i], OR_sigma_multiplier, enable_sps_baselinenoise, false);
-	//
-	//cudaFree(temporary_workarea);
-	//cudaFree(new_MSD_interpolated);
+	size_t MSD_profile_size_in_bytes, MSD_DIT_profile_size_in_bytes, workarea_size_in_bytes;
+	cudaMemGetInfo(&free_mem,&total_mem);
+	Get_MSD_plane_profile_memory_requirements(&MSD_profile_size_in_bytes, &MSD_DIT_profile_size_in_bytes, &workarea_size_in_bytes, nTimesamples, nDMs, &h_boxcar_widths);
+	double dit_time, MSD_only_time;
+	float *d_MSD_interpolated;
+	float *d_MSD_DIT = NULL;
+	float *temporary_workarea;
+	cudaMalloc((void **) &d_MSD_interpolated, MSD_profile_size_in_bytes);
+	cudaMalloc((void **) &temporary_workarea, workarea_size_in_bytes);
+	
+	MSD_plane_profile(d_MSD_interpolated, output_buffer, d_MSD_DIT, temporary_workarea, false, nTimesamples, nDMs, &h_boxcar_widths, tstart, dm_low[i], dm_high[i], OR_sigma_multiplier, enable_sps_baselinenoise, false, &total_time, &dit_time, &MSD_time);
+	
+	#ifdef GPU_PARTIAL_TIMER
+		printf("    MSD time: Total: %f ms; DIT: %f ms; MSD: %f ms;\n", MSD_time, dit_time, MSD_only_time);
+	#endif
+	
+	cudaFree(temporary_workarea);
 	//------------ Using MSD_plane_profile
 	//-------------------------------------------------------------------------	
 	
