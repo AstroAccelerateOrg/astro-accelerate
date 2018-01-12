@@ -7,8 +7,7 @@
 #include <cuda_runtime.h>
 #include "headers/params.h"
 
-__global__ void PD_FIR_GPU(float const* __restrict__ d_input, float *d_output, int nTaps, int nLoops, int nTimesamples)
-{
+__global__ void PD_FIR_GPU(float const* __restrict__ d_input, float *d_output, int nTaps, int nLoops, int nTimesamples) {
 	extern __shared__ float s_input[];
 
 	int itemp, pos;

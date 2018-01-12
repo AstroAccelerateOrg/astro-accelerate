@@ -1,0 +1,3105 @@
+
+ Using standard GPU code
+range:		8
+debug:		1
+multi_file:	1
+analysis:	1
+output_dmt:	0
+sigma_cutoff:	6.000000
+power:		2.000000
+User requested DM search range:
+0.000000	150.000000	0.100000	1
+150.000000	300.000000	0.200000	1
+300.000000	500.000000	0.250000	1
+500.000000	900.000000	0.400000	2
+900.000000	1200.000000	0.600000	4
+1200.000000	1500.000000	0.800000	4
+1500.000000	2000.000000	1.000000	4
+2000.000000	3000.000000	2.000000	8
+Got user input:		0(s)
+
+12	HEADER_START
+11	source_name
+33	P: 22.699000000000 ms, DM: 49.800
+10	machine_id
+12	telescope_id
+9	data_type
+4	fch1
+4	foff
+6	nchans
+5	nbits
+6	tstart
+5	tsamp
+4	nifs
+10	HEADER_END
+ Using standard GPU code
+tsamp:			0.000064
+tstart:			50000.000000
+fch1:			1550.000000
+foff:			-0.073242
+nchans:			4096
+nifs:			1
+nbits:			8
+nsamples:		0
+nsamp:			789597
+Got file header info:	1.65(s)
+
+ Using standard GPU code
+Maxshift efficiency:		100.00%
+Host Input size:		6168 MB
+Host Output size:		0 MB
+Device Input size:		0 MB
+Device Output size:		0 MB
+Allocated memory:	1.65(s)
+
+ Using standard GPU code
+Got input filterbank data:	2.87(s)
+Detected 2 CUDA Capable device(s)
+
+Device 0: "GeForce GTX 1080"
+  CUDA Driver Version / Runtime Version          8.0 / 8.0
+  CUDA Capability Major/Minor version number:    6.1
+  Total amount of global memory:                 8113 MBytes (8507555840 bytes)
+  GPU Clock rate:                                1734 MHz (1.73 GHz)
+  Memory Clock rate:                             5005 Mhz
+  Memory Bus Width:                              256-bit
+  L2 Cache Size:                                 2097152 bytes
+  Maximum Texture Dimension Size (x,y,z)         1D=(131072), 2D=(131072, 65536), 3D=(16384, 16384, 16384)
+  Maximum Layered 1D Texture Size, (num) layers  1D=(32768), 2048 layers
+  Maximum Layered 2D Texture Size, (num) layers  2D=(32768, 32768), 2048 layers
+  Total amount of constant memory:               65536 bytes
+  Total amount of shared memory per block:       49152 bytes
+  Total number of registers available per block: 65536
+  Warp size:                                     32
+  Maximum number of threads per multiprocessor:  2048
+  Maximum number of threads per block:           1024
+  Max dimension size of a thread block (x,y,z): (1024, 1024, 64)
+  Max dimension size of a grid size    (x,y,z): (2147483647, 65535, 65535)
+  Maximum memory pitch:                          2147483647 bytes
+  Texture alignment:                             512 bytes
+  Concurrent copy and kernel execution:          Yes with 2 copy engine(s)
+  Run time limit on kernels:                     No
+  Integrated GPU sharing Host Memory:            No
+  Support host page-locked memory mapping:       Yes
+  Alignment requirement for Surfaces:            Yes
+  Device has ECC support:                        Disabled
+  CUDA Device Driver Mode (TCC or WDDM):         WDDM (Windows Display Driver Model)
+  Device supports Unified Addressing (UVA):      Yes
+  Device PCI Bus ID / PCI location ID:           1 / 0
+
+ Using standard GPU code
+Initialised GPU:		3.83(s)
+
+Maximum number of dm trials in any of the range steps:	1520
+Range:	7, MAXSHIFT:	45024, Scrunch value:	8
+Maximum dispersive delay:	2.88 (s)
+Diagonal DM:	288.928126
+In 4
+
+Maxshift memory needed:	351 MB
+Output memory needed:	703 MB
+ Using standard GPU code
+
+maximum DM:		3122.000000
+maxshift:		45024
+max_ndms:		1520
+Actual DM range that will be searched:
+0.000000	152.000000	0.100000	1520
+152.000000	304.000000	0.200000	760
+304.000000	514.000000	0.250000	840
+514.000000	930.000000	0.400000	1040
+930.000000	1242.000000	0.600000	520
+1242.000000	1562.000000	0.800000	400
+1562.000000	2082.000000	1.000000	520
+2082.000000	3122.000000	2.000000	520
+Calculated strategy:	3.83(s)
+
+output size: 0
+output size: 0
+output size: 0
+output size: 0
+output size: 0
+output size: 0
+output size: 0
+output size: 0
+ Using standard GPU code
+Maxshift efficiency:		94.30%
+Host Input size:		6168 MB
+Host Output size:		11532 MB
+Device Input size:		0 MB
+Device Output size:		0 MB
+Allocated memory:	3.83(s)
+
+
+
+286944
+
+
+
+ Using standard GPU code
+Maxshift efficiency:		94.30%
+Host Input size:		6168 MB
+Host Output size:		11532 MB
+Device Input size:		2241 MB
+Device Output size:		4483 MB
+Allocated memory:	3.83(s)
+
+De-dispersing...
+t_processed:	241920, 0
+CORNER TURN!
+286944 4096
+32 8
+8967 512
+Performed CT: 0.100000 (GPU estimate)
+CT Gops based on 10.00 ops per channel per tsamp: 117.532262
+CT Device memory bandwidth in GB/s: 70.519357
+
+0.000000	152.000000	0.100000	1520
+Amount of telescope time processed: 0.000000
+1562.500000
+0.000928
+82
+lineshift:	278
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:1520; nTimesamples:241920; inBin:1; outBin:1; maxshift:45024; 
+  Memory required by boxcar filters:7715.039 MB
+  Memory available:1270.438 MB 
+  SPS will run 8 batches each containing 200 DM trials. Remainder 120 DM trials
+  Selected iteration:10; maximum boxcar width requested:7812; maximum boxcar width performed:8320;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.657089; 0.512025; 367312608.000000]
+    DiT:2; nTimesamples:241920; decimated_timesamples:120960; MSD:[255.311569; 0.738401; 183503904.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.617004; 1.078186; 91629072.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.221313; 1.605205; 45722552.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.421509; 2.457922; 22800882.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4084.824219; 3.893092; 11364440.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8169.700195; 6.326619; 5662105.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.431641; 11.044597; 2868212.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32681.232422; 11.155079; 1429902.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65362.027344; 14.650763; 717282.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130724.078125; 15.627438; 358629.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261448.156250; 22.344305; 179360.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522896.312500; 30.383209; 89680.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045793.875000; 38.898319; 44080.000000]
+    DiT:16384; nTimesamples:14; decimated_timesamples:7; MSD:[2091588.500000; 42.198112; 21280.000000]
+    MSD of input plane: Total time: 99.575264 ms; DiT time: 18.610176 ms; MSD time: 80.356511 ms;
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    Interpolation step took 1.817408 ms;
+    MSD_plane time: 102.137665 ms
+Pd: 241920; Sd: 1520;
+temporary storage for data: 735436800 bytes = 183859200 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 44935 blocks = 134805 float = 539220 bytes
+Memory available: 1270.437500; Memory required: 701.881599;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.657089; 0.512025; 367312608.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:120960; decimated_timesamples:60480; MSD:[255.312027; 0.739306; 183532416.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.617004; 1.078186; 91629072.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.221313; 1.605205; 45722552.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.421509; 2.457922; 22800882.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4084.824219; 3.893092; 11364440.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8169.700195; 6.326619; 5662105.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.431641; 11.044597; 2868212.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32681.232422; 11.155079; 1429902.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65362.027344; 14.650763; 717282.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130724.078125; 15.627438; 358629.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261448.156250; 22.344305; 179360.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522896.312500; 30.383209; 89680.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045793.875000; 38.898319; 44080.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:9.100288 ms
+    BC_shift:0; DMs_per_cycle:200; f*DMs_per_cycle:0; max_iteration:10;
+    Thresholding took:1.581056 ms
+    temp_peak_pos:0; host_pos:0; max:183859200; local_max:12096000;
+    SPDT took:9.095168 ms
+    BC_shift:48384000; DMs_per_cycle:200; f*DMs_per_cycle:200; max_iteration:10;
+    Thresholding took:1.580704 ms
+    temp_peak_pos:0; host_pos:0; max:183859200; local_max:12096000;
+    SPDT took:9.092096 ms
+    BC_shift:96768000; DMs_per_cycle:200; f*DMs_per_cycle:400; max_iteration:10;
+    Thresholding took:2.199552 ms
+    temp_peak_pos:4986554; host_pos:0; max:183859200; local_max:12096000;
+    SPDT took:9.096192 ms
+    BC_shift:145152000; DMs_per_cycle:200; f*DMs_per_cycle:600; max_iteration:10;
+    Thresholding took:1.582560 ms
+    temp_peak_pos:0; host_pos:4986554; max:183859200; local_max:12096000;
+    SPDT took:9.063424 ms
+    BC_shift:193536000; DMs_per_cycle:200; f*DMs_per_cycle:800; max_iteration:10;
+    Thresholding took:1.579008 ms
+    temp_peak_pos:0; host_pos:4986554; max:183859200; local_max:12096000;
+    SPDT took:9.079808 ms
+    BC_shift:241920000; DMs_per_cycle:200; f*DMs_per_cycle:1000; max_iteration:10;
+    Thresholding took:1.579872 ms
+    temp_peak_pos:0; host_pos:4986554; max:183859200; local_max:12096000;
+    SPDT took:9.105408 ms
+    BC_shift:290304000; DMs_per_cycle:200; f*DMs_per_cycle:1200; max_iteration:10;
+    Thresholding took:1.582592 ms
+    temp_peak_pos:0; host_pos:4986554; max:183859200; local_max:12096000;
+    SPDT took:5.481472 ms
+    BC_shift:338688000; DMs_per_cycle:120; f*DMs_per_cycle:1400; max_iteration:10;
+    Thresholding took:0.961056 ms
+    temp_peak_pos:0; host_pos:4986554; max:183859200; local_max:12096000;
+
+  TOTAL TIME OF SPS:335.667236 ms
+  MSD_time: 102.137665 ms; SPDT time: 69.113857 ms; Candidate selection time: 12.646400 ms;
+----------<
+
+
+
+152.000000	304.000000	0.200000	760
+Amount of telescope time processed: 0.000000
+3125.000000
+0.000928
+139
+lineshift:	335
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:760; nTimesamples:241920; inBin:1; outBin:1; maxshift:45024; 
+  Memory required by boxcar filters:3857.520 MB
+  Memory available:1270.438 MB 
+  SPS will run 4 batches each containing 200 DM trials. Remainder 160 DM trials
+  Selected iteration:10; maximum boxcar width requested:7812; maximum boxcar width performed:8320;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.660309; 0.497831; 183847232.000000]
+    DiT:2; nTimesamples:241920; decimated_timesamples:120960; MSD:[255.320587; 0.704162; 91923672.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.641174; 0.996198; 45961736.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.282410; 1.409392; 22980878.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.564697; 1.994907; 11490391.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4085.129883; 2.825189; 5745173.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8170.258301; 4.000117; 2872623.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.518555; 5.667804; 1436278.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32681.037109; 7.966428; 718179.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65362.066406; 11.308283; 339840.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130724.132812; 15.878640; 169920.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261448.265625; 22.192026; 84960.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522896.531250; 28.682400; 42480.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045793.875000; 30.611757; 20880.000000]
+    DiT:16384; nTimesamples:14; decimated_timesamples:7; MSD:[2091589.250000; 41.437271; 10080.000000]
+    MSD of input plane: Total time: 50.185471 ms; DiT time: 9.313248 ms; MSD time: 40.366592 ms;
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    Interpolation step took 1.849344 ms;
+    MSD_plane time: 52.611103 ms
+Pd: 241920; Sd: 760;
+temporary storage for data: 367718400 bytes = 91929600 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 8987 blocks = 26961 float = 107844 bytes
+Memory available: 1270.437500; Memory required: 350.786613;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.660309; 0.497831; 183847232.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:120960; decimated_timesamples:60480; MSD:[255.297974; 2.499293; 91931840.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.641174; 0.996198; 45961736.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.282410; 1.409392; 22980878.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.564697; 1.994907; 11490391.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4085.129883; 2.825189; 5745173.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8170.258301; 4.000117; 2872623.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.518555; 5.667804; 1436278.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32681.037109; 7.966428; 718179.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65362.066406; 11.308283; 339840.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130724.132812; 15.878640; 169920.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261448.265625; 22.192026; 84960.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522896.531250; 28.682400; 42480.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045793.875000; 30.611757; 20880.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:9.084928 ms
+    BC_shift:0; DMs_per_cycle:200; f*DMs_per_cycle:0; max_iteration:10;
+    Thresholding took:1.580032 ms
+    temp_peak_pos:10; host_pos:0; max:91929600; local_max:12096000;
+    SPDT took:9.092096 ms
+    BC_shift:48384000; DMs_per_cycle:200; f*DMs_per_cycle:200; max_iteration:10;
+    Thresholding took:1.582528 ms
+    temp_peak_pos:0; host_pos:10; max:91929600; local_max:12096000;
+    SPDT took:9.100288 ms
+    BC_shift:96768000; DMs_per_cycle:200; f*DMs_per_cycle:400; max_iteration:10;
+    Thresholding took:1.582688 ms
+    temp_peak_pos:6; host_pos:10; max:91929600; local_max:12096000;
+    SPDT took:7.297024 ms
+    BC_shift:145152000; DMs_per_cycle:160; f*DMs_per_cycle:600; max_iteration:10;
+    Thresholding took:1.269344 ms
+    temp_peak_pos:0; host_pos:16; max:91929600; local_max:12096000;
+
+  TOTAL TIME OF SPS:146.408997 ms
+  MSD_time: 52.611103 ms; SPDT time: 34.574336 ms; Candidate selection time: 6.014592 ms;
+----------<
+
+
+
+304.000000	514.000000	0.250000	840
+Amount of telescope time processed: 0.000000
+3906.250000
+0.000928
+167
+lineshift:	363
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:840; nTimesamples:241920; inBin:1; outBin:1; maxshift:45024; 
+  Memory required by boxcar filters:4263.574 MB
+  Memory available:1270.438 MB 
+  SPS will run 5 batches each containing 200 DM trials. Remainder 40 DM trials
+  Selected iteration:10; maximum boxcar width requested:7812; maximum boxcar width performed:8320;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.660454; 0.497765; 203199808.000000]
+    DiT:2; nTimesamples:241920; decimated_timesamples:120960; MSD:[255.320908; 0.703912; 101599904.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.641785; 0.995629; 50800064.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.283630; 1.408280; 25400028.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.567017; 1.992202; 12700057.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4085.133789; 2.819543; 6350001.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8170.268066; 3.990855; 3175060.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.536133; 5.644982; 1587490.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32681.072266; 7.971299; 793770.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65362.140625; 11.365822; 396463.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130724.281250; 16.577953; 198240.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261448.562500; 22.009993; 99120.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522897.125000; 30.168308; 49560.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045794.687500; 32.766327; 24360.000000]
+    DiT:16384; nTimesamples:14; decimated_timesamples:7; MSD:[2091592.500000; 40.873226; 11760.000000]
+    MSD of input plane: Total time: 55.310272 ms; DiT time: 10.285952 ms; MSD time: 44.510337 ms;
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    Interpolation step took 1.867424 ms;
+    MSD_plane time: 57.770432 ms
+Pd: 241920; Sd: 840;
+temporary storage for data: 406425600 bytes = 101606400 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 16555 blocks = 49665 float = 198660 bytes
+Memory available: 1270.437500; Memory required: 387.787285;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.660454; 0.497765; 203199808.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:120960; decimated_timesamples:60480; MSD:[255.300415; 2.387297; 101608088.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.641785; 0.995629; 50800064.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.283630; 1.408280; 25400028.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.567017; 1.992202; 12700057.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4085.133789; 2.819543; 6350001.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8170.268066; 3.990855; 3175060.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.536133; 5.644982; 1587490.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32681.072266; 7.971299; 793770.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65362.140625; 11.365822; 396463.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130724.281250; 16.577953; 198240.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261448.562500; 22.009993; 99120.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522897.125000; 30.168308; 49560.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045794.687500; 32.766327; 24360.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:9.184256 ms
+    BC_shift:0; DMs_per_cycle:200; f*DMs_per_cycle:0; max_iteration:10;
+    Thresholding took:1.578880 ms
+    temp_peak_pos:0; host_pos:0; max:101606400; local_max:12096000;
+    SPDT took:9.193472 ms
+    BC_shift:48384000; DMs_per_cycle:200; f*DMs_per_cycle:200; max_iteration:10;
+    Thresholding took:1.579008 ms
+    temp_peak_pos:0; host_pos:0; max:101606400; local_max:12096000;
+    SPDT took:9.169920 ms
+    BC_shift:96768000; DMs_per_cycle:200; f*DMs_per_cycle:400; max_iteration:10;
+    Thresholding took:1.581056 ms
+    temp_peak_pos:0; host_pos:0; max:101606400; local_max:12096000;
+    SPDT took:9.188352 ms
+    BC_shift:145152000; DMs_per_cycle:200; f*DMs_per_cycle:600; max_iteration:10;
+    Thresholding took:1.581056 ms
+    temp_peak_pos:3; host_pos:0; max:101606400; local_max:12096000;
+    SPDT took:1.866752 ms
+    BC_shift:193536000; DMs_per_cycle:40; f*DMs_per_cycle:800; max_iteration:10;
+    Thresholding took:0.340448 ms
+    temp_peak_pos:0; host_pos:3; max:101606400; local_max:12096000;
+
+  TOTAL TIME OF SPS:161.060257 ms
+  MSD_time: 57.770432 ms; SPDT time: 38.602751 ms; Candidate selection time: 6.660448 ms;
+----------<
+
+
+
+514.000000	930.000000	0.400000	1040
+Amount of telescope time processed: 0.000000
+3125.000000
+0.000928
+139
+lineshift:	335
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:1040; nTimesamples:120960; inBin:2; outBin:2; maxshift:22512; 
+  Memory required by boxcar filters:2639.355 MB
+  Memory available:1270.438 MB 
+  SPS will run 3 batches each containing 400 DM trials. Remainder 240 DM trials
+  Selected iteration:8; maximum boxcar width requested:1953; maximum boxcar width performed:2176;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:120960; decimated_timesamples:60480; MSD:[63.705261; 0.176004; 125790416.000000]
+    DiT:2; nTimesamples:120960; decimated_timesamples:60480; MSD:[127.410515; 0.248901; 62895116.000000]
+    DiT:4; nTimesamples:30240; decimated_timesamples:15120; MSD:[254.821030; 0.351983; 31447624.000000]
+    DiT:8; nTimesamples:15120; decimated_timesamples:7560; MSD:[509.642029; 0.497699; 15723766.000000]
+    DiT:16; nTimesamples:7560; decimated_timesamples:3780; MSD:[1019.284119; 0.703553; 7861911.000000]
+    DiT:32; nTimesamples:3780; decimated_timesamples:1890; MSD:[2038.568237; 0.993373; 3930978.000000]
+    DiT:64; nTimesamples:1890; decimated_timesamples:945; MSD:[4077.136475; 1.398011; 1965493.000000]
+    DiT:128; nTimesamples:945; decimated_timesamples:472; MSD:[8154.272461; 1.952985; 982737.000000]
+    DiT:256; nTimesamples:472; decimated_timesamples:236; MSD:[16308.546875; 2.698750; 490822.000000]
+    DiT:512; nTimesamples:236; decimated_timesamples:118; MSD:[32617.091797; 3.715532; 245440.000000]
+    DiT:1024; nTimesamples:118; decimated_timesamples:59; MSD:[65234.183594; 4.997488; 122720.000000]
+    DiT:2048; nTimesamples:59; decimated_timesamples:29; MSD:[130468.367188; 6.640939; 61360.000000]
+    DiT:4096; nTimesamples:29; decimated_timesamples:14; MSD:[260936.562500; 8.598614; 30160.000000]
+    MSD of input plane: Total time: 36.576031 ms; DiT time: 6.404096 ms; MSD time: 29.732224 ms;
+    Number of calculated MSD values: 13; number of interpolated MSD values: 128;
+    Interpolation step took 1.825792 ms;
+    MSD_plane time: 38.927647 ms
+Pd: 120960; Sd: 1040;
+temporary storage for data: 251596800 bytes = 62899200 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 15405 blocks = 46215 float = 184860 bytes
+Memory available: 1270.437500; Memory required: 240.117874;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:120960; decimated_timesamples:60480; MSD:[63.705261; 0.176004; 125790416.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:60480; decimated_timesamples:30240; MSD:[127.410011; 0.355867; 62895360.000000]
+    DiT:4; nTimesamples:30240; decimated_timesamples:15120; MSD:[254.821030; 0.351983; 31447624.000000]
+    DiT:8; nTimesamples:15120; decimated_timesamples:7560; MSD:[509.642029; 0.497699; 15723766.000000]
+    DiT:16; nTimesamples:7560; decimated_timesamples:3780; MSD:[1019.284119; 0.703553; 7861911.000000]
+    DiT:32; nTimesamples:3780; decimated_timesamples:1890; MSD:[2038.568237; 0.993373; 3930978.000000]
+    DiT:64; nTimesamples:1890; decimated_timesamples:945; MSD:[4077.136475; 1.398011; 1965493.000000]
+    DiT:128; nTimesamples:945; decimated_timesamples:472; MSD:[8154.272461; 1.952985; 982737.000000]
+    DiT:256; nTimesamples:472; decimated_timesamples:236; MSD:[16308.546875; 2.698750; 490822.000000]
+    DiT:512; nTimesamples:236; decimated_timesamples:118; MSD:[32617.091797; 3.715532; 245440.000000]
+    DiT:1024; nTimesamples:118; decimated_timesamples:59; MSD:[65234.183594; 4.997488; 122720.000000]
+    DiT:2048; nTimesamples:59; decimated_timesamples:29; MSD:[130468.367188; 6.640939; 61360.000000]
+    DiT:4096; nTimesamples:29; decimated_timesamples:14; MSD:[260936.562500; 8.598614; 30160.000000]
+    DiT:8192; nTimesamples:14; decimated_timesamples:7; MSD:[521873.937500; 10.664080; 14560.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:9.064448 ms
+    BC_shift:0; DMs_per_cycle:400; f*DMs_per_cycle:0; max_iteration:8;
+    Thresholding took:1.577536 ms
+    temp_peak_pos:0; host_pos:0; max:62899200; local_max:12096000;
+    SPDT took:9.065472 ms
+    BC_shift:48384000; DMs_per_cycle:400; f*DMs_per_cycle:400; max_iteration:8;
+    Thresholding took:1.573760 ms
+    temp_peak_pos:0; host_pos:0; max:62899200; local_max:12096000;
+    SPDT took:5.441536 ms
+    BC_shift:96768000; DMs_per_cycle:240; f*DMs_per_cycle:800; max_iteration:8;
+    Thresholding took:0.955392 ms
+    temp_peak_pos:0; host_pos:0; max:62899200; local_max:12096000;
+
+  TOTAL TIME OF SPS:105.746429 ms
+  MSD_time: 38.927647 ms; SPDT time: 23.571456 ms; Candidate selection time: 4.106688 ms;
+----------<
+
+
+
+930.000000	1242.000000	0.600000	520
+Amount of telescope time processed: 0.000000
+2343.750000
+0.000928
+110
+lineshift:	306
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:520; nTimesamples:60480; inBin:4; outBin:4; maxshift:11256; 
+  Memory required by boxcar filters:659.839 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 520 DM trials.
+  Selected iteration:6; maximum boxcar width requested:488; maximum boxcar width performed:640;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.790119; 0.062215; 31447544.000000]
+    DiT:2; nTimesamples:60480; decimated_timesamples:30240; MSD:[63.580238; 0.087946; 15723760.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.160469; 0.124304; 7861862.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.320953; 0.175495; 3930924.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.641968; 0.247299; 1965464.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.283752; 0.347627; 982720.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.567383; 0.490712; 470913.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.134277; 0.685406; 226533.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.270020; 0.959854; 113280.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.540039; 1.269369; 56640.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32553.080078; 1.642555; 28320.000000]
+    MSD of input plane: Total time: 11.162080 ms; DiT time: 1.623040 ms; MSD time: 9.174848 ms;
+    Number of calculated MSD values: 11; number of interpolated MSD values: 128;
+    Interpolation step took 80.139267 ms;
+    MSD_plane time: 91.901566 ms
+Pd: 60480; Sd: 520;
+temporary storage for data: 62899200 bytes = 15724800 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 1547 blocks = 4641 float = 18564 bytes
+Memory available: 1270.437500; Memory required: 60.003227;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.790119; 0.062215; 31447544.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:30240; decimated_timesamples:15120; MSD:[63.579227; 0.267056; 15724016.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.160469; 0.124304; 7861862.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.320953; 0.175495; 3930924.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.641968; 0.247299; 1965464.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.283752; 0.347627; 982720.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.567383; 0.490712; 470913.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.134277; 0.685406; 226533.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.270020; 0.959854; 113280.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.540039; 1.269369; 56640.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32553.080078; 1.642555; 28320.000000]
+    DiT:2048; nTimesamples:29; decimated_timesamples:14; MSD:[65106.109375; 2.286494; 13920.000000]
+    DiT:4096; nTimesamples:14; decimated_timesamples:7; MSD:[130212.406250; 2.679060; 6720.000000]
+    DiT:8192; nTimesamples:7; decimated_timesamples:3; MSD:[260424.812500; 3.555001; 3360.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:5.847040 ms
+    BC_shift:0; DMs_per_cycle:520; f*DMs_per_cycle:0; max_iteration:6;
+    Thresholding took:1.024000 ms
+    temp_peak_pos:0; host_pos:0; max:15724800; local_max:12156480;
+
+  TOTAL TIME OF SPS:345.040039 ms
+  MSD_time: 91.901566 ms; SPDT time: 5.847040 ms; Candidate selection time: 1.024000 ms;
+----------<
+
+
+
+1242.000000	1562.000000	0.800000	400
+Amount of telescope time processed: 0.000000
+3125.000000
+0.000928
+139
+lineshift:	335
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:400; nTimesamples:60480; inBin:4; outBin:4; maxshift:11256; 
+  Memory required by boxcar filters:507.568 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 400 DM trials.
+  Selected iteration:6; maximum boxcar width requested:488; maximum boxcar width performed:640;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.790077; 0.062226; 24190416.000000]
+    DiT:2; nTimesamples:60480; decimated_timesamples:30240; MSD:[63.580154; 0.087986; 12095202.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.160316; 0.124347; 6047606.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.320618; 0.175507; 3023812.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.641235; 0.247701; 1511913.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.282532; 0.349089; 755937.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.564697; 0.491046; 377979.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.128906; 0.688608; 181243.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.258301; 0.956726; 90622.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.515625; 1.278218; 45306.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32553.054688; 1.676893; 22595.000000]
+    MSD of input plane: Total time: 9.701248 ms; DiT time: 1.251296 ms; MSD time: 8.095968 ms;
+    Number of calculated MSD values: 11; number of interpolated MSD values: 128;
+    Interpolation step took 93.355492 ms;
+    MSD_plane time: 103.611389 ms
+Pd: 60480; Sd: 400;
+temporary storage for data: 48384000 bytes = 12096000 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 2975 blocks = 8925 float = 35700 bytes
+Memory available: 1270.437500; Memory required: 46.176796;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.790077; 0.062226; 24190416.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:30240; decimated_timesamples:15120; MSD:[63.579826; 0.168301; 12095268.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.160316; 0.124347; 6047606.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.320618; 0.175507; 3023812.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.641235; 0.247701; 1511913.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.282532; 0.349089; 755937.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.564697; 0.491046; 377979.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.128906; 0.688608; 181243.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.258301; 0.956726; 90622.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.515625; 1.278218; 45306.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32553.054688; 1.676893; 22595.000000]
+    DiT:2048; nTimesamples:29; decimated_timesamples:14; MSD:[65106.085938; 2.605756; 11136.000000]
+    DiT:4096; nTimesamples:14; decimated_timesamples:7; MSD:[130212.203125; 2.975512; 5376.000000]
+    DiT:8192; nTimesamples:7; decimated_timesamples:3; MSD:[260424.406250; 3.973372; 2688.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:4.534272 ms
+    BC_shift:0; DMs_per_cycle:400; f*DMs_per_cycle:0; max_iteration:6;
+    Thresholding took:0.791072 ms
+    temp_peak_pos:0; host_pos:0; max:12096000; local_max:12156480;
+
+  TOTAL TIME OF SPS:124.410049 ms
+  MSD_time: 103.611389 ms; SPDT time: 4.534272 ms; Candidate selection time: 0.791072 ms;
+----------<
+
+
+
+1562.000000	2082.000000	1.000000	520
+Amount of telescope time processed: 0.000000
+3906.250000
+0.000928
+167
+lineshift:	363
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:520; nTimesamples:60480; inBin:4; outBin:4; maxshift:11256; 
+  Memory required by boxcar filters:659.839 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 520 DM trials.
+  Selected iteration:6; maximum boxcar width requested:488; maximum boxcar width performed:640;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.790056; 0.062238; 31447562.000000]
+    DiT:2; nTimesamples:60480; decimated_timesamples:30240; MSD:[63.580116; 0.088002; 15723810.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.160233; 0.124409; 7861906.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.320465; 0.175774; 3930936.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.640900; 0.248061; 1965462.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.281738; 0.349622; 982693.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.563721; 0.492528; 470866.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.127441; 0.695876; 226490.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.254883; 0.994186; 113263.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.509766; 1.435992; 56640.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32553.037109; 1.965119; 28272.000000]
+    MSD of input plane: Total time: 17.906368 ms; DiT time: 1.621408 ms; MSD time: 15.904960 ms;
+    Number of calculated MSD values: 11; number of interpolated MSD values: 128;
+    Interpolation step took 46.419743 ms;
+    MSD_plane time: 64.834335 ms
+Pd: 60480; Sd: 520;
+temporary storage for data: 62899200 bytes = 15724800 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 1547 blocks = 4641 float = 18564 bytes
+Memory available: 1270.437500; Memory required: 60.003227;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.790056; 0.062238; 31447562.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:30240; decimated_timesamples:15120; MSD:[63.579613; 0.198471; 15723939.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.160233; 0.124409; 7861906.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.320465; 0.175774; 3930936.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.640900; 0.248061; 1965462.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.281738; 0.349622; 982693.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.563721; 0.492528; 470866.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.127441; 0.695876; 226490.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.254883; 0.994186; 113263.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.509766; 1.435992; 56640.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32553.037109; 1.965119; 28272.000000]
+    DiT:2048; nTimesamples:29; decimated_timesamples:14; MSD:[65106.101562; 2.167172; 13920.000000]
+    DiT:4096; nTimesamples:14; decimated_timesamples:7; MSD:[130212.203125; 2.998353; 6720.000000]
+    DiT:8192; nTimesamples:7; decimated_timesamples:3; MSD:[260424.390625; 4.211797; 3360.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:5.837824 ms
+    BC_shift:0; DMs_per_cycle:520; f*DMs_per_cycle:0; max_iteration:6;
+    Thresholding took:1.022976 ms
+    temp_peak_pos:48; host_pos:0; max:15724800; local_max:12156480;
+
+  TOTAL TIME OF SPS:104.543236 ms
+  MSD_time: 64.834335 ms; SPDT time: 5.837824 ms; Candidate selection time: 1.022976 ms;
+----------<
+
+
+
+2082.000000	3122.000000	2.000000	520
+Amount of telescope time processed: 0.000000
+3906.250000
+0.000928
+167
+lineshift:	363
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:520; nTimesamples:30240; inBin:8; outBin:8; maxshift:5628; 
+  Memory required by boxcar filters:329.919 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 520 DM trials.
+  Selected iteration:3; maximum boxcar width requested:122; maximum boxcar width performed:128;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:30240; decimated_timesamples:15120; MSD:[15.863767; 0.022013; 15723798.000000]
+    DiT:2; nTimesamples:30240; decimated_timesamples:15120; MSD:[31.727533; 0.031134; 7861907.000000]
+    DiT:4; nTimesamples:7560; decimated_timesamples:3780; MSD:[63.455067; 0.044011; 3930980.000000]
+    DiT:8; nTimesamples:3780; decimated_timesamples:1890; MSD:[126.910133; 0.062250; 1965491.000000]
+    DiT:16; nTimesamples:1890; decimated_timesamples:945; MSD:[253.820282; 0.087969; 982725.000000]
+    DiT:32; nTimesamples:945; decimated_timesamples:472; MSD:[507.640503; 0.124613; 470881.000000]
+    DiT:64; nTimesamples:472; decimated_timesamples:236; MSD:[1015.281250; 0.176540; 226514.000000]
+    DiT:128; nTimesamples:236; decimated_timesamples:118; MSD:[2030.562012; 0.250971; 113275.000000]
+    DiT:256; nTimesamples:118; decimated_timesamples:59; MSD:[4061.124268; 0.343627; 56640.000000]
+    MSD of input plane: Total time: 6.476800 ms; DiT time: 0.820544 ms; MSD time: 5.346848 ms;
+    Number of calculated MSD values: 9; number of interpolated MSD values: 128;
+    Interpolation step took 5.148320 ms;
+    MSD_plane time: 12.066816 ms
+Pd: 30240; Sd: 520;
+temporary storage for data: 31449600 bytes = 7862400 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 780 blocks = 2340 float = 9360 bytes
+Memory available: 1270.437500; Memory required: 30.001774;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:30240; decimated_timesamples:15120; MSD:[15.863767; 0.022013; 15723798.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:15120; decimated_timesamples:7560; MSD:[30.742302; 5.416283; 8122339.000000]
+    DiT:4; nTimesamples:7560; decimated_timesamples:3780; MSD:[63.455067; 0.044011; 3930980.000000]
+    DiT:8; nTimesamples:3780; decimated_timesamples:1890; MSD:[126.910133; 0.062250; 1965491.000000]
+    DiT:16; nTimesamples:1890; decimated_timesamples:945; MSD:[253.820282; 0.087969; 982725.000000]
+    DiT:32; nTimesamples:945; decimated_timesamples:472; MSD:[507.640503; 0.124613; 470881.000000]
+    DiT:64; nTimesamples:472; decimated_timesamples:236; MSD:[1015.281250; 0.176540; 226514.000000]
+    DiT:128; nTimesamples:236; decimated_timesamples:118; MSD:[2030.562012; 0.250971; 113275.000000]
+    DiT:256; nTimesamples:118; decimated_timesamples:59; MSD:[4061.124268; 0.343627; 56640.000000]
+    DiT:512; nTimesamples:59; decimated_timesamples:29; MSD:[8122.248047; 0.470312; 28320.000000]
+    DiT:1024; nTimesamples:29; decimated_timesamples:14; MSD:[16244.510742; 0.602308; 13920.000000]
+    DiT:2048; nTimesamples:14; decimated_timesamples:7; MSD:[32489.087891; 0.821410; 6720.000000]
+    DiT:4096; nTimesamples:7; decimated_timesamples:3; MSD:[64978.183594; 0.960958; 3360.000000]
+    DiT:8192; nTimesamples:3; decimated_timesamples:1; MSD:[129956.773438; 0.847876; 1440.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:2.680832 ms
+    BC_shift:0; DMs_per_cycle:520; f*DMs_per_cycle:0; max_iteration:3;
+    Thresholding took:0.459776 ms
+    temp_peak_pos:0; host_pos:0; max:7862400; local_max:12156480;
+
+  TOTAL TIME OF SPS:43.609119 ms
+  MSD_time: 12.066816 ms; SPDT time: 2.680832 ms; Candidate selection time: 0.459776 ms;
+----------<
+
+
+INC:	241920
+t_processed:	241920, 1
+CORNER TURN!
+286944 4096
+32 8
+8967 512
+Performed CT: 0.100000 (GPU estimate)
+CT Gops based on 10.00 ops per channel per tsamp: 117.532262
+CT Device memory bandwidth in GB/s: 70.519357
+
+0.000000	152.000000	0.100000	1520
+Amount of telescope time processed: 15.482880
+1562.500000
+0.000928
+82
+lineshift:	278
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:1520; nTimesamples:241920; inBin:1; outBin:1; maxshift:45024; 
+  Memory required by boxcar filters:7715.039 MB
+  Memory available:1270.438 MB 
+  SPS will run 8 batches each containing 200 DM trials. Remainder 120 DM trials
+  Selected iteration:10; maximum boxcar width requested:7812; maximum boxcar width performed:8320;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.656067; 0.512019; 367310368.000000]
+    DiT:2; nTimesamples:241920; decimated_timesamples:120960; MSD:[255.309479; 0.738376; 183503344.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.612976; 1.078256; 91629640.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.213196; 1.605735; 45723372.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.405151; 2.460829; 22801020.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4084.792236; 3.900663; 11365010.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8169.638184; 6.334507; 5662526.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.291016; 11.037322; 2867509.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32681.003906; 11.167747; 1429022.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65361.492188; 15.153597; 717353.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130723.039062; 16.034075; 358607.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261446.031250; 22.855026; 179360.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522892.062500; 32.554008; 89680.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045783.187500; 43.073193; 44080.000000]
+    DiT:16384; nTimesamples:14; decimated_timesamples:7; MSD:[2091569.625000; 56.443512; 21280.000000]
+    MSD of input plane: Total time: 99.525757 ms; DiT time: 18.602336 ms; MSD time: 80.297727 ms;
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    Interpolation step took 2.520320 ms;
+    MSD_plane time: 102.790115 ms
+Pd: 241920; Sd: 1520;
+temporary storage for data: 735436800 bytes = 183859200 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 44935 blocks = 134805 float = 539220 bytes
+Memory available: 1270.437500; Memory required: 701.881599;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.656067; 0.512019; 367310368.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:120960; decimated_timesamples:60480; MSD:[255.309967; 0.739420; 183531456.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.612976; 1.078256; 91629640.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.213196; 1.605735; 45723372.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.405151; 2.460829; 22801020.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4084.792236; 3.900663; 11365010.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8169.638184; 6.334507; 5662526.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.291016; 11.037322; 2867509.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32681.003906; 11.167747; 1429022.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65361.492188; 15.153597; 717353.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130723.039062; 16.034075; 358607.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261446.031250; 22.855026; 179360.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522892.062500; 32.554008; 89680.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045783.187500; 43.073193; 44080.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:9.083904 ms
+    BC_shift:0; DMs_per_cycle:200; f*DMs_per_cycle:0; max_iteration:10;
+    Thresholding took:1.583104 ms
+    temp_peak_pos:0; host_pos:0; max:183859200; local_max:12096000;
+    SPDT took:9.085952 ms
+    BC_shift:48384000; DMs_per_cycle:200; f*DMs_per_cycle:200; max_iteration:10;
+    Thresholding took:1.581920 ms
+    temp_peak_pos:1; host_pos:0; max:183859200; local_max:12096000;
+    SPDT took:9.080832 ms
+    BC_shift:96768000; DMs_per_cycle:200; f*DMs_per_cycle:400; max_iteration:10;
+    Thresholding took:2.196320 ms
+    temp_peak_pos:4960686; host_pos:1; max:183859200; local_max:12096000;
+    SPDT took:9.122816 ms
+    BC_shift:145152000; DMs_per_cycle:200; f*DMs_per_cycle:600; max_iteration:10;
+    Thresholding took:1.583104 ms
+    temp_peak_pos:0; host_pos:4960687; max:183859200; local_max:12096000;
+    SPDT took:9.093120 ms
+    BC_shift:193536000; DMs_per_cycle:200; f*DMs_per_cycle:800; max_iteration:10;
+    Thresholding took:1.580032 ms
+    temp_peak_pos:1; host_pos:4960687; max:183859200; local_max:12096000;
+    SPDT took:9.109504 ms
+    BC_shift:241920000; DMs_per_cycle:200; f*DMs_per_cycle:1000; max_iteration:10;
+    Thresholding took:1.579008 ms
+    temp_peak_pos:0; host_pos:4960688; max:183859200; local_max:12096000;
+    SPDT took:9.117696 ms
+    BC_shift:290304000; DMs_per_cycle:200; f*DMs_per_cycle:1200; max_iteration:10;
+    Thresholding took:1.582080 ms
+    temp_peak_pos:0; host_pos:4960688; max:183859200; local_max:12096000;
+    SPDT took:5.483520 ms
+    BC_shift:338688000; DMs_per_cycle:120; f*DMs_per_cycle:1400; max_iteration:10;
+    Thresholding took:0.961120 ms
+    temp_peak_pos:0; host_pos:4960688; max:183859200; local_max:12096000;
+
+  TOTAL TIME OF SPS:342.232025 ms
+  MSD_time: 102.790115 ms; SPDT time: 69.177343 ms; Candidate selection time: 12.646688 ms;
+----------<
+
+
+
+152.000000	304.000000	0.200000	760
+Amount of telescope time processed: 15.482880
+3125.000000
+0.000928
+139
+lineshift:	335
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:760; nTimesamples:241920; inBin:1; outBin:1; maxshift:45024; 
+  Memory required by boxcar filters:3857.520 MB
+  Memory available:1270.438 MB 
+  SPS will run 4 batches each containing 200 DM trials. Remainder 160 DM trials
+  Selected iteration:10; maximum boxcar width requested:7812; maximum boxcar width performed:8320;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.659172; 0.497956; 183847648.000000]
+    DiT:2; nTimesamples:241920; decimated_timesamples:120960; MSD:[255.318344; 0.704424; 91923704.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.636688; 0.996711; 45961924.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.273438; 1.410828; 22980946.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.546753; 1.998122; 11490482.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4085.093506; 2.834878; 5745237.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8170.187500; 4.031600; 2872574.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.375000; 5.707749; 1436326.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32680.750000; 8.029056; 718200.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65361.488281; 11.490277; 339840.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130722.976562; 16.131298; 169920.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261445.953125; 21.937412; 84960.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522891.906250; 31.277472; 42480.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045782.312500; 46.148251; 20880.000000]
+    DiT:16384; nTimesamples:14; decimated_timesamples:7; MSD:[2091568.375000; 62.293411; 10080.000000]
+    MSD of input plane: Total time: 50.195168 ms; DiT time: 9.307424 ms; MSD time: 40.383264 ms;
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    Interpolation step took 1.720000 ms;
+    MSD_plane time: 52.493473 ms
+Pd: 241920; Sd: 760;
+temporary storage for data: 367718400 bytes = 91929600 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 8987 blocks = 26961 float = 107844 bytes
+Memory available: 1270.437500; Memory required: 350.786613;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.659172; 0.497956; 183847648.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:120960; decimated_timesamples:60480; MSD:[255.295731; 2.499137; 91931872.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.636688; 0.996711; 45961924.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.273438; 1.410828; 22980946.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.546753; 1.998122; 11490482.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4085.093506; 2.834878; 5745237.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8170.187500; 4.031600; 2872574.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.375000; 5.707749; 1436326.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32680.750000; 8.029056; 718200.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65361.488281; 11.490277; 339840.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130722.976562; 16.131298; 169920.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261445.953125; 21.937412; 84960.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522891.906250; 31.277472; 42480.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045782.312500; 46.148251; 20880.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:9.115648 ms
+    BC_shift:0; DMs_per_cycle:200; f*DMs_per_cycle:0; max_iteration:10;
+    Thresholding took:1.582048 ms
+    temp_peak_pos:1; host_pos:0; max:91929600; local_max:12096000;
+    SPDT took:9.113600 ms
+    BC_shift:48384000; DMs_per_cycle:200; f*DMs_per_cycle:200; max_iteration:10;
+    Thresholding took:1.582560 ms
+    temp_peak_pos:0; host_pos:1; max:91929600; local_max:12096000;
+    SPDT took:9.104384 ms
+    BC_shift:96768000; DMs_per_cycle:200; f*DMs_per_cycle:400; max_iteration:10;
+    Thresholding took:1.578848 ms
+    temp_peak_pos:0; host_pos:1; max:91929600; local_max:12096000;
+    SPDT took:7.289856 ms
+    BC_shift:145152000; DMs_per_cycle:160; f*DMs_per_cycle:600; max_iteration:10;
+    Thresholding took:1.271712 ms
+    temp_peak_pos:1; host_pos:1; max:91929600; local_max:12096000;
+
+  TOTAL TIME OF SPS:157.001114 ms
+  MSD_time: 52.493473 ms; SPDT time: 34.623488 ms; Candidate selection time: 6.015168 ms;
+----------<
+
+
+
+304.000000	514.000000	0.250000	840
+Amount of telescope time processed: 15.482880
+3906.250000
+0.000928
+167
+lineshift:	363
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:840; nTimesamples:241920; inBin:1; outBin:1; maxshift:45024; 
+  Memory required by boxcar filters:4263.574 MB
+  Memory available:1270.438 MB 
+  SPS will run 5 batches each containing 200 DM trials. Remainder 40 DM trials
+  Selected iteration:10; maximum boxcar width requested:7812; maximum boxcar width performed:8320;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.659111; 0.497737; 203199680.000000]
+    DiT:2; nTimesamples:241920; decimated_timesamples:120960; MSD:[255.318207; 0.703896; 101599872.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.636475; 0.995615; 50799900.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.272827; 1.408605; 25399924.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.545776; 1.992930; 12700007.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4085.091797; 2.817785; 6350043.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8170.183105; 3.983976; 3175053.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.367188; 5.631029; 1587538.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32680.732422; 7.938573; 793779.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65361.464844; 11.032908; 396469.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130722.929688; 15.237970; 198238.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261445.875000; 21.219494; 99120.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522891.750000; 29.657618; 49560.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045782.875000; 47.927181; 24360.000000]
+    DiT:16384; nTimesamples:14; decimated_timesamples:7; MSD:[2091567.375000; 56.786411; 11760.000000]
+    MSD of input plane: Total time: 55.362015 ms; DiT time: 10.283488 ms; MSD time: 44.562176 ms;
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    Interpolation step took 1.859008 ms;
+    MSD_plane time: 57.815231 ms
+Pd: 241920; Sd: 840;
+temporary storage for data: 406425600 bytes = 101606400 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 16555 blocks = 49665 float = 198660 bytes
+Memory available: 1270.437500; Memory required: 387.787285;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.659111; 0.497737; 203199680.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:120960; decimated_timesamples:60480; MSD:[255.297760; 2.386791; 101608040.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.636475; 0.995615; 50799900.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.272827; 1.408605; 25399924.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.545776; 1.992930; 12700007.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4085.091797; 2.817785; 6350043.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8170.183105; 3.983976; 3175053.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.367188; 5.631029; 1587538.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32680.732422; 7.938573; 793779.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65361.464844; 11.032908; 396469.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130722.929688; 15.237970; 198238.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261445.875000; 21.219494; 99120.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522891.750000; 29.657618; 49560.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045782.875000; 47.927181; 24360.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:9.093120 ms
+    BC_shift:0; DMs_per_cycle:200; f*DMs_per_cycle:0; max_iteration:10;
+    Thresholding took:1.580992 ms
+    temp_peak_pos:1; host_pos:0; max:101606400; local_max:12096000;
+    SPDT took:9.083904 ms
+    BC_shift:48384000; DMs_per_cycle:200; f*DMs_per_cycle:200; max_iteration:10;
+    Thresholding took:1.579840 ms
+    temp_peak_pos:0; host_pos:1; max:101606400; local_max:12096000;
+    SPDT took:9.081856 ms
+    BC_shift:96768000; DMs_per_cycle:200; f*DMs_per_cycle:400; max_iteration:10;
+    Thresholding took:1.583104 ms
+    temp_peak_pos:0; host_pos:1; max:101606400; local_max:12096000;
+    SPDT took:9.083904 ms
+    BC_shift:145152000; DMs_per_cycle:200; f*DMs_per_cycle:600; max_iteration:10;
+    Thresholding took:1.583104 ms
+    temp_peak_pos:0; host_pos:1; max:101606400; local_max:12096000;
+    SPDT took:1.844224 ms
+    BC_shift:193536000; DMs_per_cycle:40; f*DMs_per_cycle:800; max_iteration:10;
+    Thresholding took:0.340576 ms
+    temp_peak_pos:0; host_pos:1; max:101606400; local_max:12096000;
+
+  TOTAL TIME OF SPS:180.583740 ms
+  MSD_time: 57.815231 ms; SPDT time: 38.187008 ms; Candidate selection time: 6.667616 ms;
+----------<
+
+
+
+514.000000	930.000000	0.400000	1040
+Amount of telescope time processed: 15.482880
+3125.000000
+0.000928
+139
+lineshift:	335
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:1040; nTimesamples:120960; inBin:2; outBin:2; maxshift:22512; 
+  Memory required by boxcar filters:2639.355 MB
+  Memory available:1270.438 MB 
+  SPS will run 3 batches each containing 400 DM trials. Remainder 240 DM trials
+  Selected iteration:8; maximum boxcar width requested:1953; maximum boxcar width performed:2176;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:120960; decimated_timesamples:60480; MSD:[63.704510; 0.176012; 125790304.000000]
+    DiT:2; nTimesamples:120960; decimated_timesamples:60480; MSD:[127.409042; 0.248943; 62895108.000000]
+    DiT:4; nTimesamples:30240; decimated_timesamples:15120; MSD:[254.818069; 0.352136; 31447544.000000]
+    DiT:8; nTimesamples:15120; decimated_timesamples:7560; MSD:[509.636108; 0.498337; 15723773.000000]
+    DiT:16; nTimesamples:7560; decimated_timesamples:3780; MSD:[1019.272339; 0.706085; 7861929.000000]
+    DiT:32; nTimesamples:3780; decimated_timesamples:1890; MSD:[2038.544556; 1.001652; 3930965.000000]
+    DiT:64; nTimesamples:1890; decimated_timesamples:945; MSD:[4077.088867; 1.419407; 1965485.000000]
+    DiT:128; nTimesamples:945; decimated_timesamples:472; MSD:[8154.178711; 2.011124; 982662.000000]
+    DiT:256; nTimesamples:472; decimated_timesamples:236; MSD:[16308.357422; 2.848541; 490832.000000]
+    DiT:512; nTimesamples:236; decimated_timesamples:118; MSD:[32616.712891; 3.957663; 245410.000000]
+    DiT:1024; nTimesamples:118; decimated_timesamples:59; MSD:[65233.429688; 5.372818; 122720.000000]
+    DiT:2048; nTimesamples:59; decimated_timesamples:29; MSD:[130466.867188; 7.611769; 61360.000000]
+    DiT:4096; nTimesamples:29; decimated_timesamples:14; MSD:[260933.656250; 10.606930; 30160.000000]
+    MSD of input plane: Total time: 37.052258 ms; DiT time: 6.407168 ms; MSD time: 30.164608 ms;
+    Number of calculated MSD values: 13; number of interpolated MSD values: 128;
+    Interpolation step took 97.684669 ms;
+    MSD_plane time: 135.273285 ms
+Pd: 120960; Sd: 1040;
+temporary storage for data: 251596800 bytes = 62899200 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 15405 blocks = 46215 float = 184860 bytes
+Memory available: 1270.437500; Memory required: 240.117874;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:120960; decimated_timesamples:60480; MSD:[63.704510; 0.176012; 125790304.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:60480; decimated_timesamples:30240; MSD:[127.408524; 0.355651; 62895360.000000]
+    DiT:4; nTimesamples:30240; decimated_timesamples:15120; MSD:[254.818069; 0.352136; 31447544.000000]
+    DiT:8; nTimesamples:15120; decimated_timesamples:7560; MSD:[509.636108; 0.498337; 15723773.000000]
+    DiT:16; nTimesamples:7560; decimated_timesamples:3780; MSD:[1019.272339; 0.706085; 7861929.000000]
+    DiT:32; nTimesamples:3780; decimated_timesamples:1890; MSD:[2038.544556; 1.001652; 3930965.000000]
+    DiT:64; nTimesamples:1890; decimated_timesamples:945; MSD:[4077.088867; 1.419407; 1965485.000000]
+    DiT:128; nTimesamples:945; decimated_timesamples:472; MSD:[8154.178711; 2.011124; 982662.000000]
+    DiT:256; nTimesamples:472; decimated_timesamples:236; MSD:[16308.357422; 2.848541; 490832.000000]
+    DiT:512; nTimesamples:236; decimated_timesamples:118; MSD:[32616.712891; 3.957663; 245410.000000]
+    DiT:1024; nTimesamples:118; decimated_timesamples:59; MSD:[65233.429688; 5.372818; 122720.000000]
+    DiT:2048; nTimesamples:59; decimated_timesamples:29; MSD:[130466.867188; 7.611769; 61360.000000]
+    DiT:4096; nTimesamples:29; decimated_timesamples:14; MSD:[260933.656250; 10.606930; 30160.000000]
+    DiT:8192; nTimesamples:14; decimated_timesamples:7; MSD:[521867.218750; 14.416144; 14560.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:9.059328 ms
+    BC_shift:0; DMs_per_cycle:400; f*DMs_per_cycle:0; max_iteration:8;
+    Thresholding took:1.574464 ms
+    temp_peak_pos:0; host_pos:0; max:62899200; local_max:12096000;
+    SPDT took:9.056256 ms
+    BC_shift:48384000; DMs_per_cycle:400; f*DMs_per_cycle:400; max_iteration:8;
+    Thresholding took:1.573568 ms
+    temp_peak_pos:3; host_pos:0; max:62899200; local_max:12096000;
+    SPDT took:5.437440 ms
+    BC_shift:96768000; DMs_per_cycle:240; f*DMs_per_cycle:800; max_iteration:8;
+    Thresholding took:0.955168 ms
+    temp_peak_pos:0; host_pos:3; max:62899200; local_max:12096000;
+
+  TOTAL TIME OF SPS:340.882629 ms
+  MSD_time: 135.273285 ms; SPDT time: 23.553024 ms; Candidate selection time: 4.103200 ms;
+----------<
+
+
+
+930.000000	1242.000000	0.600000	520
+Amount of telescope time processed: 15.482880
+2343.750000
+0.000928
+110
+lineshift:	306
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:520; nTimesamples:60480; inBin:4; outBin:4; maxshift:11256; 
+  Memory required by boxcar filters:659.839 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 520 DM trials.
+  Selected iteration:6; maximum boxcar width requested:488; maximum boxcar width performed:640;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.789749; 0.062276; 31447588.000000]
+    DiT:2; nTimesamples:60480; decimated_timesamples:30240; MSD:[63.579498; 0.088125; 15723862.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.159012; 0.124699; 7861929.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.318008; 0.176654; 3930981.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.635956; 0.250745; 1965496.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.271851; 0.356312; 982727.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.543457; 0.503719; 470787.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.085449; 0.716001; 226361.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.176270; 1.058401; 113267.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.352539; 1.452232; 56640.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32552.705078; 1.773781; 28320.000000]
+    MSD of input plane: Total time: 11.049760 ms; DiT time: 1.619392 ms; MSD time: 9.078272 ms;
+    Number of calculated MSD values: 11; number of interpolated MSD values: 128;
+    Interpolation step took 1.901856 ms;
+    MSD_plane time: 13.402400 ms
+Pd: 60480; Sd: 520;
+temporary storage for data: 62899200 bytes = 15724800 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 1547 blocks = 4641 float = 18564 bytes
+Memory available: 1270.437500; Memory required: 60.003227;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.789749; 0.062276; 31447588.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:30240; decimated_timesamples:15120; MSD:[63.578484; 0.267112; 15724123.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.159012; 0.124699; 7861929.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.318008; 0.176654; 3930981.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.635956; 0.250745; 1965496.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.271851; 0.356312; 982727.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.543457; 0.503719; 470787.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.085449; 0.716001; 226361.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.176270; 1.058401; 113267.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.352539; 1.452232; 56640.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32552.705078; 1.773781; 28320.000000]
+    DiT:2048; nTimesamples:29; decimated_timesamples:14; MSD:[65105.378906; 2.485083; 13920.000000]
+    DiT:4096; nTimesamples:14; decimated_timesamples:7; MSD:[130210.632812; 3.406814; 6720.000000]
+    DiT:8192; nTimesamples:7; decimated_timesamples:3; MSD:[260421.234375; 5.030033; 3360.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:5.894144 ms
+    BC_shift:0; DMs_per_cycle:520; f*DMs_per_cycle:0; max_iteration:6;
+    Thresholding took:1.022976 ms
+    temp_peak_pos:3; host_pos:0; max:15724800; local_max:12156480;
+
+  TOTAL TIME OF SPS:35.333088 ms
+  MSD_time: 13.402400 ms; SPDT time: 5.894144 ms; Candidate selection time: 1.022976 ms;
+----------<
+
+
+
+1242.000000	1562.000000	0.800000	400
+Amount of telescope time processed: 15.482880
+3125.000000
+0.000928
+139
+lineshift:	335
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:400; nTimesamples:60480; inBin:4; outBin:4; maxshift:11256; 
+  Memory required by boxcar filters:507.568 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 400 DM trials.
+  Selected iteration:6; maximum boxcar width requested:488; maximum boxcar width performed:640;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.789766; 0.062261; 24190464.000000]
+    DiT:2; nTimesamples:60480; decimated_timesamples:30240; MSD:[63.579533; 0.088101; 12095230.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.159073; 0.124748; 6047568.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.318130; 0.176708; 3023814.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.636261; 0.250253; 1511902.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.272461; 0.354269; 755967.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.545044; 0.502514; 377987.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.089600; 0.700638; 181248.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.179199; 0.948404; 90624.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.358398; 1.321463; 45312.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32552.716797; 1.656217; 22656.000000]
+    MSD of input plane: Total time: 10.213408 ms; DiT time: 1.251328 ms; MSD time: 8.604000 ms;
+    Number of calculated MSD values: 11; number of interpolated MSD values: 128;
+    Interpolation step took 1.797568 ms;
+    MSD_plane time: 12.451136 ms
+Pd: 60480; Sd: 400;
+temporary storage for data: 48384000 bytes = 12096000 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 2975 blocks = 8925 float = 35700 bytes
+Memory available: 1270.437500; Memory required: 46.176796;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.789766; 0.062261; 24190464.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:30240; decimated_timesamples:15120; MSD:[63.579205; 0.168295; 12095294.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.159073; 0.124748; 6047568.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.318130; 0.176708; 3023814.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.636261; 0.250253; 1511902.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.272461; 0.354269; 755967.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.545044; 0.502514; 377987.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.089600; 0.700638; 181248.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.179199; 0.948404; 90624.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.358398; 1.321463; 45312.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32552.716797; 1.656217; 22656.000000]
+    DiT:2048; nTimesamples:29; decimated_timesamples:14; MSD:[65105.375000; 2.204749; 11136.000000]
+    DiT:4096; nTimesamples:14; decimated_timesamples:7; MSD:[130210.726562; 3.294438; 5376.000000]
+    DiT:8192; nTimesamples:7; decimated_timesamples:3; MSD:[260421.453125; 3.941837; 2688.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:4.554752 ms
+    BC_shift:0; DMs_per_cycle:400; f*DMs_per_cycle:0; max_iteration:6;
+    Thresholding took:0.790400 ms
+    temp_peak_pos:0; host_pos:0; max:12096000; local_max:12156480;
+
+  TOTAL TIME OF SPS:30.461952 ms
+  MSD_time: 12.451136 ms; SPDT time: 4.554752 ms; Candidate selection time: 0.790400 ms;
+----------<
+
+
+
+1562.000000	2082.000000	1.000000	520
+Amount of telescope time processed: 15.482880
+3906.250000
+0.000928
+167
+lineshift:	363
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:520; nTimesamples:60480; inBin:4; outBin:4; maxshift:11256; 
+  Memory required by boxcar filters:659.839 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 520 DM trials.
+  Selected iteration:6; maximum boxcar width requested:488; maximum boxcar width performed:640;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.789759; 0.062224; 31447552.000000]
+    DiT:2; nTimesamples:60480; decimated_timesamples:30240; MSD:[63.579521; 0.087998; 15723847.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.159050; 0.124390; 7861886.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.318085; 0.175799; 3930959.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.636169; 0.248174; 1965448.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.272278; 0.350765; 982744.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.545044; 0.493569; 470870.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.090088; 0.698265; 226545.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.179199; 0.986002; 113274.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.359375; 1.377470; 56640.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32552.718750; 1.885945; 28320.000000]
+    MSD of input plane: Total time: 11.060800 ms; DiT time: 1.616192 ms; MSD time: 9.087680 ms;
+    Number of calculated MSD values: 11; number of interpolated MSD values: 128;
+    Interpolation step took 1.795328 ms;
+    MSD_plane time: 13.502464 ms
+Pd: 60480; Sd: 520;
+temporary storage for data: 62899200 bytes = 15724800 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 1547 blocks = 4641 float = 18564 bytes
+Memory available: 1270.437500; Memory required: 60.003227;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.789759; 0.062224; 31447552.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:30240; decimated_timesamples:15120; MSD:[63.579014; 0.198640; 15723982.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.159050; 0.124390; 7861886.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.318085; 0.175799; 3930959.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.636169; 0.248174; 1965448.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.272278; 0.350765; 982744.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.545044; 0.493569; 470870.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.090088; 0.698265; 226545.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.179199; 0.986002; 113274.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.359375; 1.377470; 56640.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32552.718750; 1.885945; 28320.000000]
+    DiT:2048; nTimesamples:29; decimated_timesamples:14; MSD:[65105.445312; 2.367560; 13920.000000]
+    DiT:4096; nTimesamples:14; decimated_timesamples:7; MSD:[130210.820312; 3.259604; 6720.000000]
+    DiT:8192; nTimesamples:7; decimated_timesamples:3; MSD:[260421.640625; 4.189874; 3360.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:5.840896 ms
+    BC_shift:0; DMs_per_cycle:520; f*DMs_per_cycle:0; max_iteration:6;
+    Thresholding took:1.021664 ms
+    temp_peak_pos:0; host_pos:0; max:15724800; local_max:12156480;
+
+  TOTAL TIME OF SPS:36.397793 ms
+  MSD_time: 13.502464 ms; SPDT time: 5.840896 ms; Candidate selection time: 1.021664 ms;
+----------<
+
+
+
+2082.000000	3122.000000	2.000000	520
+Amount of telescope time processed: 15.482880
+3906.250000
+0.000928
+167
+lineshift:	363
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:520; nTimesamples:30240; inBin:8; outBin:8; maxshift:5628; 
+  Memory required by boxcar filters:329.919 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 520 DM trials.
+  Selected iteration:3; maximum boxcar width requested:122; maximum boxcar width performed:128;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:30240; decimated_timesamples:15120; MSD:[15.863632; 0.022009; 15723790.000000]
+    DiT:2; nTimesamples:30240; decimated_timesamples:15120; MSD:[31.727264; 0.031117; 7861927.000000]
+    DiT:4; nTimesamples:7560; decimated_timesamples:3780; MSD:[63.454533; 0.043989; 3930951.000000]
+    DiT:8; nTimesamples:3780; decimated_timesamples:1890; MSD:[126.909058; 0.062177; 1965458.000000]
+    DiT:16; nTimesamples:1890; decimated_timesamples:945; MSD:[253.818115; 0.087881; 982738.000000]
+    DiT:32; nTimesamples:945; decimated_timesamples:472; MSD:[507.636383; 0.123781; 470880.000000]
+    DiT:64; nTimesamples:472; decimated_timesamples:236; MSD:[1015.272644; 0.173948; 226554.000000]
+    DiT:128; nTimesamples:236; decimated_timesamples:118; MSD:[2030.545288; 0.243453; 113280.000000]
+    DiT:256; nTimesamples:118; decimated_timesamples:59; MSD:[4061.090820; 0.342537; 56640.000000]
+    MSD of input plane: Total time: 6.407232 ms; DiT time: 0.818176 ms; MSD time: 5.280576 ms;
+    Number of calculated MSD values: 9; number of interpolated MSD values: 128;
+    Interpolation step took 3.877856 ms;
+    MSD_plane time: 10.716576 ms
+Pd: 30240; Sd: 520;
+temporary storage for data: 31449600 bytes = 7862400 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 780 blocks = 2340 float = 9360 bytes
+Memory available: 1270.437500; Memory required: 30.001774;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:30240; decimated_timesamples:15120; MSD:[15.863632; 0.022009; 15723790.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:15120; decimated_timesamples:7560; MSD:[30.742077; 5.416144; 8122350.000000]
+    DiT:4; nTimesamples:7560; decimated_timesamples:3780; MSD:[63.454533; 0.043989; 3930951.000000]
+    DiT:8; nTimesamples:3780; decimated_timesamples:1890; MSD:[126.909058; 0.062177; 1965458.000000]
+    DiT:16; nTimesamples:1890; decimated_timesamples:945; MSD:[253.818115; 0.087881; 982738.000000]
+    DiT:32; nTimesamples:945; decimated_timesamples:472; MSD:[507.636383; 0.123781; 470880.000000]
+    DiT:64; nTimesamples:472; decimated_timesamples:236; MSD:[1015.272644; 0.173948; 226554.000000]
+    DiT:128; nTimesamples:236; decimated_timesamples:118; MSD:[2030.545288; 0.243453; 113280.000000]
+    DiT:256; nTimesamples:118; decimated_timesamples:59; MSD:[4061.090820; 0.342537; 56640.000000]
+    DiT:512; nTimesamples:59; decimated_timesamples:29; MSD:[8122.181641; 0.489319; 28320.000000]
+    DiT:1024; nTimesamples:29; decimated_timesamples:14; MSD:[16244.376953; 0.657652; 13920.000000]
+    DiT:2048; nTimesamples:14; decimated_timesamples:7; MSD:[32488.775391; 0.964540; 6720.000000]
+    DiT:4096; nTimesamples:7; decimated_timesamples:3; MSD:[64977.550781; 0.901649; 3360.000000]
+    DiT:8192; nTimesamples:3; decimated_timesamples:1; MSD:[129955.281250; 1.675417; 1440.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:2.688000 ms
+    BC_shift:0; DMs_per_cycle:520; f*DMs_per_cycle:0; max_iteration:3;
+    Thresholding took:0.459776 ms
+    temp_peak_pos:0; host_pos:0; max:7862400; local_max:12156480;
+
+  TOTAL TIME OF SPS:35.346882 ms
+  MSD_time: 10.716576 ms; SPDT time: 2.688000 ms; Candidate selection time: 0.459776 ms;
+----------<
+
+
+INC:	483840
+t_processed:	241920, 2
+CORNER TURN!
+286944 4096
+32 8
+8967 512
+Performed CT: 0.100000 (GPU estimate)
+CT Gops based on 10.00 ops per channel per tsamp: 117.532262
+CT Device memory bandwidth in GB/s: 70.519357
+
+0.000000	152.000000	0.100000	1520
+Amount of telescope time processed: 30.965759
+1562.500000
+0.000928
+82
+lineshift:	278
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:1520; nTimesamples:241920; inBin:1; outBin:1; maxshift:45024; 
+  Memory required by boxcar filters:7715.039 MB
+  Memory available:1270.438 MB 
+  SPS will run 8 batches each containing 200 DM trials. Remainder 120 DM trials
+  Selected iteration:10; maximum boxcar width requested:7812; maximum boxcar width performed:8320;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.656120; 0.512101; 367310336.000000]
+    DiT:2; nTimesamples:241920; decimated_timesamples:120960; MSD:[255.309586; 0.738616; 183502304.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.613098; 1.078899; 91628296.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.213623; 1.607763; 45724072.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.405762; 2.464033; 22800964.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4084.792725; 3.909102; 11364551.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8169.639648; 6.366538; 5662481.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.303711; 11.122493; 2868033.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32681.025391; 11.180866; 1428907.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65361.531250; 14.939870; 717221.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130723.101562; 16.029589; 358558.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261446.171875; 23.570591; 179360.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522892.343750; 34.282345; 89680.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045783.562500; 42.596451; 44080.000000]
+    DiT:16384; nTimesamples:14; decimated_timesamples:7; MSD:[2091572.625000; 47.513432; 21280.000000]
+    MSD of input plane: Total time: 103.126083 ms; DiT time: 18.545600 ms; MSD time: 83.946431 ms;
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    Interpolation step took 218.923004 ms;
+    MSD_plane time: 322.796936 ms
+Pd: 241920; Sd: 1520;
+temporary storage for data: 735436800 bytes = 183859200 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 44935 blocks = 134805 float = 539220 bytes
+Memory available: 1270.437500; Memory required: 701.881599;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.656120; 0.512101; 367310336.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:120960; decimated_timesamples:60480; MSD:[255.310043; 0.739528; 183531056.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.613098; 1.078899; 91628296.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.213623; 1.607763; 45724072.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.405762; 2.464033; 22800964.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4084.792725; 3.909102; 11364551.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8169.639648; 6.366538; 5662481.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.303711; 11.122493; 2868033.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32681.025391; 11.180866; 1428907.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65361.531250; 14.939870; 717221.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130723.101562; 16.029589; 358558.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261446.171875; 23.570591; 179360.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522892.343750; 34.282345; 89680.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045783.562500; 42.596451; 44080.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:9.377792 ms
+    BC_shift:0; DMs_per_cycle:200; f*DMs_per_cycle:0; max_iteration:10;
+    Thresholding took:1.579008 ms
+    temp_peak_pos:0; host_pos:0; max:183859200; local_max:12096000;
+    SPDT took:9.366528 ms
+    BC_shift:48384000; DMs_per_cycle:200; f*DMs_per_cycle:200; max_iteration:10;
+    Thresholding took:1.580640 ms
+    temp_peak_pos:0; host_pos:0; max:183859200; local_max:12096000;
+    SPDT took:9.235456 ms
+    BC_shift:96768000; DMs_per_cycle:200; f*DMs_per_cycle:400; max_iteration:10;
+    Thresholding took:2.195456 ms
+    temp_peak_pos:4952356; host_pos:0; max:183859200; local_max:12096000;
+    SPDT took:9.091072 ms
+    BC_shift:145152000; DMs_per_cycle:200; f*DMs_per_cycle:600; max_iteration:10;
+    Thresholding took:1.581056 ms
+    temp_peak_pos:0; host_pos:4952356; max:183859200; local_max:12096000;
+    SPDT took:9.063424 ms
+    BC_shift:193536000; DMs_per_cycle:200; f*DMs_per_cycle:800; max_iteration:10;
+    Thresholding took:1.579744 ms
+    temp_peak_pos:0; host_pos:4952356; max:183859200; local_max:12096000;
+    SPDT took:9.077760 ms
+    BC_shift:241920000; DMs_per_cycle:200; f*DMs_per_cycle:1000; max_iteration:10;
+    Thresholding took:1.579936 ms
+    temp_peak_pos:1; host_pos:4952356; max:183859200; local_max:12096000;
+    SPDT took:9.092096 ms
+    BC_shift:290304000; DMs_per_cycle:200; f*DMs_per_cycle:1200; max_iteration:10;
+    Thresholding took:1.579584 ms
+    temp_peak_pos:0; host_pos:4952357; max:183859200; local_max:12096000;
+    SPDT took:5.482496 ms
+    BC_shift:338688000; DMs_per_cycle:120; f*DMs_per_cycle:1400; max_iteration:10;
+    Thresholding took:0.962528 ms
+    temp_peak_pos:0; host_pos:4952357; max:183859200; local_max:12096000;
+
+  TOTAL TIME OF SPS:1160.775024 ms
+  MSD_time: 322.796936 ms; SPDT time: 69.786624 ms; Candidate selection time: 12.637952 ms;
+----------<
+
+
+
+152.000000	304.000000	0.200000	760
+Amount of telescope time processed: 30.965759
+3125.000000
+0.000928
+139
+lineshift:	335
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:760; nTimesamples:241920; inBin:1; outBin:1; maxshift:45024; 
+  Memory required by boxcar filters:3857.520 MB
+  Memory available:1270.438 MB 
+  SPS will run 4 batches each containing 200 DM trials. Remainder 160 DM trials
+  Selected iteration:10; maximum boxcar width requested:7812; maximum boxcar width performed:8320;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.659271; 0.497805; 183847392.000000]
+    DiT:2; nTimesamples:241920; decimated_timesamples:120960; MSD:[255.318573; 0.704101; 91923728.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.637085; 0.996000; 45961904.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.274231; 1.409560; 22980864.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.548340; 1.997169; 11490405.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4085.096191; 2.832060; 5745200.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8170.192383; 4.024590; 2872600.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.386719; 5.722003; 1436341.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32680.773438; 8.040478; 718145.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65361.539062; 11.502388; 339814.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130723.093750; 16.388077; 169920.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261446.187500; 23.785263; 84960.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522892.375000; 33.695038; 42480.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045784.062500; 39.872162; 20880.000000]
+    DiT:16384; nTimesamples:14; decimated_timesamples:7; MSD:[2091570.000000; 55.049492; 10080.000000]
+    MSD of input plane: Total time: 50.400673 ms; DiT time: 9.305408 ms; MSD time: 40.581887 ms;
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    Interpolation step took 1.877760 ms;
+    MSD_plane time: 52.863968 ms
+Pd: 241920; Sd: 760;
+temporary storage for data: 367718400 bytes = 91929600 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 8987 blocks = 26961 float = 107844 bytes
+Memory available: 1270.437500; Memory required: 350.786613;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.659271; 0.497805; 183847392.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:120960; decimated_timesamples:60480; MSD:[255.295929; 2.499348; 91931904.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.637085; 0.996000; 45961904.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.274231; 1.409560; 22980864.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.548340; 1.997169; 11490405.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4085.096191; 2.832060; 5745200.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8170.192383; 4.024590; 2872600.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.386719; 5.722003; 1436341.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32680.773438; 8.040478; 718145.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65361.539062; 11.502388; 339814.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130723.093750; 16.388077; 169920.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261446.187500; 23.785263; 84960.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522892.375000; 33.695038; 42480.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045784.062500; 39.872162; 20880.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:9.081856 ms
+    BC_shift:0; DMs_per_cycle:200; f*DMs_per_cycle:0; max_iteration:10;
+    Thresholding took:1.580032 ms
+    temp_peak_pos:40; host_pos:0; max:91929600; local_max:12096000;
+    SPDT took:9.089024 ms
+    BC_shift:48384000; DMs_per_cycle:200; f*DMs_per_cycle:200; max_iteration:10;
+    Thresholding took:1.579008 ms
+    temp_peak_pos:0; host_pos:40; max:91929600; local_max:12096000;
+    SPDT took:9.080832 ms
+    BC_shift:96768000; DMs_per_cycle:200; f*DMs_per_cycle:400; max_iteration:10;
+    Thresholding took:1.579808 ms
+    temp_peak_pos:1; host_pos:40; max:91929600; local_max:12096000;
+    SPDT took:7.271424 ms
+    BC_shift:145152000; DMs_per_cycle:160; f*DMs_per_cycle:600; max_iteration:10;
+    Thresholding took:1.269728 ms
+    temp_peak_pos:0; host_pos:41; max:91929600; local_max:12096000;
+
+  TOTAL TIME OF SPS:146.980804 ms
+  MSD_time: 52.863968 ms; SPDT time: 34.523135 ms; Candidate selection time: 6.008576 ms;
+----------<
+
+
+
+304.000000	514.000000	0.250000	840
+Amount of telescope time processed: 30.965759
+3906.250000
+0.000928
+167
+lineshift:	363
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:840; nTimesamples:241920; inBin:1; outBin:1; maxshift:45024; 
+  Memory required by boxcar filters:4263.574 MB
+  Memory available:1270.438 MB 
+  SPS will run 5 batches each containing 200 DM trials. Remainder 40 DM trials
+  Selected iteration:10; maximum boxcar width requested:7812; maximum boxcar width performed:8320;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.659286; 0.497804; 203199776.000000]
+    DiT:2; nTimesamples:241920; decimated_timesamples:120960; MSD:[255.318573; 0.704051; 101599832.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.637207; 0.995772; 50799996.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.274292; 1.408555; 25400006.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.548828; 1.992680; 12700014.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4085.097412; 2.822748; 6350057.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8170.194336; 4.003613; 3175073.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.388672; 5.675835; 1587564.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32680.777344; 8.051084; 793781.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65361.570312; 11.504815; 396475.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130723.156250; 16.338404; 198218.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261446.296875; 23.077471; 99114.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522892.531250; 32.083969; 49560.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045784.500000; 39.351284; 24360.000000]
+    DiT:16384; nTimesamples:14; decimated_timesamples:7; MSD:[2091569.875000; 57.182949; 11760.000000]
+    MSD of input plane: Total time: 55.792736 ms; DiT time: 10.291968 ms; MSD time: 44.967968 ms;
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    Interpolation step took 190.731552 ms;
+    MSD_plane time: 247.133179 ms
+Pd: 241920; Sd: 840;
+temporary storage for data: 406425600 bytes = 101606400 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 16555 blocks = 49665 float = 198660 bytes
+Memory available: 1270.437500; Memory required: 387.787285;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:241920; decimated_timesamples:120960; MSD:[127.659286; 0.497804; 203199776.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:120960; decimated_timesamples:60480; MSD:[255.298141; 2.385895; 101608000.000000]
+    DiT:4; nTimesamples:60480; decimated_timesamples:30240; MSD:[510.637207; 0.995772; 50799996.000000]
+    DiT:8; nTimesamples:30240; decimated_timesamples:15120; MSD:[1021.274292; 1.408555; 25400006.000000]
+    DiT:16; nTimesamples:15120; decimated_timesamples:7560; MSD:[2042.548828; 1.992680; 12700014.000000]
+    DiT:32; nTimesamples:7560; decimated_timesamples:3780; MSD:[4085.097412; 2.822748; 6350057.000000]
+    DiT:64; nTimesamples:3780; decimated_timesamples:1890; MSD:[8170.194336; 4.003613; 3175073.000000]
+    DiT:128; nTimesamples:1890; decimated_timesamples:945; MSD:[16340.388672; 5.675835; 1587564.000000]
+    DiT:256; nTimesamples:945; decimated_timesamples:472; MSD:[32680.777344; 8.051084; 793781.000000]
+    DiT:512; nTimesamples:472; decimated_timesamples:236; MSD:[65361.570312; 11.504815; 396475.000000]
+    DiT:1024; nTimesamples:236; decimated_timesamples:118; MSD:[130723.156250; 16.338404; 198218.000000]
+    DiT:2048; nTimesamples:118; decimated_timesamples:59; MSD:[261446.296875; 23.077471; 99114.000000]
+    DiT:4096; nTimesamples:59; decimated_timesamples:29; MSD:[522892.531250; 32.083969; 49560.000000]
+    DiT:8192; nTimesamples:29; decimated_timesamples:14; MSD:[1045784.500000; 39.351284; 24360.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:9.230336 ms
+    BC_shift:0; DMs_per_cycle:200; f*DMs_per_cycle:0; max_iteration:10;
+    Thresholding took:1.584128 ms
+    temp_peak_pos:0; host_pos:0; max:101606400; local_max:12096000;
+    SPDT took:9.231360 ms
+    BC_shift:48384000; DMs_per_cycle:200; f*DMs_per_cycle:200; max_iteration:10;
+    Thresholding took:1.580032 ms
+    temp_peak_pos:3; host_pos:0; max:101606400; local_max:12096000;
+    SPDT took:9.224192 ms
+    BC_shift:96768000; DMs_per_cycle:200; f*DMs_per_cycle:400; max_iteration:10;
+    Thresholding took:1.579712 ms
+    temp_peak_pos:2; host_pos:3; max:101606400; local_max:12096000;
+    SPDT took:9.233408 ms
+    BC_shift:145152000; DMs_per_cycle:200; f*DMs_per_cycle:600; max_iteration:10;
+    Thresholding took:1.579808 ms
+    temp_peak_pos:0; host_pos:5; max:101606400; local_max:12096000;
+    SPDT took:1.876992 ms
+    BC_shift:193536000; DMs_per_cycle:40; f*DMs_per_cycle:800; max_iteration:10;
+    Thresholding took:0.341824 ms
+    temp_peak_pos:0; host_pos:5; max:101606400; local_max:12096000;
+
+  TOTAL TIME OF SPS:354.502655 ms
+  MSD_time: 247.133179 ms; SPDT time: 38.796288 ms; Candidate selection time: 6.665504 ms;
+----------<
+
+
+
+514.000000	930.000000	0.400000	1040
+Amount of telescope time processed: 30.965759
+3125.000000
+0.000928
+139
+lineshift:	335
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:1040; nTimesamples:120960; inBin:2; outBin:2; maxshift:22512; 
+  Memory required by boxcar filters:2639.355 MB
+  Memory available:1270.438 MB 
+  SPS will run 3 batches each containing 400 DM trials. Remainder 240 DM trials
+  Selected iteration:8; maximum boxcar width requested:1953; maximum boxcar width performed:2176;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:120960; decimated_timesamples:60480; MSD:[63.704609; 0.176051; 125790416.000000]
+    DiT:2; nTimesamples:120960; decimated_timesamples:60480; MSD:[127.409203; 0.249034; 62895168.000000]
+    DiT:4; nTimesamples:30240; decimated_timesamples:15120; MSD:[254.818436; 0.352341; 31447606.000000]
+    DiT:8; nTimesamples:15120; decimated_timesamples:7560; MSD:[509.636841; 0.498622; 15723796.000000]
+    DiT:16; nTimesamples:7560; decimated_timesamples:3780; MSD:[1019.273743; 0.705621; 7861850.000000]
+    DiT:32; nTimesamples:3780; decimated_timesamples:1890; MSD:[2038.547485; 0.999521; 3930961.000000]
+    DiT:64; nTimesamples:1890; decimated_timesamples:945; MSD:[4077.094727; 1.418213; 1965433.000000]
+    DiT:128; nTimesamples:945; decimated_timesamples:472; MSD:[8154.189453; 2.012549; 982750.000000]
+    DiT:256; nTimesamples:472; decimated_timesamples:236; MSD:[16308.383789; 2.868622; 490853.000000]
+    DiT:512; nTimesamples:236; decimated_timesamples:118; MSD:[32616.765625; 4.061845; 245440.000000]
+    DiT:1024; nTimesamples:118; decimated_timesamples:59; MSD:[65233.531250; 5.564806; 122720.000000]
+    DiT:2048; nTimesamples:59; decimated_timesamples:29; MSD:[130467.062500; 7.727254; 61360.000000]
+    DiT:4096; nTimesamples:29; decimated_timesamples:14; MSD:[260934.218750; 9.822962; 30160.000000]
+    MSD of input plane: Total time: 36.835617 ms; DiT time: 6.393120 ms; MSD time: 29.991552 ms;
+    Number of calculated MSD values: 13; number of interpolated MSD values: 128;
+    Interpolation step took 910.000122 ms;
+    MSD_plane time: 947.478516 ms
+Pd: 120960; Sd: 1040;
+temporary storage for data: 251596800 bytes = 62899200 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 15405 blocks = 46215 float = 184860 bytes
+Memory available: 1270.437500; Memory required: 240.117874;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:120960; decimated_timesamples:60480; MSD:[63.704609; 0.176051; 125790416.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:60480; decimated_timesamples:30240; MSD:[127.408707; 0.356472; 62895424.000000]
+    DiT:4; nTimesamples:30240; decimated_timesamples:15120; MSD:[254.818436; 0.352341; 31447606.000000]
+    DiT:8; nTimesamples:15120; decimated_timesamples:7560; MSD:[509.636841; 0.498622; 15723796.000000]
+    DiT:16; nTimesamples:7560; decimated_timesamples:3780; MSD:[1019.273743; 0.705621; 7861850.000000]
+    DiT:32; nTimesamples:3780; decimated_timesamples:1890; MSD:[2038.547485; 0.999521; 3930961.000000]
+    DiT:64; nTimesamples:1890; decimated_timesamples:945; MSD:[4077.094727; 1.418213; 1965433.000000]
+    DiT:128; nTimesamples:945; decimated_timesamples:472; MSD:[8154.189453; 2.012549; 982750.000000]
+    DiT:256; nTimesamples:472; decimated_timesamples:236; MSD:[16308.383789; 2.868622; 490853.000000]
+    DiT:512; nTimesamples:236; decimated_timesamples:118; MSD:[32616.765625; 4.061845; 245440.000000]
+    DiT:1024; nTimesamples:118; decimated_timesamples:59; MSD:[65233.531250; 5.564806; 122720.000000]
+    DiT:2048; nTimesamples:59; decimated_timesamples:29; MSD:[130467.062500; 7.727254; 61360.000000]
+    DiT:4096; nTimesamples:29; decimated_timesamples:14; MSD:[260934.218750; 9.822962; 30160.000000]
+    DiT:8192; nTimesamples:14; decimated_timesamples:7; MSD:[521868.187500; 13.780634; 14560.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:9.203712 ms
+    BC_shift:0; DMs_per_cycle:400; f*DMs_per_cycle:0; max_iteration:8;
+    Thresholding took:1.577728 ms
+    temp_peak_pos:2; host_pos:0; max:62899200; local_max:12096000;
+    SPDT took:9.193472 ms
+    BC_shift:48384000; DMs_per_cycle:400; f*DMs_per_cycle:400; max_iteration:8;
+    Thresholding took:1.576608 ms
+    temp_peak_pos:3; host_pos:2; max:62899200; local_max:12096000;
+    SPDT took:5.529600 ms
+    BC_shift:96768000; DMs_per_cycle:240; f*DMs_per_cycle:800; max_iteration:8;
+    Thresholding took:0.955296 ms
+    temp_peak_pos:0; host_pos:5; max:62899200; local_max:12096000;
+
+  TOTAL TIME OF SPS:1015.222168 ms
+  MSD_time: 947.478516 ms; SPDT time: 23.926785 ms; Candidate selection time: 4.109632 ms;
+----------<
+
+
+
+930.000000	1242.000000	0.600000	520
+Amount of telescope time processed: 30.965759
+2343.750000
+0.000928
+110
+lineshift:	306
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:520; nTimesamples:60480; inBin:4; outBin:4; maxshift:11256; 
+  Memory required by boxcar filters:659.839 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 520 DM trials.
+  Selected iteration:6; maximum boxcar width requested:488; maximum boxcar width performed:640;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.789757; 0.062233; 31447652.000000]
+    DiT:2; nTimesamples:60480; decimated_timesamples:30240; MSD:[63.579514; 0.087999; 15723807.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.159019; 0.124420; 7861898.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.318054; 0.175771; 3930946.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.636078; 0.248188; 1965437.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.272156; 0.350404; 982726.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.544434; 0.497739; 470867.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.088623; 0.702519; 226560.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.178711; 0.986717; 113279.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.354492; 1.337364; 56640.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32552.712891; 1.814316; 28320.000000]
+    MSD of input plane: Total time: 11.093600 ms; DiT time: 1.619712 ms; MSD time: 9.108480 ms;
+    Number of calculated MSD values: 11; number of interpolated MSD values: 128;
+    Interpolation step took 345.904480 ms;
+    MSD_plane time: 357.459351 ms
+Pd: 60480; Sd: 520;
+temporary storage for data: 62899200 bytes = 15724800 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 1547 blocks = 4641 float = 18564 bytes
+Memory available: 1270.437500; Memory required: 60.003227;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.789757; 0.062233; 31447652.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:30240; decimated_timesamples:15120; MSD:[63.578503; 0.267162; 15724062.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.159019; 0.124420; 7861898.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.318054; 0.175771; 3930946.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.636078; 0.248188; 1965437.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.272156; 0.350404; 982726.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.544434; 0.497739; 470867.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.088623; 0.702519; 226560.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.178711; 0.986717; 113279.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.354492; 1.337364; 56640.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32552.712891; 1.814316; 28320.000000]
+    DiT:2048; nTimesamples:29; decimated_timesamples:14; MSD:[65105.527344; 2.660666; 13920.000000]
+    DiT:4096; nTimesamples:14; decimated_timesamples:7; MSD:[130211.062500; 3.386748; 6720.000000]
+    DiT:8192; nTimesamples:7; decimated_timesamples:3; MSD:[260422.140625; 4.588519; 3360.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:5.890048 ms
+    BC_shift:0; DMs_per_cycle:520; f*DMs_per_cycle:0; max_iteration:6;
+    Thresholding took:1.022432 ms
+    temp_peak_pos:0; host_pos:0; max:15724800; local_max:12156480;
+
+  TOTAL TIME OF SPS:436.194305 ms
+  MSD_time: 357.459351 ms; SPDT time: 5.890048 ms; Candidate selection time: 1.022432 ms;
+----------<
+
+
+
+1242.000000	1562.000000	0.800000	400
+Amount of telescope time processed: 30.965759
+3125.000000
+0.000928
+139
+lineshift:	335
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:400; nTimesamples:60480; inBin:4; outBin:4; maxshift:11256; 
+  Memory required by boxcar filters:507.568 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 400 DM trials.
+  Selected iteration:6; maximum boxcar width requested:488; maximum boxcar width performed:640;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.789743; 0.062231; 24190428.000000]
+    DiT:2; nTimesamples:60480; decimated_timesamples:30240; MSD:[63.579491; 0.088001; 12095204.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.158974; 0.124463; 6047595.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.317932; 0.176136; 3023824.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.635895; 0.249358; 1511902.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.271729; 0.352680; 755968.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.543457; 0.497221; 377952.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.086182; 0.699452; 181234.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.172363; 0.996065; 90598.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.346680; 1.369070; 45308.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32552.691406; 1.876052; 22656.000000]
+    MSD of input plane: Total time: 9.896512 ms; DiT time: 1.254400 ms; MSD time: 8.213088 ms;
+    Number of calculated MSD values: 11; number of interpolated MSD values: 128;
+    Interpolation step took 244.186905 ms;
+    MSD_plane time: 254.544891 ms
+Pd: 60480; Sd: 400;
+temporary storage for data: 48384000 bytes = 12096000 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 2975 blocks = 8925 float = 35700 bytes
+Memory available: 1270.437500; Memory required: 46.176796;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.789743; 0.062231; 24190428.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:30240; decimated_timesamples:15120; MSD:[63.579159; 0.168435; 12095270.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.158974; 0.124463; 6047595.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.317932; 0.176136; 3023824.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.635895; 0.249358; 1511902.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.271729; 0.352680; 755968.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.543457; 0.497221; 377952.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.086182; 0.699452; 181234.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.172363; 0.996065; 90598.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.346680; 1.369070; 45308.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32552.691406; 1.876052; 22656.000000]
+    DiT:2048; nTimesamples:29; decimated_timesamples:14; MSD:[65105.460938; 2.704497; 11136.000000]
+    DiT:4096; nTimesamples:14; decimated_timesamples:7; MSD:[130211.070312; 2.900947; 5376.000000]
+    DiT:8192; nTimesamples:7; decimated_timesamples:3; MSD:[260422.171875; 4.472912; 2688.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:4.532224 ms
+    BC_shift:0; DMs_per_cycle:400; f*DMs_per_cycle:0; max_iteration:6;
+    Thresholding took:0.791424 ms
+    temp_peak_pos:0; host_pos:0; max:12096000; local_max:12156480;
+
+  TOTAL TIME OF SPS:334.169067 ms
+  MSD_time: 254.544891 ms; SPDT time: 4.532224 ms; Candidate selection time: 0.791424 ms;
+----------<
+
+
+
+1562.000000	2082.000000	1.000000	520
+Amount of telescope time processed: 30.965759
+3906.250000
+0.000928
+167
+lineshift:	363
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:520; nTimesamples:60480; inBin:4; outBin:4; maxshift:11256; 
+  Memory required by boxcar filters:659.839 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 520 DM trials.
+  Selected iteration:6; maximum boxcar width requested:488; maximum boxcar width performed:640;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.789753; 0.062252; 31447556.000000]
+    DiT:2; nTimesamples:60480; decimated_timesamples:30240; MSD:[63.579502; 0.088069; 15723758.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.159012; 0.124595; 7861885.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.318024; 0.176179; 3930914.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.636017; 0.249267; 1965494.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.272034; 0.353529; 982753.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.544678; 0.498298; 470899.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.088135; 0.705199; 226555.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.177246; 1.000335; 113280.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.354492; 1.416865; 56640.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32552.708984; 1.998859; 28320.000000]
+    MSD of input plane: Total time: 11.814368 ms; DiT time: 1.624064 ms; MSD time: 9.799296 ms;
+    Number of calculated MSD values: 11; number of interpolated MSD values: 128;
+    Interpolation step took 374.417450 ms;
+    MSD_plane time: 386.850006 ms
+Pd: 60480; Sd: 520;
+temporary storage for data: 62899200 bytes = 15724800 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 1547 blocks = 4641 float = 18564 bytes
+Memory available: 1270.437500; Memory required: 60.003227;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:60480; decimated_timesamples:30240; MSD:[31.789753; 0.062252; 31447556.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:30240; decimated_timesamples:15120; MSD:[63.578999; 0.198683; 15723882.000000]
+    DiT:4; nTimesamples:15120; decimated_timesamples:7560; MSD:[127.159012; 0.124595; 7861885.000000]
+    DiT:8; nTimesamples:7560; decimated_timesamples:3780; MSD:[254.318024; 0.176179; 3930914.000000]
+    DiT:16; nTimesamples:3780; decimated_timesamples:1890; MSD:[508.636017; 0.249267; 1965494.000000]
+    DiT:32; nTimesamples:1890; decimated_timesamples:945; MSD:[1017.272034; 0.353529; 982753.000000]
+    DiT:64; nTimesamples:945; decimated_timesamples:472; MSD:[2034.544678; 0.498298; 470899.000000]
+    DiT:128; nTimesamples:472; decimated_timesamples:236; MSD:[4069.088135; 0.705199; 226555.000000]
+    DiT:256; nTimesamples:236; decimated_timesamples:118; MSD:[8138.177246; 1.000335; 113280.000000]
+    DiT:512; nTimesamples:118; decimated_timesamples:59; MSD:[16276.354492; 1.416865; 56640.000000]
+    DiT:1024; nTimesamples:59; decimated_timesamples:29; MSD:[32552.708984; 1.998859; 28320.000000]
+    DiT:2048; nTimesamples:29; decimated_timesamples:14; MSD:[65105.453125; 2.955965; 13920.000000]
+    DiT:4096; nTimesamples:14; decimated_timesamples:7; MSD:[130211.281250; 3.698493; 6720.000000]
+    DiT:8192; nTimesamples:7; decimated_timesamples:3; MSD:[260422.562500; 5.002738; 3360.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:5.837824 ms
+    BC_shift:0; DMs_per_cycle:520; f*DMs_per_cycle:0; max_iteration:6;
+    Thresholding took:1.020928 ms
+    temp_peak_pos:0; host_pos:0; max:15724800; local_max:12156480;
+
+  TOTAL TIME OF SPS:533.384155 ms
+  MSD_time: 386.850006 ms; SPDT time: 5.837824 ms; Candidate selection time: 1.020928 ms;
+----------<
+
+
+
+2082.000000	3122.000000	2.000000	520
+Amount of telescope time processed: 30.965759
+3906.250000
+0.000928
+167
+lineshift:	363
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:520; nTimesamples:30240; inBin:8; outBin:8; maxshift:5628; 
+  Memory required by boxcar filters:329.919 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 520 DM trials.
+  Selected iteration:3; maximum boxcar width requested:122; maximum boxcar width performed:128;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:30240; decimated_timesamples:15120; MSD:[15.863623; 0.022002; 15723802.000000]
+    DiT:2; nTimesamples:30240; decimated_timesamples:15120; MSD:[31.727242; 0.031096; 7861903.000000]
+    DiT:4; nTimesamples:7560; decimated_timesamples:3780; MSD:[63.454487; 0.043902; 3930908.000000]
+    DiT:8; nTimesamples:3780; decimated_timesamples:1890; MSD:[126.908974; 0.061913; 1965490.000000]
+    DiT:16; nTimesamples:1890; decimated_timesamples:945; MSD:[253.817947; 0.087127; 982747.000000]
+    DiT:32; nTimesamples:945; decimated_timesamples:472; MSD:[507.635956; 0.122593; 470880.000000]
+    DiT:64; nTimesamples:472; decimated_timesamples:236; MSD:[1015.271790; 0.171973; 226546.000000]
+    DiT:128; nTimesamples:236; decimated_timesamples:118; MSD:[2030.543701; 0.243827; 113280.000000]
+    DiT:256; nTimesamples:118; decimated_timesamples:59; MSD:[4061.087402; 0.348570; 56640.000000]
+    MSD of input plane: Total time: 7.503552 ms; DiT time: 0.831136 ms; MSD time: 6.323008 ms;
+    Number of calculated MSD values: 9; number of interpolated MSD values: 128;
+    Interpolation step took 57.263744 ms;
+    MSD_plane time: 65.219582 ms
+Pd: 30240; Sd: 520;
+temporary storage for data: 31449600 bytes = 7862400 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 780 blocks = 2340 float = 9360 bytes
+Memory available: 1270.437500; Memory required: 30.001774;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:30240; decimated_timesamples:15120; MSD:[15.863623; 0.022002; 15723802.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:15120; decimated_timesamples:7560; MSD:[30.742060; 5.416125; 8122324.000000]
+    DiT:4; nTimesamples:7560; decimated_timesamples:3780; MSD:[63.454487; 0.043902; 3930908.000000]
+    DiT:8; nTimesamples:3780; decimated_timesamples:1890; MSD:[126.908974; 0.061913; 1965490.000000]
+    DiT:16; nTimesamples:1890; decimated_timesamples:945; MSD:[253.817947; 0.087127; 982747.000000]
+    DiT:32; nTimesamples:945; decimated_timesamples:472; MSD:[507.635956; 0.122593; 470880.000000]
+    DiT:64; nTimesamples:472; decimated_timesamples:236; MSD:[1015.271790; 0.171973; 226546.000000]
+    DiT:128; nTimesamples:236; decimated_timesamples:118; MSD:[2030.543701; 0.243827; 113280.000000]
+    DiT:256; nTimesamples:118; decimated_timesamples:59; MSD:[4061.087402; 0.348570; 56640.000000]
+    DiT:512; nTimesamples:59; decimated_timesamples:29; MSD:[8122.174805; 0.493074; 28320.000000]
+    DiT:1024; nTimesamples:29; decimated_timesamples:14; MSD:[16244.364258; 0.687210; 13920.000000]
+    DiT:2048; nTimesamples:14; decimated_timesamples:7; MSD:[32488.818359; 1.009475; 6720.000000]
+    DiT:4096; nTimesamples:7; decimated_timesamples:3; MSD:[64977.636719; 1.238153; 3360.000000]
+    DiT:8192; nTimesamples:3; decimated_timesamples:1; MSD:[129955.789062; 1.312957; 1440.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:2.695168 ms
+    BC_shift:0; DMs_per_cycle:520; f*DMs_per_cycle:0; max_iteration:3;
+    Thresholding took:0.460352 ms
+    temp_peak_pos:0; host_pos:0; max:7862400; local_max:12156480;
+
+  TOTAL TIME OF SPS:83.857986 ms
+  MSD_time: 65.219582 ms; SPDT time: 2.695168 ms; Candidate selection time: 0.460352 ms;
+----------<
+
+
+INC:	725760
+t_processed:	17920, 3
+CORNER TURN!
+62944 4096
+32 8
+1967 512
+Performed CT: 0.180000 (GPU estimate)
+CT Gops based on 10.00 ops per channel per tsamp: 14.323257
+CT Device memory bandwidth in GB/s: 8.593954
+
+0.000000	152.000000	0.100000	1520
+Amount of telescope time processed: 46.448639
+1562.500000
+0.000928
+82
+lineshift:	278
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:1520; nTimesamples:17920; inBin:1; outBin:1; maxshift:45024; 
+  Memory required by boxcar filters:571.484 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 1520 DM trials.
+  Selected iteration:10; maximum boxcar width requested:7812; maximum boxcar width performed:8320;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:17920; decimated_timesamples:8960; MSD:[127.655411; 0.512215; 27207360.000000]
+    DiT:2; nTimesamples:17920; decimated_timesamples:8960; MSD:[255.308151; 0.738663; 13592281.000000]
+    DiT:4; nTimesamples:4480; decimated_timesamples:2240; MSD:[510.610046; 1.078750; 6786710.000000]
+    DiT:8; nTimesamples:2240; decimated_timesamples:1120; MSD:[1021.207031; 1.607314; 3386431.000000]
+    DiT:16; nTimesamples:1120; decimated_timesamples:560; MSD:[2042.392700; 2.466650; 1688745.000000]
+    DiT:32; nTimesamples:560; decimated_timesamples:280; MSD:[4084.766602; 3.919859; 841638.000000]
+    DiT:64; nTimesamples:280; decimated_timesamples:140; MSD:[8169.585938; 6.418413; 419281.000000]
+    DiT:128; nTimesamples:140; decimated_timesamples:70; MSD:[16340.251953; 11.330345; 212572.000000]
+    DiT:256; nTimesamples:70; decimated_timesamples:35; MSD:[32680.785156; 11.754282; 106046.000000]
+    DiT:512; nTimesamples:35; decimated_timesamples:17; MSD:[65361.207031; 16.629171; 53200.000000]
+    DiT:1024; nTimesamples:17; decimated_timesamples:8; MSD:[130723.085938; 18.983782; 25840.000000]
+    DiT:2048; nTimesamples:8; decimated_timesamples:4; MSD:[261446.953125; 25.064867; 12160.000000]
+    DiT:4096; nTimesamples:4; decimated_timesamples:2; MSD:[522893.875000; 27.588127; 6080.000000]
+    DiT:8192; nTimesamples:2; decimated_timesamples:1; MSD:[1045787.812500; 17.006536; 3040.000000]
+    DiT:16384; nTimesamples:1; decimated_timesamples:0; MSD:[2091575.625000; 16.432064; 1520.000000]
+    MSD of input plane: Total time: 15.901888 ms; DiT time: 1.455488 ms; MSD time: 13.928032 ms;
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    Interpolation step took 381.954803 ms;
+    MSD_plane time: 398.482788 ms
+Pd: 17920; Sd: 1520;
+temporary storage for data: 54476800 bytes = 13619200 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 3325 blocks = 9975 float = 39900 bytes
+Memory available: 1270.437500; Memory required: 51.991348;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:17920; decimated_timesamples:8960; MSD:[127.655411; 0.512215; 27207360.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:8960; decimated_timesamples:4480; MSD:[255.307465; 0.921631; 13594534.000000]
+    DiT:4; nTimesamples:4480; decimated_timesamples:2240; MSD:[510.610046; 1.078750; 6786710.000000]
+    DiT:8; nTimesamples:2240; decimated_timesamples:1120; MSD:[1021.207031; 1.607314; 3386431.000000]
+    DiT:16; nTimesamples:1120; decimated_timesamples:560; MSD:[2042.392700; 2.466650; 1688745.000000]
+    DiT:32; nTimesamples:560; decimated_timesamples:280; MSD:[4084.766602; 3.919859; 841638.000000]
+    DiT:64; nTimesamples:280; decimated_timesamples:140; MSD:[8169.585938; 6.418413; 419281.000000]
+    DiT:128; nTimesamples:140; decimated_timesamples:70; MSD:[16340.251953; 11.330345; 212572.000000]
+    DiT:256; nTimesamples:70; decimated_timesamples:35; MSD:[32680.785156; 11.754282; 106046.000000]
+    DiT:512; nTimesamples:35; decimated_timesamples:17; MSD:[65361.207031; 16.629171; 53200.000000]
+    DiT:1024; nTimesamples:17; decimated_timesamples:8; MSD:[130723.085938; 18.983782; 25840.000000]
+    DiT:2048; nTimesamples:8; decimated_timesamples:4; MSD:[261446.953125; 25.064867; 12160.000000]
+    DiT:4096; nTimesamples:4; decimated_timesamples:2; MSD:[522893.875000; 27.588127; 6080.000000]
+    DiT:8192; nTimesamples:2; decimated_timesamples:1; MSD:[1045787.812500; 17.006536; 3040.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:5.411840 ms
+    BC_shift:0; DMs_per_cycle:1520; f*DMs_per_cycle:0; max_iteration:10;
+    Thresholding took:0.942592 ms
+    temp_peak_pos:374206; host_pos:0; max:13619200; local_max:12167680;
+
+  TOTAL TIME OF SPS:423.614014 ms
+  MSD_time: 398.482788 ms; SPDT time: 5.411840 ms; Candidate selection time: 0.942592 ms;
+----------<
+
+
+
+152.000000	304.000000	0.200000	760
+Amount of telescope time processed: 46.448639
+3125.000000
+0.000928
+139
+lineshift:	335
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:760; nTimesamples:17920; inBin:1; outBin:1; maxshift:45024; 
+  Memory required by boxcar filters:285.742 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 760 DM trials.
+  Selected iteration:10; maximum boxcar width requested:7812; maximum boxcar width performed:8320;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:17920; decimated_timesamples:8960; MSD:[127.656227; 0.497849; 13618343.000000]
+    DiT:2; nTimesamples:17920; decimated_timesamples:8960; MSD:[255.312439; 0.703684; 6809167.000000]
+    DiT:4; nTimesamples:4480; decimated_timesamples:2240; MSD:[510.624908; 0.994139; 3404564.000000]
+    DiT:8; nTimesamples:2240; decimated_timesamples:1120; MSD:[1021.249573; 1.404450; 1702270.000000]
+    DiT:16; nTimesamples:1120; decimated_timesamples:560; MSD:[2042.499146; 1.981816; 851149.000000]
+    DiT:32; nTimesamples:560; decimated_timesamples:280; MSD:[4084.999023; 2.790639; 425582.000000]
+    DiT:64; nTimesamples:280; decimated_timesamples:140; MSD:[8169.995117; 3.911011; 201591.000000]
+    DiT:128; nTimesamples:140; decimated_timesamples:70; MSD:[16339.988281; 5.504488; 100800.000000]
+    DiT:256; nTimesamples:70; decimated_timesamples:35; MSD:[32679.978516; 7.753814; 50398.000000]
+    DiT:512; nTimesamples:35; decimated_timesamples:17; MSD:[65359.957031; 11.598103; 25200.000000]
+    DiT:1024; nTimesamples:17; decimated_timesamples:8; MSD:[130720.695312; 16.494019; 12240.000000]
+    DiT:2048; nTimesamples:8; decimated_timesamples:4; MSD:[261444.312500; 19.008072; 5760.000000]
+    DiT:4096; nTimesamples:4; decimated_timesamples:2; MSD:[522888.687500; 21.133308; 2880.000000]
+    DiT:8192; nTimesamples:2; decimated_timesamples:1; MSD:[1045777.375000; 10.384617; 1440.000000]
+    DiT:16384; nTimesamples:1; decimated_timesamples:0; MSD:[2091554.750000; 9.020372; 720.000000]
+    MSD of input plane: Total time: 6.720736 ms; DiT time: 0.724992 ms; MSD time: 5.449024 ms;
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    Interpolation step took 55.549473 ms;
+    MSD_plane time: 62.718048 ms
+Pd: 17920; Sd: 760;
+temporary storage for data: 27238400 bytes = 6809600 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 665 blocks = 1995 float = 7980 bytes
+Memory available: 1270.437500; Memory required: 25.984344;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:17920; decimated_timesamples:8960; MSD:[127.656227; 0.497849; 13618343.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:8960; decimated_timesamples:4480; MSD:[221.453552; 86.399483; 7854967.500000]
+    DiT:4; nTimesamples:4480; decimated_timesamples:2240; MSD:[510.624908; 0.994139; 3404564.000000]
+    DiT:8; nTimesamples:2240; decimated_timesamples:1120; MSD:[1021.249573; 1.404450; 1702270.000000]
+    DiT:16; nTimesamples:1120; decimated_timesamples:560; MSD:[2042.499146; 1.981816; 851149.000000]
+    DiT:32; nTimesamples:560; decimated_timesamples:280; MSD:[4084.999023; 2.790639; 425582.000000]
+    DiT:64; nTimesamples:280; decimated_timesamples:140; MSD:[8169.995117; 3.911011; 201591.000000]
+    DiT:128; nTimesamples:140; decimated_timesamples:70; MSD:[16339.988281; 5.504488; 100800.000000]
+    DiT:256; nTimesamples:70; decimated_timesamples:35; MSD:[32679.978516; 7.753814; 50398.000000]
+    DiT:512; nTimesamples:35; decimated_timesamples:17; MSD:[65359.957031; 11.598103; 25200.000000]
+    DiT:1024; nTimesamples:17; decimated_timesamples:8; MSD:[130720.695312; 16.494019; 12240.000000]
+    DiT:2048; nTimesamples:8; decimated_timesamples:4; MSD:[261444.312500; 19.008072; 5760.000000]
+    DiT:4096; nTimesamples:4; decimated_timesamples:2; MSD:[522888.687500; 21.133308; 2880.000000]
+    DiT:8192; nTimesamples:2; decimated_timesamples:1; MSD:[1045777.375000; 10.384617; 1440.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:2.733056 ms
+    BC_shift:0; DMs_per_cycle:760; f*DMs_per_cycle:0; max_iteration:10;
+    Thresholding took:0.463872 ms
+    temp_peak_pos:0; host_pos:0; max:6809600; local_max:12167680;
+
+  TOTAL TIME OF SPS:75.002563 ms
+  MSD_time: 62.718048 ms; SPDT time: 2.733056 ms; Candidate selection time: 0.463872 ms;
+----------<
+
+
+
+304.000000	514.000000	0.250000	840
+Amount of telescope time processed: 46.448639
+3906.250000
+0.000928
+167
+lineshift:	363
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:840; nTimesamples:17920; inBin:1; outBin:1; maxshift:45024; 
+  Memory required by boxcar filters:315.820 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 840 DM trials.
+  Selected iteration:10; maximum boxcar width requested:7812; maximum boxcar width performed:8320;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:17920; decimated_timesamples:8960; MSD:[127.655777; 0.497761; 15051867.000000]
+    DiT:2; nTimesamples:17920; decimated_timesamples:8960; MSD:[255.311569; 0.703845; 7525936.000000]
+    DiT:4; nTimesamples:4480; decimated_timesamples:2240; MSD:[510.623138; 0.995463; 3762957.000000]
+    DiT:8; nTimesamples:2240; decimated_timesamples:1120; MSD:[1021.246399; 1.407963; 1881463.000000]
+    DiT:16; nTimesamples:1120; decimated_timesamples:560; MSD:[2042.492676; 1.987120; 940734.000000]
+    DiT:32; nTimesamples:560; decimated_timesamples:280; MSD:[4084.985596; 2.799877; 470359.000000]
+    DiT:64; nTimesamples:280; decimated_timesamples:140; MSD:[8169.969727; 3.906009; 235186.000000]
+    DiT:128; nTimesamples:140; decimated_timesamples:70; MSD:[16339.942383; 5.404973; 117598.000000]
+    DiT:256; nTimesamples:70; decimated_timesamples:35; MSD:[32679.882812; 7.413907; 58800.000000]
+    DiT:512; nTimesamples:35; decimated_timesamples:17; MSD:[65359.765625; 10.142858; 29400.000000]
+    DiT:1024; nTimesamples:17; decimated_timesamples:8; MSD:[130719.734375; 14.335350; 14280.000000]
+    DiT:2048; nTimesamples:8; decimated_timesamples:4; MSD:[261440.703125; 21.904648; 6720.000000]
+    DiT:4096; nTimesamples:4; decimated_timesamples:2; MSD:[522881.406250; 22.079681; 3360.000000]
+    DiT:8192; nTimesamples:2; decimated_timesamples:1; MSD:[1045762.812500; 10.719118; 1680.000000]
+    DiT:16384; nTimesamples:1; decimated_timesamples:0; MSD:[2091525.750000; 6.400274; 840.000000]
+    MSD of input plane: Total time: 7.031392 ms; DiT time: 0.801344 ms; MSD time: 5.805248 ms;
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    Interpolation step took 305.684479 ms;
+    MSD_plane time: 313.164398 ms
+Pd: 17920; Sd: 840;
+temporary storage for data: 30105600 bytes = 7526400 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 1225 blocks = 3675 float = 14700 bytes
+Memory available: 1270.437500; Memory required: 28.725128;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:17920; decimated_timesamples:8960; MSD:[127.655777; 0.497761; 15051867.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:8960; decimated_timesamples:4480; MSD:[255.242554; 4.247574; 7527983.000000]
+    DiT:4; nTimesamples:4480; decimated_timesamples:2240; MSD:[510.623138; 0.995463; 3762957.000000]
+    DiT:8; nTimesamples:2240; decimated_timesamples:1120; MSD:[1021.246399; 1.407963; 1881463.000000]
+    DiT:16; nTimesamples:1120; decimated_timesamples:560; MSD:[2042.492676; 1.987120; 940734.000000]
+    DiT:32; nTimesamples:560; decimated_timesamples:280; MSD:[4084.985596; 2.799877; 470359.000000]
+    DiT:64; nTimesamples:280; decimated_timesamples:140; MSD:[8169.969727; 3.906009; 235186.000000]
+    DiT:128; nTimesamples:140; decimated_timesamples:70; MSD:[16339.942383; 5.404973; 117598.000000]
+    DiT:256; nTimesamples:70; decimated_timesamples:35; MSD:[32679.882812; 7.413907; 58800.000000]
+    DiT:512; nTimesamples:35; decimated_timesamples:17; MSD:[65359.765625; 10.142858; 29400.000000]
+    DiT:1024; nTimesamples:17; decimated_timesamples:8; MSD:[130719.734375; 14.335350; 14280.000000]
+    DiT:2048; nTimesamples:8; decimated_timesamples:4; MSD:[261440.703125; 21.904648; 6720.000000]
+    DiT:4096; nTimesamples:4; decimated_timesamples:2; MSD:[522881.406250; 22.079681; 3360.000000]
+    DiT:8192; nTimesamples:2; decimated_timesamples:1; MSD:[1045762.812500; 10.719118; 1680.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:3.042304 ms
+    BC_shift:0; DMs_per_cycle:840; f*DMs_per_cycle:0; max_iteration:10;
+    Thresholding took:0.508928 ms
+    temp_peak_pos:0; host_pos:0; max:7526400; local_max:12167680;
+
+  TOTAL TIME OF SPS:336.847382 ms
+  MSD_time: 313.164398 ms; SPDT time: 3.042304 ms; Candidate selection time: 0.508928 ms;
+----------<
+
+
+
+514.000000	930.000000	0.400000	1040
+Amount of telescope time processed: 46.448639
+3125.000000
+0.000928
+139
+lineshift:	335
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:1040; nTimesamples:8960; inBin:2; outBin:2; maxshift:22512; 
+  Memory required by boxcar filters:195.508 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 1040 DM trials.
+  Selected iteration:8; maximum boxcar width requested:1953; maximum boxcar width performed:2176;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:8960; decimated_timesamples:4480; MSD:[63.702816; 0.175881; 9317781.000000]
+    DiT:2; nTimesamples:8960; decimated_timesamples:4480; MSD:[127.405632; 0.248839; 4658913.000000]
+    DiT:4; nTimesamples:2240; decimated_timesamples:1120; MSD:[254.811279; 0.351394; 2329453.000000]
+    DiT:8; nTimesamples:1120; decimated_timesamples:560; MSD:[509.622528; 0.495933; 1164746.000000]
+    DiT:16; nTimesamples:560; decimated_timesamples:280; MSD:[1019.245178; 0.699828; 582369.000000]
+    DiT:32; nTimesamples:280; decimated_timesamples:140; MSD:[2038.490234; 0.986828; 291189.000000]
+    DiT:64; nTimesamples:140; decimated_timesamples:70; MSD:[4076.981201; 1.388065; 145599.000000]
+    DiT:128; nTimesamples:70; decimated_timesamples:35; MSD:[8153.960938; 1.909399; 72799.000000]
+    DiT:256; nTimesamples:35; decimated_timesamples:17; MSD:[16307.922852; 2.419076; 36400.000000]
+    DiT:512; nTimesamples:17; decimated_timesamples:8; MSD:[32615.796875; 3.029417; 17680.000000]
+    DiT:1024; nTimesamples:8; decimated_timesamples:4; MSD:[65231.878906; 4.073514; 8320.000000]
+    DiT:2048; nTimesamples:4; decimated_timesamples:2; MSD:[130463.757812; 4.166287; 4160.000000]
+    DiT:4096; nTimesamples:2; decimated_timesamples:1; MSD:[260927.515625; 2.615753; 2080.000000]
+    MSD of input plane: Total time: 6.161408 ms; DiT time: 0.523712 ms; MSD time: 5.189152 ms;
+    Number of calculated MSD values: 13; number of interpolated MSD values: 128;
+    Interpolation step took 54.906879 ms;
+    MSD_plane time: 61.672607 ms
+Pd: 8960; Sd: 1040;
+temporary storage for data: 18636800 bytes = 4659200 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 1170 blocks = 3510 float = 14040 bytes
+Memory available: 1270.437500; Memory required: 17.786999;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:8960; decimated_timesamples:4480; MSD:[63.702816; 0.175881; 9317781.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:4480; decimated_timesamples:2240; MSD:[127.377945; 1.887832; 4659937.500000]
+    DiT:4; nTimesamples:2240; decimated_timesamples:1120; MSD:[254.811279; 0.351394; 2329453.000000]
+    DiT:8; nTimesamples:1120; decimated_timesamples:560; MSD:[509.622528; 0.495933; 1164746.000000]
+    DiT:16; nTimesamples:560; decimated_timesamples:280; MSD:[1019.245178; 0.699828; 582369.000000]
+    DiT:32; nTimesamples:280; decimated_timesamples:140; MSD:[2038.490234; 0.986828; 291189.000000]
+    DiT:64; nTimesamples:140; decimated_timesamples:70; MSD:[4076.981201; 1.388065; 145599.000000]
+    DiT:128; nTimesamples:70; decimated_timesamples:35; MSD:[8153.960938; 1.909399; 72799.000000]
+    DiT:256; nTimesamples:35; decimated_timesamples:17; MSD:[16307.922852; 2.419076; 36400.000000]
+    DiT:512; nTimesamples:17; decimated_timesamples:8; MSD:[32615.796875; 3.029417; 17680.000000]
+    DiT:1024; nTimesamples:8; decimated_timesamples:4; MSD:[65231.878906; 4.073514; 8320.000000]
+    DiT:2048; nTimesamples:4; decimated_timesamples:2; MSD:[130463.757812; 4.166287; 4160.000000]
+    DiT:4096; nTimesamples:2; decimated_timesamples:1; MSD:[260927.515625; 2.615753; 2080.000000]
+    DiT:8192; nTimesamples:1; decimated_timesamples:0; MSD:[521855.031250; 1.797289; 1040.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:1.996800 ms
+    BC_shift:0; DMs_per_cycle:1040; f*DMs_per_cycle:0; max_iteration:8;
+    Thresholding took:0.320512 ms
+    temp_peak_pos:0; host_pos:0; max:4659200; local_max:12167680;
+
+  TOTAL TIME OF SPS:92.995453 ms
+  MSD_time: 61.672607 ms; SPDT time: 1.996800 ms; Candidate selection time: 0.320512 ms;
+----------<
+
+
+
+930.000000	1242.000000	0.600000	520
+Amount of telescope time processed: 46.448639
+2343.750000
+0.000928
+110
+lineshift:	306
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:520; nTimesamples:4480; inBin:4; outBin:4; maxshift:11256; 
+  Memory required by boxcar filters:48.877 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 520 DM trials.
+  Selected iteration:6; maximum boxcar width requested:488; maximum boxcar width performed:640;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:4480; decimated_timesamples:2240; MSD:[31.789339; 0.062369; 2329438.000000]
+    DiT:2; nTimesamples:4480; decimated_timesamples:2240; MSD:[63.578671; 0.088382; 1164718.000000]
+    DiT:4; nTimesamples:1120; decimated_timesamples:560; MSD:[127.157349; 0.125295; 582371.000000]
+    DiT:8; nTimesamples:560; decimated_timesamples:280; MSD:[254.314880; 0.177614; 270710.000000]
+    DiT:16; nTimesamples:280; decimated_timesamples:140; MSD:[508.629883; 0.252358; 134397.000000]
+    DiT:32; nTimesamples:140; decimated_timesamples:70; MSD:[1017.259949; 0.359482; 67189.000000]
+    DiT:64; nTimesamples:70; decimated_timesamples:35; MSD:[2034.519531; 0.517129; 33600.000000]
+    DiT:128; nTimesamples:35; decimated_timesamples:17; MSD:[4069.039062; 0.747595; 16800.000000]
+    DiT:256; nTimesamples:17; decimated_timesamples:8; MSD:[8138.068359; 1.167895; 8160.000000]
+    DiT:512; nTimesamples:8; decimated_timesamples:4; MSD:[16276.188477; 1.564462; 3840.000000]
+    DiT:1024; nTimesamples:4; decimated_timesamples:2; MSD:[32552.378906; 1.591318; 1920.000000]
+    MSD of input plane: Total time: 2.476032 ms; DiT time: 0.153600 ms; MSD time: 1.928512 ms;
+    Number of calculated MSD values: 11; number of interpolated MSD values: 128;
+    Interpolation step took 206.564743 ms;
+    MSD_plane time: 209.683395 ms
+Pd: 4480; Sd: 520;
+temporary storage for data: 4659200 bytes = 1164800 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 117 blocks = 351 float = 1404 bytes
+Memory available: 1270.437500; Memory required: 4.444870;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:4480; decimated_timesamples:2240; MSD:[31.789339; 0.062369; 2329438.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:2240; decimated_timesamples:1120; MSD:[63.565006; 0.928979; 1164975.500000]
+    DiT:4; nTimesamples:1120; decimated_timesamples:560; MSD:[127.157349; 0.125295; 582371.000000]
+    DiT:8; nTimesamples:560; decimated_timesamples:280; MSD:[254.314880; 0.177614; 270710.000000]
+    DiT:16; nTimesamples:280; decimated_timesamples:140; MSD:[508.629883; 0.252358; 134397.000000]
+    DiT:32; nTimesamples:140; decimated_timesamples:70; MSD:[1017.259949; 0.359482; 67189.000000]
+    DiT:64; nTimesamples:70; decimated_timesamples:35; MSD:[2034.519531; 0.517129; 33600.000000]
+    DiT:128; nTimesamples:35; decimated_timesamples:17; MSD:[4069.039062; 0.747595; 16800.000000]
+    DiT:256; nTimesamples:17; decimated_timesamples:8; MSD:[8138.068359; 1.167895; 8160.000000]
+    DiT:512; nTimesamples:8; decimated_timesamples:4; MSD:[16276.188477; 1.564462; 3840.000000]
+    DiT:1024; nTimesamples:4; decimated_timesamples:2; MSD:[32552.378906; 1.591318; 1920.000000]
+    DiT:2048; nTimesamples:2; decimated_timesamples:1; MSD:[65104.753906; 1.732646; 960.000000]
+    DiT:4096; nTimesamples:1; decimated_timesamples:0; MSD:[130209.507812; 0.644833; 480.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:0.531456 ms
+    BC_shift:0; DMs_per_cycle:520; f*DMs_per_cycle:0; max_iteration:6;
+    Thresholding took:0.094688 ms
+    temp_peak_pos:0; host_pos:0; max:1164800; local_max:12167680;
+
+  TOTAL TIME OF SPS:227.222183 ms
+  MSD_time: 209.683395 ms; SPDT time: 0.531456 ms; Candidate selection time: 0.094688 ms;
+----------<
+
+
+
+1242.000000	1562.000000	0.800000	400
+Amount of telescope time processed: 46.448639
+3125.000000
+0.000928
+139
+lineshift:	335
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:400; nTimesamples:4480; inBin:4; outBin:4; maxshift:11256; 
+  Memory required by boxcar filters:37.598 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 400 DM trials.
+  Selected iteration:6; maximum boxcar width requested:488; maximum boxcar width performed:640;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:4480; decimated_timesamples:2240; MSD:[31.789150; 0.062190; 1791863.000000]
+    DiT:2; nTimesamples:4480; decimated_timesamples:2240; MSD:[63.578293; 0.087924; 895938.000000]
+    DiT:4; nTimesamples:1120; decimated_timesamples:560; MSD:[127.156593; 0.124126; 447975.000000]
+    DiT:8; nTimesamples:560; decimated_timesamples:280; MSD:[254.313248; 0.175162; 223979.000000]
+    DiT:16; nTimesamples:280; decimated_timesamples:140; MSD:[508.626312; 0.249099; 107519.000000]
+    DiT:32; nTimesamples:140; decimated_timesamples:70; MSD:[1017.252747; 0.353983; 53760.000000]
+    DiT:64; nTimesamples:70; decimated_timesamples:35; MSD:[2034.505493; 0.498543; 26880.000000]
+    DiT:128; nTimesamples:35; decimated_timesamples:17; MSD:[4069.010986; 0.718054; 13440.000000]
+    DiT:256; nTimesamples:17; decimated_timesamples:8; MSD:[8138.042969; 0.938729; 6528.000000]
+    DiT:512; nTimesamples:8; decimated_timesamples:4; MSD:[16276.073242; 1.174254; 3072.000000]
+    DiT:1024; nTimesamples:4; decimated_timesamples:2; MSD:[32552.144531; 1.894945; 1536.000000]
+    MSD of input plane: Total time: 7.398880 ms; DiT time: 0.130624 ms; MSD time: 2.162880 ms;
+    Number of calculated MSD values: 11; number of interpolated MSD values: 128;
+    Interpolation step took 49.466015 ms;
+    MSD_plane time: 57.563839 ms
+Pd: 4480; Sd: 400;
+temporary storage for data: 3584000 bytes = 896000 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 225 blocks = 675 float = 2700 bytes
+Memory available: 1270.437500; Memory required: 3.420715;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:4480; decimated_timesamples:2240; MSD:[31.789150; 0.062190; 1791863.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:2240; decimated_timesamples:1120; MSD:[63.573616; 0.546373; 855041.500000]
+    DiT:4; nTimesamples:1120; decimated_timesamples:560; MSD:[127.156593; 0.124126; 447975.000000]
+    DiT:8; nTimesamples:560; decimated_timesamples:280; MSD:[254.313248; 0.175162; 223979.000000]
+    DiT:16; nTimesamples:280; decimated_timesamples:140; MSD:[508.626312; 0.249099; 107519.000000]
+    DiT:32; nTimesamples:140; decimated_timesamples:70; MSD:[1017.252747; 0.353983; 53760.000000]
+    DiT:64; nTimesamples:70; decimated_timesamples:35; MSD:[2034.505493; 0.498543; 26880.000000]
+    DiT:128; nTimesamples:35; decimated_timesamples:17; MSD:[4069.010986; 0.718054; 13440.000000]
+    DiT:256; nTimesamples:17; decimated_timesamples:8; MSD:[8138.042969; 0.938729; 6528.000000]
+    DiT:512; nTimesamples:8; decimated_timesamples:4; MSD:[16276.073242; 1.174254; 3072.000000]
+    DiT:1024; nTimesamples:4; decimated_timesamples:2; MSD:[32552.144531; 1.894945; 1536.000000]
+    DiT:2048; nTimesamples:2; decimated_timesamples:1; MSD:[65104.289062; 2.651146; 768.000000]
+    DiT:4096; nTimesamples:1; decimated_timesamples:0; MSD:[130208.578125; 0.346391; 384.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:0.416768 ms
+    BC_shift:0; DMs_per_cycle:400; f*DMs_per_cycle:0; max_iteration:6;
+    Thresholding took:0.079744 ms
+    temp_peak_pos:0; host_pos:0; max:896000; local_max:12167680;
+
+  TOTAL TIME OF SPS:64.829315 ms
+  MSD_time: 57.563839 ms; SPDT time: 0.416768 ms; Candidate selection time: 0.079744 ms;
+----------<
+
+
+
+1562.000000	2082.000000	1.000000	520
+Amount of telescope time processed: 46.448639
+3906.250000
+0.000928
+167
+lineshift:	363
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:520; nTimesamples:4480; inBin:4; outBin:4; maxshift:11256; 
+  Memory required by boxcar filters:48.877 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 520 DM trials.
+  Selected iteration:6; maximum boxcar width requested:488; maximum boxcar width performed:640;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:4480; decimated_timesamples:2240; MSD:[31.788902; 0.062159; 2329461.000000]
+    DiT:2; nTimesamples:4480; decimated_timesamples:2240; MSD:[63.577808; 0.087836; 1164738.000000]
+    DiT:4; nTimesamples:1120; decimated_timesamples:560; MSD:[127.155602; 0.123966; 582370.000000]
+    DiT:8; nTimesamples:560; decimated_timesamples:280; MSD:[254.310944; 0.174670; 270709.000000]
+    DiT:16; nTimesamples:280; decimated_timesamples:140; MSD:[508.622040; 0.245348; 134396.000000]
+    DiT:32; nTimesamples:140; decimated_timesamples:70; MSD:[1017.244141; 0.344010; 67195.000000]
+    DiT:64; nTimesamples:70; decimated_timesamples:35; MSD:[2034.488281; 0.482753; 33600.000000]
+    DiT:128; nTimesamples:35; decimated_timesamples:17; MSD:[4068.976562; 0.658340; 16800.000000]
+    DiT:256; nTimesamples:17; decimated_timesamples:8; MSD:[8137.979980; 0.876216; 8160.000000]
+    DiT:512; nTimesamples:8; decimated_timesamples:4; MSD:[16276.039062; 1.177692; 3840.000000]
+    DiT:1024; nTimesamples:4; decimated_timesamples:2; MSD:[32552.078125; 1.721939; 1920.000000]
+    MSD of input plane: Total time: 5.112832 ms; DiT time: 0.158112 ms; MSD time: 2.366720 ms;
+    Number of calculated MSD values: 11; number of interpolated MSD values: 128;
+    Interpolation step took 101.469185 ms;
+    MSD_plane time: 107.219101 ms
+Pd: 4480; Sd: 520;
+temporary storage for data: 4659200 bytes = 1164800 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 117 blocks = 351 float = 1404 bytes
+Memory available: 1270.437500; Memory required: 4.444870;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:4480; decimated_timesamples:2240; MSD:[31.788902; 0.062159; 2329461.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:2240; decimated_timesamples:1120; MSD:[63.570972; 0.659967; 1164865.250000]
+    DiT:4; nTimesamples:1120; decimated_timesamples:560; MSD:[127.155602; 0.123966; 582370.000000]
+    DiT:8; nTimesamples:560; decimated_timesamples:280; MSD:[254.310944; 0.174670; 270709.000000]
+    DiT:16; nTimesamples:280; decimated_timesamples:140; MSD:[508.622040; 0.245348; 134396.000000]
+    DiT:32; nTimesamples:140; decimated_timesamples:70; MSD:[1017.244141; 0.344010; 67195.000000]
+    DiT:64; nTimesamples:70; decimated_timesamples:35; MSD:[2034.488281; 0.482753; 33600.000000]
+    DiT:128; nTimesamples:35; decimated_timesamples:17; MSD:[4068.976562; 0.658340; 16800.000000]
+    DiT:256; nTimesamples:17; decimated_timesamples:8; MSD:[8137.979980; 0.876216; 8160.000000]
+    DiT:512; nTimesamples:8; decimated_timesamples:4; MSD:[16276.039062; 1.177692; 3840.000000]
+    DiT:1024; nTimesamples:4; decimated_timesamples:2; MSD:[32552.078125; 1.721939; 1920.000000]
+    DiT:2048; nTimesamples:2; decimated_timesamples:1; MSD:[65104.156250; 2.412755; 960.000000]
+    DiT:4096; nTimesamples:1; decimated_timesamples:0; MSD:[130208.312500; 0.297565; 480.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:0.532480 ms
+    BC_shift:0; DMs_per_cycle:520; f*DMs_per_cycle:0; max_iteration:6;
+    Thresholding took:0.094176 ms
+    temp_peak_pos:0; host_pos:0; max:1164800; local_max:12167680;
+
+  TOTAL TIME OF SPS:124.391487 ms
+  MSD_time: 107.219101 ms; SPDT time: 0.532480 ms; Candidate selection time: 0.094176 ms;
+----------<
+
+
+
+2082.000000	3122.000000	2.000000	520
+Amount of telescope time processed: 46.448639
+3906.250000
+0.000928
+167
+lineshift:	363
+Using fast shared memory kernel
+ VALUE OF ANALYSIS DEBUG IS 0
+
+----------> GPU analysis part
+  Dimensions nDMs:520; nTimesamples:2240; inBin:8; outBin:8; maxshift:5628; 
+  Memory required by boxcar filters:24.438 MB
+  Memory available:1270.438 MB 
+  SPS will run 1 batch containing 520 DM trials.
+  Selected iteration:3; maximum boxcar width requested:122; maximum boxcar width performed:128;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:2240; decimated_timesamples:1120; MSD:[15.863201; 0.022016; 1164714.000000]
+    DiT:2; nTimesamples:2240; decimated_timesamples:1120; MSD:[31.726400; 0.031160; 582368.000000]
+    DiT:4; nTimesamples:560; decimated_timesamples:280; MSD:[63.452766; 0.044189; 270704.000000]
+    DiT:8; nTimesamples:280; decimated_timesamples:140; MSD:[126.905731; 0.062615; 134395.000000]
+    DiT:16; nTimesamples:140; decimated_timesamples:70; MSD:[253.811447; 0.089088; 67198.000000]
+    DiT:32; nTimesamples:70; decimated_timesamples:35; MSD:[507.622955; 0.127473; 33595.000000]
+    DiT:64; nTimesamples:35; decimated_timesamples:17; MSD:[1015.245911; 0.181961; 16799.000000]
+    DiT:128; nTimesamples:17; decimated_timesamples:8; MSD:[2030.487305; 0.253481; 8160.000000]
+    DiT:256; nTimesamples:8; decimated_timesamples:4; MSD:[4061.005859; 0.344343; 3840.000000]
+    MSD of input plane: Total time: 1.620384 ms; DiT time: 0.086368 ms; MSD time: 1.244544 ms;
+    Number of calculated MSD values: 9; number of interpolated MSD values: 128;
+    Interpolation step took 61.201118 ms;
+    MSD_plane time: 63.171841 ms
+Pd: 2240; Sd: 520;
+temporary storage for data: 2329600 bytes = 582400 floats;
+Size of DIT MSDs: 15 elements = 45 float = 180 bytes
+max_nBlocks: 65 blocks = 195 float = 780 bytes
+Memory available: 1270.437500; Memory required: 2.222595;
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:2240; decimated_timesamples:1120; MSD:[15.863201; 0.022016; 1164714.000000]
+Low memory: DIT=2 is split in two
+    DiT:2; nTimesamples:1120; decimated_timesamples:560; MSD:[31.513653; 2.549417; 586428.437500]
+    DiT:4; nTimesamples:560; decimated_timesamples:280; MSD:[63.452766; 0.044189; 270704.000000]
+    DiT:8; nTimesamples:280; decimated_timesamples:140; MSD:[126.905731; 0.062615; 134395.000000]
+    DiT:16; nTimesamples:140; decimated_timesamples:70; MSD:[253.811447; 0.089088; 67198.000000]
+    DiT:32; nTimesamples:70; decimated_timesamples:35; MSD:[507.622955; 0.127473; 33595.000000]
+    DiT:64; nTimesamples:35; decimated_timesamples:17; MSD:[1015.245911; 0.181961; 16799.000000]
+    DiT:128; nTimesamples:17; decimated_timesamples:8; MSD:[2030.487305; 0.253481; 8160.000000]
+    DiT:256; nTimesamples:8; decimated_timesamples:4; MSD:[4061.005859; 0.344343; 3840.000000]
+    DiT:512; nTimesamples:4; decimated_timesamples:2; MSD:[8122.011719; 0.419765; 1920.000000]
+    DiT:1024; nTimesamples:2; decimated_timesamples:1; MSD:[16244.021484; 0.380921; 960.000000]
+    DiT:2048; nTimesamples:1; decimated_timesamples:0; MSD:[32488.044922; 0.217326; 480.000000]
+    Number of calculated MSD values: 15; number of interpolated MSD values: 128;
+    SPDT took:0.268288 ms
+    BC_shift:0; DMs_per_cycle:520; f*DMs_per_cycle:0; max_iteration:3;
+    Thresholding took:0.048128 ms
+    temp_peak_pos:0; host_pos:0; max:582400; local_max:12167680;
+
+  TOTAL TIME OF SPS:77.706818 ms
+  MSD_time: 63.171841 ms; SPDT time: 0.268288 ms; Candidate selection time: 0.048128 ms;
+----------<
+
+
+INC:	743680
+
+ === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===
+
+(Performed Brute-Force Dedispersion: 43.5378 (GPU estimate)
+Amount of telescope time processed: 47.595520
+Number of samples processed: 743680
+Real-time speedup factor: 1.093200
+Gops based on 4.00 ops per channel per tsamp: 1712.738359
+Device global memory bandwidth in GB/s: 34.822239
+Device shared memory bandwidth in GB/s: 278.577911
+Telescope data throughput in Gb/s: 0.728308
+------------ STARTING PERIODICITY SEARCH ------------
+
+Periodicity search parameters:
+Sigma cutoff: 20.000000
+Number of harmonics: 32
+Candidate selection: 1
+MSD variant: Baseline
+MSD outlier elimination sigma: 4.000000
+Export powers:       0
+--------------------------
+De-dispersion ranges:
+dedispersion range: 0.000000--152.000000:0.100000 inBin:1; nTimesamples:743680; nDMs:1520; sampling time:0.000064
+dedispersion range: 152.000000--304.000000:0.200000 inBin:1; nTimesamples:743680; nDMs:760; sampling time:0.000064
+dedispersion range: 304.000000--514.000000:0.250000 inBin:1; nTimesamples:743680; nDMs:840; sampling time:0.000064
+dedispersion range: 514.000000--930.000000:0.400000 inBin:2; nTimesamples:371840; nDMs:1040; sampling time:0.000064
+dedispersion range: 930.000000--1242.000000:0.600000 inBin:4; nTimesamples:185920; nDMs:520; sampling time:0.000064
+dedispersion range: 1242.000000--1562.000000:0.800000 inBin:4; nTimesamples:185920; nDMs:400; sampling time:0.000064
+dedispersion range: 1562.000000--2082.000000:1.000000 inBin:4; nTimesamples:185920; nDMs:520; sampling time:0.000064
+dedispersion range: 2082.000000--3122.000000:2.000000 inBin:8; nTimesamples:92960; nDMs:520; sampling time:0.000064
+--------------------------
+   Memory available:7998.438 MB 
+--------------------------------- FINDING PERIODICITY PLAN -------------------------------
+   Memory_for_data: 8386969600 = 7998.44 MB
+   Memory required for one DM is 13.000 MB available memory is 7598.516 MB 8386969600
+   Maximum number of DM trials which fit into memory is 576;
+   Maximum time trials 524288;
+   Input plane size: 1152.00 MB;
+   Memory available for the module: 7998.438 MB (8386969600 bytes)
+   Memory allocated by the module: 7488.574 MB (7852339120 bytes)
+------------------------------------------------------------------------------------------
+Workarea size:1152.00 MB
+max_total_MSD_blocks: 47616 MSD blocks;
+max_nTimesamples:     524288 time samples;
+max_nDMs:             1520 DMs;
+max_nDMs_in_memory:   576 DMs;
+input_plane_size:     301991040 floating point numbers = 1152.00 MB;
+cuFFT_workarea_size:  1207964152 = 1152.00 MB;
+inBin group: 0
+  ->Periodicity range: 0
+  De-dispersion range: 0.000000--152.000000:0.100000 inBin:1; nTimesamples:524288; nDMs:1520;
+     De-dispersion range will be processed in 3 batches each containing 576 DM trials with tail of 368 DM trials
+     Total number of MSD blocks is 20992 which is 0.240 MB
+--------- Batches ----------
+      Batch: nDMs:576; nTimesamples:524288; DM shift:0;
+         nTimesamples:262144; nDMs:576; offset:0;
+         nBlocks:[512;9]; nSteps:[512;64]; nBlocks_total:4608; address:0;
+         partials_gridSize=[512;9;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[128;1;1]
+      Batch: nDMs:576; nTimesamples:524288; DM shift:576;
+         nTimesamples:262144; nDMs:576; offset:0;
+         nBlocks:[512;9]; nSteps:[512;64]; nBlocks_total:4608; address:4608;
+         partials_gridSize=[512;9;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[128;1;1]
+      Batch: nDMs:368; nTimesamples:524288; DM shift:1152;
+         nTimesamples:262144; nDMs:368; offset:0;
+         nBlocks:[512;23]; nSteps:[512;16]; nBlocks_total:11776; address:9216;
+         partials_gridSize=[512;23;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[256;1;1]
+
+  ->Periodicity range: 1
+  De-dispersion range: 152.000000--304.000000:0.200000 inBin:1; nTimesamples:524288; nDMs:760;
+     De-dispersion range will be processed in 2 batches each containing 576 DM trials with tail of 184 DM trials
+     Total number of MSD blocks is 16384 which is 0.188 MB
+--------- Batches ----------
+      Batch: nDMs:576; nTimesamples:524288; DM shift:0;
+         nTimesamples:262144; nDMs:576; offset:0;
+         nBlocks:[512;9]; nSteps:[512;64]; nBlocks_total:4608; address:20992;
+         partials_gridSize=[512;9;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[128;1;1]
+      Batch: nDMs:184; nTimesamples:524288; DM shift:576;
+         nTimesamples:262144; nDMs:184; offset:0;
+         nBlocks:[512;23]; nSteps:[512;8]; nBlocks_total:11776; address:25600;
+         partials_gridSize=[512;23;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[256;1;1]
+
+  ->Periodicity range: 2
+  De-dispersion range: 304.000000--514.000000:0.250000 inBin:1; nTimesamples:524288; nDMs:840;
+     De-dispersion range will be processed in 2 batches each containing 576 DM trials with tail of 264 DM trials
+     Total number of MSD blocks is 10240 which is 0.117 MB
+--------- Batches ----------
+      Batch: nDMs:576; nTimesamples:524288; DM shift:0;
+         nTimesamples:262144; nDMs:576; offset:0;
+         nBlocks:[512;9]; nSteps:[512;64]; nBlocks_total:4608; address:37376;
+         partials_gridSize=[512;9;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[128;1;1]
+      Batch: nDMs:264; nTimesamples:524288; DM shift:576;
+         nTimesamples:262144; nDMs:264; offset:0;
+         nBlocks:[512;11]; nSteps:[512;24]; nBlocks_total:5632; address:41984;
+         partials_gridSize=[512;11;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[128;1;1]
+
+inBin group: 1
+  ->Periodicity range: 0
+  De-dispersion range: 514.000000--930.000000:0.400000 inBin:2; nTimesamples:262144; nDMs:1040;
+     Periodicity search will run 1 batch containing 1040 DM trials.
+     Total number of MSD blocks is 16640 which is 0.190 MB
+--------- Batches ----------
+      Batch: nDMs:1040; nTimesamples:262144; DM shift:0;
+         nTimesamples:131072; nDMs:1040; offset:0;
+         nBlocks:[256;65]; nSteps:[512;16]; nBlocks_total:16640; address:0;
+         partials_gridSize=[256;65;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[512;1;1]
+
+inBin group: 2
+  ->Periodicity range: 0
+  De-dispersion range: 930.000000--1242.000000:0.600000 inBin:4; nTimesamples:131072; nDMs:520;
+     Periodicity search will run 1 batch containing 520 DM trials.
+     Total number of MSD blocks is 1664 which is 0.019 MB
+--------- Batches ----------
+      Batch: nDMs:520; nTimesamples:131072; DM shift:0;
+         nTimesamples:65536; nDMs:520; offset:0;
+         nBlocks:[128;13]; nSteps:[512;40]; nBlocks_total:1664; address:0;
+         partials_gridSize=[128;13;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[32;1;1]
+
+  ->Periodicity range: 1
+  De-dispersion range: 1242.000000--1562.000000:0.800000 inBin:4; nTimesamples:131072; nDMs:400;
+     Periodicity search will run 1 batch containing 400 DM trials.
+     Total number of MSD blocks is 3200 which is 0.037 MB
+--------- Batches ----------
+      Batch: nDMs:400; nTimesamples:131072; DM shift:0;
+         nTimesamples:65536; nDMs:400; offset:0;
+         nBlocks:[128;25]; nSteps:[512;16]; nBlocks_total:3200; address:1664;
+         partials_gridSize=[128;25;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[64;1;1]
+
+  ->Periodicity range: 2
+  De-dispersion range: 1562.000000--2082.000000:1.000000 inBin:4; nTimesamples:131072; nDMs:520;
+     Periodicity search will run 1 batch containing 520 DM trials.
+     Total number of MSD blocks is 1664 which is 0.019 MB
+--------- Batches ----------
+      Batch: nDMs:520; nTimesamples:131072; DM shift:0;
+         nTimesamples:65536; nDMs:520; offset:0;
+         nBlocks:[128;13]; nSteps:[512;40]; nBlocks_total:1664; address:4864;
+         partials_gridSize=[128;13;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[32;1;1]
+
+inBin group: 3
+  ->Periodicity range: 0
+  De-dispersion range: 2082.000000--3122.000000:2.000000 inBin:8; nTimesamples:65536; nDMs:520;
+     Periodicity search will run 1 batch containing 520 DM trials.
+     Total number of MSD blocks is 832 which is 0.010 MB
+--------- Batches ----------
+      Batch: nDMs:520; nTimesamples:65536; DM shift:0;
+         nTimesamples:32768; nDMs:520; offset:0;
+         nBlocks:[64;13]; nSteps:[512;40]; nBlocks_total:832; address:0;
+         partials_gridSize=[64;13;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[32;1;1]
+
+
+--------------------------------- GPU ALLOCATIONS -------------------------------
+---------------------------------------------------------------------------------
+
+--------------------------------- PERIODICITY START -------------------------------
+--------------------------------------------------
+inBin range: 0
+  Resetting MSD variables
+  Prange: 0
+  De-dispersion range: 0.000000--152.000000:0.100000 inBin:1; nTimesamples:524288; nDMs:1520;
+     De-dispersion range will be processed in 3 batches each containing 576 DM trials with tail of 368 DM trials
+     Total number of MSD blocks is 20992 which is 0.240 MB
+--------- Batches ----------
+      Batch: nDMs:576; nTimesamples:524288; DM shift:0;
+         nTimesamples:262144; nDMs:576; offset:0;
+         nBlocks:[512;9]; nSteps:[512;64]; nBlocks_total:4608; address:0;
+         partials_gridSize=[512;9;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[128;1;1]
+      Batch: nDMs:576; nTimesamples:524288; DM shift:576;
+         nTimesamples:262144; nDMs:576; offset:0;
+         nBlocks:[512;9]; nSteps:[512;64]; nBlocks_total:4608; address:4608;
+         partials_gridSize=[512;9;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[128;1;1]
+      Batch: nDMs:368; nTimesamples:524288; DM shift:1152;
+         nTimesamples:262144; nDMs:368; offset:0;
+         nBlocks:[512;23]; nSteps:[512;16]; nBlocks_total:11776; address:9216;
+         partials_gridSize=[512;23;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[256;1;1]
+
+      Batch: 0
+      Batch: nDMs:576; nTimesamples:524288; DM shift:0;
+         nTimesamples:262144; nDMs:576; offset:0;
+         nBlocks:[512;9]; nSteps:[512;64]; nBlocks_total:4608; address:0;
+         partials_gridSize=[512;9;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[128;1;1]
+         Resetting candidate lists
+         => Copy of data to device took 156.292358 ms
+         -> cuFFT took 43.590305 ms
+         -> Calculation of powers and interbining took 13.041216 ms
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:262144; decimated_timesamples:131072; MSD:[0.235720; 0.217841; 149231808.000000]
+High memory: DIT=2 is not split
+    DiT:2; nTimesamples:131072; decimated_timesamples:65536; MSD:[0.488113; 0.331412; 75048336.000000]
+    DiT:4; nTimesamples:65536; decimated_timesamples:32768; MSD:[0.987249; 0.483690; 37618060.000000]
+    DiT:8; nTimesamples:32768; decimated_timesamples:16384; MSD:[1.982139; 0.694350; 18829756.000000]
+    DiT:16; nTimesamples:16384; decimated_timesamples:8192; MSD:[3.969178; 0.989205; 9416940.000000]
+    DiT:32; nTimesamples:8192; decimated_timesamples:4096; MSD:[7.941344; 1.404410; 4706558.000000]
+    Number of calculated MSD values: 7; number of interpolated MSD values: 32;
+         -> MSD took 38.231297 ms
+         -> corner turn took 18.103296 ms
+         -> harmonic summing took 71.462685 ms
+         -> Peak finding took 7.299072 ms
+         -> POWER: Total number of peaks found in this range is 61298;
+         -> INTERBIN: Total number of peaks found in this range is 108790;
+         => Copy of candidates took 0.614592 ms
+
+      Batch: 1
+      Batch: nDMs:576; nTimesamples:524288; DM shift:576;
+         nTimesamples:262144; nDMs:576; offset:0;
+         nBlocks:[512;9]; nSteps:[512;64]; nBlocks_total:4608; address:4608;
+         partials_gridSize=[512;9;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[128;1;1]
+         Resetting candidate lists
+         => Copy of data to device took 156.290329 ms
+         -> cuFFT took 43.593601 ms
+         -> Calculation of powers and interbining took 13.036544 ms
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:262144; decimated_timesamples:131072; MSD:[0.235267; 0.217060; 149227360.000000]
+High memory: DIT=2 is not split
+    DiT:2; nTimesamples:131072; decimated_timesamples:65536; MSD:[0.487831; 0.331089; 75075984.000000]
+    DiT:4; nTimesamples:65536; decimated_timesamples:32768; MSD:[0.986658; 0.482851; 37632548.000000]
+    DiT:8; nTimesamples:32768; decimated_timesamples:16384; MSD:[1.981279; 0.693201; 18839680.000000]
+    DiT:16; nTimesamples:16384; decimated_timesamples:8192; MSD:[3.967905; 0.986654; 9423815.000000]
+    DiT:32; nTimesamples:8192; decimated_timesamples:4096; MSD:[7.939855; 1.400643; 4711663.000000]
+    Number of calculated MSD values: 7; number of interpolated MSD values: 32;
+         -> MSD took 37.550880 ms
+         -> corner turn took 18.096960 ms
+         -> harmonic summing took 72.213219 ms
+         -> Peak finding took 7.271424 ms
+         -> POWER: Total number of peaks found in this range is 16952;
+         -> INTERBIN: Total number of peaks found in this range is 36065;
+         => Copy of candidates took 0.785024 ms
+
+      Batch: 2
+      Batch: nDMs:368; nTimesamples:524288; DM shift:1152;
+         nTimesamples:262144; nDMs:368; offset:0;
+         nBlocks:[512;23]; nSteps:[512;16]; nBlocks_total:11776; address:9216;
+         partials_gridSize=[512;23;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[256;1;1]
+         Resetting candidate lists
+         => Copy of data to device took 99.972160 ms
+         -> cuFFT took 27.971584 ms
+         -> Calculation of powers and interbining took 8.338880 ms
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:262144; decimated_timesamples:131072; MSD:[0.235011; 0.216721; 95339584.000000]
+High memory: DIT=2 is not split
+    DiT:2; nTimesamples:131072; decimated_timesamples:65536; MSD:[0.487071; 0.329966; 47942360.000000]
+    DiT:4; nTimesamples:65536; decimated_timesamples:32768; MSD:[0.986027; 0.482376; 24040684.000000]
+    DiT:8; nTimesamples:32768; decimated_timesamples:16384; MSD:[1.979947; 0.692223; 12035873.000000]
+    DiT:16; nTimesamples:16384; decimated_timesamples:8192; MSD:[3.965519; 0.986420; 6021520.000000]
+    DiT:32; nTimesamples:8192; decimated_timesamples:4096; MSD:[7.934979; 1.398402; 3011251.000000]
+    Number of calculated MSD values: 7; number of interpolated MSD values: 32;
+         -> MSD took 25.005152 ms
+         -> corner turn took 15.108096 ms
+         -> harmonic summing took 47.965889 ms
+         -> Peak finding took 4.642528 ms
+         -> POWER: Total number of peaks found in this range is 2027;
+         -> INTERBIN: Total number of peaks found in this range is 5594;
+         => Copy of candidates took 0.539648 ms
+
+  Prange: 1
+  De-dispersion range: 152.000000--304.000000:0.200000 inBin:1; nTimesamples:524288; nDMs:760;
+     De-dispersion range will be processed in 2 batches each containing 576 DM trials with tail of 184 DM trials
+     Total number of MSD blocks is 16384 which is 0.188 MB
+--------- Batches ----------
+      Batch: nDMs:576; nTimesamples:524288; DM shift:0;
+         nTimesamples:262144; nDMs:576; offset:0;
+         nBlocks:[512;9]; nSteps:[512;64]; nBlocks_total:4608; address:20992;
+         partials_gridSize=[512;9;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[128;1;1]
+      Batch: nDMs:184; nTimesamples:524288; DM shift:576;
+         nTimesamples:262144; nDMs:184; offset:0;
+         nBlocks:[512;23]; nSteps:[512;8]; nBlocks_total:11776; address:25600;
+         partials_gridSize=[512;23;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[256;1;1]
+
+      Batch: 0
+      Batch: nDMs:576; nTimesamples:524288; DM shift:0;
+         nTimesamples:262144; nDMs:576; offset:0;
+         nBlocks:[512;9]; nSteps:[512;64]; nBlocks_total:4608; address:20992;
+         partials_gridSize=[512;9;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[128;1;1]
+         Resetting candidate lists
+         => Copy of data to device took 157.598053 ms
+         -> cuFFT took 43.594753 ms
+         -> Calculation of powers and interbining took 13.045216 ms
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:262144; decimated_timesamples:131072; MSD:[0.234970; 0.216635; 149220768.000000]
+High memory: DIT=2 is not split
+    DiT:2; nTimesamples:131072; decimated_timesamples:65536; MSD:[0.487051; 0.329952; 75060048.000000]
+    DiT:4; nTimesamples:65536; decimated_timesamples:32768; MSD:[0.986060; 0.482435; 37639568.000000]
+    DiT:8; nTimesamples:32768; decimated_timesamples:16384; MSD:[1.980291; 0.692307; 18845784.000000]
+    DiT:16; nTimesamples:16384; decimated_timesamples:8192; MSD:[3.966032; 0.985768; 9428661.000000]
+    DiT:32; nTimesamples:8192; decimated_timesamples:4096; MSD:[7.935948; 1.398435; 4715451.000000]
+    Number of calculated MSD values: 7; number of interpolated MSD values: 32;
+         -> MSD took 37.557758 ms
+         -> corner turn took 18.100927 ms
+         -> harmonic summing took 70.876740 ms
+         -> Peak finding took 7.269376 ms
+         -> POWER: Total number of peaks found in this range is 990;
+         -> INTERBIN: Total number of peaks found in this range is 3086;
+         => Copy of candidates took 0.051680 ms
+
+      Batch: 1
+      Batch: nDMs:184; nTimesamples:524288; DM shift:576;
+         nTimesamples:262144; nDMs:184; offset:0;
+         nBlocks:[512;23]; nSteps:[512;8]; nBlocks_total:11776; address:25600;
+         partials_gridSize=[512;23;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[256;1;1]
+         Resetting candidate lists
+         => Copy of data to device took 459.587677 ms
+         -> cuFFT took 14.178304 ms
+         -> Calculation of powers and interbining took 4.175456 ms
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:262144; decimated_timesamples:131072; MSD:[0.234933; 0.216636; 47668536.000000]
+High memory: DIT=2 is not split
+    DiT:2; nTimesamples:131072; decimated_timesamples:65536; MSD:[0.486983; 0.329948; 23962978.000000]
+    DiT:4; nTimesamples:65536; decimated_timesamples:32768; MSD:[0.985887; 0.482282; 12016418.000000]
+    DiT:8; nTimesamples:32768; decimated_timesamples:16384; MSD:[1.979871; 0.691872; 6016494.000000]
+    DiT:16; nTimesamples:16384; decimated_timesamples:8192; MSD:[3.965221; 0.985171; 3010144.000000]
+    DiT:32; nTimesamples:8192; decimated_timesamples:4096; MSD:[7.934246; 1.399278; 1505476.000000]
+    Number of calculated MSD values: 7; number of interpolated MSD values: 32;
+         -> MSD took 14.143904 ms
+         -> corner turn took 7.593888 ms
+         -> harmonic summing took 24.261600 ms
+         -> Peak finding took 2.611200 ms
+         -> POWER: Total number of peaks found in this range is 188;
+         -> INTERBIN: Total number of peaks found in this range is 391;
+         => Copy of candidates took 0.463456 ms
+
+  Prange: 2
+  De-dispersion range: 304.000000--514.000000:0.250000 inBin:1; nTimesamples:524288; nDMs:840;
+     De-dispersion range will be processed in 2 batches each containing 576 DM trials with tail of 264 DM trials
+     Total number of MSD blocks is 10240 which is 0.117 MB
+--------- Batches ----------
+      Batch: nDMs:576; nTimesamples:524288; DM shift:0;
+         nTimesamples:262144; nDMs:576; offset:0;
+         nBlocks:[512;9]; nSteps:[512;64]; nBlocks_total:4608; address:37376;
+         partials_gridSize=[512;9;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[128;1;1]
+      Batch: nDMs:264; nTimesamples:524288; DM shift:576;
+         nTimesamples:262144; nDMs:264; offset:0;
+         nBlocks:[512;11]; nSteps:[512;24]; nBlocks_total:5632; address:41984;
+         partials_gridSize=[512;11;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[128;1;1]
+
+      Batch: 0
+      Batch: nDMs:576; nTimesamples:524288; DM shift:0;
+         nTimesamples:262144; nDMs:576; offset:0;
+         nBlocks:[512;9]; nSteps:[512;64]; nBlocks_total:4608; address:37376;
+         partials_gridSize=[512;9;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[128;1;1]
+         Resetting candidate lists
+         => Copy of data to device took 1262.550049 ms
+         -> cuFFT took 43.590591 ms
+         -> Calculation of powers and interbining took 13.041664 ms
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:262144; decimated_timesamples:131072; MSD:[0.234936; 0.216613; 149220192.000000]
+High memory: DIT=2 is not split
+    DiT:2; nTimesamples:131072; decimated_timesamples:65536; MSD:[0.487018; 0.329949; 75061488.000000]
+    DiT:4; nTimesamples:65536; decimated_timesamples:32768; MSD:[0.985944; 0.482394; 37639856.000000]
+    DiT:8; nTimesamples:32768; decimated_timesamples:16384; MSD:[1.980089; 0.692337; 18846414.000000]
+    DiT:16; nTimesamples:16384; decimated_timesamples:8192; MSD:[3.965648; 0.986011; 9429265.000000]
+    DiT:32; nTimesamples:8192; decimated_timesamples:4096; MSD:[7.935157; 1.399268; 4716024.000000]
+    Number of calculated MSD values: 7; number of interpolated MSD values: 32;
+         -> MSD took 37.559841 ms
+         -> corner turn took 18.093887 ms
+         -> harmonic summing took 71.384064 ms
+         -> Peak finding took 7.256064 ms
+         -> POWER: Total number of peaks found in this range is 426;
+         -> INTERBIN: Total number of peaks found in this range is 773;
+         => Copy of candidates took 0.033312 ms
+
+      Batch: 1
+      Batch: nDMs:264; nTimesamples:524288; DM shift:576;
+         nTimesamples:262144; nDMs:264; offset:0;
+         nBlocks:[512;11]; nSteps:[512;24]; nBlocks_total:5632; address:41984;
+         partials_gridSize=[512;11;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[128;1;1]
+         Resetting candidate lists
+         => Copy of data to device took 71.492065 ms
+         -> cuFFT took 20.187967 ms
+         -> Calculation of powers and interbining took 5.978784 ms
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:262144; decimated_timesamples:131072; MSD:[0.234806; 0.216389; 68390608.000000]
+High memory: DIT=2 is not split
+    DiT:2; nTimesamples:131072; decimated_timesamples:65536; MSD:[0.486774; 0.329605; 34397308.000000]
+    DiT:4; nTimesamples:65536; decimated_timesamples:32768; MSD:[0.985582; 0.482159; 17249692.000000]
+    DiT:8; nTimesamples:32768; decimated_timesamples:16384; MSD:[1.979131; 0.692255; 8636482.000000]
+    DiT:16; nTimesamples:16384; decimated_timesamples:8192; MSD:[3.963760; 0.985783; 4321021.000000]
+    DiT:32; nTimesamples:8192; decimated_timesamples:4096; MSD:[7.931860; 1.398670; 2161322.000000]
+    Number of calculated MSD values: 7; number of interpolated MSD values: 32;
+         -> MSD took 17.965055 ms
+         -> corner turn took 11.588320 ms
+         -> harmonic summing took 39.406368 ms
+         -> Peak finding took 3.705856 ms
+         -> POWER: Total number of peaks found in this range is 9;
+         -> INTERBIN: Total number of peaks found in this range is 9;
+         => Copy of candidates took 0.026720 ms
+
+     -----------------------
+     -> This range calculation time: 1059.690212 ms
+     -> This range copy time:        2366.297124 ms
+
+--------------------------------------------------
+inBin range: 1
+  Resetting MSD variables
+  Prange: 0
+  De-dispersion range: 514.000000--930.000000:0.400000 inBin:2; nTimesamples:262144; nDMs:1040;
+     Periodicity search will run 1 batch containing 1040 DM trials.
+     Total number of MSD blocks is 16640 which is 0.190 MB
+--------- Batches ----------
+      Batch: nDMs:1040; nTimesamples:262144; DM shift:0;
+         nTimesamples:131072; nDMs:1040; offset:0;
+         nBlocks:[256;65]; nSteps:[512;16]; nBlocks_total:16640; address:0;
+         partials_gridSize=[256;65;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[512;1;1]
+
+      Batch: 0
+      Batch: nDMs:1040; nTimesamples:262144; DM shift:0;
+         nTimesamples:131072; nDMs:1040; offset:0;
+         nBlocks:[256;65]; nSteps:[512;16]; nBlocks_total:16640; address:0;
+         partials_gridSize=[256;65;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[512;1;1]
+         Resetting candidate lists
+         => Copy of data to device took 172.039459 ms
+         -> cuFFT took 30.616064 ms
+         -> Calculation of powers and interbining took 11.773952 ms
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:131072; decimated_timesamples:65536; MSD:[0.029380; 0.027086; 134716032.000000]
+High memory: DIT=2 is not split
+    DiT:2; nTimesamples:65536; decimated_timesamples:32768; MSD:[0.060908; 0.041277; 67750032.000000]
+    DiT:4; nTimesamples:32768; decimated_timesamples:16384; MSD:[0.123297; 0.060338; 33973384.000000]
+    DiT:8; nTimesamples:16384; decimated_timesamples:8192; MSD:[0.247584; 0.086582; 17009320.000000]
+    DiT:16; nTimesamples:8192; decimated_timesamples:4096; MSD:[0.495871; 0.123227; 8510445.000000]
+    DiT:32; nTimesamples:4096; decimated_timesamples:2048; MSD:[0.992222; 0.174908; 4256575.000000]
+    Number of calculated MSD values: 7; number of interpolated MSD values: 32;
+         -> MSD took 34.590721 ms
+         -> corner turn took 20.820992 ms
+         -> harmonic summing took 67.341919 ms
+         -> Peak finding took 6.562816 ms
+         -> POWER: Total number of peaks found in this range is 3;
+         -> INTERBIN: Total number of peaks found in this range is 9;
+         => Copy of candidates took 0.029024 ms
+
+     -----------------------
+     -> This range calculation time: 171.706463 ms
+     -> This range copy time:        172.068483 ms
+
+--------------------------------------------------
+inBin range: 2
+  Resetting MSD variables
+  Prange: 0
+  De-dispersion range: 930.000000--1242.000000:0.600000 inBin:4; nTimesamples:131072; nDMs:520;
+     Periodicity search will run 1 batch containing 520 DM trials.
+     Total number of MSD blocks is 1664 which is 0.019 MB
+--------- Batches ----------
+      Batch: nDMs:520; nTimesamples:131072; DM shift:0;
+         nTimesamples:65536; nDMs:520; offset:0;
+         nBlocks:[128;13]; nSteps:[512;40]; nBlocks_total:1664; address:0;
+         partials_gridSize=[128;13;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[32;1;1]
+
+      Batch: 0
+      Batch: nDMs:520; nTimesamples:131072; DM shift:0;
+         nTimesamples:65536; nDMs:520; offset:0;
+         nBlocks:[128;13]; nSteps:[512;40]; nBlocks_total:1664; address:0;
+         partials_gridSize=[128;13;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[32;1;1]
+         Resetting candidate lists
+         => Copy of data to device took 44.268894 ms
+         -> cuFFT took 19.062689 ms
+         -> Calculation of powers and interbining took 2.949120 ms
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:65536; decimated_timesamples:32768; MSD:[0.003673; 0.003385; 33676904.000000]
+High memory: DIT=2 is not split
+    DiT:2; nTimesamples:32768; decimated_timesamples:16384; MSD:[0.007619; 0.005168; 16944080.000000]
+    DiT:4; nTimesamples:16384; decimated_timesamples:8192; MSD:[0.015416; 0.007543; 8494840.000000]
+    DiT:8; nTimesamples:8192; decimated_timesamples:4096; MSD:[0.030958; 0.010823; 4253304.000000]
+    DiT:16; nTimesamples:4096; decimated_timesamples:2048; MSD:[0.062007; 0.015426; 2128182.000000]
+    DiT:32; nTimesamples:2048; decimated_timesamples:1024; MSD:[0.124068; 0.021880; 1064381.000000]
+    Number of calculated MSD values: 7; number of interpolated MSD values: 32;
+         -> MSD took 9.257984 ms
+         -> corner turn took 5.923840 ms
+         -> harmonic summing took 17.740736 ms
+         -> Peak finding took 1.814528 ms
+         -> POWER: Total number of peaks found in this range is 0;
+         -> INTERBIN: Total number of peaks found in this range is 1;
+         => Copy of candidates took 0.021120 ms
+
+  Prange: 1
+  De-dispersion range: 1242.000000--1562.000000:0.800000 inBin:4; nTimesamples:131072; nDMs:400;
+     Periodicity search will run 1 batch containing 400 DM trials.
+     Total number of MSD blocks is 3200 which is 0.037 MB
+--------- Batches ----------
+      Batch: nDMs:400; nTimesamples:131072; DM shift:0;
+         nTimesamples:65536; nDMs:400; offset:0;
+         nBlocks:[128;25]; nSteps:[512;16]; nBlocks_total:3200; address:1664;
+         partials_gridSize=[128;25;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[64;1;1]
+
+      Batch: 0
+      Batch: nDMs:400; nTimesamples:131072; DM shift:0;
+         nTimesamples:65536; nDMs:400; offset:0;
+         nBlocks:[128;25]; nSteps:[512;16]; nBlocks_total:3200; address:1664;
+         partials_gridSize=[128;25;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[64;1;1]
+         Resetting candidate lists
+         => Copy of data to device took 34.060898 ms
+         -> cuFFT took 6.137856 ms
+         -> Calculation of powers and interbining took 2.267136 ms
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:65536; decimated_timesamples:32768; MSD:[0.003672; 0.003386; 25905160.000000]
+High memory: DIT=2 is not split
+    DiT:2; nTimesamples:32768; decimated_timesamples:16384; MSD:[0.007616; 0.005166; 13029933.000000]
+    DiT:4; nTimesamples:16384; decimated_timesamples:8192; MSD:[0.015414; 0.007554; 6533328.000000]
+    DiT:8; nTimesamples:8192; decimated_timesamples:4096; MSD:[0.030953; 0.010835; 3271024.000000]
+    DiT:16; nTimesamples:4096; decimated_timesamples:2048; MSD:[0.061994; 0.015457; 1636647.000000]
+    DiT:32; nTimesamples:2048; decimated_timesamples:1024; MSD:[0.124049; 0.021913; 818588.000000]
+    Number of calculated MSD values: 7; number of interpolated MSD values: 32;
+         -> MSD took 7.528448 ms
+         -> corner turn took 4.207616 ms
+         -> harmonic summing took 13.535840 ms
+         -> Peak finding took 1.271424 ms
+         -> POWER: Total number of peaks found in this range is 3;
+         -> INTERBIN: Total number of peaks found in this range is 7;
+         => Copy of candidates took 0.028736 ms
+
+  Prange: 2
+  De-dispersion range: 1562.000000--2082.000000:1.000000 inBin:4; nTimesamples:131072; nDMs:520;
+     Periodicity search will run 1 batch containing 520 DM trials.
+     Total number of MSD blocks is 1664 which is 0.019 MB
+--------- Batches ----------
+      Batch: nDMs:520; nTimesamples:131072; DM shift:0;
+         nTimesamples:65536; nDMs:520; offset:0;
+         nBlocks:[128;13]; nSteps:[512;40]; nBlocks_total:1664; address:4864;
+         partials_gridSize=[128;13;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[32;1;1]
+
+      Batch: 0
+      Batch: nDMs:520; nTimesamples:131072; DM shift:0;
+         nTimesamples:65536; nDMs:520; offset:0;
+         nBlocks:[128;13]; nSteps:[512;40]; nBlocks_total:1664; address:4864;
+         partials_gridSize=[128;13;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[32;1;1]
+         Resetting candidate lists
+         => Copy of data to device took 44.304672 ms
+         -> cuFFT took 7.857152 ms
+         -> Calculation of powers and interbining took 2.948096 ms
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:65536; decimated_timesamples:32768; MSD:[0.003672; 0.003385; 33677656.000000]
+High memory: DIT=2 is not split
+    DiT:2; nTimesamples:32768; decimated_timesamples:16384; MSD:[0.007616; 0.005164; 16943574.000000]
+    DiT:4; nTimesamples:16384; decimated_timesamples:8192; MSD:[0.015413; 0.007541; 8495360.000000]
+    DiT:8; nTimesamples:8192; decimated_timesamples:4096; MSD:[0.030949; 0.010821; 4253389.000000]
+    DiT:16; nTimesamples:4096; decimated_timesamples:2048; MSD:[0.061985; 0.015409; 2128144.000000]
+    DiT:32; nTimesamples:2048; decimated_timesamples:1024; MSD:[0.124028; 0.021867; 1064390.000000]
+    Number of calculated MSD values: 7; number of interpolated MSD values: 32;
+         -> MSD took 9.263648 ms
+         -> corner turn took 5.901312 ms
+         -> harmonic summing took 17.680193 ms
+         -> Peak finding took 1.811456 ms
+         -> POWER: Total number of peaks found in this range is 1;
+         -> INTERBIN: Total number of peaks found in this range is 3;
+         => Copy of candidates took 0.029408 ms
+
+     -----------------------
+     -> This range calculation time: 137.159074 ms
+     -> This range copy time:        122.713728 ms
+
+--------------------------------------------------
+inBin range: 3
+  Resetting MSD variables
+  Prange: 0
+  De-dispersion range: 2082.000000--3122.000000:2.000000 inBin:8; nTimesamples:65536; nDMs:520;
+     Periodicity search will run 1 batch containing 520 DM trials.
+     Total number of MSD blocks is 832 which is 0.010 MB
+--------- Batches ----------
+      Batch: nDMs:520; nTimesamples:65536; DM shift:0;
+         nTimesamples:32768; nDMs:520; offset:0;
+         nBlocks:[64;13]; nSteps:[512;40]; nBlocks_total:832; address:0;
+         partials_gridSize=[64;13;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[32;1;1]
+
+      Batch: 0
+      Batch: nDMs:520; nTimesamples:65536; DM shift:0;
+         nTimesamples:32768; nDMs:520; offset:0;
+         nBlocks:[64;13]; nSteps:[512;40]; nBlocks_total:832; address:0;
+         partials_gridSize=[64;13;1]; partials_blockSize=[512;1;1]
+         final_gridSize=[1;1;1]; final_blockSize=[32;1;1]
+         Resetting candidate lists
+         => Copy of data to device took 23.374176 ms
+         -> cuFFT took 4.059040 ms
+         -> Calculation of powers and interbining took 1.476416 ms
+    MSD format: [ mean ; StDev ; nElements ]
+    DiT:1; nTimesamples:32768; decimated_timesamples:16384; MSD:[0.000459; 0.000423; 16838638.000000]
+High memory: DIT=2 is not split
+    DiT:2; nTimesamples:16384; decimated_timesamples:8192; MSD:[0.000952; 0.000646; 8470923.000000]
+    DiT:4; nTimesamples:8192; decimated_timesamples:4096; MSD:[0.001927; 0.000943; 4247621.000000]
+    DiT:8; nTimesamples:4096; decimated_timesamples:2048; MSD:[0.003870; 0.001356; 2126650.000000]
+    DiT:16; nTimesamples:2048; decimated_timesamples:1024; MSD:[0.007752; 0.001931; 1064060.000000]
+    DiT:32; nTimesamples:1024; decimated_timesamples:512; MSD:[0.015510; 0.002739; 511725.000000]
+    Number of calculated MSD values: 7; number of interpolated MSD values: 32;
+         -> MSD took 5.011392 ms
+         -> corner turn took 3.037184 ms
+         -> harmonic summing took 8.750080 ms
+         -> Peak finding took 0.914976 ms
+         -> POWER: Total number of peaks found in this range is 8;
+         -> INTERBIN: Total number of peaks found in this range is 26;
+         => Copy of candidates took 0.026720 ms
+
+     -----------------------
+     -> This range calculation time: 23.249088 ms
+     -> This range copy time:        23.400896 ms
+
+-----------------------------------------------------------------------------------
+
+Timer:
+Total calculation time: 1391.804837 ms
+Total copy time:        2684.480231 ms
+Total periodicity time: 4081.194092 ms
+
+
+ === OVERALL PERIODICITY THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===
+
+Performed Peroidicity Location: 4.728774 (GPU estimate)
+Amount of telescope time processed: 47.595520
+Number of samples processed: 743680
+Real-time speedup factor: 10.065087Written output to /home/karel/AA_SPDT/output/ska_test_file
