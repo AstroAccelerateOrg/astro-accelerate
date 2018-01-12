@@ -159,7 +159,7 @@ void main_function
 	
 	// Calculate the dedispersion stratagy.
 	stratagy(&maxshift, &max_samps, &num_tchunks, &max_ndms, &total_ndms, &max_dm, power, nchans, nsamp, fch1, foff, tsamp, range, user_dm_low, user_dm_high, user_dm_step,
-                 &dm_low, &dm_high, &dm_step, &ndms, &dmshifts, inBin, &t_processed, &gpu_memory, Get_memory_requirement_of_SPS());
+                 &dm_low, &dm_high, &dm_step, &ndms, &dmshifts, inBin, &t_processed, &gpu_memory, enable_analysis);
 	if(enable_debug == 1) debug(4, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
@@ -206,8 +206,7 @@ void main_function
 	//out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
 	//memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
 
-	for (t = 0; t < num_tchunks; t++)
-	{
+	for (t = 0; t < num_tchunks; t++) {
 		printf("\nt_processed:\t%d, %d", t_processed[0][t], t);
 		
 		checkCudaErrors(cudaGetLastError());
@@ -216,15 +215,13 @@ void main_function
 
 		checkCudaErrors(cudaGetLastError());
 		
-		if (enable_zero_dm)
-		{
+		if (enable_zero_dm) {
 			zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
 		}
 		
 		checkCudaErrors(cudaGetLastError());
 		
-		if (enable_zero_dm_with_outliers)
-		{
+		if (enable_zero_dm_with_outliers) {
 			zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
 	 	}
 		
@@ -234,8 +231,7 @@ void main_function
 		
 		checkCudaErrors(cudaGetLastError());
 		
-		if (enable_rfi)
-		{
+		if (enable_rfi) {
  			rfi_gpu(d_input, nchans, t_processed[0][t]+maxshift);
 		}
 		
@@ -257,8 +253,7 @@ void main_function
 			
 			checkCudaErrors(cudaGetLastError());
 			
-			if (inBin[dm_range] > oldBin)
-			{
+			if (inBin[dm_range] > oldBin) {
 				bin_gpu(d_input, d_output, nchans, t_processed[dm_range - 1][t] + maxshift * inBin[dm_range]);
 				( tsamp ) = ( tsamp ) * 2.0f;
 			}
@@ -269,14 +264,12 @@ void main_function
 		
 			checkCudaErrors(cudaGetLastError());
 			
-			if ( (enable_acceleration == 1) || (enable_periodicity == 1) || (analysis_debug ==1) )
-			{
+			if ( (enable_acceleration == 1) || (enable_periodicity == 1) || (analysis_debug ==1) ) {
 				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
 				//save_data(d_output, out_tmp, gpu_outputsize);
 
 				//#pragma omp parallel for
-				for (int k = 0; k < ndms[dm_range]; k++)
-				{
+				for (int k = 0; k < ndms[dm_range]; k++) {
 					//memcpy(&output_buffer[dm_range][k][inc / inBin[dm_range]], &out_tmp[k * t_processed[dm_range][t]], sizeof(float) * t_processed[dm_range][t]);
 
 					save_data_offset(d_output, k * t_processed[dm_range][t], output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
@@ -297,8 +290,7 @@ void main_function
 				
 				printf("\n VALUE OF ANALYSIS DEBUG IS %d\n", analysis_debug);
 
-				if (analysis_debug == 1)
-				{
+				if (analysis_debug == 1) {
 					float *out_tmp;
 					gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
 					out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
@@ -307,8 +299,7 @@ void main_function
 					analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp, max_boxcar_width_in_sec);
 					free(out_tmp);
 				}
-				else
-				{
+				else {
 					float *h_peak_list;
 					size_t max_peak_size;
 					size_t peak_pos;

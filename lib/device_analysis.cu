@@ -1,6 +1,6 @@
-//#define GPU_ANALYSIS_DEBUG
-//#define MSD_PLANE_EXPORT
-//#define GPU_PARTIAL_TIMER
+#define GPU_ANALYSIS_DEBUG
+#define MSD_PLANE_EXPORT
+#define GPU_PARTIAL_TIMER
 #define GPU_TIMER
 
 
@@ -292,7 +292,6 @@ void MSD_of_input_plane(float *d_MSD_DIT, float *d_data, std::vector<int> *h_MSD
 	
 	#ifdef GPU_ANALYSIS_DEBUG
 		cudaMemcpy(h_MSD, &d_MSD_DIT[MSD_RESULTS_SIZE], MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
-		printf("    DIT: %d; MSD:[%f; %f; %f]\n", DIT_value, h_MSD[0], h_MSD[1], h_MSD[2]);	
 		printf("    DiT:%d; nTimesamples:%d; decimated_timesamples:%d; MSD:[%f; %f; %f]\n", (int) DIT_value, (int) nTimesamples, (int) (nTimesamples>>1), h_MSD[0], h_MSD[1], h_MSD[2]);
 	#endif
 	//----------------------------------------------------------------------------------------
@@ -1030,7 +1029,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	char filename[200];
 	
 	//----------------------------------------------
-	//--- MSD profile of the data
+	//--- 
 	cudaMemGetInfo(&free_mem,&total_mem);
 	//printf("Memory available: %f; output_buffer size: %f;\n", (double) free_mem/(1024.0*1024.0), ((double) nDMs*nTimesamples*sizeof(float))/(1024.0*1024.0));
 	//Calculate_MSD_data(output_buffer, nTimesamples, nDMs, OR_sigma_multiplier, inBin, dm_low[i], dm_high[i], tstart);
@@ -1058,81 +1057,6 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	float *d_MSD;
 	checkCudaErrors(cudaGetLastError());
 	if ( cudaSuccess != cudaMalloc((void**) &d_MSD, sizeof(float)*3)) {printf("Allocation error!\n"); exit(201);}
-	
-	/*
-	//-------------- CPU check
-	float *h_temp, *h_boxcar;
-	double signal_mean, signal_sd;
-	h_temp = (float *)malloc( ((size_t) nDMs*nTimesamples)*sizeof(float));
-	h_boxcar = (float *)malloc( ((size_t) nDMs*nTimesamples)*sizeof(float));
-	memset(h_temp, 0.0, ((size_t) nDMs*nTimesamples)*sizeof(float));
-	memset(h_boxcar, 0.0, ((size_t) nDMs*nTimesamples)*sizeof(float));
-	cudaMemcpy( h_temp, output_buffer, ((size_t) nDMs*nTimesamples)*sizeof(float), cudaMemcpyDeviceToHost);
-	MSD_Kahan(h_temp, nDMs, nTimesamples, 0, &signal_mean, &signal_sd);
-	printf("MSD_kahan: after 1 tap   Mean: %e, Standard deviation: %e;\n",signal_mean, signal_sd);
-	Calculate_FIR(h_temp, h_boxcar, 2, nDMs, nTimesamples, 0);
-	MSD_Kahan(h_boxcar, nDMs, nTimesamples, 0, &signal_mean, &signal_sd);
-	printf("MSD_kahan: after 1 tap   Mean: %e, Standard deviation: %e;\n",signal_mean, signal_sd);	
-	free(h_temp);
-	free(h_boxcar);
-	//-------------- CPU check
-	*/
-	
-	/*
-	//-------------- One Call linear approximation
-	timer.Start(); 
-	MSD_linear_approximation(output_buffer, d_MSD, PD_MAXTAPS, nDMs, nTimesamples, 0);
-	timer.Stop();
-	partial_time = timer.Elapsed(); 
-	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
-	printf("     MSD linear approximation: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD[0], h_MSD[1], h_MSD[2]);
-	#ifdef GPU_ANALYSIS_DEBUG
-	printf("     One kernel took:%f ms\n", partial_time); 
-	#endif
-	//-------------- One Call linear approximation
-	*/
-	
-	/*
-	//-------------- Base level noise point-wise
-	timer.Start(); 
-	MSD_outlier_rejection(output_buffer, d_MSD, nDMs, nTimesamples, 0, OR_sigma_multiplier);
-	timer.Stop();
-	partial_time = timer.Elapsed(); 
-	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
-	printf("     MSD BLN point-wise: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD[0], h_MSD[1], h_MSD[2]);
-	#ifdef GPU_ANALYSIS_DEBUG
-	printf("     MSD BLN point-wise kernel took:%f ms\n", partial_time); 
-	#endif
-	//-------------- Base level noise point-wise
-	*/
-
-	/*
-	//-------------- BLN_LA
-	timer.Start(); 
-	MSD_BLN_LA_pw_normal(output_buffer, d_MSD, nDMs, nTimesamples, PD_MAXTAPS, 0, OR_sigma_multiplier);
-	timer.Stop();
-	partial_time = timer.Elapsed(); 
-	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
-	printf("     MSD BLN linear approximation: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD[0], h_MSD[1], h_MSD[2]);
-	#ifdef GPU_ANALYSIS_DEBUG
-	printf("     BLN LA took:%f ms\n", partial_time); 
-	#endif
-	//-------------- BLN_LA
-	*/
-	
-	/*
-	//-------------- Base level noise grid
-	timer.Start(); 
-	MSD_BLN_grid(output_buffer, d_MSD, 32, 32, nDMs, nTimesamples, 0, OR_sigma_multiplier);
-	timer.Stop();
-	partial_time = timer.Elapsed(); 
-	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
-	printf("     MSD BLN grid: Mean: %f, Stddev: %f, modifier: %f\n", h_MSD[0], h_MSD[1], h_MSD[2]);
-	#ifdef GPU_ANALYSIS_DEBUG
-	printf("     MSD BLN grid kernel took:%f ms\n", partial_time); 
-	#endif
-	//-------------- Base level noise grid
-	*/
 	
 	
 	cudaMemGetInfo(&free_mem,&total_mem);
@@ -1200,6 +1124,30 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	//printf("Konec\n");
 	//------- Calculation of MSD for whole plane
 	//---------------------------------------------
+	
+	
+	
+	
+	//-------------------------------------------------------------------------
+	//------------ Using MSD_plane_profile
+	//size_t MSD_profile_size_in_bytes, MSD_DIT_profile_size_in_bytes, workarea_size_in_bytes;
+	//cudaMemGetInfo(&free_mem,&total_mem);
+	//Get_MSD_plane_profile_memory_requirements(&MSD_profile_size_in_bytes, &MSD_DIT_profile_size_in_bytes, &workarea_size_in_bytes, nTimesamples, nDMs, &h_boxcar_widths);
+	//printf("Memory available: %f; Memory required: %f;\n", (double) free_mem/(1024.0*1024.0), ((double) workarea_size_in_bytes)/(1024.0*1024.0));
+	//float *new_MSD_interpolated;
+	//float *new_MSD_DIT = NULL;
+	//float *temporary_workarea;
+	//cudaMalloc((void **) &new_MSD_interpolated, MSD_profile_size_in_bytes);
+	//workarea_size_in_bytes = (size_t) (free_mem*0.9);
+	//cudaMalloc((void **) &temporary_workarea, workarea_size_in_bytes);
+	//
+	//MSD_plane_profile(new_MSD_interpolated, output_buffer, new_MSD_DIT, temporary_workarea, false, nTimesamples, nDMs, &h_boxcar_widths, tstart, dm_low[i], dm_high[i], OR_sigma_multiplier, enable_sps_baselinenoise, false);
+	//
+	//cudaFree(temporary_workarea);
+	//cudaFree(new_MSD_interpolated);
+	//------------ Using MSD_plane_profile
+	//-------------------------------------------------------------------------	
+	
 	
 	if(DM_list.size()>0){
 		DMs_per_cycle = DM_list[0];
