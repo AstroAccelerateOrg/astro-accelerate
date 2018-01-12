@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
 	float max_boxcar_width_in_sec = 0.5f;
 	// Periodicity search
 	float periodicity_sigma_cutoff = 6;
-	int periodicity_nHarmonics = 1;
+	int periodicity_nHarmonics = 32;
 
 	// Timing parameters
 	clock_t start_time = clock();
