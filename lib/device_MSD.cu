@@ -17,12 +17,18 @@
 // TODO:
 // Remove MSD_legacy
 
+struct MSD_Data {
+	int width;
+	double mean;
+	double sd;
+};
+
+
 void MSD_init(void) {
 	//---------> Specific nVidia stuff
 	cudaDeviceSetCacheConfig (cudaFuncCachePreferShared);
 	cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
 }
-
 
 
 //---------------------------------------------------------------
@@ -191,7 +197,7 @@ int MSD_outlier_rejection_continuous(float *d_MSD, float *d_input, float *d_prev
 
 
 //MSD_BLN_pw_continuous_OR
-int MSD_outlier_rejection_grid(float *d_MSD, float *d_input, float *d_previous_partials, float *d_temp, MSD_Configuration *MSD_conf, float OR_sigma_multiplier){	
+int MSD_outlier_rejection_grid(float *d_MSD, float *d_input, float *d_previous_partials, float *d_temp, MSD_Configuration *MSD_conf, float OR_sigma_multiplier){
 	#ifdef MSD_DEBUG
 	float h_MSD[3];
 	MSD_conf->print();
@@ -534,7 +540,12 @@ void MSD_Interpolate_linear(float *mean, float *StDev, float desired_width, floa
 		
 		float StDev2 = h_MSD_DIT[(position+1)*MSD_RESULTS_SIZE +1];
 		float distance_in_StDev = StDev2 - StDev1;
-	
+		
+		#ifdef MSD_PLANE_DEBUG
+			printf("width:[%f;%f]; mean:[%f;%f]; sd:[%f;%f]\n",width1, width2, mean1, mean2, StDev1, StDev2);
+			printf("d width %f; d mean: %f; d StDef: %f\n", distance_in_width, distance_in_mean, distance_in_StDev); 
+		#endif
+		
 		(*mean) = mean1 + (distance_in_mean/distance_in_width)*((float) desired_width - width1);
 		(*StDev) = StDev1 + (distance_in_StDev/distance_in_width)*((float) desired_width - width1);
 	}
@@ -680,11 +691,19 @@ void MSD_plane_profile(float *d_MSD_interpolated, float *d_input_data, float *d_
 	std::vector<int> h_MSD_DIT_widths;
 	
 	size_t datasize = primary_dimension*secondary_dimension;
-	float *d_sudy, *d_lichy, *d_MSD_DIT, *d_MSD_workarea; 
+	float *d_sudy, *d_lichy, *d_MSD_DIT, *d_MSD_workarea;
 	d_sudy = workarea;
 	d_lichy = &workarea[datasize/4];
-	d_MSD_DIT = &workarea[datasize/2];
-	d_MSD_workarea = &workarea[datasize/2 + (nDecimations+1)*MSD_RESULTS_SIZE];
+	if(high_memory) {
+		d_MSD_DIT = &workarea[datasize/4 + datasize/2];
+		d_MSD_workarea = &workarea[datasize/4 + datasize/2 + (nDecimations+1)*MSD_RESULTS_SIZE];
+	}
+	else {
+		d_MSD_DIT = &workarea[datasize/2];
+		d_MSD_workarea = &workarea[datasize/2 + (nDecimations+1)*MSD_RESULTS_SIZE];
+	}
+	
+	cudaMemset((void*) d_MSD_DIT, 0, (nDecimations+1)*MSD_RESULTS_SIZE*sizeof(float));
 	
 	MSD_of_input_plane(d_MSD_DIT, &h_MSD_DIT_widths, d_input_data, d_MSD_DIT_previous, d_sudy, d_lichy, d_MSD_workarea, primary_dimension, secondary_dimension, nDecimations, max_boxcar_width, OR_sigma_multiplier, enable_outlier_rejection, high_memory, perform_continuous, total_time, dit_time, MSD_time);
 	
@@ -705,6 +724,330 @@ void MSD_plane_profile(float *d_MSD_interpolated, float *d_input_data, float *d_
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//---------------------------------------------------------------
+//------------- MSD plane profile boxcars
+
+void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vector<MSD_Data> *boxcar_MSD, std::vector<MSD_Data> *boxcar_MSD_BLN, int max_nTaps, int max_boxcar_width, float OR_sigma_multiplier){
+	GpuTimer timer;
+	double total_time = 0;
+	int nRest;
+	MSD_Data mdtemp;
+	float *d_boxcar, *d_MSD;
+	float h_MSD[MSD_RESULTS_SIZE];
+	cudaMalloc((void **) &d_boxcar, nTimesamples*nDMs*sizeof(float));
+	cudaMalloc((void **) &d_MSD, MSD_RESULTS_SIZE*sizeof(float));
+	
+	timer.Start();
+	
+	MSD_normal(d_MSD, d_data, nTimesamples, nDMs, 0);
+	cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+	mdtemp.width = 1; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
+	boxcar_MSD->push_back(mdtemp);
+	
+	MSD_outlier_rejection(d_MSD, d_data, nTimesamples, nDMs, 0, OR_sigma_multiplier);
+	cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+	mdtemp.width = 1; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
+	boxcar_MSD_BLN->push_back(mdtemp);
+	
+	timer.Stop();
+	total_time = total_time + timer.Elapsed();
+	printf("DIT value: %d; took %f ms; Total time %fms\n", 1, timer.Elapsed(), total_time);
+	
+	for(size_t f=2; f<=max_nTaps; f++){
+		if( (nTimesamples-f+1)>0 ) {
+			timer.Start();
+			
+			nRest = PD_FIR(d_data, d_boxcar, f, nDMs, nTimesamples);
+			
+			MSD_normal(d_MSD, d_boxcar, nTimesamples, nDMs, nRest);
+			cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+			mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
+			boxcar_MSD->push_back(mdtemp);
+			
+			MSD_outlier_rejection(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, OR_sigma_multiplier);
+			cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+			mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
+			boxcar_MSD_BLN->push_back(mdtemp);
+			
+			timer.Stop();
+			total_time = total_time + timer.Elapsed();
+			printf("DIT value: %d; took %f ms; Total time %fms\n", (int) f, timer.Elapsed(), total_time);
+		}
+	}
+	
+	checkCudaErrors(cudaGetLastError());
+	
+	for(size_t f=130; f<=256 && f<max_boxcar_width; f+=4){
+		printf("nTimesamples: %d; f: %d; %d\n", nTimesamples, f, nTimesamples-f+1);
+		int itemp = (int) (nTimesamples-f+1);
+		if( itemp>0 ) {
+			timer.Start();
+			
+			nRest=PPF_L1(d_data, d_boxcar, nDMs, nTimesamples, f);
+			
+			if(nRest>0){
+				MSD_normal(d_MSD, d_boxcar, nTimesamples, nDMs, nRest);
+				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
+				boxcar_MSD->push_back(mdtemp);
+				
+				MSD_outlier_rejection(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, OR_sigma_multiplier);
+				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
+				boxcar_MSD_BLN->push_back(mdtemp);
+			}
+
+			timer.Stop();
+			total_time = total_time + timer.Elapsed();
+			printf("DIT value: %d; took %f ms; Total time %fms\n", (int) f, timer.Elapsed(), total_time);
+		}
+		checkCudaErrors(cudaGetLastError());
+	}
+	
+	checkCudaErrors(cudaGetLastError());
+	
+	for(size_t f=272; f<=512 && f<max_boxcar_width; f+=16){
+		printf("nTimesamples: %d; f: %d; %d\n", nTimesamples, f, nTimesamples-f+1);
+		int itemp = (int) (nTimesamples-f+1);
+		if( itemp>0 ) {
+			timer.Start();
+			
+			nRest=PPF_L1(d_data, d_boxcar, nDMs, nTimesamples, f);
+			
+			if(nRest>0){
+				MSD_normal(d_MSD, d_boxcar, nTimesamples, nDMs, nRest);
+				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
+				boxcar_MSD->push_back(mdtemp);
+				
+				MSD_outlier_rejection(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, OR_sigma_multiplier);
+				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
+				boxcar_MSD_BLN->push_back(mdtemp);
+			}
+			
+			timer.Stop();
+			total_time = total_time + timer.Elapsed();
+			printf("DIT value: %d; took %f ms; Total time %fms\n", (int) f, timer.Elapsed(), total_time);
+		}
+		checkCudaErrors(cudaGetLastError());
+	}
+	
+	checkCudaErrors(cudaGetLastError());
+	
+	for(size_t f=544; f<=1024 && f<max_boxcar_width; f+=32){
+		printf("nTimesamples: %d; f: %d; %d\n", nTimesamples, f, nTimesamples-f+1);
+		int itemp = (int) (nTimesamples-f+1);
+		if( itemp>0 ) {
+			timer.Start();
+			
+			nRest=PPF_L1(d_data, d_boxcar, nDMs, nTimesamples, f);
+
+			if(nRest>0){
+				MSD_normal(d_MSD, d_boxcar, nTimesamples, nDMs, nRest);
+				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
+				boxcar_MSD->push_back(mdtemp);
+				
+				MSD_outlier_rejection(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, OR_sigma_multiplier);
+				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
+				boxcar_MSD_BLN->push_back(mdtemp);
+			}
+			
+			timer.Stop();
+			total_time = total_time + timer.Elapsed();
+			printf("DIT value: %d; took %f ms; Total time %fms\n", (int) f, timer.Elapsed(), total_time);
+		}
+		checkCudaErrors(cudaGetLastError());
+	}
+	
+	checkCudaErrors(cudaGetLastError());
+
+	for(size_t f=1088; f<=2048 && f<max_boxcar_width; f+=64){
+		printf("nTimesamples: %d; f: %d; %d\n", nTimesamples, f, nTimesamples-f+1);
+		int itemp = (int) (nTimesamples-f+1);
+		if( itemp>0 ) {
+			timer.Start();
+			
+			nRest=PPF_L1(d_data, d_boxcar, nDMs, nTimesamples, f);
+
+			if(nRest>0){
+				MSD_normal(d_MSD, d_boxcar, nTimesamples, nDMs, nRest);
+				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
+				boxcar_MSD->push_back(mdtemp);
+				
+				MSD_outlier_rejection(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, OR_sigma_multiplier);
+				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
+				boxcar_MSD_BLN->push_back(mdtemp);
+			}
+			
+			timer.Stop();
+			total_time = total_time + timer.Elapsed();
+			printf("DIT value: %d; took %f ms; Total time %fms\n", (int) f, timer.Elapsed(), total_time);
+		}
+		checkCudaErrors(cudaGetLastError());
+	}
+	
+	checkCudaErrors(cudaGetLastError());
+
+	for(size_t f=2176; f<=4096 && f<max_boxcar_width; f+=128){
+		printf("nTimesamples: %d; f: %d; %d\n", nTimesamples, f, nTimesamples-f+1);
+		int itemp = (int) (nTimesamples-f+1);
+		if( itemp>0 ) {
+			timer.Start();
+			
+			nRest=PPF_L1(d_data, d_boxcar, nDMs, nTimesamples, f);
+
+			if(nRest>0){		
+				MSD_normal(d_MSD, d_boxcar, nTimesamples, nDMs, nRest);
+				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
+				boxcar_MSD->push_back(mdtemp);
+				
+				MSD_outlier_rejection(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, OR_sigma_multiplier);
+				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
+				boxcar_MSD_BLN->push_back(mdtemp);
+			}
+			
+			timer.Stop();
+			total_time = total_time + timer.Elapsed();
+			printf("DIT value: %d; took %f ms; Total time %fms\n", (int) f, timer.Elapsed(), total_time);
+		}
+		checkCudaErrors(cudaGetLastError());
+	}
+	
+	checkCudaErrors(cudaGetLastError());
+	
+	for(size_t f=4352; f<=8192 && f<max_boxcar_width; f+=256){
+		printf("nTimesamples: %d; f: %d; %d\n", nTimesamples, f, nTimesamples-f+1);
+		int itemp = (int) (nTimesamples-f+1);
+		if( itemp>0 ) {
+			timer.Start();
+			
+			nRest=PPF_L1(d_data, d_boxcar, nDMs, nTimesamples, f);
+			
+			if(nRest>0){
+				MSD_normal(d_MSD, d_boxcar, nTimesamples, nDMs, nRest);
+				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
+				boxcar_MSD->push_back(mdtemp);
+				
+				MSD_outlier_rejection(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, OR_sigma_multiplier);
+				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
+				boxcar_MSD_BLN->push_back(mdtemp);
+			}
+			
+			timer.Stop();
+			total_time = total_time + timer.Elapsed();
+			printf("DIT value: %d; took %f ms; Total time %fms\n", (int) f, timer.Elapsed(), total_time);
+		}
+		checkCudaErrors(cudaGetLastError());
+	}
+	
+	checkCudaErrors(cudaGetLastError());
+	checkCudaErrors(cudaFree(d_boxcar));
+	checkCudaErrors(cudaFree(d_MSD));
+}
+
+
+
+void MSD_plane_profile_boxcars(float *d_input_data, size_t nTimesamples, size_t nDMs, std::vector<int> *boxcar_widths, float OR_sigma_multiplier, float dm_low, float dm_high, float tstart){
+	char filename[200];
+	std::vector<MSD_Data> h_boxcar_MSD;
+	std::vector<MSD_Data> h_boxcar_MSD_OR;
+	
+	size_t free_mem, total_mem, req_mem;
+	cudaMemGetInfo(&free_mem,&total_mem);
+	req_mem = nTimesamples*nDMs*sizeof(float);
+	printf("Memory available: %f; Memory required: %f;\n", (double) free_mem/(1024.0*1024.0), ((double) req_mem)/(1024.0*1024.0));
+	if(free_mem<req_mem) {
+		printf("Not enough memory to perform the comparison!\n");
+		return;
+	}
+	
+	int boxcar_widths_size = boxcar_widths->size();
+	int max_boxcar_width = boxcar_widths->operator[](boxcar_widths_size-1);
+	
+	Create_boxcar_MSD(d_input_data, nTimesamples, nDMs, &h_boxcar_MSD, &h_boxcar_MSD_OR, 128, max_boxcar_width, OR_sigma_multiplier);
+	
+	sprintf(filename,"MSD_boxcars_OR%f-t_%.2f-dm_%.2f-%.2f.dat", OR_sigma_multiplier, tstart, dm_low, dm_high);
+	
+	std::ofstream FILEOUT;
+	FILEOUT.open (filename, std::ofstream::out);
+
+	for(size_t f=0; f<h_boxcar_MSD.size(); f++){
+		FILEOUT << (int) h_boxcar_MSD[f].width << " " << h_boxcar_MSD[f].mean << " " << h_boxcar_MSD[f].sd << " " << "3" << std::endl;
+	}
+	FILEOUT << std::endl;
+	FILEOUT << std::endl;
+	for(size_t f=0; f<h_boxcar_MSD_OR.size(); f++){
+		FILEOUT << (int) h_boxcar_MSD_OR[f].width << " " << h_boxcar_MSD_OR[f].mean << " " << h_boxcar_MSD_OR[f].sd << " " << "4" << std::endl;
+	}
+	FILEOUT << std::endl;
+	FILEOUT << std::endl;
+	
+	FILEOUT.close();
+}
+
+//------------- MSD plane profile boxcars
+//---------------------------------------------------------------
 
 
 
