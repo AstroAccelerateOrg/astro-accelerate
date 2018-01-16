@@ -13,7 +13,7 @@
 // MSD
 #include "headers/device_MSD_Configuration.h"
 #include "headers/device_MSD.h"
-#include "headers/device_MSD_legacy.h"
+#include "headers/device_MSD_plane_profile.h"
 
 #include "headers/device_SPS_inplace_kernel.h" //Added by KA
 #include "headers/device_SPS_inplace.h" //Added by KA

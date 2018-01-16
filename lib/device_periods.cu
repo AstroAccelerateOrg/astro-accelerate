@@ -8,7 +8,7 @@
 #include "headers/device_periodicity_parameters.h"
 #include "headers/device_MSD_Configuration.h"
 #include "headers/device_MSD.h"
-#include "headers/device_MSD_legacy.h"
+#include "headers/device_MSD_plane_profile.h"
 #include "headers/device_peak_find.h"
 #include "headers/device_power.h"
 #include "headers/device_harmonic_summing.h"

@@ -9,9 +9,7 @@
 #include "device_MSD_normal_kernel.cu"
 #include "device_MSD_outlier_rejection_kernel.cu"
 #include "device_MSD.cu"
-#include "device_MSD_legacy_kernel.cu"
-#include "device_MSD_legacy.cu"
-
+#include "device_MSD_plane_profile.cu"
 
 
 #include "device_SPS_inplace_kernel.cu" //Added by KA
