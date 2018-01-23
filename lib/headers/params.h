@@ -49,12 +49,6 @@
 #define PTBSIZEY 1
 
 
-#define UNROLLS 8
-#define SNUMREG 8
-#define SDIVINT 14
-#define SDIVINDM 40
-#define SFDIVINDM 40.0f
-
 // for corner turn in shared memory corner_turn_SM(...)
 #define CT_NTHREADS 512
 #define CT_ROWS_PER_WARP 2
@@ -75,3 +69,12 @@
 
 #define PPF_L1_THREADS_PER_BLOCK 256
 #define PPF_L1_SPECTRA_PER_BLOCK 5
+
+// TITAN V
+//#define UNROLLS 4
+//#define SNUMREG 16
+//#define SDIVINT 8
+//#define SDIVINDM 60
+//#define SFDIVINDM 60.0f
+
+// Ussual
