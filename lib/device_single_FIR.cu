@@ -68,7 +68,7 @@ int PPF_L1(float *d_input, float *d_output, int nDMs, int nTimesamples, int nTap
 	//---------> CUDA block and CUDA grid parameters
 	int itemp = nTimesamples-nTaps+1;
 	int nCUDAblocks_x=(int) (itemp/PPF_L1_THREADS_PER_BLOCK);
-	//if(itemp%PPF_L1_THREADS_PER_BLOCK!=0) nCUDAblocks_x++;
+	if(itemp%PPF_L1_THREADS_PER_BLOCK!=0) nCUDAblocks_x++;
 	int nCUDAblocks_y=(int) nDMs;
 	dim3 GridSize(nCUDAblocks_x, nCUDAblocks_y, 1);
 	dim3 BlockSize(PPF_L1_THREADS_PER_BLOCK, 1, 1);
