@@ -45,6 +45,26 @@ __global__ void bin(unsigned short *d_input, float *d_output, int in_nsamp)
 
 }
 
+
+__global__ void DiT_GPU_v2(float const* __restrict__ d_input, float *d_output, unsigned int nDMs, unsigned int nTimesamples, unsigned int dts) {
+	float2 ftemp2;
+	unsigned int posx, posy, itemp;
+	
+	posy = (blockIdx.y*DIT_YSTEP + threadIdx.y);
+	posx = (blockIdx.x*DIT_ELEMENTS_PER_THREAD*blockDim.x);
+	
+	//#pragma unroll
+	for(int f=0; f<DIT_ELEMENTS_PER_THREAD; f++){
+		itemp = (posx + threadIdx.x + f*blockDim.x);
+		if( (2*itemp+1)<nTimesamples ){
+			ftemp2.x = d_input[posy*nTimesamples + 2*itemp];
+			ftemp2.y = d_input[posy*nTimesamples + 2*itemp+1];
+			d_output[posy*dts + itemp] = ftemp2.x + ftemp2.y;
+		}
+	}
+}
+
+
 #endif
 
 //}}}

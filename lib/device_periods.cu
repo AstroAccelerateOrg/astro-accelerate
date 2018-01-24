@@ -7,10 +7,9 @@
 
 #include "headers/device_periodicity_parameters.h"
 #include "headers/device_MSD_Configuration.h"
+#include "headers/device_MSD.h"
+#include "headers/device_MSD_plane_profile.h"
 #include "headers/device_peak_find.h"
-#include "headers/device_MSD_BLN_grid.h"
-#include "headers/device_MSD_BLN_pw.h"
-#include "headers/device_MSD_limited.h"
 #include "headers/device_power.h"
 #include "headers/device_harmonic_summing.h"
 
@@ -24,8 +23,10 @@
 // define to reuse old MSD results to generate a new one (it means new MSD is calculated from more samples) (WORKING WITHIN SAME INBIN VALUE)
 #define PS_REUSE_MSD_WITHIN_INBIN
 
-// experimental and this might not be very useful with real noise
+// experimental and this might not be very useful with real noise BROKEN!
 //#define PS_REUSE_MSD_THROUGH_INBIN
+
+//#define OLD_PERIODICITY
 
 
 // Perhaps it would be best to collapse the structure to either
@@ -196,6 +197,7 @@ public:
 
 class AA_Periodicity_Plan {
 public:
+	int nHarmonics;
 	int max_total_MSD_blocks;
 	int max_nTimesamples;
 	int max_nDMs;
@@ -269,21 +271,20 @@ public:
 		float sampling_time = inBin_group->Prange[rangeid].range.sampling_time;
 		float nTimesamples    = inBin_group->Prange[rangeid].range.nTimesamples;
 		int nPoints_before = size();
-		int nPoints_after;
+		int harmonics;
 
 		for(int c=0; c<(int)size(); c++) {
+			harmonics = (int) list[c*el+3];
 			list[c*el+0] = list[c*el+0]*dm_step + dm_low;
 			list[c*el+1] = list[c*el+1]*(1.0/(sampling_time*nTimesamples*mod));
-			list[c*el+2] = white_noise_approximation(list[c*el+2], list[c*el+3], MSD);
+			//list[c*el+2] = white_noise_approximation(list[c*el+2], list[c*el+3], MSD);
+			list[c*el+2] = (list[c*el+2] - MSD[2*harmonics])/(MSD[2*harmonics+1]);
 			list[c*el+3] = list[c*el+3];
 		}
 	}
 	
 	void Rescale_Threshold_and_Process(float *MSD, Periodicity_inBin_Group *inBin_group, float sigma_cutoff, float mod) {
 		float SNR;
-		float mean     = MSD[0];
-		float StDev    = MSD[1];
-		float modifier = MSD[2];
 		float dm_step       = inBin_group->Prange[rangeid].range.dm_step;
 		float dm_low        = inBin_group->Prange[rangeid].range.dm_low;
 		float sampling_time = inBin_group->Prange[rangeid].range.sampling_time;
@@ -294,8 +295,10 @@ public:
 		std::vector<float> new_list;
 		for(int c=0; c<(int)size(); c++) {
 			float oldSNR = list[c*el+2];
-			float harmonics = list[c*el+3];
-			SNR = white_noise_approximation(list[c*el+2], list[c*el+3], MSD);
+			int harmonics = (int) list[c*el+3];
+			//SNR = white_noise_approximation(list[c*el+2], list[c*el+3], MSD);
+			SNR = (list[c*el+2] - MSD[2*harmonics])/(MSD[2*harmonics+1]);
+			
 			if(SNR>sigma_cutoff) {
 				new_list.push_back(list[c*el+0]*dm_step + dm_low);
 				new_list.push_back(list[c*el+1]*(1.0/(sampling_time*nTimesamples*mod)));
@@ -306,11 +309,15 @@ public:
 		list.clear();
 		list = new_list;
 		nPoints_after = size();
-		printf("   Before: %d; After: %d;   MSD = [%f;%f;%f] sigma_cutoff:%f\n", nPoints_before, nPoints_after, mean, StDev, modifier, sigma_cutoff);
+		printf("   Before: %d; After: %d;   MSD = [%f;%f;%f] sigma_cutoff:%f\n", nPoints_before, nPoints_after, sigma_cutoff);
 	}
 };
 
 class GPU_Memory_for_Periodicity_Search {
+private:
+	int MSD_interpolated_size;
+	int MSD_DIT_size;
+
 public:
 	float *d_one_A;
 	float *d_two_B;
@@ -324,15 +331,18 @@ public:
 	int *gmem_interbin_peak_pos;
 	
 	// MSD
-	float *d_MSD; 
-	float *d_previous_partials; 
+	float *d_MSD;
+	float *d_previous_partials;
 	float *d_all_blocks;
 	
 	// cuFFT
 	void *cuFFT_workarea;
 	
 	void Allocate(AA_Periodicity_Plan *P_plan){
+		MSD_interpolated_size = P_plan->nHarmonics;
+		MSD_DIT_size = ((int) floorf(log2f((float)P_plan->nHarmonics))) + 2;
 		size_t t_input_plane_size = P_plan->input_plane_size;
+		
 		if ( cudaSuccess != cudaMalloc((void **) &d_one_A,  sizeof(float)*t_input_plane_size )) printf("Periodicity Allocation error! d_one_A\n");
 		if ( cudaSuccess != cudaMalloc((void **) &d_two_B,  sizeof(float)*2*t_input_plane_size )) printf("Periodicity Allocation error! d_two_B\n");
 		if ( cudaSuccess != cudaMalloc((void **) &d_half_C,  sizeof(float)*t_input_plane_size/2 )) printf("Periodicity Allocation error! d_spectra_Real\n");
@@ -343,8 +353,8 @@ public:
 		if ( cudaSuccess != cudaMalloc((void**) &gmem_power_peak_pos, 1*sizeof(int)) )  printf("Periodicity Allocation error! gmem_power_peak_pos\n");
 		if ( cudaSuccess != cudaMalloc((void**) &gmem_interbin_peak_pos, 1*sizeof(int)) )  printf("Periodicity Allocation error! gmem_interbin_peak_pos\n");
 		
-		if ( cudaSuccess != cudaMalloc((void**) &d_MSD, sizeof(float)*MSD_RESULTS_SIZE)) {printf("Periodicity Allocation error! d_MSD\n");}
-		if ( cudaSuccess != cudaMalloc((void**) &d_previous_partials, sizeof(float)*MSD_PARTIAL_SIZE)) {printf("Periodicity Allocation error! d_previous_partials\n");}
+		if ( cudaSuccess != cudaMalloc((void**) &d_MSD, sizeof(float)*MSD_interpolated_size*2)) {printf("Periodicity Allocation error! d_MSD\n");}
+		if ( cudaSuccess != cudaMalloc((void**) &d_previous_partials, sizeof(float)*MSD_DIT_size*MSD_PARTIAL_SIZE)) {printf("Periodicity Allocation error! d_previous_partials\n");}
 		if ( cudaSuccess != cudaMalloc((void**) &d_all_blocks, sizeof(float)*P_plan->max_total_MSD_blocks*MSD_PARTIAL_SIZE)) {printf("Periodicity Allocation error! d_MSD\n");}
 		
 		if ( cudaSuccess != cudaMalloc((void **) &cuFFT_workarea, P_plan->cuFFT_workarea_size) ) {printf("Periodicity Allocation error! cuFFT_workarea\n");}
@@ -352,8 +362,8 @@ public:
 	
 	void Reset_MSD(){
 		printf("  Resetting MSD variables\n");
-		cudaMemset(d_MSD, 0, MSD_RESULTS_SIZE*sizeof(float));
-		cudaMemset(d_previous_partials, 0, MSD_PARTIAL_SIZE*sizeof(float));
+		cudaMemset(d_MSD, 0, MSD_interpolated_size*2*sizeof(float));
+		cudaMemset(d_previous_partials, 0, MSD_DIT_size*MSD_PARTIAL_SIZE*sizeof(float));
 	}
 	
 	void Reset_Candidate_List(){
@@ -375,11 +385,11 @@ public:
 	}
 	
 	void Get_MSD(float *h_MSD){
-		checkCudaErrors(cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
+		checkCudaErrors(cudaMemcpy(h_MSD, d_MSD, MSD_interpolated_size*2*sizeof(float), cudaMemcpyDeviceToHost));
 	}
 	
 	void Get_MSD_partials(float *h_MSD_partials){
-		checkCudaErrors(cudaMemcpy(h_MSD_partials, d_previous_partials, MSD_PARTIAL_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
+		checkCudaErrors(cudaMemcpy(h_MSD_partials, d_previous_partials, MSD_DIT_size*MSD_PARTIAL_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
 	}
 	
 	void Set_MSD_partials(float *h_MSD_partials){
@@ -498,7 +508,9 @@ void Find_Periodicity_Plan(int *max_nDMs_in_memory, AA_Periodicity_Plan *P_plan,
 
 		Create_Periodicity_Plan(P_plan, DD_plan, t_max_nDMs_in_memory);
 		//max_total_blocks = Find_Max_total_blocks(P_plan);
-		size_t additional_data_size = P_plan->max_total_MSD_blocks*MSD_RESULTS_SIZE*sizeof(float) + 2*MSD_RESULTS_SIZE*sizeof(float) + 2*sizeof(int);
+		//------------------- Additional memory for MSD --------------------------------------
+		int nDecimations = ((int) floorf(log2f((float)P_plan->nHarmonics))) + 2;
+		size_t additional_data_size = P_plan->max_total_MSD_blocks*MSD_RESULTS_SIZE*sizeof(float) + nDecimations*2*MSD_RESULTS_SIZE*sizeof(float) + P_plan->nHarmonics*2*sizeof(float) + 2*sizeof(int);
 		memory_allocated = memory_allocated + additional_data_size;
 		printf("   Memory available for the module: %0.3f MB (%zu bytes)\n", (float) memory_available/(1024.0*1024.0), memory_available);
 		printf("   Memory allocated by the module: %0.3f MB (%zu bytes)\n", (float) memory_allocated/(1024.0*1024.0), memory_allocated);
@@ -596,12 +608,13 @@ void Export_data_in_range(float *GPU_data, int nTimesamples, int nDMs, const cha
 	delete [] h_export;
 }
 
-void Periodicity_search(GPU_Memory_for_Periodicity_Search *gmem, Periodicity_parameters per_param, double *compute_time, size_t input_plane_size, int inBin, Periodicity_Batch *batch){ //TODO add "cudaStream_t stream1"
+void Periodicity_search(GPU_Memory_for_Periodicity_Search *gmem, Periodicity_parameters per_param, double *compute_time, size_t input_plane_size, int inBin, Periodicity_Batch *batch, std::vector<int> *h_boxcar_widths){ //TODO add "cudaStream_t stream1"
 	int local_max_list_size = (input_plane_size)/4;
 	
-	float *d_dedispersed_data, *d_FFT_complex_output, *d_frequency_power, *d_frequency_interbin, *d_frequency_power_CT, *d_frequency_interbin_CT, *d_power_SNR, *d_interbin_SNR, *d_power_list, *d_interbin_list;
+	float *d_dedispersed_data, *d_FFT_complex_output, *d_frequency_power, *d_frequency_interbin, *d_frequency_power_CT, *d_frequency_interbin_CT, *d_power_SNR, *d_interbin_SNR, *d_power_list, *d_interbin_list, *d_MSD_workarea;
 	d_dedispersed_data      = gmem->d_one_A;
 	d_FFT_complex_output    = gmem->d_two_B;
+	d_MSD_workarea          = gmem->d_two_B;
 	d_frequency_power       = gmem->d_half_C;
 	d_frequency_interbin    = gmem->d_one_A;
 	d_frequency_power_CT    = &gmem->d_two_B[0];
@@ -611,10 +624,10 @@ void Periodicity_search(GPU_Memory_for_Periodicity_Search *gmem, Periodicity_par
 	d_power_list            = &gmem->d_two_B[0];
 	d_interbin_list         = &gmem->d_two_B[input_plane_size];
 	
-	int t_inBin          = inBin;
-	int t_nTimesamples   = batch->nTimesamples;
-	int t_nDMs_per_batch = batch->nDMs_per_batch;
-	int t_DM_shift       = batch->DM_shift;
+	int t_inBin             = inBin;
+	int t_nTimesamples      = batch->nTimesamples;
+	int t_nDMs_per_batch    = batch->nDMs_per_batch;
+	int t_DM_shift          = batch->DM_shift;
 	
 	GpuTimer timer;
 	
@@ -669,24 +682,38 @@ void Periodicity_search(GPU_Memory_for_Periodicity_Search *gmem, Periodicity_par
 	
 	//---------> Mean and StDev on powers
 	timer.Start();
-	if(per_param.enable_outlier_rejection==1){
-		#ifdef PS_REUSE_MSD_WITHIN_INBIN
-		MSD_BLN_pw_continuous_OR(d_frequency_power, gmem->d_MSD, gmem->d_previous_partials, gmem->d_all_blocks, &batch->MSD_conf, per_param.bln_sigma_constant);
-		#else
-		MSD_BLN_pw(d_frequency_power, gmem->d_MSD, gmem->d_all_blocks, &batch->MSD_conf, per_param.bln_sigma_constant);
-		#endif
-	}
-	else {
-		#ifdef PS_REUSE_MSD_WITHIN_INBIN
-		MSD_limited_continuous(d_frequency_power, gmem->d_MSD, gmem->d_previous_partials, gmem->d_all_blocks, &batch->MSD_conf);
-		#else
-		MSD_limited(d_frequency_power, gmem->d_MSD, gmem->d_all_blocks, &batch->MSD_conf);
-		#endif
-	}
+	bool perform_continuous = false;
+	#ifdef PS_REUSE_MSD_WITHIN_INBIN
+	perform_continuous = true;
+	#endif
+
+
+	#ifdef OLD_PERIODICITY
+		if(per_param.enable_outlier_rejection==1){
+			#ifdef PS_REUSE_MSD_WITHIN_INBIN
+			MSD_outlier_rejection_grid(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, gmem->d_all_blocks, &batch->MSD_conf, per_param.OR_sigma_multiplier);
+			#else
+			MSD_outlier_rejection(gmem->d_MSD, d_frequency_power, gmem->d_all_blocks, &batch->MSD_conf, per_param.OR_sigma_multiplier);
+			#endif
+		}
+		else {
+			#ifdef PS_REUSE_MSD_WITHIN_INBIN
+			MSD_normal_continuous(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, gmem->d_all_blocks, &batch->MSD_conf);
+			#else
+			MSD_normal(gmem->d_MSD, d_frequency_power, gmem->d_all_blocks, &batch->MSD_conf);
+			#endif
+		}
+	#else
+		double total_time, dit_time, MSD_time;
+		MSD_plane_profile(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, d_MSD_workarea, true, (t_nTimesamples>>1), t_nDMs_per_batch, h_boxcar_widths, 0, 0, 0, per_param.OR_sigma_multiplier, per_param.enable_outlier_rejection, perform_continuous, &total_time, &dit_time, &MSD_time);
+		printf("    MSD time: Total: %f ms; DIT: %f ms; MSD: %f ms;\n", total_time, dit_time, MSD_time);
+	#endif
+	
+
+	
 	timer.Stop();
 	printf("         -> MSD took %f ms\n", timer.Elapsed());
 	(*compute_time) = (*compute_time) + timer.Elapsed();
-	
 	//---------<
 	
 	checkCudaErrors(cudaGetLastError());
@@ -706,10 +733,13 @@ void Periodicity_search(GPU_Memory_for_Periodicity_Search *gmem, Periodicity_par
 	
 	//---------> Harmonic summing
 	timer.Start();
-	//periodicity_simple_harmonic_summing(&d_two_B[0], d_half_C, d_power_harmonics, d_MSD, (nTimesamples>>1), t_nDMs_per_batch, per_param.nHarmonics);
-	//periodicity_simple_harmonic_summing(&d_two_B[input_plane_size], d_one_A, d_interbin_harmonics, d_MSD, nTimesamples, t_nDMs_per_batch, per_param.nHarmonics);
-	periodicity_simple_harmonic_summing(d_frequency_power_CT, d_power_SNR, gmem->d_power_harmonics, gmem->d_MSD, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.nHarmonics);
-	periodicity_simple_harmonic_summing(d_frequency_interbin_CT, d_interbin_SNR, gmem->d_interbin_harmonics, gmem->d_MSD, t_nTimesamples, t_nDMs_per_batch, per_param.nHarmonics);
+	#ifdef OLD_PERIODICITY
+		periodicity_simple_harmonic_summing_old(d_frequency_power_CT, d_power_SNR, gmem->d_power_harmonics, gmem->d_MSD, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.nHarmonics);
+		periodicity_simple_harmonic_summing_old(d_frequency_interbin_CT, d_interbin_SNR, gmem->d_interbin_harmonics, gmem->d_MSD, t_nTimesamples, t_nDMs_per_batch, per_param.nHarmonics);
+	#else
+		periodicity_simple_harmonic_summing(d_frequency_power_CT, d_power_SNR, gmem->d_power_harmonics, gmem->d_MSD, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.nHarmonics);
+		periodicity_simple_harmonic_summing(d_frequency_interbin_CT, d_interbin_SNR, gmem->d_interbin_harmonics, gmem->d_MSD, t_nTimesamples, t_nDMs_per_batch, per_param.nHarmonics);
+	#endif
 	timer.Stop();
 	printf("         -> harmonic summing took %f ms\n", timer.Elapsed());
 	(*compute_time) = (*compute_time) + timer.Elapsed();
@@ -721,16 +751,24 @@ void Periodicity_search(GPU_Memory_for_Periodicity_Search *gmem, Periodicity_par
 	timer.Start();
 	if(per_param.candidate_algorithm==1){
 		//-------------- Thresholding
-		Threshold_for_periodicity(d_power_SNR, gmem->d_power_harmonics, d_power_list, gmem->gmem_power_peak_pos, gmem->d_MSD, per_param.sigma_cutoff, t_nDMs_per_batch, (t_nTimesamples>>1), t_DM_shift, t_inBin, local_max_list_size);
-		Threshold_for_periodicity(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, gmem->gmem_interbin_peak_pos, gmem->d_MSD, per_param.sigma_cutoff, t_nDMs_per_batch, t_nTimesamples, t_DM_shift, t_inBin, local_max_list_size);
+		#ifdef OLD_PERIODICITY
+			Threshold_for_periodicity_old(d_power_SNR, gmem->d_power_harmonics, d_power_list, gmem->gmem_power_peak_pos, gmem->d_MSD, per_param.sigma_cutoff, t_nDMs_per_batch, (t_nTimesamples>>1), t_DM_shift, t_inBin, local_max_list_size);
+			Threshold_for_periodicity_old(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, gmem->gmem_interbin_peak_pos, gmem->d_MSD, per_param.sigma_cutoff, t_nDMs_per_batch, t_nTimesamples, t_DM_shift, t_inBin, local_max_list_size);
+		#else
+			Threshold_for_periodicity(d_power_SNR, gmem->d_power_harmonics, d_power_list, gmem->gmem_power_peak_pos, gmem->d_MSD, per_param.sigma_cutoff, t_nDMs_per_batch, (t_nTimesamples>>1), t_DM_shift, t_inBin, local_max_list_size);
+			Threshold_for_periodicity(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, gmem->gmem_interbin_peak_pos, gmem->d_MSD, per_param.sigma_cutoff, t_nDMs_per_batch, t_nTimesamples, t_DM_shift, t_inBin, local_max_list_size);
+		#endif
 		//-------------- Thresholding
 	}
 	else {
 		//-------------- Peak finding
-		//Peak_find_for_periodicity_search(d_half_C, d_power_harmonics, &d_two_B[0], (nTimesamples>>1), t_nDMs_per_batch, per_param.sigma_cutoff, local_max_list_size, gmem_power_peak_pos, DM_shift);
-		//Peak_find_for_periodicity_search(d_one_A, d_interbin_harmonics, &d_two_B[input_plane_size], nTimesamples, t_nDMs_per_batch, per_param.sigma_cutoff, local_max_list_size, gmem_interbin_peak_pos, DM_shift);
-		Peak_find_for_periodicity_search(d_power_SNR, gmem->d_power_harmonics, d_power_list, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.sigma_cutoff, local_max_list_size, gmem->gmem_power_peak_pos, gmem->d_MSD, t_DM_shift, t_inBin);
-		Peak_find_for_periodicity_search(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, t_nTimesamples, t_nDMs_per_batch, per_param.sigma_cutoff, local_max_list_size, gmem->gmem_interbin_peak_pos, gmem->d_MSD, t_DM_shift, t_inBin);
+		#ifdef OLD_PERIODICITY
+			Peak_find_for_periodicity_search_old(d_power_SNR, gmem->d_power_harmonics, d_power_list, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.sigma_cutoff, local_max_list_size, gmem->gmem_power_peak_pos, gmem->d_MSD, t_DM_shift, t_inBin);
+			Peak_find_for_periodicity_search_old(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, t_nTimesamples, t_nDMs_per_batch, per_param.sigma_cutoff, local_max_list_size, gmem->gmem_interbin_peak_pos, gmem->d_MSD, t_DM_shift, t_inBin);
+		#else
+			Peak_find_for_periodicity_search(d_power_SNR, gmem->d_power_harmonics, d_power_list, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.sigma_cutoff, local_max_list_size, gmem->gmem_power_peak_pos, gmem->d_MSD, t_DM_shift, t_inBin);
+			Peak_find_for_periodicity_search(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, t_nTimesamples, t_nDMs_per_batch, per_param.sigma_cutoff, local_max_list_size, gmem->gmem_interbin_peak_pos, gmem->d_MSD, t_DM_shift, t_inBin);
+		#endif
 		//-------------- Peak finding
 	}
 	timer.Stop();
@@ -765,7 +803,7 @@ int Get_Number_of_Candidates(int *GPU_data){
 
 
 
-void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float sigma_cutoff, float ***output_buffer, int *ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp, int nHarmonics, int candidate_algorithm, int enable_outlier_rejection, float bln_sigma_constant) {
+void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float sigma_cutoff, float ***output_buffer, int *ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp, int nHarmonics, int candidate_algorithm, int enable_outlier_rejection, float OR_sigma_multiplier) {
 	// processed = maximum number of time-samples through out all ranges
 	// nTimesamples = number of time-samples in given range 'i'
 	// TODO:
@@ -780,8 +818,11 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 	printf("------------ STARTING PERIODICITY SEARCH ------------\n\n");
 	// Creating periodicity parameters object (temporary, it should be moved elsewhere)
 	Periodicity_parameters per_param;
-	per_param.assign(sigma_cutoff, nHarmonics, candidate_algorithm, enable_outlier_rejection, bln_sigma_constant, 0); //last parameter is export_powers
+	per_param.assign(sigma_cutoff, nHarmonics, candidate_algorithm, enable_outlier_rejection, OR_sigma_multiplier, 0); //last parameter is export_powers
 	per_param.print_parameters();
+	
+	std::vector<int> h_boxcar_widths; h_boxcar_widths.resize(nHarmonics); 
+	for(int f=0; f<nHarmonics; f++) h_boxcar_widths[f]=f+1;
 	
 	// Creating DDrange vector (temporary, it should be moved elsewhere)
 	Dedispersion_Plan DD_plan;
@@ -798,9 +839,10 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 	
 	
 	//----------------------------------------------------------------------------
-	//----------- Finding Periodicity plan for giving memory allocation
+	//----------- Finding Periodicity plan
 	int max_nDMs_in_memory;
 	AA_Periodicity_Plan P_plan;
+	P_plan.nHarmonics = nHarmonics;
 	Find_Periodicity_Plan(&max_nDMs_in_memory, &P_plan, &DD_plan, memory_available);
 	size_t input_plane_size = P_plan.input_plane_size;
 	P_plan.print();
@@ -814,7 +856,7 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 	
 	GPU_memory.Allocate(&P_plan);
 	
-	float h_MSD[MSD_RESULTS_SIZE];
+	float h_MSD[P_plan.nHarmonics*2];
 	//----------------------------<
 	//-----------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------
@@ -886,7 +928,7 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 				
 				
 				//---------> Periodicity search
-				Periodicity_search(&GPU_memory, per_param, &calc_time_per_range, input_plane_size, P_plan.inBin_group[p].Prange[r].range.inBin, &P_plan.inBin_group[p].Prange[r].batches[b]);
+				Periodicity_search(&GPU_memory, per_param, &calc_time_per_range, input_plane_size, P_plan.inBin_group[p].Prange[r].range.inBin, &P_plan.inBin_group[p].Prange[r].batches[b], &h_boxcar_widths);
 				//---------<
 				
 				
@@ -933,6 +975,7 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 
 		#ifdef PS_REUSE_MSD_WITHIN_INBIN
 			GPU_memory.Get_MSD(h_MSD);
+
 			
 			#pragma omp parallel for
 			for(int f=0; f<(int)PowerCandidates.size(); f++) {
