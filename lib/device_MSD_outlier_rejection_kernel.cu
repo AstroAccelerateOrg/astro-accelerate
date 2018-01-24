@@ -1,11 +1,168 @@
-// Added by Karel Adamek 
-
-#ifndef MSD_BLN_GRID_KERNEL_H_
-#define MSD_BLN_GRID_KERNEL_H_
+#ifndef MSD_OUTLIER_REJECTION_KERNEL_H_
+#define MSD_OUTLIER_REJECTION_KERNEL_H_
 
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "headers/params.h"
+
+
+
+__global__ void MSD_BLN_pw_rejection_normal(float const* __restrict__ d_input, float *d_output, float *d_MSD, int y_steps, int nTimesamples, int offset, float bln_sigma_constant) {
+	__shared__ float s_input[3*PD_NTHREADS];
+	float M, S, j, ftemp;
+	float limit_down = d_MSD[0] - bln_sigma_constant*d_MSD[1];
+	float limit_up = d_MSD[0] + bln_sigma_constant*d_MSD[1];
+	
+	int spos = blockIdx.x*PD_NTHREADS + threadIdx.x;
+	int gpos = blockIdx.y*y_steps*nTimesamples + spos;
+	M=0;	S=0;	j=0;
+	if( spos<(nTimesamples-offset) ){
+		
+		for (int yf = 0; yf < y_steps; yf++) {
+			ftemp=__ldg(&d_input[gpos]);
+			if( (ftemp>limit_down) && (ftemp < limit_up) ){
+				if(j==0){
+					Initiate( &M, &S, &j, ftemp);
+				}
+				else{
+					Add_one( &M, &S, &j, ftemp);
+				}			
+			}
+			gpos = gpos + nTimesamples;
+		}
+		
+	}
+	
+	s_input[threadIdx.x] = M;
+	s_input[blockDim.x + threadIdx.x] = S;
+	s_input[2*blockDim.x + threadIdx.x] = j;
+	
+	__syncthreads();
+	
+	Reduce_SM( &M, &S, &j, s_input );
+	
+	Reduce_WARP( &M, &S, &j);
+	
+	//----------------------------------------------
+	//---- Writing data
+	if (threadIdx.x == 0) {
+		gpos = blockIdx.y*gridDim.x + blockIdx.x;
+		d_output[3*gpos] = M;
+		d_output[3*gpos + 1] = S;
+		d_output[3*gpos + 2] = j;
+	}
+}
+
+
+__global__ void MSD_BLN_grid_outlier_rejection_new(float *d_input, float *d_output, int size, float multiplier) {
+	__shared__ float s_input[3*WARP*WARP];
+	__shared__ float s_signal_mean;
+	__shared__ float s_signal_sd;
+	float M, S, j;
+	float signal_mean, signal_sd;
+	
+	//----------------------------------------------
+	//---- Calculation of the initial MSD
+	Sum_partials_nonregular( &M, &S, &j, d_input, s_input, size);
+	
+	if(threadIdx.x==0){
+		s_signal_mean = M/j;
+		s_signal_sd   = sqrt(S/j);
+	}
+	
+	__syncthreads();
+	
+	signal_mean = s_signal_mean;
+	signal_sd   = s_signal_sd;
+	//---- Calculation of the initial MSD
+	//----------------------------------------------
+	
+
+	//----------------------------------------------
+	//---- Iterations with outlier rejection
+	for(int f=0; f<5; f++){
+		int pos;
+		float jv, Mt;
+		
+		pos = threadIdx.x;
+		if (size > blockDim.x) {
+			M = 0;	S = 0;	j = 0;
+			while (pos < size) {
+				jv = __ldg(&d_input[3*pos + 2]);
+				Mt = __ldg(&d_input[3*pos]);
+				if( ((int) jv)!=0 ) {
+					if ( (Mt/jv > (signal_mean - multiplier*signal_sd)) && (Mt/jv < (signal_mean + multiplier*signal_sd)) ) {
+						if( (int) j==0 ) {
+							M = Mt;
+							S = __ldg(&d_input[3*pos + 1]);
+							j = jv;
+						}
+						else {
+							Merge( &M, &S, &j, Mt, __ldg(&d_input[3*pos + 1]), jv);
+						}
+					}
+				}
+				pos = pos + blockDim.x;
+			}
+			
+			s_input[threadIdx.x] = M;
+			s_input[blockDim.x + threadIdx.x] = S;
+			s_input[2*blockDim.x + threadIdx.x] = j;
+			
+			__syncthreads();
+			
+			Reduce_SM( &M, &S, &j, s_input);
+			Reduce_WARP(&M, &S, &j);
+		}
+		else {
+			if(threadIdx.x == 0){
+				pos = 0;
+				M=0; S=0; j=0;
+				for(pos = 0; pos < size; pos++) {
+					jv = __ldg(&d_input[3*pos + 2]);
+					Mt = __ldg(&d_input[3*pos]);
+					if( ((int) jv)!=0 ) {
+						if ( (Mt/jv > (signal_mean - multiplier*signal_sd)) && (Mt/jv < (signal_mean + multiplier*signal_sd)) ) {
+							if( (int) j==0 ){
+								M = Mt; 
+								S = __ldg(&d_input[3*pos + 1]);
+								j = jv;
+							}
+							else {
+								Merge( &M, &S, &j, Mt, __ldg(&d_input[3*pos + 1]), jv);
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		if(threadIdx.x == 0){
+			s_signal_mean = M/j;
+			s_signal_sd   = sqrt(S/j);
+		}
+		
+		__syncthreads();
+		
+		signal_mean = s_signal_mean;
+		signal_sd   = s_signal_sd;
+	}
+	//---- Iterations with outlier rejection
+	//----------------------------------------------
+	
+	
+	
+	//----------------------------------------------
+	//---- Writing data
+	if(threadIdx.x==0){
+		d_output[0] = signal_mean;
+		d_output[1] = signal_sd;
+		d_output[2] = j;
+	}
+	//---- Writing data
+	//----------------------------------------------
+}
+
 
 __global__ void MSD_BLN_grid_calculate_partials(float const* __restrict__ d_input, float *d_output, int x_steps, int y_steps, int nColumns, int msd) {
 	extern __shared__ float Ms_Ss[];
@@ -95,6 +252,7 @@ __global__ void MSD_BLN_grid_calculate_partials(float const* __restrict__ d_inpu
 		}
 	}
 }
+
 
 __global__ void MSD_BLN_grid_outlier_rejection(float const* __restrict__ d_input, float *d_output, int size, float nElements, float multiplier) {
 	__shared__ float Ms[WARP*WARP];
@@ -323,114 +481,5 @@ __global__ void MSD_BLN_grid_outlier_rejection(float const* __restrict__ d_input
 
 
 
-
-__global__ void MSD_BLN_grid_outlier_rejection_new(float *d_input, float *d_output, int size, float multiplier) {
-	__shared__ float s_input[3*WARP*WARP];
-	__shared__ float s_signal_mean;
-	__shared__ float s_signal_sd;
-	float M, S, j;
-	float signal_mean, signal_sd;
-	
-	//----------------------------------------------
-	//---- Calculation of the initial MSD
-	Sum_partials_nonregular( &M, &S, &j, d_input, s_input, size);
-	
-	if(threadIdx.x==0){
-		s_signal_mean = M/j;
-		s_signal_sd   = sqrt(S/j);
-	}
-	
-	__syncthreads();
-	
-	signal_mean = s_signal_mean;
-	signal_sd   = s_signal_sd;
-	//---- Calculation of the initial MSD
-	//----------------------------------------------
-	
-
-	//----------------------------------------------
-	//---- Iterations with outlier rejection
-	for(int f=0; f<5; f++){
-		int pos;
-		float jv, Mt;
-		
-		pos = threadIdx.x;
-		if (size > blockDim.x) {
-			M = 0;	S = 0;	j = 0;
-			while (pos < size) {
-				jv = __ldg(&d_input[3*pos + 2]);
-				Mt = __ldg(&d_input[3*pos]);
-				if( ((int) jv)!=0 ) {
-					if ( (Mt/jv > (signal_mean - multiplier*signal_sd)) && (Mt/jv < (signal_mean + multiplier*signal_sd)) ) {
-						if( (int) j==0 ) {
-							M = Mt;
-							S = __ldg(&d_input[3*pos + 1]);
-							j = jv;
-						}
-						else {
-							Merge( &M, &S, &j, Mt, __ldg(&d_input[3*pos + 1]), jv);
-						}
-					}
-				}
-				pos = pos + blockDim.x;
-			}
-			
-			s_input[threadIdx.x] = M;
-			s_input[blockDim.x + threadIdx.x] = S;
-			s_input[2*blockDim.x + threadIdx.x] = j;
-			
-			__syncthreads();
-			
-			Reduce_SM( &M, &S, &j, s_input);
-			Reduce_WARP(&M, &S, &j);
-		}
-		else {
-			if(threadIdx.x == 0){
-				pos = 0;
-				M=0; S=0; j=0;
-				for(pos = 0; pos < size; pos++) {
-					jv = __ldg(&d_input[3*pos + 2]);
-					Mt = __ldg(&d_input[3*pos]);
-					if( ((int) jv)!=0 ) {
-						if ( (Mt/jv > (signal_mean - multiplier*signal_sd)) && (Mt/jv < (signal_mean + multiplier*signal_sd)) ) {
-							if( (int) j==0 ){
-								M = Mt; 
-								S = __ldg(&d_input[3*pos + 1]);
-								j = jv;
-							}
-							else {
-								Merge( &M, &S, &j, Mt, __ldg(&d_input[3*pos + 1]), jv);
-							}
-						}
-					}
-				}
-			}
-		}
-		
-		if(threadIdx.x == 0){
-			s_signal_mean = M/j;
-			s_signal_sd   = sqrt(S/j);
-		}
-		
-		__syncthreads();
-		
-		signal_mean = s_signal_mean;
-		signal_sd   = s_signal_sd;
-	}
-	//---- Iterations with outlier rejection
-	//----------------------------------------------
-	
-	
-	
-	//----------------------------------------------
-	//---- Writing data
-	if(threadIdx.x==0){
-		d_output[0] = signal_mean;
-		d_output[1] = signal_sd;
-		d_output[2] = j;
-	}
-	//---- Writing data
-	//----------------------------------------------
-}
 
 #endif

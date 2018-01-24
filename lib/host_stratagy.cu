@@ -3,9 +3,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, int *total_ndms, float *max_dm, float power, int nchans, int nsamp, float fch1, float foff, float tsamp, int range, float *user_dm_low, float *user_dm_high, float *user_dm_step, float **dm_low, float **dm_high, float **dm_step, int **ndms, float **dmshifts, int *inBin, int ***t_processed, size_t *gpu_memory, size_t SPS_mem_requirement) {
+void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, int *total_ndms, float *max_dm, float power, int nchans, int nsamp, float fch1, float foff, float tsamp, int range, float *user_dm_low, float *user_dm_high, float *user_dm_step, float **dm_low, float **dm_high, float **dm_step, int **ndms, float **dmshifts, int *inBin, int ***t_processed, size_t *gpu_memory, int enable_analysis) {
 	// This method relies on defining points when nsamps is a multiple of
 	// nchans - bin on the diagonal or a fraction of it.
+	
+	double SPDT_fraction = 3.0/4.0; // 1.0 for MSD plane profile validation
+	
 
 	int i, j, c;
 	int maxshift_high = 0;
@@ -110,7 +113,8 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 
 		// Maximum number of samples we can fit in our GPU RAM is then given by:
 		//max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short) * ( (*max_ndms) + nchans ) ) ); // maximum number of timesamples we can fit into GPU memory
-		max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short)*nchans + sizeof(float)*(*max_ndms) + (size_t)(SPS_mem_requirement*MIN_DMS_PER_SPS_RUN ))); // maximum number of timesamples we can fit into GPU memory
+		size_t SPDT_memory_requirements = (enable_analysis==1 ? (sizeof(float)*(*max_ndms)*SPDT_fraction) : 0 );
+		max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short)*nchans + sizeof(float)*(*max_ndms) + SPDT_memory_requirements )); // maximum number of timesamples we can fit into GPU memory
 		
 		// Check that we dont have an out of range maxshift:
 		if (( *maxshift ) > max_tsamps)	{
@@ -176,7 +180,8 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 
 		// Maximum number of samples we can fit in our GPU RAM is then given by:
 		//max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + 2 * sizeof(unsigned short) ) ) );
-		max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + sizeof(unsigned short) )+ SPS_mem_requirement*MIN_DMS_PER_SPS_RUN ));
+		size_t SPDT_memory_requirements = (enable_analysis==1 ? (sizeof(float)*(*max_ndms)*SPDT_fraction) : 0 );
+		max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + sizeof(unsigned short) )+ SPDT_memory_requirements ));
 
 		// Check that we dont have an out of range maxshift:
 		if (( *maxshift ) > max_tsamps) {

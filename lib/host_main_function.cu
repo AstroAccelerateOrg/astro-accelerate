@@ -10,15 +10,13 @@
 #include "headers/device_zero_dm_outliers.h"
 #include "headers/device_rfi.h"
 
+// MSD
+#include "headers/device_MSD_Configuration.h"
+#include "headers/device_MSD.h"
+#include "headers/device_MSD_plane_profile.h"
 
 #include "headers/device_SPS_inplace_kernel.h" //Added by KA
 #include "headers/device_SPS_inplace.h" //Added by KA
-#include "headers/device_MSD_BLN_grid.h" //Added by KA
-#include "headers/device_MSD_BLN_pw.h" //Added by KA
-//#include "headers/device_MSD_BLN_pw_dp.h" //Added by KA
-#include "headers/device_MSD_grid.h" //Added by KA
-#include "headers/device_MSD_plane.h" //Added by KA
-#include "headers/device_MSD_limited.h" //Added by KA
 #include "headers/device_SNR_limited.h" //Added by KA
 #include "headers/device_SPS_long.h" //Added by KA
 #include "headers/device_threshold.h" //Added by KA
@@ -37,6 +35,7 @@
 #include "headers/host_acceleration.h"
 #include "headers/host_allocate_memory.h"
 #include "headers/host_analysis.h"
+#include "headers/host_export.h"
 #include "headers/host_periods.h"
 #include "headers/host_debug.h"
 #include "headers/host_get_file_data.h"
@@ -55,6 +54,9 @@
 #include "headers/params.h"
 
 #include "timer.h"
+
+
+//#define EXPORT_DD_DATA
 
 void main_function
 	(
@@ -157,7 +159,7 @@ void main_function
 	
 	// Calculate the dedispersion stratagy.
 	stratagy(&maxshift, &max_samps, &num_tchunks, &max_ndms, &total_ndms, &max_dm, power, nchans, nsamp, fch1, foff, tsamp, range, user_dm_low, user_dm_high, user_dm_step,
-                 &dm_low, &dm_high, &dm_step, &ndms, &dmshifts, inBin, &t_processed, &gpu_memory, Get_memory_requirement_of_SPS());
+                 &dm_low, &dm_high, &dm_step, &ndms, &dmshifts, inBin, &t_processed, &gpu_memory, enable_analysis);
 	if(enable_debug == 1) debug(4, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
@@ -204,8 +206,7 @@ void main_function
 	//out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
 	//memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
 
-	for (t = 0; t < num_tchunks; t++)
-	{
+	for (t = 0; t < num_tchunks; t++) {
 		printf("\nt_processed:\t%d, %d", t_processed[0][t], t);
 		
 		checkCudaErrors(cudaGetLastError());
@@ -214,15 +215,13 @@ void main_function
 
 		checkCudaErrors(cudaGetLastError());
 		
-		if (enable_zero_dm)
-		{
+		if (enable_zero_dm) {
 			zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
 		}
 		
 		checkCudaErrors(cudaGetLastError());
 		
-		if (enable_zero_dm_with_outliers)
-		{
+		if (enable_zero_dm_with_outliers) {
 			zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
 	 	}
 		
@@ -232,8 +231,7 @@ void main_function
 		
 		checkCudaErrors(cudaGetLastError());
 		
-		if (enable_rfi)
-		{
+		if (enable_rfi) {
  			rfi_gpu(d_input, nchans, t_processed[0][t]+maxshift);
 		}
 		
@@ -255,8 +253,7 @@ void main_function
 			
 			checkCudaErrors(cudaGetLastError());
 			
-			if (inBin[dm_range] > oldBin)
-			{
+			if (inBin[dm_range] > oldBin) {
 				bin_gpu(d_input, d_output, nchans, t_processed[dm_range - 1][t] + maxshift * inBin[dm_range]);
 				( tsamp ) = ( tsamp ) * 2.0f;
 			}
@@ -267,14 +264,12 @@ void main_function
 		
 			checkCudaErrors(cudaGetLastError());
 			
-			if ( (enable_acceleration == 1) || (enable_periodicity == 1) || (analysis_debug ==1) )
-			{
+			if ( (enable_acceleration == 1) || (enable_periodicity == 1) || (analysis_debug ==1) ) {
 				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
 				//save_data(d_output, out_tmp, gpu_outputsize);
 
 				//#pragma omp parallel for
-				for (int k = 0; k < ndms[dm_range]; k++)
-				{
+				for (int k = 0; k < ndms[dm_range]; k++) {
 					//memcpy(&output_buffer[dm_range][k][inc / inBin[dm_range]], &out_tmp[k * t_processed[dm_range][t]], sizeof(float) * t_processed[dm_range][t]);
 
 					save_data_offset(d_output, k * t_processed[dm_range][t], output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
@@ -295,8 +290,7 @@ void main_function
 				
 				printf("\n VALUE OF ANALYSIS DEBUG IS %d\n", analysis_debug);
 
-				if (analysis_debug == 1)
-				{
+				if (analysis_debug == 1) {
 					float *out_tmp;
 					gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
 					out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
@@ -305,8 +299,7 @@ void main_function
 					analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp, max_boxcar_width_in_sec);
 					free(out_tmp);
 				}
-				else
-				{
+				else {
 					float *h_peak_list;
 					size_t max_peak_size;
 					size_t peak_pos;
@@ -348,6 +341,19 @@ void main_function
 	cudaFree(d_output);
 	//free(out_tmp);
 	free(input_buffer);
+	
+	#ifdef EXPORT_DD_DATA
+		size_t DMs_per_file;
+		int *ranges_to_export;
+		ranges_to_export = new int[range];
+		for(int f=0; f<range; f++) ranges_to_export[f]=1;
+		printf("\n\n");
+		printf("Exporting dedispersion data...\n");
+		DMs_per_file = Calculate_sd_per_file_from_file_size(1000, inc, 1);
+		printf("  DM per file: %d;\n", DMs_per_file);
+		Export_DD_data(range, output_buffer, inc, ndms, inBin, dm_low, dm_high, dm_step, "DD_data", ranges_to_export, DMs_per_file);
+		delete[] ranges_to_export;
+	#endif
 
 	double time_processed = ( tstart_local ) / tsamp_original;
 	double dm_t_processed = time_processed * total_ndms;
@@ -363,8 +369,7 @@ void main_function
 	float size_gb = ( nchans * ( t_processed[0][0] ) * sizeof(float) * 8 ) / 1000000000.0;
 	printf("\nTelescope data throughput in Gb/s: %f", size_gb / time_in_sec);
 
-	if (enable_periodicity == 1)
-	{
+	if (enable_periodicity == 1) {
 		//
 		GpuTimer timer;
 		timer.Start();
@@ -381,8 +386,7 @@ void main_function
 		printf("\nReal-time speedup factor: %f", ( tstart_local ) / ( time ));
 	}
 
-	if (enable_acceleration == 1)
-	{
+	if (enable_acceleration == 1) {
 		// Input needed for fdas is output_buffer which is DDPlan
 		// Assumption: gpu memory is free and available
 		//

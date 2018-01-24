@@ -11,3 +11,4 @@ output/
 *.ori
 
 asstrolib/libastrolib.a
+out.txt
