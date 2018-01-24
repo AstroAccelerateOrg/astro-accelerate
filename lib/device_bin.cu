@@ -51,3 +51,34 @@ void bin_gpu(unsigned short *d_input, float *d_output, int nchans, int nsamp)
 	//	getLastCudaError("Kernel execution failed");
 }
 
+
+int GPU_DiT_v2_wrapper(float *d_input, float *d_output, int nDMs, int nTimesamples){
+	GpuTimer timer;
+	
+	//---------> Task specific
+	int ut;
+	
+	//---------> CUDA block and CUDA grid parameters
+	int nThreads = 2*WARP;
+	int nCUDAblocks_x=nTimesamples/(DIT_ELEMENTS_PER_THREAD*nThreads*2);
+	int nRest = nTimesamples%(DIT_ELEMENTS_PER_THREAD*nThreads*2);
+	if(nRest>0) nCUDAblocks_x++;
+	int nCUDAblocks_y=nDMs/DIT_YSTEP;
+	
+	dim3 gridSize(nCUDAblocks_x, nCUDAblocks_y, 1);
+	dim3 blockSize(nThreads, DIT_YSTEP, 1);
+	
+	if( (nTimesamples>>1)==0 ) return(-1);
+	
+	// ----------------------------------------------->
+	// --------> Measured part (Pulse detection FIR)
+	//---------> Pulse detection FIR
+	DiT_GPU_v2<<<gridSize,blockSize>>>(d_input, d_output, nDMs, nTimesamples, (nTimesamples>>1));
+	// --------> Measured part (Pulse detection FIR)
+	// ----------------------------------------------->
+	
+	ut=0;
+	return(ut);
+}
+
+
