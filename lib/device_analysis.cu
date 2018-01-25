@@ -305,6 +305,8 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 		for (int count = 0; count < (*peak_pos); count++){
 			h_peak_list[4*count]     = h_peak_list[4*count]*dm_step[i] + dm_low[i];
 			h_peak_list[4*count + 1] = h_peak_list[4*count + 1]*tsamp + tstart;
+			h_peak_list[4*count + 2] = h_peak_list[4*count + 2];
+			h_peak_list[4*count + 3] = h_peak_list[4*count + 3]*inBin;
 		}
         
 		FILE *fp_out;
