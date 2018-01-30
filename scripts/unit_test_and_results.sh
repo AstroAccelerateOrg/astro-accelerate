@@ -11,6 +11,7 @@ LOCATION=$1
 
 rm -rf ../output/*
 rm -rf ../output/tests/*
+rm -rf ../input_files/tests
 
 mkdir ../input_files/tests
 mkdir ../output/tests
