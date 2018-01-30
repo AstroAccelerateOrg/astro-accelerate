@@ -182,8 +182,9 @@ void main_function
 	checkCudaErrors(cudaGetLastError());
 	
 	// Clip RFI
-
-	//rfi(nsamp, nchans, &input_buffer);
+	if (enable_rfi) {
+		rfi(nsamp, nchans, &input_buffer);
+	}
 	/*
 	 FILE	*fp_o;
 
@@ -231,9 +232,9 @@ void main_function
 		
 		checkCudaErrors(cudaGetLastError());
 		
-		if (enable_rfi) {
- 			rfi_gpu(d_input, nchans, t_processed[0][t]+maxshift);
-		}
+		//if (enable_rfi) {
+ 		//	rfi_gpu(d_input, nchans, t_processed[0][t]+maxshift);
+		//}
 		
 		checkCudaErrors(cudaGetLastError());
 		
