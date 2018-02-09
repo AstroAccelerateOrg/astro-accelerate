@@ -61,7 +61,7 @@ void Export_DD_data(int range, float ***dedispersed_data, size_t max_nTimesample
 				fclose(fp_out);
 				
 				inner_DM_shift = inner_DM_shift + chunk_size[i];
-				printf("    Exported: %0.2f%\n", ((float) inner_DM_shift)*percent_per_DMtrial);
+				printf("    Exported: %0.2f% \n", ((float) inner_DM_shift)*percent_per_DMtrial);
 			}
 		
 			delete [] h_data;
