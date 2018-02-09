@@ -1,11 +1,14 @@
-range	0.000	 444.00  0.125 1 8
-range	444.00	 888.00  0.250 2 16
-range	888.00	 1776.00 0.500 4 32
+range	0.000	 500.00   0.1  1 1
+range	500.00	 1000.00  0.10 1 1
+-ange	1000.00	 2000.00  0.10 1 1
+-range	2000.00	 4000.00  0.25 8 8
+-range	4000.00	 8000.00  0.5 16 16
+-range	8000.00	 14000.00 0.5 32 32
 sigma_cutoff	6
 sigma_constant  3.0
 max_boxcar_width_in_sec 0.5
-periodicity_sigma_cutoff 20
-periodicity_harmonics 32
+periodicity_sigma_cutoff 30
+periodicity_harmonics 4
 analysis
 -acceleration
 -output_ffdot_plan
@@ -14,7 +17,7 @@ periodicity
 -output_dmt
 -zero_dm
 -zero_dm_with_outliers
--rfi
+rfi
 threshold
 baselinenoise
 fdas_custom_fft
