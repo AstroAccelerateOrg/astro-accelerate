@@ -309,7 +309,7 @@ public:
 		list.clear();
 		list = new_list;
 		nPoints_after = size();
-		printf("   Before: %d; After: %d;   MSD = [%f;%f;%f] sigma_cutoff:%f\n", nPoints_before, nPoints_after, sigma_cutoff);
+		printf("   Before: %d; After: %d; sigma_cutoff:%f\n", nPoints_before, nPoints_after, sigma_cutoff);
 	}
 };
 

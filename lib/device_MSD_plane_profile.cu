@@ -537,7 +537,7 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 	checkCudaErrors(cudaGetLastError());
 	
 	for(size_t f=130; f<=256 && f<max_boxcar_width; f+=4){
-		printf("nTimesamples: %d; f: %d; %d\n", nTimesamples, f, nTimesamples-f+1);
+		printf("nTimesamples: %zu; f: %zu; %zu\n", nTimesamples, f, nTimesamples-f+1);
 		int itemp = (int) (nTimesamples-f+1);
 		if( itemp>0 ) {
 			timer.Start();
@@ -566,7 +566,7 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 	checkCudaErrors(cudaGetLastError());
 	
 	for(size_t f=272; f<=512 && f<max_boxcar_width; f+=16){
-		printf("nTimesamples: %d; f: %d; %d\n", nTimesamples, f, nTimesamples-f+1);
+		printf("nTimesamples: %zu; f: %zu; %zu\n", nTimesamples, f, nTimesamples-f+1);
 		int itemp = (int) (nTimesamples-f+1);
 		if( itemp>0 ) {
 			timer.Start();
@@ -595,7 +595,7 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 	checkCudaErrors(cudaGetLastError());
 	
 	for(size_t f=544; f<=1024 && f<max_boxcar_width; f+=32){
-		printf("nTimesamples: %d; f: %d; %d\n", nTimesamples, f, nTimesamples-f+1);
+		printf("nTimesamples: %zu; f: %zu; %zu\n", nTimesamples, f, nTimesamples-f+1);
 		int itemp = (int) (nTimesamples-f+1);
 		if( itemp>0 ) {
 			timer.Start();
@@ -624,7 +624,7 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 	checkCudaErrors(cudaGetLastError());
 
 	for(size_t f=1088; f<=2048 && f<max_boxcar_width; f+=64){
-		printf("nTimesamples: %d; f: %d; %d\n", nTimesamples, f, nTimesamples-f+1);
+		printf("nTimesamples: %zu; f: %zu; %zu\n", nTimesamples, f, nTimesamples-f+1);
 		int itemp = (int) (nTimesamples-f+1);
 		if( itemp>0 ) {
 			timer.Start();
@@ -653,7 +653,7 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 	checkCudaErrors(cudaGetLastError());
 
 	for(size_t f=2176; f<=4096 && f<max_boxcar_width; f+=128){
-		printf("nTimesamples: %d; f: %d; %d\n", nTimesamples, f, nTimesamples-f+1);
+		printf("nTimesamples: %zu; f: %zu; %zu\n", nTimesamples, f, nTimesamples-f+1);
 		int itemp = (int) (nTimesamples-f+1);
 		if( itemp>0 ) {
 			timer.Start();
@@ -682,7 +682,7 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 	checkCudaErrors(cudaGetLastError());
 	
 	for(size_t f=4352; f<=8192 && f<max_boxcar_width; f+=256){
-		printf("nTimesamples: %d; f: %d; %d\n", nTimesamples, f, nTimesamples-f+1);
+		printf("nTimesamples: %zu; f: %zu; %zu\n", nTimesamples, f, nTimesamples-f+1);
 		int itemp = (int) (nTimesamples-f+1);
 		if( itemp>0 ) {
 			timer.Start();
