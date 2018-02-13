@@ -386,9 +386,17 @@ void acceleration_fdas(int range,
 					if ( cudaSuccess != cudaMalloc((void**) &gmem_fdas_peak_pos, 1*sizeof(int))) printf("Allocation error!\n");
 					cudaMemset((void*) gmem_fdas_peak_pos, 0, sizeof(int));
 					
-					// This might be bit iffy since when interbining is done values are correlated
-					printf("Dimensions for BLN: ibin:%d; siglen:%d;\n", ibin, params.siglen);
-					MSD_grid_outlier_rejection(d_MSD, gpuarrays.d_ffdot_pwr, 32, 32, ibin*params.siglen, NKERN, 0, sigma_constant);
+
+					//printf("Dimensions for BLN: ibin:%d; siglen:%d;\n", ibin, params.siglen);
+					if(NKERN>=32){
+						printf("Block\n");
+						MSD_grid_outlier_rejection(d_MSD, gpuarrays.d_ffdot_pwr, 32, 32, ibin*params.siglen, NKERN, 0, sigma_constant);
+					}
+					else {
+						printf("Point\n");
+						Find_MSD(d_MSD, gpuarrays.d_ffdot_pwr, params.siglen/ibin, NKERN, 0, sigma_constant, 1);
+					}
+					checkCudaErrors(cudaGetLastError());
 					
 					//!TEST!: do not perform peak find instead export the thing to file.
 					#ifdef FDAS_CONV_TEST
