@@ -234,6 +234,51 @@ int MSD_outlier_rejection_grid(float *d_MSD, float *d_input, float *d_previous_p
 
 
 
+void Find_MSD(float *d_MSD, float *d_input, int nTimesamples, int nDMs, int offset, float OR_sigma_multiplier, int enable_outlier_rejection){
+	MSD_Configuration conf(nTimesamples, nDMs, offset, 0);
+	float *d_MSD_workarea;
+	checkCudaErrors(cudaMalloc((void **) &d_MSD_workarea, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float)));
+	if(enable_outlier_rejection){
+		MSD_outlier_rejection(d_MSD, d_input, d_MSD_workarea, &conf, OR_sigma_multiplier);
+	}
+	else {
+		MSD_normal(d_MSD, d_input, d_MSD_workarea, &conf);
+	}
+	checkCudaErrors(cudaFree(d_MSD_workarea));
+}
+
+void Find_MSD(float *d_MSD, float *d_input, float *d_MSD_workarea, MSD_Configuration *conf, float OR_sigma_multiplier, int enable_outlier_rejection){
+	if(enable_outlier_rejection){
+		MSD_outlier_rejection(d_MSD, d_input, d_MSD_workarea, conf, OR_sigma_multiplier);
+	}
+	else {
+		MSD_normal(d_MSD, d_input, d_MSD_workarea, conf);
+	}
+}
+
+void Find_MSD_continuous(float *d_MSD, float *d_input, float *d_previous_partials, int nTimesamples, int nDMs, int offset, float OR_sigma_multiplier, int enable_outlier_rejection){
+	MSD_Configuration conf(nTimesamples, nDMs, offset, 0);
+	float *d_MSD_workarea;
+	checkCudaErrors(cudaMalloc((void **) &d_MSD_workarea, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float)));
+	if(enable_outlier_rejection){
+		MSD_outlier_rejection_continuous(d_MSD, d_input, d_previous_partials, d_MSD_workarea, &conf, OR_sigma_multiplier);
+	}
+	else {
+		MSD_normal_continuous(d_MSD, d_input, d_previous_partials, d_MSD_workarea, &conf);
+	}
+	checkCudaErrors(cudaFree(d_MSD_workarea));
+}
+
+void Find_MSD_continuous(float *d_MSD, float *d_input, float *d_previous_partials, float *d_MSD_workarea, MSD_Configuration *conf, float OR_sigma_multiplier, int enable_outlier_rejection){
+	if(enable_outlier_rejection){
+		MSD_outlier_rejection_continuous(d_MSD, d_input, d_previous_partials, d_MSD_workarea, conf, OR_sigma_multiplier);
+	}
+	else {
+		MSD_normal_continuous(d_MSD, d_input, d_previous_partials, d_MSD_workarea, conf);
+	}
+}
+
+
 
 //---------------------------------------------------------------
 //------------- MSD with outlier rejection on grid
