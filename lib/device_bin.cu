@@ -7,7 +7,7 @@
 
 //extern "C" void bin_gpu(float *bin_buffer, float *input_buffer, int nchans, int nsamp);
 
-void bin_gpu(unsigned short *d_input, float *d_output, int nchans, int nsamp)
+void bin_gpu(unsigned short *d_input, float *d_output, int nchans, int nsamp, cudaStream_t streams)
 {
 
 	int divisions_in_t = BINDIVINT;
@@ -25,7 +25,7 @@ void bin_gpu(unsigned short *d_input, float *d_output, int nchans, int nsamp)
 	// clock_t start_t, end_t;
 	// start_t = clock();
 
-	bin<<<num_blocks, threads_per_block>>>(d_input, d_output, nsamp);
+	bin<<<num_blocks, threads_per_block,0,streams>>>(d_input, d_output, nsamp);
 	//	getLastCudaError("Kernel execution failed");
 
 	int swap_divisions_in_t = CT;
@@ -36,9 +36,9 @@ void bin_gpu(unsigned short *d_input, float *d_output, int nchans, int nsamp)
 	dim3 swap_threads_per_block(swap_divisions_in_t, swap_divisions_in_f);
 	dim3 swap_num_blocks(swap_num_blocks_t, swap_num_blocks_f);
 
-	cudaDeviceSynchronize();
-	swap<<<swap_num_blocks, swap_threads_per_block>>>(d_input, d_output, nchans, nsamp);
-	cudaDeviceSynchronize();
+//	cudaDeviceSynchronize();
+	swap<<<swap_num_blocks, swap_threads_per_block,0,streams>>>(d_input, d_output, nchans, nsamp);
+//	cudaDeviceSynchronize();
 
 	// end_t = clock();
 	// double time = double ( end_t - start_t ) / CLOCKS_PER_SEC;
@@ -46,13 +46,13 @@ void bin_gpu(unsigned short *d_input, float *d_output, int nchans, int nsamp)
 	//printf("\nGops based on %.2f ops per channel per tsamp: %f",14.0,((15.0*(divisions_in_t*divisions_in_f*num_blocks_t*num_blocks_f))/(time))/1000000000.0);
 	//printf("\nBN Device memory bandwidth in GB/s: %f", (2*(sizeof(float)+sizeof(unsigned short))*(divisions_in_t*divisions_in_f*num_blocks_t*num_blocks_f))/(time)/1000000000.0);
 
-	cudaMemset(d_output, 0, nchans * nsamp * sizeof(float));
+	cudaMemsetAsync(d_output, 0, nchans * nsamp * sizeof(float),streams);
 	//cudaMemcpy(input_buffer, bin_buffer, sizeof(float)*nchans*(nsamp/2), cudaMemcpyDeviceToDevice);
 	//	getLastCudaError("Kernel execution failed");
 }
 
 
-int GPU_DiT_v2_wrapper(float *d_input, float *d_output, int nDMs, int nTimesamples){
+int GPU_DiT_v2_wrapper(float *d_input, float *d_output, int nDMs, int nTimesamples, cudaStream_t streams){
 	GpuTimer timer;
 	
 	//---------> Task specific
@@ -73,7 +73,7 @@ int GPU_DiT_v2_wrapper(float *d_input, float *d_output, int nDMs, int nTimesampl
 	// ----------------------------------------------->
 	// --------> Measured part (Pulse detection FIR)
 	//---------> Pulse detection FIR
-	DiT_GPU_v2<<<gridSize,blockSize>>>(d_input, d_output, nDMs, nTimesamples, (nTimesamples>>1));
+	DiT_GPU_v2<<<gridSize,blockSize,0,streams>>>(d_input, d_output, nDMs, nTimesamples, (nTimesamples>>1));
 	// --------> Measured part (Pulse detection FIR)
 	// ----------------------------------------------->
 	

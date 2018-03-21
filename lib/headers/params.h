@@ -31,6 +31,13 @@
 #define MIN_DMS_PER_SPS_RUN 64
 #define MSD_PW_NTHREADS 512
 
+/****************************/
+//Added by Jan Novotny
+//reserve memory in MB
+#define RESERVE_MEMORY 512
+#define NUM_STREAMS 2
+/****************************/
+
 /**** FDAS parameters ******/
 /*Params for benchmarks */
 #define SLIGHT 299792458.0

@@ -24,19 +24,19 @@ void MSD_init(void) {
 //---------------------------------------------------------------
 //------------- MSD without outlier rejection
 
-int MSD_normal(float *d_MSD, float *d_input, float *d_temp, MSD_Configuration *MSD_conf) {
+int MSD_normal(float *d_MSD, float *d_input, float *d_temp, MSD_Configuration *MSD_conf, cudaStream_t streams) {
 	
 	#ifdef MSD_DEBUG
 	MSD_conf->print();
 	#endif
 
 	MSD_init();
-	MSD_GPU_limited<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset);
-	MSD_GPU_final_regular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
+	MSD_GPU_limited<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize,0,streams>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset);
+	MSD_GPU_final_regular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize,0,streams>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
 	
 	#ifdef MSD_DEBUG
 	float h_MSD[MSD_PARTIAL_SIZE];
-	checkCudaErrors(cudaMemcpy(h_MSD, d_MSD, MSD_PARTIAL_SIZE*sizeof(float), cudaMemcpyDeviceToHost)); 
+	checkCudaErrors(cudaMemcpyAsync(h_MSD, d_MSD, MSD_PARTIAL_SIZE*sizeof(float), cudaMemcpyDeviceToHost, streams)); 
 	printf("Output: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
 	printf("---------------------------<\n");
 	#endif
@@ -44,31 +44,31 @@ int MSD_normal(float *d_MSD, float *d_input, float *d_temp, MSD_Configuration *M
 	return (0);
 }
 
-int MSD_normal(float *d_MSD, float *d_input, int nTimesamples, int nDMs, int offset){
+int MSD_normal(float *d_MSD, float *d_input, int nTimesamples, int nDMs, int offset, cudaStream_t streams){
 	int result;
 	MSD_Configuration conf(nTimesamples, nDMs, offset, 0);
 	float *d_temp;
 	checkCudaErrors(cudaMalloc((void **) &d_temp, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float)));
-	result = MSD_normal(d_MSD, d_input, d_temp, &conf);
+	result = MSD_normal(d_MSD, d_input, d_temp, &conf, streams);
 	checkCudaErrors(cudaFree(d_temp));
 	return(result);
 }
 
 
 
-int MSD_normal_continuous(float *d_MSD, float *d_input, float *d_previous_partials, float *d_temp, MSD_Configuration *MSD_conf) {
+int MSD_normal_continuous(float *d_MSD, float *d_input, float *d_previous_partials, float *d_temp, MSD_Configuration *MSD_conf, cudaStream_t streams) {
 
 	#ifdef MSD_DEBUG
 	MSD_conf->print();
 	#endif
 
 	MSD_init();
-	MSD_GPU_limited<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset);
-	MSD_GPU_final_regular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, d_previous_partials, MSD_conf->nBlocks_total);
+	MSD_GPU_limited<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize,0,streams>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset);
+	MSD_GPU_final_regular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize,0,streams>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, d_previous_partials, MSD_conf->nBlocks_total);
 	
 	#ifdef MSD_DEBUG
 	float h_MSD[3];
-	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	cudaMemcpyAsync(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost, streams); 
 	printf("Output: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
 	printf("---------------------------<\n");
 	#endif
@@ -76,12 +76,12 @@ int MSD_normal_continuous(float *d_MSD, float *d_input, float *d_previous_partia
 	return (0);
 }
 
-int MSD_normal_continuous(float *d_MSD, float *d_input, float *d_previous_partials, int nTimesamples, int nDMs, int offset){
+int MSD_normal_continuous(float *d_MSD, float *d_input, float *d_previous_partials, int nTimesamples, int nDMs, int offset, cudaStream_t streams){
 	int result;
 	MSD_Configuration conf(nTimesamples, nDMs, offset, 0);
 	float *d_temp;
 	cudaMalloc((void **) &d_temp, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float));
-	result = MSD_normal_continuous(d_MSD, d_input, d_previous_partials, d_temp, &conf);
+	result = MSD_normal_continuous(d_MSD, d_input, d_previous_partials, d_temp, &conf, streams);
 	cudaFree(d_temp);
 	return(result);
 }
@@ -94,32 +94,32 @@ int MSD_normal_continuous(float *d_MSD, float *d_input, float *d_previous_partia
 //------------- MSD with outlier rejection
 
 //MSD_BLN_pw
-int MSD_outlier_rejection(float *d_MSD, float *d_input, float *d_temp, MSD_Configuration *MSD_conf, float OR_sigma_multiplier){
+int MSD_outlier_rejection(float *d_MSD, float *d_input, float *d_temp, MSD_Configuration *MSD_conf, float OR_sigma_multiplier, cudaStream_t streams){
 	#ifdef MSD_DEBUG
 	float h_MSD[3];
 	MSD_conf->print();
 	#endif
 	
 	MSD_init();
-	MSD_GPU_limited<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset);
-	MSD_GPU_final_regular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
+	MSD_GPU_limited<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize,0,streams>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset);
+	MSD_GPU_final_regular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize,0,streams>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
 	#ifdef MSD_DEBUG
 	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
 	printf("Before outlier rejection: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
 	printf("---------------------------<\n");
 	#endif
 	for(int i=0; i<5; i++){
-		MSD_BLN_pw_rejection_normal<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD,  MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset, OR_sigma_multiplier);
-		MSD_GPU_final_nonregular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
+		MSD_BLN_pw_rejection_normal<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize,0,streams>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD,  MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset, OR_sigma_multiplier);
+		MSD_GPU_final_nonregular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize,0,streams>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
 		#ifdef MSD_DEBUG
-		cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+		cudaMemcpyAsync(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost, streams); 
 		printf("Rejection %d: Mean: %e, Standard deviation: %e; Elements:%zu;\n", i, h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
 		printf("---------------------------<\n");
 		#endif
 	}
 	
 	#ifdef MSD_DEBUG
-	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	cudaMemcpyAsync(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost, streams); 
 	printf("Output: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
 	printf("---------------------------<\n");
 	#endif
@@ -128,45 +128,45 @@ int MSD_outlier_rejection(float *d_MSD, float *d_input, float *d_temp, MSD_Confi
 }
 
 
-int MSD_outlier_rejection(float *d_MSD, float *d_input, int nTimesamples, int nDMs, int offset, float OR_sigma_multiplier) {
+int MSD_outlier_rejection(float *d_MSD, float *d_input, int nTimesamples, int nDMs, int offset, float OR_sigma_multiplier, cudaStream_t streams) {
 	int result;
 	MSD_Configuration conf(nTimesamples, nDMs, offset, 0);
 	float *d_temp;
 	cudaMalloc((void **) &d_temp, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float));
-	result = MSD_outlier_rejection(d_MSD, d_input, d_temp, &conf, OR_sigma_multiplier);
+	result = MSD_outlier_rejection(d_MSD, d_input, d_temp, &conf, OR_sigma_multiplier, streams);
 	cudaFree(d_temp);
 	return(result);
 }
 
 
 //MSD_BLN_pw_continuous
-int MSD_outlier_rejection_continuous(float *d_MSD, float *d_input, float *d_previous_partials, float *d_temp, MSD_Configuration *MSD_conf, float OR_sigma_multiplier){
+int MSD_outlier_rejection_continuous(float *d_MSD, float *d_input, float *d_previous_partials, float *d_temp, MSD_Configuration *MSD_conf, float OR_sigma_multiplier, cudaStream_t streams){
 	#ifdef MSD_DEBUG
 	float h_MSD[3];
 	MSD_conf->print();
 	#endif
 	
 	MSD_init();
-	MSD_GPU_limited<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset);
-	MSD_GPU_final_regular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
+	MSD_GPU_limited<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize,0,streams>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset);
+	MSD_GPU_final_regular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize,0,streams>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
 	#ifdef MSD_DEBUG
-	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	cudaMemcpyAsync(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost, streams); 
 	printf("Before outlier rejection: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
 	printf("---------------------------<\n");
 	#endif
 	for(int i=0; i<5; i++){
-		MSD_BLN_pw_rejection_normal<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD,  MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset, OR_sigma_multiplier);
-		MSD_GPU_final_nonregular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
+		MSD_BLN_pw_rejection_normal<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize,0,streams>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD,  MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset, OR_sigma_multiplier);
+		MSD_GPU_final_nonregular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize,0,streams>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
 		#ifdef MSD_DEBUG
-		cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+		cudaMemcpyAsync(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost, streams); 
 		printf("Rejection %d: Mean: %e, Standard deviation: %e; Elements:%zu;\n", i, h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
 		printf("---------------------------<\n");
 		#endif
 	}
-	MSD_GPU_final_nonregular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, d_previous_partials, MSD_conf->nBlocks_total);
+	MSD_GPU_final_nonregular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize,0,streams>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, d_previous_partials, MSD_conf->nBlocks_total);
 	
 	#ifdef MSD_DEBUG
-	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	cudaMemcpyAsync(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost, streams); 
 	printf("Output: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
 	printf("---------------------------<\n");
 	#endif
@@ -175,52 +175,52 @@ int MSD_outlier_rejection_continuous(float *d_MSD, float *d_input, float *d_prev
 }
 
 
-int MSD_outlier_rejection_continuous(float *d_MSD, float *d_input, float *d_previous_partials, int nTimesamples, int nDMs, int offset, float OR_sigma_multiplier) {
+int MSD_outlier_rejection_continuous(float *d_MSD, float *d_input, float *d_previous_partials, int nTimesamples, int nDMs, int offset, float OR_sigma_multiplier, cudaStream_t streams) {
 	int result;
 	MSD_Configuration conf(nTimesamples, nDMs, offset, 0);
 	float *d_temp;
 	cudaMalloc((void **) &d_temp, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float));
-	result = MSD_outlier_rejection_continuous(d_MSD, d_input, d_previous_partials, d_temp, &conf, OR_sigma_multiplier);
+	result = MSD_outlier_rejection_continuous(d_MSD, d_input, d_previous_partials, d_temp, &conf, OR_sigma_multiplier, streams);
 	cudaFree(d_temp);
 	return(result);
 }
 
 
 //MSD_BLN_pw_continuous_OR
-int MSD_outlier_rejection_grid(float *d_MSD, float *d_input, float *d_previous_partials, float *d_temp, MSD_Configuration *MSD_conf, float OR_sigma_multiplier){
+int MSD_outlier_rejection_grid(float *d_MSD, float *d_input, float *d_previous_partials, float *d_temp, MSD_Configuration *MSD_conf, float OR_sigma_multiplier, cudaStream_t streams){
 	#ifdef MSD_DEBUG
 	float h_MSD[3];
 	MSD_conf->print();
 	#endif
 	
 	MSD_init();
-	MSD_GPU_limited<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset);
-	MSD_GPU_final_regular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
+	MSD_GPU_limited<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize,0,streams>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset);
+	MSD_GPU_final_regular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize,0,streams>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
 	#ifdef MSD_DEBUG
-	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	cudaMemcpyAsync(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost, streams); 
 	printf("Before outlier rejection: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
 	printf("---------------------------<\n");
 	#endif
 	for(int i=0; i<5; i++){
-		MSD_BLN_pw_rejection_normal<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD,  MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset, OR_sigma_multiplier);
-		MSD_GPU_final_nonregular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
+		MSD_BLN_pw_rejection_normal<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize,0,streams>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD,  MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset, OR_sigma_multiplier);
+		MSD_GPU_final_nonregular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize,0,streams>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
 		#ifdef MSD_DEBUG
-		cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+		cudaMemcpyAsync(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost, streams); 
 		printf("Rejection %d: Mean: %e, Standard deviation: %e; Elements:%zu;\n", i, h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
 		printf("---------------------------<\n");
 		#endif
 	}
 	
 	#ifdef MSD_DEBUG
-	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	cudaMemcpyAsync(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost, streams); 
 	printf("Before grid rejection: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
 	printf("---------------------------<\n");
 	#endif
 	
-	MSD_BLN_grid_outlier_rejection_new<<<MSD_conf->final_gridSize, MSD_conf->final_blockSize>>>(d_temp, d_MSD, MSD_conf->nBlocks_total+MSD_conf->address, OR_sigma_multiplier);
+	MSD_BLN_grid_outlier_rejection_new<<<MSD_conf->final_gridSize, MSD_conf->final_blockSize,0,streams>>>(d_temp, d_MSD, MSD_conf->nBlocks_total+MSD_conf->address, OR_sigma_multiplier);
 	
 	#ifdef MSD_DEBUG
-	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	cudaMemcpyAsync(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost, streams); 
 	printf("Output: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
 	printf("---------------------------<\n");
 	#endif
@@ -234,47 +234,47 @@ int MSD_outlier_rejection_grid(float *d_MSD, float *d_input, float *d_previous_p
 
 
 
-void Find_MSD(float *d_MSD, float *d_input, int nTimesamples, int nDMs, int offset, float OR_sigma_multiplier, int enable_outlier_rejection){
+void Find_MSD(float *d_MSD, float *d_input, int nTimesamples, int nDMs, int offset, float OR_sigma_multiplier, int enable_outlier_rejection, cudaStream_t streams){
 	MSD_Configuration conf(nTimesamples, nDMs, offset, 0);
 	float *d_MSD_workarea;
 	checkCudaErrors(cudaMalloc((void **) &d_MSD_workarea, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float)));
 	if(enable_outlier_rejection){
-		MSD_outlier_rejection(d_MSD, d_input, d_MSD_workarea, &conf, OR_sigma_multiplier);
+		MSD_outlier_rejection(d_MSD, d_input, d_MSD_workarea, &conf, OR_sigma_multiplier, streams);
 	}
 	else {
-		MSD_normal(d_MSD, d_input, d_MSD_workarea, &conf);
+		MSD_normal(d_MSD, d_input, d_MSD_workarea, &conf, streams);
 	}
 	checkCudaErrors(cudaFree(d_MSD_workarea));
 }
 
-void Find_MSD(float *d_MSD, float *d_input, float *d_MSD_workarea, MSD_Configuration *conf, float OR_sigma_multiplier, int enable_outlier_rejection){
+void Find_MSD(float *d_MSD, float *d_input, float *d_MSD_workarea, MSD_Configuration *conf, float OR_sigma_multiplier, int enable_outlier_rejection, cudaStream_t streams){
 	if(enable_outlier_rejection){
-		MSD_outlier_rejection(d_MSD, d_input, d_MSD_workarea, conf, OR_sigma_multiplier);
+		MSD_outlier_rejection(d_MSD, d_input, d_MSD_workarea, conf, OR_sigma_multiplier, streams);
 	}
 	else {
-		MSD_normal(d_MSD, d_input, d_MSD_workarea, conf);
+		MSD_normal(d_MSD, d_input, d_MSD_workarea, conf, streams);
 	}
 }
 
-void Find_MSD_continuous(float *d_MSD, float *d_input, float *d_previous_partials, int nTimesamples, int nDMs, int offset, float OR_sigma_multiplier, int enable_outlier_rejection){
+void Find_MSD_continuous(float *d_MSD, float *d_input, float *d_previous_partials, int nTimesamples, int nDMs, int offset, float OR_sigma_multiplier, int enable_outlier_rejection, cudaStream_t streams){
 	MSD_Configuration conf(nTimesamples, nDMs, offset, 0);
 	float *d_MSD_workarea;
 	checkCudaErrors(cudaMalloc((void **) &d_MSD_workarea, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float)));
 	if(enable_outlier_rejection){
-		MSD_outlier_rejection_continuous(d_MSD, d_input, d_previous_partials, d_MSD_workarea, &conf, OR_sigma_multiplier);
+		MSD_outlier_rejection_continuous(d_MSD, d_input, d_previous_partials, d_MSD_workarea, &conf, OR_sigma_multiplier, streams);
 	}
 	else {
-		MSD_normal_continuous(d_MSD, d_input, d_previous_partials, d_MSD_workarea, &conf);
+		MSD_normal_continuous(d_MSD, d_input, d_previous_partials, d_MSD_workarea, &conf, streams);
 	}
 	checkCudaErrors(cudaFree(d_MSD_workarea));
 }
 
-void Find_MSD_continuous(float *d_MSD, float *d_input, float *d_previous_partials, float *d_MSD_workarea, MSD_Configuration *conf, float OR_sigma_multiplier, int enable_outlier_rejection){
+void Find_MSD_continuous(float *d_MSD, float *d_input, float *d_previous_partials, float *d_MSD_workarea, MSD_Configuration *conf, float OR_sigma_multiplier, int enable_outlier_rejection, cudaStream_t streams){
 	if(enable_outlier_rejection){
-		MSD_outlier_rejection_continuous(d_MSD, d_input, d_previous_partials, d_MSD_workarea, conf, OR_sigma_multiplier);
+		MSD_outlier_rejection_continuous(d_MSD, d_input, d_previous_partials, d_MSD_workarea, conf, OR_sigma_multiplier, streams);
 	}
 	else {
-		MSD_normal_continuous(d_MSD, d_input, d_previous_partials, d_MSD_workarea, conf);
+		MSD_normal_continuous(d_MSD, d_input, d_previous_partials, d_MSD_workarea, conf, streams);
 	}
 }
 
@@ -283,7 +283,7 @@ void Find_MSD_continuous(float *d_MSD, float *d_input, float *d_previous_partial
 //---------------------------------------------------------------
 //------------- MSD with outlier rejection on grid
 
-int MSD_grid_outlier_rejection(float *d_MSD, float *d_input, int CellDim_x, int CellDim_y, int nTimesamples, int nDMs, int offset, float multiplier){
+int MSD_grid_outlier_rejection(float *d_MSD, float *d_input, int CellDim_x, int CellDim_y, int nTimesamples, int nDMs, int offset, float multiplier, cudaStream_t streams){
 	//---------> Task specific
 	int GridSize_x, GridSize_y, x_steps, y_steps, nThreads;
 	GridSize_x=(nTimesamples-offset)/CellDim_x;
@@ -312,8 +312,8 @@ int MSD_grid_outlier_rejection(float *d_MSD, float *d_input, int CellDim_x, int 
 
 	//---------> MSD
 	MSD_init();
-	MSD_BLN_grid_calculate_partials<<<gridSize,blockSize,nThreads*8>>>(d_input, d_output, x_steps, y_steps, nTimesamples, 0);
-	MSD_BLN_grid_outlier_rejection<<<final_gridSize, final_blockSize>>>(d_output, d_MSD, GridSize_x*GridSize_y, (float) (CellDim_x*CellDim_y), multiplier);
+	MSD_BLN_grid_calculate_partials<<<gridSize,blockSize,nThreads*8,streams>>>(d_input, d_output, x_steps, y_steps, nTimesamples, 0);
+	MSD_BLN_grid_outlier_rejection<<<final_gridSize, final_blockSize,0,streams>>>(d_output, d_MSD, GridSize_x*GridSize_y, (float) (CellDim_x*CellDim_y), multiplier);
 
 	//---------> De-allocation of temporary memory
 	cudaFree(d_output);

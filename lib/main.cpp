@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
 
 	fclose(fp);
 
-	free(output_buffer);
+	cudaFreeHost(output_buffer);
 	free(t_processed);
 	free(dm_low);
 	free(dm_high);

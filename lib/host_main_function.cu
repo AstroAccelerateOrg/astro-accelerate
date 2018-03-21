@@ -44,6 +44,7 @@
 #include "headers/host_help.h"
 #include "headers/host_rfi.h"
 #include "headers/host_stratagy.h"
+#include "headers/host_MSD_stratagy.h"
 #include "headers/host_write_file.h"
 
 // fdas
@@ -162,24 +163,65 @@ void main_function
                  &dm_low, &dm_high, &dm_step, &ndms, &dmshifts, inBin, &t_processed, &gpu_memory, enable_analysis);
 	if(enable_debug == 1) debug(4, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
+//	printf("\n\n GPU_memory:\t %zu gpu: %zu",gpu_memory/1024/1024,gpu_inputsize);
 
 	checkCudaErrors(cudaGetLastError());
 	
 	// Allocate memory on host and device.
-	allocate_memory_cpu_output(&fp, gpu_memory, maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output,
-                        &gpu_inputsize, &gpu_outputsize, &inputsize, &outputsize);
+	printf("\nAllocate memory CPU ...\n");
+	allocate_memory_cpu_output(&fp, gpu_memory, maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output,&gpu_inputsize, &gpu_outputsize, &inputsize, &outputsize);
 	if(enable_debug == 1) debug(5, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
+	printf("\ndone memory CPU ...\n");
 
 	checkCudaErrors(cudaGetLastError());
 	
 	// Allocate memory on host and device.
+	printf("\nAllocate memory GPU ...\n");
 	allocate_memory_gpu(&fp, gpu_memory, maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output,
                         &gpu_inputsize, &gpu_outputsize, &inputsize, &outputsize);
 	if(enable_debug == 1) debug(5, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
+	printf("\ndone memory GPU ...\n");
 
 	checkCudaErrors(cudaGetLastError());
+
+
+        unsigned long int MSD_data_info;
+	size_t MSD_profile_size_in_bytes;
+        float *d_MSD_workarea = NULL;
+	float *d_MSD_interpolated = NULL; 	
+	ushort *d_MSD_output_taps = NULL;
+	int *gmem_peak = NULL;
+	int h_MSD_DIT_width;
+	float *h_peak_list;
+	float *h_MSD_interpolated, *h_MSD_DIT;
+        size_t max_peak_size;
+        size_t peak_pos;
+        max_peak_size = (size_t) ( max_ndms*t_processed[0][0]/2 );
+        h_peak_list   = (float*) malloc(max_peak_size*4*sizeof(float));
+//	cudaMallocHost((void **) &h_peak_list, sizeof(float)*max_peak_size*4);
+
+	checkCudaErrors(cudaGetLastError());
+
+	printf("\nStratagy MSD ...\n");
+        stratagy_MSD(max_ndms,max_boxcar_width_in_sec, tsamp, t_processed[0][0], &MSD_data_info, &MSD_profile_size_in_bytes, &h_MSD_DIT_width);
+	checkCudaErrors(cudaGetLastError());
+        
+//	printf("Test data: %lld \t MSD_profile: %zu", MSD_data_info, MSD_profile_size_in_bytes);
+
+	printf("\nAllocate memory MSD ...\n");
+	allocate_memory_MSD(&d_MSD_workarea, &d_MSD_output_taps, &d_MSD_interpolated, &h_MSD_interpolated, &h_MSD_DIT, &gmem_peak, MSD_data_info, h_MSD_DIT_width, t_processed[0][0], MSD_profile_size_in_bytes);
+	checkCudaErrors(cudaGetLastError());
+
+
+	printf("\n\n GPU_memory:\t %zu gpu: %zu\n\n",gpu_memory/1024/1024,gpu_inputsize);
+
+
+	cudaStream_t streams[NUM_STREAMS];
+	for (int s=0; s < NUM_STREAMS;s++)
+		cudaStreamCreate(&streams[s]);
+
 	
 	// Clip RFI
 	if (enable_rfi) {
@@ -194,6 +236,7 @@ void main_function
 	 }
 	 fwrite(input_buffer, nchans*nsamp*sizeof(unsigned short), 1, fp_o);
 	 */
+		checkCudaErrors(cudaGetLastError());
 
 	printf("\nDe-dispersing...");
 	GpuTimer timer;
@@ -202,34 +245,44 @@ void main_function
 
 	tsamp_original = tsamp;
 	maxshift_original = maxshift;
+	int t_pos;
+
 
 	//float *out_tmp;
 	//out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
 	//memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
 
-	for (t = 0; t < num_tchunks; t++) {
-		printf("\nt_processed:\t%d, %d", t_processed[0][t], t);
+	// need to add remainder for num_tchunks
+	for (t = 0; t < num_tchunks/NUM_STREAMS; t++) {
+		for (int s = 0; s < NUM_STREAMS; s++){
+	
+		t_pos = t*NUM_STREAMS+s;
+		printf("\nt_processed:\t%d, %d", t_processed[0][t_pos], t_pos);
 		
 		checkCudaErrors(cudaGetLastError());
 
-		load_data(-1, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
+			load_data(-1, inBin, &d_input[(unsigned short)s*(t_processed[0][0]+maxshift)*nchans], &input_buffer[(long int) ( inc * nchans )], t_processed[0][t_pos], maxshift, nchans, dmshifts,streams[s]);
+//			load_data(-1, inBin, &d_input[1], &input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts,streams[s]);
+
+	
 
 		checkCudaErrors(cudaGetLastError());
 		
 		if (enable_zero_dm) {
-			zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
+			zero_dm(d_input, nchans, t_processed[0][t_pos]+maxshift);
 		}
 		
 		checkCudaErrors(cudaGetLastError());
 		
 		if (enable_zero_dm_with_outliers) {
-			zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
+			zero_dm_outliers(d_input, nchans, t_processed[0][t_pos]+maxshift);
 	 	}
 		
 		checkCudaErrors(cudaGetLastError());
 	
-		corner_turn(d_input, d_output, nchans, t_processed[0][t] + maxshift);
+		corner_turn(&d_input[(unsigned short)s*(t_processed[0][0]+maxshift)*nchans], &d_output[s*(t_processed[0][0]+maxshift)*nchans], nchans, t_processed[0][t_pos] + maxshift,streams[s]);
 		
+	
 		checkCudaErrors(cudaGetLastError());
 		
 		//if (enable_rfi) {
@@ -246,36 +299,37 @@ void main_function
 
 			checkCudaErrors(cudaGetLastError());
 			
-			cudaDeviceSynchronize();
-			
-			checkCudaErrors(cudaGetLastError());
-			
-			load_data(dm_range, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t], maxshift, nchans, dmshifts);
+			load_data(dm_range, inBin, &d_input[(unsigned short)(s*(t_processed[0][0]+maxshift)*nchans)], &input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t_pos], maxshift, nchans, dmshifts,streams[s]);
 			
 			checkCudaErrors(cudaGetLastError());
 			
 			if (inBin[dm_range] > oldBin) {
-				bin_gpu(d_input, d_output, nchans, t_processed[dm_range - 1][t] + maxshift * inBin[dm_range]);
+				printf("\nBin process.....\n");
+				bin_gpu(d_input, d_output, nchans, t_processed[dm_range - 1][t_pos] + maxshift * inBin[dm_range], streams[s]);
 				( tsamp ) = ( tsamp ) * 2.0f;
 			}
 			
 			checkCudaErrors(cudaGetLastError());
 			
-			dedisperse(dm_range, t_processed[dm_range][t], inBin, dmshifts, d_input, d_output, nchans, ( t_processed[dm_range][t] + maxshift ), maxshift, &tsamp, dm_low, dm_high, dm_step, ndms, nbits, failsafe);
-		
+	dedisperse(dm_range, t_processed[dm_range][t_pos], inBin, dmshifts, &d_input[(unsigned short)s*(t_processed[0][0]+maxshift)*nchans], &d_output[s*(t_processed[0][0]+maxshift)*nchans], nchans, ( t_processed[dm_range][t_pos] + maxshift ), maxshift, &tsamp, dm_low, dm_high, dm_step, ndms, nbits, streams[s], failsafe);
+//	dedisperse(dm_range, t_processed[dm_range][t], inBin, dmshifts, d_input, d_output, nchans, ( t_processed[dm_range][t] + maxshift ), maxshift, &tsamp, dm_low, dm_high, dm_step, ndms, nbits, failsafe);
+	
 			checkCudaErrors(cudaGetLastError());
-			
-			if ( (enable_acceleration == 1) || (enable_periodicity == 1) || (analysis_debug ==1) ) {
+//			cudaStreamSynchronize(streams[s]);
+
+//			if ( (enable_acceleration == 1) || (enable_periodicity == 1) || (analysis_debug ==1) ) {
+			if ( (enable_acceleration == 1) || (1 == 1) || (analysis_debug ==1) ) {
 				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
 				//save_data(d_output, out_tmp, gpu_outputsize);
 
 				//#pragma omp parallel for
 				for (int k = 0; k < ndms[dm_range]; k++) {
 					//memcpy(&output_buffer[dm_range][k][inc / inBin[dm_range]], &out_tmp[k * t_processed[dm_range][t]], sizeof(float) * t_processed[dm_range][t]);
+//					cudaHostRegister(output_buffer[dm_range][k],sizeof(float)*(t_processed[dm_range][t_pos]),0);
+					save_data_offset(&d_output[s*(t_processed[0][0]+maxshift)*nchans], k * t_processed[dm_range][t_pos], output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t_pos], streams[s]);
 
-					save_data_offset(d_output, k * t_processed[dm_range][t], output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
 				}
-			//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
+//				save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
 			}
 
 			if (output_dmt == 1)
@@ -293,24 +347,32 @@ void main_function
 
 				if (analysis_debug == 1) {
 					float *out_tmp;
-					gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
+					gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t_pos] ) * sizeof(float);
 					out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
 					memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
 					save_data(d_output, out_tmp, gpu_outputsize);
-					analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp, max_boxcar_width_in_sec);
+					analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t_pos], (t_processed[dm_range][t_pos]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp, max_boxcar_width_in_sec);
 					free(out_tmp);
 				}
 				else {
-					float *h_peak_list;
-					size_t max_peak_size;
-					size_t peak_pos;
-					max_peak_size = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 );
-					h_peak_list   = (float*) malloc(max_peak_size*4*sizeof(float));
+//					float *h_peak_list;
+//					size_t max_peak_size;
+//					size_t peak_pos;
+//					max_peak_size = (size_t) ( ndms[dm_range]*t_processed[dm_range][t_pos]/2 );
+//					h_peak_list   = (float*) malloc(max_peak_size*4*sizeof(float));
+//					cudaMallocHost((void **)&h_peak_list,max_peak_size*4*sizeof(float));
 
 					peak_pos=0;
-					analysis_GPU(h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp, candidate_algorithm, enable_sps_baselinenoise);
+//					analysis_GPU(h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t_pos], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, &d_output[s*(t_processed[0][0]+maxshift)*nchans], dm_low, dm_high, dm_step, tsamp, streams[s], candidate_algorithm, enable_sps_baselinenoise, d_MSD_workarea, d_MSD_output_taps, d_MSD_interpolated, h_MSD_DIT, h_MSD_interpolated, gmem_peak, MSD_data_info);
+//					analysis_GPU(h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t_pos], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, &d_output[s*(t_processed[0][0]+maxshift)*nchans], dm_low, dm_high, dm_step, tsamp, streams[s], candidate_algorithm, enable_sps_baselinenoise, d_MSD_workarea, d_MSD_output_taps, d_MSD_interpolated, gmem_peak, MSD_data_info);
 
-					free(h_peak_list);
+//					int old_s;
+//					old_s == (s+1)%NUM_STREAMS;
+//					if (s == 0) old_s=1;
+//					else old_s=0;
+//					cudaStreamSynchronize(streams[old_s]);
+//					free(h_peak_list);
+//					cudaFreeHost(h_peak_list);
 				}
 
 				// This is for testing purposes and should be removed or commented out
@@ -321,12 +383,13 @@ void main_function
 
 		//memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
 
-		inc = inc + t_processed[0][t];
+		inc = inc + t_processed[0][t_pos];
 		printf("\nINC:\t%ld", inc);
 		tstart_local = ( tsamp_original * inc );
 		tsamp = tsamp_original;
 		maxshift = maxshift_original;
 	}
+}
 
 	timer.Stop();
 	float time = timer.Elapsed() / 1000;
@@ -340,8 +403,13 @@ void main_function
 
 	cudaFree(d_input);
 	cudaFree(d_output);
-	//free(out_tmp);
-	free(input_buffer);
+	cudaFree(d_MSD_workarea);
+	cudaFree(d_MSD_output_taps);
+	cudaFree(d_MSD_interpolated);
+	cudaFreeHost(input_buffer);
+//	cudaFreeHost(h_peak_list);
+
+	checkCudaErrors(cudaGetLastError());
 	
 	#ifdef EXPORT_DD_DATA
 		size_t DMs_per_file;
@@ -365,17 +433,19 @@ void main_function
 	float data_size_loaded = ( num_threads * nchans * sizeof(ushort) ) / 1000000000;
 	float time_in_sec = time;
 	float bandwidth = data_size_loaded / time_in_sec;
-	printf("\nDevice global memory bandwidth in GB/s: %f", bandwidth);
 	printf("\nDevice shared memory bandwidth in GB/s: %f", bandwidth * ( num_reg ));
 	float size_gb = ( nchans * ( t_processed[0][0] ) * sizeof(float) * 8 ) / 1000000000.0;
 	printf("\nTelescope data throughput in Gb/s: %f", size_gb / time_in_sec);
+
+	checkCudaErrors(cudaGetLastError());
 
 	if (enable_periodicity == 1) {
 		//
 		GpuTimer timer;
 		timer.Start();
 		//
-		GPU_periodicity(range, nsamp, max_ndms, inc, periodicity_sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, periodicity_nHarmonics, candidate_algorithm, enable_sps_baselinenoise, sigma_constant);
+//		GPU_periodicity(range, nsamp, max_ndms, inc, periodicity_sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, periodicity_nHarmonics, candidate_algorithm, enable_sps_baselinenoise, sigma_constant, h_MSD_DIT, h_MSD_interpolated, 0);
+		GPU_periodicity(range, nsamp, max_ndms, inc, periodicity_sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, periodicity_nHarmonics, candidate_algorithm, enable_sps_baselinenoise, sigma_constant, 0);
 		//
 		timer.Stop();
 		float time = timer.Elapsed()/1000;
@@ -406,4 +476,8 @@ void main_function
 		printf("\nNumber of samples processed: %ld", inc);
 		printf("\nReal-time speedup factor: %lf", ( tstart_local ) / ( time ));
 	}
+
+cudaStreamDestroy(streams[NUM_STREAMS-1]);
+//	cudaFreeHost(h_MSD_DIT);
+//	cudaFreeHost(h_MSD_interpolated);
 }

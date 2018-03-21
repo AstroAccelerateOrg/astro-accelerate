@@ -4,7 +4,7 @@
 
 //{{{ dedisperse 
 
-void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned short *d_input, float *d_output, int nchans, int nsamp, int maxshift, float *tsamp, float *dm_low, float *dm_high, float *dm_step, int *ndms, int nbits, int failsafe)
+void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned short *d_input, float *d_output, int nchans, int nsamp, int maxshift, float *tsamp, float *dm_low, float *dm_high, float *dm_step, int *ndms, int nbits, cudaStream_t streams, int failsafe)
 {
 
 	if (failsafe == 0)
@@ -40,7 +40,7 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 
 				cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
 				cudaFuncSetCacheConfig(shared_dedisperse_kernel_16, cudaFuncCachePreferShared);
-				shared_dedisperse_kernel_16<<<num_blocks, threads_per_block>>>(inBin[i], d_input, d_output, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
+				shared_dedisperse_kernel_16<<<num_blocks, threads_per_block,0,streams>>>(inBin[i], d_input, d_output, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
 			}
 			else
 			{
@@ -81,7 +81,7 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 
 				cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
 				cudaFuncSetCacheConfig(shared_dedisperse_kernel, cudaFuncCachePreferShared);
-				shared_dedisperse_kernel<<<num_blocks, threads_per_block>>>(inBin[i], d_input, d_output, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
+				shared_dedisperse_kernel<<<num_blocks, threads_per_block,0,streams>>>(inBin[i], d_input, d_output, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
 			}
 			else
 			{
@@ -109,7 +109,7 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 			dim3 num_blocks(num_blocks_t, num_blocks_dm);
 
 			cudaFuncSetCacheConfig(cache_dedisperse_kernel, cudaFuncCachePreferL1);
-			cache_dedisperse_kernel<<<num_blocks, threads_per_block>>>(inBin[i], d_input, d_output, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
+			cache_dedisperse_kernel<<<num_blocks, threads_per_block,0,streams>>>(inBin[i], d_input, d_output, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
 	}
 }
 

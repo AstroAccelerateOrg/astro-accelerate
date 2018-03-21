@@ -9,7 +9,7 @@
 
 //{{{ Corner-turn 
 
-void corner_turn(unsigned short *d_input, float *d_output, int nchans, int nsamp)
+void corner_turn(unsigned short *d_input, float *d_output, int nchans, int nsamp, cudaStream_t stream)
 {
 
 	//{{{ Simple corner turn on the GPU 
@@ -30,10 +30,10 @@ void corner_turn(unsigned short *d_input, float *d_output, int nchans, int nsamp
 	clock_t start_t, end_t;
 	start_t = clock();
 
-	simple_corner_turn_kernel<<<num_blocks, threads_per_block>>>(d_input, d_output, nchans, nsamp);
-	cudaDeviceSynchronize();
-	swap<<<num_blocks, threads_per_block>>>(d_input, d_output, nchans, nsamp);
-	cudaDeviceSynchronize();
+	simple_corner_turn_kernel<<<num_blocks, threads_per_block,0,stream>>>(d_input, d_output, nchans, nsamp);
+//	cudaDeviceSynchronize();
+	swap<<<num_blocks, threads_per_block,0,stream>>>(d_input, d_output, nchans, nsamp);
+//	cudaDeviceSynchronize();
 
 	end_t = clock();
 	double time = (double) ( end_t - start_t )/CLOCKS_PER_SEC;

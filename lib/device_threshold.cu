@@ -1,5 +1,5 @@
 //Added by Karel Adamek
-//#define THRESHOLD_DEBUG
+#define THRESHOLD_DEBUG
 
 #include <helper_cuda.h>
 
@@ -14,7 +14,7 @@ void THR_init(void) {
 	cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
 }
 
-int THRESHOLD(float *d_input, ushort *d_input_taps, float *d_output_list, int *gmem_pos, float threshold, int nDMs, int nTimesamples, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration, int max_list_size) {
+int THRESHOLD(float *d_input, ushort *d_input_taps, float *d_output_list, int *gmem_pos, float threshold, int nDMs, int nTimesamples, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration, int max_list_size, cudaStream_t streams) {
 	//---------> Task specific
 	int nBlocks, nRest, Elements_per_block, output_offset, decimated_timesamples, local_offset;
 	int nCUDAblocks_x, nCUDAblocks_y;
@@ -43,7 +43,7 @@ int THRESHOLD(float *d_input, ushort *d_input_taps, float *d_output_list, int *g
 			
 			output_offset = nDMs*PD_plan->operator[](f).output_shift;
 			
-			THR_GPU_WARP<<<gridSize, blockSize>>>(&d_input[output_offset], &d_input_taps[output_offset], d_output_list, gmem_pos, threshold, decimated_timesamples, decimated_timesamples-local_offset, shift, max_list_size, (1<<f));
+			THR_GPU_WARP<<<gridSize, blockSize, 0, streams>>>(&d_input[output_offset], &d_input_taps[output_offset], d_output_list, gmem_pos, threshold, decimated_timesamples, decimated_timesamples-local_offset, shift, max_list_size, (1<<f));
 			
 			checkCudaErrors(cudaGetLastError());
 		}
@@ -98,7 +98,7 @@ int Threshold_for_periodicity(float *d_input, ushort *d_input_harms, float *d_ou
 	if( (secondary_size%blockSize.y)!=0 ) nBlocks_s++;
 	
 	gridSize.x = nBlocks_p;
-	gridSize.y = nBlocks_s;
+	gridSize.y = nBlocks_s-1;
 	gridSize.z = 1;
 	
 	#ifdef THRESHOLD_DEBUG
@@ -108,6 +108,7 @@ int Threshold_for_periodicity(float *d_input, ushort *d_input_harms, float *d_ou
 	#endif
 	
 	THR_init();
+
 	GPU_Threshold_for_periodicity_kernel<<<gridSize, blockSize>>>(d_input, d_input_harms, d_output_list, gmem_pos, d_MSD, threshold, primary_size, secondary_size, DM_shift, max_list_size, inBin);
 	
 	checkCudaErrors(cudaGetLastError());

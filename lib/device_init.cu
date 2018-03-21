@@ -88,8 +88,10 @@ void init_gpu(int argc, char **arg, int enable_debug, size_t *gpu_memory)
 	size_t free, total;
 
 	cudaMemGetInfo(&free, &total);
-	*gpu_memory = ( free );
-	//*gpu_memory = ( free*(5.0/7.0) );
+	printf("  Memory available:%0.3f MB \n", ((float) free)/(1024.0*1024.0) );
+//	*gpu_memory = ( free );
+	// reserve some memory for Single pulse; streams preparation
+	*gpu_memory = ( (free-NUM_STREAMS*RESERVE_MEMORY*1024.0*1024)*(1.0/NUM_STREAMS) );
 }
 
 //}}}

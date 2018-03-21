@@ -25,9 +25,19 @@ struct GpuTimer
     cudaEventRecord(start, 0);
   }
 
+  void StartWithStream(cudaStream_t stream)
+  {
+    cudaEventRecord(start, stream);
+  }
+
   void Stop()
   {
     cudaEventRecord(stop, 0);
+  }
+
+  void StopWithStream(cudaStream_t stream)
+  {
+    cudaEventRecord(stop, stream);
   }
 
   float Elapsed()
@@ -37,6 +47,16 @@ struct GpuTimer
     cudaEventElapsedTime(&elapsed, start, stop);
     return elapsed;
   }
+
+  float ElapsedWithStream(cudaStream_t stream)
+  {
+    float elapsed;
+//    cudaStreamWaitEvent(stream, stop, 0);
+    cudaStreamWaitEvent(stream, stop, 0);
+    cudaEventElapsedTime(&elapsed, start, stop);
+    return elapsed;
+  }
+
 };
 
 #endif  /* GPU_TIMER_H__ */
