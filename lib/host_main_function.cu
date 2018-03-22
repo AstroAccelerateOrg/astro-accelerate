@@ -80,6 +80,7 @@ void main_function
 	int enable_zero_dm,
 	int enable_zero_dm_with_outliers,
 	int enable_rfi,
+	int enable_old_rfi,
 	int enable_sps_baselinenoise,
 	int enable_fdas_custom_fft,
 	int enable_fdas_inbin,
@@ -183,6 +184,7 @@ void main_function
 	
 	// Clip RFI
 	if (enable_rfi) {
+		printf("\nPerforming new CPU rfi...");
 		rfi(nsamp, nchans, &input_buffer);
 	}
 	/*
@@ -232,9 +234,10 @@ void main_function
 		
 		checkCudaErrors(cudaGetLastError());
 		
-		//if (enable_rfi) {
- 		//	rfi_gpu(d_input, nchans, t_processed[0][t]+maxshift);
-		//}
+		if (enable_old_rfi) {
+			printf("\nPerforming old GPU rfi...");
+ 			rfi_gpu(d_input, nchans, t_processed[0][t]+maxshift);
+		}
 		
 		checkCudaErrors(cudaGetLastError());
 		

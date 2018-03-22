@@ -20,8 +20,7 @@
 // Make BC_plan for arbitrary long pulses, by reusing last element in the plane
 
 
-
-void Create_list_of_boxcar_widths(std::vector<int> *boxcar_widths, std::vector<int> *BC_widths){
+void Create_list_of_boxcar_widths(std::vector<int> *boxcar_widths, std::vector<int> *BC_widths, int max_boxcar_width){
 	int DIT_value, DIT_factor, width;
 	DIT_value = 1;
 	DIT_factor = 2;
@@ -29,11 +28,14 @@ void Create_list_of_boxcar_widths(std::vector<int> *boxcar_widths, std::vector<i
 	for(int f=0; f<(int) BC_widths->size(); f++){
 		for(int b=0; b<BC_widths->operator[](f); b++){
 			width = width + DIT_value;
-			boxcar_widths->push_back(width);
+			if(width<=max_boxcar_width){
+				boxcar_widths->push_back(width);
+			}
 		}
 		DIT_value = DIT_value*DIT_factor;
 	}
 }
+
 
 // Extend this to arbitrary size plans
 void Create_PD_plan(std::vector<PulseDetection_plan> *PD_plan, std::vector<int> *BC_widths, int nDMs, int nTimesamples){
@@ -181,7 +183,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	printf("  Selected iteration:%d; maximum boxcar width requested:%d; maximum boxcar width performed:%d;\n", max_iteration, max_boxcar_width/inBin, max_width_performed);
 	Create_PD_plan(&PD_plan, &BC_widths, 1, nTimesamples);
 	std::vector<int> h_boxcar_widths;
-	Create_list_of_boxcar_widths(&h_boxcar_widths, &BC_widths);
+	Create_list_of_boxcar_widths(&h_boxcar_widths, &BC_widths, max_width_performed);
 	
 	
 	//-------------------------------------------------------------------------
