@@ -17,14 +17,14 @@ void rfi(int nsamp, int nchans, unsigned short **input_buffer)
 
 
 	// ~~~ Output the raw data ~~~ //
-	FILE *fp_raw = fopen ("raw_chans.txt", "w+");
-	for(int c = 0; c < nchans; c++) {
-		for(int t = 0; t < (nsamp)/file_reducer; t++) {
-			fprintf(fp_raw, "%f ", stage[c * (size_t)nsamp + t]);
-		}
-		fprintf(fp_raw, "\n");
-	}
-   	fclose(fp_raw);
+	//FILE *fp_raw = fopen ("raw_chans.txt", "w+");
+	//for(int c = 0; c < nchans; c++) {
+	//	for(int t = 0; t < (nsamp)/file_reducer; t++) {
+	//		fprintf(fp_raw, "%f ", stage[c * (size_t)nsamp + t]);
+	//	}
+	//	fprintf(fp_raw, "\n");
+	//}
+   	//fclose(fp_raw);
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
 

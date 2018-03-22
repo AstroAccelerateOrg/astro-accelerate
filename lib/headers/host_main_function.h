@@ -23,6 +23,7 @@ void main_function
 	int enable_zero_dm,
 	int enable_zero_dm_with_outliers,
 	int enable_rfi,
+	int enable_old_rfi,
 	int enable_sps_baselinenoise,
 	int enable_fdas_custom_fft,
 	int enable_fdas_inbin,

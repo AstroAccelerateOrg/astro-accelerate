@@ -22,7 +22,7 @@ do
 	echo $i
 	cat ../input_files/header > input.txt
 	echo "file $i" >> input.txt
-	j=$(echo $i | awk -F"/" '{print $6}')
+	j=$(basename $i)
 	mv input.txt ../input_files/tests/$j.txt
 done
 

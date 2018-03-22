@@ -20,6 +20,7 @@ analysis
 -zero_dm
 -zero_dm_with_outliers
 -rfi
+-oldrfi
 threshold
 baselinenoise
 fdas_custom_fft
