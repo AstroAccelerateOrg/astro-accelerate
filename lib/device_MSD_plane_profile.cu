@@ -46,10 +46,10 @@ inline void Do_MSD(float *d_MSD, float *d_input, float *d_previous_partials, flo
 }
 
 
-void MSD_plane_profile_debug(float *d_MSD, int DIT_value, int nTimesamples){
+void MSD_plane_profile_debug(float *d_MSD, int DIT_value, int nTimesamples, int MSD_pos){
 	float h_MSD[MSD_RESULTS_SIZE];
 	checkCudaErrors(cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
-	printf("    DiT:%d; nTimesamples:%d; decimated_timesamples:%d; MSD:[%f; %f; %f]\n", (int) DIT_value, (int) nTimesamples, (int) (nTimesamples>>1), h_MSD[0], h_MSD[1], h_MSD[2]);
+	printf("    DiT:%d; nTimesamples:%d; decimated_timesamples:%d; MSD_pos: %d; MSD:[%f; %f; %f]\n", (int) DIT_value, (int) nTimesamples, (int) (nTimesamples>>1), (int) MSD_pos, h_MSD[0], h_MSD[1], h_MSD[2]);
 }
 
 
@@ -71,8 +71,9 @@ void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, fl
 	timer.Stop();	t_MSD_time += timer.Elapsed();
 	h_MSD_DIT_widths->push_back(DIT_value);
 	#ifdef MSD_PLANE_DEBUG
+	printf("------------------ MSD_plane_profile DEBUG - MSD_DIT calculation ------------\n");
 	printf("    MSD format: [ mean ; StDev ; nElements ]\n");
-	MSD_plane_profile_debug(d_MSD_DIT, DIT_value, nTimesamples);
+	MSD_plane_profile_debug(d_MSD_DIT, DIT_value, nTimesamples, 0);
 	#endif
 	//----------------------------------------------------------------------------------------
 	
@@ -95,7 +96,7 @@ void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, fl
 		h_MSD_DIT_widths->push_back(DIT_value);
 		
 		#ifdef MSD_PLANE_DEBUG
-		MSD_plane_profile_debug(&d_MSD_DIT[MSD_RESULTS_SIZE], DIT_value, decimated_timesamples);
+		MSD_plane_profile_debug(&d_MSD_DIT[MSD_RESULTS_SIZE], DIT_value, decimated_timesamples, 1);
 		#endif
 		
 		timer.Start();
@@ -136,7 +137,7 @@ void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, fl
 		timer.Stop();	t_dit_time += timer.Elapsed();
 		
 		#ifdef MSD_PLANE_DEBUG
-		MSD_plane_profile_debug(&d_MSD_DIT[MSD_RESULTS_SIZE], DIT_value, decimated_timesamples);
+		MSD_plane_profile_debug(&d_MSD_DIT[MSD_RESULTS_SIZE], DIT_value, decimated_timesamples, 1);
 		#endif
 	}
 	
@@ -149,7 +150,7 @@ void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, fl
 	h_MSD_DIT_widths->push_back(DIT_value);	
 	
 	#ifdef MSD_PLANE_DEBUG
-	MSD_plane_profile_debug(&d_MSD_DIT[2*MSD_RESULTS_SIZE], DIT_value, decimated_timesamples);
+	MSD_plane_profile_debug(&d_MSD_DIT[2*MSD_RESULTS_SIZE], DIT_value, decimated_timesamples, 2);
 	#endif
 	//----------------------------------------------------------------------------------------
 	
@@ -157,14 +158,22 @@ void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, fl
 	
 	//----------------------------------------------------------------------------------------
 	//-------- DIT > 3
-	for(size_t f=3; f<=nDecimations; f++){
+	size_t f = 0;
+	size_t last_admited_f = 0;
+	size_t last_admited_DIT_value = 0;
+	int switch_to_boxcar = 0;
+	
+	for(f=3; f<=nDecimations; f++){
 		timer.Start();
 		DIT_value = DIT_value*2;
-		if(DIT_value<=max_width_performed){
+		if(decimated_timesamples<20) switch_to_boxcar = 1;
+		if(DIT_value<=max_width_performed && switch_to_boxcar == 0){
 			if(f%2==0){
 				timer.Start();
+				//                            in      out :|
 				nRest = GPU_DiT_v2_wrapper(d_lichy, d_sudy, nDMs, decimated_timesamples);
 				timer.Stop();	t_dit_time += timer.Elapsed();
+				
 				if(nRest<0) break;
 				decimated_timesamples = (decimated_timesamples>>1);
 
@@ -174,8 +183,10 @@ void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, fl
 			}
 			else {
 				timer.Start();
+				//                            in      out :|
 				nRest = GPU_DiT_v2_wrapper(d_sudy, d_lichy, nDMs, decimated_timesamples);
 				timer.Stop();	t_dit_time += timer.Elapsed();
+				
 				if(nRest<0) break;
 				decimated_timesamples = (decimated_timesamples>>1);
 
@@ -184,9 +195,11 @@ void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, fl
 				timer.Stop();	t_MSD_time += timer.Elapsed();
 			}
 			h_MSD_DIT_widths->push_back(DIT_value);
+			last_admited_f = f;
+			last_admited_DIT_value = DIT_value;
 			
 			#ifdef MSD_PLANE_DEBUG
-				MSD_plane_profile_debug(&d_MSD_DIT[f*MSD_RESULTS_SIZE], DIT_value, decimated_timesamples);
+				MSD_plane_profile_debug(&d_MSD_DIT[f*MSD_RESULTS_SIZE], DIT_value, decimated_timesamples, f);
 			#endif
 		}
 		checkCudaErrors(cudaGetLastError());
@@ -194,44 +207,123 @@ void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, fl
 	//----------------------------------------------------------------------------------------
 	
 	checkCudaErrors(cudaGetLastError());
-	
+
 	//----------------------------------------------------------------------------------------
 	//-------- Boxcar for last boxcar width if needed
-	/*
-	if(DIT_value<max_width_performed){
+	if(DIT_value>max_width_performed && switch_to_boxcar == 0){
+		f = last_admited_f + 1;
 		DIT_value = (DIT_value>>1);
 		decimated_timesamples = nTimesamples/DIT_value;
-		int nTaps = max_width_performed/DIT_value;
-		if(max_width_performed%DIT_value!=0) nTaps++;
+		int nTaps = max_width_performed/DIT_value + 1;
 		
-		if(nDecimations%2==0){
+		if(f%2==0){
+			timer.Start();
+			//               in        out   :|
 			nRest = PPF_L1(d_lichy, d_sudy, nDMs, decimated_timesamples, nTaps);
+			timer.Stop();	t_dit_time += timer.Elapsed();
 
 			checkCudaErrors(cudaGetLastError());
 			
 			timer.Start();
-			Do_MSD(&d_MSD_DIT[(nDecimations+1)*MSD_RESULTS_SIZE], d_sudy, decimated_timesamples, nDMs, nRest, OR_sigma_multiplier, MSD_type);
-			timer.Stop();	MSD_time += timer.Elapsed();
+			
+			Do_MSD(&d_MSD_DIT[f*MSD_RESULTS_SIZE], d_sudy, &d_MSD_DIT_previous[f*MSD_RESULTS_SIZE], d_MSD_workarea, decimated_timesamples, nDMs, nRest, OR_sigma_multiplier, enable_outlier_rejection, perform_continuous);
+			timer.Stop();	t_MSD_time += timer.Elapsed();
 		}
 		else {
+			timer.Start();
+			//               in       out      :|
 			nRest = PPF_L1(d_sudy, d_lichy, nDMs, decimated_timesamples, nTaps);
+			timer.Stop();	t_dit_time += timer.Elapsed();
 			
 			checkCudaErrors(cudaGetLastError());
 			
 			timer.Start();
-			Do_MSD(&d_MSD_DIT[(nDecimations+1)*MSD_RESULTS_SIZE], d_lichy, decimated_timesamples, nDMs, nRest, OR_sigma_multiplier, MSD_type);
-			timer.Stop();	MSD_time += timer.Elapsed();
+			Do_MSD(&d_MSD_DIT[f*MSD_RESULTS_SIZE], d_lichy, &d_MSD_DIT_previous[f*MSD_RESULTS_SIZE], d_MSD_workarea, decimated_timesamples, nDMs, nRest, OR_sigma_multiplier, enable_outlier_rejection, perform_continuous);
+			timer.Stop();	t_MSD_time += timer.Elapsed();
 		}
 		h_MSD_DIT_widths->push_back(DIT_value*nTaps);
 
-		#ifdef GPU_ANALYSIS_DEBUG
+		#ifdef MSD_PLANE_DEBUG
 			printf("    Performing additional boxcar: nTaps: %d; max_width_performed: %d; DIT_value/2: %d;\n", nTaps, max_width_performed, DIT_value);
-			checkCudaErrors(cudaMemcpy(h_MSD, &d_MSD_DIT[(nDecimations+1)*MSD_RESULTS_SIZE], MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
-			printf("    DIT: %d; MSD:[%f; %f; %f]\n", DIT_value*nTaps, h_MSD[0], h_MSD[1], h_MSD[2]);
-		#endif		
+			MSD_plane_profile_debug(&d_MSD_DIT[f*MSD_RESULTS_SIZE], DIT_value*nTaps, decimated_timesamples, f);
+		#endif
 	}
-	*/
 	//----------------------------------------------------------------------------------------
+	
+	checkCudaErrors(cudaGetLastError());
+	
+	//----------------------------------------------------------------------------------------
+	//-------- Data are decimated too much switching to boxcar filters	
+	if(switch_to_boxcar){
+		#ifdef MSD_PLANE_DEBUG
+			printf("    **** Data are decimated too much switching to boxcar filters! ****\n");
+		#endif
+		
+		f = last_admited_f + 1; // to determine what array contain input data
+		DIT_value = last_admited_DIT_value; // each element of the input array is sum of 'last_admited_DIT_value' elements of initial array
+		float *input_pointer, *output_pointer; // setup temporary pointers to input and output based on where is the last output. 
+		if(f%2==0){
+			input_pointer = d_lichy;
+			output_pointer = d_sudy;
+		}
+		else {
+			input_pointer = d_sudy;
+			output_pointer = d_lichy;
+		}
+		
+		decimated_timesamples = nTimesamples/DIT_value;
+		DIT_value = DIT_value*2;
+		while(DIT_value<=max_width_performed){
+			int nTaps = DIT_value/last_admited_DIT_value;
+			timer.Start();
+			//               in       out      :|
+			nRest = PPF_L1(input_pointer, output_pointer, nDMs, decimated_timesamples, nTaps);
+			timer.Stop();	t_dit_time += timer.Elapsed();
+			
+			checkCudaErrors(cudaGetLastError());
+			
+			timer.Start();
+			Do_MSD(&d_MSD_DIT[f*MSD_RESULTS_SIZE], output_pointer, &d_MSD_DIT_previous[f*MSD_RESULTS_SIZE], d_MSD_workarea, decimated_timesamples, nDMs, nRest, OR_sigma_multiplier, enable_outlier_rejection, perform_continuous);
+			timer.Stop();	t_MSD_time += timer.Elapsed();
+			
+			#ifdef MSD_PLANE_DEBUG
+				printf("    Performing boxcar instead of DIT: nTaps: %d; max_width_performed: %d; DIT_value: %d;\n", nTaps, max_width_performed, DIT_value);
+				MSD_plane_profile_debug(&d_MSD_DIT[f*MSD_RESULTS_SIZE], DIT_value, decimated_timesamples, f);
+			#endif
+			
+			h_MSD_DIT_widths->push_back(DIT_value);
+			f++;
+			DIT_value = DIT_value*2;
+		}
+		
+		DIT_value = (DIT_value>>1);
+		if(max_width_performed!=DIT_value){
+			int nTaps = max_width_performed/last_admited_DIT_value + 1;
+			timer.Start();
+			//               in       out      :|
+			nRest = PPF_L1(input_pointer, output_pointer, nDMs, decimated_timesamples, nTaps);
+			timer.Stop();	t_dit_time += timer.Elapsed();
+			
+			checkCudaErrors(cudaGetLastError());
+			
+			timer.Start();
+			Do_MSD(&d_MSD_DIT[f*MSD_RESULTS_SIZE], output_pointer, &d_MSD_DIT_previous[f*MSD_RESULTS_SIZE], d_MSD_workarea, decimated_timesamples, nDMs, nRest, OR_sigma_multiplier, enable_outlier_rejection, perform_continuous);
+			timer.Stop();	t_MSD_time += timer.Elapsed();
+			
+			h_MSD_DIT_widths->push_back(last_admited_DIT_value*nTaps);
+			
+			#ifdef MSD_PLANE_DEBUG
+				printf("    Performing additional boxcar: nTaps: %d; max_width_performed: %d; DIT_value: %d;\n", nTaps, max_width_performed, last_admited_DIT_value*nTaps);
+				MSD_plane_profile_debug(&d_MSD_DIT[f*MSD_RESULTS_SIZE], last_admited_DIT_value*nTaps, decimated_timesamples, f);
+			#endif
+		}
+		
+	}
+	//----------------------------------------------------------------------------------------
+	
+	#ifdef MSD_PLANE_DEBUG
+	printf("------------------------------------------------------<\n");
+	#endif
 	
 	checkCudaErrors(cudaGetLastError());
 	
@@ -268,13 +360,14 @@ void MSD_Interpolate_linear(float *mean, float *StDev, float desired_width, floa
 		float StDev2 = h_MSD_DIT[(position+1)*MSD_RESULTS_SIZE +1];
 		float distance_in_StDev = StDev2 - StDev1;
 		
-		#ifdef MSD_PLANE_DEBUG
-			printf("width:[%f;%f]; mean:[%f;%f]; sd:[%f;%f]\n",width1, width2, mean1, mean2, StDev1, StDev2);
-			printf("d width %f; d mean: %f; d StDef: %f\n", distance_in_width, distance_in_mean, distance_in_StDev); 
-		#endif
-		
 		(*mean) = mean1 + (distance_in_mean/distance_in_width)*((float) desired_width - width1);
 		(*StDev) = StDev1 + (distance_in_StDev/distance_in_width)*((float) desired_width - width1);
+		
+		#ifdef MSD_PLANE_DEBUG
+			printf("    width:[%f;%f]; mean:[%f;%f]; sd:[%f;%f]\n",width1, width2, mean1, mean2, StDev1, StDev2);
+			printf("    distances width %f; mean: %f; StDef: %f\n", distance_in_width, distance_in_mean, distance_in_StDev);
+			printf("    desired_width: %f; mean: %f; StDev: %f;\n", desired_width, (*mean), (*StDev));
+		#endif
 	}
 }
 
@@ -349,6 +442,9 @@ void MSD_Interpolate_values(float *d_MSD_interpolated, float *d_MSD_DIT, std::ve
 	
 	checkCudaErrors(cudaMemcpy(h_MSD_DIT, d_MSD_DIT, nMSDs*MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
 	
+	#ifdef MSD_PLANE_DEBUG
+	printf("------------------ MSD_plane_profile DEBUG - Linear interpolation ------------\n");
+	#endif
 	for(int f=0; f<nWidths; f++){
 		if(h_boxcar_widths->operator[](f)<=max_width_performed) {
 			float mean, StDev;
@@ -357,6 +453,9 @@ void MSD_Interpolate_values(float *d_MSD_interpolated, float *d_MSD_DIT, std::ve
 			h_MSD_interpolated[f*MSD_INTER_SIZE+1] = StDev;
 		}
 	}
+	#ifdef MSD_PLANE_DEBUG
+	printf("-----------------------------------------------------------------------------<\n");
+	#endif
 	
 	#ifdef MSD_PLANE_EXPORT
 		MSD_Export_plane(filename, h_MSD_DIT, h_MSD_DIT_widths, h_MSD_interpolated, h_boxcar_widths, max_width_performed);
