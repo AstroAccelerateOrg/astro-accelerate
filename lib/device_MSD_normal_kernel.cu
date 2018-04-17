@@ -45,6 +45,7 @@ __global__ void MSD_GPU_limited(float const* __restrict__ d_input, float *d_outp
 		d_output[3*gpos] = M;
 		d_output[3*gpos + 1] = S;
 		d_output[3*gpos + 2] = j;
+//		if (gpos == 0) printf("\n\t\t\t\t\tMSD_input: %f MSD_output: %f\n", d_input[0], d_output[0]);
 	}
 }
 

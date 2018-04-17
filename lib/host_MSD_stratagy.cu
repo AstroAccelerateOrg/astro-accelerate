@@ -33,14 +33,14 @@ void stratagy_MSD(int nDMs, float max_boxcar_width_in_sec, float tsamp, int nTim
 
         size_t vals;
         // Calculate the total number of values
-        vals = ((size_t) nDMs)*((size_t) nTimesamples);
+        vals = ((size_t) nDMs)*((size_t) nTimesamples*NUM_STREAMS);
 
         size_t free_mem,total_mem;
 
         cudaMemGetInfo(&free_mem,&total_mem);
         printf("  Memory required by boxcar filters:%0.3f MB\n",(4.5*vals*sizeof(float) + 2*vals*sizeof(ushort))/(1024.0*1024) );
         printf("  Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
-	*maxtimesamples = (free_mem*0.95)/(5.5*sizeof(float) + 2*sizeof(ushort));
+	*maxtimesamples = (free_mem*0.95)/(NUM_STREAMS*(5.5*sizeof(float) + 2*sizeof(ushort)));
 	printf("  Max samples: :%lld\n", (*maxtimesamples));
 
         int DMs_per_cycle = (*maxtimesamples)/nTimesamples;
@@ -55,14 +55,14 @@ void stratagy_MSD(int nDMs, float max_boxcar_width_in_sec, float tsamp, int nTim
         Create_list_of_boxcar_widths2(&h_boxcar_widths, &BC_widths);
 
 	size_t MSD_DIT_profile_size_in_bytes, workarea_size_in_bytes;
-        Get_MSD_plane_profile_memory_requirements(MSD_profile_size_in_bytes, &MSD_DIT_profile_size_in_bytes, &workarea_size_in_bytes, nTimesamples, nDMs, &h_boxcar_widths);
+        Get_MSD_plane_profile_memory_requirements(MSD_profile_size_in_bytes, &MSD_DIT_profile_size_in_bytes, &workarea_size_in_bytes, nTimesamples*NUM_STREAMS, nDMs, &h_boxcar_widths);
 	
 	int variable;
 	MSD_nDIT_widths = &variable;
 //	*MSD_nDIT_widths = 20;
         *MSD_nDIT_widths = (int)(max_boxcar_width_in_sec/tsamp);
 
-        printf("\tSize MSD: %zu \tSize workarea: %zu, int: %i\n",  *MSD_profile_size_in_bytes, workarea_size_in_bytes, *MSD_nDIT_widths);
+        printf("\tSize MSD: %zu \tSize workarea: %zu, int: %i\n",  *MSD_profile_size_in_bytes, workarea_size_in_bytes/1024/1024.0, *MSD_nDIT_widths);
 
 
 //        float *d_MSD_interpolated = NULL;

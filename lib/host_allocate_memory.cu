@@ -14,6 +14,7 @@
 //#include <omp.h>
 #include <cuda.h>
 #include "headers/params.h"
+#include "helper_cuda.h"
 
 
 void allocate_memory_cpu_input(FILE **fp, size_t gpu_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, float ****output_buffer, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)
@@ -24,7 +25,6 @@ void allocate_memory_cpu_input(FILE **fp, size_t gpu_memory, int maxshift, int n
 
 	*input_buffer = (unsigned short *) malloc(*inputsize);
 	cudaMallocHost((void  **) &(*input_buffer),*inputsize);
-
 }
 
 void allocate_memory_cpu_output(FILE **fp, size_t gpu_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, float ****output_buffer, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)
@@ -32,7 +32,7 @@ void allocate_memory_cpu_output(FILE **fp, size_t gpu_memory, int maxshift, int 
 
 	*outputsize = 0;
 //	*output_buffer = (float ***) malloc(range * sizeof(float **));
-        cudaMallocHost((void **) &(*output_buffer), sizeof(float **)*range);
+        checkCudaErrors(cudaMallocHost((void **) &(*output_buffer), sizeof(float **)*range));
 	for (int i = 0; i < range; i++)
 	{
 		int total_samps = 0;
@@ -54,14 +54,15 @@ void allocate_memory_cpu_output(FILE **fp, size_t gpu_memory, int maxshift, int 
 	}
 }
 
-void allocate_memory_gpu(FILE **fp, size_t gpu_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, float ****output_buffer, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)
+void allocate_memory_gpu(FILE **fp, size_t gpu_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, unsigned short **input_buffer_small, float ****output_buffer, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)
 {
 
 	int time_samps = NUM_STREAMS*(t_processed[0][0] + maxshift);
 	*gpu_inputsize = (size_t) time_samps * (size_t) nchans * sizeof(unsigned short);
-
-//	for (int i = 0; i < NUM_STREAMS; i++)
-		( cudaMalloc((void **) d_input, *gpu_inputsize) );
+	checkCudaErrors( cudaMalloc((void **) d_input, *gpu_inputsize) );
+//	*input_buffer_small = (unsigned short *) malloc(*gpu_inputsize);
+//	checkCudaErrors( cudaMallocHost((void **) &(*input_buffer_small),*gpu_inputsize));
+//		checkCudaErrors( cudaMallocManaged((void **) d_input, *gpu_inputsize) );
 
 	if (nchans < max_ndms)
 	{
@@ -72,7 +73,7 @@ void allocate_memory_gpu(FILE **fp, size_t gpu_memory, int maxshift, int num_tch
 		*gpu_outputsize = (size_t)time_samps * (size_t)nchans * sizeof(float);
 	}
 	
-	( cudaMalloc((void **) d_output, *gpu_outputsize) );
+	checkCudaErrors( cudaMalloc((void **) d_output, *gpu_outputsize) );
 
 	//end_t=omp_get_wtime();
 	//time = (float)(end_t-start_t);
@@ -82,19 +83,22 @@ void allocate_memory_gpu(FILE **fp, size_t gpu_memory, int maxshift, int num_tch
 
 }
 
-void allocate_memory_MSD(float **d_MSD_workarea, unsigned short **d_MSD_output_taps, float **d_MSD_interpolated, float **h_MSD_interpolated, float **h_MSD_DIT, int **gmem_peak_pos, unsigned long int MSD_maxtimesamples, int MSD_DIT_widths, int nTimesamples, size_t MSD_profile_size){
+void allocate_memory_MSD(float **d_MSD_workarea, unsigned short **d_MSD_output_taps, float **d_MSD_interpolated, float **h_MSD_interpolated, float **h_MSD_DIT, int **gmem_peak_pos, int **temp_peak_pos, unsigned long int MSD_maxtimesamples, int MSD_DIT_widths, int nTimesamples, size_t MSD_profile_size){
 
 //	printf("\n\n\n%lld\n\n\n", MSD_maxtimesamples), fflush(stdout);
 
-	cudaMalloc((void **) d_MSD_workarea, MSD_maxtimesamples*5.5*sizeof(float));
+	checkCudaErrors(cudaMalloc((void **) d_MSD_workarea, NUM_STREAMS*MSD_maxtimesamples*5.5*sizeof(float)));
 //	cudaMalloc((void **) d_MSD_workarea, sizeof(float));
-	cudaMalloc((void **) &(*d_MSD_output_taps), sizeof(ushort)*2*MSD_maxtimesamples);
+	checkCudaErrors(cudaMalloc((void **) &(*d_MSD_output_taps), NUM_STREAMS*sizeof(ushort)*2*MSD_maxtimesamples));
 //	cudaMalloc((void **) &(*d_MSD_output_taps), sizeof(ushort));
-        cudaMalloc((void **) &(*gmem_peak_pos), 1*sizeof(int));
-	cudaMalloc((void **) d_MSD_interpolated, sizeof(float)*MSD_profile_size);
+//        checkCudaErrors(cudaMallocManaged((void **) gmem_peak_pos, NUM_STREAMS*sizeof(int)));
+        checkCudaErrors(cudaMalloc((void **) gmem_peak_pos, NUM_STREAMS*sizeof(int)));
+	checkCudaErrors(cudaMallocHost((void **) temp_peak_pos, NUM_STREAMS*sizeof(int)));
+	checkCudaErrors(cudaMalloc((void **) d_MSD_interpolated, NUM_STREAMS*sizeof(float)*MSD_profile_size));
 
 	// host pinned allocation
-	cudaMallocHost((void **) &h_MSD_DIT, sizeof(float)*15*3);
-	cudaMallocHost((void **) &h_MSD_interpolated, sizeof(float)*MSD_profile_size);
+
+	checkCudaErrors(cudaMallocHost((void **) h_MSD_DIT, NUM_STREAMS*180));
+	checkCudaErrors(cudaMallocHost((void **) &h_MSD_interpolated, NUM_STREAMS*sizeof(float)*MSD_profile_size));
 
 }

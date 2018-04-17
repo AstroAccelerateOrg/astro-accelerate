@@ -120,7 +120,7 @@ void analysis_CPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 
 		stddev = stddev_orig/((float)sqrt(2.0f*powf(2,(counter-1)))); // Stddev for data sample
 		// Print mean and stddev
-		//printf("\nBin: %d, Mean: %f, Stddev: %f", (int)powf(2,counter), mean, stddev), fflush(stdout);
+		// printf("\nBin: %d, Mean: %f, Stddev: %f", (int)powf(2,counter), mean, stddev), fflush(stdout);
 
 		// Apply threshold
 		for (dm_count = 0; dm_count < ndms[i]; dm_count++) {

@@ -49,10 +49,15 @@ struct GpuTimer
   }
 
   float ElapsedWithStream(cudaStream_t stream)
-  {
+	  {
     float elapsed;
+	bool process_stop = false;
+	while (process_stop == false) 
+		{
+			process_stop = cudaEventQuery(stop) == cudaSuccess;
+		}
 //    cudaStreamWaitEvent(stream, stop, 0);
-    cudaStreamWaitEvent(stream, stop, 0);
+//    cudaStreamWaitEvent(stream, stop, 0);
     cudaEventElapsedTime(&elapsed, start, stop);
     return elapsed;
   }

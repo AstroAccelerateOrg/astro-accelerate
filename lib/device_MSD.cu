@@ -104,7 +104,7 @@ int MSD_outlier_rejection(float *d_MSD, float *d_input, float *d_temp, MSD_Confi
 	MSD_GPU_limited<<<MSD_conf->partials_gridSize,MSD_conf->partials_blockSize,0,streams>>>(d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset);
 	MSD_GPU_final_regular<<<MSD_conf->final_gridSize,MSD_conf->final_blockSize,0,streams>>>(&d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
 	#ifdef MSD_DEBUG
-	cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+	cudaMemcpyAsync(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost, streams); 
 	printf("Before outlier rejection: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
 	printf("---------------------------<\n");
 	#endif

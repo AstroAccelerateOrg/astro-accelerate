@@ -35,6 +35,7 @@ void init_gpu(int argc, char **arg, int enable_debug, size_t *gpu_memory)
 	int dev, driverVersion = 0, runtimeVersion = 0;
 	dev = CARD;
 
+
 	cudaSetDevice(dev);
 	cudaDeviceProp deviceProp;
 	cudaGetDeviceProperties(&deviceProp, dev);
@@ -92,6 +93,7 @@ void init_gpu(int argc, char **arg, int enable_debug, size_t *gpu_memory)
 //	*gpu_memory = ( free );
 	// reserve some memory for Single pulse; streams preparation
 	*gpu_memory = ( (free-NUM_STREAMS*RESERVE_MEMORY*1024.0*1024)*(1.0/NUM_STREAMS) );
+
 }
 
 //}}}

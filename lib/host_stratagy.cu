@@ -23,7 +23,8 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 	*dm_step = (float *) malloc(( range ) * sizeof(float));
 	*ndms = (int *) malloc(( range ) * sizeof(int));
 
-	*dmshifts = (float *) malloc(nchans * sizeof(float));
+//	*dmshifts = (float *) malloc(nchans * sizeof(float));
+	cudaMallocHost((void **) dmshifts, sizeof(float)*nchans);
 
 	//{{{ Calculate maxshift, the number of dms for this bin and
 	//the highest value of dm to be calculated in this bin

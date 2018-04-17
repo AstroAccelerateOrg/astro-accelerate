@@ -15,6 +15,7 @@ __global__ void MSD_BLN_pw_rejection_normal(float const* __restrict__ d_input, f
 	
 	int spos = blockIdx.x*PD_NTHREADS + threadIdx.x;
 	int gpos = blockIdx.y*y_steps*nTimesamples + spos;
+
 	M=0;	S=0;	j=0;
 	if( spos<(nTimesamples-offset) ){
 		
@@ -32,7 +33,7 @@ __global__ void MSD_BLN_pw_rejection_normal(float const* __restrict__ d_input, f
 		}
 		
 	}
-	
+
 	s_input[threadIdx.x] = M;
 	s_input[blockDim.x + threadIdx.x] = S;
 	s_input[2*blockDim.x + threadIdx.x] = j;

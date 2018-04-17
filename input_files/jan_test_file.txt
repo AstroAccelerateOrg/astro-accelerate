@@ -1,9 +1,9 @@
 range	0    150  0.1  1 1
--range	150  300  0.2  1 1
--range	300  500  0.25 1 1 
--range	500  900  0.4  2 2
--range	900  1200 0.6  4 4
--range	1200 1500 0.8  4 4
+range	150  300  0.2  1 1
+range	300  500  0.25 1 1 
+range	500  900  0.4  2 2
+range	900  1200 0.6  4 4
+range	1200 1500 0.8  4 4
 -range	1500 2000 1.0  4 4
 -range	2000 3000 2.0  8 8
 sigma_cutoff	6
@@ -21,8 +21,8 @@ analysis
 -zero_dm_with_outliers
 -rfi
 threshold
-baselinenoise
-fdas_custom_fft
+-baselinenoise
+-fdas_custom_fft
 -fdas_inbin
 -fdas_norm
 debug

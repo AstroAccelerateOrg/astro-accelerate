@@ -42,6 +42,10 @@ __global__ void bin(unsigned short *d_input, float *d_output, int in_nsamp)
 	int shift_two = ( ( c * in_nsamp ) + t_in );
 
 	d_output[( shift_one )] = (float) ( ( d_input[( shift_two )] + d_input[shift_two + 1] )/2.0f );
+//	if ((c+t_out) ==0) {
+//		for (int k = 0; k < 10; k++)
+//			printf("\n\n\t\tp: %p in_nsamp: %i d_input: %hu d_output: %f", d_input, in_nsamp, d_input[k], d_output[k]);
+//	}
 
 }
 

@@ -54,7 +54,7 @@ void MSD_plane_profile_debug(float *d_MSD, int DIT_value, int nTimesamples){
 
 
 void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, float *d_input_data, float *d_MSD_DIT_previous, float *d_sudy, float *d_lichy, float *d_MSD_workarea, size_t nTimesamples, size_t nDMs, int nDecimations, int max_width_performed, float OR_sigma_multiplier, int enable_outlier_rejection, bool high_memory, bool perform_continuous, double *total_time, double *dit_time, double *MSD_time, cudaStream_t streams){
-	GpuTimer timer, total_timer;
+//	GpuTimer timer, total_timer;
 	double t_dit_time=0, t_MSD_time=0;
 	int nRest;
 	size_t decimated_timesamples;
@@ -64,25 +64,10 @@ void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, fl
 	//----------------------------------------------------------------------------------------
 	//-------- DIT = 1
 	DIT_value = 1;
-//	cudaEvent_t test_start, test_stop;
-//	float test_time=0;
-//	checkCudaErrors(cudaEventCreateWithFlags(&test_start, cudaEventBlockingSync));
-//	checkCudaErrors(cudaEventCreateWithFlags(&test_stop, cudaEventBlockingSync));
-
-//	timer.StartWithStream(streams);
-//	checkCudaErrors(cudaEventRecord(test_start,streams));
-//	checkCudaErrors(cudaStreamWaitEvent(streams,test_start,0));
+	printf("\nnTimesamples: %zu nDMs: %zu\n", nTimesamples, nDMs);
 	Do_MSD(d_MSD_DIT, d_input_data, d_MSD_DIT_previous, d_MSD_workarea, nTimesamples, nDMs, 0, OR_sigma_multiplier, enable_outlier_rejection, perform_continuous, streams);
-//	checkCudaErrors(cudaEventRecord(test_stop, streams));
-//	checkCudaErrors(cudaStreamWaitEvent(streams,test_stop,0));
-//	checkCudaErrors(cudaStreamWaitEvent(streams,test_start,0));
-//	cudaEventSynchronize(test_stop);
-//	cudaThreadSynchronize();
-//	cudaStreamQuery(streams);
-//	checkCudaErrors(cudaEventElapsedTime(&test_time,test_start,test_stop));
-//	timer.StopWithStream(streams);	t_MSD_time += timer.ElapsedWithStream(streams);
-//	printf("\n\n\tTime used: %f\n\n", test_time);
 	h_MSD_DIT_widths->push_back(DIT_value);
+
 	#ifdef MSD_PLANE_DEBUG
 	printf("    MSD format: [ mean ; StDev ; nElements ]\n");
 	MSD_plane_profile_debug(d_MSD_DIT, DIT_value, nTimesamples);
@@ -282,9 +267,10 @@ void MSD_Interpolate_linear(float *mean, float *StDev, float desired_width, floa
 		float distance_in_StDev = StDev2 - StDev1;
 		
 		#ifdef MSD_PLANE_DEBUG
-			printf("width:[%f;%f]; mean:[%f;%f]; sd:[%f;%f]\n",width1, width2, mean1, mean2, StDev1, StDev2);
-			printf("d width %f; d mean: %f; d StDef: %f\n", distance_in_width, distance_in_mean, distance_in_StDev); 
-			printf("\tDesired_width: %f\n", desired_width);
+//			printf("Position: \t %i\n", position);
+//			printf("width:[%f;%f]; mean:[%f;%f]; sd:[%f;%f]\n",width1, width2, mean1, mean2, StDev1, StDev2);
+//			printf("d width %f; d mean: %f; d StDef: %f\n", distance_in_width, distance_in_mean, distance_in_StDev); 
+//			printf("\tDesired_width: %f\n", desired_width);
 		#endif
 		
 		(*mean) = mean1 + (distance_in_mean/distance_in_width)*((float) desired_width - width1);
@@ -349,44 +335,56 @@ void MSD_Export_plane(const char *filename, float *h_MSD_DIT, std::vector<int> *
 }
 
 
-//void MSD_Interpolate_values(float *d_MSD_interpolated, float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, float *h_MSD_DIT2, float *h_MSD_interpolated2, int nMSDs, std::vector<int> *h_boxcar_widths, int max_width_performed, const char *filename, cudaStream_t streams){
-void MSD_Interpolate_values(float *d_MSD_interpolated, float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, int nMSDs, std::vector<int> *h_boxcar_widths, int max_width_performed, const char *filename, cudaStream_t streams){
+   void MSD_Interpolate_values(float *d_MSD_interpolated, float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, float *h_MSD_DIT, float *h_MSD_interpolated2, int nMSDs, std::vector<int> *h_boxcar_widths, int max_width_performed, const char *filename, cudaStream_t streams){
+//  void MSD_Interpolate_values(float *d_MSD_interpolated, float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, int nMSDs, std::vector<int> *h_boxcar_widths, int max_width_performed, const char *filename, cudaStream_t streams){
 	#ifdef GPU_PARTIAL_TIMER
 	GpuTimer timer;
 	timer.Start();
 	#endif
 	
 	int MSD_INTER_SIZE = 2;
-	float *h_MSD_DIT, *h_MSD_interpolated;
+//	float *h_MSD_DIT;
+//	float *h_MSD_interpolated;
 	int nWidths = (int) h_boxcar_widths->size();
-	printf("\n\n\n nWidths: %i\n\n\n", nWidths);
-	h_MSD_DIT = new float[nMSDs*MSD_RESULTS_SIZE];
+//	printf("\n\n\n nWidths: %i\n\n\n", nWidths);
+//	h_MSD_DIT = new float[nMSDs*MSD_RESULTS_SIZE];
 //	cudaHostRegister(h_MSD_DIT,sizeof(float)*nMSDs*MSD_RESULTS_SIZE,0);
 //	cudaMallocHost(&h_MSD_DIT,sizeof(float)*nMSDs*MSD_RESULTS_SIZE);
 //	cudaMallocHost(&h_MSD_interpolated,sizeof(float)*nWidths*MSD_INTER_SIZE);
-	h_MSD_interpolated = new float[nWidths*MSD_INTER_SIZE];
+//	h_MSD_interpolated = new float[nWidths*MSD_INTER_SIZE];
 	
-	checkCudaErrors(cudaMemcpyAsync(h_MSD_DIT, d_MSD_DIT, nMSDs*MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost, streams));
+	int MSD_DIT_size = h_MSD_DIT_widths->size();	
+	int *d_MSD_DIT_widths;
+	checkCudaErrors(cudaMalloc((void **) &d_MSD_DIT_widths, sizeof(int)*MSD_DIT_size));
+	checkCudaErrors(cudaMemcpyAsync(d_MSD_DIT_widths, &h_MSD_DIT_widths->operator[](0), sizeof(int)*MSD_DIT_size,cudaMemcpyHostToDevice,streams));
+	int *d_boxcar;
+	cudaMalloc((void **) &d_boxcar, sizeof(int)*nWidths);
+	checkCudaErrors(cudaMemcpyAsync(d_boxcar, &h_boxcar_widths->operator[](0), sizeof(int)*nWidths,cudaMemcpyHostToDevice,streams));
+
+		
+//	printf("\n\n nMSDs*: %i size of msd dit: %i %i\n\n", sizeof(float)*nMSDs*MSD_RESULTS_SIZE, MSD_DIT_size, &h_MSD_DIT_widths[0]);	
+//	checkCudaErrors(cudaMemcpyAsync(h_MSD_DIT, d_MSD_DIT, nMSDs*MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost, streams));
 	
-	for(int f=0; f<nWidths; f++){
-		if(h_boxcar_widths->operator[](f)<=max_width_performed) {
-			float mean, StDev;
-			MSD_Interpolate_linear(&mean, &StDev, (float) h_boxcar_widths->operator[](f), h_MSD_DIT, h_MSD_DIT_widths);
-			h_MSD_interpolated[f*MSD_INTER_SIZE] = mean;
-			h_MSD_interpolated[f*MSD_INTER_SIZE+1] = StDev;
-		}
-	}
+//	for(int f=0; f<nWidths; f++){
+//		if(h_boxcar_widths->operator[](f)<=max_width_performed) {
+//			float mean, StDev;
+//			MSD_Interpolate_linear(&mean, &StDev, (float) h_boxcar_widths->operator[](f), h_MSD_DIT, h_MSD_DIT_widths);
+			MSD_GPU_Interpolate_linear<<<1,nWidths,0,streams>>>(d_MSD_DIT, d_MSD_interpolated, d_MSD_DIT_widths, h_MSD_DIT_widths->size(), d_boxcar, max_width_performed);
+		//	h_MSD_interpolated[f*MSD_INTER_SIZE] = mean;
+		//	h_MSD_interpolated[f*MSD_INTER_SIZE+1] = StDev;
+//		}
+//	}
 	
 	#ifdef MSD_PLANE_EXPORT
-		MSD_Export_plane(filename, h_MSD_DIT, h_MSD_DIT_widths, h_MSD_interpolated, h_boxcar_widths, max_width_performed);
+//		MSD_Export_plane(filename, h_MSD_DIT, h_MSD_DIT_widths, h_MSD_interpolated2, h_boxcar_widths, max_width_performed);
 	#endif
 	
-	checkCudaErrors(cudaMemcpyAsync(d_MSD_interpolated, h_MSD_interpolated, nWidths*MSD_INTER_SIZE*sizeof(float), cudaMemcpyHostToDevice,streams));
+//	checkCudaErrors(cudaMemcpyAsync(d_MSD_interpolated, h_MSD_interpolated, nWidths*MSD_INTER_SIZE*sizeof(float), cudaMemcpyHostToDevice,streams));
 	
 //	cudaHostUnregister(h_MSD_DIT);
-	delete[] h_MSD_DIT;
+//	delete[] h_MSD_DIT;
 //	cudaFreeHost(h_MSD_DIT);
-	delete[] h_MSD_interpolated;
+//	delete[] h_MSD_interpolated;
 	
 	#ifdef GPU_PARTIAL_TIMER
 	timer.Stop();
@@ -434,8 +432,8 @@ void Get_MSD_plane_profile_memory_requirements(size_t *MSD_profile_size_in_bytes
 //		Add checks if there is enough timesamples to do DIT.
 // Note: By separating DIT = 2 into two parts we slightly decreasing precision if compared to non spit case, because outlier rejection has fewer points to work with. This could be a problem if we have a plane small enough to fit into memory but we still plit it in two.
 //		Add branch that would not split DIT=2 if there is enough memory. 
-//void MSD_plane_profile(float *d_MSD_interpolated, float *d_input_data, float *d_MSD_DIT_previous, float *h_MSD_DIT, float *h_MSD_interpolated, float *workarea, bool high_memory, size_t primary_dimension, size_t secondary_dimension, std::vector<int> *boxcar_widths, float tstart, float dm_low, float dm_high, float OR_sigma_multiplier, int enable_outlier_rejection, bool perform_continuous, double *total_time, double *dit_time, double *MSD_time, cudaStream_t streams){
-void MSD_plane_profile(float *d_MSD_interpolated, float *d_input_data, float *d_MSD_DIT_previous, float *workarea, bool high_memory, size_t primary_dimension, size_t secondary_dimension, std::vector<int> *boxcar_widths, float tstart, float dm_low, float dm_high, float OR_sigma_multiplier, int enable_outlier_rejection, bool perform_continuous, double *total_time, double *dit_time, double *MSD_time, cudaStream_t streams){
+void MSD_plane_profile(float *d_MSD_interpolated, float *d_input_data, float *d_MSD_DIT_previous, float *h_MSD_DIT, float *h_MSD_interpolated, float *workarea, bool high_memory, size_t primary_dimension, size_t secondary_dimension, std::vector<int> *boxcar_widths, float tstart, float dm_low, float dm_high, float OR_sigma_multiplier, int enable_outlier_rejection, bool perform_continuous, double *total_time, double *dit_time, double *MSD_time, cudaStream_t streams){
+//void MSD_plane_profile(float *d_MSD_interpolated, float *d_input_data, float *d_MSD_DIT_previous, float *workarea, bool high_memory, size_t primary_dimension, size_t secondary_dimension, std::vector<int> *boxcar_widths, float tstart, float dm_low, float dm_high, float OR_sigma_multiplier, int enable_outlier_rejection, bool perform_continuous, double *total_time, double *dit_time, double *MSD_time, cudaStream_t streams){
 	int boxcar_widths_size = (int) boxcar_widths->size();
 	int max_boxcar_width = boxcar_widths->operator[](boxcar_widths_size-1);
 	int nDecimations = ((int) floorf(log2f((float)max_boxcar_width))) + 1;
@@ -443,7 +441,7 @@ void MSD_plane_profile(float *d_MSD_interpolated, float *d_input_data, float *d_
 	std::vector<int> h_MSD_DIT_widths;
 	
 	size_t datasize = primary_dimension*secondary_dimension;
-	printf("\n nDecimations: %i datasize: %zu\n", nDecimations, datasize);
+	printf("\n nDecimations: %i datasize: %zu results_size: %i\n", nDecimations, datasize, MSD_RESULTS_SIZE);
 	float *d_sudy, *d_lichy, *d_MSD_DIT, *d_MSD_workarea;
 	d_sudy = workarea;
 	d_lichy = &workarea[datasize/4];
@@ -456,9 +454,9 @@ void MSD_plane_profile(float *d_MSD_interpolated, float *d_input_data, float *d_
 		d_MSD_workarea = &workarea[datasize/2 + (nDecimations+1)*MSD_RESULTS_SIZE];
 	}
 	
-	checkCudaErrors(cudaGetLastError());
-	cudaMemsetAsync((void*) d_MSD_DIT, 0, (nDecimations+1)*MSD_RESULTS_SIZE*sizeof(float), streams);
-	checkCudaErrors(cudaGetLastError());
+//	checkCudaErrors(cudaGetLastError());
+	checkCudaErrors(cudaMemsetAsync((void*) d_MSD_DIT, 0, (nDecimations+1)*MSD_RESULTS_SIZE*sizeof(float), streams));
+//	checkCudaErrors(cudaGetLastError());
 	
 	MSD_of_input_plane(d_MSD_DIT, &h_MSD_DIT_widths, d_input_data, d_MSD_DIT_previous, d_sudy, d_lichy, d_MSD_workarea, primary_dimension, secondary_dimension, nDecimations, max_boxcar_width, OR_sigma_multiplier, enable_outlier_rejection, high_memory, perform_continuous, total_time, dit_time, MSD_time, streams);
 	
@@ -468,8 +466,8 @@ void MSD_plane_profile(float *d_MSD_interpolated, float *d_input_data, float *d_
 	
 	char filename[100];
 	sprintf(filename,"MSD_plane_profile_i_test-t_%.2f-dm_%.2f-%.2f", tstart, dm_low, dm_high);
-//	MSD_Interpolate_values(d_MSD_interpolated, d_MSD_DIT, &h_MSD_DIT_widths, h_MSD_DIT, h_MSD_interpolated, nDIT_widths, boxcar_widths, max_boxcar_width, filename, streams);
-	MSD_Interpolate_values(d_MSD_interpolated, d_MSD_DIT, &h_MSD_DIT_widths, nDIT_widths, boxcar_widths, max_boxcar_width, filename, streams);
+	MSD_Interpolate_values(d_MSD_interpolated, d_MSD_DIT, &h_MSD_DIT_widths, h_MSD_DIT, h_MSD_interpolated, nDIT_widths, boxcar_widths, max_boxcar_width, filename, streams);
+//	MSD_Interpolate_values(d_MSD_interpolated, d_MSD_DIT, &h_MSD_DIT_widths, nDIT_widths, boxcar_widths, max_boxcar_width, filename, streams);
 }
 
 //------------- MSD plane profile
@@ -525,12 +523,12 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 	timer.StartWithStream(streams);
 	
 	MSD_normal(d_MSD, d_data, nTimesamples, nDMs, 0, streams);
-	cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpyAsync(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost, streams);
 	mdtemp.width = 1; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 	boxcar_MSD->push_back(mdtemp);
 	
 	MSD_outlier_rejection(d_MSD, d_data, nTimesamples, nDMs, 0, OR_sigma_multiplier, streams);
-	cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpyAsync(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost, streams);
 	mdtemp.width = 1; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 	boxcar_MSD_BLN->push_back(mdtemp);
 	
@@ -545,12 +543,12 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 			nRest = PD_FIR(d_data, d_boxcar, f, nDMs, nTimesamples);
 			
 			MSD_normal(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, streams);
-			cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+			cudaMemcpyAsync(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost, streams);
 			mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 			boxcar_MSD->push_back(mdtemp);
 			
 			MSD_outlier_rejection(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, OR_sigma_multiplier, streams);
-			cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+			cudaMemcpyAsync(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost, streams);
 			mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 			boxcar_MSD_BLN->push_back(mdtemp);
 			
@@ -572,12 +570,12 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 			
 			if(nRest>0){
 				MSD_normal(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, streams);
-				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				cudaMemcpyAsync(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost, streams);
 				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD->push_back(mdtemp);
 				
 				MSD_outlier_rejection(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, OR_sigma_multiplier, streams);
-				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				cudaMemcpyAsync(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost, streams);
 				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD_BLN->push_back(mdtemp);
 			}
@@ -601,12 +599,12 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 			
 			if(nRest>0){
 				MSD_normal(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, streams);
-				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				cudaMemcpyAsync(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost, streams);
 				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD->push_back(mdtemp);
 				
 				MSD_outlier_rejection(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, OR_sigma_multiplier, streams);
-				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				cudaMemcpyAsync(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost, streams);
 				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD_BLN->push_back(mdtemp);
 			}
@@ -630,12 +628,12 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 
 			if(nRest>0){
 				MSD_normal(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, streams);
-				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				cudaMemcpyAsync(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost, streams);
 				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD->push_back(mdtemp);
 				
 				MSD_outlier_rejection(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, OR_sigma_multiplier, streams);
-				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				cudaMemcpyAsync(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost, streams);
 				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD_BLN->push_back(mdtemp);
 			}
@@ -659,12 +657,12 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 
 			if(nRest>0){
 				MSD_normal(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, streams);
-				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				cudaMemcpyAsync(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost,streams);
 				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD->push_back(mdtemp);
 				
 				MSD_outlier_rejection(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, OR_sigma_multiplier, streams);
-				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				cudaMemcpyAsync(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost,streams);
 				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD_BLN->push_back(mdtemp);
 			}
@@ -688,12 +686,12 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 
 			if(nRest>0){		
 				MSD_normal(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, streams);
-				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				cudaMemcpyAsync(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost, streams);
 				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD->push_back(mdtemp);
 				
 				MSD_outlier_rejection(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, OR_sigma_multiplier, streams);
-				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				cudaMemcpyAsync(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost, streams);
 				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD_BLN->push_back(mdtemp);
 			}
@@ -717,12 +715,12 @@ void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vec
 			
 			if(nRest>0){
 				MSD_normal(d_MSD, d_boxcar, nTimesamples, nDMs, nRest,streams);
-				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				cudaMemcpyAsync(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost, streams);
 				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD->push_back(mdtemp);
 				
 				MSD_outlier_rejection(d_MSD, d_boxcar, nTimesamples, nDMs, nRest, OR_sigma_multiplier,streams);
-				cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+				cudaMemcpyAsync(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost, streams);
 				mdtemp.width = f; mdtemp.mean = h_MSD[0]; mdtemp.sd = h_MSD[1];
 				boxcar_MSD_BLN->push_back(mdtemp);
 			}

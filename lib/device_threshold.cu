@@ -48,7 +48,6 @@ int THRESHOLD(float *d_input, ushort *d_input_taps, float *d_output_list, int *g
 			checkCudaErrors(cudaGetLastError());
 		}
 	}
-
 	return (0);
 }
 

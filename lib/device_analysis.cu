@@ -19,6 +19,9 @@
 //TODO:
 // Make BC_plan for arbitrary long pulses, by reusing last element in the plane
 
+void CUDART_CB MyCallback(cudaStream_t stream, cudaError_t status, void *data){
+    printf("Inside callback %d\n", (size_t)data);
+}
 
 
 void Create_list_of_boxcar_widths(std::vector<int> *boxcar_widths, std::vector<int> *BC_widths){
@@ -113,16 +116,16 @@ int Get_max_iteration(int max_boxcar_width, std::vector<int> *BC_widths, int *ma
 }
 
 
-//void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float OR_sigma_multiplier, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, cudaStream_t streams, int candidate_algorithm, int enable_sps_baselinenoise, float *MSD_workarea, unsigned short *d_output_taps, float *d_MSD_interpolated, float *h_MSD_DIT, float *h_MSD_interpolated, int *gmem_peak_pos, unsigned long int maxTimeSamples){
-void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float OR_sigma_multiplier, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, cudaStream_t streams, int candidate_algorithm, int enable_sps_baselinenoise, float *MSD_workarea, unsigned short *d_output_taps, float *d_MSD_interpolated, int *gmem_peak_pos, unsigned long int maxTimeSamples){
+void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float OR_sigma_multiplier, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, cudaStream_t streams, int stream_id, int candidate_algorithm, int enable_sps_baselinenoise, float *MSD_workarea, unsigned short *d_output_taps, float *d_MSD_interpolated, float *h_MSD_DIT, float *h_MSD_interpolated, int *gmem_peak_pos, int *temp_peak_pos, unsigned long int maxTimeSamples){
+//  void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float OR_sigma_multiplier, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, cudaStream_t streams, int candidate_algorithm, int enable_sps_baselinenoise, float *MSD_workarea, unsigned short *d_output_taps, float *d_MSD_interpolated, int *gmem_peak_pos, unsigned long int maxTimeSamples){
 	//--------> Task
 	int max_boxcar_width = (int) (max_boxcar_width_in_sec/tsamp);
 	int max_width_performed=0;
 //	size_t vals;
 	int nTimesamples = t_processed;
 	int nDMs = ndms[i];
-	int temp_peak_pos;
-//	cudaMallocHost((void **) &temp_peak_pos, sizeof(int),0);
+//	int *temp_peak_pos;
+//	cudaMallocHost((void **) &temp_peak_pos, sizeof(int));
 	
 	//--------> Benchmarking
 	double total_time=0, MSD_time=0, SPDT_time=0, PF_time=0;
@@ -130,12 +133,21 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	//--------> Other
 //	size_t free_mem,total_mem;
 	char filename[200];
-	
-	
+
 	// Calculate the total number of values
 //	vals = ((size_t) nDMs)*((size_t) nTimesamples);
-	
-	
+
+
+	// Creating events for synchronization on peak list; cudaEventDisableTiming increase 
+	// performance and avoid synchronization issues;
+	// Default state of Event: occured;
+	// cudaEventSynchronize -- blocks host until stream completes all outstanding calls;
+	// cudaStreamWaitEvent -- blocks stream until event occurs, blocks launches after this call, does not block host;
+//	cudaEvent_t waitEvent[NUM_STREAMS];
+//	for (int s=0; s < NUM_STREAMS; s++)
+//		checkCudaErrors(cudaEventCreateWithFlags(&waitEvent[s], cudaEventDisableTiming));	
+//	int second_stream = (stream_id + 1 ) % NUM_STREAMS;
+		
 	int max_iteration;
 	int t_BC_widths[10]={PD_MAXTAPS,16,16,16,8,8,8,8,8,8};
 	std::vector<int> BC_widths(t_BC_widths,t_BC_widths+sizeof(t_BC_widths)/sizeof(int));
@@ -212,11 +224,13 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	checkCudaErrors(cudaGetLastError());
      
 //	MSD_plane_profile(d_MSD_interpolated, output_buffer, d_MSD_DIT, temporary_workarea, false, nTimesamples, nDMs, &h_boxcar_widths, tstart, dm_low[i], dm_high[i], OR_sigma_multiplier, enable_sps_baselinenoise, false, &MSD_time, &dit_time, &MSD_only_time, streams);
-//	MSD_plane_profile(d_MSD_interpolated, output_buffer, d_MSD_DIT, h_MSD_DIT, h_MSD_interpolated, MSD_workarea, false, nTimesamples, nDMs, &h_boxcar_widths, tstart, dm_low[i], dm_high[i], OR_sigma_multiplier, enable_sps_baselinenoise, false, &MSD_time, &dit_time, &MSD_only_time, streams);
-	MSD_plane_profile(d_MSD_interpolated, output_buffer, d_MSD_DIT, MSD_workarea, false, nTimesamples, nDMs, &h_boxcar_widths, tstart, dm_low[i], dm_high[i], OR_sigma_multiplier, enable_sps_baselinenoise, false, &MSD_time, &dit_time, &MSD_only_time, streams);
+	MSD_plane_profile(d_MSD_interpolated, output_buffer, d_MSD_DIT, h_MSD_DIT, h_MSD_interpolated, MSD_workarea, false, nTimesamples, nDMs, &h_boxcar_widths, tstart, dm_low[i], dm_high[i], OR_sigma_multiplier, enable_sps_baselinenoise, false, &MSD_time, &dit_time, &MSD_only_time, streams);
+//	MSD_plane_profile(d_MSD_interpolated, output_buffer, d_MSD_DIT, MSD_workarea, false, nTimesamples, nDMs, &h_boxcar_widths, tstart, dm_low[i], dm_high[i], OR_sigma_multiplier, enable_sps_baselinenoise, false, &MSD_time, &dit_time, &MSD_only_time, streams);
 
 
 	checkCudaErrors(cudaGetLastError());
+
+//	cudaStreamSynchronize(streams);
 
       #ifdef GPU_PARTIAL_TIMER
       	printf("    MSD time: Total: %f ms; DIT: %f ms; MSD: %f ms; Size MSD: %zu \n", MSD_time, dit_time, MSD_only_time, MSD_profile_size_in_bytes);
@@ -226,8 +240,8 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
       //------------ Using MSD_plane_profile
       //-------------------------------------------------------------------------	
 //     	cudaMemsetAsync((void*) MSD_workarea, 0, sizeof(float)*5.5*maxTimeSamples, streams);
- 
-      
+
+    
 	if(DM_list.size()>0){
 		DMs_per_cycle = DM_list[0];
 //	     	cudaMemsetAsync((void*) MSD_workarea, 0, sizeof(float)*5.5*maxTimeSamples, streams);
@@ -278,11 +292,13 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 			#ifdef GPU_ANALYSIS_DEBUG
 			printf("    BC_shift:%d; DMs_per_cycle:%d; f*DMs_per_cycle:%d; max_iteration:%d;\n", DM_shift*nTimesamples, DM_list[f], DM_shift, max_iteration);
 			#endif
-			
+	
 			if(candidate_algorithm==1){
 				//-------------- Thresholding
+//				printf("\n\n Threshold ... \n");
 //				timer.Start();
 				THRESHOLD(d_output_SNR, d_output_taps, d_peak_list, gmem_peak_pos, cutoff, DM_list[f], nTimesamples, DM_shift, &PD_plan, max_iteration, local_max_list_size, streams);
+//				cudaDeviceSynchronize();
 //				timer.Stop();
 //				PF_time += timer.Elapsed();
 				#ifdef GPU_PARTIAL_TIMER
@@ -292,37 +308,51 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 			}
 			else {
 				//-------------- Peak finding
-//				timer.Start();
+//				printf("\n\nPeak finding ....\n");
+//				timer.StartWithStream(streams);
 				PEAK_FIND(d_output_SNR, d_output_taps, d_peak_list, DM_list[f], nTimesamples, cutoff, local_max_list_size, gmem_peak_pos, DM_shift, &PD_plan, max_iteration, streams);
-//				timer.Stop();
-//				PF_time = timer.Elapsed();
+//				timer.StopWithStream(streams);
+//				PF_time = timer.ElapsedWithStream(streams);
 				#ifdef GPU_PARTIAL_TIMER
 				printf("    Peak finding took:%f ms\n", timer.Elapsed());
 				#endif
 				//-------------- Peak finding
 			}
-			
-			checkCudaErrors(cudaGetLastError());
-			
+//			cudaEventRecord(waitEvent[stream_id], streams);
+//			checkCudaErrors(cudaStreamWaitEvent(streams, waitEvent[second_stream],0));
+//			checkCudaErrors(cudaMemcpy(temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost));
+			checkCudaErrors(cudaMemcpyAsync(temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost, streams));
+//			checkCudaErrors(cudaStreamAddCallback(streams,MyCallback,(void*) stream_id,0));
+//			cudaEventRecord(waitEvent[stream_id], streams);
+//			checkCudaErrors(cudaGetLastError());
+//			bool process_stop = false;
+//			while (process_stop == false) {process_stop = cudaEventQuery(waitEvent[stream_id]) == cudaSuccess;}
+			checkCudaErrors(cudaStreamSynchronize(streams));
+
+//			checkCudaErrors(cudaEventSynchronize(waitEvent[stream_id]));
+//			checkCudaErrors(cudaStreamWaitEvent(streams, waitEvent[stream_id],0));
+//			checkCudaErrors(cudaStreamAddCallback(streams,MyCallback,(void*) stream_id,0));
 //			checkCudaErrors(cudaMemcpyAsync(temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost, streams));
-			checkCudaErrors(cudaMemcpyAsync(&temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost, streams));
-//			#ifdef GPU_ANALYSIS_DEBUG
-			printf("    temp_peak_pos:%d; host_pos:%zu; max:%zu; local_max:%d;\n", temp_peak_pos, (*peak_pos), max_peak_size, local_max_list_size);
-//			#endif
-			if( (temp_peak_pos)>=local_max_list_size ) {
+//			checkCudaErrors(cudaMemcpyAsync(&temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost, streams));
+			#ifdef GPU_ANALYSIS_DEBUG
+//			*gmem_peak_pos = 1;
+			printf("    temp_peak_pos:%d; host_pos:%zu; max:%zu; local_max:%d; stream_id:%i;\n", (*temp_peak_pos), (*peak_pos), max_peak_size, local_max_list_size, stream_id);
+//			printf("\nTemp gmem_peak pointer: \t%p\n", gmem_peak_pos);
+			#endif
+			if( (*temp_peak_pos)>=local_max_list_size ) {
 				printf("    Maximum list size reached! Increase list size or increase sigma cutoff.\n");
-				temp_peak_pos=local_max_list_size;
+				*temp_peak_pos=local_max_list_size;
 			}
-			if( ((*peak_pos) + (temp_peak_pos))<max_peak_size){
-				checkCudaErrors(cudaMemcpyAsync(&h_peak_list[(*peak_pos)*4], d_peak_list, (temp_peak_pos)*4*sizeof(float), cudaMemcpyDeviceToHost, streams));
-				*peak_pos = (*peak_pos) + (temp_peak_pos);
+			if( ((*peak_pos) + (*temp_peak_pos))<max_peak_size){
+				checkCudaErrors(cudaMemcpyAsync(&h_peak_list[(*peak_pos)*4], d_peak_list, (*temp_peak_pos)*4*sizeof(float), cudaMemcpyDeviceToHost, streams));
+				*peak_pos = (*peak_pos) + (*temp_peak_pos);
 			}
 			else printf("Error peak list is too small!\n");
 
 			DM_shift = DM_shift + DM_list[f];
 			cudaMemsetAsync((void*) gmem_peak_pos, 0, sizeof(int), streams);
-		}
-		
+		} //dm_list
+
 		//------------------------> Output
 		#pragma omp parallel for
 		for (int count = 0; count < (*peak_pos); count++){
@@ -336,7 +366,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
       	
 		if(candidate_algorithm==1){
 			if((*peak_pos)>0){
-				sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart, dm_low[i], dm_high[i]);
+				sprintf(filename, "analysed-t_%03.2f-dm_%.2f-%.2f.dat", tstart, dm_low[i], dm_high[i]);
 				if (( fp_out = fopen(filename, "wb") ) == NULL)	{
 					fprintf(stderr, "Error opening output file!\n");
 					exit(0);
@@ -347,7 +377,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 		}
 		else {
 			if((*peak_pos)>0){
-				sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart, dm_low[i], dm_high[i]);
+				sprintf(filename, "peak_analysed-t_%3.2f-dm_%.2f-%.2f.dat", tstart, dm_low[i], dm_high[i]);
 				if (( fp_out = fopen(filename, "wb") ) == NULL)	{
 					fprintf(stderr, "Error opening output file!\n");
 					exit(0);
@@ -356,8 +386,8 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 				fclose(fp_out);
 			}
 		}
-      	//------------------------> Output
-      	
+    	//------------------------> Output
+    	
 //		cudaFree(d_peak_list);
 //		cudaFree(d_boxcar_values);
 //		cudaFree(d_decimated);
@@ -366,7 +396,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 //		cudaFree(gmem_peak_pos);
 //		cudaFree(d_MSD_DIT);
 //		cudaFree(d_MSD_interpolated);
-	
+      
 
 	}
 	else printf("Error not enough memory to search for pulses\n");
@@ -379,8 +409,12 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	printf("----------<\n\n");
 	#endif
 
+//	for (int s=0; s < NUM_STREAMS; s++)
+//		cudaEventDestroy(waitEvent[s]);
 //	cudaFreeHost(&temp_peak_pos);
 	//----------> GPU part
 	//---------------------------------------------------------------------------
 	
 }
+
+

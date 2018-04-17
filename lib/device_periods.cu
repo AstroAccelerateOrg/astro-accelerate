@@ -608,8 +608,8 @@ void Export_data_in_range(float *GPU_data, int nTimesamples, int nDMs, const cha
 	delete [] h_export;
 }
 
-//void Periodicity_search(GPU_Memory_for_Periodicity_Search *gmem, Periodicity_parameters per_param, double *compute_time, size_t input_plane_size, int inBin, Periodicity_Batch *batch, std::vector<int> *h_boxcar_widths, float *h_MSD_DIT, float *h_MSD_interpolated, cudaStream_t streams){ 
-  void Periodicity_search(GPU_Memory_for_Periodicity_Search *gmem, Periodicity_parameters per_param, double *compute_time, size_t input_plane_size, int inBin, Periodicity_Batch *batch, std::vector<int> *h_boxcar_widths, cudaStream_t streams){ 
+  void Periodicity_search(GPU_Memory_for_Periodicity_Search *gmem, Periodicity_parameters per_param, double *compute_time, size_t input_plane_size, int inBin, Periodicity_Batch *batch, std::vector<int> *h_boxcar_widths, float *h_MSD_DIT, float *h_MSD_interpolated, cudaStream_t streams){ 
+//void Periodicity_search(GPU_Memory_for_Periodicity_Search *gmem, Periodicity_parameters per_param, double *compute_time, size_t input_plane_size, int inBin, Periodicity_Batch *batch, std::vector<int> *h_boxcar_widths, cudaStream_t streams){ 
 	int local_max_list_size = (input_plane_size)/4;
 	
 	float *d_dedispersed_data, *d_FFT_complex_output, *d_frequency_power, *d_frequency_interbin, *d_frequency_power_CT, *d_frequency_interbin_CT, *d_power_SNR, *d_interbin_SNR, *d_power_list, *d_interbin_list, *d_MSD_workarea;
@@ -706,8 +706,8 @@ void Export_data_in_range(float *GPU_data, int nTimesamples, int nDMs, const cha
 		}
 	#else
 		double total_time, dit_time, MSD_time;
-//		MSD_plane_profile(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, h_MSD_DIT, h_MSD_interpolated, d_MSD_workarea, true, (t_nTimesamples>>1), t_nDMs_per_batch, h_boxcar_widths, 0, 0, 0, per_param.OR_sigma_multiplier, per_param.enable_outlier_rejection, perform_continuous, &total_time, &dit_time, &MSD_time, streams);
-		MSD_plane_profile(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, d_MSD_workarea, true, (t_nTimesamples>>1), t_nDMs_per_batch, h_boxcar_widths, 0, 0, 0, per_param.OR_sigma_multiplier, per_param.enable_outlier_rejection, perform_continuous, &total_time, &dit_time, &MSD_time, streams);
+		MSD_plane_profile(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, h_MSD_DIT, h_MSD_interpolated, d_MSD_workarea, true, (t_nTimesamples>>1), t_nDMs_per_batch, h_boxcar_widths, 0, 0, 0, per_param.OR_sigma_multiplier, per_param.enable_outlier_rejection, perform_continuous, &total_time, &dit_time, &MSD_time, streams);
+//		MSD_plane_profile(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, d_MSD_workarea, true, (t_nTimesamples>>1), t_nDMs_per_batch, h_boxcar_widths, 0, 0, 0, per_param.OR_sigma_multiplier, per_param.enable_outlier_rejection, perform_continuous, &total_time, &dit_time, &MSD_time, streams);
 
 		printf("    MSD time: Total: %f ms; DIT: %f ms; MSD: %f ms;\n", total_time, dit_time, MSD_time);
 	#endif
@@ -806,8 +806,8 @@ int Get_Number_of_Candidates(int *GPU_data){
 
 
 
-//void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float sigma_cutoff, float ***output_buffer, int *ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp, int nHarmonics, int candidate_algorithm, int enable_outlier_rejection, float OR_sigma_multiplier, float *h_MSD_DIT, float *h_MSD_interpolated, cudaStream_t streams) {
-  void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float sigma_cutoff, float ***output_buffer, int *ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp, int nHarmonics, int candidate_algorithm, int enable_outlier_rejection, float OR_sigma_multiplier, cudaStream_t streams) {
+  void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float sigma_cutoff, float ***output_buffer, int *ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp, int nHarmonics, int candidate_algorithm, int enable_outlier_rejection, float OR_sigma_multiplier, float *h_MSD_DIT, float *h_MSD_interpolated, cudaStream_t streams) {
+//void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float sigma_cutoff, float ***output_buffer, int *ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp, int nHarmonics, int candidate_algorithm, int enable_outlier_rejection, float OR_sigma_multiplier, cudaStream_t streams) {
 
 	// processed = maximum number of time-samples through out all ranges
 	// nTimesamples = number of time-samples in given range 'i'
@@ -933,8 +933,8 @@ int Get_Number_of_Candidates(int *GPU_data){
 				
 				
 				//---------> Periodicity search
-//				Periodicity_search(&GPU_memory, per_param, &calc_time_per_range, input_plane_size, P_plan.inBin_group[p].Prange[r].range.inBin, &P_plan.inBin_group[p].Prange[r].batches[b], &h_boxcar_widths, h_MSD_DIT, h_MSD_interpolated, streams);
-				Periodicity_search(&GPU_memory, per_param, &calc_time_per_range, input_plane_size, P_plan.inBin_group[p].Prange[r].range.inBin, &P_plan.inBin_group[p].Prange[r].batches[b], &h_boxcar_widths, streams);
+				Periodicity_search(&GPU_memory, per_param, &calc_time_per_range, input_plane_size, P_plan.inBin_group[p].Prange[r].range.inBin, &P_plan.inBin_group[p].Prange[r].batches[b], &h_boxcar_widths, h_MSD_DIT, h_MSD_interpolated, streams);
+//				Periodicity_search(&GPU_memory, per_param, &calc_time_per_range, input_plane_size, P_plan.inBin_group[p].Prange[r].range.inBin, &P_plan.inBin_group[p].Prange[r].batches[b], &h_boxcar_widths, streams);
 				//---------<
 				
 				

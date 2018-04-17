@@ -17,6 +17,7 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 			printf("\n%f", dm_step[i] / ( *tsamp ));
 			printf("\n%f", dmshifts[nchans - 1]);
 			printf("\n%d", shifta);
+			printf("\n%f %i", dm_low[i], i);
 			printf("\nlineshift:\t%d", lineshift);
 
 			// Check to see if the threadblock will load a shared memory line that
@@ -58,6 +59,7 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 			printf("\n%f", dm_step[i] / ( *tsamp ));
 			printf("\n%f", dmshifts[nchans - 1]);
 			printf("\n%d", shifta);
+			printf("\n%f %i", dm_low[i], i);
 			printf("\nlineshift:\t%d", lineshift);
 
 			// Check to see if the threadblock will load a shared memory line that
@@ -66,7 +68,7 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 			if (( ( SDIVINT - 1 ) + ( ( SDIVINDM - 1 ) * SDIVINT ) - 1 ) > lineshift)
 			{
 
-				printf("\nUsing fast shared memory kernel");
+				printf("\nUsing fast shared memory kernel 2");
 
 				//{{{ Dedisperse data on the GPU
 				float startdm = dm_low[i];
