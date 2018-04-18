@@ -219,9 +219,14 @@ void main_function
 //	printf("\n\n GPU_memory:\t %zu gpu: %zu h_MSD_DIT: %lf \n\n",gpu_memory/1024/1024,gpu_inputsize, &h_MSD_DIT[0]);
 
 
+	int priority_high, priority_low;
+	cudaDeviceGetStreamPriorityRange(&priority_low, &priority_high);
+	printf("\nPriorities low> %i high> %i", priority_low, priority_high);
 	cudaStream_t streams[NUM_STREAMS];
-	for (int s=0; s < NUM_STREAMS;s++)
-		cudaStreamCreate(&streams[s]);
+//	for (int s=0; s < NUM_STREAMS;s++)
+		cudaStreamCreateWithPriority(&streams[0], cudaStreamDefault, priority_high);
+		cudaStreamCreateWithPriority(&streams[1], cudaStreamDefault, priority_low);
+
 
 	cudaEvent_t blocking[NUM_STREAMS];
         for (int s=0; s < NUM_STREAMS; s++)
@@ -323,8 +328,8 @@ void main_function
 	
 			checkCudaErrors(cudaGetLastError());
 
-			if ( (enable_acceleration == 1) || (enable_periodicity == 1) || (analysis_debug ==1) ) {
-//			if ( (enable_acceleration == 1) || (1 == 1) || (analysis_debug ==1) ) {
+//			if ( (enable_acceleration == 1) || (enable_periodicity == 1) || (analysis_debug ==1) ) {
+			if ( (enable_acceleration == 1) || (1 == 1) || (analysis_debug ==1) ) {
 				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
 				//save_data(d_output, out_tmp, gpu_outputsize);
 				cudaStreamSynchronize(streams[s]);
