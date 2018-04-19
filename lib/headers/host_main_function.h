@@ -71,7 +71,7 @@ void main_function
 	float wide,
 	int	maxshift_original,
 	double	tsamp_original,
-	long int inc,
+	size_t inc,
 	float tstart,
 	float tstart_local,
 	float tsamp,

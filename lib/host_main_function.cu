@@ -11,10 +11,14 @@
 #include "headers/device_rfi.h"
 
 // MSD
+#include "headers/device_MSD_Parameters.h"
 #include "headers/device_MSD_Configuration.h"
 #include "headers/device_MSD.h"
 #include "headers/device_MSD_plane_profile.h"
 
+// SPS
+#include "headers/device_SPS_Data_Description.h"
+#include "headers/device_SPS_Parameters.h"
 #include "headers/device_SPS_inplace_kernel.h" //Added by KA
 #include "headers/device_SPS_inplace.h" //Added by KA
 #include "headers/device_SNR_limited.h" //Added by KA
@@ -24,6 +28,8 @@
 #include "headers/device_analysis.h" //Added by KA
 #include "headers/device_periods.h" //Added by KA
 #include "headers/device_peak_find.h" //Added by KA
+
+// PRS
 #include "headers/device_power.h"
 #include "headers/device_harmonic_summing.h"
 
@@ -66,90 +72,94 @@ void main_function
 	// File pointers
 	FILE *fp,
 	// Counters and flags
-	int i,
-	int t,
-	int dm_range,
-	int range,
-	int enable_debug,
-	int enable_analysis,
-	int enable_acceleration,
-	int enable_output_ffdot_plan,
-	int enable_output_fdas_list,
-	int enable_periodicity,
-	int output_dmt,
-	int enable_zero_dm,
-	int enable_zero_dm_with_outliers,
-	int enable_rfi,
-	int enable_old_rfi,
-	int enable_sps_baselinenoise,
-	int enable_fdas_custom_fft,
-	int enable_fdas_inbin,
-	int enable_fdas_norm,
-	int *inBin,
-	int *outBin,
-	int *ndms,
-	int maxshift,
-	int max_ndms,
-	int max_samps,
-	int num_tchunks,
-	int total_ndms,
-	int multi_file,
-	float max_dm,
+	int i,   //---> AA NOT DOING ANYTHING!
+	int t,   //---> AA NOT DOING ANYTHING!
+	int dm_range, //---> AA NOT DOING ANYTHING!
+	int range, //---> DDTR number of DDTR ranges
+	int enable_debug, //---> AA
+	int enable_analysis, //---> AA
+	int enable_acceleration, //---> AA
+	int enable_output_ffdot_plan, //---> FDAS
+	int enable_output_fdas_list, //---> FDAS
+	int enable_periodicity, //---> AA
+	int output_dmt, //---> AA NOT DOING ANYTHING!
+	int enable_zero_dm, //---> AA
+	int enable_zero_dm_with_outliers, //---> AA
+	int enable_rfi, //---> AA
+	int enable_old_rfi, //---> AA
+	int enable_outlier_rejection, //---> AA WRONG NAME should be MSD but it would be alone
+	int enable_fdas_custom_fft, //---> FDAS
+	int enable_fdas_inbin, //---> FDAS
+	int enable_fdas_norm, //---> FDAS
+	int *inBin, //---> DDTR time decimation of data before DDRT for each DDTR range. Defined by user.
+	int *outBin, //---> DDTR NOT DOING ANYTHING!
+	int *ndms, //---> DDTR number of DM trials in for each DDTR ranges.
+	int maxshift, //---> DDTR maxshift calculated by stratagy for given maximum DM search
+	int max_ndms, //---> DDTR 
+	int max_samps, //---> DDTR NOT DOING ANYTHING!
+	int num_tchunks, //---> DDTR number of time chunks into which input data is separated
+	int total_ndms, //---> DDTR calculated by stratagy, used for debug!
+	int multi_file, //---> AA NOT DOING ANYTHING!
+	float max_dm, //---> DDTR calculated by stratagy, used for debug!
 	// Memory sizes and pointers
-  size_t inputsize,
-  size_t outputsize,
-	size_t gpu_inputsize,
-	size_t gpu_outputsize,
-	size_t gpu_memory,
-  unsigned short  *input_buffer,
-	float ***output_buffer,
-	unsigned short  *d_input,
-	float *d_output,
-	float *dmshifts,
-	float *user_dm_low,
-	float *user_dm_high,
-	float *user_dm_step,
-	float *dm_low,
-	float *dm_high,
-	float *dm_step,
+    size_t inputsize, //---> AA I'm not sure about the purpose of this
+    size_t outputsize, //---> AA I'm not sure about the purpose of this
+	size_t gpu_inputsize, //---> AA I'm not sure about the purpose of this
+	size_t gpu_outputsize, //---> AA I'm not sure about the purpose of this
+	size_t gpu_memory, //---> AA Free gpu memory (or available memory)
+  unsigned short  *input_buffer, //---> AA Input data on the HOST
+	float ***output_buffer, //---> AA Output data on the HOST
+	unsigned short  *d_input, //---> AA Input data for given time-chunk on the DEVICE
+	float *d_output, //---> AA Input data for given time-chunk on the DEVICE
+	float *dmshifts, // DDTR internal thing?
+	float *user_dm_low,   // DDTR user defined DDTR plan
+	float *user_dm_high,  // DDTR user defined DDTR plan
+	float *user_dm_step,  // DDTR user defined DDTR plan
+	float *dm_low,   // DDTR coordinate transformation
+	float *dm_high,  // DDTR coordinate transformation
+	float *dm_step,  // DDTR coordinate transformation
 	// Telescope parameters
-	int nchans,
-	int nsamp,
-	int nbits,
-	int nsamples,
-	int nifs,
-	int **t_processed,
-	int nboots,
-	int ntrial_bins,
-	int navdms,
-	int nsearch,
-	float aggression,
-	float narrow,
-	float wide,
-	int	maxshift_original,
-	double	tsamp_original,
-	long int inc,
-	float tstart,
-	float tstart_local,
-	float tsamp,
-	float fch1,
-	float foff,
+	int nchans, //INPUT/DDTR number of frequency channels
+	int nsamp, // INPUT/DDTR number of time-samples
+	int nbits, // INPUT/DDTR bit size of input data.
+	int nsamples, // INPUT/DDTR should be number of time-samples
+	int nifs, // INPUT/DDTR return number of IF channels
+	int **t_processed, // DDTR array which contains number of time-samples for each time-chunk from each DM range???
+	int nboots, //---> FDAS NOT USED!
+	int ntrial_bins, //---> FDAS NOT USED!
+	int navdms, //---> FDAS NOT USED!
+	int nsearch, //---> FDAS NOT USED!
+	float aggression, //---> FDAS NOT USED!
+	float narrow, //---> FDAS NOT USED!
+	float wide, //---> FDAS NOT USED!
+	int	maxshift_original, // NOT NEEDED HERE INTERNAL VARIABLE
+	double	tsamp_original, // NOT NEEDED HERE INTERNAL VARIABLE
+	size_t inc, // NOT NEEDED HERE INTERNAL VARIABLE total amount of processed timesamples so far.
+	float tstart, // INPUT/DDTR does not seem to be used
+	float tstart_local, // NOT NEEDED HERE INTERNAL VARIABLE
+	float tsamp, // INPUT/DDTR this must not change
+	float fch1, // INPUT/DDTR
+	float foff, // INPUT/DDTR
 	// Analysis variables
-	float power,
-	float sigma_cutoff,
-	float sigma_constant,
-	float max_boxcar_width_in_sec,
-	clock_t start_time,
-	int candidate_algorithm,
-	int nb_selected_dm,
-	float *selected_dm_low,
-	float *selected_dm_high,
-	int analysis_debug,
-	int failsafe,
-	float periodicity_sigma_cutoff,
-	int periodicity_nHarmonics
+	float power, //---> DDTR internal variable of unknown purpose!
+	float sigma_cutoff, // SPS/FDAS threshold
+	float OR_sigma_multiplier, // MSD outlier rejection rename to OR_sigma_multiplier
+	float max_boxcar_width_in_sec, // SPS 
+	clock_t start_time, // Time measurements
+	int candidate_algorithm, // SPS/FDAS
+	int nb_selected_dm, //UNKNOWN
+	float *selected_dm_low, //UNKNOWN
+	float *selected_dm_high, //UNKNOWN
+	int analysis_debug, // AA
+	int failsafe, // AA/DDTR
+	float periodicity_sigma_cutoff, // PRS
+	int periodicity_nHarmonics // PRS
 	)
 {
+	// Configuration of modules
+	SPS_Parameters SPS_params(max_boxcar_width_in_sec, sigma_cutoff, candidate_algorithm);
+	MSD_Parameters MSD_params(OR_sigma_multiplier, enable_outlier_rejection);
+	
 
 	// Initialise the GPU.	
 	init_gpu(argc, argv, enable_debug, &gpu_memory);
@@ -309,9 +319,11 @@ void main_function
 					size_t peak_pos;
 					max_peak_size = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 );
 					h_peak_list   = (float*) malloc(max_peak_size*4*sizeof(float));
+					
+					SPS_Data_Description SPS_data(tstart_local, tsamp_original, dm_step[dm_range], dm_low[dm_range], dm_high[dm_range], inBin[dm_range], t_processed[dm_range][t], ndms[dm_range]);
 
 					peak_pos=0;
-					analysis_GPU(h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp, candidate_algorithm, enable_sps_baselinenoise);
+					analysis_GPU(h_peak_list, &peak_pos, max_peak_size, SPS_data, d_output, SPS_params, MSD_params);
 
 					free(h_peak_list);
 				}
@@ -378,7 +390,7 @@ void main_function
 		GpuTimer timer;
 		timer.Start();
 		//
-		GPU_periodicity(range, nsamp, max_ndms, inc, periodicity_sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, periodicity_nHarmonics, candidate_algorithm, enable_sps_baselinenoise, sigma_constant);
+		GPU_periodicity(range, nsamp, max_ndms, inc, periodicity_sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, periodicity_nHarmonics, candidate_algorithm, enable_outlier_rejection, OR_sigma_multiplier);
 		//
 		timer.Stop();
 		float time = timer.Elapsed()/1000;
@@ -396,9 +408,8 @@ void main_function
 		//
 		GpuTimer timer;
 		timer.Start();
-		// acceleration(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original);
 		acceleration_fdas(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff,
-						  output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, enable_fdas_custom_fft, enable_fdas_inbin, enable_fdas_norm, sigma_constant, enable_output_ffdot_plan, enable_output_fdas_list);
+						  output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, enable_fdas_custom_fft, enable_fdas_inbin, enable_fdas_norm, OR_sigma_multiplier, enable_output_ffdot_plan, enable_output_fdas_list);
 		//
 		timer.Stop();
 		float time = timer.Elapsed()/1000;

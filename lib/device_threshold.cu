@@ -3,7 +3,7 @@
 
 #include <helper_cuda.h>
 
-#include "headers/device_BC_plan.h"
+#include "headers/device_SPS_BC_plan.h"
 
 #include "headers/params.h"
 #include "device_threshold_kernel.cu"

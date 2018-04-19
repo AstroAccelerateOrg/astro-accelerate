@@ -1,5 +1,5 @@
-#ifndef __MSD_CONFIGURATION__
-#define __MSD_CONFIGURATION__
+#ifndef __ASTROACCELERATE_MSD_CONFIGURATION__
+#define __ASTROACCELERATE_MSD_CONFIGURATION__
 
 class MSD_Configuration {
 public:
