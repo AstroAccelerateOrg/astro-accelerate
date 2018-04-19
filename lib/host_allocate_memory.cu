@@ -59,7 +59,7 @@ void allocate_memory_gpu(FILE **fp, size_t gpu_memory, int maxshift, int num_tch
 
 	int time_samps = NUM_STREAMS*(t_processed[0][0] + maxshift);
 	*gpu_inputsize = (size_t) time_samps * (size_t) nchans * sizeof(unsigned short);
-	checkCudaErrors( cudaMalloc((void **) d_input, *gpu_inputsize) );
+	checkCudaErrors( cudaMallocManaged((void **) d_input, *gpu_inputsize) );
 //	*input_buffer_small = (unsigned short *) malloc(*gpu_inputsize);
 //	checkCudaErrors( cudaMallocHost((void **) &(*input_buffer_small),*gpu_inputsize));
 //		checkCudaErrors( cudaMallocManaged((void **) d_input, *gpu_inputsize) );

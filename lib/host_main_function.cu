@@ -328,8 +328,8 @@ void main_function
 	
 			checkCudaErrors(cudaGetLastError());
 
-//			if ( (enable_acceleration == 1) || (enable_periodicity == 1) || (analysis_debug ==1) ) {
-			if ( (enable_acceleration == 1) || (1 == 1) || (analysis_debug ==1) ) {
+			if ( (enable_acceleration == 1) || (enable_periodicity == 1) || (analysis_debug ==1) ) {
+//			if ( (enable_acceleration == 1) || (1 == 1) || (analysis_debug ==1) ) {
 				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
 				//save_data(d_output, out_tmp, gpu_outputsize);
 				cudaStreamSynchronize(streams[s]);
@@ -390,6 +390,32 @@ void main_function
 				// This is for testing purposes and should be removed or commented out
 				//analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
 			} // if enable analysis
+
+			if ( (enable_acceleration == 1) || (enable_periodicity == 1) || (analysis_debug ==1) ) {
+//			if ( (enable_acceleration == 1) || (1 == 1) || (analysis_debug ==1) ) {
+				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
+				//save_data(d_output, out_tmp, gpu_outputsize);
+				cudaStreamSynchronize(streams[s]);
+				//#pragma omp parallel for
+				for (int k = 0; k < ndms[dm_range]; k++) {
+					save_data_offset(&d_output[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)], k * t_processed[dm_range][t_pos], output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t_pos], streams[second_stream]);
+
+				}
+//				save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
+//				cudaStreamSynchronize(streams[s]);
+//				checkCudaErrors(cudaEventRecord(blocking[s],streams[s]));
+//				checkCudaErrors(cudaStreamWaitEvent(streams[s],blocking[second_stream],0));
+			}
+
+			if (output_dmt == 1)
+			{
+//				for (int k = 0; k < ndms[dm_range]; k++)
+//					write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, output_buffer[dm_range][k], gpu_outputsize, dm_low, dm_high);
+//				write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
+			}
+
+
+
 			oldBin = inBin[dm_range];
 		} //  dmrange
 //		cudaStreamSynchronize(streams[second_stream]);
