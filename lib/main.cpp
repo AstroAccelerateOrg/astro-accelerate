@@ -98,14 +98,10 @@ int main(int argc, char* argv[])
 	clock_t start_time = clock();
 
 	// Users desired de-dispersion strategy. Pick up user defined values from the CLI.
-	get_user_input(&fp, argc, argv, &multi_file, &enable_debug, &enable_analysis,
-	    &enable_periodicity, &enable_acceleration, &enable_output_ffdot_plan,
-	    &enable_output_fdas_list, &output_dmt, &enable_zero_dm,
-	    &enable_zero_dm_with_outliers, &enable_rfi, &enable_old_rfi, &enable_fdas_custom_fft,
-	    &enable_fdas_inbin, &enable_fdas_norm, &nboots, &ntrial_bins, &navdms,
-	    &narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff,
-	    &sigma_constant, &max_boxcar_width_in_sec, &range, &user_dm_low, &user_dm_high,
-	    &user_dm_step, &candidate_algorithm, &enable_sps_baselinenoise, &selected_dm_low, &selected_dm_high, &nb_selected_dm, &analysis_debug, &failsafe, &periodicity_sigma_cutoff, &periodicity_nHarmonics);
+	get_user_input(&fp, argc, argv, &multi_file, &enable_debug, &enable_analysis, &enable_periodicity, &enable_acceleration, &enable_output_ffdot_plan, &enable_output_fdas_list, &output_dmt, &enable_zero_dm, &enable_zero_dm_with_outliers, &enable_rfi, &enable_old_rfi, &enable_fdas_custom_fft, &enable_fdas_inbin, &enable_fdas_norm, &nboots, &ntrial_bins, &navdms, &narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff, &sigma_constant, &max_boxcar_width_in_sec, &range, &user_dm_low, &user_dm_high, &user_dm_step, &candidate_algorithm, &enable_sps_baselinenoise, &selected_dm_low, &selected_dm_high, &nb_selected_dm, &analysis_debug, &failsafe, &periodicity_sigma_cutoff, &periodicity_nHarmonics);
+	// This reads DDTR plan, configures what modules AA should perform and configure these modules.
+	// Input -> DDTR plan, All module parameters
+				
 	if (enable_debug == 1)
 		debug(1, start_time, range, outBin, enable_debug, enable_analysis,
 		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
@@ -114,8 +110,10 @@ int main(int argc, char* argv[])
 		nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 		
 	// Reads telescope parameters from the header of the input file and then counts the number of samples in the input data file.
-	get_file_data(&fp, &nchans, &nsamples, &nsamp, &nifs, &nbits, &tsamp, &tstart,
-	    &fch1, &foff);
+	DDTR_Data DDTR_data;
+	get_file_data(&fp, &DDTR_data);
+	// This reads parameters of the data. Input -> time/frequency data type
+		
 	if (enable_debug == 1)
 		debug(3, start_time, range, outBin, enable_debug, enable_analysis,
 		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
@@ -128,6 +126,7 @@ int main(int argc, char* argv[])
 	  total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer,
 	  &output_buffer, &d_input, &d_output, &gpu_inputsize, &gpu_outputsize,
 	  &inputsize, &outputsize);
+	  
 	if (enable_debug == 1)
 		debug(5, start_time, range, outBin, enable_debug, enable_analysis,
 		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
@@ -137,15 +136,21 @@ int main(int argc, char* argv[])
 
 	// Store the recorded telescope data contained in the input filterbank file in the allocated memory.
 	get_recorded_data(&fp, nsamp, nchans, nbits, &input_buffer, &inputsize);
+	// Reads raw data from disk. Input -> time/frequency data type
+	
 	if (enable_debug == 1)
 		debug(7, start_time, range, outBin, enable_debug, enable_analysis,
 		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
 		user_dm_high, user_dm_step, dm_low, dm_high, dm_step, ndms, nchans,
 		nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm,
 		nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
+	
+	// Check GPU available
+	// Run stratagy
+	// Allocate host output
+		
 
-	main_function
-	(
+	main_function (
 	  argc, argv,
 	  // Internal code variables
 	  // File pointers
@@ -173,6 +178,23 @@ int main(int argc, char* argv[])
 	// write output here, not in the library
 
 	fclose(fp);
+	
+
+
+	/*	
+	template<typename ValueType>
+	DmTime<ValueType>::~DmTime() {
+		for(int i = 0; i < _range; ++i)
+		{
+			for(int j = 0; j < _ndms[i]; ++j)
+			{
+				free(_data[i][j]);
+			}
+			free(_data[i]);
+		}
+		free(_data);
+	}
+	*/
 
 	free(output_buffer);
 	free(t_processed);

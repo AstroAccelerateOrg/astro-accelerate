@@ -7,14 +7,16 @@
 #include "headers/params.h"
 #include "headers/host_help.h"
 
-void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *enable_debug, int *enable_analysis, int *enable_periodicity, int *enable_acceleration, int *enable_output_ffdot_plan, int *enable_output_fdas_list, int *output_dmt, int *enable_zero_dm, int *enable_zero_dm_with_outliers, int *enable_rfi, int *enable_old_rfi, int *enable_fdas_custom_fft, int *enable_fdas_inbin, int *enable_fdas_norm, int *nboots, int *ntrial_bins, int *navdms, float *narrow, float *wide, float *aggression, int *nsearch, int **inBin, int **outBin, float *power, float *sigma_cutoff, float *sigma_constant, float *max_boxcar_width_in_sec, int *range, float **user_dm_low, float **user_dm_high, float **user_dm_step, int *candidate_algorithm, int *enable_sps_baselinenoise, float **selected_dm_low, float **selected_dm_high, int *nb_selected_dm, int *analysis_debug, int *failsafe, float *periodicity_sigma_cutoff, int *periodicity_nHarmonics)
+void get_user_input(FILE **fp, int argc, char *argv[], DDTR_Plan *DDTR_plan, AA_Parameters *AA_params, MSD_Parameters *MSD_params, SPS_Parameters *SPS_params, PRS_Parameters *PRS_params, FDAS_Parameters *FDAS_params)
 {
 
 	FILE *fp_in = NULL;
+	int nRanges, nb_selected_dm, error;
 
 	char string[100];
 	int i;
 
+	error = 0;
 	//{{{ Read in the command line parameters and open the input file
 
 	if (argc < 2)
@@ -29,7 +31,8 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 			fprintf(stderr, "Invalid input file!\n");
 			exit(0);
 		}
-		( *range ) = 0;
+		nRanges = 0;
+		nb_selected_dm = 0;
 		while (!feof(fp_in))
 		{
 			if ( fscanf(fp_in, "%s", string) == 0 )
@@ -38,17 +41,21 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 				exit(0);
 			}
 			if (strcmp(string, "range") == 0)
-				( *range )++;
-			if (strcmp(string, "selected_dm") == 0)
-				( *nb_selected_dm )++;
+				nRanges++;
+			// Ignored as it is not used
+			//if (strcmp(string, "selected_dm") == 0)
+			//	( *nb_selected_dm )++;
 		}
 		rewind(fp_in);
-
-		*user_dm_low = (float *) malloc(( *range ) * sizeof(float));
-		*user_dm_high = (float *) malloc(( *range ) * sizeof(float));
-		*user_dm_step = (float *) malloc(( *range ) * sizeof(float));
-		*outBin = (int *) malloc(( *range ) * sizeof(int));
-		*inBin = (int *) malloc(( *range ) * sizeof(int));
+		
+		DDTR_plan->nRanges = nRanges;
+		error = DDTR_plan->Allocate_use_ranges();
+		if(error>1) exit(98);
+		
+		//*user_dm_low = (float *) malloc(( *range ) * sizeof(float));
+		//*user_dm_high = (float *) malloc(( *range ) * sizeof(float));
+		//*user_dm_step = (float *) malloc(( *range ) * sizeof(float));
+		//*inBin = (int *) malloc(( *range ) * sizeof(int));
 
 		// temporary variables to read dm range
 		float temp_low  = 0;
@@ -66,41 +73,40 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 				fprintf(stderr, "failed to read input\n");
 				exit(0);
 			}
-			if (strcmp(string, "range") == 0)
-			{
-				(*user_dm_low)[i]  = temp_low;
-				(*user_dm_high)[i] = temp_high;
-				(*user_dm_step)[i] = temp_step;
-				(*inBin)[i]  = temp_in_bin;
-				(*outBin)[i] = temp_out_bin;
+			if (strcmp(string, "range") == 0) {
+				DDTR_plan->user_dm_low[i]  = temp_low;
+				DDTR_plan->user_dm_high[i] = temp_high;
+				DDTR_plan->user_dm_step[i] = temp_step;
+				DDTR_plan->outBin[i] = temp_out_bin;
 				i++;
 			}
 		}
 		rewind(fp_in);
 
 		//
-		*selected_dm_low  = (float *) malloc(( *nb_selected_dm ) * sizeof(float));
-		*selected_dm_high = (float *) malloc(( *nb_selected_dm ) * sizeof(float));
-		// temporary variables to read selected dm range
-		float temp_selected_low  = 0;
-		float temp_selected_high = 0;
-		// read selected dm range if enabled
-		i=0;
-		while (!feof(fp_in))
-		{
-			if ( fscanf(fp_in, "%s %f %f\n", string, &temp_selected_low, &temp_selected_high) == 0 )
-			{
-				fprintf(stderr, "failed to read input\n");
-				exit(0);
-			}
-			if (strcmp(string, "selected_dm") == 0)
-			{
-				(*selected_dm_low)[i]  = temp_selected_low;
-				(*selected_dm_high)[i] = temp_selected_high;
-				i++;
-			}
-		}
-		rewind(fp_in);
+		// Ignored
+		//*selected_dm_low  = (float *) malloc(( *nb_selected_dm ) * sizeof(float));
+		//*selected_dm_high = (float *) malloc(( *nb_selected_dm ) * sizeof(float));
+		//// temporary variables to read selected dm range
+		//float temp_selected_low  = 0;
+		//float temp_selected_high = 0;
+		//// read selected dm range if enabled
+		//i=0;
+		//while (!feof(fp_in))
+		//{
+		//	if ( fscanf(fp_in, "%s %f %f\n", string, &temp_selected_low, &temp_selected_high) == 0 )
+		//	{
+		//		fprintf(stderr, "failed to read input\n");
+		//		exit(0);
+		//	}
+		//	if (strcmp(string, "selected_dm") == 0)
+		//	{
+		//		(*selected_dm_low)[i]  = temp_selected_low;
+		//		(*selected_dm_high)[i] = temp_selected_high;
+		//		i++;
+		//	}
+		//}
+		//rewind(fp_in);
 
 		while (!feof(fp_in))
 		{
@@ -110,81 +116,108 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 				exit(0);
 			}
 			if (strcmp(string, "debug") == 0)
-				*enable_debug = 1;
+				AA_params->enable_debug = 1;
 			if (strcmp(string, "analysis") == 0)
-				*enable_analysis = 1;
+				AA_params->enable_analysis = 1;
 			if (strcmp(string, "periodicity") == 0)
-				*enable_periodicity = 1;
+				AA_params->enable_periodicity = 1;
 			if (strcmp(string, "acceleration") == 0)
-				*enable_acceleration = 1;
-			if (strcmp(string, "output_ffdot_plan") == 0)
-				*enable_output_ffdot_plan = 1;
-			if (strcmp(string, "output_fdas_list") == 0)
-				*enable_output_fdas_list = 1;
-			if (strcmp(string, "output_dmt") == 0)
-				*output_dmt = 1;
+				AA_params->enable_acceleration = 1;
 			if (strcmp(string, "zero_dm") == 0)
-				*enable_zero_dm = 1;
+				AA_params->enable_zero_dm = 1;
 			if (strcmp(string, "zero_dm_with_outliers") == 0)
-				*enable_zero_dm_with_outliers = 1;
+				AA_params->enable_zero_dm_with_outliers = 1;
 			if (strcmp(string, "rfi") == 0)
-				*enable_rfi = 1;
+				AA_params->enable_rfi = 1;
 			if (strcmp(string, "oldrfi") == 0)
-				*enable_old_rfi = 1;
-			if (strcmp(string, "threshold") == 0)
-				*candidate_algorithm = 1;
-			if (strcmp(string, "baselinenoise") == 0)
-				*enable_sps_baselinenoise = 1;
-			if (strcmp(string, "fdas_custom_fft") == 0)
-				*enable_fdas_custom_fft = 1;
-			if (strcmp(string, "fdas_inbin") == 0)
-				*enable_fdas_inbin = 1;
-			if (strcmp(string, "fdas_norm") == 0)
-				*enable_fdas_norm = 1;
-			if (strcmp(string, "multi_file") == 0)
-				*multi_file = 1;
+				AA_params->enable_old_rfi = 1;
 			if (strcmp(string, "analysis_debug") == 0)
-				*analysis_debug = 1;
+				AA_params->analysis_debug = 1;
 			if (strcmp(string, "failsafe") == 0)
-				*failsafe = 1;
-			if (strcmp(string, "max_boxcar_width_in_sec") == 0)
-			{
-				if ( fscanf(fp_in, "%f", max_boxcar_width_in_sec) == 0 )
-				{
+				AA_params->failsafe = 1;
+			
+			if (strcmp(string, "threshold") == 0) {
+				FDAS_params->candidate_algorithm = 1;
+				SPS_params->candidate_algorithm = 1;
+				PRS_params->candidate_algorithm = 1;
+			}
+			
+			
+			if (strcmp(string, "output_ffdot_plan") == 0)
+				FDAS_params->enable_output_ffdot_plan = 1;
+			if (strcmp(string, "output_fdas_list") == 0)
+				FDAS_params->enable_output_fdas_list = 1;
+			if (strcmp(string, "fdas_custom_fft") == 0)
+				FDAS_params->enable_fdas_custom_fft = 1;
+			if (strcmp(string, "fdas_inbin") == 0)
+				FDAS_params->enable_fdas_inbin = 1;
+			if (strcmp(string, "fdas_norm") == 0)
+				FDAS_params->enable_fdas_norm = 1;
+
+			
+			if (strcmp(string, "baselinenoise") == 0)
+				MSD_params->enable_outlier_rejection = 1;
+			if (strcmp(string, "sigma_constant") == 0) {
+				float ftemp=0;
+				if ( fscanf(fp_in, "%f", &ftemp) == 0 ) {
+					MSD_params->OR_sigma_multiplier = ftemp;
 					fprintf(stderr, "failed to read input\n");
 					exit(0);
 				}
 			}
-			if (strcmp(string, "sigma_cutoff") == 0)
-			{
-				if ( fscanf(fp_in, "%f", sigma_cutoff) == 0 )
-				{
+			
+
+			//if (strcmp(string, "output_dmt") == 0)
+			//	*output_dmt = 1;			
+			//if (strcmp(string, "multi_file") == 0)
+			//	*multi_file = 1;
+			if (strcmp(string, "max_boxcar_width_in_sec") == 0) {
+				float ftemp=0;
+				if ( fscanf(fp_in, "%f", &ftemp) == 0 ) {
+					SPS_params->max_boxcar_width_in_sec = ftemp;
 					fprintf(stderr, "failed to read input\n");
 					exit(0);
 				}
 			}
+			if (strcmp(string, "sigma_cutoff") == 0) {
+				float ftemp = 0;
+				if ( fscanf(fp_in, "%f", &ftemp) == 0) {
+					SPS_params->sigma_cutoff = ftemp;
+					FDAS_params->sigma_cutoff = ftemp;
+					fprintf(stderr, "failed to read input\n");
+					exit(0);
+				}
+			}
+			
 			//-------------------> Periodicity search parameters
 			if (strcmp(string, "periodicity_sigma_cutoff") == 0) {
-				if ( fscanf(fp_in, "%f", periodicity_sigma_cutoff) == 0 ) {
+				float ftemp = 0;
+				if ( fscanf(fp_in, "%f", &ftemp) == 0 ) {
+					PRS_params->sigma_cutoff = ftemp;
 					fprintf(stderr, "failed to read input\n");
 					exit(0);
 				}
 			}
 			if (strcmp(string, "periodicity_harmonics") == 0) {
-				if ( fscanf(fp_in, "%d", periodicity_nHarmonics) == 0 ) {
+				float ftemp = 0;
+				if ( fscanf(fp_in, "%d", &ftemp) == 0 ) {
+					PRS_params->nHarmonics = ftemp;
 					fprintf(stderr, "failed to read input\n");
 					exit(0);
 				}
 			}
 			//-------------------<
-			if (strcmp(string, "sigma_constant") == 0)
-			{
-				if ( fscanf(fp_in, "%f", sigma_constant) == 0 )
-				{
+			
+			if (strcmp(string, "power") == 0) {
+				float ftemp = 0;
+				if ( fscanf(fp_in, "%f", &ftemp) == 0 ) {
+					DDTR_plan->power = ftemp;
 					fprintf(stderr, "failed to read input\n");
 					exit(0);
 				}
 			}
+			
+			/*
 			if (strcmp(string, "narrow") == 0)
 			{
 				if ( fscanf(fp_in, "%f", narrow) == 0 )
@@ -241,16 +274,9 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 					exit(0);
 				}
 			}
-			if (strcmp(string, "power") == 0)
-			{
-				if ( fscanf(fp_in, "%f", power) == 0 )
-				{
-					fprintf(stderr, "failed to read input\n");
-					exit(0);
-				}
-			}
-			if (strcmp(string, "file") == 0)
-			{
+			*/
+			
+			if (strcmp(string, "file") == 0) {
 				// this command expand "~" to "home/username/"
 			    wordexp_t expanded_string;
 

@@ -2,7 +2,7 @@
 //#define MSD_BOXCAR_TEST
 //#define GPU_PARTIAL_TIMER
 #define GPU_TIMER
-#define SPS_VERBOSE 1
+#define VERBOSE 1
 
 #include <vector>
 #include <stdio.h>

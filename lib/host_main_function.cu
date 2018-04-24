@@ -2,6 +2,8 @@
 
 #include <helper_cuda.h>
 
+#include "headers/device_AA_Parameters.h"
+
 #include "headers/device_bin.h"
 #include "headers/device_init.h"
 #include "headers/device_dedisperse.h"
@@ -87,7 +89,7 @@ void main_function
 	int enable_zero_dm_with_outliers, //---> AA
 	int enable_rfi, //---> AA
 	int enable_old_rfi, //---> AA
-	int enable_outlier_rejection, //---> AA WRONG NAME should be MSD but it would be alone
+	int enable_outlier_rejection, //---> MSD 
 	int enable_fdas_custom_fft, //---> FDAS
 	int enable_fdas_inbin, //---> FDAS
 	int enable_fdas_norm, //---> FDAS
@@ -115,14 +117,14 @@ void main_function
 	float *user_dm_low,   // DDTR user defined DDTR plan
 	float *user_dm_high,  // DDTR user defined DDTR plan
 	float *user_dm_step,  // DDTR user defined DDTR plan
-	float *dm_low,   // DDTR coordinate transformation
-	float *dm_high,  // DDTR coordinate transformation
-	float *dm_step,  // DDTR coordinate transformation
+	float *dm_low,   // DDTR actual DDTR plan
+	float *dm_high,  // DDTR actual DDTR plan
+	float *dm_step,  // DDTR actual DDTR plan
 	// Telescope parameters
 	int nchans, //INPUT/DDTR number of frequency channels
 	int nsamp, // INPUT/DDTR number of time-samples
 	int nbits, // INPUT/DDTR bit size of input data.
-	int nsamples, // INPUT/DDTR should be number of time-samples
+	int nsamples, // INPUT/DDTR should be number of time-samples. This is not used
 	int nifs, // INPUT/DDTR return number of IF channels
 	int **t_processed, // DDTR array which contains number of time-samples for each time-chunk from each DM range???
 	int nboots, //---> FDAS NOT USED!
@@ -157,38 +159,38 @@ void main_function
 	)
 {
 	// Configuration of modules
+	AA_Parameters AA_params(enable_debug, enable_analysis, enable_acceleration,	enable_periodicity, enable_zero_dm, enable_zero_dm_with_outliers, enable_rfi, enable_old_rfi, analysis_debug, failsafe);
+	
 	SPS_Parameters SPS_params(max_boxcar_width_in_sec, sigma_cutoff, candidate_algorithm);
+	
 	MSD_Parameters MSD_params(OR_sigma_multiplier, enable_outlier_rejection);
+	
+	FDAS_Parameters FDAS_params(sigma_cutoff, candidate_algorithm, enable_output_ffdot_plan, enable_output_fdas_list, enable_fdas_custom_fft, enable_fdas_inbin, enable_fdas_norm);
 	
 
 	// Initialise the GPU.	
 	init_gpu(argc, argv, enable_debug, &gpu_memory);
-	if(enable_debug == 1) debug(2, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
-	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
+	if(enable_debug == 1) debug(2, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high, user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
 	checkCudaErrors(cudaGetLastError());
 	
 	// Calculate the dedispersion stratagy.
-	stratagy(&maxshift, &max_samps, &num_tchunks, &max_ndms, &total_ndms, &max_dm, power, nchans, nsamp, fch1, foff, tsamp, range, user_dm_low, user_dm_high, user_dm_step,
-                 &dm_low, &dm_high, &dm_step, &ndms, &dmshifts, inBin, &t_processed, &gpu_memory, enable_analysis);
-	if(enable_debug == 1) debug(4, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
-	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
+	stratagy(&maxshift, &max_samps, &num_tchunks, &max_ndms, &total_ndms, &max_dm, power, nchans, nsamp, fch1, foff, tsamp, range, user_dm_low, user_dm_high, user_dm_step, &dm_low, &dm_high, &dm_step, &ndms, &dmshifts, inBin, &t_processed, &gpu_memory, enable_analysis);
+	
+	if(enable_debug == 1) debug(4, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high, user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
 	checkCudaErrors(cudaGetLastError());
 	
 	// Allocate memory on host and device.
-	allocate_memory_cpu_output(&fp, gpu_memory, maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output,
-                        &gpu_inputsize, &gpu_outputsize, &inputsize, &outputsize);
-	if(enable_debug == 1) debug(5, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
-	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
+	allocate_memory_cpu_output(&fp, gpu_memory, maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output, &gpu_inputsize, &gpu_outputsize, &inputsize, &outputsize);
+	if(enable_debug == 1) debug(5, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high, user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
 	checkCudaErrors(cudaGetLastError());
 	
 	// Allocate memory on host and device.
 	allocate_memory_gpu(&fp, gpu_memory, maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output,
                         &gpu_inputsize, &gpu_outputsize, &inputsize, &outputsize);
-	if(enable_debug == 1) debug(5, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
-	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
+	if(enable_debug == 1) debug(5, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high, user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
 	checkCudaErrors(cudaGetLastError());
 	
@@ -408,8 +410,7 @@ void main_function
 		//
 		GpuTimer timer;
 		timer.Start();
-		acceleration_fdas(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff,
-						  output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original, enable_fdas_custom_fft, enable_fdas_inbin, enable_fdas_norm, OR_sigma_multiplier, enable_output_ffdot_plan, enable_output_fdas_list);
+		acceleration_fdas(range, nsamp, max_ndms, inc, nboots, ntrial_bins, navdms, narrow, wide, nsearch, aggression, sigma_cutoff, output_buffer, ndms, inBin, dm_low, dm_high, dm_step, tsamp_original,  FDAS_params, MSD_params);
 		//
 		timer.Stop();
 		float time = timer.Elapsed()/1000;
@@ -420,4 +421,5 @@ void main_function
 		printf("\nNumber of samples processed: %ld", inc);
 		printf("\nReal-time speedup factor: %lf", ( tstart_local ) / ( time ));
 	}
+	
 }

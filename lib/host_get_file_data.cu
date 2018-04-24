@@ -1,10 +1,11 @@
 #include <stdio.h>
 
-/* Note we send in a pointer to the file pointer becuase this function needs to update the position of the file pointer
+#include "headers/device_DDTR_Data.h"
+/* Note we send in a pointer to the file pointer because this function needs to update the position of the file pointer
  */
 
-void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs, int *nbits, float *tsamp, float *tstart, float *fch1, float *foff)
-{
+void get_file_data(FILE **fp, DDTR_Data *DDTR_data) {
+//	int *nchans, int *nsamples, int *nsamp, int *nifs, int *nbits, float *tsamp, float *tstart, float *fch1, float *foff)
 
 	fpos_t file_loc;
 
@@ -52,7 +53,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 					fprintf(stderr, "\nError while reading file\n");
 					exit(0);
 				}
-				*tsamp = (float) temp;
+				DDTR_data->tsamp = (float) temp;
 			}
 			else if (strcmp(string, "tstart") == 0)
 			{
@@ -61,7 +62,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 					fprintf(stderr, "\nError while reading file\n");
 					exit(0);
 				}
-				*tstart = (float) temp;
+				DDTR_data->tstart = (float) temp;
 			}
 			else if (strcmp(string, "fch1") == 0)
 			{
@@ -70,7 +71,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 					fprintf(stderr, "\nError while reading file\n");
 					exit(0);
 				}
-				*fch1 = (float) temp;
+				DDTR_data->fch1 = (float) temp;
 			}
 			else if (strcmp(string, "foff") == 0)
 			{
@@ -79,11 +80,11 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 					fprintf(stderr, "\nError while reading file\n");
 					exit(0);
 				}
-				*foff = (float) temp;
+				DDTR_data->foff = (float) temp;
 			}
 			else if (strcmp(string, "nchans") == 0)
 			{
-				if (fread(nchans, sizeof(int), 1, *fp) != 1)
+				if (fread(&(DDTR_data->nchans), sizeof(int), 1, *fp) != 1)
 				{
 					fprintf(stderr, "\nError while reading file\n");
 					exit(0);
@@ -91,7 +92,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 			}
 			else if (strcmp(string, "nifs") == 0)
 			{
-				if (fread(nifs, sizeof(int), 1, *fp) != 1)
+				if (fread(&(DDTR_data->nifs), sizeof(int), 1, *fp) != 1)
 				{
 					fprintf(stderr, "\nError while reading file\n");
 					exit(0);
@@ -99,7 +100,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 			}
 			else if (strcmp(string, "nbits") == 0)
 			{
-				if (fread(nbits, sizeof(int), 1, *fp) != 1)
+				if (fread(&(DDTR_data->nbits), sizeof(int), 1, *fp) != 1)
 				{
 					fprintf(stderr, "\nError while reading file\n");
 					exit(0);
@@ -107,7 +108,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 			}
 			else if (strcmp(string, "nsamples") == 0)
 			{
-				if (fread(nsamples, sizeof(int), 1, *fp) != 1)
+				if (fread(&(DDTR_data->nsamples), sizeof(int), 1, *fp) != 1)
 				{
 					fprintf(stderr, "\nError while reading file\n");
 					exit(0);
@@ -117,7 +118,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 	}
 
 	// Check that we are working with one IF channel
-	if (*nifs != 1)
+	if (DDTR_data->nifs != 1)
 	{
 		printf("\nERROR!! Can only work with one IF channel!\n");
 		exit(1);
@@ -125,7 +126,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 
 	fgetpos(*fp, &file_loc);
 
-	if (( *nbits ) == 32)
+	if ( DDTR_data->nbits == 32)
 	{
 		// Allocate a tempory buffer to store a line of frequency data
 		float *temp_buffer = (float *) malloc(( *nchans ) * sizeof(float));
@@ -137,10 +138,10 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 			fread(temp_buffer, sizeof(float), ( *nchans ), *fp);
 			total_data++;
 		}
-		*nsamp = total_data - 1;
+		DDTR_data->nsamp = total_data - 1;
 		free(temp_buffer);
 	}
-	else if (( *nbits ) == 16)
+	else if ( DDTR_data->nbits == 16)
 	{
 		// Allocate a tempory buffer to store a line of frequency data
 		unsigned short *temp_buffer = (unsigned short *) malloc(( *nchans ) * sizeof(unsigned short));
@@ -155,10 +156,10 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 			}
 			total_data++;
 		}
-		*nsamp = total_data - 1;
+		DDTR_data->nsamp = total_data - 1;
 		free(temp_buffer);
 	}
-	else if (( *nbits ) == 8)
+	else if ( DDTR_data->nbits == 8)
 	{
 		// Allocate a tempory buffer to store a line of frequency data
 		unsigned char *temp_buffer = (unsigned char *) malloc(( *nchans ) * sizeof(unsigned char));
@@ -173,10 +174,10 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 			}
 			total_data++;
 		}
-		*nsamp = total_data - 1;
+		DDTR_data->nsamp = total_data - 1;
 		free(temp_buffer);
 	}
-	else if (( *nbits ) == 4)
+	else if ( DDTR_data->nbits == 4)
 	{
 		// Allocate a tempory buffer to store a line of frequency data
 		// each byte stores 2 frequency data
@@ -186,7 +187,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 			printf("\nNumber of frequency channels must be a power of 2 with 4 bit data\n");
 			exit(0);
 		}
-		int nb_bytes = *nchans/2;
+		int nb_bytes = DDTR_data->nchans/2;
 		unsigned char *temp_buffer = (unsigned char *) malloc( nb_bytes * sizeof(unsigned char));
 		total_data = 0;
 		while (!feof(*fp))
@@ -198,10 +199,10 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 			}
 			total_data++;
 		}
-		*nsamp = total_data - 1;
+		DDTR_data->nsamp = total_data - 1;
 		free(temp_buffer);
 	}
-	else if (( *nbits ) == 2)
+	else if ( DDTR_data->nbits == 2)
 	{
 		// Allocate a tempory buffer to store a line of frequency data
 		// each byte stores 2 frequency data
@@ -211,7 +212,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 //			printf("\nNumber of frequency channels must be divisible by 8 with 1 bit data samples\n");
 //			exit(0);
 //		}
-		int nb_bytes = *nchans/4;
+		int nb_bytes = DDTR_data->nchans/4;
 		unsigned char *temp_buffer = (unsigned char *) malloc( nb_bytes * sizeof(unsigned char));
 		total_data = 0;
 		while (!feof(*fp))
@@ -223,10 +224,10 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 			}
 			total_data++;
 		}
-		*nsamp = total_data - 1;
+		DDTR_data->nsamp = total_data - 1;
 		free(temp_buffer);
 	}
-	else if (( *nbits ) == 1)
+	else if ( DDTR_data->nbits == 1)
 	{
 		// Allocate a tempory buffer to store a line of frequency data
 		// each byte stores 2 frequency data
@@ -236,7 +237,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 //			printf("\nNumber of frequency channels must be divisible by 8 with 1 bit data samples\n");
 //			exit(0);
 //		}
-		int nb_bytes = *nchans/8;
+		int nb_bytes = DDTR_data->nchans/8;
 		unsigned char *temp_buffer = (unsigned char *) malloc( nb_bytes * sizeof(unsigned char));
 		total_data = 0;
 		while (!feof(*fp))
@@ -248,7 +249,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 			}
 			total_data++;
 		}
-		*nsamp = total_data - 1;
+		DDTR_data->nsamp = total_data - 1;
 		free(temp_buffer);
 	}
 

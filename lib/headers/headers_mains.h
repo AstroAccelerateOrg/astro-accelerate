@@ -14,5 +14,11 @@
 #include "../timer.h"
 
 #include "params.h"
+#include "headers/device_DDTR_Data.h"
+#include "headers/device_DDTR_Plan.h"
+#include "headers/device_SPS_Parameters.h"
+#include "headers/device_MSD_Parameters.h"
+#include "headers/device_FDAS_Parameters.h"
+
 
 #endif

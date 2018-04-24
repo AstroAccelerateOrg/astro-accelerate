@@ -67,7 +67,7 @@ __global__ void PHS_GPU_kernel(float const* __restrict__ d_input, float *d_outpu
 				if( (blockIdx.x + f*blockIdx.x)<nTimesamples ) {
 					pos = (blockIdx.x + f*blockIdx.x)*nSpectra + blockIdx.y*blockDim.x + threadIdx.x;
 					HS_value = HS_value + __ldg(&d_input[pos]);
-					temp_SNR = (HS_value - __ldg(&d_MSD[f*2]))/(__ldg(&d_MSD[2*f+1])); //assuming white noise 
+					temp_SNR = (HS_value - __ldg(&d_MSD[f*2]))/(__ldg(&d_MSD[2*f+1]));
 					if(temp_SNR > SNR) {
 						SNR = temp_SNR;
 						max_SNR_harmonic = f;
