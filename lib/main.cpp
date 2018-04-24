@@ -102,24 +102,16 @@ int main(int argc, char* argv[])
 	// This reads DDTR plan, configures what modules AA should perform and configure these modules.
 	// Input -> DDTR plan, All module parameters
 				
-	if (enable_debug == 1)
-		debug(1, start_time, range, outBin, enable_debug, enable_analysis,
-		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
-		user_dm_high, user_dm_step, dm_low, dm_high, dm_step, ndms, nchans,
-		nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm,
-		nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
+	if (AA_params.enable_debug == 1)
+		debug(1, DDTR_data, DDTR_plan, AA_params, MSD_params, SPS_params, PRS_params, FDAS_params);
 		
 	// Reads telescope parameters from the header of the input file and then counts the number of samples in the input data file.
 	DDTR_Data DDTR_data;
 	get_file_data(&fp, &DDTR_data);
 	// This reads parameters of the data. Input -> time/frequency data type
 		
-	if (enable_debug == 1)
-		debug(3, start_time, range, outBin, enable_debug, enable_analysis,
-		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
-		user_dm_high, user_dm_step, dm_low, dm_high, dm_step, ndms, nchans,
-		nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm,
-		nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
+	if (AA_params.enable_debug == 1)
+		debug(3, DDTR_data, DDTR_plan, AA_params, MSD_params, SPS_params, PRS_params, FDAS_params);
 
 	// Allocate memory on host.
 	allocate_memory_cpu_input(&fp, gpu_memory, maxshift, num_tchunks, max_ndms,
@@ -127,23 +119,15 @@ int main(int argc, char* argv[])
 	  &output_buffer, &d_input, &d_output, &gpu_inputsize, &gpu_outputsize,
 	  &inputsize, &outputsize);
 	  
-	if (enable_debug == 1)
-		debug(5, start_time, range, outBin, enable_debug, enable_analysis,
-		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
-		user_dm_high, user_dm_step, dm_low, dm_high, dm_step, ndms, nchans,
-		nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm,
-		nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
+	if (AA_params.enable_debug == 1)
+		debug(5, DDTR_data, DDTR_plan, AA_params, MSD_params, SPS_params, PRS_params, FDAS_params);
 
 	// Store the recorded telescope data contained in the input filterbank file in the allocated memory.
 	get_recorded_data(&fp, nsamp, nchans, nbits, &input_buffer, &inputsize);
 	// Reads raw data from disk. Input -> time/frequency data type
 	
-	if (enable_debug == 1)
-		debug(7, start_time, range, outBin, enable_debug, enable_analysis,
-		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
-		user_dm_high, user_dm_step, dm_low, dm_high, dm_step, ndms, nchans,
-		nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm,
-		nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
+	if (AA_params.enable_debug == 1)
+		debug(7, DDTR_data, DDTR_plan, AA_params, MSD_params, SPS_params, PRS_params, FDAS_params);
 	
 	// Check GPU available
 	// Run stratagy
