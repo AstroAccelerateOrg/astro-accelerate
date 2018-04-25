@@ -52,6 +52,7 @@ int main(int argc, char* argv[])
 	unsigned short *input_buffer = NULL;
 	unsigned short *input_buffer_small = NULL;
 	float ***output_buffer = NULL;
+	float *output_buffer_small = NULL;
 	unsigned short *d_input = NULL;
 	float *d_output = NULL;
 	float *dmshifts = NULL;
@@ -157,9 +158,9 @@ int main(int argc, char* argv[])
 	  outBin, ndms, maxshift, max_ndms, max_samps, num_tchunks, total_ndms, multi_file, max_dm,
 	  // Memory sizes and pointers
 	  inputsize, outputsize, gpu_inputsize, gpu_outputsize, gpu_memory,
-	  input_buffer, input_buffer_small, output_buffer, d_input, d_output, 
-	  dmshifts, user_dm_low, user_dm_high, user_dm_step, dm_low, dm_high, 
-	  dm_step,
+	  input_buffer, input_buffer_small, output_buffer, output_buffer_small, 
+	  d_input, d_output, dmshifts, user_dm_low, user_dm_high, user_dm_step, 
+	  dm_low, dm_high, dm_step,
 	  // Telescope parameters
 	  nchans, nsamp, nbits, nsamples, nifs, t_processed, nboots, ntrial_bins,
 	  navdms, nsearch, aggression, narrow, wide, maxshift_original,
@@ -175,8 +176,8 @@ int main(int argc, char* argv[])
 
 	fclose(fp);
 
-	cudaFreeHost(output_buffer);
-//	free(output_buffer);
+//	cudaFreeHost(output_buffer);
+	free(output_buffer);
 	free(t_processed);
 	free(dm_low);
 	free(dm_high);

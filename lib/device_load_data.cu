@@ -14,10 +14,10 @@ void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short
 	{
 		long int length = ( t_processed + maxshift );
 		size_t size = (nchans) * length * sizeof(unsigned short);
-//		memcpy(host_pointer_pinned, host_pointer,size);
+		memcpy(host_pointer_pinned, host_pointer,size);
 		checkCudaErrors(cudaMemcpyToSymbolAsync(dm_shifts, dmshifts, (nchans) * sizeof(float),0,cudaMemcpyHostToDevice,stream));
-//		checkCudaErrors(cudaMemcpyAsync(device_pointer, host_pointer_pinned, size, cudaMemcpyHostToDevice,stream));
-		checkCudaErrors(cudaMemcpyAsync(device_pointer, host_pointer, size, cudaMemcpyHostToDevice,stream));
+		checkCudaErrors(cudaMemcpyAsync(device_pointer, host_pointer_pinned, size, cudaMemcpyHostToDevice,stream));
+//		checkCudaErrors(cudaMemcpyAsync(device_pointer, host_pointer, size, cudaMemcpyHostToDevice,stream));
 		checkCudaErrors(cudaMemcpyToSymbolAsync(i_nchans, &nchans, sizeof(int),0,cudaMemcpyHostToDevice,stream));
 		checkCudaErrors(cudaMemcpyToSymbolAsync(i_nsamp, &length, sizeof(int),0,cudaMemcpyHostToDevice,stream));
 		checkCudaErrors(cudaMemcpyToSymbolAsync(i_t_processed_s, &t_processed, sizeof(int),0,cudaMemcpyHostToDevice,stream));

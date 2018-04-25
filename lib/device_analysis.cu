@@ -143,10 +143,10 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	// Default state of Event: occured;
 	// cudaEventSynchronize -- blocks host until stream completes all outstanding calls;
 	// cudaStreamWaitEvent -- blocks stream until event occurs, blocks launches after this call, does not block host;
-//	cudaEvent_t waitEvent[NUM_STREAMS];
-//	for (int s=0; s < NUM_STREAMS; s++)
-//		checkCudaErrors(cudaEventCreateWithFlags(&waitEvent[s], cudaEventDisableTiming));	
-//	int second_stream = (stream_id + 1 ) % NUM_STREAMS;
+	cudaEvent_t waitEvent[NUM_STREAMS];
+	for (int s=0; s < NUM_STREAMS; s++)
+		checkCudaErrors(cudaEventCreateWithFlags(&waitEvent[s], cudaEventDisableTiming));	
+	int second_stream = (stream_id + 1 ) % NUM_STREAMS;
 		
 	int max_iteration;
 	int t_BC_widths[10]={PD_MAXTAPS,16,16,16,8,8,8,8,8,8};
@@ -321,31 +321,31 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 //			cudaEventRecord(waitEvent[stream_id], streams);
 //			checkCudaErrors(cudaStreamWaitEvent(streams, waitEvent[second_stream],0));
 //			checkCudaErrors(cudaMemcpy(temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost));
-			checkCudaErrors(cudaMemcpyAsync(temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost, streams));
+	//		checkCudaErrors(cudaMemcpyAsync(temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost, streams));
 //			checkCudaErrors(cudaStreamAddCallback(streams,MyCallback,(void*) stream_id,0));
 //			cudaEventRecord(waitEvent[stream_id], streams);
 //			checkCudaErrors(cudaGetLastError());
 //			bool process_stop = false;
 //			while (process_stop == false) {process_stop = cudaEventQuery(waitEvent[stream_id]) == cudaSuccess;}
 			checkCudaErrors(cudaStreamSynchronize(streams));
-
+//			checkCudaErrors(cudaMemPrefetchAsync(gmem_peak_pos,2*sizeof(int),cudaCpuDeviceId,streams));
 //			checkCudaErrors(cudaEventSynchronize(waitEvent[stream_id]));
 //			checkCudaErrors(cudaStreamWaitEvent(streams, waitEvent[stream_id],0));
 //			checkCudaErrors(cudaStreamAddCallback(streams,MyCallback,(void*) stream_id,0));
 //			checkCudaErrors(cudaMemcpyAsync(temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost, streams));
 //			checkCudaErrors(cudaMemcpyAsync(&temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost, streams));
-			#ifdef GPU_ANALYSIS_DEBUG
+//			#ifdef GPU_ANALYSIS_DEBUG
 //			*gmem_peak_pos = 1;
-			printf("    temp_peak_pos:%d; host_pos:%zu; max:%zu; local_max:%d; stream_id:%i;\n", (*temp_peak_pos), (*peak_pos), max_peak_size, local_max_list_size, stream_id);
+			printf("    temp_peak_pos:%d; host_pos:%zu; max:%zu; local_max:%d; stream_id:%i;\n", (*gmem_peak_pos), (*peak_pos), max_peak_size, local_max_list_size, stream_id);
 //			printf("\nTemp gmem_peak pointer: \t%p\n", gmem_peak_pos);
-			#endif
-			if( (*temp_peak_pos)>=local_max_list_size ) {
+//			#endif
+			if( (*gmem_peak_pos)>=local_max_list_size ) {
 				printf("    Maximum list size reached! Increase list size or increase sigma cutoff.\n");
 				*temp_peak_pos=local_max_list_size;
 			}
-			if( ((*peak_pos) + (*temp_peak_pos))<max_peak_size){
-				checkCudaErrors(cudaMemcpyAsync(&h_peak_list[(*peak_pos)*4], d_peak_list, (*temp_peak_pos)*4*sizeof(float), cudaMemcpyDeviceToHost, streams));
-				*peak_pos = (*peak_pos) + (*temp_peak_pos);
+			if( ((*peak_pos) + (*gmem_peak_pos))<max_peak_size){
+				checkCudaErrors(cudaMemcpyAsync(&h_peak_list[(*peak_pos)*4], d_peak_list, (*gmem_peak_pos)*4*sizeof(float), cudaMemcpyDeviceToHost, streams));
+				*peak_pos = (*peak_pos) + (*gmem_peak_pos);
 			}
 			else printf("Error peak list is too small!\n");
 

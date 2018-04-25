@@ -260,16 +260,14 @@ void main_function
 //	long int old_inc=0;
 
 	//preload data 
-//	for (int s=0; s < NUM_STREAMS; s++){
+	for (int s=0; s < NUM_STREAMS; s++){
 //		memcpy(&input_buffer_small[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)], &input_buffer[(unsigned long) ( s*t_processed[0][0]*nchans )], sizeof(unsigned short)*nchans*(t_processed[0][0]+maxshift_original));
-//		load_data(-1, inBin, &d_input[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)], &input_buffer[(unsigned long) ( s*t_processed[0][0]*nchans )], &input_buffer_small[(unsigned long) ( s*(t_processed[0][0]+maxshift_original)*nchans )], t_processed[0][s], maxshift_original, nchans, dmshifts,streams[s]);
-//	}
+		load_data(-1, inBin, &d_input[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)], &input_buffer[(unsigned long) ( s*t_processed[0][0]*nchans )], &input_buffer_small[(unsigned long) ( s*(t_processed[0][0]+maxshift_original)*nchans )], t_processed[0][s], maxshift_original, nchans, dmshifts,streams[s]);
+	}
 
 	// need to add remainder for num_tchunksdasfsdfdfad
 	for (t = 0; t < num_tchunks/NUM_STREAMS ; t++) {
 		for (int s = 0; s < NUM_STREAMS; s++){
-		load_data(-1, inBin, &d_input[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)], &input_buffer[(unsigned long) ( s*t_processed[0][0]*nchans )], &input_buffer_small[(unsigned long) ( s*(t_processed[0][0]+maxshift_original)*nchans )], t_processed[0][s], maxshift_original, nchans, dmshifts,streams[s]);
-
 		tsamp_stream[s] = tsamp_original;
 		printf("\n-------------------Stream_id %i --------------------\n", s);	
 		t_pos = t*NUM_STREAMS+s;
@@ -321,7 +319,7 @@ void main_function
 			dedisperse(dm_range, t_processed[dm_range][t_pos], inBin, dmshifts, &d_input[(unsigned long)0*(t_processed[0][0]+maxshift_original)*nchans], &d_output[(unsigned long) (0*(t_processed[0][0]+maxshift_original)*nchans)], nchans, ( t_processed[dm_range][t_pos] + maxshift ), maxshift, &tsamp_stream[0], dm_low, dm_high, dm_step, ndms, nbits, streams[0], failsafe);
 			dedisperse(dm_range, t_processed[dm_range][t_pos2], inBin, dmshifts, &d_input[(unsigned long)(t_processed[0][0]+maxshift_original)*nchans], &d_output[(unsigned long) ((t_processed[0][0]+maxshift_original)*nchans)], nchans, ( t_processed[dm_range][t_pos2] + maxshift ), maxshift, &tsamp_stream[1], dm_low, dm_high, dm_step, ndms, nbits, streams[1], failsafe);
 
-                        checkCudaErrors(cudaMemcpyAsync(&output_buffer_small[(unsigned long)(0*(t_processed[0][0]+maxshift_original)*nchans)],
+                        checkCudaErrors(cudaMemcpyAsync(&output_buffer_small[(unsigned long) (0*(t_processed[0][0]+maxshift_original)*nchans)],
                                                         &d_output[(unsigned long) (0*(t_processed[0][0]+maxshift_original)*nchans)],
                                                         gpu_outputsize/NUM_STREAMS, cudaMemcpyDeviceToHost,streams[0] ));
                         checkCudaErrors(cudaMemcpyAsync(&output_buffer_small[(unsigned long) ((t_processed[0][0]+maxshift_original)*nchans)],
@@ -330,20 +328,22 @@ void main_function
 
                         peak_pos[0]=0;
 			peak_pos[1]=0;
-                        analysis_GPU(h_peak_list, &peak_pos[0], max_peak_size, dm_range, tstart_local, t_processed[dm_range][t_pos], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, &d_output[(unsigned long)((t_processed[0][0]+maxshift_original)*nchans)], dm_low, dm_high, dm_step, tsamp_stream[0], streams[0], 0, candidate_algorithm, enable_sps_baselinenoise, &d_MSD_workarea[(long int)(0*MSD_data_info*5.5)], &d_MSD_output_taps[0*MSD_data_info*2], &d_MSD_interpolated[0*MSD_profile_size_in_bytes], &h_MSD_DIT[180*0], &h_MSD_interpolated[0*MSD_profile_size_in_bytes], &gmem_peak_pos[0], &temp_peak_pos[0], MSD_data_info);
-//                        analysis_GPU(h_peak_list, &peak_pos[1], max_peak_size, dm_range, tstart_local, t_processed[dm_range][t_pos2], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, &d_output[(unsigned long)((t_processed[0][0]+maxshift_original)*nchans)], dm_low, dm_high, dm_step, tsamp_stream[1], streams[1], 1, candidate_algorithm, enable_sps_baselinenoise, &d_MSD_workarea[(long int)(MSD_data_info*5.5)], &d_MSD_output_taps[MSD_data_info*2], &d_MSD_interpolated[MSD_profile_size_in_bytes], &h_MSD_DIT[180], &h_MSD_interpolated[MSD_profile_size_in_bytes], &gmem_peak_pos[1], &temp_peak_pos[1], MSD_data_info);
+                        analysis_GPU(h_peak_list, &peak_pos[0], max_peak_size, dm_range, tstart_local, t_processed[dm_range][t_pos], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, &d_output[(unsigned long)(0*(t_processed[0][0]+maxshift_original)*nchans)], dm_low, dm_high, dm_step, tsamp_stream[0], streams[0], 0, candidate_algorithm, enable_sps_baselinenoise, &d_MSD_workarea[(long int)(0*MSD_data_info*5.5)], &d_MSD_output_taps[0*MSD_data_info*2], &d_MSD_interpolated[0*MSD_profile_size_in_bytes], &h_MSD_DIT[180*0], &h_MSD_interpolated[0*MSD_profile_size_in_bytes], &gmem_peak_pos[0], &temp_peak_pos[0], MSD_data_info);
+                        analysis_GPU(h_peak_list, &peak_pos[1], max_peak_size, dm_range, tstart_local, t_processed[dm_range][t_pos2], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, &d_output[(unsigned long)((t_processed[0][0]+maxshift_original)*nchans)], dm_low, dm_high, dm_step, tsamp_stream[1], streams[1], 1, candidate_algorithm, enable_sps_baselinenoise, &d_MSD_workarea[(long int)(MSD_data_info*5.5)], &d_MSD_output_taps[MSD_data_info*2], &d_MSD_interpolated[MSD_profile_size_in_bytes], &h_MSD_DIT[180], &h_MSD_interpolated[MSD_profile_size_in_bytes], &gmem_peak_pos[1], &temp_peak_pos[1], MSD_data_info);
 
 		//} //streams
 		
 		oldBin = inBin[dm_range];
 		} //  dmrange
-//		if (t < (num_tchunks/NUM_STREAMS-1) ) {
-//                        long int inc_next = inc+t_processed[0][t_pos+1];
-////                      memcpy(&input_buffer_small[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)], &input_buffer[(unsigned long) ( inc_next*nchans )], sizeof(unsigned short)*nchans*(t_processed[0][t_pos+NUM_STREAMS]+maxshift_original));
-////                      printf("\n\n\t\t T positistion chunk: %i, inc for read: %ld, streamd_id: %i, tpos: %i", t, inc_next, s, t_pos);
-//                        load_data(-1, inBin, &d_input[(unsigned long) (0*(t_processed[0][0]+maxshift_original)*nchans)], &input_buffer[(unsigned long) ( inc_next * nchans )], &input_buffer_small[(unsigned long) ( 0*(t_processed[0][0]+maxshift_original)*nchans )], t_processed[0][t_pos+NUM_STREAMS], maxshift, nchans, dmshifts,streams[0]);
-//                        load_data(-1, inBin, &d_input[(unsigned long) ((t_processed[0][0]+maxshift_original)*nchans)], &input_buffer[(unsigned long) ( inc_next * nchans )], &input_buffer_small[(unsigned long) ((t_processed[0][0]+maxshift_original)*nchans )], t_processed[0][t_pos+NUM_STREAMS], maxshift, nchans, dmshifts,streams[1]);
-//              }
+		if (t < (num_tchunks/NUM_STREAMS-1) ) {
+                        long int inc_next = inc+t_processed[0][t_pos+1];
+//                      memcpy(&input_buffer_small[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)], &input_buffer[(unsigned long) ( inc_next*nchans )], sizeof(unsigned short)*nchans*(t_processed[0][t_pos+NUM_STREAMS]+maxshift_original));
+//                      printf("\n\n\t\t T positistion chunk: %i, inc for read: %ld, streamd_id: %i, tpos: %i", t, inc_next, s, t_pos);
+                        load_data(-1, inBin, &d_input[(unsigned long) (0*(t_processed[0][0]+maxshift_original)*nchans)], &input_buffer[(unsigned long) ( inc_next * nchans )], &input_buffer_small[(unsigned long) ( 0*(t_processed[0][0]+maxshift_original)*nchans )], t_processed[0][t_pos+NUM_STREAMS], maxshift, nchans, dmshifts,streams[0]);
+                        load_data(-1, inBin, &d_input[(unsigned long) ((t_processed[0][0]+maxshift_original)*nchans)], &input_buffer[(unsigned long) ( inc_next * nchans )], &input_buffer_small[(unsigned long) ((t_processed[0][0]+maxshift_original)*nchans )], t_processed[0][t_pos+NUM_STREAMS], maxshift, nchans, dmshifts,streams[1]);
+
+	;
+                }
 
 	} // tchunk
 

@@ -46,6 +46,7 @@ void main_function
   unsigned short  *input_buffer,
   unsigned short  *input_buffer_small,
 	float ***output_buffer,
+	float *output_buffer_small,
 	unsigned short  *d_input,
 	float *d_output,
 	float *dmshifts,
