@@ -7,8 +7,7 @@
 #include "headers/params.h"
 #include "headers/host_help.h"
 
-void get_user_input(FILE **fp, int argc, char *argv[], DDTR_Plan *DDTR_plan, AA_Parameters *AA_params, MSD_Parameters *MSD_params, SPS_Parameters *SPS_params, PRS_Parameters *PRS_params, FDAS_Parameters *FDAS_params)
-{
+void get_user_input(FILE **fp, int argc, char *argv[], DDTR_Plan *DDTR_plan, AA_Parameters *AA_params, MSD_Parameters *MSD_params, SPS_Parameters *SPS_params, PRS_Parameters *PRS_params, FDAS_Parameters *FDAS_params) {
 
 	FILE *fp_in = NULL;
 	int nRanges, nb_selected_dm, error;

@@ -13,7 +13,17 @@ public:
 	int enable_fdas_inbin;
 	int enable_fdas_norm;
 	
-	FDAS_Parameters(float t_sigma_cutoff, int t_candidate_algorithm, int t_enable_output_ffdot_plan, int t_enable_output_fdas_list, int t_enable_fdas_custom_fft, int t_enable_fdas_inbin, int t_enable_fdas_norm){
+	FDAS_Parameters(){
+		sigma_cutoff = 6.0f;
+		candidate_algorithm = 0;
+		enable_output_ffdot_plan = 0;
+		enable_output_fdas_list;
+		enable_fdas_custom_fft = 0;
+		enable_fdas_inbin = 0;
+		enable_fdas_norm = 0;
+	}
+	
+	void Set(float t_sigma_cutoff, int t_candidate_algorithm, int t_enable_output_ffdot_plan, int t_enable_output_fdas_list, int t_enable_fdas_custom_fft, int t_enable_fdas_inbin, int t_enable_fdas_norm){
 		sigma_cutoff = t_sigma_cutoff;
 		
 		candidate_algorithm      = t_candidate_algorithm;

@@ -9,37 +9,32 @@
 
 //{{{ init_gpu
 
-void init_gpu(int argc, char **arg, int enable_debug, size_t *gpu_memory)
-{
+void init_gpu(size_t *gpu_memory, int device) {
 
 	int deviceCount = 0;
 	cudaError_t error_id = cudaGetDeviceCount(&deviceCount);
 
-	if (error_id != cudaSuccess)
-	{
+	if (error_id != cudaSuccess) {
 		printf("cudaGetDeviceCount returned %d\n-> %s\n", (int) error_id, cudaGetErrorString(error_id));
 		printf("Result = FAIL\n");
 		exit(EXIT_FAILURE);
 	}
 
 	// This function call returns 0 if there are no CUDA capable devices.
-	if (deviceCount == 0)
-	{
+	if (deviceCount == 0) {
 		printf("There are no available device(s) that support CUDA\n");
 	}
-	else
-	{
+	else {
 		printf("Detected %d CUDA Capable device(s)\n", deviceCount);
 	}
 
-	int dev, driverVersion = 0, runtimeVersion = 0;
-	dev = CARD;
+	int driverVersion = 0, runtimeVersion = 0;
 
-	cudaSetDevice(dev);
+	cudaSetDevice(device);
 	cudaDeviceProp deviceProp;
-	cudaGetDeviceProperties(&deviceProp, dev);
+	cudaGetDeviceProperties(&deviceProp, device);
 
-	printf("\nDevice %d: \"%s\"\n", dev, deviceProp.name);
+	printf("\nDevice %d: \"%s\"\n", device, deviceProp.name);
 
 	// Console log
 	cudaDriverGetVersion(&driverVersion);

@@ -7,8 +7,7 @@
  * (*input_buffer_odd)[(c*(*nsamp))  + total_data] = (float)temp_buffer[c];
  */
 
-void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned short **input_buffer, size_t *inputsize)
-{
+void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned short **input_buffer) {
 
 	int c;
 

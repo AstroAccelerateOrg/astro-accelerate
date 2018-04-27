@@ -1,10 +1,10 @@
 #include <stdio.h>
 
-#include "headers/device_DDTR_Data.h"
+#include "headers/device_DDTR_InputData.h"
 /* Note we send in a pointer to the file pointer because this function needs to update the position of the file pointer
  */
 
-void get_file_data(FILE **fp, DDTR_Data *DDTR_data) {
+void get_file_data(FILE **fp, DDTR_InputData *DDTR_data) {
 //	int *nchans, int *nsamples, int *nsamp, int *nifs, int *nbits, float *tsamp, float *tstart, float *fch1, float *foff)
 
 	fpos_t file_loc;
@@ -263,5 +263,6 @@ void get_file_data(FILE **fp, DDTR_Data *DDTR_data) {
 
 	// Move the file pointer back to the end of the header
 	fsetpos(*fp, &file_loc);
-
+	
+	DDTR_data->Init();
 }

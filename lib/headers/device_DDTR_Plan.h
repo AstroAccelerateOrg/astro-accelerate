@@ -108,7 +108,7 @@ public:
 		total_ndms = 0;
 		max_dm     = 0;
 		
-		power = 2.0;
+		power = 2.0f;
 		
 		gpu_inputsize   = 0;
 		gpu_outputsize  = 0;

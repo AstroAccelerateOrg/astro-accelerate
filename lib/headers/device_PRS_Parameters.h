@@ -9,9 +9,9 @@ public:
 	int nHarmonics;
 	int candidate_algorithm
 	
-	MSD_Parameters(){
+	PRS_Parameters(){
 		sigma_cutoff = 6.0;
-		nHarmonics   = 8;
+		nHarmonics   = 32;
 		candidate_algorithm = 0;
 	}
 };

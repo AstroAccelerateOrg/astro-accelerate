@@ -14,8 +14,23 @@ public:
 	int enable_old_rfi;
 	int analysis_debug;
 	int failsafe;
+	int verbose;
 	
-	AA_Parameters(int t_enable_debug, int t_enable_analysis, int t_enable_acceleration,	int t_enable_periodicity, int t_enable_zero_dm, int t_enable_zero_dm_with_outliers, int t_enable_rfi, int t_enable_old_rfi, int t_analysis_debug, int t_failsafe){
+	AA_Parameters(){
+		enable_debug = 0
+		enable_analysis = 0;
+		enable_acceleration = 0;
+		enable_periodicity = 0;
+		enable_zero_dm = 0;
+		enable_zero_dm_with_outliers = 0;
+		enable_rfi = 0;
+		enable_old_rfi = 0;
+		analysis_debug = 0;
+		failsafe = 0;
+		verbose = 0;
+	}
+	
+	void Set(int t_enable_debug, int t_enable_analysis, int t_enable_acceleration,	int t_enable_periodicity, int t_enable_zero_dm, int t_enable_zero_dm_with_outliers, int t_enable_rfi, int t_enable_old_rfi, int t_analysis_debug, int t_failsafe){
 		enable_debug        = t_enable_debug;
 		enable_analysis     = t_enable_analysis;
 		enable_acceleration = t_enable_acceleration;

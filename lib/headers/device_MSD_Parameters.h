@@ -8,7 +8,12 @@ public:
 	// Switches
 	int enable_outlier_rejection;
 	
-	MSD_Parameters(float t_OR_sigma_multiplier, int t_enable_outlier_rejection){
+	MSD_Parameters(){
+		enable_outlier_rejection = 0;
+		OR_sigma_multiplier = 4.0f;
+	}
+	
+	void Set(float t_OR_sigma_multiplier, int t_enable_outlier_rejection){
 		OR_sigma_multiplier      = t_OR_sigma_multiplier;
 		enable_outlier_rejection = t_enable_outlier_rejection;
 	}
