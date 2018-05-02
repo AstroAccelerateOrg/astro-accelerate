@@ -15,9 +15,11 @@ public:
 	int analysis_debug;
 	int failsafe;
 	int verbose;
+	int export_data;
+	int output_dedispersion_data;
 	
 	AA_Parameters(){
-		enable_debug = 0
+		enable_debug = 0;
 		enable_analysis = 0;
 		enable_acceleration = 0;
 		enable_periodicity = 0;
@@ -28,6 +30,8 @@ public:
 		analysis_debug = 0;
 		failsafe = 0;
 		verbose = 0;
+		export_data = 0;
+		output_dedispersion_data = 0;
 	}
 	
 	void Set(int t_enable_debug, int t_enable_analysis, int t_enable_acceleration,	int t_enable_periodicity, int t_enable_zero_dm, int t_enable_zero_dm_with_outliers, int t_enable_rfi, int t_enable_old_rfi, int t_analysis_debug, int t_failsafe){

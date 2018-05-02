@@ -7,7 +7,7 @@ public:
 	float sigma_cutoff;
 	// Switches
 	int nHarmonics;
-	int candidate_algorithm
+	int candidate_algorithm;
 	
 	PRS_Parameters(){
 		sigma_cutoff = 6.0;

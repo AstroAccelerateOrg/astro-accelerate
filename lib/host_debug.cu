@@ -1,8 +1,8 @@
 #include <stdio.h>
+#include "headers/headers_mains.h"
 //#include <omp.h>
 
-void debug(int test, clock_t start_time, int range, int *outBin, int enable_debug, int analysis, int output_dmt, int multi_file, float sigma_cutoff, float power, int max_ndms, float *user_dm_low, float *user_dm_high, float *user_dm_step, float *dm_low, float *dm_high, float *dm_step, int *ndms, int nchans, int nsamples, int nifs, int nbits, float tsamp, float tstart, float fch1, float foff, int maxshift, float max_dm, int nsamp, size_t gpu_inputsize, size_t gpu_outputsize, size_t inputsize, size_t outputsize) {
-
+void debug(int test, clock_t start_time, DDTR_InputData *DDTR_data, DDTR_Plan *DDTR_plan, AA_Parameters *AA_params, MSD_Parameters *MSD_params, SPS_Parameters *SPS_params, PRS_Parameters *PRS_params, FDAS_Parameters *FDAS_params){
 	int	i;
 	clock_t now;
         
@@ -14,16 +14,18 @@ void debug(int test, clock_t start_time, int range, int *outBin, int enable_debu
 	printf("\n Using standard GPU code");
 #endif
 	if(test == 1) {
-		printf("\nrange:\t\t%d", range);
-		printf("\ndebug:\t\t%d", enable_debug);
-		printf("\nmulti_file:\t%d", multi_file);
-		printf("\nanalysis:\t%d", analysis);
-		printf("\noutput_dmt:\t%d", output_dmt);
-		printf("\nsigma_cutoff:\t%f", sigma_cutoff);
-		printf("\npower:\t\t%f", power);
+		printf("\nrange:\t\t%d", DDTR_plan->nRanges);
+		printf("\ndebug:\t\t%d", AA_params->enable_debug);
+		printf("\nanalysis:\t%d", AA_params->enable_analysis);
+		printf("\nacceleration:\t%d", AA_params->enable_acceleration);
+		printf("\nperiodicity:\t%d", AA_params->enable_periodicity);
+		printf("\nSPS sigma_cutoff:\t%f", SPS_params->sigma_cutoff);
+		printf("\nPRS sigma_cutoff:\t%f", PRS_params->sigma_cutoff);
+		printf("\nFDAS sigma_cutoff:\t%f", FDAS_params->sigma_cutoff);
+		printf("\npower:\t\t%f", DDTR_plan->power);
 		printf("\nUser requested DM search range:");
-		for(i=0; i<range; i++) {
-			printf("\n%f\t%f\t%f\t%d", user_dm_low[i], user_dm_high[i], user_dm_step[i], outBin[i]);
+		for(i=0; i<DDTR_plan->nRanges; i++) {
+			printf("\n%f\t%f\t%f\t%d", DDTR_plan->user_dm_low[i], DDTR_plan->user_dm_high[i], DDTR_plan->user_dm_step[i], DDTR_plan->inBin[i]);
 		}
 		printf("\nGot user input:\t\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
 		fflush(stdout);
@@ -31,33 +33,33 @@ void debug(int test, clock_t start_time, int range, int *outBin, int enable_debu
 		printf("\nInitialised GPU:\t\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
 		fflush(stdout);
 	} else if(test == 3) {
-		printf("\ntsamp:\t\t\t%lf", tsamp);
-		printf("\ntstart:\t\t\t%lf", tstart);
-		printf("\nfch1:\t\t\t%lf", fch1);
-		printf("\nfoff:\t\t\t%lf", foff);
-		printf("\nnchans:\t\t\t%d", nchans);
-		printf("\nnifs:\t\t\t%d", nifs);
-		printf("\nnbits:\t\t\t%d", nbits);
-		printf("\nnsamples:\t\t%d", nsamples);
-                printf("\nnsamp:\t\t\t%d", nsamp);
+		printf("\ntsamp:\t\t\t%lf", DDTR_data->tsamp);
+		printf("\ntstart:\t\t\t%lf", DDTR_data->tstart);
+		printf("\nfch1:\t\t\t%lf", DDTR_data->fch1);
+		printf("\nfoff:\t\t\t%lf", DDTR_data->foff);
+		printf("\nnchans:\t\t\t%d", DDTR_data->nchans);
+		printf("\nnifs:\t\t\t%d", DDTR_data->nifs);
+		printf("\nnbits:\t\t\t%d", DDTR_data->nbits);
+		printf("\nnsamples:\t\t%d", DDTR_data->nsamples);
+        printf("\nnsamp:\t\t\t%d", DDTR_data->nsamp);
 		printf("\nGot file header info:\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
 		fflush(stdout);
 	} else if(test == 4) {
-		printf("\n\nmaximum DM:\t\t%f", max_dm);
-		printf("\nmaxshift:\t\t%d", maxshift);
-		printf("\nmax_ndms:\t\t%d", max_ndms), fflush(stdout);
+		printf("\n\nmaximum DM:\t\t%f", DDTR_plan->max_dm);
+		printf("\nmaxshift:\t\t%d", DDTR_plan->maxshift);
+		printf("\nmax_ndms:\t\t%d", DDTR_plan->max_ndms), fflush(stdout);
 		printf("\nActual DM range that will be searched:");
-		for(i=0; i<range; i++) {
-			printf("\n%f\t%f\t%f\t%d", dm_low[i], dm_high[i], dm_step[i], ndms[i]);
+		for(i=0; i<DDTR_plan->nRanges; i++) {
+			printf("\n%f\t%f\t%f\t%d", DDTR_plan->dm_low[i], DDTR_plan->dm_high[i], DDTR_plan->dm_step[i], DDTR_plan->ndms[i]);
 		}
 		printf("\nCalculated strategy:\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
 		fflush(stdout);
 	} else if(test == 5) {
-		printf("\nMaxshift efficiency:\t\t%.2f%%", 100.0f-((float)maxshift/(float)nsamp)*100.0f); 
-		printf("\nHost Input size:\t\t%d MB", (int) (inputsize / 1024 / 1024));
-		printf("\nHost Output size:\t\t%d MB", (int) (outputsize / 1024 / 1024));
-		printf("\nDevice Input size:\t\t%d MB", (int) (gpu_inputsize / 1024 / 1024));
-		printf("\nDevice Output size:\t\t%d MB", (int) (gpu_outputsize / 1024 / 1024));
+		printf("\nMaxshift efficiency:\t\t%.2f%%", 100.0f-((float)DDTR_plan->maxshift/(float)DDTR_plan->nsamp)*100.0f); 
+		printf("\nHost Input size:\t\t%d MB", (int) ((DDTR_plan->nsamp*DDTR_plan->nchans*sizeof(unsigned short)) / 1024 / 1024));
+		printf("\nHost Output size:\t\t%d MB", (int) (DDTR_plan->host_outputsize / 1024 / 1024));
+		printf("\nDevice Input size:\t\t%d MB", (int) (DDTR_plan->gpu_inputsize / 1024 / 1024));
+		printf("\nDevice Output size:\t\t%d MB", (int) (DDTR_plan->gpu_outputsize / 1024 / 1024));
 	        printf("\nAllocated memory:\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
 		fflush(stdout);
 	}  else if(test == 6) {

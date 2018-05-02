@@ -6,11 +6,13 @@
 #include <wordexp.h>
 #include "headers/params.h"
 #include "headers/host_help.h"
+#include "headers/headers_mains.h"
 
 void get_user_input(FILE **fp, int argc, char *argv[], DDTR_Plan *DDTR_plan, AA_Parameters *AA_params, MSD_Parameters *MSD_params, SPS_Parameters *SPS_params, PRS_Parameters *PRS_params, FDAS_Parameters *FDAS_params) {
 
 	FILE *fp_in = NULL;
-	int nRanges, nb_selected_dm, error;
+	int nRanges, error;
+	//int nb_selected_dm;
 
 	char string[100];
 	int i;
@@ -31,7 +33,7 @@ void get_user_input(FILE **fp, int argc, char *argv[], DDTR_Plan *DDTR_plan, AA_
 			exit(0);
 		}
 		nRanges = 0;
-		nb_selected_dm = 0;
+		//nb_selected_dm = 0;
 		while (!feof(fp_in))
 		{
 			if ( fscanf(fp_in, "%s", string) == 0 )
@@ -48,7 +50,7 @@ void get_user_input(FILE **fp, int argc, char *argv[], DDTR_Plan *DDTR_plan, AA_
 		rewind(fp_in);
 		
 		DDTR_plan->nRanges = nRanges;
-		error = DDTR_plan->Allocate_use_ranges();
+		error = DDTR_plan->Allocate_user_ranges();
 		if(error>1) exit(98);
 		
 		//*user_dm_low = (float *) malloc(( *range ) * sizeof(float));
@@ -76,7 +78,7 @@ void get_user_input(FILE **fp, int argc, char *argv[], DDTR_Plan *DDTR_plan, AA_
 				DDTR_plan->user_dm_low[i]  = temp_low;
 				DDTR_plan->user_dm_high[i] = temp_high;
 				DDTR_plan->user_dm_step[i] = temp_step;
-				DDTR_plan->outBin[i] = temp_out_bin;
+				DDTR_plan->inBin[i] = temp_in_bin;
 				i++;
 			}
 		}

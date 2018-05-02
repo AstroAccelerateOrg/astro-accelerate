@@ -36,6 +36,7 @@ public:
 	// Description of input data
 	int nchans; //number of frequency channels
 	int nsamp; // number of timesamples
+	int nbits; // bit precision of input data
 	float tsamp; //sampling time 
 	
 	int Allocate_user_ranges(){
@@ -46,7 +47,7 @@ public:
 		if(user_dm_high==NULL) error++;
 		user_dm_step  = (float *) malloc( nRanges*sizeof(float) );
 		if(user_dm_step==NULL) error++;
-		inBin         = (float *) malloc( nRanges*sizeof(float) );
+		inBin         = (int *) malloc( nRanges*sizeof(int) );
 		if(inBin==NULL) error++;
 		return(error);
 	}
@@ -59,7 +60,7 @@ public:
 		if(dm_high==NULL) error++;
 		dm_step  = (float *) malloc( nRanges*sizeof(float) );
 		if(dm_step==NULL) error++;
-		ndms     = (float *) malloc( nRanges*sizeof(float) );
+		ndms     = (int *) malloc( nRanges*sizeof(int) );
 		if(ndms==NULL) error++;
 		return(error);
 	}
@@ -67,11 +68,13 @@ public:
 	int Allocate_dmshifts(){
 		dmshifts = (float *) malloc( nchans*sizeof(float) );
 		if(dmshifts==NULL) return(1);
+		return(0);
 	}
 	
 	int Allocate_t_processed_outer(){
 		t_processed = (int **) malloc( nRanges*sizeof(int *) );
-		if(t_processed==NULL) return(1);		
+		if(t_processed==NULL) return(1);
+		return(0);	
 	}
 	
 	int Allocate_t_processed_inner(int t_num_tchunks){
@@ -117,6 +120,7 @@ public:
 		
 		nchans = 0;
 		nsamp  = 0;
+		nbits  = 0;
 		tsamp  = 0;
 	}
 	
@@ -133,7 +137,7 @@ public:
 		
 		if(dmshifts!=NULL) free(dmshifts);
 		
-		for(int r=0; r<nRanges, r++){
+		for(int r=0; r<nRanges; r++){
 			if(t_processed[r]!=NULL) free(t_processed[r]); 
 		}
 		if(t_processed!=NULL) free(t_processed);

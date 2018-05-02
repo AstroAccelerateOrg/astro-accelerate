@@ -15,10 +15,12 @@
 #include <cuda.h>
 #include "headers/params.h"
 
+#include "headers/device_DDTR_Plan.h"
+
 void allocate_memory_cpu_input(unsigned short **input_buffer, size_t nsamp, size_t nchans) {
 
-	*inputsize = nsamp * (size_t) nchans * sizeof(unsigned short);
-	*input_buffer = (unsigned short *) malloc(*inputsize);
+	size_t inputsize = nsamp*((size_t) nchans)*sizeof(unsigned short);
+	*input_buffer = (unsigned short *) malloc(inputsize);
 }
 
 void allocate_memory_cpu_output(float ****output_buffer, DDTR_Plan *DDTR_plan) {
@@ -45,27 +47,19 @@ void allocate_memory_cpu_output(float ****output_buffer, DDTR_Plan *DDTR_plan) {
 	DDTR_plan->host_outputsize = host_outputsize;
 }
 
-void allocate_memory_gpu(FILE **fp, size_t gpu_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, float ****output_buffer, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)
-{
-
-	int time_samps = t_processed[0][0] + maxshift;
+void allocate_memory_gpu(unsigned short **d_input, float **d_output, DDTR_Plan *DDTR_plan) {
+	int time_samps = DDTR_plan->t_processed[0][0] + DDTR_plan->maxshift;
 	printf("\n\n\n%d\n\n\n", time_samps), fflush(stdout);
-	*gpu_inputsize = (size_t) time_samps * (size_t) nchans * sizeof(unsigned short);
-	( cudaMalloc((void **) d_input, *gpu_inputsize) );
+	DDTR_plan->gpu_inputsize = (size_t) time_samps * (size_t) DDTR_plan->nchans * sizeof(unsigned short);
+	( cudaMalloc((void **) d_input, DDTR_plan->gpu_inputsize) );
 
-	if (nchans < max_ndms)
-	{
-		*gpu_outputsize = (size_t)time_samps * (size_t)max_ndms * sizeof(float);
+	if (DDTR_plan->nchans < DDTR_plan->max_ndms) {
+		DDTR_plan->gpu_outputsize = (size_t)time_samps * (size_t)DDTR_plan->max_ndms * sizeof(float);
 	}
-	else
-	{
-		*gpu_outputsize = (size_t)time_samps * (size_t)nchans * sizeof(float);
+	else {
+		DDTR_plan->gpu_outputsize = (size_t)time_samps * (size_t)DDTR_plan->nchans * sizeof(float);
 	}
-	( cudaMalloc((void **) d_output, *gpu_outputsize) );
+	( cudaMalloc((void **) d_output, DDTR_plan->gpu_outputsize) );
 
-	//end_t=omp_get_wtime();
-	//time = (float)(end_t-start_t);
-	//printf("\nGPU Malloc in: %f ", time);
-
-	( cudaMemset(*d_output, 0, *gpu_outputsize) );
+	( cudaMemset(*d_output, 0, DDTR_plan->gpu_outputsize) );
 }

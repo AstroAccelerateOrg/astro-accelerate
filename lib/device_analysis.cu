@@ -120,25 +120,25 @@ int Get_max_iteration(int max_boxcar_width, std::vector<int> *BC_widths, int *ma
 }
 
 
-void analysis_GPU( float *h_peak_list, size_t *peak_pos, size_t max_peak_size, SPS_Data_Description SPS_data, float *d_SPS_input, SPS_Parameters SPS_params, MSD_Parameters MSD_params){
+void analysis_GPU( float *h_peak_list, size_t *peak_pos, size_t max_peak_size, SPS_Data_Description SPS_data, float *d_SPS_input, SPS_Parameters *SPS_params, MSD_Parameters *MSD_params, AA_Parameters *AA_params){
 	
 	size_t nTimesamples = SPS_data.nTimesamples;
 	size_t nDMs         = SPS_data.nDMs;
-	if(SPS_VERBOSE) {
+	if(AA_params->verbose) {
 		printf("\n----------> GPU analysis part\n");
 		printf("  Dimensions: nTimesamples:%zu; nDMs:%zu; inBin:%d;\n", nTimesamples, nDMs, SPS_data.inBin);
 	}
 	
 	//--------> Definition of SPDT boxcar plan
 	float local_tsamp = SPS_data.sampling_time*SPS_data.inBin; // corrected sampling time
-	int max_desired_boxcar_width = (int) (SPS_params.max_boxcar_width_in_sec/local_tsamp);
+	int max_desired_boxcar_width = (int) (SPS_params->max_boxcar_width_in_sec/local_tsamp);
 	int max_width_performed = 0;
 	int t_BC_widths[10]={PD_MAXTAPS,16,16,16,8,8,8,8,8,8};
 	std::vector<int> BC_widths(t_BC_widths,t_BC_widths+sizeof(t_BC_widths)/sizeof(int));
 	std::vector<PulseDetection_plan> PD_plan;
 	Create_PD_plan(&PD_plan, &BC_widths, 1, nTimesamples); //PD_plan is independent on maximum boxcar width
 	int max_iteration = Get_max_iteration(max_desired_boxcar_width, &BC_widths, &max_width_performed);
-	if(SPS_VERBOSE) printf("  Selected iteration:%d; maximum boxcar width requested:%d; maximum boxcar width performed:%d;\n", max_iteration, max_desired_boxcar_width, max_width_performed);
+	if(AA_params->verbose) printf("  Selected iteration:%d; maximum boxcar width requested:%d; maximum boxcar width performed:%d;\n", max_iteration, max_desired_boxcar_width, max_width_performed);
 	std::vector<int> h_boxcar_widths;
 	Create_list_of_boxcar_widths(&h_boxcar_widths, &BC_widths, max_width_performed);
 	
@@ -161,14 +161,14 @@ void analysis_GPU( float *h_peak_list, size_t *peak_pos, size_t max_peak_size, S
 	
 	size_t free_mem,total_mem;
 	cudaMemGetInfo(&free_mem,&total_mem);
-	if(SPS_VERBOSE) printf("  Memory required by boxcar filters:%0.3f MB\n",(4.5*nTimesamples*nDMs*sizeof(float) + 2*nTimesamples*nDMs*sizeof(ushort))/(1024.0*1024) );
-	if(SPS_VERBOSE) printf("  Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
+	if(AA_params->verbose) printf("  Memory required by boxcar filters:%0.3f MB\n",(4.5*nTimesamples*nDMs*sizeof(float) + 2*nTimesamples*nDMs*sizeof(ushort))/(1024.0*1024) );
+	if(AA_params->verbose) printf("  Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
 	
 	
 	//-------------------------------------------------------------------------
 	//---------> Comparison between interpolated values and computed values
 	#ifdef MSD_BOXCAR_TEST
-		MSD_plane_profile_boxcars(d_SPS_input, nTimesamples, nDMs, &h_boxcar_widths, MSD_params.OR_sigma_multiplier, SPS_data.d,_low, SPS_data.dm_high, SPS_data.time_start);
+		MSD_plane_profile_boxcars(d_SPS_input, nTimesamples, nDMs, &h_boxcar_widths, MSD_params->OR_sigma_multiplier, SPS_data.d,_low, SPS_data.dm_high, SPS_data.time_start);
 	#endif
 	//---------> Comparison between interpolated values and computed values
 	//-------------------------------------------------------------------------
@@ -187,7 +187,7 @@ void analysis_GPU( float *h_peak_list, size_t *peak_pos, size_t max_peak_size, S
 	cudaMalloc((void **) &d_MSD_interpolated, MSD_profile_size_in_bytes);
 	cudaMalloc((void **) &temporary_workarea, workarea_size_in_bytes);
 	
-	MSD_plane_profile(d_MSD_interpolated, d_SPS_input, d_MSD_DIT, temporary_workarea, false, nTimesamples, nDMs, &h_boxcar_widths, SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high, MSD_params.OR_sigma_multiplier, MSD_params.enable_outlier_rejection, false, &MSD_time, &dit_time, &MSD_only_time);
+	MSD_plane_profile(d_MSD_interpolated, d_SPS_input, d_MSD_DIT, temporary_workarea, false, nTimesamples, nDMs, &h_boxcar_widths, SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high, MSD_params->OR_sigma_multiplier, MSD_params->enable_outlier_rejection, false, &MSD_time, &dit_time, &MSD_only_time);
 	
 	#ifdef GPU_PARTIAL_TIMER
 		printf("    MSD time: Total: %f ms; DIT: %f ms; MSD: %f ms;\n", MSD_time, dit_time, MSD_only_time);
@@ -264,10 +264,10 @@ void analysis_GPU( float *h_peak_list, size_t *peak_pos, size_t max_peak_size, S
 			printf("    BC_shift:%d; DMs_per_cycle:%d; f*DMs_per_cycle:%d; max_iteration:%d;\n", DM_shift*nTimesamples, DM_list[f], DM_shift, max_iteration);
 			#endif
 			
-			if(SPS_params.candidate_algorithm==1){
+			if(SPS_params->candidate_algorithm==1){
 				//-------------- Thresholding
 				timer.Start();
-				THRESHOLD(d_output_SNR, d_output_taps, d_peak_list, gmem_peak_pos, SPS_params.sigma_cutoff, DM_list[f], nTimesamples, DM_shift, &PD_plan, max_iteration, local_max_list_size);
+				THRESHOLD(d_output_SNR, d_output_taps, d_peak_list, gmem_peak_pos, SPS_params->sigma_cutoff, DM_list[f], nTimesamples, DM_shift, &PD_plan, max_iteration, local_max_list_size);
 				timer.Stop();
 				PF_time += timer.Elapsed();
 				#ifdef GPU_PARTIAL_TIMER
@@ -278,7 +278,7 @@ void analysis_GPU( float *h_peak_list, size_t *peak_pos, size_t max_peak_size, S
 			else {
 				//-------------- Peak finding
 				timer.Start();
-				PEAK_FIND(d_output_SNR, d_output_taps, d_peak_list, DM_list[f], nTimesamples, SPS_params.sigma_cutoff, local_max_list_size, gmem_peak_pos, DM_shift, &PD_plan, max_iteration);
+				PEAK_FIND(d_output_SNR, d_output_taps, d_peak_list, DM_list[f], nTimesamples, SPS_params->sigma_cutoff, local_max_list_size, gmem_peak_pos, DM_shift, &PD_plan, max_iteration);
 				timer.Stop();
 				PF_time = timer.Elapsed();
 				#ifdef GPU_PARTIAL_TIMER
@@ -318,7 +318,7 @@ void analysis_GPU( float *h_peak_list, size_t *peak_pos, size_t max_peak_size, S
         
 		FILE *fp_out;
 		
-		if(SPS_params.candidate_algorithm==1){
+		if(SPS_params->candidate_algorithm==1){
 			if((*peak_pos)>0){
 				sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high);
 				if (( fp_out = fopen(filename, "wb") ) == NULL)	{

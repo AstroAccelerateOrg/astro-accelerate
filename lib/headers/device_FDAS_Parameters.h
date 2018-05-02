@@ -17,7 +17,7 @@ public:
 		sigma_cutoff = 6.0f;
 		candidate_algorithm = 0;
 		enable_output_ffdot_plan = 0;
-		enable_output_fdas_list;
+		enable_output_fdas_list = 0;
 		enable_fdas_custom_fft = 0;
 		enable_fdas_inbin = 0;
 		enable_fdas_norm = 0;

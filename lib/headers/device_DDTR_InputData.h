@@ -1,5 +1,5 @@
-#ifndef __ASTROACCELERATE_DDTR_DATA__
-#define __ASTROACCELERATE_DDTR_DATA__
+#ifndef __ASTROACCELERATE_DDTR_INPUTDATA__
+#define __ASTROACCELERATE_DDTR_INPUTDATA__
 
 class DDTR_InputData {
 public:
@@ -25,7 +25,10 @@ public:
 	//	input_data = (unsigned short *) malloc(inputsize_in_bytes);
 	//}
 	
-	DDTR_Data(){
+	//void Input_from_fil_file(){
+	//}
+	
+	DDTR_InputData(){
 		nchans = 0;
 		nsamples = 0;
 		nsamp = 0;
@@ -39,7 +42,7 @@ public:
 		//input_data = NULL;
 	}
 	
-	~DDTR_Data(){
+	~DDTR_InputData(){
 		//if(input_data!=NULL) free(input_data);
 	}
 };

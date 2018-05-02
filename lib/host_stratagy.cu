@@ -2,17 +2,28 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "headers/headers_mains.h"
 
-void stratagy(DDTR_Plan *DDTR_plan, size_t gpu_memory, DDTR_Data DDTR_data, AA_Parameters AA_params){
+void stratagy(DDTR_Plan *DDTR_plan, size_t gpu_memory, DDTR_InputData *DDTR_data, AA_Parameters *AA_params){
 	// This method relies on defining points when nsamps is a multiple of
 	// nchans - bin on the diagonal or a fraction of it.
 	
 	double SPDT_fraction = 3.0/4.0; // 1.0 for MSD plane profile validation
+	
+	DDTR_plan->nchans = DDTR_data->nchans;
+	DDTR_plan->nsamp  = DDTR_data->nsamp;
+	DDTR_plan->nbits  = DDTR_data->nbits;
+	DDTR_plan->tsamp  = DDTR_data->tsamp;
+	
+	
 	// defining temporary variables
-	float power  = DDTR_plan->power; // defined in constructor of DDTR_Plan
-	float fch1   = DDTR_data.fch1;
-	float foff   = DDTR_data.foff;
-	float nchans = DDTR_data.nchans;
+	float power    = DDTR_plan->power; // defined in constructor of DDTR_Plan
+	float tsamp    = DDTR_plan->tsamp; 
+	float fch1     = DDTR_data->fch1;
+	float foff     = DDTR_data->foff;
+	size_t nchans  = DDTR_data->nchans;
+	size_t nsamp   = DDTR_data->nsamp;
+	int nRanges    = DDTR_plan->nRanges;
 	int i, j, c;
 	int maxshift_high = 0;
 	float n;
@@ -20,9 +31,6 @@ void stratagy(DDTR_Plan *DDTR_plan, size_t gpu_memory, DDTR_Data DDTR_data, AA_P
 	float fmin_pow = powf(fmin, power);
 	float fmax_pow = powf(fch1, power);
 	
-	DDTR_plan->nchans = DDTR_data.nchans;
-	DDTR_plan->nsamp  = DDTR_data.nsamp;
-	DDTR_plan->tsamp  = DDTR_data.tsamp;
 	int error = 0;
 	error = DDTR_plan->Allocate_ddtr_ranges(); if(error>0) exit(99);
 	error = DDTR_plan->Allocate_dmshifts(); if(error>0) exit(99);
@@ -50,25 +58,25 @@ void stratagy(DDTR_Plan *DDTR_plan, size_t gpu_memory, DDTR_Data DDTR_data, AA_P
 		}
 	}
 
-	for (i = 0; i < DDTR_plan->nRanges; i++)	{
+	for (i = 0; i < nRanges; i++)	{
 		modff(      ( ( (int) ( ( DDTR_plan->user_dm_high[i] - DDTR_plan->user_dm_low[i] ) / DDTR_plan->user_dm_step[i] ) + SDIVINDM ) / SDIVINDM )     , &n); // This calculates number of SDIVINDM blocks per DM range
 		DDTR_plan->ndms[i] = (int) ( (int) n*SDIVINDM ); // This is number of DM trial per DM range
 		if (DDTR_plan->max_ndms < DDTR_plan->ndms[i])
 			DDTR_plan->max_ndms = DDTR_plan->ndms[i]; // looking for maximum number of DM trials for memory allocation
 		DDTR_plan->total_ndms = DDTR_plan->total_ndms + DDTR_plan->ndms[i];
 	}
-	if(AA_VERBOSE) printf("\nMaximum number of dm trials in any of the range steps:\t%d", DDTR_plan->max_ndms);
+	if(AA_params->verbose) printf("\nMaximum number of dm trials in any of the range steps:\t%d", DDTR_plan->max_ndms);
 
 	DDTR_plan->dm_low[0] = DDTR_plan->user_dm_low[0];                        // 
 	DDTR_plan->dm_high[0] = DDTR_plan->dm_low[0] + ( DDTR_plan->ndms[0]*DDTR_plan->user_dm_step[0] );   // Redefines DM plan to suit GPU
 	DDTR_plan->dm_step[0] = DDTR_plan->user_dm_step[0];                      // 
-	for (i = 1; i < DDTR_plan->nRanges; i++)	{
+	for (i = 1; i < nRanges; i++)	{
 		DDTR_plan->dm_low[i] = DDTR_plan->dm_high[i - 1];
 		DDTR_plan->dm_high[i] = DDTR_plan->dm_low[i] + DDTR_plan->ndms[i]*DDTR_plan->user_dm_step[i];
 		DDTR_plan->dm_step[i] = DDTR_plan->user_dm_step[i];
 
 		if (DDTR_plan->inBin[i - 1] > 1) {
-			DDTR_plan->maxshift = (int) ceil(( ( DDTR_plan->dm_low[i - 1] + DDTR_plan->dm_step[i - 1]*DDTR_plan->ndms[i - 1] ) * DDTR_plan->dmshifts[nchans - 1] ) / ( tsamp ));
+			DDTR_plan->maxshift = (int) ceil(( ( DDTR_plan->dm_low[i - 1] + DDTR_plan->dm_step[i - 1]*DDTR_plan->ndms[i - 1] )*DDTR_plan->dmshifts[nchans - 1] ) / ( tsamp ));
 			DDTR_plan->maxshift = (int) ceil((float) ( DDTR_plan->maxshift + ( (float) ( SDIVINT*2*SNUMREG ) ) ) / (float) DDTR_plan->inBin[i - 1]) / (float) ( SDIVINT*2*SNUMREG );
 			DDTR_plan->maxshift = DDTR_plan->maxshift*( SDIVINT*2*SNUMREG )*DDTR_plan->inBin[i - 1];
 			if ( DDTR_plan->maxshift > maxshift_high)
@@ -76,21 +84,21 @@ void stratagy(DDTR_Plan *DDTR_plan, size_t gpu_memory, DDTR_Data DDTR_data, AA_P
 		}
 	}
 
-	if (DDTR_plan->inBin[range - 1] > 1) {
-		DDTR_plan->maxshift = (int) ceil(( ( DDTR_plan->dm_low[range - 1] + DDTR_plan->dm_step[range - 1] * DDTR_plan->ndms[range - 1] ) * DDTR_plan->dmshifts[nchans - 1] ) / ( tsamp ));
-		DDTR_plan->maxshift = (int) ceil((float) ( DDTR_plan->maxshift + ( (float) ( SDIVINT*2*SNUMREG ) ) ) / (float) DDTR_plan->inBin[range - 1]) / (float) ( SDIVINT*2*SNUMREG );
-		DDTR_plan->maxshift = DDTR_plan->maxshift * ( SDIVINT*2*SNUMREG )*DDTR_plan->inBin[range - 1];
+	if (DDTR_plan->inBin[nRanges - 1] > 1) {
+		DDTR_plan->maxshift = (int) ceil(( ( DDTR_plan->dm_low[nRanges - 1] + DDTR_plan->dm_step[nRanges - 1] * DDTR_plan->ndms[nRanges - 1] ) * DDTR_plan->dmshifts[nchans - 1] ) / ( tsamp ));
+		DDTR_plan->maxshift = (int) ceil((float) ( DDTR_plan->maxshift + ( (float) ( SDIVINT*2*SNUMREG ) ) ) / (float) DDTR_plan->inBin[nRanges - 1]) / (float) ( SDIVINT*2*SNUMREG );
+		DDTR_plan->maxshift = DDTR_plan->maxshift * ( SDIVINT*2*SNUMREG )*DDTR_plan->inBin[nRanges - 1];
 		if( DDTR_plan->maxshift > maxshift_high)
 			maxshift_high = DDTR_plan->maxshift;
 	}
 
 	if (maxshift_high == 0)	{
-		maxshift_high = (int) ceil(( ( DDTR_plan->dm_low[range - 1] + DDTR_plan->dm_step[range - 1] * ( DDTR_plan->ndms[range - 1] ) ) * DDTR_plan->dmshifts[nchans - 1] ) / tsamp);
+		maxshift_high = (int) ceil(( ( DDTR_plan->dm_low[nRanges - 1] + DDTR_plan->dm_step[nRanges - 1] * ( DDTR_plan->ndms[nRanges - 1] ) ) * DDTR_plan->dmshifts[nchans - 1] ) / tsamp);
 	}
-	DDTR_plan->max_dm = ceil( DDTR_plan->dm_high[range - 1] );
+	DDTR_plan->max_dm = ceil( DDTR_plan->dm_high[nRanges - 1] );
 
 	DDTR_plan->maxshift = ( maxshift_high + ( SNUMREG * 2 * SDIVINT ) );
-	printf("\nRange:\t%d, MAXSHIFT:\t%d, Scrunch value:\t%d", range - 1, DDTR_plan->maxshift, inBin[range - 1]);
+	printf("\nRange:\t%d, MAXSHIFT:\t%d, Scrunch value:\t%d", nRanges - 1, DDTR_plan->maxshift, DDTR_plan->inBin[nRanges - 1]);
 	printf("\nMaximum dispersive delay:\t%.2f (s)", DDTR_plan->maxshift*tsamp);
 
 	if (DDTR_plan->maxshift >= nsamp)	{
@@ -123,7 +131,7 @@ void stratagy(DDTR_Plan *DDTR_plan, size_t gpu_memory, DDTR_Data DDTR_data, AA_P
 
 		// Maximum number of samples we can fit in our GPU RAM is then given by:
 		//max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short) * ( (*max_ndms) + nchans ) ) ); // maximum number of timesamples we can fit into GPU memory
-		size_t SPDT_memory_requirements = (enable_analysis==1 ? (sizeof(float)*DDTR_plan->max_ndms*SPDT_fraction) : 0 );
+		size_t SPDT_memory_requirements = (AA_params->enable_analysis==1 ? (sizeof(float)*DDTR_plan->max_ndms*SPDT_fraction) : 0 );
 		max_tsamps = (unsigned int) ( gpu_memory / ( sizeof(unsigned short)*nchans + sizeof(float)*DDTR_plan->max_ndms + SPDT_memory_requirements )); // maximum number of timesamples we can fit into GPU memory
 		
 		// Check that we dont have an out of range maxshift:
@@ -137,10 +145,10 @@ void stratagy(DDTR_Plan *DDTR_plan, size_t gpu_memory, DDTR_Data DDTR_data, AA_P
 		if (nsamp < max_tsamps)	{
 			// We have case 1)
 			// Allocate memory to hold the values of nsamps to be processed
-			unsigned long int local_t_processed = (unsigned long int) floor(( (double) ( nsamp - DDTR_plan->maxshift ) / (double) DDTR_plan->inBin[range - 1] ) / (double) ( SDIVINT*2*SNUMREG )); //number of timesamples per block
-			local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * DDTR_plan->inBin[range - 1];
+			unsigned long int local_t_processed = (unsigned long int) floor(( (double) ( nsamp - DDTR_plan->maxshift ) / (double) DDTR_plan->inBin[nRanges - 1] ) / (double) ( SDIVINT*2*SNUMREG )); //number of timesamples per block
+			local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * DDTR_plan->inBin[nRanges - 1];
 			DDTR_plan->Allocate_t_processed_inner(1);
-			for (i = 0; i < DDTR_plan->nRanges; i++) {
+			for (i = 0; i < nRanges; i++) {
 				DDTR_plan->t_processed[i] = (int *) malloc(sizeof(int)); // TODO: change to size_t
 				DDTR_plan->t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) DDTR_plan->inBin[i] ) / (float) ( SDIVINT*2*SNUMREG ));
 				DDTR_plan->t_processed[i][0] = DDTR_plan->t_processed[i][0] * ( SDIVINT*2*SNUMREG );
@@ -158,18 +166,18 @@ void stratagy(DDTR_Plan *DDTR_plan, size_t gpu_memory, DDTR_Data DDTR_data, AA_P
 			//int num_blocks = (int) floor(( (float) nsamp - ( *maxshift ) )) / ( (float) ( samp_block_size ) ) + 1;
 
 			// Find the common integer amount of samples between all bins
-			int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) DDTR_plan->inBin[range - 1] ) / (float) ( SDIVINT*2*SNUMREG ));
-			local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * DDTR_plan->inBin[range - 1];
+			int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) DDTR_plan->inBin[nRanges - 1] ) / (float) ( SDIVINT*2*SNUMREG ));
+			local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * DDTR_plan->inBin[nRanges - 1];
 			
 			int num_blocks = (int) floor(( (float) nsamp - (float)DDTR_plan->maxshift )) / ( (float) ( local_t_processed ) );
 
 			// Work out the remaining fraction to be processed
 			int remainder =  nsamp -  (num_blocks*local_t_processed ) - DDTR_plan->maxshift;
-			remainder = (int) floor((float) remainder / (float) DDTR_plan->inBin[range - 1]) / (float) ( SDIVINT*2*SNUMREG );
-			remainder = remainder * ( SDIVINT*2*SNUMREG ) * DDTR_plan->inBin[range - 1];
+			remainder = (int) floor((float) remainder / (float) DDTR_plan->inBin[nRanges - 1]) / (float) ( SDIVINT*2*SNUMREG );
+			remainder = remainder * ( SDIVINT*2*SNUMREG ) * DDTR_plan->inBin[nRanges - 1];
 
 			DDTR_plan->Allocate_t_processed_inner(num_blocks+1);
-			for (i = 0; i < DDTR_plan->nRanges; i++)	{
+			for (i = 0; i < nRanges; i++)	{
 				// Allocate memory to hold the values of nsamps to be processed
 				//( *t_processed )[i] = (int *) malloc((num_blocks + 1) * sizeof(int));
 				// Remember the last block holds less!
@@ -192,7 +200,7 @@ void stratagy(DDTR_Plan *DDTR_plan, size_t gpu_memory, DDTR_Data DDTR_data, AA_P
 
 		// Maximum number of samples we can fit in our GPU RAM is then given by:
 		//max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + 2 * sizeof(unsigned short) ) ) );
-		size_t SPDT_memory_requirements = (enable_analysis==1 ? (sizeof(float)*DDTR_plan->max_ndms*SPDT_fraction) : 0 );
+		size_t SPDT_memory_requirements = (AA_params->enable_analysis==1 ? (sizeof(float)*DDTR_plan->max_ndms*SPDT_fraction) : 0 );
 		max_tsamps = (unsigned int) ( gpu_memory / ( nchans * ( sizeof(float) + sizeof(unsigned short) )+ SPDT_memory_requirements ));
 
 		// Check that we dont have an out of range maxshift:
@@ -206,10 +214,10 @@ void stratagy(DDTR_Plan *DDTR_plan, size_t gpu_memory, DDTR_Data DDTR_data, AA_P
 		if (nsamp < max_tsamps) {
 			// We have case 2)
 			// Allocate memory to hold the values of nsamps to be processed
-			int local_t_processed = (int) floor(( (float) ( nsamp - DDTR_plan->maxshift ) / (float) DDTR_plan->inBin[range - 1] ) / (float) ( SDIVINT*2*SNUMREG ));
-			local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * DDTR_plan->inBin[range - 1];
+			int local_t_processed = (int) floor(( (float) ( nsamp - DDTR_plan->maxshift ) / (float) DDTR_plan->inBin[nRanges - 1] ) / (float) ( SDIVINT*2*SNUMREG ));
+			local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * DDTR_plan->inBin[nRanges - 1];
 			DDTR_plan->Allocate_t_processed_inner(1);
-			for (i = 0; i < DDTR_plan->nRanges; i++) {
+			for (i = 0; i < nRanges; i++) {
 				//( *t_processed )[i] = (int *) malloc(sizeof(int));
 				DDTR_plan->t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) DDTR_plan->inBin[i] ) / (float) ( SDIVINT*2*SNUMREG ));
 				DDTR_plan->t_processed[i][0] = DDTR_plan->t_processed[i][0] * ( SDIVINT*2*SNUMREG );
@@ -227,19 +235,19 @@ void stratagy(DDTR_Plan *DDTR_plan, size_t gpu_memory, DDTR_Data DDTR_data, AA_P
 			//int num_blocks = (int) floor(( (float) nsamp - (float) ( *maxshift ) ) / ( (float) samp_block_size ));
 
 			// Find the common integer amount of samples between all bins
-			int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) DDTR_plan->inBin[range - 1] ) / (float) ( SDIVINT*2*SNUMREG ));
-			local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * DDTR_plan->inBin[range - 1];
+			int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) DDTR_plan->inBin[nRanges - 1] ) / (float) ( SDIVINT*2*SNUMREG ));
+			local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * DDTR_plan->inBin[nRanges - 1];
 			
 			// samp_block_size was not used to calculate remainder instead there is local_t_processed which might be different
-			int num_blocks = (int) floor(( (float) nsamp - (float) ( *maxshift ) ) / ( (float) local_t_processed ));
+			int num_blocks = (int) floor(( (float) nsamp - (float) DDTR_plan->maxshift ) / ( (float) local_t_processed ));
 
 			// Work out the remaining fraction to be processed
 			int remainder = nsamp - ( num_blocks * local_t_processed ) - DDTR_plan->maxshift;
-			remainder = (int) floor((float) remainder / (float) DDTR_plan->inBin[range - 1]) / (float) ( SDIVINT*2*SNUMREG );
-			remainder = remainder * ( SDIVINT*2*SNUMREG ) * DDTR_plan->inBin[range - 1];
+			remainder = (int) floor((float) remainder / (float) DDTR_plan->inBin[nRanges - 1]) / (float) ( SDIVINT*2*SNUMREG );
+			remainder = remainder * ( SDIVINT*2*SNUMREG ) * DDTR_plan->inBin[nRanges - 1];
 
 			DDTR_plan->Allocate_t_processed_inner(num_blocks+1);
-			for (i = 0; i < DDTR_plan->nRanges; i++)	{
+			for (i = 0; i < nRanges; i++)	{
 				// Allocate memory to hold the values of nsamps to be processed
 				//( *t_processed )[i] = (int *) malloc(( num_blocks + 1 ) * sizeof(int));
 				// Remember the last block holds less!
@@ -260,7 +268,7 @@ void stratagy(DDTR_Plan *DDTR_plan, size_t gpu_memory, DDTR_Data DDTR_data, AA_P
 		printf("\nOutput memory needed:\t%lu MB", DDTR_plan->max_ndms * DDTR_plan->maxshift * sizeof(float) / 1024 / 1024);
 	}
 	else {
-		printf("\nOutput memory needed:\t%lu MB", nchans * maxshift * sizeof(float) / 1024 / 1024);
+		printf("\nOutput memory needed:\t%lu MB", nchans * DDTR_plan->maxshift * sizeof(float) / 1024 / 1024);
 	}
 
 }

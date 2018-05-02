@@ -1,7 +1,7 @@
 #ifndef __ASTROACCELERATE_SPS_DATA_DESCRIPTION__
 #define __ASTROACCELERATE_SPS_DATA_DESCRIPTION__
 
-class SPS_Data_Description { // t-DM data
+class SPS_DataDescription { // t-DM data
 public:
 	// Coordinate tranformation indexes-> [time, DM]
 	float time_start;

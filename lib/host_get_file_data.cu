@@ -129,13 +129,13 @@ void get_file_data(FILE **fp, DDTR_InputData *DDTR_data) {
 	if ( DDTR_data->nbits == 32)
 	{
 		// Allocate a tempory buffer to store a line of frequency data
-		float *temp_buffer = (float *) malloc(( *nchans ) * sizeof(float));
+		float *temp_buffer = (float *) malloc( DDTR_data->nchans*sizeof(float));
 
 		// Count how many time samples we have
 		total_data = 0;
 		while (!feof(*fp))
 		{
-			fread(temp_buffer, sizeof(float), ( *nchans ), *fp);
+			fread(temp_buffer, sizeof(float), DDTR_data->nchans, *fp);
 			total_data++;
 		}
 		DDTR_data->nsamp = total_data - 1;
@@ -144,12 +144,12 @@ void get_file_data(FILE **fp, DDTR_InputData *DDTR_data) {
 	else if ( DDTR_data->nbits == 16)
 	{
 		// Allocate a tempory buffer to store a line of frequency data
-		unsigned short *temp_buffer = (unsigned short *) malloc(( *nchans ) * sizeof(unsigned short));
+		unsigned short *temp_buffer = (unsigned short *) malloc(DDTR_data->nchans* sizeof(unsigned short));
 
 		total_data = 0;
 		while (!feof(*fp))
 		{
-			if (((fread(temp_buffer, sizeof(unsigned short), ( *nchans ), *fp)) != (*nchans)) && (total_data == 0))
+			if (((fread(temp_buffer, sizeof(unsigned short), DDTR_data->nchans, *fp)) != DDTR_data->nchans) && (total_data == 0))
 			{
 				fprintf(stderr, "\nError while reading file\n");
 				exit(0);
@@ -162,12 +162,12 @@ void get_file_data(FILE **fp, DDTR_InputData *DDTR_data) {
 	else if ( DDTR_data->nbits == 8)
 	{
 		// Allocate a tempory buffer to store a line of frequency data
-		unsigned char *temp_buffer = (unsigned char *) malloc(( *nchans ) * sizeof(unsigned char));
+		unsigned char *temp_buffer = (unsigned char *) malloc(DDTR_data->nchans*sizeof(unsigned char));
 
 		total_data = 0;
 		while (!feof(*fp))
 		{
-			if (((fread(temp_buffer, sizeof(unsigned char), ( *nchans ), *fp)) != (*nchans)) && (total_data == 0))
+			if (((fread(temp_buffer, sizeof(unsigned char), DDTR_data->nchans, *fp)) != DDTR_data->nchans) && (total_data == 0))
 			{
 				fprintf(stderr, "\nError while reading file\n");
 				exit(0);
@@ -182,8 +182,7 @@ void get_file_data(FILE **fp, DDTR_InputData *DDTR_data) {
 		// Allocate a tempory buffer to store a line of frequency data
 		// each byte stores 2 frequency data
 		// assumption: nchans is a multiple of 2
-		if ((*nchans % 2) != 0)
-		{
+		if ((DDTR_data->nchans)%2 != 0) {
 			printf("\nNumber of frequency channels must be a power of 2 with 4 bit data\n");
 			exit(0);
 		}
