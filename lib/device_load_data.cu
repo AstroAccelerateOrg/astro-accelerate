@@ -19,8 +19,8 @@ void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short
 		checkCudaErrors(cudaMemcpyAsync(device_pointer, host_pointer_pinned, size, cudaMemcpyHostToDevice,stream));
 //		checkCudaErrors(cudaMemcpyAsync(device_pointer, host_pointer, size, cudaMemcpyHostToDevice,stream));
 		checkCudaErrors(cudaMemcpyToSymbolAsync(i_nchans, &nchans, sizeof(int),0,cudaMemcpyHostToDevice,stream));
-		checkCudaErrors(cudaMemcpyToSymbolAsync(i_nsamp, &length, sizeof(int),0,cudaMemcpyHostToDevice,stream));
-		checkCudaErrors(cudaMemcpyToSymbolAsync(i_t_processed_s, &t_processed, sizeof(int),0,cudaMemcpyHostToDevice,stream));
+//		checkCudaErrors(cudaMemcpyToSymbolAsync(i_nsamp, &length, sizeof(int),0,cudaMemcpyHostToDevice,stream));
+//		checkCudaErrors(cudaMemcpyToSymbolAsync(i_t_processed_s, &t_processed, sizeof(int),0,cudaMemcpyHostToDevice,stream));
 	}
 	else if (i >= 0)
 	{

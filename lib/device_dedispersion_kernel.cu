@@ -79,11 +79,13 @@ __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float
 											(float)local_kernel_two[i] / i_nchans/bin);
 	}
 
-	if ((threadIdx.x == 0) & (threadIdx.y == 0) & (blockIdx.x == 0) & (blockIdx.y == 0)) {
-		printf("\n\t\t\t\tpointer: %p Nsamp: %i; mstartdm: %lf; mstepdm: %lf, t_processed_s: %i; dm_shifts: %f", d_input, i_nsamp, mstartdm,mdmstep,i_t_processed_s, dm_shifts[1]);
-		for (int j = 0 ; j< 10 ; j++)
-			printf("\n D_input: %hu \tD_output: %f local_kernel_one: %i local_kernel_two: %i", d_input[j], d_output[j], local_kernel_one[j], local_kernel_two[j]);
-	}
+//	if ((threadIdx.x == 0) & (threadIdx.y == 0) & (blockIdx.x == 0) & (blockIdx.y == 0)) {
+//		printf("\n\t\t\t\tpointer: %p Nsamp: %i; mstartdm: %lf; mstepdm: %lf, t_processed_s: %i; dm_shifts: %f", d_input, i_nsamp, mstartdm,mdmstep,i_t_processed_s, dm_shifts[1]);
+//		for (int j = 0 ; j< 5 ; j++){
+//			printf("\n 1. D_input: %hu \tD_output: %f local_kernel_one: %i local_kernel_two: %i", d_input[j], d_output[j], local_kernel_one[j], local_kernel_two[j]);
+//			printf("\n 2. D_input: %hu \tD_output: %f local_kernel_one: %i local_kernel_two: %i",d_input[i_t_processed_s+j-20],d_output[i_t_processed_s+j-20], local_kernel_one[j], local_kernel_two[j]);
+//		}
+//	}
 }
 
 

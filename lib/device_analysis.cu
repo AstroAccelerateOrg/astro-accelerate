@@ -156,7 +156,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	//---------------------------------------------------------------------------
 	//----------> GPU part
 	printf("\n----------> GPU analysis part\n");
-	printf("  Dimensions nDMs:%d; nTimesamples:%d; inBin:%d; outBin:%d; maxshift:%d; \n", ndms[i], t_processed, inBin, outBin, *maxshift);
+	printf("  Dimensions nDMs:%d; nTimesamples:%d; inBin:%d; outBin:%d; maxshift:%d; tstart: %f \n", ndms[i], t_processed, inBin, outBin, *maxshift, tstart);
 //	GpuTimer total_timer, timer;
 //	total_timer.Start();
 	

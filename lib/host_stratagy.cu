@@ -49,7 +49,7 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 			*max_ndms = ( *ndms )[i]; // looking for maximum number of DM trials for memory allocation
 		*total_ndms = *total_ndms + ( *ndms )[i];
 	}
-	printf("\nMaximum number of dm trials in any of the range steps:\t%d", *max_ndms);
+	printf("\nMaximum number of dm trials in any of the range steps:\t%d nsamp:\t%i", *max_ndms, nsamp);
 
 	( *dm_low )[0] = user_dm_low[0];                        // 
 	( *dm_high )[0] = ( *dm_low )[0] + ( ( *ndms )[0] * ( user_dm_step[0] ) );   // Redefines DM plan to suit GPU

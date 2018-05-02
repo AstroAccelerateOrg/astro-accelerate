@@ -327,13 +327,13 @@ void main_function
 			printf("\nStarting dedispersion tsamp: %f chans: %i\n", tsamp_stream[s], nchans);			
 			dedisperse(dm_range, t_processed[dm_range][t_pos], inBin, dmshifts, &d_input[(unsigned long)s*(t_processed[0][0]+maxshift_original)*nchans], &d_output[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)], nchans, ( t_processed[dm_range][t_pos] + maxshift ), maxshift, &tsamp_stream[s], dm_low, dm_high, dm_step, ndms, nbits, streams[s], failsafe);
 
-//			cudaStreamSynchronize(streams[s]);
-//			checkCudaErrors(cudaMemcpyAsync(&output_buffer_small[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)], 
-//							&d_output[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)],
-//							gpu_outputsize/NUM_STREAMS, cudaMemcpyDeviceToHost,streams[second_stream] ));
-//			cudaStreamSynchronize(streams[s]);
+			cudaStreamSynchronize(streams[s]);
+			checkCudaErrors(cudaMemcpyAsync(&output_buffer_small[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)], 
+							&d_output[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)],
+							gpu_outputsize/NUM_STREAMS, cudaMemcpyDeviceToHost,streams[s] ));
+			cudaStreamSynchronize(streams[s]);
 
-//			dedisperse(dm_range, t_processed[dm_range][t_pos], inBin, dmshifts, &d_input[(unsigned long)(t_processed[0][0]+maxshift_original)*nchans], &d_output[(unsigned long) ((t_processed[0][0]+maxshift_original)*nchans)], nchans, ( t_processed[dm_range][t_pos] + maxshift ), maxshift, &tsamp_stream[s], dm_low, dm_high, dm_step, ndms, nbits, streams[1], failsafe);
+//			dedisperse(dm_range, t_processed[dm_range][t_pos], inBin, dmshifts, &d_input[(unsigned long)(t_processed[0][0]+maxshift_original)*nchans], &d_output[(unsigned long) ((t_processed[0][0]+maxshift_original)*nchans)], nchans, ( t_processed[dm_range][t_pos] + maxshift ), maxshift, &tsamp_stream[s], dm_low, dm_high, dm_step, ndms, nbits, streams[second_stream], failsafe);
 
 //	for (int k = 0; k < 10; k++) printf("\n h_output: %f", output_buffer_small[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans + k)]);
 //			for (int k = 0; k < ndms[dm_range]; k++) {
@@ -358,7 +358,7 @@ void main_function
 				} // if analysis
 				else {
 					peak_pos[s]=0;
-//					analysis_GPU(h_peak_list, &peak_pos[s], max_peak_size, dm_range, tstart_local, t_processed[dm_range][t_pos], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, &d_output[(unsigned long)(s*(t_processed[0][0]+maxshift_original)*nchans)], dm_low, dm_high, dm_step, tsamp_stream[s], streams[s], s, candidate_algorithm, enable_sps_baselinenoise, &d_MSD_workarea[(long int)(s*MSD_data_info*5.5)], &d_MSD_output_taps[s*MSD_data_info*2], &d_MSD_interpolated[s*MSD_profile_size_in_bytes], &h_MSD_DIT[180*s], &h_MSD_interpolated[s*MSD_profile_size_in_bytes], &gmem_peak_pos[s], &temp_peak_pos[s], MSD_data_info);
+					analysis_GPU(h_peak_list, &peak_pos[s], max_peak_size, dm_range, tstart_local, t_processed[dm_range][t_pos], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, &d_output[(unsigned long)(s*(t_processed[0][0]+maxshift_original)*nchans)], dm_low, dm_high, dm_step, tsamp_stream[s], streams[s], s, candidate_algorithm, enable_sps_baselinenoise, &d_MSD_workarea[(long int)(s*MSD_data_info*5.5)], &d_MSD_output_taps[s*MSD_data_info*2], &d_MSD_interpolated[s*MSD_profile_size_in_bytes], &h_MSD_DIT[180*s], &h_MSD_interpolated[s*MSD_profile_size_in_bytes], &gmem_peak_pos[s], &temp_peak_pos[s], MSD_data_info);
 				} // else analysis
 
 				// This is for testing purposes and should be removed or commented out
@@ -372,11 +372,11 @@ void main_function
 //				cudaStreamSynchronize(streams[s]);
 				//#pragma omp parallel for
 				cudaStreamSynchronize(streams[s]);	
-				checkCudaErrors(cudaMemcpyAsync(&output_buffer_small[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)], 
-								&d_output[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)],
-								gpu_outputsize/NUM_STREAMS, cudaMemcpyDeviceToHost,streams[second_stream] ));
-//				cudaStreamSynchronize(streams[second_stream]);	
-				for (int k = 0; k < 10; k++) printf("\n h_output: %f", output_buffer_small[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans + k)]);
+//				checkCudaErrors(cudaMemcpyAsync(&output_buffer_small[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)], 
+//								&d_output[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)],
+//								gpu_outputsize/NUM_STREAMS, cudaMemcpyDeviceToHost,streams[second_stream] ));
+////				cudaStreamSynchronize(streams[second_stream]);	
+//				for (int k = 0; k < 10; k++) printf("\n h_output: %f", output_buffer_small[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans + k)]);
 //				for (int k = 0; k < ndms[dm_range]; k++) {
 //					save_data_offset(&d_output[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)], k * t_processed[dm_range][t_pos], output_buffer[dm_range][k], &output_buffer_small[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t_pos], streams[second_stream]);
 //					save_data_offset(&output_buffer_small[(unsigned long) (s*(t_processed[0][0]+maxshift_original)*nchans)], k * t_processed[dm_range][t_pos], output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t_pos], streams[second_stream]);
