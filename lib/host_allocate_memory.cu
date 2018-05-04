@@ -1,5 +1,7 @@
 /* This function takes a pointer to the file pointer so that it can update the position of the file pointer
  */
+ 
+#include <helper_cuda.h>
 
 #include <vector_types.h>
 #include <driver_functions.h>
@@ -48,18 +50,20 @@ void allocate_memory_cpu_output(float ****output_buffer, DDTR_Plan *DDTR_plan) {
 }
 
 void allocate_memory_gpu(unsigned short **d_input, float **d_output, DDTR_Plan *DDTR_plan) {
-	int time_samps = DDTR_plan->t_processed[0][0] + DDTR_plan->maxshift;
+	size_t time_samps = DDTR_plan->t_processed[0][0] + (size_t) DDTR_plan->maxshift;
 	printf("\n\n\n%d\n\n\n", time_samps), fflush(stdout);
-	DDTR_plan->gpu_inputsize = (size_t) time_samps * (size_t) DDTR_plan->nchans * sizeof(unsigned short);
-	( cudaMalloc((void **) d_input, DDTR_plan->gpu_inputsize) );
+	DDTR_plan->gpu_inputsize = time_samps*DDTR_plan->nchans*sizeof(unsigned short);
+	checkCudaErrors( cudaMalloc((void **) d_input, DDTR_plan->gpu_inputsize) );
 
 	if (DDTR_plan->nchans < DDTR_plan->max_ndms) {
-		DDTR_plan->gpu_outputsize = (size_t)time_samps * (size_t)DDTR_plan->max_ndms * sizeof(float);
+		DDTR_plan->gpu_outputsize = time_samps*DDTR_plan->max_ndms*sizeof(float);
 	}
 	else {
-		DDTR_plan->gpu_outputsize = (size_t)time_samps * (size_t)DDTR_plan->nchans * sizeof(float);
+		DDTR_plan->gpu_outputsize = time_samps*DDTR_plan->nchans*sizeof(float);
 	}
-	( cudaMalloc((void **) d_output, DDTR_plan->gpu_outputsize) );
-
-	( cudaMemset(*d_output, 0, DDTR_plan->gpu_outputsize) );
+	checkCudaErrors( cudaMalloc((void **) d_output, DDTR_plan->gpu_outputsize) );
+	checkCudaErrors( cudaMemset(*d_output, 0, DDTR_plan->gpu_outputsize) );
 }
+
+
+

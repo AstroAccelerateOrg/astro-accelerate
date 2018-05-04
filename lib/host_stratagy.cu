@@ -149,8 +149,8 @@ void stratagy(DDTR_Plan *DDTR_plan, size_t gpu_memory, DDTR_InputData *DDTR_data
 			local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * DDTR_plan->inBin[nRanges - 1];
 			DDTR_plan->Allocate_t_processed_inner(1);
 			for (i = 0; i < nRanges; i++) {
-				DDTR_plan->t_processed[i] = (int *) malloc(sizeof(int)); // TODO: change to size_t
-				DDTR_plan->t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) DDTR_plan->inBin[i] ) / (float) ( SDIVINT*2*SNUMREG ));
+				//DDTR_plan->t_processed[i] = (int *) malloc(sizeof(int)); // TODO: change to size_t
+				DDTR_plan->t_processed[i][0] = (size_t) floor(( (float) ( local_t_processed ) / (float) DDTR_plan->inBin[i] ) / (float) ( SDIVINT*2*SNUMREG ));
 				DDTR_plan->t_processed[i][0] = DDTR_plan->t_processed[i][0] * ( SDIVINT*2*SNUMREG );
 			}
 			//( *num_tchunks ) = 1;
@@ -182,11 +182,11 @@ void stratagy(DDTR_Plan *DDTR_plan, size_t gpu_memory, DDTR_InputData *DDTR_data
 				//( *t_processed )[i] = (int *) malloc((num_blocks + 1) * sizeof(int));
 				// Remember the last block holds less!
 				for (j = 0; j < num_blocks; j++) {
-					DDTR_plan->t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) DDTR_plan->inBin[i] ) / (float) ( SDIVINT*2*SNUMREG ));
+					DDTR_plan->t_processed[i][j] = (size_t) floor(( (float) ( local_t_processed ) / (float) DDTR_plan->inBin[i] ) / (float) ( SDIVINT*2*SNUMREG ));
 					DDTR_plan->t_processed[i][j] = DDTR_plan->t_processed[i][j] * ( SDIVINT*2*SNUMREG );
 				}
 				// fractional bit
-				DDTR_plan->t_processed[i][num_blocks] = (int) floor(( (float) ( remainder ) / (float) DDTR_plan->inBin[i] ) / (float) ( SDIVINT*2*SNUMREG ));
+				DDTR_plan->t_processed[i][num_blocks] = (size_t) floor(( (float) ( remainder ) / (float) DDTR_plan->inBin[i] ) / (float) ( SDIVINT*2*SNUMREG ));
 				DDTR_plan->t_processed[i][num_blocks] = DDTR_plan->t_processed[i][num_blocks] * ( SDIVINT*2*SNUMREG );
 			}
 			//( *num_tchunks ) = num_blocks + 1;
@@ -219,7 +219,7 @@ void stratagy(DDTR_Plan *DDTR_plan, size_t gpu_memory, DDTR_InputData *DDTR_data
 			DDTR_plan->Allocate_t_processed_inner(1);
 			for (i = 0; i < nRanges; i++) {
 				//( *t_processed )[i] = (int *) malloc(sizeof(int));
-				DDTR_plan->t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) DDTR_plan->inBin[i] ) / (float) ( SDIVINT*2*SNUMREG ));
+				DDTR_plan->t_processed[i][0] = (size_t) floor(( (float) ( local_t_processed ) / (float) DDTR_plan->inBin[i] ) / (float) ( SDIVINT*2*SNUMREG ));
 				DDTR_plan->t_processed[i][0] = DDTR_plan->t_processed[i][0] * ( SDIVINT*2*SNUMREG );
 			}
 			//( *num_tchunks ) = 1;
@@ -252,11 +252,11 @@ void stratagy(DDTR_Plan *DDTR_plan, size_t gpu_memory, DDTR_InputData *DDTR_data
 				//( *t_processed )[i] = (int *) malloc(( num_blocks + 1 ) * sizeof(int));
 				// Remember the last block holds less!
 				for (j = 0; j < num_blocks; j++) {
-					DDTR_plan->t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) DDTR_plan->inBin[i] ) / (float) ( SDIVINT*2*SNUMREG ));
+					DDTR_plan->t_processed[i][j] = (size_t) floor(( (float) ( local_t_processed ) / (float) DDTR_plan->inBin[i] ) / (float) ( SDIVINT*2*SNUMREG ));
 					DDTR_plan->t_processed[i][j] = DDTR_plan->t_processed[i][j] * ( SDIVINT*2*SNUMREG );
 				}
 				// fractional bit
-				DDTR_plan->t_processed[i][num_blocks] = (int) floor(( (float) ( remainder ) / (float) DDTR_plan->inBin[i] ) / (float) ( SDIVINT*2*SNUMREG ));
+				DDTR_plan->t_processed[i][num_blocks] = (size_t) floor(( (float) ( remainder ) / (float) DDTR_plan->inBin[i] ) / (float) ( SDIVINT*2*SNUMREG ));
 				DDTR_plan->t_processed[i][num_blocks] = DDTR_plan->t_processed[i][num_blocks] * ( SDIVINT*2*SNUMREG );
 			}
 			//( *num_tchunks ) = num_blocks + 1;

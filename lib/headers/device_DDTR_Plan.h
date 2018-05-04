@@ -15,12 +15,12 @@ public:
 	int *ndms;
 	
 	float *dmshifts; //size of nchans
-	int **t_processed;
+	size_t **t_processed;
 	
 	int maxshift;
-	int num_tchunks;
-	int max_ndms;
-	int total_ndms;
+	size_t num_tchunks;
+	size_t max_ndms;
+	size_t total_ndms;
 	float max_dm;
 	
 	// Unknowns stuff
@@ -34,8 +34,8 @@ public:
 	
 	
 	// Description of input data
-	int nchans; //number of frequency channels
-	int nsamp; // number of timesamples
+	size_t nchans; //number of frequency channels
+	size_t nsamp; // number of timesamples
 	int nbits; // bit precision of input data
 	float tsamp; //sampling time 
 	
@@ -72,16 +72,16 @@ public:
 	}
 	
 	int Allocate_t_processed_outer(){
-		t_processed = (int **) malloc( nRanges*sizeof(int *) );
+		t_processed = (size_t **) malloc( nRanges*sizeof(size_t *) );
 		if(t_processed==NULL) return(1);
 		return(0);	
 	}
 	
-	int Allocate_t_processed_inner(int t_num_tchunks){
+	int Allocate_t_processed_inner(size_t t_num_tchunks){
 		int error = 0;
 		num_tchunks = t_num_tchunks;
 		for(int r=0; r<nRanges; r++){
-			t_processed[r] = (int *) malloc( num_tchunks*sizeof(int) );
+			t_processed[r] = (size_t *) malloc( num_tchunks*sizeof(size_t) );
 			if(t_processed[r] == NULL ) error++;
 		}
 		return(error);

@@ -1,4 +1,4 @@
-//#define GPU_ANALYSIS_DEBUG
+#define GPU_ANALYSIS_DEBUG
 //#define MSD_BOXCAR_TEST
 //#define GPU_PARTIAL_TIMER
 #define GPU_TIMER
@@ -12,7 +12,7 @@
 #include "headers/device_MSD_Parameters.h"
 #include "headers/device_MSD_plane_profile.h"
 
-#include "headers/device_SPS_Data_Description.h"
+#include "headers/device_SPS_DataDescription.h"
 #include "headers/device_SPS_Parameters.h"
 #include "headers/device_SPS_BC_plan.h"
 #include "headers/device_SPS_long.h"
@@ -120,7 +120,7 @@ int Get_max_iteration(int max_boxcar_width, std::vector<int> *BC_widths, int *ma
 }
 
 
-void analysis_GPU( float *h_peak_list, size_t *peak_pos, size_t max_peak_size, SPS_Data_Description SPS_data, float *d_SPS_input, SPS_Parameters *SPS_params, MSD_Parameters *MSD_params, AA_Parameters *AA_params){
+void analysis_GPU( float *h_peak_list, size_t *peak_pos, size_t max_peak_size, SPS_DataDescription SPS_data, float *d_SPS_input, SPS_Parameters *SPS_params, MSD_Parameters *MSD_params, AA_Parameters *AA_params){
 	
 	size_t nTimesamples = SPS_data.nTimesamples;
 	size_t nDMs         = SPS_data.nDMs;

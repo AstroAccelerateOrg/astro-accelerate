@@ -29,7 +29,7 @@ public:
 		enable_old_rfi = 0;
 		analysis_debug = 0;
 		failsafe = 0;
-		verbose = 0;
+		verbose = 1;
 		export_data = 0;
 		output_dedispersion_data = 0;
 	}

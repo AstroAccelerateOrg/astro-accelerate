@@ -1,5 +1,5 @@
-#ifndef __ASTROACCELERATE_SPS_DATA_DESCRIPTION__
-#define __ASTROACCELERATE_SPS_DATA_DESCRIPTION__
+#ifndef __ASTROACCELERATE_SPS_DATADESCRIPTION__
+#define __ASTROACCELERATE_SPS_DATADESCRIPTION__
 
 class SPS_DataDescription { // t-DM data
 public:
@@ -15,7 +15,7 @@ public:
 	size_t nTimesamples; //t_processed
 	size_t nDMs;
 	
-	SPS_Data_Description(float t_time_start, float t_sampling_time, float t_dm_step, float t_dm_low, float t_dm_high, int t_inBin, size_t t_nTimesamples, size_t t_nDMs){
+	SPS_DataDescription(float t_time_start, float t_sampling_time, float t_dm_step, float t_dm_low, float t_dm_high, int t_inBin, size_t t_nTimesamples, size_t t_nDMs){
 		time_start = t_time_start;
 		sampling_time = t_sampling_time;
 		dm_step = t_dm_step;

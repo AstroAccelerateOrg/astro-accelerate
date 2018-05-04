@@ -55,11 +55,11 @@ void debug(int test, clock_t start_time, DDTR_InputData *DDTR_data, DDTR_Plan *D
 		printf("\nCalculated strategy:\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
 		fflush(stdout);
 	} else if(test == 5) {
-		printf("\nMaxshift efficiency:\t\t%.2f%%", 100.0f-((float)DDTR_plan->maxshift/(float)DDTR_plan->nsamp)*100.0f); 
-		printf("\nHost Input size:\t\t%d MB", (int) ((DDTR_plan->nsamp*DDTR_plan->nchans*sizeof(unsigned short)) / 1024 / 1024));
-		printf("\nHost Output size:\t\t%d MB", (int) (DDTR_plan->host_outputsize / 1024 / 1024));
-		printf("\nDevice Input size:\t\t%d MB", (int) (DDTR_plan->gpu_inputsize / 1024 / 1024));
-		printf("\nDevice Output size:\t\t%d MB", (int) (DDTR_plan->gpu_outputsize / 1024 / 1024));
+		printf("\nMaxshift efficiency:\t\t%.2f%%", 100.0f-( ((float) DDTR_plan->maxshift)/((float) DDTR_plan->nsamp) )*100.0f); 
+		printf("\nHost Input size:\t\t%zu MB", ((DDTR_plan->nsamp*DDTR_plan->nchans*sizeof(unsigned short)) / 1024 / 1024));
+		printf("\nHost Output size:\t\t%zu MB", (DDTR_plan->host_outputsize / 1024 / 1024));
+		printf("\nDevice Input size:\t\t%zu MB", (DDTR_plan->gpu_inputsize / 1024 / 1024));
+		printf("\nDevice Output size:\t\t%zu MB", (DDTR_plan->gpu_outputsize / 1024 / 1024));
 	        printf("\nAllocated memory:\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
 		fflush(stdout);
 	}  else if(test == 6) {

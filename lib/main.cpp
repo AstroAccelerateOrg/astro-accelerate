@@ -65,8 +65,8 @@ int main(int argc, char* argv[]) {
 	//DDTR_data.Allocate_memory_for_input();
 	allocate_memory_cpu_input(&input_buffer, DDTR_data.nsamp, DDTR_data.nchans);
 	  
-	if (AA_params.enable_debug == 1)
-		debug(5, start_time, &DDTR_data, &DDTR_plan, &AA_params, &MSD_params, &SPS_params, &PRS_params, &FDAS_params);
+	//if (AA_params.enable_debug == 1)
+	//	debug(5, start_time, &DDTR_data, &DDTR_plan, &AA_params, &MSD_params, &SPS_params, &PRS_params, &FDAS_params);
 
 	// Store the recorded telescope data contained in the input filterbank file in the allocated memory.
 	get_recorded_data(&fp, DDTR_data.nsamp, DDTR_data.nchans, DDTR_data.nbits, &input_buffer);
