@@ -1,4 +1,4 @@
-#define GPU_ANALYSIS_DEBUG
+//#define GPU_ANALYSIS_DEBUG
 //#define MSD_BOXCAR_TEST
 //#define GPU_PARTIAL_TIMER
 #define GPU_TIMER
@@ -126,7 +126,7 @@ void analysis_GPU( float *h_peak_list, size_t *peak_pos, size_t max_peak_size, S
 	size_t nDMs         = SPS_data.nDMs;
 	if(AA_params->verbose) {
 		printf("\n----------> GPU analysis part\n");
-		printf("  Dimensions: nTimesamples:%zu; nDMs:%zu; inBin:%d;\n", nTimesamples, nDMs, SPS_data.inBin);
+		printf("  Dimensions: nTimesamples:%zu; nDMs:%zu; inBin:%d; sampling time: %f;\n", nTimesamples, nDMs, SPS_data.inBin, SPS_data.sampling_time*SPS_data.inBin);
 	}
 	
 	//--------> Definition of SPDT boxcar plan

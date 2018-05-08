@@ -106,10 +106,8 @@ void get_file_data(FILE **fp, DDTR_InputData *DDTR_data) {
 					exit(0);
 				}
 			}
-			else if (strcmp(string, "nsamples") == 0)
-			{
-				if (fread(&(DDTR_data->nsamples), sizeof(int), 1, *fp) != 1)
-				{
+			else if (strcmp(string, "nsamples") == 0) {
+				if (fread(&(DDTR_data->nsamples), sizeof(int), 1, *fp) != 1) {
 					fprintf(stderr, "\nError while reading file\n");
 					exit(0);
 				}

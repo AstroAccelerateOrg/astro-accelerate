@@ -89,7 +89,10 @@ int main(int argc, char* argv[]) {
 	
 	if(AA_params.enable_debug == 1) 
 		debug(5, start_time, &DDTR_data, &DDTR_plan, &AA_params, &MSD_params, &SPS_params, &PRS_params, &FDAS_params);
-		
+	
+	if(AA_params.enable_debug == 1) {
+		MSD_params.debug();
+	}
 	
 	main_function(&h_SPS_candidatelist, &nSPScandidates, output_buffer, input_buffer, &DDTR_plan, &AA_params, &MSD_params, &SPS_params, &PRS_params, &FDAS_params, start_time);
 	

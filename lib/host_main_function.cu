@@ -19,7 +19,7 @@
 #include "headers/device_MSD_plane_profile.h"
 
 // SPS
-#include "headers/device_SPS_Data_Description.h"
+#include "headers/device_SPS_DataDescription.h"
 #include "headers/device_SPS_Parameters.h"
 #include "headers/device_SPS_inplace_kernel.h" //Added by KA
 #include "headers/device_SPS_inplace.h" //Added by KA
@@ -141,7 +141,7 @@ void main_function (
 	
 
 	for (int t = 0; t < DDTR_plan->num_tchunks; t++) {
-		printf("\nt_processed:\t%d, %d", DDTR_plan->t_processed[0][t], t);
+		printf("\nt_processed: %d; time chunk: %d; maxshift: %d;\n", DDTR_plan->t_processed[0][t], t, local_maxshift);
 		
 		checkCudaErrors(cudaGetLastError());
 
@@ -176,7 +176,7 @@ void main_function (
 		for (int dm_range = 0; dm_range < DDTR_plan->nRanges; dm_range++) {
 			printf("\n\n%f\t%f\t%f\t%d", DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->dm_step[dm_range], DDTR_plan->ndms[dm_range]), fflush(stdout);
 			printf("\nAmount of telescope time processed: %f", tstart_local);
-			local_maxshift = local_maxshift / DDTR_plan->inBin[dm_range];
+			local_maxshift = maxshift_original/DDTR_plan->inBin[dm_range];
 
 			checkCudaErrors(cudaGetLastError());
 			
@@ -236,11 +236,12 @@ void main_function (
 					*/
 				}
 				else {
-					float *h_peak_list;
+					float *h_peak_list = NULL;
 					size_t max_peak_size;
 					size_t peak_pos;
 					max_peak_size = (size_t) ( DDTR_plan->ndms[dm_range]*DDTR_plan->t_processed[dm_range][t]/2 );
 					h_peak_list   = (float*) malloc(max_peak_size*4*sizeof(float));
+					if(h_peak_list==NULL) printf("ERROR allocating h_peak_list\n");
 					
 					SPS_DataDescription SPS_data(tstart_local, tsamp_original, DDTR_plan->dm_step[dm_range], DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->inBin[dm_range], DDTR_plan->t_processed[dm_range][t], DDTR_plan->ndms[dm_range]);
 

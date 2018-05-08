@@ -26,11 +26,6 @@ void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short
 	}
 	//}}}
 
-	float h_sqrt_taps[PD_MAXTAPS + 1];
-	for (int f = 0; f <= PD_MAXTAPS; f++)
-		h_sqrt_taps[f] = (float) sqrt((double) f);
-	cudaMemcpyToSymbol(c_sqrt_taps, h_sqrt_taps, ( PD_MAXTAPS + 1 ) * sizeof(float));
-
 }
 
 //}}}

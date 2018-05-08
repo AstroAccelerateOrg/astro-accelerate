@@ -54,6 +54,7 @@ void allocate_memory_gpu(unsigned short **d_input, float **d_output, DDTR_Plan *
 	printf("\n\n\n%d\n\n\n", time_samps), fflush(stdout);
 	DDTR_plan->gpu_inputsize = time_samps*DDTR_plan->nchans*sizeof(unsigned short);
 	checkCudaErrors( cudaMalloc((void **) d_input, DDTR_plan->gpu_inputsize) );
+	printf("time_samp: %zu; input size: %zu\n", time_samps, DDTR_plan->gpu_inputsize);
 
 	if (DDTR_plan->nchans < DDTR_plan->max_ndms) {
 		DDTR_plan->gpu_outputsize = time_samps*DDTR_plan->max_ndms*sizeof(float);
@@ -61,6 +62,7 @@ void allocate_memory_gpu(unsigned short **d_input, float **d_output, DDTR_Plan *
 	else {
 		DDTR_plan->gpu_outputsize = time_samps*DDTR_plan->nchans*sizeof(float);
 	}
+	printf("DDTR_plan->gpu_outputsize: %zu;\n", DDTR_plan->gpu_outputsize);
 	checkCudaErrors( cudaMalloc((void **) d_output, DDTR_plan->gpu_outputsize) );
 	checkCudaErrors( cudaMemset(*d_output, 0, DDTR_plan->gpu_outputsize) );
 }

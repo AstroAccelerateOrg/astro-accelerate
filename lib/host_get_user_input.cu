@@ -159,9 +159,7 @@ void get_user_input(FILE **fp, int argc, char *argv[], DDTR_Plan *DDTR_plan, AA_
 			if (strcmp(string, "baselinenoise") == 0)
 				MSD_params->enable_outlier_rejection = 1;
 			if (strcmp(string, "sigma_constant") == 0) {
-				float ftemp=0;
-				if ( fscanf(fp_in, "%f", &ftemp) == 0 ) {
-					MSD_params->OR_sigma_multiplier = ftemp;
+				if ( fscanf(fp_in, "%f", &(MSD_params->OR_sigma_multiplier)) == 0 ) {
 					fprintf(stderr, "failed to read input\n");
 					exit(0);
 				}
@@ -173,9 +171,7 @@ void get_user_input(FILE **fp, int argc, char *argv[], DDTR_Plan *DDTR_plan, AA_
 			//if (strcmp(string, "multi_file") == 0)
 			//	*multi_file = 1;
 			if (strcmp(string, "max_boxcar_width_in_sec") == 0) {
-				float ftemp=0;
-				if ( fscanf(fp_in, "%f", &ftemp) == 0 ) {
-					SPS_params->max_boxcar_width_in_sec = ftemp;
+				if ( fscanf(fp_in, "%f", &(SPS_params->max_boxcar_width_in_sec)) == 0 ) {
 					fprintf(stderr, "failed to read input\n");
 					exit(0);
 				}
@@ -183,26 +179,22 @@ void get_user_input(FILE **fp, int argc, char *argv[], DDTR_Plan *DDTR_plan, AA_
 			if (strcmp(string, "sigma_cutoff") == 0) {
 				float ftemp = 0;
 				if ( fscanf(fp_in, "%f", &ftemp) == 0) {
-					SPS_params->sigma_cutoff = ftemp;
-					FDAS_params->sigma_cutoff = ftemp;
 					fprintf(stderr, "failed to read input\n");
 					exit(0);
 				}
+				SPS_params->sigma_cutoff = ftemp;
+				FDAS_params->sigma_cutoff = ftemp;
 			}
 			
 			//-------------------> Periodicity search parameters
 			if (strcmp(string, "periodicity_sigma_cutoff") == 0) {
-				float ftemp = 0;
-				if ( fscanf(fp_in, "%f", &ftemp) == 0 ) {
-					PRS_params->sigma_cutoff = ftemp;
+				if ( fscanf(fp_in, "%f", &(PRS_params->sigma_cutoff)) == 0 ) {
 					fprintf(stderr, "failed to read input\n");
 					exit(0);
 				}
 			}
 			if (strcmp(string, "periodicity_harmonics") == 0) {
-				float ftemp = 0;
-				if ( fscanf(fp_in, "%d", &ftemp) == 0 ) {
-					PRS_params->nHarmonics = ftemp;
+				if ( fscanf(fp_in, "%d", &(PRS_params->nHarmonics)) == 0 ) {
 					fprintf(stderr, "failed to read input\n");
 					exit(0);
 				}
@@ -210,9 +202,7 @@ void get_user_input(FILE **fp, int argc, char *argv[], DDTR_Plan *DDTR_plan, AA_
 			//-------------------<
 			
 			if (strcmp(string, "power") == 0) {
-				float ftemp = 0;
-				if ( fscanf(fp_in, "%f", &ftemp) == 0 ) {
-					DDTR_plan->power = ftemp;
+				if ( fscanf(fp_in, "%f", &(DDTR_plan->power)) == 0 ) {
 					fprintf(stderr, "failed to read input\n");
 					exit(0);
 				}

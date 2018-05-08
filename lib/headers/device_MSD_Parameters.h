@@ -13,9 +13,15 @@ public:
 		OR_sigma_multiplier = 4.0f;
 	}
 	
-	void Set(float t_OR_sigma_multiplier, int t_enable_outlier_rejection){
+	void set(float t_OR_sigma_multiplier, int t_enable_outlier_rejection){
 		OR_sigma_multiplier      = t_OR_sigma_multiplier;
 		enable_outlier_rejection = t_enable_outlier_rejection;
+	}
+	
+	void debug(){
+		printf("MSD parameters\n");
+		printf("enable_outlier_rejection = %d;\n", enable_outlier_rejection);
+		printf("OR_sigma_multiplier = %f;\n", OR_sigma_multiplier);
 	}
 };
 
