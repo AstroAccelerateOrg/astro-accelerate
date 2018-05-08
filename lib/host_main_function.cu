@@ -45,6 +45,8 @@
 #include "headers/host_rfi.h"
 #include "headers/host_stratagy.h"
 #include "headers/host_write_file.h"
+#include "headers/host_info.h"
+
 
 // fdas
 #include "headers/device_acceleration_fdas.h"
@@ -101,6 +103,7 @@ void main_function
 	size_t gpu_inputsize,
 	size_t gpu_outputsize,
 	size_t gpu_memory,
+	size_t host_memory,
   unsigned short  *input_buffer,
 	float ***output_buffer,
 	unsigned short  *d_input,
@@ -165,9 +168,9 @@ void main_function
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
 	checkCudaErrors(cudaGetLastError());
-	
+
 	// Allocate memory on host and device.
-	allocate_memory_cpu_output(&fp, gpu_memory, maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output,
+	allocate_memory_cpu_output(&fp, gpu_memory, &host_memory,  maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output,
                         &gpu_inputsize, &gpu_outputsize, &inputsize, &outputsize);
 	if(enable_debug == 1) debug(5, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
