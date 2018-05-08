@@ -14,16 +14,29 @@
 //#include <omp.h>
 #include <cuda.h>
 #include "headers/params.h"
+#include "headers/host_info.h"
 
-void allocate_memory_cpu_input(FILE **fp, size_t gpu_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, float ****output_buffer, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)
+void allocate_memory_cpu_input(FILE **fp, size_t gpu_memory, size_t *host_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, float ****output_buffer, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)
 {
-
+//	printf("\nAvailable memory: %zu MiB\n", (size_t)host_memory/1024/1024);	
 	*inputsize = nsamp * (size_t) nchans * sizeof(unsigned short);
+	if (*host_memory < *inputsize ) {
+		host_mem_error( (unsigned int)(*inputsize/1024.0/1024.0), (unsigned int)(*host_memory/1024.0/1024.0), "input");
+		exit(0);
+	}
+	*host_memory = *host_memory - *inputsize;
 	*input_buffer = (unsigned short *) malloc(*inputsize);
 }
 
-void allocate_memory_cpu_output(FILE **fp, size_t gpu_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, float ****output_buffer, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)
+void allocate_memory_cpu_output(FILE **fp, size_t gpu_memory, size_t *host_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, float ****output_buffer, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)
 {
+
+//	printf("\nTotal ndms: %i; nsamp: %i; mem: %zu\n", total_ndms, nsamp, (size_t)(*host_memory)/1024/1024);
+	unsigned int estimate_outputbuffer_size = nsamp*total_ndms*sizeof(float);
+	if (*host_memory < estimate_outputbuffer_size){
+		host_mem_error( (unsigned int)(estimate_outputbuffer_size/1024.0/1024.0), (unsigned int)(*host_memory/1024.0/1024.0), "output");
+                exit(0);	
+	}
 
 	*outputsize = 0;
 	*output_buffer = (float ***) malloc(range * sizeof(float **));
@@ -42,8 +55,10 @@ void allocate_memory_cpu_output(FILE **fp, size_t gpu_memory, int maxshift, int 
 //			memset((*output_buffer)[i][j],0.0f,(total_samps)*sizeof(float));
 		}
 		*outputsize += ( total_samps ) * ndms[i] * sizeof(float);
-		printf("\noutput size: %llu", (unsigned long long) sizeof( *output_buffer ) / 1024 / 1024 / 1024);
 	}
+	*host_memory = *host_memory - *outputsize;
+//	printf("\noutput size: %llu",(unsigned long long)(*outputsize/1024/1024));
+
 }
 
 void allocate_memory_gpu(FILE **fp, size_t gpu_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, float ****output_buffer, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)

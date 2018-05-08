@@ -44,6 +44,7 @@ void main_function
 	size_t gpu_inputsize,
 	size_t gpu_outputsize,
 	size_t gpu_memory,
+	size_t host_memory,
   unsigned short  *input_buffer,
 	float ***output_buffer,
 	unsigned short  *d_input,
