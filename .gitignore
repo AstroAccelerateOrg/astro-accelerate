@@ -9,6 +9,6 @@ output/
 *.old
 *.new
 *.ori
+*.a
 
-asstrolib/libastrolib.a
 out.txt
