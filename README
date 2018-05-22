@@ -31,7 +31,7 @@
 3. Upgrade to the latest version of AstroAccelerate (this now has acceleration searching, zero dm and some limited RFI mitigation), 
 you can pull this from git or download a tar: https://github.com/AstroAccelerateOrg/astro-accelerate
 
-4. Then cd to lib and make clean && make –j 8
+4. Then ./bootstrap.sh and cd to lib and make clean && make –j 8
 
 5. If this compiles then you need to create an input file. This should look like:
  
