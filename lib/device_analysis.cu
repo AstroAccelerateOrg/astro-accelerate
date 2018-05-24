@@ -43,7 +43,7 @@ void Create_list_of_boxcar_widths(std::vector<int> *boxcar_widths, std::vector<i
 
 
 // Extend this to arbitrary size plans
-void Create_PD_plan(std::vector<PulseDetection_plan> *PD_plan, std::vector<int> *BC_widths, int nDMs, int nTimesamples){
+void Create_PD_plan(std::vector<PulseDetection_plan> *PD_plan, std::vector<int> *BC_widths, int nTimesamples){
 	int Elements_per_block, itemp, nRest;
 	PulseDetection_plan PDmp;
 	
@@ -120,37 +120,37 @@ int Get_max_iteration(int max_boxcar_width, std::vector<int> *BC_widths, int *ma
 }
 
 
-void analysis_GPU( float *h_peak_list, size_t *peak_pos, size_t max_peak_size, SPS_DataDescription SPS_data, float *d_SPS_input, SPS_Parameters *SPS_params, MSD_Parameters *MSD_params, AA_Parameters *AA_params){
-	
+void analysis_GPU( float *h_peak_list, size_t *peak_pos, size_t max_peak_size, SPS_DataDescription SPS_data, float *d_SPS_input, SPS_Parameters *SPS_params, MSD_Parameters *MSD_params){
+	// Definition of some local variables
+	float  local_tsamp  = SPS_data.sampling_time*SPS_data.inBin; // corrected sampling time
 	size_t nTimesamples = SPS_data.nTimesamples;
 	size_t nDMs         = SPS_data.nDMs;
-	if(AA_params->verbose) {
+	if(SPS_params->verbose) {
 		printf("\n----------> GPU analysis part\n");
-		printf("  Dimensions: nTimesamples:%zu; nDMs:%zu; inBin:%d; sampling time: %f;\n", nTimesamples, nDMs, SPS_data.inBin, SPS_data.sampling_time*SPS_data.inBin);
+		printf("  Dimensions: nTimesamples:%zu; nDMs:%zu; inBin:%d; sampling time: %f; corrected s. time: %f;\n", nTimesamples, nDMs, SPS_data.inBin, SPS_data.sampling_time, local_tsamp);
 	}
 	
 	//--------> Definition of SPDT boxcar plan
-	float local_tsamp = SPS_data.sampling_time*SPS_data.inBin; // corrected sampling time
 	int max_desired_boxcar_width = (int) (SPS_params->max_boxcar_width_in_sec/local_tsamp);
 	int max_width_performed = 0;
 	int t_BC_widths[10]={PD_MAXTAPS,16,16,16,8,8,8,8,8,8};
 	std::vector<int> BC_widths(t_BC_widths,t_BC_widths+sizeof(t_BC_widths)/sizeof(int));
 	std::vector<PulseDetection_plan> PD_plan;
-	Create_PD_plan(&PD_plan, &BC_widths, 1, nTimesamples); //PD_plan is independent on maximum boxcar width
+	Create_PD_plan(&PD_plan, &BC_widths, nTimesamples); //PD_plan is independent on maximum boxcar width. which is wrong?
 	int max_iteration = Get_max_iteration(max_desired_boxcar_width, &BC_widths, &max_width_performed);
-	if(AA_params->verbose) printf("  Selected iteration:%d; maximum boxcar width requested:%d; maximum boxcar width performed:%d;\n", max_iteration, max_desired_boxcar_width, max_width_performed);
+	if(SPS_params->verbose) 
+		printf("  Selected iteration:%d; maximum boxcar width requested:%d; maximum boxcar width performed:%d;\n", max_iteration, max_desired_boxcar_width, max_width_performed);
 	std::vector<int> h_boxcar_widths;
 	Create_list_of_boxcar_widths(&h_boxcar_widths, &BC_widths, max_width_performed);
 	
-	
-	//--------> Task
-	int temp_peak_pos;
+	// It should be like this:
+	//   SPS_params should contain BC_widths
+	//   SPS_params should also contain function get_maximum_iteration which would give number of iterations required to achieve user defined value in form of max_desired_boxcar_width
+	//   Based on maximum_iteration SPS should build PD_plan
+	//   Proper error check must be placed so SPS would not die if user chooses wrong maximum search width
 	
 	//--------> Benchmarking
 	double total_time=0, MSD_time=0, SPDT_time=0, PF_time=0;
-	
-	//--------> Other
-	char filename[200];
 	
 
 	//---------------------------------------------------------------------------
@@ -161,8 +161,8 @@ void analysis_GPU( float *h_peak_list, size_t *peak_pos, size_t max_peak_size, S
 	
 	size_t free_mem,total_mem;
 	cudaMemGetInfo(&free_mem,&total_mem);
-	if(AA_params->verbose) printf("  Memory required by boxcar filters:%0.3f MB\n",(4.5*nTimesamples*nDMs*sizeof(float) + 2*nTimesamples*nDMs*sizeof(ushort))/(1024.0*1024) );
-	if(AA_params->verbose) printf("  Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
+	if(SPS_params->verbose) printf("  Memory required by boxcar filters:%0.3f MB\n",(4.5*nTimesamples*nDMs*sizeof(float) + 2*nTimesamples*nDMs*sizeof(ushort))/(1024.0*1024) );
+	if(SPS_params->verbose) printf("  Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
 	
 	
 	//-------------------------------------------------------------------------
@@ -267,7 +267,7 @@ void analysis_GPU( float *h_peak_list, size_t *peak_pos, size_t max_peak_size, S
 			if(SPS_params->candidate_algorithm==1){
 				//-------------- Thresholding
 				timer.Start();
-				THRESHOLD(d_output_SNR, d_output_taps, d_peak_list, gmem_peak_pos, SPS_params->sigma_cutoff, DM_list[f], nTimesamples, DM_shift, &PD_plan, max_iteration, local_max_list_size);
+				THRESHOLD(d_output_SNR, d_output_taps, d_peak_list, gmem_peak_pos, SPS_params->sigma_cutoff, DM_list[f], nTimesamples, DM_shift, &PD_plan, max_iteration, local_max_list_size, SPS_data.dm_step, SPS_data.dm_low, local_tsamp, SPS_data.inBin, SPS_data.time_start);
 				timer.Stop();
 				PF_time += timer.Elapsed();
 				#ifdef GPU_PARTIAL_TIMER
@@ -278,7 +278,7 @@ void analysis_GPU( float *h_peak_list, size_t *peak_pos, size_t max_peak_size, S
 			else {
 				//-------------- Peak finding
 				timer.Start();
-				PEAK_FIND(d_output_SNR, d_output_taps, d_peak_list, DM_list[f], nTimesamples, SPS_params->sigma_cutoff, local_max_list_size, gmem_peak_pos, DM_shift, &PD_plan, max_iteration);
+				PEAK_FIND(d_output_SNR, d_output_taps, d_peak_list, DM_list[f], nTimesamples, SPS_params->sigma_cutoff, local_max_list_size, gmem_peak_pos, DM_shift, &PD_plan, max_iteration, SPS_data.dm_step, SPS_data.dm_low, local_tsamp, SPS_data.inBin, SPS_data.time_start);
 				timer.Stop();
 				PF_time = timer.Elapsed();
 				#ifdef GPU_PARTIAL_TIMER
@@ -289,58 +289,24 @@ void analysis_GPU( float *h_peak_list, size_t *peak_pos, size_t max_peak_size, S
 			
 			checkCudaErrors(cudaGetLastError());
 			
+			int temp_peak_pos = 0;
 			checkCudaErrors(cudaMemcpy(&temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost));
 			#ifdef GPU_ANALYSIS_DEBUG
-			printf("    temp_peak_pos:%d; host_pos:%zu; max:%zu; local_max:%d;\n", temp_peak_pos, (*peak_pos), max_peak_size, local_max_list_size);
+			printf("    Candidates found:%d; Total #candidates for this chunk:%zu; Maximum #candidates:%zu; Local max. #candidates:%d;\n", temp_peak_pos, (*peak_pos), max_peak_size, local_max_list_size);
 			#endif
 			if( temp_peak_pos>=local_max_list_size ) {
-				printf("    Maximum list size reached! Increase list size or increase sigma cutoff.\n");
-				temp_peak_pos=local_max_list_size;
+				printf("    WARNING: Maximum list size reached! Not all candidates will be saved. You can increase sigma cutoff.\n");
+				temp_peak_pos = local_max_list_size;
 			}
 			if( ((*peak_pos) + temp_peak_pos)<max_peak_size){
 				checkCudaErrors(cudaMemcpy(&h_peak_list[(*peak_pos)*4], d_peak_list, temp_peak_pos*4*sizeof(float), cudaMemcpyDeviceToHost));
 				*peak_pos = (*peak_pos) + temp_peak_pos;
 			}
-			else printf("Error peak list is too small!\n");
+			else printf("    ERROR: Not enough memory to store all candidates on the host!\n");
 
 			DM_shift = DM_shift + DM_list[f];
 			cudaMemset((void*) gmem_peak_pos, 0, sizeof(int));
 		}
-		
-		//------------------------> Output
-		#pragma omp parallel for
-		for (int count = 0; count < (*peak_pos); count++){
-			h_peak_list[4*count]     = h_peak_list[4*count]*SPS_data.dm_step + SPS_data.dm_low;
-			h_peak_list[4*count + 1] = h_peak_list[4*count + 1]*local_tsamp + SPS_data.time_start;
-			h_peak_list[4*count + 2] = h_peak_list[4*count + 2];
-			h_peak_list[4*count + 3] = h_peak_list[4*count + 3]*SPS_data.inBin;
-		}
-        
-		FILE *fp_out;
-		
-		if(SPS_params->candidate_algorithm==1){
-			if((*peak_pos)>0){
-				sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high);
-				if (( fp_out = fopen(filename, "wb") ) == NULL)	{
-					fprintf(stderr, "Error opening output file!\n");
-					exit(0);
-				}
-				fwrite(h_peak_list, (*peak_pos)*sizeof(float), 4, fp_out);
-				fclose(fp_out);
-			}
-		}
-		else {
-			if((*peak_pos)>0){
-				sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high);
-				if (( fp_out = fopen(filename, "wb") ) == NULL)	{
-					fprintf(stderr, "Error opening output file!\n");
-					exit(0);
-				}
-				fwrite(h_peak_list, (*peak_pos)*sizeof(float), 4, fp_out);
-				fclose(fp_out);
-			}
-		}
-		//------------------------> Output
 		
 		cudaFree(d_peak_list);
 		cudaFree(d_boxcar_values);

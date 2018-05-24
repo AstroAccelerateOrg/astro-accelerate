@@ -1,7 +1,14 @@
-#ifndef __ASTROACCELERATE_SPS_DATADESCRIPTION__
-#define __ASTROACCELERATE_SPS_DATADESCRIPTION__
+#ifndef __ASTROACCELERATE_SPS_CANDIDATES__
+#define __ASTROACCELERATE_SPS_CANDIDATES__
 
-class SPS_DataDescription { // t-DM data
+struct SPS_Candidate {
+	float DM;
+	float time;
+	float SNR;
+	float width;
+};
+
+class SPS_CandidateList { // t-DM data
 public:
 	// Coordinate tranformation indexes-> [time, DM]
 	float time_start;
@@ -28,56 +35,3 @@ public:
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-/*
-struct SPS_Candidate {
-	float SM
-	float time
-	float SNR
-	float width
-}
-
-class SPS_Search {
-private:
-SPS_Parameters SPS_params{} 
-protected:
-
-
-SPS_Candidate Get_candidate(int cislo){
-	//konverse
-}
-
-};
-
-SPS_Search my_search;
-
-my_search.Set_SPS_parameters(popis dat);
-my_search.Set_data( in data);
-my_search.search();
-
-
-my_search.Get_data() //returns raw data
-
-
-
-
-
-
-class SPS_Search_cheetah::SPS_Search {
-
-my_search.Get_data() //override
-};
-
-
-
-
-
-*/

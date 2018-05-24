@@ -237,16 +237,57 @@ void main_function (
 				}
 				else {
 					float *h_peak_list = NULL;
-					size_t max_peak_size;
-					size_t peak_pos;
-					max_peak_size = (size_t) ( DDTR_plan->ndms[dm_range]*DDTR_plan->t_processed[dm_range][t]/2 );
-					h_peak_list   = (float*) malloc(max_peak_size*4*sizeof(float));
-					if(h_peak_list==NULL) printf("ERROR allocating h_peak_list\n");
+					size_t max_nCandidates = 0;
+					size_t peak_pos = 0;
 					
+					if(SPS_params->candidate_algorithm==1){
+						max_nCandidates = (size_t) ( (DDTR_plan->ndms[dm_range]*DDTR_plan->t_processed[dm_range][t])/4 ); // output size for threshold
+					}
+					else {
+						max_nCandidates = (size_t) ( (DDTR_plan->ndms[dm_range]*DDTR_plan->t_processed[dm_range][t])/4 ); // output size for peak-find
+					}
+					h_peak_list = (float*) malloc(max_nCandidates*4*sizeof(float));
+					
+					if(h_peak_list==NULL) printf("ERROR: not enough memory to allocate candidate list\n");
+					
+					// Create description of the data
 					SPS_DataDescription SPS_data(tstart_local, tsamp_original, DDTR_plan->dm_step[dm_range], DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->inBin[dm_range], DDTR_plan->t_processed[dm_range][t], DDTR_plan->ndms[dm_range]);
-
-					peak_pos=0;
-					analysis_GPU(h_peak_list, &peak_pos, max_peak_size, SPS_data, d_DDTR_output, SPS_params, MSD_params, AA_params);
+					
+					SPS_params->verbose=1;
+					analysis_GPU(h_peak_list, &peak_pos, max_nCandidates, SPS_data, d_DDTR_output, SPS_params, MSD_params);
+					
+					// Current AA behaviour is to change coordinates and write out to disk
+					//------------------------> Current AA output
+					#pragma omp parallel for
+					for (int count = 0; count < peak_pos; count++){
+						h_peak_list[4*count]     = h_peak_list[4*count]*SPS_data.dm_step + SPS_data.dm_low;
+						h_peak_list[4*count + 1] = h_peak_list[4*count + 1]*SPS_data.sampling_time*SPS_data.inBin + SPS_data.time_start;
+						h_peak_list[4*count + 2] = h_peak_list[4*count + 2];
+						h_peak_list[4*count + 3] = h_peak_list[4*count + 3]*SPS_data.inBin;
+					}
+					
+					char filename[200];
+					FILE *fp_out;
+					
+					if(SPS_params->candidate_algorithm==1){
+						sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high);
+					}
+					else {
+						sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high);
+					}
+					
+					if(peak_pos>0){
+						if (( fp_out = fopen(filename, "wb") ) == NULL)	{
+							fprintf(stderr, "Error opening output file!\n");
+							exit(0);
+						}
+						fwrite(h_peak_list, peak_pos*sizeof(float), 4, fp_out);
+						fclose(fp_out);
+					}
+					//------------------------> Current AA output
+					
+					// Process candidate list into whatever format
+					// ??
 
 					free(h_peak_list);
 				}

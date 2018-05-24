@@ -8,7 +8,7 @@
 #include "headers/params.h"
 //#include "device_stdev_approx.cu"
 
-__global__ void THR_GPU_WARP(float const* __restrict__ d_input, ushort *d_input_taps, float *d_output_list, int *gmem_pos, float threshold, int nTimesamples, int offset, int shift, int max_list_size, int DIT_value) {
+__global__ void THR_GPU_WARP(float const* __restrict__ d_input, ushort *d_input_taps, float *d_output_list, int *gmem_pos, float threshold, int nTimesamples, int offset, int shift, int max_list_size, int DIT_value, float dm_step, float dm_low, float sampling_time, float inBin, float start_time) {
 	int local_id;
 	local_id = threadIdx.x & (WARP - 1);
 	int warp_id;
@@ -30,11 +30,10 @@ __global__ void THR_GPU_WARP(float const* __restrict__ d_input, ushort *d_input_
 				list_pos=__shfl(list_pos,leader);
 				list_pos=list_pos+__popc(mask&((1<<local_id)-1));
 				if(list_pos<max_list_size){
-					d_output_list[4*list_pos]   = blockIdx.y*THR_WARPS_PER_BLOCK + warp_id + shift;
-					//d_output_list[4*list_pos+1] = DIT_value*2*((blockIdx.x*THR_ELEM_PER_THREAD + i)*WARP + local_id) + (float) d_input_taps[2*(pos_x + pos_y)]/2.0;
-					d_output_list[4*list_pos+1] = DIT_value*pos_x + (float) d_input_taps[(pos_x + pos_y)]/2.0;
+					d_output_list[4*list_pos]   = (blockIdx.y*THR_WARPS_PER_BLOCK + warp_id + shift)*dm_step + dm_low;
+					d_output_list[4*list_pos+1] = (DIT_value*pos_x + (float) d_input_taps[(pos_x + pos_y)]/2.0)*sampling_time + start_time;
 					d_output_list[4*list_pos+2] = R;
-					d_output_list[4*list_pos+3] = (float) d_input_taps[(pos_x + pos_y)];
+					d_output_list[4*list_pos+3] = ((float) d_input_taps[(pos_x + pos_y)])*inBin;
 				}
 			}
 		}
