@@ -9,6 +9,7 @@ public:
 	// Constants
 	float max_boxcar_width_in_sec;
 	float sigma_cutoff;
+	size_t max_candidate_array_size_in_bytes;
 	
 	// Switches
 	int candidate_algorithm;
@@ -17,11 +18,29 @@ public:
 	// SPS plan
 	std::vector<int> BC_widths;
 	
+	//-------------------------------------------------<
+	
 	SPS_Parameters(){
 		max_boxcar_width_in_sec = 0.5f;
 		sigma_cutoff = 6.0f;
+		max_candidate_array_size_in_bytes = 0;
 		candidate_algorithm = 0;
 		verbose = 0;
+	}
+	
+	void print(){
+		printf("SPS_Parameters:\n");
+		printf("  max_boxcar_width_in_sec: %f;\n", max_boxcar_width_in_sec);
+		printf("  sigma_cutoff: %f;\n", sigma_cutoff);
+		printf("  max_candidate_array_size_in_bytes: %zu;\n", max_candidate_array_size_in_bytes);
+		if(candidate_algorithm==1) printf("  candidate_algorithm: threshold;\n");
+		else printf("  candidate_algorithm: peak-find;\n");
+		printf("  verbose: %d;\n", verbose);
+		printf("  BC_widths: ");
+		if(BC_widths.size()==0) printf("not set;");
+		for(int f=0; f<(int) BC_widths.size(); f++) printf("%d ", BC_widths[f]);
+		printf("\n");
+		printf("---------------------<");
 	}
 	
 	//----------------------> BC_widths
@@ -39,16 +58,16 @@ public:
 		BC_widths.push_back(width);
 	}
 	
+	void clear_BC_widths(){
+		BC_widths.clear();
+	}
+	
 	int get_BC_width(int el){
 		int last_element = BC_widths.size()-1;
-		if( el>last_element ) {
-			printf("Returning last element\n");
+		if( el>last_element ) 
 			return( BC_widths[last_element] );
-		}
-		else {
-			printf("Returning normal element\n");
+		else 
 			return( BC_widths[el] );
-		}
 	}
 	//-----------------------------------<
 	
@@ -127,6 +146,23 @@ public:
 			}
 		}
 	}
+	
+	void Create_list_of_boxcar_widths(std::vector<int> *boxcar_widths, int max_width_performed){
+		int DIT_value, DIT_factor, width, f;
+		DIT_value = 1;
+		DIT_factor = 2;
+		width = 0;
+		f=0;
+		while(width<max_width_performed){
+			for(int b=0; b<get_BC_width(f); b++){
+				width = width + DIT_value;
+				boxcar_widths->push_back(width);
+			}
+			DIT_value = DIT_value*DIT_factor;
+			f++;
+		}
+	}
+
 };
 
 #endif

@@ -19,6 +19,8 @@
 #include "headers/device_MSD_plane_profile.h"
 
 // SPS
+#include "headers/device_SPS_Search.h"
+#include "headers/device_SPS_Search_AA.h"
 #include "headers/device_SPS_DataDescription.h"
 #include "headers/device_SPS_Parameters.h"
 #include "headers/device_SPS_inplace_kernel.h" //Added by KA
@@ -236,6 +238,48 @@ void main_function (
 					*/
 				}
 				else {
+					// SPS Parameters test
+					SPS_params->add_BC_width(PD_MAXTAPS);
+					SPS_params->add_BC_width(16);
+					SPS_params->add_BC_width(16);
+					SPS_params->add_BC_width(16);
+					SPS_params->add_BC_width(8);
+					SPS_params->print();
+					
+					// -----------------------------------------------------------------------
+					// ------------------------------ New way --------------------------------
+					// -----------------------------------------------------------------------
+					/*
+					SPS_Search_AA SPS_search;
+					
+					SPS_search.SPS_data.set(tstart_local, tsamp_original, DDTR_plan->dm_step[dm_range], DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->inBin[dm_range], DDTR_plan->t_processed[dm_range][t], DDTR_plan->ndms[dm_range]);
+					
+					SPS_search.setParameters(SPS_Parameters);
+					SPS_search.setMSDParameters(MSD_params);
+					
+					SPS_search.search();
+					
+					// Current AA behaviour is to change coordinates and write out to disk
+					//------------------------> Current AA output
+					char filename[200];
+					
+					if(SPS_params->candidate_algorithm==1){
+						sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high);
+					}
+					else {
+						sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high);
+					}
+					
+					SPS_search.export_SPSData(filename);
+					
+					SPS_search.clear();
+					*/
+					// -----------------------------------------------------------------------<
+					
+					
+					// -----------------------------------------------------------------------
+					// ------------------------------ Old way --------------------------------
+					// -----------------------------------------------------------------------
 					float *h_peak_list = NULL;
 					size_t max_nCandidates = 0;
 					size_t peak_pos = 0;
@@ -251,20 +295,21 @@ void main_function (
 					if(h_peak_list==NULL) printf("ERROR: not enough memory to allocate candidate list\n");
 					
 					// Create description of the data
-					SPS_DataDescription SPS_data(tstart_local, tsamp_original, DDTR_plan->dm_step[dm_range], DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->inBin[dm_range], DDTR_plan->t_processed[dm_range][t], DDTR_plan->ndms[dm_range]);
+					SPS_DataDescription SPS_data;
+					SPS_data.set(tstart_local, tsamp_original, DDTR_plan->dm_step[dm_range], DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->inBin[dm_range], DDTR_plan->t_processed[dm_range][t], DDTR_plan->ndms[dm_range]);
 					
 					SPS_params->verbose=1;
 					analysis_GPU(h_peak_list, &peak_pos, max_nCandidates, SPS_data, d_DDTR_output, SPS_params, MSD_params);
 					
 					// Current AA behaviour is to change coordinates and write out to disk
 					//------------------------> Current AA output
-					#pragma omp parallel for
-					for (int count = 0; count < peak_pos; count++){
-						h_peak_list[4*count]     = h_peak_list[4*count]*SPS_data.dm_step + SPS_data.dm_low;
-						h_peak_list[4*count + 1] = h_peak_list[4*count + 1]*SPS_data.sampling_time*SPS_data.inBin + SPS_data.time_start;
-						h_peak_list[4*count + 2] = h_peak_list[4*count + 2];
-						h_peak_list[4*count + 3] = h_peak_list[4*count + 3]*SPS_data.inBin;
-					}
+					//#pragma omp parallel for
+					//for (int count = 0; count < peak_pos; count++){
+					//	h_peak_list[4*count]     = h_peak_list[4*count]*SPS_data.dm_step + SPS_data.dm_low;
+					//	h_peak_list[4*count + 1] = h_peak_list[4*count + 1]*SPS_data.sampling_time*SPS_data.inBin + SPS_data.time_start;
+					//	h_peak_list[4*count + 2] = h_peak_list[4*count + 2];
+					//	h_peak_list[4*count + 3] = h_peak_list[4*count + 3]*SPS_data.inBin;
+					//}
 					
 					char filename[200];
 					FILE *fp_out;
@@ -285,11 +330,13 @@ void main_function (
 						fclose(fp_out);
 					}
 					//------------------------> Current AA output
-					
-					// Process candidate list into whatever format
-					// ??
-
 					free(h_peak_list);
+					// -----------------------------------------------------------------------<
+					
+					
+					
+					
+					SPS_params->clear_BC_widths();
 				}
 
 				// This is for testing purposes and should be removed or commented out

@@ -132,17 +132,89 @@ void analysis_GPU( float *h_peak_list, size_t *peak_pos, size_t max_peak_size, S
 	
 	//--------> Definition of SPDT boxcar plan
 	int max_desired_boxcar_width = (int) (SPS_params->max_boxcar_width_in_sec/local_tsamp);
-	int max_width_performed = 0;
-	int t_BC_widths[10]={PD_MAXTAPS,16,16,16,8,8,8,8,8,8};
-	std::vector<int> BC_widths(t_BC_widths,t_BC_widths+sizeof(t_BC_widths)/sizeof(int));
+	int max_width_performed = 0, max_iteration = 0;
+	
+	// Old version
+	//int t_BC_widths[10]={PD_MAXTAPS,16,16,16,8,8,8,8,8,8};
+	//std::vector<int> BC_widths(t_BC_widths,t_BC_widths+sizeof(t_BC_widths)/sizeof(int));
+	//std::vector<PulseDetection_plan> PD_plan;
+	//Create_PD_plan(&PD_plan, &BC_widths, nTimesamples); //PD_plan is independent on maximum boxcar width. which is wrong?
+	//max_iteration = Get_max_iteration(max_desired_boxcar_width, &BC_widths, &max_width_performed);
+	//std::vector<int> h_boxcar_widths;
+	//Create_list_of_boxcar_widths(&h_boxcar_widths, &BC_widths, max_width_performed);
+	
+	
+	//New version
 	std::vector<PulseDetection_plan> PD_plan;
-	Create_PD_plan(&PD_plan, &BC_widths, nTimesamples); //PD_plan is independent on maximum boxcar width. which is wrong?
-	int max_iteration = Get_max_iteration(max_desired_boxcar_width, &BC_widths, &max_width_performed);
+	max_iteration = SPS_params->get_max_iteration(&max_width_performed, max_desired_boxcar_width);
+	SPS_params->Create_PD_plan(&PD_plan, &max_width_performed, max_desired_boxcar_width, nTimesamples);
 	if(SPS_params->verbose) 
 		printf("  Selected iteration:%d; maximum boxcar width requested:%d; maximum boxcar width performed:%d;\n", max_iteration, max_desired_boxcar_width, max_width_performed);
 	std::vector<int> h_boxcar_widths;
-	Create_list_of_boxcar_widths(&h_boxcar_widths, &BC_widths, max_width_performed);
+	SPS_params->Create_list_of_boxcar_widths(&h_boxcar_widths, max_width_performed);
 	
+	//printf("old size: %d; new size: %d;\n", (int) h_boxcar_widths.size(), (int) new_h_boxcar_widths.size());
+	//if(h_boxcar_widths.size() == new_h_boxcar_widths.size()){
+	//	int error;
+	//	for(int f=0; f<(int) h_boxcar_widths.size(); f++){
+	//		error = h_boxcar_widths[f] - new_h_boxcar_widths[f];
+	//		if(error!=0) printf("%d-%d=%d at f=%f\n", h_boxcar_widths[f], new_h_boxcar_widths[f], error, f);
+	//	}
+	//}
+	
+	
+	/*
+	printf("Old calculation:\n");
+	printf("max_iteration: %d; max_desired_boxcar_width: %d; max_width_performed: %d;\n", max_iteration, max_desired_boxcar_width, max_width_performed);
+	printf("dec_nTs: "); for(int f=0; f<(int)PD_plan.size(); f++) printf("%d\t", PD_plan[f].decimated_timesamples); printf("\n");
+	printf("dtm:     "); for(int f=0; f<(int)PD_plan.size(); f++) printf("%d\t", PD_plan[f].dtm); printf("\n");
+	printf("iter:    "); for(int f=0; f<(int)PD_plan.size(); f++) printf("%d\t", PD_plan[f].iteration); printf("\n");
+	printf("nBoxc:   "); for(int f=0; f<(int)PD_plan.size(); f++) printf("%d\t", PD_plan[f].nBoxcars); printf("\n");
+	printf("nBlocks: "); for(int f=0; f<(int)PD_plan.size(); f++) printf("%d\t", PD_plan[f].nBlocks); printf("\n");
+	printf("out_shf: "); for(int f=0; f<(int)PD_plan.size(); f++) printf("%d\t", PD_plan[f].output_shift); printf("\n");
+	printf("shift:   "); for(int f=0; f<(int)PD_plan.size(); f++) printf("%d\t", PD_plan[f].shift); printf("\n");
+	printf("s_taps:  "); for(int f=0; f<(int)PD_plan.size(); f++) printf("%d\t", PD_plan[f].startTaps); printf("\n");
+	printf("un_samp: "); for(int f=0; f<(int)PD_plan.size(); f++) printf("%d\t", PD_plan[f].unprocessed_samples); printf("\n");
+	printf("tot_ut:  "); for(int f=0; f<(int)PD_plan.size(); f++) printf("%d\t", PD_plan[f].total_ut); printf("\n");
+	printf("------------------------------------------\n");
+	printf("\n");
+	
+	int new_max_iteration, new_max_width_performed;
+	std::vector<PulseDetection_plan> new_PD_plan;
+	new_max_iteration = SPS_params->get_max_iteration(&new_max_width_performed, max_desired_boxcar_width);
+	SPS_params->Create_PD_plan(&new_PD_plan, &max_width_performed, max_desired_boxcar_width, nTimesamples);
+	printf("New calculation:\n");
+	printf("max_iteration: %d; max_desired_boxcar_width: %d; max_width_performed: %d;\n", max_iteration, max_desired_boxcar_width, max_width_performed);
+	printf("dec_nTs: "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].decimated_timesamples); printf("\n");
+	printf("dtm:     "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].dtm); printf("\n");
+	printf("iter:    "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].iteration); printf("\n");
+	printf("nBoxc:   "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].nBoxcars); printf("\n");
+	printf("nBlocks: "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].nBlocks); printf("\n");
+	printf("out_shf: "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].output_shift); printf("\n");
+	printf("shift:   "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].shift); printf("\n");
+	printf("s_taps:  "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].startTaps); printf("\n");
+	printf("un_samp: "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].unprocessed_samples); printf("\n");
+	printf("tot_ut:  "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].total_ut); printf("\n");
+	printf("------------------------------------------\n");
+	printf("\n");	
+	
+	if(PD_plan.size()>=new_PD_plan.size()){
+		printf("Difference:\n");
+		printf("max_iteration: %d; max_desired_boxcar_width: %d; max_width_performed: %d;\n", max_iteration-new_max_iteration, max_desired_boxcar_width, max_width_performed-new_max_width_performed);
+		printf("dec_nTs: "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].decimated_timesamples-PD_plan[f].decimated_timesamples); printf("\n");
+		printf("dtm:     "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].dtm-PD_plan[f].dtm); printf("\n");
+		printf("iter:    "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].iteration-PD_plan[f].iteration); printf("\n");
+		printf("nBoxc:   "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].nBoxcars-PD_plan[f].nBoxcars); printf("\n");
+		printf("nBlocks: "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].nBlocks-PD_plan[f].nBlocks); printf("\n");
+		printf("out_shf: "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].output_shift-PD_plan[f].output_shift); printf("\n");
+		printf("shift:   "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].shift-PD_plan[f].shift); printf("\n");
+		printf("s_taps:  "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].startTaps-PD_plan[f].startTaps); printf("\n");
+		printf("un_samp: "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].unprocessed_samples-PD_plan[f].unprocessed_samples); printf("\n");
+		printf("tot_ut:  "); for(int f=0; f<(int)new_PD_plan.size(); f++) printf("%d\t", new_PD_plan[f].total_ut-PD_plan[f].total_ut); printf("\n");
+		printf("------------------------------------------\n");
+		printf("\n");
+	}
+	*/
 	// It should be like this:
 	//   SPS_params should contain BC_widths
 	//   SPS_params should also contain function get_maximum_iteration which would give number of iterations required to achieve user defined value in form of max_desired_boxcar_width
