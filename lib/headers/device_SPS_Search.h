@@ -25,10 +25,6 @@ public:
 	void setMSDParameters(MSD_Parameters t_MSD_params){
 		MSD_params = t_MSD_params;
 	}
-	
-	void setMSDParameters(MSD_Parameters *t_MSD_params){
-		MSD_params = *t_MSD_params;
-	}
 
 	void setDataDescription(SPS_DataDescription t_SPS_data){
 		SPS_data = t_SPS_data;
@@ -48,10 +44,6 @@ public:
 	void setParameters(SPS_Parameters t_SPS_params){
 		SPS_params = t_SPS_params;
 	}
-	
-	void setParameters(SPS_Parameters *t_SPS_params){
-		SPS_params = *t_SPS_params;
-	}
 
 	void setInputData(float *t_input){
 		d_input = t_input;
@@ -62,10 +54,6 @@ public:
 	}
 
 	int search(){
-		if(d_input==NULL) {
-			if(SPS_params.verbose) printf("ERROR: input data pointer is NULL!\n");
-			return(1);
-		}
 		max_nCandidates = 0;
 		nCandidates = 0;
 		max_nCandidates = (size_t) ( (SPS_data.nDMs*SPS_data.nTimesamples)/4 );
@@ -73,7 +61,7 @@ public:
 		if(h_candidate_list==NULL) {
 			if(SPS_params.verbose) printf("ERROR: not enough memory to allocate candidate list\n");
 			return(1);
-		}			
+		}
 		
 		analysis_GPU(h_candidate_list, &nCandidates, max_nCandidates, SPS_data, d_input, &SPS_params, &MSD_params);
 		

@@ -246,33 +246,40 @@ void main_function (
 					SPS_params->add_BC_width(8);
 					SPS_params->print();
 					
-					
-					
 					// -----------------------------------------------------------------------
 					// ------------------------------ New way --------------------------------
 					// -----------------------------------------------------------------------
-					// TODO:
+					/*
 					SPS_Search_AA SPS_search;
 					
 					SPS_search.SPS_data.set(tstart_local, tsamp_original, DDTR_plan->dm_step[dm_range], DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->inBin[dm_range], DDTR_plan->t_processed[dm_range][t], DDTR_plan->ndms[dm_range]);
 					
-					SPS_search.setParameters(SPS_params);
+					SPS_search.setParameters(SPS_Parameters);
 					SPS_search.setMSDParameters(MSD_params);
-					SPS_search.setInputData(d_DDTR_output);
 					
 					SPS_search.search();
 					
-					SPS_search.export_SPSData();
+					// Current AA behaviour is to change coordinates and write out to disk
+					//------------------------> Current AA output
+					char filename[200];
+					
+					if(SPS_params->candidate_algorithm==1){
+						sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high);
+					}
+					else {
+						sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high);
+					}
+					
+					SPS_search.export_SPSData(filename);
 					
 					SPS_search.clear();
-					
+					*/
 					// -----------------------------------------------------------------------<
 					
 					
 					// -----------------------------------------------------------------------
 					// ------------------------------ Old way --------------------------------
 					// -----------------------------------------------------------------------
-					/*
 					float *h_peak_list = NULL;
 					size_t max_nCandidates = 0;
 					size_t peak_pos = 0;
@@ -324,7 +331,6 @@ void main_function (
 					}
 					//------------------------> Current AA output
 					free(h_peak_list);
-					*/
 					// -----------------------------------------------------------------------<
 					
 					

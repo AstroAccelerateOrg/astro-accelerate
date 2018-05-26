@@ -12,16 +12,7 @@
 class SPS_Search_AA: public SPS_Search {
 
 public:
-	int export_SPSData(){
-		char filename[200];
-		
-		if(SPS_params.candidate_algorithm==1){
-			sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high);
-		}
-		else {
-			sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high);
-		}
-					
+	int export_SPSData(char *filename){
 		FILE *fp_out;
 		
 		if(nCandidates>0){
