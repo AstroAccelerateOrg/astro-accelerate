@@ -252,6 +252,7 @@ void main_function (
 					// ------------------------------ New way --------------------------------
 					// -----------------------------------------------------------------------
 					// TODO:
+					// 1) make it possible to use persistence memory allocation for multiple searches, both on the host as well as on the device.
 					SPS_Search_AA SPS_search;
 					
 					SPS_search.SPS_data.set(tstart_local, tsamp_original, DDTR_plan->dm_step[dm_range], DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->inBin[dm_range], DDTR_plan->t_processed[dm_range][t], DDTR_plan->ndms[dm_range]);
