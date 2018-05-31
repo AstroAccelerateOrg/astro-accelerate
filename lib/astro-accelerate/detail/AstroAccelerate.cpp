@@ -225,6 +225,11 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
              dedisperse(dm_range, _t_processed[dm_range][t], _in_bin, _dmshifts, _d_input, _d_output, _nchans,
                 ( _t_processed[dm_range][t] + _maxshift ), _maxshift, &_tsamp, _dm_low, _dm_high, _dm_step, _ndms, _nbits, 0);
 
+             for (int k = 0; k < _ndms[dm_range]; k++) {
+                save_data_offset(_d_output, k * _t_processed[dm_range][t], output_buffer[dm_range][k], _inc / _in_bin[dm_range], sizeof(float) * _t_processed[dm_range][t]);
+             }
+
+
              if (_enable_analysis == 1)
              {
                 size_t previous_peak_pos = peak_pos;
@@ -263,10 +268,6 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
         * value to make it equal to the true number of returned candidates.
         */
        output_sps.resize(peak_pos*4);
-
-        for (int k = 0; k < _ndms[dm_range]; k++) {
-          save_data_offset(_d_output, k * _t_processed[dm_range][t], output_buffer[dm_range][k], _inc / _in_bin[dm_range], sizeof(float) * _t_processed[dm_range][t]);
-        }
 
 
     /*
