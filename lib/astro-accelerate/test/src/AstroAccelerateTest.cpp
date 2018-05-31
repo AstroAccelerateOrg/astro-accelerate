@@ -187,17 +187,23 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 						,output_sps
 						);
 
-                */
+
 		/*
 		 * Note: this function was written with a buggy fdas in the master, so it's not running.
 		 * A fix has been done on the fdas code in the master, merging it to the interface should allow this function to run.
-		 * It's basically filling a vector of candidates in the same was as in run_dedispersion_sps
+		 * It's basically filling a vector of candidates in the same way as in run_dedispersion_sps
+		 *
+		 * Todo: find a way to unit test it. Currently just write to file the desired dm and check if the results are
+		 * the same as in the master branch
+		 *
+		 * 1 candidate is 4 elements of the vector: acceleration, frequency derivative, power, DM
 		 */
-		//printf("\nFDAS is starting\n");
-		//std::vector<float> output_fdas;
-		//astroaccelerate.run_fdas(device_id, output_buffer, output_fdas);
+	/*
+		printf("\nFDAS is starting\n");
+		std::vector<float> output_fdas;
+		astroaccelerate.run_fdas(device_id, output_buffer, output_fdas);
   
-                /*
+
 		fclose(fp);
 		free(inBin);
 		free(outBin);
@@ -205,7 +211,7 @@ TEST_F(AstroAccelerateTest, AstroAccelerate_call)
 		free(user_dm_high);
 		free(user_dm_step);
 		free(input_buffer);
-		*/
+*/
 }
 //}
 
