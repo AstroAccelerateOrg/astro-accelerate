@@ -14,7 +14,7 @@
 
 #include "headers/device_SPS_DataDescription.h"
 #include "headers/device_SPS_Parameters.h"
-#include "headers/device_SPS_BC_plan.h"
+#include "headers/device_SPS_PD_plan.h"
 #include "headers/device_SPS_long.h"
 #include "headers/device_peak_find.h"
 #include "headers/device_threshold.h"

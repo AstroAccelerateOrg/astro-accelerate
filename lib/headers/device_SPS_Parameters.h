@@ -2,7 +2,7 @@
 #define __ASTROACCELERATE_SPS_PARAMETERS__
 
 #include <vector>
-#include "headers/device_SPS_BC_plan.h"
+#include "headers/device_SPS_PD_plan.h"
 
 class SPS_Parameters {
 public:

@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "headers/params.h"
-#include "headers/device_SPS_BC_plan.h"
+#include "headers/device_SPS_PD_plan.h"
 #include "device_SPS_long_kernel.cu"
 
 

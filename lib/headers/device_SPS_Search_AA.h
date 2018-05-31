@@ -15,6 +15,15 @@ public:
 	int export_SPSData(){
 		char filename[200];
 		
+		/*
+		for(int f=0; f<nCandidates; f++){
+			h_candidate_list[4*list_pos]   = h_candidate_list[4*list_pos]*dm_step + dm_low;
+			h_candidate_list[4*list_pos+1] = h_candidate_list[4*list_pos+1]*sampling_time + start_time;
+			h_candidate_list[4*list_pos+2] = h_candidate_list[4*list_pos+2];
+			h_candidate_list[4*list_pos+3] = h_candidate_list[4*list_pos+3]*inBin;
+		}
+		*/
+		
 		if(SPS_params.candidate_algorithm==1){
 			sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high);
 		}

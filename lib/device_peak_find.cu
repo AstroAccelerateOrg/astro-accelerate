@@ -1,7 +1,7 @@
 // James Sharpe's peak finding code
 //#define PEAK_FIND_DEBUG
 
-#include "headers/device_SPS_BC_plan.h"
+#include "headers/device_SPS_PD_plan.h"
 
 #include <npp.h>
 #include "helper_cuda.h"

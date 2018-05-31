@@ -1,7 +1,7 @@
 #include <vector>
 #include <stdio.h>
 #include <stdlib.h>
-#include "device_SPS_BC_plan.h"
+#include "device_SPS_PD_plan.h"
 
 #ifndef __SPS_LONG__
 #define __SPS_LONG__

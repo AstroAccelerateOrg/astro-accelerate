@@ -97,6 +97,7 @@ int main(int argc, char* argv[]) {
 	main_function(&h_SPS_candidatelist, &nSPScandidates, output_buffer, input_buffer, &DDTR_plan, &AA_params, &MSD_params, &SPS_params, &PRS_params, &FDAS_params, start_time);
 	
 	
+	
 	// deallocate host output
 	for(int i = 0; i < DDTR_plan.nRanges; i++) {
 		for(int j = 0; j < DDTR_plan.ndms[i]; j++) {

@@ -84,25 +84,6 @@ void main_function (
 	
 	unsigned short *d_DDTR_input;
 	float *d_DDTR_output;
-
-	// Initialise the GPU.	
-	//init_gpu(argc, argv, enable_debug, &gpu_memory);
-	//if(enable_debug == 1) debug(2, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high, user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
-
-	checkCudaErrors(cudaGetLastError());
-	
-	// Calculate the dedispersion stratagy.
-	//stratagy(&maxshift, &max_samps, &num_tchunks, &max_ndms, &total_ndms, &max_dm, power, nchans, nsamp, fch1, foff, tsamp, range, user_dm_low, user_dm_high, user_dm_step, &dm_low, &dm_high, &dm_step, &ndms, &dmshifts, inBin, &t_processed, &gpu_memory, enable_analysis);
-	
-	//if(enable_debug == 1) debug(4, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high, user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
-
-	checkCudaErrors(cudaGetLastError());
-	
-	// Allocate memory on host and device.
-	//allocate_memory_cpu_output(&fp, gpu_memory, maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output, &gpu_inputsize, &gpu_outputsize, &inputsize, &outputsize);
-	//if(enable_debug == 1) debug(5, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high, user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
-
-	checkCudaErrors(cudaGetLastError());
 	
 	// Allocate memory on host and device.
 	allocate_memory_gpu(&d_DDTR_input, &d_DDTR_output, DDTR_plan);
@@ -120,23 +101,14 @@ void main_function (
 		rfi(DDTR_plan->nsamp, DDTR_plan->nchans, &h_input_buffer);
 	}
 	
-	/*
-	FILE *fp_o;
-	if ((fp_o=fopen("rfi_clipped.dat", "wb")) == NULL) {
-		fprintf(stderr, "Error opening output file!\n");
-		exit(0);
-	}
-	fwrite(input_buffer, nchans*nsamp*sizeof(unsigned short), 1, fp_o);
-	*/
-
 	printf("\nDe-dispersing...");
 	GpuTimer timer;
 	timer.Start();
 
 
 	float tsamp_original = DDTR_plan->tsamp;
-	int maxshift_original = DDTR_plan->maxshift;
 	float local_tsamp = DDTR_plan->tsamp;
+	int maxshift_original = DDTR_plan->maxshift;
 	size_t local_maxshift = DDTR_plan->maxshift;
 	float tstart_local = 0;
 	size_t inc = 0; //inc = number of processed time samples so far.
@@ -202,22 +174,14 @@ void main_function (
 			checkCudaErrors(cudaGetLastError());
 			
 			if ( (AA_params->enable_acceleration == 1) || (AA_params->enable_periodicity == 1) || (AA_params->analysis_debug ==1) ) {
-				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
-				//save_data(d_output, out_tmp, gpu_outputsize);
-
-				//#pragma omp parallel for
 				for (int k = 0; k < DDTR_plan->ndms[dm_range]; k++) {
-					//memcpy(&output_buffer[dm_range][k][inc / inBin[dm_range]], &out_tmp[k * t_processed[dm_range][t]], sizeof(float) * t_processed[dm_range][t]);
-
 					save_data_offset(d_DDTR_output, (int) (k*DDTR_plan->t_processed[dm_range][t]), h_output_buffer[dm_range][k], ((int) inc)/DDTR_plan->inBin[dm_range], sizeof(float)*((int) DDTR_plan->t_processed[dm_range][t]));
 				}
-			//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
 			}
 
 			if (AA_params->output_dedispersion_data == 1) {
 				//for (int k = 0; k < ndms[dm_range]; k++)
 				//	write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, output_buffer[dm_range][k], gpu_outputsize, dm_low, dm_high);
-				//write_output(dm_range, t_processed[dm_range][t], ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
 			}
 			
 			checkCudaErrors(cudaGetLastError());
@@ -238,7 +202,7 @@ void main_function (
 					*/
 				}
 				else {
-					// SPS Parameters test
+					// Set maximum boxcar widths performed between decimations
 					SPS_params->add_BC_width(PD_MAXTAPS);
 					SPS_params->add_BC_width(16);
 					SPS_params->add_BC_width(16);
@@ -246,101 +210,38 @@ void main_function (
 					SPS_params->add_BC_width(8);
 					SPS_params->print();
 					
-					
-					
 					// -----------------------------------------------------------------------
 					// ------------------------------ New way --------------------------------
 					// -----------------------------------------------------------------------
 					// TODO:
-					// 1) make it possible to use persistence memory allocation for multiple searches, both on the host as well as on the device.
+					// 1) make it possible to use persistent memory allocation for multiple searches, both on the host as well as on the device.
 					SPS_Search_AA SPS_search;
-					
-					SPS_search.SPS_data.set(tstart_local, tsamp_original, DDTR_plan->dm_step[dm_range], DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->inBin[dm_range], DDTR_plan->t_processed[dm_range][t], DDTR_plan->ndms[dm_range]);
 					
 					SPS_search.setParameters(SPS_params);
 					SPS_search.setMSDParameters(MSD_params);
+					
+					
+					SPS_search.SPS_data.set(tstart_local, tsamp_original, DDTR_plan->dm_step[dm_range], DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->inBin[dm_range], DDTR_plan->t_processed[dm_range][t], DDTR_plan->ndms[dm_range]);
+					
 					SPS_search.setInputData(d_DDTR_output);
 					
 					SPS_search.search();
 					
 					SPS_search.export_SPSData();
 					
+					//SPS_CandidatesList* SPS_search.getCandidates
+					//vector<SPS_CandidateList*> SPS_Result;
+					// rezervovat dopredu 2000;
+					//SPS_Results->pushback(SPS_search.getCandidates());
+					
 					SPS_search.clear();
-					
 					// -----------------------------------------------------------------------<
-					
-					
-					// -----------------------------------------------------------------------
-					// ------------------------------ Old way --------------------------------
-					// -----------------------------------------------------------------------
-					/*
-					float *h_peak_list = NULL;
-					size_t max_nCandidates = 0;
-					size_t peak_pos = 0;
-					
-					if(SPS_params->candidate_algorithm==1){
-						max_nCandidates = (size_t) ( (DDTR_plan->ndms[dm_range]*DDTR_plan->t_processed[dm_range][t])/4 ); // output size for threshold
-					}
-					else {
-						max_nCandidates = (size_t) ( (DDTR_plan->ndms[dm_range]*DDTR_plan->t_processed[dm_range][t])/4 ); // output size for peak-find
-					}
-					h_peak_list = (float*) malloc(max_nCandidates*4*sizeof(float));
-					
-					if(h_peak_list==NULL) printf("ERROR: not enough memory to allocate candidate list\n");
-					
-					// Create description of the data
-					SPS_DataDescription SPS_data;
-					SPS_data.set(tstart_local, tsamp_original, DDTR_plan->dm_step[dm_range], DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->inBin[dm_range], DDTR_plan->t_processed[dm_range][t], DDTR_plan->ndms[dm_range]);
-					
-					SPS_params->verbose=1;
-					analysis_GPU(h_peak_list, &peak_pos, max_nCandidates, SPS_data, d_DDTR_output, SPS_params, MSD_params);
-					
-					// Current AA behaviour is to change coordinates and write out to disk
-					//------------------------> Current AA output
-					//#pragma omp parallel for
-					//for (int count = 0; count < peak_pos; count++){
-					//	h_peak_list[4*count]     = h_peak_list[4*count]*SPS_data.dm_step + SPS_data.dm_low;
-					//	h_peak_list[4*count + 1] = h_peak_list[4*count + 1]*SPS_data.sampling_time*SPS_data.inBin + SPS_data.time_start;
-					//	h_peak_list[4*count + 2] = h_peak_list[4*count + 2];
-					//	h_peak_list[4*count + 3] = h_peak_list[4*count + 3]*SPS_data.inBin;
-					//}
-					
-					char filename[200];
-					FILE *fp_out;
-					
-					if(SPS_params->candidate_algorithm==1){
-						sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high);
-					}
-					else {
-						sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high);
-					}
-					
-					if(peak_pos>0){
-						if (( fp_out = fopen(filename, "wb") ) == NULL)	{
-							fprintf(stderr, "Error opening output file!\n");
-							exit(0);
-						}
-						fwrite(h_peak_list, peak_pos*sizeof(float), 4, fp_out);
-						fclose(fp_out);
-					}
-					//------------------------> Current AA output
-					free(h_peak_list);
-					*/
-					// -----------------------------------------------------------------------<
-					
-					
-					
 					
 					SPS_params->clear_BC_widths();
 				}
-
-				// This is for testing purposes and should be removed or commented out
-				//analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
 			}
 			oldBin = DDTR_plan->inBin[dm_range];
 		}
-
-		//memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
 
 		inc = inc + DDTR_plan->t_processed[0][t];
 		printf("\nINC:\t%ld", inc);
