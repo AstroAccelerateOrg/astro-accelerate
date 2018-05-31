@@ -264,8 +264,8 @@ void AstroAccelerate<AstroAccelerateParameterType>::run_dedispersion_sps(unsigne
         */
        output_sps.resize(peak_pos*4);
 
-        for (int k = 0; k < ndms[dm_range]; k++) {
-          save_data_offset(d_output, k * t_processed[dm_range][t], output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
+        for (int k = 0; k < _ndms[dm_range]; k++) {
+          save_data_offset(_d_output, k * _t_processed[dm_range][t], output_buffer[dm_range][k], _inc / _in_bin[dm_range], sizeof(float) * _t_processed[dm_range][t]);
         }
 
 
