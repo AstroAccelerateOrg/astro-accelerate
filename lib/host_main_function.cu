@@ -69,8 +69,7 @@
 //#define EXPORT_DD_DATA
 
 void main_function (
-	float **h_SPS_candidatelist,
-	size_t *nSPScandidates,
+	SPS_CandidateList *candidatelist,
 	float ***h_output_buffer, //---> AA Output data on the HOST
 	unsigned short  *h_input_buffer, //---> AA Input data on the HOST
 	DDTR_Plan *DDTR_plan,
@@ -120,7 +119,9 @@ void main_function (
 		checkCudaErrors(cudaGetLastError());
 
 		load_data(-1, DDTR_plan->inBin, d_DDTR_input, &h_input_buffer[inc*DDTR_plan->nchans], (int) DDTR_plan->t_processed[0][t], local_maxshift, (int) DDTR_plan->nchans, DDTR_plan->dmshifts);
-
+		// This will copy the data host->device
+		// 		to constant memory it stores dmshifts, nchans, nTimesamples+maxshift and nTimesamples
+		// => DDTR.initiateTimeChunk();
 		checkCudaErrors(cudaGetLastError());
 		
 		if (AA_params->enable_zero_dm) {
@@ -159,9 +160,12 @@ void main_function (
 			checkCudaErrors(cudaGetLastError());
 			
 			load_data(dm_range, DDTR_plan->inBin, d_DDTR_input, &h_input_buffer[inc*DDTR_plan->nchans], (int) DDTR_plan->t_processed[dm_range][t], (int) local_maxshift, (int) DDTR_plan->nchans, DDTR_plan->dmshifts);
+			// to constant memory it stores nTimesamples+maxshift and nTimesamples
+			// => DDTR.initiateRange(dm_range);
 			
 			checkCudaErrors(cudaGetLastError());
 			
+			//---------------------------------
 			if (DDTR_plan->inBin[dm_range] > oldBin) {
 				bin_gpu(d_DDTR_input, d_DDTR_output, (int) DDTR_plan->nchans, (int) (DDTR_plan->t_processed[dm_range - 1][t] + local_maxshift*DDTR_plan->inBin[dm_range]));
 				local_tsamp = local_tsamp*2.0f;
@@ -172,12 +176,17 @@ void main_function (
 			dedisperse(dm_range, (int) DDTR_plan->t_processed[dm_range][t], DDTR_plan->inBin, DDTR_plan->dmshifts, d_DDTR_input, d_DDTR_output, (int) DDTR_plan->nchans, (int) ( DDTR_plan->t_processed[dm_range][t] + local_maxshift ), (int) local_maxshift, &local_tsamp, DDTR_plan->dm_low, DDTR_plan->dm_high, DDTR_plan->dm_step, DDTR_plan->ndms, DDTR_plan->nbits, AA_params->failsafe);
 		
 			checkCudaErrors(cudaGetLastError());
+			// DDTR.dedisperse();
+			//---------------------------------------------
 			
+			//---------------------------------------------
 			if ( (AA_params->enable_acceleration == 1) || (AA_params->enable_periodicity == 1) || (AA_params->analysis_debug ==1) ) {
 				for (int k = 0; k < DDTR_plan->ndms[dm_range]; k++) {
 					save_data_offset(d_DDTR_output, (int) (k*DDTR_plan->t_processed[dm_range][t]), h_output_buffer[dm_range][k], ((int) inc)/DDTR_plan->inBin[dm_range], sizeof(float)*((int) DDTR_plan->t_processed[dm_range][t]));
 				}
 			}
+			// Copy to host would be handled like candidate list in SPS
+			//-----------------------------------------------
 
 			if (AA_params->output_dedispersion_data == 1) {
 				//for (int k = 0; k < ndms[dm_range]; k++)
@@ -228,6 +237,8 @@ void main_function (
 					SPS_search.search();
 					
 					SPS_search.export_SPSData();
+					// or
+					candidatelist->clp.push_back(SPS_search.exportToSubList());
 					
 					//SPS_CandidatesList* SPS_search.getCandidates
 					//vector<SPS_CandidateList*> SPS_Result;

@@ -18,9 +18,9 @@ public:
 	size_t **t_processed;
 	
 	int maxshift;
-	size_t num_tchunks;
-	size_t max_ndms;
-	size_t total_ndms;
+	int num_tchunks;
+	int max_ndms;
+	int total_ndms;
 	float max_dm;
 	
 	// Unknowns stuff
@@ -85,6 +85,14 @@ public:
 			if(t_processed[r] == NULL ) error++;
 		}
 		return(error);
+	}
+	
+	int totalNumberOfTimeChunks(){
+		return(nRanges*num_tchunks);
+	}
+	
+	int totalNumberOfDMTrials(){
+		return((int) total_ndms);		
 	}
 	
 	

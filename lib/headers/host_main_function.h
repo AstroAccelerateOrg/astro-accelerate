@@ -2,8 +2,7 @@
 #define ASTROACCELERATE_MAIN_FUNCTION_H_
 
 void main_function (
-	float **h_SPS_candidatelist,
-	size_t *nSPScandidates,
+	SPS_CandidateList *candidatelist,
 	float ***output_buffer, //---> AA Output data on the HOST
 	unsigned short  *input_buffer, //---> AA Input data on the HOST
 	DDTR_Plan *DDTR_plan,

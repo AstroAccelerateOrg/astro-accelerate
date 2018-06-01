@@ -22,6 +22,7 @@
 #include "headers/device_SPS_DataDescription.h"
 #include "headers/device_PRS_Parameters.h"
 #include "headers/device_FDAS_Parameters.h"
+#include "headers/device_SPS_CandidateList.h"
 
 
 #endif

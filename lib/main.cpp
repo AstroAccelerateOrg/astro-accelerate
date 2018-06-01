@@ -94,9 +94,17 @@ int main(int argc, char* argv[]) {
 		MSD_params.debug();
 	}
 	
-	main_function(&h_SPS_candidatelist, &nSPScandidates, output_buffer, input_buffer, &DDTR_plan, &AA_params, &MSD_params, &SPS_params, &PRS_params, &FDAS_params, start_time);
+	SPS_CandidateList candidatelist(DDTR_plan.totalNumberOfTimeChunks());
+	main_function(&candidatelist, output_buffer, input_buffer, &DDTR_plan, &AA_params, &MSD_params, &SPS_params, &PRS_params, &FDAS_params, start_time);
+	
+	//-----------------------------------------------------------
+	//--------- SPS Candidate List
+	candidatelist.exportSubLists();
+	candidatelist.poolCandidates();
+	candidatelist.exportToFile("allcandidates.dat");
 	
 	
+	//----------------------------------------------------------<
 	
 	// deallocate host output
 	for(int i = 0; i < DDTR_plan.nRanges; i++) {
