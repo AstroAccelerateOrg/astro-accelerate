@@ -15,6 +15,8 @@
 #include <cuda.h>
 #include "headers/params.h"
 #include "headers/host_info.h"
+#include <helper_cuda.h>
+
 
 void allocate_memory_cpu_input(FILE **fp, size_t gpu_memory, size_t *host_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, float ****output_buffer, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)
 {
@@ -61,7 +63,7 @@ void allocate_memory_cpu_output(FILE **fp, size_t gpu_memory, size_t *host_memor
 
 }
 
-void allocate_memory_gpu(FILE **fp, size_t gpu_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, float ****output_buffer, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)
+void allocate_memory_gpu(FILE **fp, size_t gpu_memory, int maxshift, int num_tchunks, int max_ndms, int total_ndms, int nsamp, int nchans, int nbits, int range, int *ndms, int **t_processed, unsigned short **input_buffer, float ****output_buffer, float **output_buffer_small, unsigned short **d_input, float **d_output, size_t *gpu_inputsize, size_t *gpu_outputsize, size_t *inputsize, size_t *outputsize)
 {
 
 	int time_samps = t_processed[0][0] + maxshift;
@@ -78,6 +80,8 @@ void allocate_memory_gpu(FILE **fp, size_t gpu_memory, int maxshift, int num_tch
 		*gpu_outputsize = (size_t)time_samps * (size_t)nchans * sizeof(float);
 	}
 	( cudaMalloc((void **) d_output, *gpu_outputsize) );
+	checkCudaErrors( cudaMallocHost((void **) &(*output_buffer_small), time_samps*sizeof(float)*max_ndms) );
+//	*output_buffer_small = (float *) malloc(sizeof(float)*time_samps*max_ndms);
 
 	//end_t=omp_get_wtime();
 	//time = (float)(end_t-start_t);
