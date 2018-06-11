@@ -53,6 +53,7 @@ int main(int argc, char* argv[])
 	size_t gpu_outputsize = 0;
 	size_t gpu_memory = 0;
 	unsigned short *input_buffer = NULL;
+	float *output_buffer_small = NULL;
 	float ***output_buffer = NULL;
 	unsigned short *d_input = NULL;
 	float *d_output = NULL;
@@ -167,7 +168,7 @@ int main(int argc, char* argv[])
 	  outBin, ndms, maxshift, max_ndms, max_samps, num_tchunks, total_ndms, multi_file, max_dm,
 	  // Memory sizes and pointers
 	  inputsize, outputsize, gpu_inputsize, gpu_outputsize, gpu_memory, host_memory,
-	  input_buffer, output_buffer, d_input, d_output, dmshifts, user_dm_low,
+	  input_buffer, output_buffer_small, output_buffer, d_input, d_output, dmshifts, user_dm_low,
 	  user_dm_high, user_dm_step, dm_low, dm_high, dm_step,
 	  // Telescope parameters
 	  nchans, nsamp, nbits, nsamples, nifs, t_processed, nboots, ntrial_bins,

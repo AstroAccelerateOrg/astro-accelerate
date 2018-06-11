@@ -105,6 +105,7 @@ void main_function
 	size_t gpu_memory,
 	size_t host_memory,
   unsigned short  *input_buffer,
+	float *output_buffer_small,
 	float ***output_buffer,
 	unsigned short  *d_input,
 	float *d_output,
@@ -178,8 +179,7 @@ void main_function
 	checkCudaErrors(cudaGetLastError());
 	
 	// Allocate memory on host and device.
-	allocate_memory_gpu(&fp, gpu_memory, maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output,
-                        &gpu_inputsize, &gpu_outputsize, &inputsize, &outputsize);
+	allocate_memory_gpu(&fp, gpu_memory, maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &output_buffer_small, &d_input, &d_output, &gpu_inputsize, &gpu_outputsize, &inputsize, &outputsize);
 	if(enable_debug == 1) debug(5, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
@@ -211,6 +211,8 @@ void main_function
 	//float *out_tmp;
 	//out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
 	//memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
+	float *output_buffer_nonpinned;
+	output_buffer_nonpinned = (float *) malloc(sizeof(float)*max_ndms*(t_processed[0][0]));
 
 	for (t = 0; t < num_tchunks; t++) {
 		printf("\nt_processed:\t%d, %d", t_processed[0][t], t);
@@ -271,15 +273,19 @@ void main_function
 		
 			checkCudaErrors(cudaGetLastError());
 			
-			if ( (enable_acceleration == 1) || (enable_periodicity == 1) || (analysis_debug ==1) ) {
+//			if ( (enable_acceleration == 1) || (enable_periodicity == 1) || (analysis_debug ==1) ) {
+			if ( (enable_acceleration == 1) || (1 == 1) || (analysis_debug ==1) ) {
 				// gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
 				//save_data(d_output, out_tmp, gpu_outputsize);
 
+
+				checkCudaErrors(cudaMemcpy(output_buffer_small,d_output,sizeof(float)*ndms[dm_range]*t_processed[dm_range][t], cudaMemcpyDeviceToHost));
+				memcpy(output_buffer_small, output_buffer_nonpinned, sizeof(float)*ndms[dm_range]*t_processed[dm_range][t]);
 				//#pragma omp parallel for
 				for (int k = 0; k < ndms[dm_range]; k++) {
 					//memcpy(&output_buffer[dm_range][k][inc / inBin[dm_range]], &out_tmp[k * t_processed[dm_range][t]], sizeof(float) * t_processed[dm_range][t]);
 
-					save_data_offset(d_output, k * t_processed[dm_range][t], output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
+//					save_data_offset(d_output, k * t_processed[dm_range][t], output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
 				}
 			//	save_data(d_output, &output_buffer[dm_range][0][((long int)inc)/inBin[dm_range]], gpu_outputsize);
 			}
@@ -348,6 +354,8 @@ void main_function
 	cudaFree(d_output);
 	//free(out_tmp);
 	free(input_buffer);
+	free(output_buffer_nonpinned);
+	cudaFreeHost(output_buffer_small);
 	
 	#ifdef EXPORT_DD_DATA
 		size_t DMs_per_file;
