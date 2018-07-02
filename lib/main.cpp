@@ -130,15 +130,15 @@ int main(int argc, char* argv[])
 		nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
 	// get basic information of the system; available memory, etc.
-	host_info(&info);
-//	*host_memory = malloc(sizeof(unsigned long int));
-	host_memory = (size_t)info.freeram;
+	GetRamInKB(&host_memory);
+//	printf("\nMemory available: %zu", host_memory/1024/1024);
 
 	// Allocate memory on host.
 	allocate_memory_cpu_input(&fp, gpu_memory, &host_memory, maxshift, num_tchunks, max_ndms,
 	  total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer,
 	  &output_buffer, &d_input, &d_output, &gpu_inputsize, &gpu_outputsize,
 	  &inputsize, &outputsize);
+
 	if (enable_debug == 1)
 		debug(5, start_time, range, outBin, enable_debug, enable_analysis,
 		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
