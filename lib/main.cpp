@@ -5,6 +5,7 @@
 #include "headers/host_get_file_data.h"
 #include "headers/host_allocate_memory.h"
 #include "headers/host_get_recorded_data.h"
+#include "headers/host_info.h"
 #include "headers/params.h"
 
 int main(int argc, char* argv[])
@@ -63,6 +64,9 @@ int main(int argc, char* argv[])
 	float *dm_step = NULL;
 	float *selected_dm_low = NULL;
 	float *selected_dm_high = NULL;
+	// host info; memory available
+	struct sysinfo info;
+	size_t host_memory;
 	// Telescope parameters
 	int nchans = 0;
 	int nsamp = 0;
@@ -123,11 +127,16 @@ int main(int argc, char* argv[])
 		nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm,
 		nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
+	// get basic information of the system; available memory, etc.
+	GetRamInKB(&host_memory);
+//	printf("\nMemory available: %zu", host_memory/1024/1024);
+
 	// Allocate memory on host.
-	allocate_memory_cpu_input(&fp, gpu_memory, maxshift, num_tchunks, max_ndms,
+	allocate_memory_cpu_input(&fp, gpu_memory, &host_memory, maxshift, num_tchunks, max_ndms,
 	  total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer,
 	  &output_buffer, &d_input, &d_output, &gpu_inputsize, &gpu_outputsize,
 	  &inputsize, &outputsize);
+
 	if (enable_debug == 1)
 		debug(5, start_time, range, outBin, enable_debug, enable_analysis,
 		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
@@ -156,7 +165,7 @@ int main(int argc, char* argv[])
 	  enable_rfi, enable_old_rfi, enable_sps_baselinenoise, enable_fdas_custom_fft, enable_fdas_inbin, enable_fdas_norm, inBin,
 	  outBin, ndms, maxshift, max_ndms, max_samps, num_tchunks, total_ndms, multi_file, max_dm,
 	  // Memory sizes and pointers
-	  inputsize, outputsize, gpu_inputsize, gpu_outputsize, gpu_memory,
+	  inputsize, outputsize, gpu_inputsize, gpu_outputsize, gpu_memory, host_memory,
 	  input_buffer, output_buffer, d_input, d_output, dmshifts, user_dm_low,
 	  user_dm_high, user_dm_step, dm_low, dm_high, dm_step,
 	  // Telescope parameters
