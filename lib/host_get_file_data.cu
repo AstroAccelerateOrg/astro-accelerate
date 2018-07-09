@@ -123,32 +123,45 @@ void get_file_data(FILE **fp, DDTR_InputData *DDTR_data) {
 	}
 
 	fgetpos(*fp, &file_loc);
+	
+	//-----------------------------------------------------------------
+	// Getting number of samples
+	size_t data_start = ftell(*fp);
+	if (fseek(*fp, 0, SEEK_END) != 0) {
+		printf("\nERROR!! Failed to seek to end of data file\n");
+		exit(1);
+	}
+	size_t exp_total_data = ftell(*fp);
+	if (exp_total_data == -1) {
+		printf("\nERROR!! Failed to seek to end of data file\n");
+		exit(1);
+	}
+	exp_total_data = exp_total_data - data_start;
+	fseek(*fp, data_start, SEEK_SET);
+	//----------------------------------------------------------------<
 
-	if ( DDTR_data->nbits == 32)
-	{
+	if ( DDTR_data->nbits == 32) {
+		/*
 		// Allocate a tempory buffer to store a line of frequency data
 		float *temp_buffer = (float *) malloc( DDTR_data->nchans*sizeof(float));
-
 		// Count how many time samples we have
 		total_data = 0;
-		while (!feof(*fp))
-		{
+		while (!feof(*fp)){
 			fread(temp_buffer, sizeof(float), DDTR_data->nchans, *fp);
 			total_data++;
 		}
 		DDTR_data->nsamp = total_data - 1;
 		free(temp_buffer);
+		*/
+		DDTR_data->nsamp = exp_total_data/(DDTR_data->nchans*4);
 	}
-	else if ( DDTR_data->nbits == 16)
-	{
+	else if ( DDTR_data->nbits == 16) {
+		/*
 		// Allocate a tempory buffer to store a line of frequency data
 		unsigned short *temp_buffer = (unsigned short *) malloc(DDTR_data->nchans* sizeof(unsigned short));
-
 		total_data = 0;
-		while (!feof(*fp))
-		{
-			if (((fread(temp_buffer, sizeof(unsigned short), DDTR_data->nchans, *fp)) != DDTR_data->nchans) && (total_data == 0))
-			{
+		while (!feof(*fp)){
+			if (((fread(temp_buffer, sizeof(unsigned short), DDTR_data->nchans, *fp)) != DDTR_data->nchans) && (total_data == 0)){
 				fprintf(stderr, "\nError while reading file\n");
 				exit(0);
 			}
@@ -156,17 +169,16 @@ void get_file_data(FILE **fp, DDTR_InputData *DDTR_data) {
 		}
 		DDTR_data->nsamp = total_data - 1;
 		free(temp_buffer);
+		*/
+		DDTR_data->nsamp = exp_total_data/(DDTR_data->nchans*2);
 	}
-	else if ( DDTR_data->nbits == 8)
-	{
+	else if ( DDTR_data->nbits == 8) {
+		/*
 		// Allocate a tempory buffer to store a line of frequency data
 		unsigned char *temp_buffer = (unsigned char *) malloc(DDTR_data->nchans*sizeof(unsigned char));
-
 		total_data = 0;
-		while (!feof(*fp))
-		{
-			if (((fread(temp_buffer, sizeof(unsigned char), DDTR_data->nchans, *fp)) != DDTR_data->nchans) && (total_data == 0))
-			{
+		while (!feof(*fp)) {
+			if (((fread(temp_buffer, sizeof(unsigned char), DDTR_data->nchans, *fp)) != DDTR_data->nchans) && (total_data == 0)) {
 				fprintf(stderr, "\nError while reading file\n");
 				exit(0);
 			}
@@ -174,9 +186,10 @@ void get_file_data(FILE **fp, DDTR_InputData *DDTR_data) {
 		}
 		DDTR_data->nsamp = total_data - 1;
 		free(temp_buffer);
+		*/
+		DDTR_data->nsamp = exp_total_data/(DDTR_data->nchans);
 	}
-	else if ( DDTR_data->nbits == 4)
-	{
+	else if ( DDTR_data->nbits == 4) {
 		// Allocate a tempory buffer to store a line of frequency data
 		// each byte stores 2 frequency data
 		// assumption: nchans is a multiple of 2
@@ -187,10 +200,8 @@ void get_file_data(FILE **fp, DDTR_InputData *DDTR_data) {
 		int nb_bytes = DDTR_data->nchans/2;
 		unsigned char *temp_buffer = (unsigned char *) malloc( nb_bytes * sizeof(unsigned char));
 		total_data = 0;
-		while (!feof(*fp))
-		{
-			if (((fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp)) != nb_bytes) && (total_data == 0))
-			{
+		while (!feof(*fp)) {
+			if (((fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp)) != nb_bytes) && (total_data == 0)) {
 				fprintf(stderr, "\nError while reading file\n");
 				exit(0);
 			}
@@ -198,9 +209,10 @@ void get_file_data(FILE **fp, DDTR_InputData *DDTR_data) {
 		}
 		DDTR_data->nsamp = total_data - 1;
 		free(temp_buffer);
+		
+		printf("For 4bit case nsamp=%zu, while faster method gives nsamp=%zu\n", DDTR_data->nsamp, exp_total_data/(DDTR_data->nchans/2));
 	}
-	else if ( DDTR_data->nbits == 2)
-	{
+	else if ( DDTR_data->nbits == 2) {
 		// Allocate a tempory buffer to store a line of frequency data
 		// each byte stores 2 frequency data
 		// assumption: nchans is a multiple of 2
@@ -212,10 +224,8 @@ void get_file_data(FILE **fp, DDTR_InputData *DDTR_data) {
 		int nb_bytes = DDTR_data->nchans/4;
 		unsigned char *temp_buffer = (unsigned char *) malloc( nb_bytes * sizeof(unsigned char));
 		total_data = 0;
-		while (!feof(*fp))
-		{
-			if (((fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp)) != nb_bytes) && (total_data == 0))
-			{
+		while (!feof(*fp)) {
+			if (((fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp)) != nb_bytes) && (total_data == 0)) {
 				fprintf(stderr, "\nError while reading file\n");
 				exit(0);
 			}
@@ -223,9 +233,10 @@ void get_file_data(FILE **fp, DDTR_InputData *DDTR_data) {
 		}
 		DDTR_data->nsamp = total_data - 1;
 		free(temp_buffer);
+		
+		printf("For 2bit case nsamp=%zu, while faster method gives nsamp=%zu\n", DDTR_data->nsamp, exp_total_data/(DDTR_data->nchans/4));
 	}
-	else if ( DDTR_data->nbits == 1)
-	{
+	else if ( DDTR_data->nbits == 1) {
 		// Allocate a tempory buffer to store a line of frequency data
 		// each byte stores 2 frequency data
 		// assumption: nchans is a multiple of 2
@@ -237,10 +248,8 @@ void get_file_data(FILE **fp, DDTR_InputData *DDTR_data) {
 		int nb_bytes = DDTR_data->nchans/8;
 		unsigned char *temp_buffer = (unsigned char *) malloc( nb_bytes * sizeof(unsigned char));
 		total_data = 0;
-		while (!feof(*fp))
-		{
-			if (((fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp)) != nb_bytes) && (total_data == 0))
-			{
+		while (!feof(*fp)) {
+			if (((fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp)) != nb_bytes) && (total_data == 0)) {
 				fprintf(stderr, "\nError while reading file\n");
 				exit(0);
 			}
@@ -248,10 +257,11 @@ void get_file_data(FILE **fp, DDTR_InputData *DDTR_data) {
 		}
 		DDTR_data->nsamp = total_data - 1;
 		free(temp_buffer);
+		
+		printf("For 1bit case nsamp=%zu, while faster method gives nsamp=%zu\n", DDTR_data->nsamp, exp_total_data/(DDTR_data->nchans/8));
 	}
 
-	else
-	{
+	else {
 		printf("\n\n======================= ERROR ==========================\n");
 		printf(    " Currently this code only runs with 1, 2, 4 8 and 16 bit data \n");
 		printf(  "\n========================================================\n");
