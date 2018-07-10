@@ -434,37 +434,48 @@ void MSD_Interpolate_values(float *d_MSD_interpolated, float *d_MSD_DIT, std::ve
 	timer.Start();
 	#endif
 	
-	int MSD_INTER_SIZE = 2;
-	float *h_MSD_DIT, *h_MSD_interpolated;
+//	float *h_MSD_DIT, *h_MSD_interpolated;
 	int nWidths = (int) h_boxcar_widths->size();
-	h_MSD_DIT = new float[nMSDs*MSD_RESULTS_SIZE];
-	h_MSD_interpolated = new float[nWidths*MSD_INTER_SIZE];
+//	h_MSD_DIT = new float[nMSDs*MSD_RESULTS_SIZE];
+//	h_MSD_interpolated = new float[nWidths*MSD_INTER_SIZE];
+
+	// adding memory for the interpolate kernel
+	int MSD_DIT_size = h_boxcar_widths->size();
+	int *d_MSD_DIT_widths;
+	int *d_boxcar;
+	checkCudaErrors(cudaMalloc((void **) &d_MSD_DIT_widths, sizeof(int)*MSD_DIT_size));
+        checkCudaErrors(cudaMemcpyAsync(d_MSD_DIT_widths, &h_MSD_DIT_widths->operator[](0), sizeof(int)*MSD_DIT_size,cudaMemcpyHostToDevice));
+	cudaMalloc((void **) &d_boxcar, sizeof(int)*nWidths);
+        checkCudaErrors(cudaMemcpyAsync(d_boxcar, &h_boxcar_widths->operator[](0), sizeof(int)*nWidths,cudaMemcpyHostToDevice));
+
 	
-	checkCudaErrors(cudaMemcpy(h_MSD_DIT, d_MSD_DIT, nMSDs*MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
+//	checkCudaErrors(cudaMemcpy(h_MSD_DIT, d_MSD_DIT, nMSDs*MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
 	
 	#ifdef MSD_PLANE_DEBUG
 	printf("------------------ MSD_plane_profile DEBUG - Linear interpolation ------------\n");
 	#endif
-	for(int f=0; f<nWidths; f++){
-		if(h_boxcar_widths->operator[](f)<=max_width_performed) {
-			float mean, StDev;
-			MSD_Interpolate_linear(&mean, &StDev, (float) h_boxcar_widths->operator[](f), h_MSD_DIT, h_MSD_DIT_widths);
-			h_MSD_interpolated[f*MSD_INTER_SIZE] = mean;
-			h_MSD_interpolated[f*MSD_INTER_SIZE+1] = StDev;
-		}
-	}
+	MSD_GPU_Interpolate_linear<<<1,nWidths>>>(d_MSD_DIT, d_MSD_interpolated, d_MSD_DIT_widths, h_MSD_DIT_widths->size(), d_boxcar, max_width_performed);
+
+//	for(int f=0; f<nWidths; f++){
+//		if(h_boxcar_widths->operator[](f)<=max_width_performed) {
+//			float mean, StDev;
+//			MSD_Interpolate_linear(&mean, &StDev, (float) h_boxcar_widths->operator[](f), h_MSD_DIT, h_MSD_DIT_widths);
+//			h_MSD_interpolated[f*MSD_INTER_SIZE] = mean;
+//			h_MSD_interpolated[f*MSD_INTER_SIZE+1] = StDev;
+//		}
+//	}
 	#ifdef MSD_PLANE_DEBUG
 	printf("-----------------------------------------------------------------------------<\n");
 	#endif
 	
 	#ifdef MSD_PLANE_EXPORT
-		MSD_Export_plane(filename, h_MSD_DIT, h_MSD_DIT_widths, h_MSD_interpolated, h_boxcar_widths, max_width_performed);
+//		MSD_Export_plane(filename, h_MSD_DIT, h_MSD_DIT_widths, h_MSD_interpolated, h_boxcar_widths, max_width_performed);
 	#endif
 	
-	checkCudaErrors(cudaMemcpy(d_MSD_interpolated, h_MSD_interpolated, nWidths*MSD_INTER_SIZE*sizeof(float), cudaMemcpyHostToDevice));
+//	checkCudaErrors(cudaMemcpy(d_MSD_interpolated, h_MSD_interpolated, nWidths*MSD_INTER_SIZE*sizeof(float), cudaMemcpyHostToDevice));
 	
-	delete[] h_MSD_DIT;
-	delete[] h_MSD_interpolated;
+//	delete[] h_MSD_DIT;
+//	delete[] h_MSD_interpolated;
 	
 	#ifdef GPU_PARTIAL_TIMER
 	timer.Stop();
