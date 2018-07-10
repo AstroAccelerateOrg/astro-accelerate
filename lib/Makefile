@@ -62,6 +62,7 @@ $(BUILD_DIR)/host_get_recorded_data.o:	headers/host_get_recorded_data.h
 $(BUILD_DIR)/host_help.o:	 			headers/host_help.h
 $(BUILD_DIR)/host_rfi.o:	 			headers/host_rfi.h
 $(BUILD_DIR)/host_stratagy.o:	 		headers/host_stratagy.h
+$(BUILD_DIR)/host_MSD_stratagy.o:		headers/host_MSD_stratagy.h
 $(BUILD_DIR)/host_statistics.o:	 		headers/host_statistics.h
 $(BUILD_DIR)/host_write_file.o:	 		headers/host_write_file.h
 $(BUILD_DIR)/host_export.o:	 			headers/host_export.h
@@ -73,7 +74,7 @@ $(BUILD_DIR)/host_info.o:	 			headers/host_info.h
 #	nvcc -c $(NVCCFLAGS) device_main.cu
 
 $(ASTROLIB_DIR)/libastrolib.a: $(BUILD_DIR)/host_acceleration.o $(BUILD_DIR)/host_write_file.o $(BUILD_DIR)/device_main.o $(BUILD_DIR)/host_allocate_memory.o \
-	$(BUILD_DIR)/host_analysis.o $(BUILD_DIR)/host_periods.o $(BUILD_DIR)/host_debug.o $(BUILD_DIR)/host_get_file_data.o $(BUILD_DIR)/host_get_user_input.o \
+	$(BUILD_DIR)/host_analysis.o $(BUILD_DIR)/host_MSD_stratagy.o $(BUILD_DIR)/host_periods.o $(BUILD_DIR)/host_debug.o $(BUILD_DIR)/host_get_file_data.o $(BUILD_DIR)/host_get_user_input.o \
 	$(BUILD_DIR)/host_get_recorded_data.o $(BUILD_DIR)/host_help.o $(BUILD_DIR)/host_rfi.o $(BUILD_DIR)/host_stratagy.o $(BUILD_DIR)/host_export.o $(BUILD_DIR)/host_statistics.o \
 	$(BUILD_DIR)/host_main_function.o $(BUILD_DIR)/fresnl.o $(BUILD_DIR)/median.o $(BUILD_DIR)/presto_funcs.o $(BUILD_DIR)/characteristics.o $(BUILD_DIR)/dcdflib.o $(BUILD_DIR)/ipmpar.o \
 	$(BUILD_DIR)/fdas_host.o  $(BUILD_DIR)/fdas_device.o $(BUILD_DIR)/fdas_util.o $(BUILD_DIR)/host_info.o
@@ -81,7 +82,7 @@ $(ASTROLIB_DIR)/libastrolib.a: $(BUILD_DIR)/host_acceleration.o $(BUILD_DIR)/hos
 	$(BUILD_DIR)/host_analysis.o $(BUILD_DIR)/host_periods.o $(BUILD_DIR)/host_debug.o $(BUILD_DIR)/host_get_file_data.o $(BUILD_DIR)/host_get_user_input.o \
 	$(BUILD_DIR)/host_get_recorded_data.o $(BUILD_DIR)/host_help.o $(BUILD_DIR)/host_rfi.o $(BUILD_DIR)/host_stratagy.o $(BUILD_DIR)/host_export.o $(BUILD_DIR)/host_statistics.o \
 	$(BUILD_DIR)/host_main_function.o $(BUILD_DIR)/fresnl.o $(BUILD_DIR)/median.o $(BUILD_DIR)/presto_funcs.o $(BUILD_DIR)/characteristics.o $(BUILD_DIR)/dcdflib.o $(BUILD_DIR)/ipmpar.o \
-	$(BUILD_DIR)/fdas_host.o  $(BUILD_DIR)/fdas_device.o $(BUILD_DIR)/fdas_util.o $(BUILD_DIR)/host_info.o
+	$(BUILD_DIR)/fdas_host.o  $(BUILD_DIR)/fdas_device.o $(BUILD_DIR)/fdas_util.o $(BUILD_DIR)/host_info.o $(BUILD_DIR)/host_MSD_stratagy.o
 
 $(BUILD_DIR)/dedisperse-gpu: $(BUILD_DIR)/main.o $(ASTROLIB_DIR)/libastrolib.a
 	nvcc -o $(BUILD_DIR)/dedisperse-gpu $(BUILD_DIR)/main.o -L$(ASTROLIB_DIR)/ -lastrolib -L${LIB} $(NVCCFLAGS)

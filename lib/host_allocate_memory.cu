@@ -91,3 +91,12 @@ void allocate_memory_gpu(FILE **fp, size_t gpu_memory, int maxshift, int num_tch
 
 	( cudaMemset(*d_output, 0, *gpu_outputsize) );
 }
+
+void allocate_memory_MSD(float **d_MSD_workarea, unsigned short **d_MSD_output_taps, float **d_MSD_interpolated, unsigned long int MSD_maxtimesamples, int MSD_DIT_widths, int nTimesamples, size_t MSD_profile_size){
+
+        checkCudaErrors(cudaMalloc((void **) d_MSD_workarea, MSD_maxtimesamples*5.5*sizeof(float)));
+        checkCudaErrors(cudaMalloc((void **) &(*d_MSD_output_taps), sizeof(ushort)*2*MSD_maxtimesamples));
+//        checkCudaErrors(cudaMallocManaged((void **) gmem_peak_pos, sizeof(int)));
+ //       checkCudaErrors(cudaMallocHost((void **) temp_peak_pos, sizeof(int)));
+        checkCudaErrors(cudaMalloc((void **) d_MSD_interpolated, sizeof(float)*MSD_profile_size));
+}

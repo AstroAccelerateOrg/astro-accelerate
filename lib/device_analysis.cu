@@ -115,11 +115,11 @@ int Get_max_iteration(int max_boxcar_width, std::vector<int> *BC_widths, int *ma
 }
 
 
-void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float OR_sigma_multiplier, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, int candidate_algorithm, int enable_sps_baselinenoise){
+void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float OR_sigma_multiplier, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, int candidate_algorithm, float *d_MSD_workarea, unsigned short *d_output_taps, float *d_MSD_interpolated, unsigned long int maxTimeSamples, int enable_sps_baselinenoise){
 	//--------> Task
 	int max_boxcar_width = (int) (max_boxcar_width_in_sec/tsamp);
 	int max_width_performed=0;
-	size_t vals;
+//	size_t vals;
 	int nTimesamples = t_processed;
 	int nDMs = ndms[i];
 	int temp_peak_pos;
@@ -128,12 +128,12 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	double total_time=0, MSD_time=0, SPDT_time=0, PF_time=0;
 	
 	//--------> Other
-	size_t free_mem,total_mem;
+//	size_t free_mem,total_mem;
 	char filename[200];
 	
 	
 	// Calculate the total number of values
-	vals = ((size_t) nDMs)*((size_t) nTimesamples);
+//	vals = ((size_t) nDMs)*((size_t) nTimesamples);
 	
 	
 	int max_iteration;
@@ -148,19 +148,20 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	GpuTimer total_timer, timer;
 	total_timer.Start();
 	
+
+	// Don't know why is it here, its not used and at last just call for cudafree;	
+//	float *d_MSD;
+//	checkCudaErrors(cudaGetLastError());
+//	if ( cudaSuccess != cudaMalloc((void**) &d_MSD, sizeof(float)*3)) {printf("Allocation error!\n"); exit(201);}
 	
-	float *d_MSD;
-	checkCudaErrors(cudaGetLastError());
-	if ( cudaSuccess != cudaMalloc((void**) &d_MSD, sizeof(float)*3)) {printf("Allocation error!\n"); exit(201);}
 	
-	
-	cudaMemGetInfo(&free_mem,&total_mem);
-	printf("  Memory required by boxcar filters:%0.3f MB\n",(4.5*vals*sizeof(float) + 2*vals*sizeof(ushort))/(1024.0*1024) );
-	printf("  Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
+//	cudaMemGetInfo(&free_mem,&total_mem);
+//	printf("  Memory required by boxcar filters:%0.3f MB\n",(4.5*vals*sizeof(float) + 2*vals*sizeof(ushort))/(1024.0*1024) );
+//	printf("  Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
 	
 	std::vector<int> DM_list;
-	unsigned long int max_timesamples=(free_mem*0.95)/(5.5*sizeof(float) + 2*sizeof(ushort));
-	int DMs_per_cycle = max_timesamples/nTimesamples;
+//	unsigned long int max_timesamples=(free_mem*0.95)/(5.5*sizeof(float) + 2*sizeof(ushort));
+	int DMs_per_cycle = maxTimeSamples/nTimesamples;
 	int nRepeats, nRest, DM_shift, itemp, local_max_list_size;//BC_shift,
 	
 	itemp = (int) (DMs_per_cycle/THR_WARPS_PER_BLOCK);
@@ -199,22 +200,22 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	//-------------------------------------------------------------------------
 	//------------ Using MSD_plane_profile
 	size_t MSD_profile_size_in_bytes, MSD_DIT_profile_size_in_bytes, workarea_size_in_bytes;
-	cudaMemGetInfo(&free_mem,&total_mem);
+//	cudaMemGetInfo(&free_mem,&total_mem);
 	Get_MSD_plane_profile_memory_requirements(&MSD_profile_size_in_bytes, &MSD_DIT_profile_size_in_bytes, &workarea_size_in_bytes, nTimesamples, nDMs, &h_boxcar_widths);
 	double dit_time, MSD_only_time;
-	float *d_MSD_interpolated;
+//	float *d_MSD_interpolated;
 	float *d_MSD_DIT = NULL;
-	float *temporary_workarea;
-	cudaMalloc((void **) &d_MSD_interpolated, MSD_profile_size_in_bytes);
-	cudaMalloc((void **) &temporary_workarea, workarea_size_in_bytes);
-	
-	MSD_plane_profile(d_MSD_interpolated, output_buffer, d_MSD_DIT, temporary_workarea, false, nTimesamples, nDMs, &h_boxcar_widths, tstart, dm_low[i], dm_high[i], OR_sigma_multiplier, enable_sps_baselinenoise, false, &MSD_time, &dit_time, &MSD_only_time);
+//	float *temporary_workarea;
+//	cudaMalloc((void **) &d_MSD_interpolated, MSD_profile_size_in_bytes);
+//	cudaMalloc((void **) &temporary_workarea, workarea_size_in_bytes);
+
+	MSD_plane_profile(d_MSD_interpolated, output_buffer, d_MSD_DIT, d_MSD_workarea, false, nTimesamples, nDMs, &h_boxcar_widths, tstart, dm_low[i], dm_high[i], OR_sigma_multiplier, enable_sps_baselinenoise, false, &MSD_time, &dit_time, &MSD_only_time);
 	
 	#ifdef GPU_PARTIAL_TIMER
 		printf("    MSD time: Total: %f ms; DIT: %f ms; MSD: %f ms;\n", MSD_time, dit_time, MSD_only_time);
 	#endif
 	
-	cudaFree(temporary_workarea);
+//	cudaFree(temporary_workarea);
 	//------------ Using MSD_plane_profile
 	//-------------------------------------------------------------------------	
 	
@@ -222,20 +223,28 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	if(DM_list.size()>0){
 		DMs_per_cycle = DM_list[0];
 		
+		int mem_idx = 0;
 		float *d_peak_list;
-		if ( cudaSuccess != cudaMalloc((void**) &d_peak_list, sizeof(float)*DMs_per_cycle*nTimesamples)) printf("Allocation error! peaks\n");
+//		if ( cudaSuccess != cudaMalloc((void**) &d_peak_list, sizeof(float)*DMs_per_cycle*nTimesamples)) printf("Allocation error! peaks\n");
+		d_peak_list = &d_MSD_workarea[mem_idx];
 		
 		float *d_decimated;
-		if ( cudaSuccess != cudaMalloc((void **) &d_decimated,  sizeof(float)*(((DMs_per_cycle*nTimesamples)/2)+PD_MAXTAPS) )) printf("Allocation error! dedispered\n");
+		mem_idx += nTimesamples*DMs_per_cycle;
+		d_decimated = &d_MSD_workarea[mem_idx];
+//		if ( cudaSuccess != cudaMalloc((void **) &d_decimated,  sizeof(float)*(((DMs_per_cycle*nTimesamples)/2)+PD_MAXTAPS) )) printf("Allocation error! dedispered\n");
 		
 		float *d_boxcar_values;
-		if ( cudaSuccess != cudaMalloc((void **) &d_boxcar_values,  sizeof(float)*DMs_per_cycle*nTimesamples)) printf("Allocation error! boxcars\n");
+		mem_idx += (DMs_per_cycle*nTimesamples)/2 + PD_MAXTAPS;
+		d_boxcar_values = &d_MSD_workarea[mem_idx];
+//		if ( cudaSuccess != cudaMalloc((void **) &d_boxcar_values,  sizeof(float)*DMs_per_cycle*nTimesamples)) printf("Allocation error! boxcars\n");
 		
 		float *d_output_SNR;
-		if ( cudaSuccess != cudaMalloc((void **) &d_output_SNR, sizeof(float)*2*DMs_per_cycle*nTimesamples)) printf("Allocation error! SNR\n");
+		mem_idx += DMs_per_cycle*nTimesamples;
+		d_output_SNR = &d_MSD_workarea[mem_idx];
+//		if ( cudaSuccess != cudaMalloc((void **) &d_output_SNR, sizeof(float)*2*DMs_per_cycle*nTimesamples)) printf("Allocation error! SNR\n");
 		
-		ushort *d_output_taps;
-		if ( cudaSuccess != cudaMalloc((void **) &d_output_taps, sizeof(ushort)*2*DMs_per_cycle*nTimesamples)) printf("Allocation error! taps\n");
+//		ushort *d_output_taps;
+//		if ( cudaSuccess != cudaMalloc((void **) &d_output_taps, sizeof(ushort)*2*DMs_per_cycle*nTimesamples)) printf("Allocation error! taps\n");
 		
 		int *gmem_peak_pos;
 		cudaMalloc((void**) &gmem_peak_pos, 1*sizeof(int));
@@ -337,14 +346,14 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 		}
 		//------------------------> Output
 		
-		cudaFree(d_peak_list);
-		cudaFree(d_boxcar_values);
-		cudaFree(d_decimated);
-		cudaFree(d_output_SNR);
-		cudaFree(d_output_taps);
-		cudaFree(gmem_peak_pos);
-		cudaFree(d_MSD_DIT);
-		cudaFree(d_MSD_interpolated);
+//		cudaFree(d_peak_list);
+//		cudaFree(d_boxcar_values);
+//		cudaFree(d_decimated);
+//		cudaFree(d_output_SNR);
+//		cudaFree(d_output_taps);
+//		cudaFree(gmem_peak_pos);
+//		cudaFree(d_MSD_DIT);
+//		cudaFree(d_MSD_interpolated);
 
 	}
 	else printf("Error not enough memory to search for pulses\n");
@@ -357,7 +366,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 	printf("----------<\n\n");
 	#endif
 
-	cudaFree(d_MSD);
+//	cudaFree(d_MSD);
 	//----------> GPU part
 	//---------------------------------------------------------------------------
 	

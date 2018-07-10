@@ -44,6 +44,7 @@
 #include "headers/host_help.h"
 #include "headers/host_rfi.h"
 #include "headers/host_stratagy.h"
+#include "headers/host_MSD_stratagy.h" //Adding for MSD permanent memory
 #include "headers/host_write_file.h"
 #include "headers/host_info.h"
 
@@ -181,6 +182,20 @@ void main_function
 	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
 
 	checkCudaErrors(cudaGetLastError());
+
+	//compute the worst case for SPDT
+	unsigned long int MSD_data_info;
+	size_t MSD_profile_size_in_bytes;
+	int h_MSD_DIT_width;
+	stratagy_MSD(max_ndms,max_boxcar_width_in_sec, tsamp, t_processed[0][0], &MSD_data_info, &MSD_profile_size_in_bytes, &h_MSD_DIT_width);
+	//allocate memory for SPDT
+	float *d_MSD_workarea = NULL;
+        float *d_MSD_interpolated = NULL;
+        ushort *d_MSD_output_taps = NULL;
+	allocate_memory_MSD(&d_MSD_workarea, &d_MSD_output_taps, &d_MSD_interpolated, MSD_data_info, h_MSD_DIT_width, t_processed[0][0], MSD_profile_size_in_bytes);
+
+
+	checkCudaErrors(cudaGetLastError());
 	
 	// Clip RFI
 	if (enable_rfi) {
@@ -311,7 +326,7 @@ void main_function
 					h_peak_list   = (float*) malloc(max_peak_size*4*sizeof(float));
 
 					peak_pos=0;
-					analysis_GPU(h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp, candidate_algorithm, enable_sps_baselinenoise);
+					analysis_GPU(h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp, candidate_algorithm, d_MSD_workarea, d_MSD_output_taps, d_MSD_interpolated, MSD_data_info, enable_sps_baselinenoise);
 
 					free(h_peak_list);
 				}
