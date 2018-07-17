@@ -469,7 +469,14 @@ void MSD_Interpolate_values(float *d_MSD_interpolated, float *d_MSD_DIT, std::ve
 	#endif
 	
 	#ifdef MSD_PLANE_EXPORT
-//		MSD_Export_plane(filename, h_MSD_DIT, h_MSD_DIT_widths, h_MSD_interpolated, h_boxcar_widths, max_width_performed);
+		float *h_MSD_DIT, *h_MSD_interpolated;
+		h_MSD_DIT = new float[nMSDs*MSD_RESULTS_SIZE];
+		h_MSD_interpolated = new float[nWidths*MSD_INTER_SIZE];
+		checkCudaErrors(cudaMemcpy(h_MSD_DIT, d_MSD_DIT, nMSDs*MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
+		checkCudaErrors(cudaMemcpy(h_MSD_interpolated, d_MSD_interpolated, nWidths*MSD_INTER_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
+		MSD_Export_plane(filename, h_MSD_DIT, h_MSD_DIT_widths, h_MSD_interpolated, h_boxcar_widths, max_width_performed);
+		delete[] h_MSD_DIT;
+		delete[] h_MSD_interpolated;
 	#endif
 	
 //	checkCudaErrors(cudaMemcpy(d_MSD_interpolated, h_MSD_interpolated, nWidths*MSD_INTER_SIZE*sizeof(float), cudaMemcpyHostToDevice));
