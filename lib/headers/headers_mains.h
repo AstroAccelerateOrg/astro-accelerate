@@ -12,11 +12,12 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "../timer.h"
+#include <helper_cuda.h>
 
 #include "params.h"
+#include "headers/device_AA_Parameters.h"
 #include "headers/device_DDTR_InputData.h"
 #include "headers/device_DDTR_Plan.h"
-#include "headers/device_AA_Parameters.h"
 #include "headers/device_MSD_Parameters.h"
 #include "headers/device_SPS_Parameters.h"
 #include "headers/device_SPS_DataDescription.h"

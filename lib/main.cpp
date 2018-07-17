@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
 		debug(3, start_time, &DDTR_data, &DDTR_plan, &AA_params, &MSD_params, &SPS_params, &PRS_params, &FDAS_params);
 
 	// Allocate memory on host for input
-	//DDTR_data.Allocate_memory_for_input();
+	//DDTR_data.Allocate_memory_for_input(); // Ideally
 	allocate_memory_cpu_input(&input_buffer, DDTR_data.nsamp, DDTR_data.nchans);
 	  
 	//if (AA_params.enable_debug == 1)
@@ -79,6 +79,7 @@ int main(int argc, char* argv[]) {
 	if(AA_params.enable_debug == 1) 
 		debug(2, start_time, &DDTR_data, &DDTR_plan, &AA_params, &MSD_params, &SPS_params, &PRS_params, &FDAS_params);
 
+	// DDTR_plan.stratagy(); // Ideally
 	stratagy(&DDTR_plan, gpu_memory, &DDTR_data, &AA_params);
 	
 	if(AA_params.enable_debug == 1) 
@@ -99,9 +100,9 @@ int main(int argc, char* argv[]) {
 	
 	//-----------------------------------------------------------
 	//--------- SPS Candidate List
-	candidatelist.exportSubLists();
-	candidatelist.poolCandidates();
-	candidatelist.exportToFile("allcandidates.dat");
+	//candidatelist.exportSubLists();
+	//candidatelist.poolCandidates();
+	//candidatelist.exportToFile("allcandidates.dat");
 	
 	
 	//----------------------------------------------------------<

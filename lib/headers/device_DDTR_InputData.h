@@ -1,6 +1,16 @@
 #ifndef __ASTROACCELERATE_DDTR_INPUTDATA__
 #define __ASTROACCELERATE_DDTR_INPUTDATA__
 
+//TODO: rename stuff:
+// nchans -> nChannels or nFrequencyChannels
+// nsamp -> nSamples or nTimesamples
+// nbits -> nBits?
+// tsamp -> sampling_time
+// fch1 -> Should not be necessary ro rename. It should not be accessed from outside and it is in the fil header?
+// foff -> ---||---
+// TODO: Add array which will hold the data.
+// TODO: Add methods for loading data from files
+
 class DDTR_InputData {
 public:
 	size_t nchans;

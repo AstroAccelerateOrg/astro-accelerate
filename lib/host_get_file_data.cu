@@ -132,10 +132,6 @@ void get_file_data(FILE **fp, DDTR_InputData *DDTR_data) {
 		exit(1);
 	}
 	size_t exp_total_data = ftell(*fp);
-	if (exp_total_data == -1) {
-		printf("\nERROR!! Failed to seek to end of data file\n");
-		exit(1);
-	}
 	exp_total_data = exp_total_data - data_start;
 	fseek(*fp, data_start, SEEK_SET);
 	//----------------------------------------------------------------<

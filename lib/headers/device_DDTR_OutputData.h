@@ -1,43 +1,34 @@
 #ifndef __ASTROACCELERATE_DDTR_OUTPUTDATA__
 #define __ASTROACCELERATE_DDTR_OUTPUTDATA__
 
-class DDTR_InputData {
+// TODO: We could change dedispersion plan to something like in periodicity and input and output data could inherit properties from some kind of base class. Then it would be easier to go through dedispersion time chunks.
+class DDTR_OutputData {
 public:
-	int nRanges;
-	int *inBin;
-	int *nDMs_per_range;
-	int *nSamples_per_range;
+	float  tstart_local;
+	float  sampling_time;
+	float  dm_step;
+	float  dm_low;
+	float  dm_high;
+	int    inBin;
+	size_t nTimesamples;
+	int    nDMs;
 	
-	float ***output_dmt_data;
+	float *d_DDTR_output;
 	
-	size_t output_in_bytes;
-	
-	//unsigned short *input_data;
-	
-	void Init(){
-		inputsize_in_bytes = nsamp*nchans*sizeof(unsigned short);
+	DDTR_OutputData(){
+		tstart_local = 0;
+		sampling_time = 0;
+		dm_step = 0;
+		dm_low = 0;
+		dm_high = 0;
+		inBin = 0;
+		nTimesamples = 0;
+		nDMs = 0;
+		d_DDTR_output = NULL;
 	}
 	
-	void Allocate_host_input(){
-		input_data = (unsigned short *) malloc(inputsize_in_bytes);
-	}
-	
-	DDTR_InputData(){
-		nchans = 0;
-		nsamples = 0;
-		nsamp = 0;
-		nifs = 0;
-		nbits = 0;
-		tsamp = 0;
-		tstart = 0;
-		fch1 = 0;
-		foff = 0;
-		inputsize_in_bytes = 0;
-		//input_data = NULL;
-	}
-	
-	~DDTR_InputData(){
-		//if(input_data!=NULL) free(input_data);
+	~DDTR_OutputData(){
+		// d_DDTR_output is only temporary pointer to the data. It should not be deallocated.
 	}
 };
 

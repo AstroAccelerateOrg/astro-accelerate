@@ -1,4 +1,3 @@
-//#include <omp.h>
 #include <time.h>
 #include <stdio.h>
 #include "headers/params.h"
@@ -104,3 +103,4 @@ int corner_turn_SM(float *d_input, float *d_output, int primary_size, int second
 	
 	return(nRest);
 }
+

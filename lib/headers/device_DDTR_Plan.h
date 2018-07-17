@@ -1,6 +1,8 @@
 #ifndef __ASTROACCELERATE_DDTR_PLAN__
 #define __ASTROACCELERATE_DDTR_PLAN__
 
+//TODO: rename some variables. like nchans, nsamp, tsamp to something more understandable nChannels, nSamples, sampling_time
+//      
 class DDTR_Plan {
 public:
 	int nRanges;
