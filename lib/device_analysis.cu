@@ -354,6 +354,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 		} //dm_list
 
 		//------------------------> Output
+		printf("\n\nd_step: %f \t dm_low: %f peak_pos:%zu", dm_step[i],dm_low[i], *peak_pos);
 		#pragma omp parallel for
 		for (int count = 0; count < (*peak_pos); count++){
 			h_peak_list[4*count]     = h_peak_list[4*count]*dm_step[i] + dm_low[i];
