@@ -15,7 +15,6 @@ void host_info(struct sysinfo *host_info)
 // the line from meminfo with MemAvailable is the memory available to launch the application without touching the swap
 int GetRamInKB(size_t *host_memory)
 {
-
     FILE *meminfo = fopen("/proc/meminfo", "r");
     if(meminfo == NULL){
 	printf("\n!!!Error on host system info!!!\n");
@@ -25,15 +24,14 @@ int GetRamInKB(size_t *host_memory)
     char line[256];
     while(fgets(line, sizeof(line), meminfo))
     {
-        if(sscanf(line, "MemAvailable: %zu kB", host_memory) == 1)
+       if(sscanf(line, "MemAvailable: %zu kB", host_memory) == 1)
         {
             fclose(meminfo);
 //		printf("\n\t\t Ram: %d", *host_memory);
 		*host_memory = *host_memory*1024;
             return *host_memory;
-        }
+        } 
     }
-
 	// return if not find the line
     fclose(meminfo);
     return -1;
@@ -42,5 +40,6 @@ int GetRamInKB(size_t *host_memory)
 void host_mem_error(unsigned int inputsize, unsigned int host_memory, const char *type)
 {
 	printf("\n\nCan't allocate %s memory of size: %u MiB. Host available memory only: %u MiB.\n",type, inputsize, host_memory);
+	exit(0);
 }
 
