@@ -24,7 +24,6 @@ void allocate_memory_cpu_input(FILE **fp, size_t gpu_memory, size_t *host_memory
 	*inputsize = nsamp * (size_t) nchans * sizeof(unsigned short);
 	if (*host_memory < *inputsize ) {
 		host_mem_error( (unsigned int)(*inputsize/1024.0/1024.0), (unsigned int)(*host_memory/1024.0/1024.0), "input");
-		exit(0);
 	}
 	*host_memory = *host_memory - *inputsize;
 	*input_buffer = (unsigned short *) malloc(*inputsize);
@@ -41,7 +40,6 @@ void allocate_memory_cpu_output(FILE **fp, size_t gpu_memory, size_t *host_memor
 //	printf("\nTotal ndms: %i; nsamp: %i; mem: %zu estimated: %zu \n", total_ndms, nsamp, (size_t)(*host_memory)/1024/1024, estimate_outputbuffer_size/1024/1024);
 	if (*host_memory < estimate_outputbuffer_size){
 		host_mem_error( (unsigned int)(estimate_outputbuffer_size/1024.0/1024.0), (unsigned int)(*host_memory/1024.0/1024.0), "output");
-                exit(0);
 	}
 
 	*outputsize = 0;
