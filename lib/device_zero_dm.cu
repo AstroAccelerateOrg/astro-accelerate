@@ -23,9 +23,9 @@ void zero_dm(unsigned short *d_input, int nchans, int nsamp, int nbits) {
 	clock_t start_t, end_t;
 	start_t = clock();
 
-	float shift = ((pow(2,nbits)-1)/2);
+	float normalization_factor = ((pow(2,nbits)-1)/2);
 
-	zero_dm_kernel<<< num_blocks, threads_per_block >>>(d_input, nchans, nsamp, shift);
+	zero_dm_kernel<<< num_blocks, threads_per_block >>>(d_input, nchans, nsamp, normalization_factor);
 	cudaDeviceSynchronize();
 
 	end_t = clock();
