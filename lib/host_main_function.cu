@@ -234,7 +234,7 @@ void main_function
 		checkCudaErrors(cudaGetLastError());
 		
 		if (enable_zero_dm) {
-			zero_dm(d_input, nchans, t_processed[0][t]+maxshift);
+			zero_dm(d_input, nchans, t_processed[0][t]+maxshift,nbits);
 		}
 		
 		checkCudaErrors(cudaGetLastError());
