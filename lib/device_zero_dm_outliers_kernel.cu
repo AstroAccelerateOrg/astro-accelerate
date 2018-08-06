@@ -5,6 +5,10 @@
 #include <cuda_runtime.h>
 #include "headers/params.h"
 
+#define MEAN	127.5f
+#define CUT 	2.0f
+#define ITER 	20
+#define ACC	0.000001f
 
 //{{{ zero dm kernel - needs cleaning and optimizing // WA 21/10/16
 __global__ void zero_dm_outliers_kernel(unsigned short *d_input, int nchans, int nsamp)
@@ -12,19 +16,20 @@ __global__ void zero_dm_outliers_kernel(unsigned short *d_input, int nchans, int
 
 	int t  = blockIdx.x * blockDim.x + threadIdx.x;
 
-	int count =0;
+	int count = 0;
+	int iters = 0;
 
 	float stdev = 1000000.0f;
-	float mean = 0.0f;
+	float mean = MEAN;
+	float mean_last = 0.0f;
 	float sum = 0.0f;
 	float sum_squares = 0.0f;
-	float cutoff = (3.0f * stdev); 
+	float cutoff = (CUT * stdev); 
 
-	for(int out=0; out<4; out++) {
+	while(abs(mean - mean_last) > ACC) {
 		sum = 0.0f;
 		sum_squares = 0.0f;
 		count = 0;
-		
 
 		for(int c = 0; c < nchans; c++) {
 			float data=(float)d_input[t*nchans + c];
@@ -34,84 +39,60 @@ __global__ void zero_dm_outliers_kernel(unsigned short *d_input, int nchans, int
 				count++;
 			}
 		}
+		mean_last = mean;
 		mean = (sum/(float)count);
 		sum_squares = ((sum_squares / count) - (mean * mean));
 	    	stdev = sqrt(sum_squares);
-		cutoff = (3.0f * stdev); 
+		cutoff = (CUT * stdev); 
+
+		iters++;
+		if(iters > ITER) break;
 	}
 
-/*	if(mean > 5.0f * stdev) {
-//	if(mean > 125.0f && mean < 130.0f) {
-		for(int c = 0; c < nchans; c++) {
-			float data=(float)d_input[t*nchans + c];
+	for(int c = 0; c < nchans; c++) {
+		d_input[t*nchans + c] = (unsigned short)((float)d_input[t*nchans + c]-(float)mean+MEAN);
+	}
 
-			if(data < (mean - cutoff) || data > (mean + cutoff)) {
-				d_input[t*nchans + c]=(unsigned short)128;
-			} else {
-				d_input[t*nchans + c]=(unsigned short)((unsigned char)((float)d_input[t*nchans + c]-mean+128));
+
+	int c = blockIdx.x * blockDim.x + threadIdx.x;
+
+	if(c < nchans) {
+
+		count = 0;
+		iters = 0;
+
+		stdev = 1000000.0f;
+		mean = MEAN;
+		mean_last = 0.0f;
+		cutoff = (CUT * stdev); 
+
+		while(abs(mean - mean_last) > ACC) {
+			sum = 0.0f;
+			sum_squares = 0.0f;
+			count = 0;
+
+			for(int t = 0; t < nsamp; t++) {
+				float data=(float)d_input[t*nchans + c];
+				if(data < (mean + cutoff) && data > (mean - cutoff) ) {
+					sum+=data;
+					sum_squares+=(data*data);
+					count++;
+				}
 			}
+			mean_last = mean;
+			mean = (sum/(float)count);
+			sum_squares = ((sum_squares / count) - (mean * mean));
+		    	stdev = sqrt(sum_squares);
+			cutoff = (CUT * stdev); 
+
+			iters++;
+			if(iters > ITER) break;
 		}
-	} else {
-		for(int c = 0; c < nchans; c++) {
-			d_input[t*nchans + c]=(unsigned short)(128);
+
+		for(int t = 0; t < nsamp; t++) {
+			d_input[t*nchans + c] = (unsigned short)((float)d_input[t*nchans + c]-(float)mean+MEAN);
 		}
 	}
-*/
-//	if(mean > 5.0f * stdev) {
-	if(mean > 125.0f && mean < 130.0f) {
-		for(int c = 0; c < nchans-4; c++) {
-			//float data=(float)d_input[t*nchans + c];
-			float data=0.0f;
-			for(int x = 0; x<4; x++) data+=(float)d_input[t*nchans + c + x];
-			data=data*0.25f;
-
-			if(data < (mean - cutoff) || data > (mean + cutoff)) {
-				d_input[t*nchans + c]=(unsigned short)0;
-			} else {
-				d_input[t*nchans + c]=(unsigned short)((unsigned char)((float)d_input[t*nchans + c]-mean));
-			}
-		}
-	} else {
-		for(int c = 0; c < nchans; c++) {
-			d_input[t*nchans + c]=(unsigned short)(0);
-		}
-	}
-
-/*
-	if(mean > 5.0f * stdev) {
-//	if(mean > 125.0f && mean < 130.0f) {
-		for(int c = 0; c < nchans; c++) {
-			float data=(float)d_input[t*nchans + c];
-
-			if(data < (mean - cutoff) || data > (mean + cutoff)) {
-				d_input[t*nchans + c]=(unsigned short)0;
-			} else {
-				d_input[t*nchans + c]=(unsigned short)((unsigned char)(((float)d_input[t*nchans + c]-mean)/stdev));
-			}
-		}
-	} else {
-		for(int c = 0; c < nchans; c++) {
-			d_input[t*nchans + c]=(unsigned short)(0);
-		}
-	}
-*/
-/*	if(mean > 5.0f * stdev) {
-//	if(mean > 125.0f && mean < 130.0f) {
-		for(int c = 0; c < nchans; c++) {
-			float data=(float)d_input[t*nchans + c];
-
-			if(data < (mean - cutoff) || data > (mean + cutoff)) {
-				d_input[t*nchans + c]=(unsigned short)(128.0f/stdev);
-			} else {
-				d_input[t*nchans + c]=(unsigned short)((unsigned char)(((float)d_input[t*nchans + c]-mean+128)/stdev));
-			}
-		}
-	} else {
-		for(int c = 0; c < nchans; c++) {
-			d_input[t*nchans + c]=(unsigned short)(128.0f/stdev);
-		}
-	}
-*/
 }
 //}}}
 
