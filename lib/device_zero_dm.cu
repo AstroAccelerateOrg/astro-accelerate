@@ -7,7 +7,7 @@
 
 //{{{ zero_dm
 
-void zero_dm(unsigned short *d_input, int nchans, int nsamp) {
+void zero_dm(unsigned short *d_input, int nchans, int nsamp, int nbits) {
 
 	int divisions_in_t  = CT;
 	int num_blocks_t    = nsamp/divisions_in_t;
@@ -23,7 +23,9 @@ void zero_dm(unsigned short *d_input, int nchans, int nsamp) {
 	clock_t start_t, end_t;
 	start_t = clock();
 
-	zero_dm_kernel<<< num_blocks, threads_per_block >>>(d_input, nchans, nsamp);
+	float shift = ((pow(2,nbits)-1)/2);
+
+	zero_dm_kernel<<< num_blocks, threads_per_block >>>(d_input, nchans, nsamp, shift);
 	cudaDeviceSynchronize();
 
 	end_t = clock();
