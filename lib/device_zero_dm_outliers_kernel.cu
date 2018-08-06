@@ -7,6 +7,7 @@
 
 #define MEAN	127.5f
 #define CUT 	2.0f
+#define R_CUT	4.0f
 #define ITER 	20
 #define ACC	0.000001f
 
@@ -50,7 +51,11 @@ __global__ void zero_dm_outliers_kernel(unsigned short *d_input, int nchans, int
 	}
 
 	for(int c = 0; c < nchans; c++) {
-		d_input[t*nchans + c] = (unsigned short)((float)d_input[t*nchans + c]-(float)mean+MEAN);
+		if((d_input[t*nchans + c]-mean < R_CUT*stdev) && (d_input[t*nchans + c]-mean > - R_CUT*stdev)) {
+			d_input[t*nchans + c] = (unsigned short)((float)d_input[t*nchans + c]-(float)mean+MEAN);
+		} else {
+			d_input[t*nchans + c] = mean;
+		}
 	}
 
 
@@ -90,7 +95,11 @@ __global__ void zero_dm_outliers_kernel(unsigned short *d_input, int nchans, int
 		}
 
 		for(int t = 0; t < nsamp; t++) {
-			d_input[t*nchans + c] = (unsigned short)((float)d_input[t*nchans + c]-(float)mean+MEAN);
+			if((d_input[t*nchans + c]-mean < R_CUT*stdev) && (d_input[t*nchans + c]-mean > - R_CUT*stdev)) {
+				d_input[t*nchans + c] = (unsigned short)((float)d_input[t*nchans + c]-(float)mean+MEAN);
+			} else {
+				d_input[t*nchans + c] = mean;
+			}
 		}
 	}
 }
