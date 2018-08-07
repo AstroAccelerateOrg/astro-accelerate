@@ -27,6 +27,11 @@ __global__ void zero_dm_outliers_kernel(unsigned short *d_input, int nchans, int
 	float sum_squares = 0.0f;
 	float cutoff = (CUT * stdev); 
 
+	for(int c = 0; c < nchans; c++) {
+		float data=(float)d_input[t*nchans + c];		
+		if(data == 0.0f) d_input[t*nchans + c] = (unsigned short)(MEAN);
+	}
+
 	while(abs(mean - mean_last) > ACC) {
 		sum = 0.0f;
 		sum_squares = 0.0f;
