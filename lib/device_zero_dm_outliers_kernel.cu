@@ -11,7 +11,7 @@
 #define ITER 	20
 #define ACC	0.000001f
 
-//{{{ zero dm kernel - needs cleaning and optimizing // WA 21/10/16
+//{{{ Dristribution based RFI removal - needs cleaning and optimizing // WA 07/08/18
 __global__ void zero_dm_outliers_kernel(unsigned short *d_input, int nchans, int nsamp)
 {
 
@@ -26,11 +26,6 @@ __global__ void zero_dm_outliers_kernel(unsigned short *d_input, int nchans, int
 	float sum = 0.0f;
 	float sum_squares = 0.0f;
 	float cutoff = (CUT * stdev); 
-
-	for(int c = 0; c < nchans; c++) {
-		float data=(float)d_input[t*nchans + c];		
-		if(data == 0.0f) d_input[t*nchans + c] = (unsigned short)(MEAN);
-	}
 
 	while(abs(mean - mean_last) > ACC) {
 		sum = 0.0f;
@@ -58,11 +53,13 @@ __global__ void zero_dm_outliers_kernel(unsigned short *d_input, int nchans, int
 	for(int c = 0; c < nchans; c++) {
 		if((d_input[t*nchans + c]-mean < R_CUT*stdev) && (d_input[t*nchans + c]-mean > - R_CUT*stdev)) {
 			d_input[t*nchans + c] = (unsigned short)((float)d_input[t*nchans + c]-(float)mean+MEAN);
+			//d_input[t*nchans + c] = (unsigned short)((float)d_input[t*nchans + c]-(float)mean_of_mean+MEAN);
 		} else {
-			d_input[t*nchans + c] = mean;
+			//d_input[t*nchans + c] = mean;
+			//d_input[t*nchans + c] = mean_of_mean;
+			d_input[t*nchans + c] = MEAN;
 		}
 	}
-
 
 	int c = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -103,7 +100,7 @@ __global__ void zero_dm_outliers_kernel(unsigned short *d_input, int nchans, int
 			if((d_input[t*nchans + c]-mean < R_CUT*stdev) && (d_input[t*nchans + c]-mean > - R_CUT*stdev)) {
 				d_input[t*nchans + c] = (unsigned short)((float)d_input[t*nchans + c]-(float)mean+MEAN);
 			} else {
-				d_input[t*nchans + c] = mean;
+				d_input[t*nchans + c] = MEAN;
 			}
 		}
 	}
