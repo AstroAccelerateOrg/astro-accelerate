@@ -180,14 +180,9 @@ void main_function (
 			
 			SPS_search.search();
 			
-			//SPS_search.export_SPSData();
+			SPS_search.export_SPSData();
 			// or
-			//candidatelist->clp.push_back(SPS_search.exportToSubList());
-			
-			//SPS_CandidatesList* SPS_search.getCandidates
-			//vector<SPS_CandidateList*> SPS_Result;
-			// rezervovat dopredu 2000;
-			//SPS_Results->pushback(SPS_search.getCandidates());
+			candidatelist->clp.push_back(SPS_search.exportToSubList());
 			
 			SPS_search.clear();
 			// -----------------------------------------------------------------------<

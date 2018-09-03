@@ -100,9 +100,9 @@ int main(int argc, char* argv[]) {
 	
 	//-----------------------------------------------------------
 	//--------- SPS Candidate List
-	//candidatelist.exportSubLists();
-	//candidatelist.poolCandidates();
-	//candidatelist.exportToFile("allcandidates.dat");
+	candidatelist.exportSubLists();
+	candidatelist.poolCandidates();
+	candidatelist.exportToFile("allcandidates.dat");
 	
 	
 	//----------------------------------------------------------<
