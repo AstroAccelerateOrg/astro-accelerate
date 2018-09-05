@@ -231,32 +231,28 @@ A custom configuration path can be specified using the following option
 Optimisations and Tuning
 ==
 Astro-Accelerate comes with the facility to tune the software to the input that the user provides.
-1. To do this, `cd` to the `scripts` directory by doing
+1. To do this, `cd` to the `scripts` directory.
+Modify `profiling.sh`, changing the line that says
 
-    cd scripts
+        ./astro-accelerate.sh ../input_files/ska_tune.txt
 
-2. Modify `profiling.sh`, changing the line that says
+    to
 
-    ./astro-accelerate.sh ../input_files/ska_tune.txt
+        ./astro-accelerate.sh ../input_files/<your input file>
 
-to
-
-    ./astro-accelerate.sh ../input_files/<your input file>
-
-where `<your input file>` must be replaced by the input configuration file.
+    where `<your input file>` must be replaced by the input configuration file.
 
 3. The next step is to run the profiler tool that is provided in the repository
 
-    ./profiling.sh
+        ./profiling.sh
 
-This will create an optimised code for your search and GPU type.
+    This will create an optimised code for your search and GPU type.
 
 4. Then, astro-accelerate can be run as usual by doing 
 
-    ./astro-accelerate.sh ../input_files/<your input file>
+        ./astro-accelerate.sh ../input_files/<your input file>
 
-where `<your input file>` must be replaced by the path to the input configuration file as specified in the previous step.
-
+    where `<your input file>` must be replaced by the path to the input configuration file as specified in the previous step.
 
 Further Documentation
 ===
