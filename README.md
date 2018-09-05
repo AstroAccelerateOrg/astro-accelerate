@@ -215,21 +215,6 @@ By default, the astro-accelerate executable looks for a configuration file in th
 A configuration file is required in order to run astro-accelerate.
 A number of example configuration files are included in the repository.
 
-Additional Options
-==
-All settings in the configuration file can be overriden in the CLI using:
-
-    --settingname value
-
-where `settingname` is the exact name of the setting (case-sensitive) in the configuration file, and `value` is a suitable valid value of the parameter.
-
-Failure to provide a valid input will stop execution. It is recommended to leave all settings
-as specified by default.
-
-A custom configuration path can be specified using the following option
-
-    --astro-accelerate-config-path /path/to/config.txt
-
 Optimisations and Tuning
 ==
 Astro-Accelerate comes with the facility to tune the software to the input that the user provides.
