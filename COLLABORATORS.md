@@ -1,23 +1,46 @@
-University of Oxford:
-Wes Armour (OeRC), Mike Giles (Maths), Aris Karastergiou (Physics), Chris Williams (Physics), Steve Roberts (Engineering), Sofia Dimoudi (OeRC), Karel Adamek (OeRC), Ania Brown (OeRC), Nassim Ouannoughi (OeRC), Jayanth Chennamangalam (Physics)
+Collaborators
+=
+The list of collaborators may be updated from time to time.
 
-University of Bristol:
-Dan Curran, Simon McIntosh Smith, Jose Nunez-Yanez
+# University of Oxford
+* Wes Armour (OeRC)
+* Mike Giles (Maths)
+* Aris Karastergiou (Physics)
+* Chris Williams (Physics)
+* Steve Roberts (Engineering)
+* Sofia Dimoudi (OeRC)
+* Karel Adamek (OeRC)
+* Ania Brown (OeRC)
+* Nassim Ouannoughi (OeRC)
+* Jayanth Chennamangalam (Physics)
 
-University of Manchester:
-Mitch Mickaliger, Ben Stappers, Prabu Thiagaraj, Jayanta Roy
+# University of Bristol
+* Dan Curran
+* Simon McIntosh Smith
+* Jose Nunez-Yanez
 
-ASTRON:
-Cees Bassa, Jason Hessels
+# University of Manchester
+* Mitch Mickaliger
+* Ben Stappers
+* Prabu Thiagaraj
+* Jayanta Roy
 
-Silesian University in Opava:
-Jan Novotny
+# ASTRON
+* Cees Bassa
+* Jason Hessels
 
-NVIDIA:
-Mike Clark, Kate Clark, Tim Lanfear
+# Silesian University in Opava
+* Jan Novotny
 
-ALTERA:
-Byron Sinclair, Andrew Ling, Steve Casselman
+# NVIDIA
+* Mike Clark
+* Kate Clark
+* Tim Lanfear
 
-Zenotech:
-James Sharpe
+# ALTERA
+* Byron Sinclair
+* Andrew Ling
+* Steve Casselman
+
+# Zenotech
+* James Sharpe
