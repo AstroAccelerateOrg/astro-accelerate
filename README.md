@@ -7,11 +7,10 @@ This documentation summarises the content of the Astro-Accelerate software.
 
 Features
 ===
-Astro-Accelerate is useful for a number of real-time astronomy applications.
-Features include:
-Acceleration Searching
-Zero DM
-RFI Mitigation
+Astro-Accelerate is used for real-time astronomy data processing. Its features include:
+* Acceleration Searching
+* Zero DM
+* RFI Mitigation
 
 Software Inputs and Outputs
 ===
