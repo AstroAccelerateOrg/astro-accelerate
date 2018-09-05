@@ -1,14 +1,49 @@
+### Add .gitignore entries here.
+
+# Directories
 build/
 output/
 
-*.project
-*.cproject
+# Other
 *.swp
 *~
 *.sav
 *.old
 *.new
 *.ori
-*.a
 
 out.txt
+
+# IDE project files
+*.xcodeproj
+*.project
+*.cproject
+
+## c++ gitignore
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
