@@ -255,11 +255,7 @@ Modify `profiling.sh`, changing the line that says
 
 Further Documentation
 ===
-More detailed information can be found on the Wiki page of the repository
-https://github.com/AstroAccelerateOrg/astro-accelerate/wiki
-
-and the Astro-Accelerate webpage
-http://www.oerc.ox.ac.uk/projects/astroaccelerate
+More detailed information can be found on the [Wiki page of the repository](https://github.com/AstroAccelerateOrg/astro-accelerate/wiki) and the [Astro-Accelerate webpage](http://www.oerc.ox.ac.uk/projects/astroaccelerate).
 
 Contact and Support
 ===
