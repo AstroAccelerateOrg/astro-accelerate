@@ -1,35 +1,65 @@
-= Developers Guide
+Developers Guide
+=====
 
-== Dependencies Do not introduce any new dependencies on any other product without consultation
+Dependencies
+===
+Do not introduce any new dependencies on any other product without consultation.
 
-= Repository == Workflow and Branches - Never work directly on the master branch - this is the "stable release" and is tightly controlled - The master shall compile and pass all unit tests at all times. - Commits to the master must only be done after code review and from a working dev branch - devs should keep their own branch in sync with the dev branch. - The dev should compile and pass all unit tests. Any build breaks should receive top priority. - Only merge from a feature branch that is already synced with the dev branch. - Commits to the dev should usually only be done after code review and from a working feature branch
 
-== Repository Structure AstroAccelerate 
-+ + astrolib Archive of the library containing cuda modules / main routines 
-	+ doc Documentation, contains developers guide 
-	+ input_files Input files 
-	+ lib Source code of the project 
-	+ scripts Script to run the AstroAccelerate routine 
-	
-= Coding Conventions Coding conventions are used in this project to ensure conformity in style and to help reduce any of the very many pitfalls c++ programming can introduce, Remember that these are just general guidelines. Try to stick to them as much as possible, but there will always be cases where doing it differently is justified. Document these exceptions with comments in the code.
+Repository `master` Branch Guidelines
+===
+### Workflow and Branches
 
-== Naming Conventions
-    method and functions shall be all lower case, with word seperation with an "_" e.g. do_something()
-    variable names shall be all lower case
+* The `master` branch should always be stable and ready to be released and tagged.
+* The `master` branch is tightly controlled.
+* The `master` branch shall compile and pass all tests at all times.
+* Commits to the `master` branch must only be done after code review.
+* Commits to the `master` branch must be done from a working development branch that passes all tests.
+* Developers should keep their own branch up to date with the branch from which they are working.
+* Branches that introduce new features should only be merged if they are up to date with the development branch from which they are branched.
+* Commits to a development branch for which the intention is to merge to the `master` branch should be code reviewed and also function properly before being merged.
+* Any failure to adhere to the above should be remedied with high priority.
 
-== Indendation & CRLF of source files
+Repository Structure Astro-Accelerate
+===
+The following is an outline of the file structure of the repository.
+When the repository structure is changed, this document should be updated to reflect it.
+* `/`
+    * Top-level files
+    * Setup scripts
+    * Basic documentation
+    * `.github/`
+        * Templates for issues, bugs, and pull requests.
+    * `input_files/`
+        * Sample input configuration files.
+    * `lib/`
+        * Source code of the project.
+    * `scripts/`
+        * Script to run the Astro-Accelerate routines
 
-    use 2 spaces instead of tab.
-    use LF in preference to CRLF
-    namespaces shall not be indented
+Coding Conventions
+===
+Please adhere to the following where possible. Exceptions to coding conventions should be justified as appropriate.
 
-== Documentation
+### Naming Conventions
+* Methods and functions shall be all lower case, with word seperation with an underscore character e.g. `do_something()`.
+* Variable names shall be all lower case.
 
-    Add doxygen style comments for each method and each parameter in every public header file.
-    Think about adding an example of the use of each method
-    Document the bounds of any parameter
-    Document untested use cases/parameters (i.e. where you have not provided an explicit unit test)
-    Add comments as appropriate in the cpp file and non-public headers.
+### Use of Indentation
+* Use 2 spaces instead of tab.
+* Namespaces shall not be indented
 
-== Using CUDA If CUDA is available and it has been explicitly activated in the build system, the ENABLE_CUDA flag will be set. Use this flag to ensure your code compiles and your unit tests run with or without CUDA availability.
+### Use of Carriage Return, Line Feed
+* Use LF in preference to CRLF
 
+Documentation
+===
+* Add Doxygen style comments for each method and each parameter in every header file.
+* Where relevant, comments should provide example usage.
+* Document the bounds of any parameter
+* Document untested use cases/parameters (i.e. where you have not provided an explicit unit test).
+* Add comments as appropriate in the `.cpp` file and non-public headers.
+
+Using CUDA
+===
+If CUDA is available and it has been explicitly activated in the build system, then the `ENABLE_CUDA` flag will be set. Use this flag to ensure code compiles and that code tests are run with CUDA as appropriate.
