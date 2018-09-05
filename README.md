@@ -48,6 +48,9 @@ The output will look similar to the following example
 +-----------------------------------------------------------------------------+
 ```
 
+If no output is shown, or if an error appears, then it may indicate that a GPU has not been detected,
+or that the [CUDA toolkit](https://developer.nvidia.com/cuda-zone) is not properly installed.
+
 Selecting the Graphics Processing Unit (GPU) in the case of a system with more than one GPU
 ===
 If you have a multi-GPU system, you need to modify two files to use one specific card.
