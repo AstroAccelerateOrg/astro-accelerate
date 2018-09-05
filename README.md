@@ -27,7 +27,8 @@ In a terminal window, type
     nvidia-smi
 
 The output will look similar to the following example
-`+-----------------------------------------------------------------------------+
+```
++-----------------------------------------------------------------------------+
 | NVIDIA-SMI 375.20                 Driver Version: 375.20                    |
 |-------------------------------+----------------------+----------------------+
 | GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
@@ -45,7 +46,8 @@ The output will look similar to the following example
 |  GPU       PID  Type  Process name                               Usage      |
 |=============================================================================|
 |  No running processes found                                                 |
-+-----------------------------------------------------------------------------+`
++-----------------------------------------------------------------------------+
+```
 
 Selecting the Graphics Processing Unit (GPU) in the case of a system with more than one GPU
 ===
