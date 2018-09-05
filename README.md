@@ -65,9 +65,9 @@ Software Pre-Requisites
 ===
 CUDA: CUDA 8.0 (see https://developer.nvidia.com/cuda-downloads)
 
-C++:
+C/C++ (version): As supported and required by CUDA.
 
-Compiler: (requires OpenMP support)
+Compiler: As supported by CUDA, but requiring also [OpenMP](https://www.openmp.org) support (compiler support can be found [here](https://www.openmp.org/resources/openmp-compilers-tools/).
 
 Creating An Input Configuration File
 ===
