@@ -136,7 +136,7 @@ Setting `output_dmt`
 
 Setting `zero_dm`
 = 
-`zero_dm` you can guess (well, I can't!)
+`zero_dm` you can guess
 
 Setting `zero_dm_with_outliers`
 =
