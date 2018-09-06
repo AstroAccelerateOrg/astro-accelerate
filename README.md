@@ -181,11 +181,14 @@ Obtain the Astro-Accelerate code by doing
 Step 2: Compile
 ==
 Ensure you have the correct environment and pre-requisites.
-Set-up the environment
+Set-up the environment (which will add CUDA to PATH and LD_LIBRARY_PATH)
 
-    ./bootstrap.sh
+    source setup.sh
 
-Next, `cd` into the `lib` directory by doing
+`setup.sh` contains a hardcoded version number and a variable number to identify
+where the system is a 64-bit or 32-bit architecture. The user may need to edit
+`setup.sh` to suit the CUDA version number, library paths, and the architecture number
+in order to suit their needs. Next, `cd` into the `lib` directory by doing
 
     cd lib/
 
