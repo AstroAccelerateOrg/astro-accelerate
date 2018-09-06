@@ -37,7 +37,7 @@ fi
 if [ ! -d "${AA_ADD_LD_LIBRARY_PATH}" ]; then
     echo "* ERROR: Directory ${AA_ADD_LD_LIBRARY_PATH} does not exist. Setup exiting..."
 else
-    # Check if PATH environment variable has been set on this system
+    # Check if LD_LIBRARY_PATH environment variable has been set on this system
     if [[ -z "${LD_LIBRARY_PATH}" ]]; then
         echo "* NOTICE: LD_LIBRARY_PATH variable is not yet set."
         echo "* NOTICE: LD_LIBRARY_PATH will be set to ${AA_ADD_LD_LIBRARY_PATH}"
