@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 echo "Setting up Astro-Accelerate..."
-
+AA_ARCHITECTURE="64" #Leave blank for 32-bit, set to 64 for 64-bit
 # CUDA required PATH and LD_LIBRARY_PATH
 AA_ADD_PATH=/usr/local/cuda/bin
-AA_ADD_LD_LIBRARY_PATH=/usr/local/cuda/lib
+AA_ADD_LD_LIBRARY_PATH=/usr/local/cuda/lib${AA_ARCHITECTURE}
 
 # Check if the proposed environment variable path exists
 if [ ! -d "${AA_ADD_PATH}" ]; then
