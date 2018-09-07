@@ -58,7 +58,7 @@ else
 fi
 
 # Make all necessary directories
-@echo "NOTICE: Make all necessary directories"
+echo "NOTICE: Make all necessary directories"
 if [ ! -d astrolib ]; then
     mkdir astrolib
 fi
