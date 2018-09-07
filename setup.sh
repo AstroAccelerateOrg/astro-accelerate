@@ -3,11 +3,8 @@
 echo "Setting up Astro-Accelerate..."
 
 # CUDA required PATH and LD_LIBRARY_PATH
-AA_CUDA_VERSION=8.0
-AA_ARCHITECTURE="64" #Leave blank for 32-bit, set to 64 for 64-bit
-AA_ADD_PATH=/usr/local/cuda-${AA_CUDA_VERSION}/bin
-AA_ADD_LD_LIBRARY_PATH=/usr/local/cuda-${AA_CUDA_VERSION}/lib${AA_ARCHITECTURE}
-echo "Assuming CUDA version is ${AA_CUDA_VERSION}"
+AA_ADD_PATH=/usr/local/cuda/bin
+AA_ADD_LD_LIBRARY_PATH=/usr/local/cuda/lib
 
 # Check if the proposed environment variable path exists
 if [ ! -d "${AA_ADD_PATH}" ]; then
