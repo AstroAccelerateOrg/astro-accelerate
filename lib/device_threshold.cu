@@ -14,7 +14,7 @@ void THR_init(void) {
 	cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
 }
 
-int THRESHOLD(float *d_input, ushort *d_input_taps, float *d_output_list, int *gmem_pos, float threshold, int nDMs, int nTimesamples, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration, int max_list_size) {
+int SPDT_threshold(float *d_input, ushort *d_input_taps, unsigned int *d_output_list_DM, unsigned int *d_output_list_TS, float *d_output_list_SNR, unsigned int *d_output_list_BW, int *gmem_pos, float threshold, int nDMs, int nTimesamples, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration, int max_list_size) {
 	//---------> Task specific
 	int nBlocks, nRest, Elements_per_block, output_offset, decimated_timesamples, local_offset;
 	int nCUDAblocks_x, nCUDAblocks_y;
@@ -43,7 +43,7 @@ int THRESHOLD(float *d_input, ushort *d_input_taps, float *d_output_list, int *g
 			
 			output_offset = nDMs*PD_plan->operator[](f).output_shift;
 			
-			THR_GPU_WARP<<<gridSize, blockSize>>>(&d_input[output_offset], &d_input_taps[output_offset], d_output_list, gmem_pos, threshold, decimated_timesamples, decimated_timesamples-local_offset, shift, max_list_size, (1<<f));
+			THR_GPU_WARP<<<gridSize, blockSize>>>(&d_input[output_offset], &d_input_taps[output_offset], d_output_list_DM, d_output_list_TS, d_output_list_SNR, d_output_list_BW, gmem_pos, threshold, decimated_timesamples, decimated_timesamples-local_offset, shift, max_list_size, (1<<f));
 			
 			checkCudaErrors(cudaGetLastError());
 		}

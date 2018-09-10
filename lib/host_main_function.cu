@@ -319,16 +319,25 @@ void main_function
 					free(out_tmp);
 				}
 				else {
-					float *h_peak_list;
+					unsigned int *h_peak_list_DM;
+					unsigned int *h_peak_list_TS;
+					float *h_peak_list_SNR;
+					unsigned int *h_peak_list_BW;
 					size_t max_peak_size;
 					size_t peak_pos;
 					max_peak_size = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 );
-					h_peak_list   = (float*) malloc(max_peak_size*4*sizeof(float));
+					h_peak_list_DM  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
+					h_peak_list_TS  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
+					h_peak_list_SNR = (float*) malloc(max_peak_size*sizeof(float));
+					h_peak_list_BW  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
 
 					peak_pos=0;
-					analysis_GPU(h_peak_list, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp, candidate_algorithm, d_MSD_workarea, d_MSD_output_taps, d_MSD_interpolated, MSD_data_info, enable_sps_baselinenoise);
+					analysis_GPU(h_peak_list_DM, h_peak_list_TS, h_peak_list_SNR, h_peak_list_BW, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp, candidate_algorithm, d_MSD_workarea, d_MSD_output_taps, d_MSD_interpolated, MSD_data_info, enable_sps_baselinenoise);
 
-					free(h_peak_list);
+					free(h_peak_list_DM);
+					free(h_peak_list_TS);
+					free(h_peak_list_SNR);
+					free(h_peak_list_BW);
 				}
 
 				// This is for testing purposes and should be removed or commented out

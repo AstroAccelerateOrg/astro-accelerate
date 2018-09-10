@@ -115,7 +115,7 @@ int Get_max_iteration(int max_boxcar_width, std::vector<int> *BC_widths, int *ma
 }
 
 
-void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float OR_sigma_multiplier, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, int candidate_algorithm, float *d_MSD_workarea, unsigned short *d_output_taps, float *d_MSD_interpolated, unsigned long int maxTimeSamples, int enable_sps_baselinenoise){
+void analysis_GPU(unsigned int *h_peak_list_DM, unsigned int *h_peak_list_TS, float *h_peak_list_SNR, unsigned int *h_peak_list_BW, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int outBin, int *maxshift, int max_ndms, int *ndms, float cutoff, float OR_sigma_multiplier, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, int candidate_algorithm, float *d_MSD_workarea, unsigned short *d_output_taps, float *d_MSD_interpolated, unsigned long int maxTimeSamples, int enable_sps_baselinenoise){
 	//--------> Task
 	int max_boxcar_width = (int) (max_boxcar_width_in_sec/tsamp);
 	int max_width_performed=0;
@@ -197,20 +197,36 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 		DMs_per_cycle = DM_list[0];
 		
 		size_t mem_idx = 0;
-		float *d_peak_list;
-		d_peak_list = &d_MSD_workarea[mem_idx];
+		
+		unsigned int *d_peak_list_DM;
+		d_peak_list_DM  = (unsigned int*) &d_MSD_workarea[mem_idx];
+		mem_idx += (nTimesamples*DMs_per_cycle)/4;
+
+		unsigned int *d_peak_list_TS;
+		d_peak_list_TS  = (unsigned int*) &d_MSD_workarea[mem_idx];
+		mem_idx += (nTimesamples*DMs_per_cycle)/4;
+		
+		float *d_peak_list_SNR;
+		d_peak_list_SNR = &d_MSD_workarea[mem_idx];
+		mem_idx += (nTimesamples*DMs_per_cycle)/4;
+		
+		unsigned int *d_peak_list_BW;
+		d_peak_list_BW = (unsigned int*) &d_MSD_workarea[mem_idx];
+		mem_idx += (nTimesamples*DMs_per_cycle)/4;
 		
 		float *d_decimated;
-		mem_idx += nTimesamples*DMs_per_cycle;
 		d_decimated = &d_MSD_workarea[mem_idx];
+		mem_idx += (DMs_per_cycle*nTimesamples)/2 + PD_MAXTAPS;
 		
 		float *d_boxcar_values;
-		mem_idx += (DMs_per_cycle*nTimesamples)/2 + PD_MAXTAPS;
 		d_boxcar_values = &d_MSD_workarea[mem_idx];
+		mem_idx += DMs_per_cycle*nTimesamples;
 		
 		float *d_output_SNR;
-		mem_idx += DMs_per_cycle*nTimesamples;
 		d_output_SNR = &d_MSD_workarea[mem_idx];
+		mem_idx += DMs_per_cycle*nTimesamples;
+		
+		// check if we are in limits of allocated memory
 		
 		int *gmem_peak_pos;
 		cudaMalloc((void**) &gmem_peak_pos, 1*sizeof(int));
@@ -237,7 +253,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 			if(candidate_algorithm==1){
 				//-------------- Thresholding
 				timer.Start();
-				THRESHOLD(d_output_SNR, d_output_taps, d_peak_list, gmem_peak_pos, cutoff, DM_list[f], nTimesamples, DM_shift, &PD_plan, max_iteration, local_max_list_size);
+				SPDT_threshold(d_output_SNR, d_output_taps, d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW, gmem_peak_pos, cutoff, DM_list[f], nTimesamples, DM_shift, &PD_plan, max_iteration, local_max_list_size);
 				timer.Stop();
 				PF_time += timer.Elapsed();
 				#ifdef GPU_PARTIAL_TIMER
@@ -248,7 +264,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 			else {
 				//-------------- Peak finding
 				timer.Start();
-				PEAK_FIND(d_output_SNR, d_output_taps, d_peak_list, DM_list[f], nTimesamples, cutoff, local_max_list_size, gmem_peak_pos, DM_shift, &PD_plan, max_iteration);
+				SPDT_peak_find(d_output_SNR, d_output_taps, d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW, DM_list[f], nTimesamples, cutoff, local_max_list_size, gmem_peak_pos, DM_shift, &PD_plan, max_iteration);
 				timer.Stop();
 				PF_time = timer.Elapsed();
 				#ifdef GPU_PARTIAL_TIMER
@@ -268,7 +284,10 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 				temp_peak_pos=local_max_list_size;
 			}
 			if( ((*peak_pos) + temp_peak_pos)<max_peak_size){
-				checkCudaErrors(cudaMemcpy(&h_peak_list[(*peak_pos)*4], d_peak_list, temp_peak_pos*4*sizeof(float), cudaMemcpyDeviceToHost));
+				checkCudaErrors(cudaMemcpy(&h_peak_list_DM[(*peak_pos)],  d_peak_list_DM,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				checkCudaErrors(cudaMemcpy(&h_peak_list_TS[(*peak_pos)],  d_peak_list_TS,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				checkCudaErrors(cudaMemcpy(&h_peak_list_SNR[(*peak_pos)], d_peak_list_SNR, temp_peak_pos*sizeof(float), cudaMemcpyDeviceToHost));
+				checkCudaErrors(cudaMemcpy(&h_peak_list_BW[(*peak_pos)],  d_peak_list_BW,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost));
 				*peak_pos = (*peak_pos) + temp_peak_pos;
 			}
 			else printf("Error peak list is too small!\n");
@@ -278,12 +297,14 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 		}
 		
 		//------------------------> Output
+		float *h_peak_list;
+		h_peak_list = new float[4*(*peak_pos)];
 		#pragma omp parallel for
 		for (int count = 0; count < (*peak_pos); count++){
-			h_peak_list[4*count]     = h_peak_list[4*count]*dm_step[i] + dm_low[i];
-			h_peak_list[4*count + 1] = h_peak_list[4*count + 1]*tsamp + tstart;
-			h_peak_list[4*count + 2] = h_peak_list[4*count + 2];
-			h_peak_list[4*count + 3] = h_peak_list[4*count + 3]*inBin;
+			h_peak_list[4*count]     = ((double) h_peak_list_DM[count])*dm_step[i] + dm_low[i];
+			h_peak_list[4*count + 1] = ((double) h_peak_list_TS[count])*tsamp + tstart;
+			h_peak_list[4*count + 2] = ((double) h_peak_list_SNR[count]);
+			h_peak_list[4*count + 3] = ((double) h_peak_list_BW[count])*inBin;
 		}
         
 		FILE *fp_out;
@@ -310,6 +331,7 @@ void analysis_GPU(float *h_peak_list, size_t *peak_pos, size_t max_peak_size, in
 				fclose(fp_out);
 			}
 		}
+		delete[] h_peak_list;
 		//------------------------> Output
 
 	}
