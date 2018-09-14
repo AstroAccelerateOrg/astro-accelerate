@@ -1,11 +1,4 @@
-// Added by Karel Adamek 
-
-#ifndef SINGLE_PULSE_SEARCH_INPLACE_KERNEL_H_
-#define SINGLE_PULSE_SEARCH_INPLACE_KERNEL_H_
-
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include "headers/params.h"
+#include "device_SNR_limited_inplace_kernel.hpp"
 
 //__device__ __constant__ float c_sqrt_taps[PD_MAXTAPS+1];
 
@@ -101,6 +94,11 @@ __global__ void PD_GPUv1_const(float *d_input, float *d_temp, unsigned char *d_o
 	}
 }
 
+void call_kernel_PD_ZC_GPU(float *d_input, float *d_output, int maxTaps, int nTimesamples, int nLoops) {
 
+}
 
-#endif
+void call_kernel_PD_GPUv1_const(float *d_input, float *d_temp, unsigned char *d_output_taps,
+				int maxTaps, int nTimesamples, float signal_mean, float signal_sd) {
+
+}

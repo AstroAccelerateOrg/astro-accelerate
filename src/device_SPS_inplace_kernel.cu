@@ -1,13 +1,5 @@
-// Added by Karel Adamek 
-
-#ifndef SPS_INPLACE_KERNEL_H_
-#define SPS_INPLACE_KERNEL_H_
-
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include "headers/params.h"
-
-__device__ __constant__ float c_sqrt_taps[PD_MAXTAPS + 1];
+// Added by Karel Adamek
+#include "device_SPS_inplace_kernel.hpp"
 
 __global__ void PD_ZC_GPU_KERNEL(float *d_input, float *d_output, int maxTaps, int nTimesamples, int nLoops)
 {
@@ -127,6 +119,17 @@ __global__ void PD_INPLACE_GPU_KERNEL(float *d_input, float *d_temp, unsigned ch
 	}
 }
 
+void call_kernel_PD_ZC_GPU_KERNEL(dim3 grid_size, dim3 block_size, float *d_input, float *d_output, int maxTaps, int nTimesamples, int nLoops) {
+  PD_ZC_GPU_KERNEL<<<grid_size, block_size>>>(d_input, d_output, maxTaps, nTimesamples, nLoops);
+}
+
+void call_kernel_PD_INPLACE_GPU_KERNEL(dim3 grid_size, dim3 block_size, int SM_size, float *d_input,
+				       float *d_temp, unsigned char *d_output_taps, float *d_MSD,
+				       int maxTaps, int nTimesamples) {
+  PD_INPLACE_GPU_KERNEL<<<grid_size, block_size, SM_size>>>(d_input, d_temp, d_output_taps,
+							    d_MSD, maxTaps, nTimesamples);
+}
+
 /*
  //******************** OLD VERSION *********************************
  __global__ void PD_INPLACE_GPU_KERNEL_OLD(float *d_input, float *d_temp, unsigned char *d_output_taps, float *d_MSD, int maxTaps, int nTimesamples) {
@@ -205,5 +208,3 @@ __global__ void PD_INPLACE_GPU_KERNEL(float *d_input, float *d_temp, unsigned ch
  }
  }
  */
-
-#endif

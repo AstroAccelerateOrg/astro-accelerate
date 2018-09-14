@@ -1,14 +1,6 @@
-// Added by Karel Adamek 
+#include "device_SNR_limited_kernel.hpp"
 
-#ifndef SNR_LIMITED_KERNEL_H_
-#define SNR_LIMITED_KERNEL_H_
-
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include "headers/params.h"
-
-__global__ void SNR_GPU_limited(float *d_FIR_input, float *d_SNR_output, ushort *d_SNR_taps, float *d_MSD, int x_steps, int nTaps, int nColumns, int offset)
-{
+__global__ void SNR_GPU_limited(float *d_FIR_input, float *d_SNR_output, ushort *d_SNR_taps, float *d_MSD, int x_steps, int nTaps, int nColumns, int offset) {
 	int local_id = threadIdx.x & ( WARP - 1 );
 	int warp_id = threadIdx.x >> 5;
 	int dim_y = blockDim.x >> 5;
@@ -60,4 +52,9 @@ __global__ void SNR_GPU_limited(float *d_FIR_input, float *d_SNR_output, ushort 
 
 } //-------------------- KERNEL ENDS HERE --------------------------
 
-#endif
+void call_kernel_SNR_GPU_limited(dim3 grid_size, dim3 block_size, float *d_FIR_input, float *d_SNR_output,
+				 ushort *d_SNR_taps, float *d_MSD, int x_steps, int nTaps,
+				 int nColumns, int offset) {
+  SNR_GPU_limited<<<grid_size, block_size>>>(d_FIR_input, d_SNR_output, d_SNR_taps, d_MSD,
+					     x_steps, nTaps, nColumns, offset);
+}

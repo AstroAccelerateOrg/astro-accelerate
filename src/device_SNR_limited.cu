@@ -1,10 +1,6 @@
-//Added by Karel Adamek
+#include "device_SNR_limited.hpp"
 
-#include "headers/params.h"
-#include "device_SNR_limited_kernel.cu"
-
-int Choose_dim(int grid_dim)
-{
+int Choose_dim(int grid_dim) {
 	int seive[15] =
 	{ 32, 31, 29, 23, 19, 17, 16, 13, 11, 8, 7, 5, 4, 3, 2 };
 
@@ -12,14 +8,11 @@ int Choose_dim(int grid_dim)
 
 	N = 1;
 	N_accepted = 1;
-	for (int i = 0; i < 4; i++)
-	{
-		for (f = 0; f < 15; f++)
-		{
+	for (int i = 0; i < 4; i++) {
+		for (f = 0; f < 15; f++) {
 			nBlocks = grid_dim / seive[f];
 			nRest = grid_dim - nBlocks * seive[f];
-			if (nRest == 0)
-			{
+			if (nRest == 0) {
 				N_accepted = N_accepted * N;
 				N = seive[f];
 				break;
@@ -29,19 +22,16 @@ int Choose_dim(int grid_dim)
 			return ( N_accepted );
 		grid_dim = grid_dim / N;
 	}
-
 	return ( N_accepted );
 }
 
-void SNR_limited_init()
-{
+void SNR_limited_init() {
 	//---------> Specific nVidia stuff
 	cudaDeviceSetCacheConfig (cudaFuncCachePreferShared);
 	cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
 }
 
-int SNR_limited(float *d_FIR_input, float *d_SNR_output, ushort *d_SNR_taps, float *d_MSD, int nTaps, int nDMs, int nTimesamples, int offset)
-{
+int SNR_limited(float *d_FIR_input, float *d_SNR_output, ushort *d_SNR_taps, float *d_MSD, int nTaps, int nDMs, int nTimesamples, int offset) {
 	//---------> Task specific
 	int nBlocks_x, nBlocks_y, nSteps_x, nSteps_y, nRest, nThreads, // int nBlocks_total;
 	    epw; //epw = elements per warp 32 for float 64 for float2
@@ -72,7 +62,8 @@ int SNR_limited(float *d_FIR_input, float *d_SNR_output, ushort *d_SNR_taps, flo
 
 	//---------> MSD
 	SNR_limited_init();
-	SNR_GPU_limited<<<gridSize, blockSize>>>(d_FIR_input, d_SNR_output, d_SNR_taps, d_MSD, nSteps_x, nTaps, nTimesamples, offset);
+	call_kernel_SNR_GPU_limited(gridSize, blockSize, d_FIR_input, d_SNR_output, d_SNR_taps, d_MSD,
+				    nSteps_x, nTaps, nTimesamples, offset);
 
 	if (nRest < epw)
 		return ( nRest );

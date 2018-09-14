@@ -1,7 +1,6 @@
 //Added by Karel Adamek
 
-#include "headers/params.h"
-#include "device_SPS_inplace_kernel.cu"
+#include "device_SPS_inplace.hpp"
 
 int Choose_dim_SPS(int grid_dim)
 {
@@ -69,12 +68,14 @@ int PD_SEARCH_INPLACE(float *d_input, unsigned char *d_output_taps, float *d_MSD
 	//---------> CUDA block and CUDA grid parameters for temporary storage
 	dim3 gridSize_temp(nBlocks_x, nBlocks_y, 1);
 	dim3 blockSize_temp(WARP, nThreads, 1);
-	PD_ZC_GPU_KERNEL<<<gridSize_temp, blockSize_temp>>>(d_input, d_output, maxTaps, nTimesamples, nLoops);
+	call_kernel_PD_ZC_GPU_KERNEL(gridSize_temp, blockSize_temp, d_input, d_output, maxTaps,
+				     nTimesamples, nLoops);
 
 	//---------> CUDA block and CUDA grid parameters for in-place PD
 	dim3 gridSize(nBlocks_x, nDMs, 1);
 	dim3 blockSize(PD_NTHREADS, 1, 1);
-	PD_INPLACE_GPU_KERNEL<<<gridSize, blockSize, SM_size>>>(d_input, d_output, d_output_taps, d_MSD, maxTaps, nTimesamples);
+	call_kernel_PD_INPLACE_GPU_KERNEL(gridSize, blockSize, SM_size, d_input, d_output, d_output_taps,
+					  d_MSD, maxTaps, nTimesamples);
 
 	cudaFree(d_output);
 
