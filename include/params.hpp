@@ -1,3 +1,5 @@
+#ifndef ASTRO_ACCELERATE_PARAMS_HPP
+#define ASTRO_ACCELERATE_PARAMS_HPP
 //P100 8,14,12,40
 #define ACCMAX 350
 #define ACCSTEP 11
@@ -83,3 +85,5 @@
 #define SDIVINT 14
 #define SDIVINDM 40
 #define SFDIVINDM 40.0f
+
+#endif

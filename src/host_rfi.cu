@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "headers/params.h"
+#include "params.hpp"
+#include "host_rfi.hpp"
 
 void rfi(int nsamp, int nchans, unsigned short **input_buffer)
 {

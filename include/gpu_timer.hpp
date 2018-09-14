@@ -1,5 +1,5 @@
-#ifndef GPU_TIMER_H__
-#define GPU_TIMER_H__
+#ifndef ASTRO_ACCELERATE_GPU_TIMER_HPP
+#define ASTRO_ACCELERATE_GPU_TIMER_HPP
 
 #include <cuda_runtime.h>
 

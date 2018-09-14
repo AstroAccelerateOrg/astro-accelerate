@@ -1,8 +1,14 @@
-#include <vector>
-#include "headers/device_MSD_Configuration.h"
+#ifndef ASTRO_ACCELERATE_DEVICE_MSD_HPP
+#define ASTRO_ACCELERATE_DEVICE_MSD_HPP
 
-#ifndef ASTROACCELERATE_MSD_H_
-#define ASTROACCELERATE_MSD_H_
+#include <vector>
+
+#include <helper_cuda.h>
+
+#include "device_MSD_Configuration.hpp"
+#include "device_MSD_shared_kernel_functions.hpp"
+#include "device_MSD_normal_kernel.hpp"
+#include "device_MSD_outlier_rejection_kernel.hpp"
 
 extern void MSD_init(void);
 extern int MSD_normal(float *d_MSD, float *d_input, float *d_temp, MSD_Configuration *MSD_conf);
