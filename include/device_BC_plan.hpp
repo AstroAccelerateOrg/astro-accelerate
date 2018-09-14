@@ -1,5 +1,5 @@
-#ifndef __BC_PLAN__
-#define __BC_PLAN__
+#ifndef ASTRO_ACCELERATE_DEVICE_BC_PLAN_HPP
+#define ASTRO_ACCELERATE_DEVICE_BC_PLAN_HPP
 
 struct PulseDetection_plan {
 	int decimated_timesamples;

@@ -1,11 +1,7 @@
 //Added by Karel Adamek
 //#define SPS_LONG_DEBUG
 
-#include <vector>
-
-#include "headers/params.h"
-#include "headers/device_BC_plan.h"
-#include "device_SPS_long_kernel.cu"
+#include "device_SPS_long.hpp"
 
 
 size_t Get_memory_requirement_of_SPS(){
@@ -54,7 +50,7 @@ int SPDT_search_long_MSD_plane(float *d_input, float *d_boxcar_values, float *d_
 	printf("decimated_timesamples:%d; dtm:%d; iteration:%d; nBoxcars:%d; nBlocks:%d; output_shift:%d; shift:%d; startTaps:%d; unprocessed_samples:%d; total_ut:%d; MSD_plane_pos:%d;\n",decimated_timesamples, dtm, iteration ,nBoxcars ,nBlocks ,output_shift ,shift ,startTaps ,unprocessed_samples ,total_ut, MSD_plane_pos);
 	#endif
 	
-	if(nBlocks>0) SPDT_GPU_1st_plane<<<gridSize,blockSize>>>( d_input, d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, (float2 *) d_MSD_interpolated, decimated_timesamples, nBoxcars, dtm);
+	if(nBlocks>0) call_kernel_SPDT_GPU_1st_plane(gridSize, blockSize, d_input, d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, (float2 *) d_MSD_interpolated, decimated_timesamples, nBoxcars, dtm);
 	
 	checkCudaErrors(cudaGetLastError());
 	
@@ -70,11 +66,11 @@ int SPDT_search_long_MSD_plane(float *d_input, float *d_boxcar_values, float *d_
 		
 		if( (f%2) == 0 ) {
 			if(nBlocks>0) 
-				SPDT_GPU_Nth_plane<<<gridSize,blockSize>>>(&d_input[shift], &d_boxcar_values[nDMs*(nTimesamples>>1)], d_boxcar_values, d_decimated, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], (float2 *) &d_MSD_interpolated[MSD_plane_pos*2], decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
+			  call_kernel_SPDT_GPU_Nth_plane(gridSize,blockSize, &d_input[shift], &d_boxcar_values[nDMs*(nTimesamples>>1)], d_boxcar_values, d_decimated, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], (float2 *) &d_MSD_interpolated[MSD_plane_pos*2], decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
 		}
 		else {
 			if(nBlocks>0) 
-				SPDT_GPU_Nth_plane<<<gridSize,blockSize>>>(&d_decimated[shift], d_boxcar_values, &d_boxcar_values[nDMs*(nTimesamples>>1)], d_input, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], (float2 *) &d_MSD_interpolated[MSD_plane_pos*2], decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
+			  call_kernel_SPDT_GPU_Nth_plane(gridSize,blockSize, &d_decimated[shift], d_boxcar_values, &d_boxcar_values[nDMs*(nTimesamples>>1)], d_input, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], (float2 *) &d_MSD_interpolated[MSD_plane_pos*2], decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
 		}
 		
 		checkCudaErrors(cudaGetLastError());

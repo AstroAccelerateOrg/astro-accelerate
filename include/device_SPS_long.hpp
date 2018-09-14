@@ -1,10 +1,16 @@
+#ifndef ASTRO_ACCELERATE_DEVICE_SPS_LONG_HPP
+#define ASTRO_ACCELERATE_DEVICE_SPS_LONG_HPP
+
 #include <vector>
 #include <stdio.h>
 #include <stdlib.h>
-#include "device_BC_plan.h"
 
-#ifndef __SPS_LONG__
-#define __SPS_LONG__
+#include <helper_cuda.h>
+
+#include "device_BC_plan.hpp"
+#include "params.hpp"
+#include "device_BC_plan.hpp"
+#include "device_SPS_long_kernel.hpp"
 
 size_t Get_memory_requirement_of_SPS();
 extern void PD_SEARCH_LONG_init();

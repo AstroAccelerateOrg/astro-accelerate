@@ -5,7 +5,7 @@
 #include <cuda_runtime.h>
 #include "params.hpp"
 
-//This device constant is needed by the SPS module and the SNR module
+//This device constant is needed by the SPS (and SPS long) module and the SNR module
 __device__ __constant__ float c_sqrt_taps[PD_MAXTAPS + 1];
 
 void call_kernel_PD_ZC_GPU_KERNEL(dim3 grid_size, dim3 block_size, float *d_input, float *d_output,
