@@ -16,6 +16,11 @@ list(APPEND CUDA_NVCC_FLAGS -g;)
 list(APPEND CUDA_NVCC_FLAGS -lineinfo;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-O3;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;"-fopenmp";)
+#list(APPEND CUDA_DEV_LIBRARIES
+#            ${CUDA_cufft_LIBRARY}
+#            ${CUDA_curand_LIBRARY}
+#	     ${CUDA_cudart_LIBRARY}
+#	     ${CUDA_cudadevrt_LIBRARY})
 list(APPEND CMAKE_CXX_FLAGS "-std=c++11 -O3 -fopenmp -lm -Wall -ffast-math")
 
 # Status information
@@ -34,7 +39,7 @@ include_directories(${CUDA_LIBRARY_DIRS})
 # CUDA library object
 file(GLOB_RECURSE GPU_SOURCE_FILES "src/*.cu")
 cuda_add_library(astroaccelerate SHARED ${GPU_SOURCE_FILES})
-target_link_libraries(astroaccelerate ${CUDA_LIBRARY_DIRS})
+target_link_libraries(astroaccelerate PRIVATE ${CUDA_LIBRARY_DIRS} ${CUDA_CUFFT_LIBRARIES})
 set_target_properties(astroaccelerate PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(astroaccelerate PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(astroaccelerate PROPERTIES BUILD_SHARED_LIBS ON)
