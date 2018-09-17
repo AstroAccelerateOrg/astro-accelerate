@@ -1,175 +1,8 @@
 // James Sharpe's peak finding code
 
-#ifndef PEAK_FIND_KERNEL_
-#define PEAK_FIND_KERNEL_
-
-struct float3x3 {
-    float x1, x2, x3;
-    float y1, y2, y3;
-    float z1, z2, z3;
-};
-
-__device__ ushort is_peak(const float original_value, const float dilated_value, const float threshold) {
-    return (original_value > threshold && original_value == dilated_value) ? 1u: 0u;
-}
-
-__device__ float3 load_row(const float *input, int idx) {
-    float3 val;
-    val.x = __ldg(input+idx);
-    val.y = __ldg(input+idx+1);
-    val.z = __ldg(input+idx+2);
-    return val;
-}
-
-__device__ float2 load_row2(const float *input, int idx) {
-    float2 val;
-	val.x=__ldg(input+idx);
-	val.y=__ldg(input+idx+1);
-    return val;
-}
-
-__device__ float3x3 load_block(const float *input, int idxX, int idxY, int width) {
-    int idx = idxY*width + idxX;
-    float3x3 data;
-    float3 yrow = load_row(input, idx-1);
-    float3 xrow = load_row(input, idx-width-1);
-    float3 zrow = load_row(input, idx+width-1);
-    data.x1 = xrow.x;
-    data.x2 = xrow.y;
-    data.x3 = xrow.z;
-    data.y1 = yrow.x;
-    data.y2 = yrow.y;
-    data.y3 = yrow.z;
-    data.z1 = zrow.x;
-    data.z2 = zrow.y;
-    data.z3 = zrow.z;
-    return data;
-}
-
-__device__ float3x3 load_block_top(const float *input, int idxX, int idxY, int width) {
-     int idx = idxY*width + idxX;
-     float3x3 data;
-     float3 yrow = load_row(input, idx-1);
-     float3 zrow = load_row(input, idx+width-1);
-     data.y1 = yrow.x;
-     data.y2 = yrow.y;
-     data.y3 = yrow.z;
-     data.z1 = zrow.x;
-     data.z2 = zrow.y;
-     data.z3 = zrow.z;
-     return data;
-}
-
-__device__ float3x3 load_block_bottom(const float *input, int idxX, int idxY, int width) {
-     int idx = idxY*width + idxX;
-     float3x3 data;
-     float3 yrow = load_row(input, idx-1);
-     float3 xrow = load_row(input, idx-width-1);
-     data.y1 = yrow.x;
-     data.y2 = yrow.y;
-     data.y3 = yrow.z;
-     data.x1 = xrow.x;
-     data.x2 = xrow.y;
-     data.x3 = xrow.z;
-     return data;
-}
-
-__device__ float3x3 load_block_left(const float *input, int idxX, int idxY, int width) {
-     int idx = idxY*width + idxX;
-     float3x3 data;
-     float2 xrow = load_row2(input, idx-width);
-     float2 yrow = load_row2(input, idx);
-     float2 zrow = load_row2(input, idx+width);
-     data.x2 = xrow.x;
-     data.x3 = xrow.y;
-     data.y2 = yrow.x;
-     data.y3 = yrow.y;
-     data.z2 = zrow.x;
-     data.z3 = zrow.y;
-     return data;
-}
-
-__device__ float3x3 load_block_right(const float *input, int idxX, int idxY, int width) {
-     int idx = idxY*width + idxX;
-     float3x3 data;
-     float2 xrow = load_row2(input, idx-width-1);
-     float2 yrow = load_row2(input, idx-1);
-     float2 zrow = load_row2(input, idx+width-1);
-     data.x1 = xrow.x;
-     data.x2 = xrow.y;
-     data.y1 = yrow.x;
-     data.y2 = yrow.y;
-     data.z1 = zrow.x;
-     data.z2 = zrow.y;
-     return data;
-}
-
-__device__ float4 load_block_2x2(const float *input, int width) {
-	float2 first, second;
-	first.x  = __ldg(input);        first.y  = __ldg(input+1);
-	second.x = __ldg(input+width);  second.y = __ldg(input+width+1);
-	float4 result;
-	result.x = first.x; result.y = first.y; result.z = second.x; result.w = second.y;
-	return result;
-}
-
-
-
-__device__ float dilate3x3_left(const float3x3 i) {
-     float max = fmaxf(i.x2, i.y2);
-     max = fmaxf(max, i.x3);
-     max = fmaxf(max, i.y3);
-     max = fmaxf(max, i.z2);
-     max = fmaxf(max, i.z3);
-     return max;
-}
-
-__device__ float dilate3x3_right(const float3x3 i) {
-     float max = fmaxf(i.x2, i.y2);
-     max = fmaxf(max, i.x1);
-     max = fmaxf(max, i.y1);
-     max = fmaxf(max, i.z2);
-     max = fmaxf(max, i.z1);
-     return max;
-}
-
-__device__ float dilate3x3_top(const float3x3 i) {
-     float max = fmaxf(i.y1, i.y2);
-     max = fmaxf(max, i.y3);
-     max = fmaxf(max, i.z1);
-     max = fmaxf(max, i.z2);
-     max = fmaxf(max, i.z3);
-     return max;
-}
-
-__device__ float dilate3x3_bottom(const float3x3 i) {
-     float max = fmaxf(i.y1, i.y2);
-     max = fmaxf(max, i.y3);
-     max = fmaxf(max, i.x1);
-     max = fmaxf(max, i.x2);
-     max = fmaxf(max, i.x3);
-     return max;
-}
-
-__device__ float dilate4(const float4 i) {
-    float max = fmaxf(i.x, i.y);
-    max = fmaxf(max, i.z);
-    max = fmaxf(max, i.w);
-    return max;
-}
-
-__device__ float dilate3x3(const float3x3 i) {
-     float max = fmaxf(i.x1, i.x2);
-     max = fmaxf(max, i.x3);
-     max = fmaxf(max, i.y1);
-     max = fmaxf(max, i.y2);
-     max = fmaxf(max, i.y3);
-     max = fmaxf(max, i.z1);
-     max = fmaxf(max, i.z2);
-     max = fmaxf(max, i.z3);
-     return max;
-}
-
+#include "device_peak_find_kernel.hpp"
+#include "device_peak_find_shared_kernel_functions.cuh"
+#include "device_threshold_shared_kernel_functions.cuh"
 
 __global__ void dilate_peak_find(const float *d_input, ushort* d_input_taps,  unsigned int *d_peak_list_DM,  unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW, const int width, const int height, const int offset, const float threshold, int max_peak_size, int *gmem_pos, int shift, int DIT_value) {
     int idxX = blockDim.x * blockIdx.x + threadIdx.x;
@@ -529,10 +362,48 @@ __global__ void dilate_peak_find_for_periods(const float *d_input, ushort* d_inp
     //d_output[idxY*width+idxX] = peak;
 }
 
+void call_kernel_dilate_peak_find(dim3 grid_size, dim3 block_size,
+				  const float *d_input, ushort* d_input_taps,  unsigned int *d_peak_list_DM,
+				  unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW,
+				  const int width, const int height, const int offset, const float threshold,
+				  int max_peak_size, int *gmem_pos, int shift, int DIT_value) {
+  dilate_peak_find<<<grid_size, block_size>>>(d_input, d_input_taps, d_peak_list_DM,
+					      d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW,
+					      width, height, offset, threshold,
+					      max_peak_size, gmem_pos, shift, DIT_value);
+}
 
+void call_kernel_dilate_peak_find_for_fdas(dim3 grid_size, dim3 block_size,
+					   const float *d_input, float *d_peak_list, float *d_MSD, const int width,
+					   const int height, const int offset, const float threshold,
+					   unsigned int max_peak_size, unsigned int *gmem_pos, float DM_trial) {
+    dilate_peak_find_for_fdas<<<grid_size, block_size>>>( d_input, d_peak_list, d_MSD, width,
+							  height, offset, threshold,
+							  max_peak_size, gmem_pos, DM_trial);
+}
 
+void call_kernel_dilate_peak_find_for_periods_old(dim3 grid_size, dim3 block_size,
+						  const float *d_input, ushort* d_input_taps, float *d_peak_list,
+						  const int width, const int height, const int offset,
+						  const float threshold,
+						  int max_peak_size, int *gmem_pos, float *d_MDF,
+						  int DM_shift, int DIT_value) {
+  dilate_peak_find_for_periods_old<<<grid_size, block_size>>>(d_input, d_input_taps, d_peak_list,
+							      width, height, offset,
+							      threshold,
+							      max_peak_size, gmem_pos, d_MDF,
+							      DM_shift, DIT_value);
+}
 
-
-
-
-#endif
+void call_kernel_dilate_peak_find_for_periods(dim3 grid_size, dim3 block_size,
+					      const float *d_input, ushort* d_input_taps,
+					      float *d_peak_list, const int width,
+					      const int height, const int offset, const float threshold,
+					      int max_peak_size,
+					      int *gmem_pos, float const* d_MSD, int DM_shift, int DIT_value) {
+  dilate_peak_find_for_periods<<<grid_size, block_size>>>(d_input, d_input_taps,
+							  d_peak_list, width,
+							  height, offset, threshold,
+							  max_peak_size,
+							  gmem_pos, d_MSD, DM_shift, DIT_value);
+}

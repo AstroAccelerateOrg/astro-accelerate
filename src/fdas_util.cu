@@ -1,12 +1,4 @@
-/* FDAS utility functions */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include "headers/fdas_util.h"
-#include <getopt.h>
-#include <string.h>
-#include <sys/stat.h>
+#include "fdas_util.hpp"
 
 void print_usage()
 {

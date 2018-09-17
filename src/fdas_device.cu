@@ -1,11 +1,7 @@
 /* Device functions for acceleration search  */
 /* 06/11/2014 Sofia Dimoudi sofia.dimoudi@oerc.ox.ac.uk */
 
-
-#include <stdio.h>
-#include <cuda_runtime.h>
-#include "headers/fdas_device.h"
-#include "headers/params.h"
+#include "fdas_device.hpp"
 
 static __device__ __inline__ float2 Get_W_value(int N, int m){
 	float2 ctemp;

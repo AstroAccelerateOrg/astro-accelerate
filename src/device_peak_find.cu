@@ -1,13 +1,7 @@
 // James Sharpe's peak finding code
 //#define PEAK_FIND_DEBUG
 
-#include "headers/device_BC_plan.h"
-
-#include <npp.h>
-#include "helper_cuda.h"
-
-#include "headers/params.h"
-#include "device_peak_find_kernel.cu"
+#include "device_peak_find.hpp"
 
 
 void SPDT_peak_find(float *d_output_SNR, ushort *d_output_taps, unsigned int *d_peak_list_DM, unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW, int nDMs, int nTimesamples, float threshold, int max_peak_size, int *gmem_peak_pos, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration){
@@ -27,7 +21,7 @@ void SPDT_peak_find(float *d_output_SNR, ushort *d_output_taps, unsigned int *d_
 			gridSize.y = 1 + ((nDMs-1)/blockDim.y);
 			gridSize.z = 1;		
 			
-			dilate_peak_find<<<gridSize, blockDim>>>(&d_output_SNR[nDMs*PD_plan->operator[](f).output_shift], &d_output_taps[nDMs*PD_plan->operator[](f).output_shift], d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW, decimated_timesamples, nDMs, local_offset, threshold, max_peak_size, gmem_peak_pos, shift, (1<<f));
+			call_kernel_dilate_peak_find(gridSize, blockDim, &d_output_SNR[nDMs*PD_plan->operator[](f).output_shift], &d_output_taps[nDMs*PD_plan->operator[](f).output_shift], d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW, decimated_timesamples, nDMs, local_offset, threshold, max_peak_size, gmem_peak_pos, shift, (1<<f));
 		}
 	}
 }
@@ -36,14 +30,14 @@ void PEAK_FIND_FOR_FDAS(float *d_ffdot_plane, float *d_peak_list, float *d_MSD, 
 	dim3 blockDim(32, 2, 1);
 	dim3 gridSize(1 + ((nTimesamples-1)/blockDim.x), 1 + ((nDMs-1)/blockDim.y), 1);
 	
-	dilate_peak_find_for_fdas<<<gridSize, blockDim>>>( d_ffdot_plane, d_peak_list, d_MSD, nTimesamples, nDMs, 0, threshold, max_peak_size, gmem_peak_pos, DM_trial);
+	call_kernel_dilate_peak_find_for_fdas(gridSize, blockDim, d_ffdot_plane, d_peak_list, d_MSD, nTimesamples, nDMs, 0, threshold, max_peak_size, gmem_peak_pos, DM_trial);
 }
 
 void Peak_find_for_periodicity_search_old(float *d_input_SNR, ushort *d_input_harmonics, float *d_peak_list, int nDMs, int nTimesamples, float threshold, int max_peak_size, int *gmem_peak_pos, float *d_MSD, int DM_shift, int inBin){
 	dim3 blockDim(32, 32, 1);
 	dim3 gridSize(1 + ((nTimesamples-1)/blockDim.x), 1 + ((nDMs-1)/blockDim.y), 1);
 	
-	dilate_peak_find_for_periods_old<<<gridSize, blockDim>>>(d_input_SNR, d_input_harmonics, d_peak_list, nTimesamples, nDMs, 0, threshold, max_peak_size, gmem_peak_pos, d_MSD, DM_shift, inBin);
+	call_kernel_dilate_peak_find_for_periods_old(gridSize, blockDim, d_input_SNR, d_input_harmonics, d_peak_list, nTimesamples, nDMs, 0, threshold, max_peak_size, gmem_peak_pos, d_MSD, DM_shift, inBin);
 }
 
 void Peak_find_for_periodicity_search(float *d_input_SNR, ushort *d_input_harmonics, float *d_peak_list, int secondary_size, int primary_size, float threshold, int max_peak_size, int *gmem_peak_pos, float *d_MSD, int DM_shift, int inBin){
@@ -92,7 +86,7 @@ void Peak_find_for_periodicity_search(float *d_input_SNR, ushort *d_input_harmon
 		nBlocks_s = 1 + ((secondary_size_per_chunk[f]-1)/blockDim.y);
 		dim3 gridSize(nBlocks_p, nBlocks_s, 1);
 	
-		dilate_peak_find_for_periods<<<gridSize, blockDim>>>(&d_input_SNR[shift*primary_size], d_input_harmonics, d_peak_list, primary_size, secondary_size, 0, threshold, max_peak_size, gmem_peak_pos, d_MSD, DM_shift, inBin);
+		call_kernel_dilate_peak_find_for_periods(gridSize, blockDim, &d_input_SNR[shift*primary_size], d_input_harmonics, d_peak_list, primary_size, secondary_size, 0, threshold, max_peak_size, gmem_peak_pos, d_MSD, DM_shift, inBin);
 		
 		shift = shift + secondary_size_per_chunk[f];
 	}

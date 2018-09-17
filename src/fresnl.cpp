@@ -61,6 +61,7 @@
 
 #include<stdlib.h>
 #include<math.h>
+#include "fresnl.hpp"
 
 #ifndef PI
 #define PI            3.1415926535897932384626433832795028841971693993751
@@ -270,7 +271,7 @@ double polevl(double x, void *coef, int N)
    int i;
    double *p;
 
-   p = coef;
+   p = (double*)coef;
    ans = *p++;
    i = N;
 
@@ -293,7 +294,7 @@ double p1evl(double x, void *coef, int N)
    double *p;
    int i;
 
-   p = coef;
+   p = (double*)coef;
    ans = x + *p++;
    i = N - 1;
 

@@ -7,6 +7,8 @@
 /* Fast computation of the median of an array. */
 /* Note:  It messes up the order!              */
 
+#include "presto_funcs.hpp"
+
 #define ELEM_SWAP(a,b) { register float t=(a);(a)=(b);(b)=t; }
 
 float median(float arr[], int n)

@@ -2,11 +2,11 @@
 //#define THRESHOLD_DEBUG
 
 #include <helper_cuda.h>
+#include "device_threshold.hpp"
+#include "device_BC_plan.hpp"
 
-#include "headers/device_BC_plan.h"
-
-#include "headers/params.h"
-#include "device_threshold_kernel.cu"
+#include "params.hpp"
+#include "device_threshold_kernel.hpp"
 
 void THR_init(void) {
 	//---------> Specific nVidia stuff
@@ -43,7 +43,7 @@ int SPDT_threshold(float *d_input, ushort *d_input_taps, unsigned int *d_output_
 			
 			output_offset = nDMs*PD_plan->operator[](f).output_shift;
 			
-			THR_GPU_WARP<<<gridSize, blockSize>>>(&d_input[output_offset], &d_input_taps[output_offset], d_output_list_DM, d_output_list_TS, d_output_list_SNR, d_output_list_BW, gmem_pos, threshold, decimated_timesamples, decimated_timesamples-local_offset, shift, max_list_size, (1<<f));
+			call_kernel_THR_GPU_WARP(gridSize, blockSize, &d_input[output_offset], &d_input_taps[output_offset], d_output_list_DM, d_output_list_TS, d_output_list_SNR, d_output_list_BW, gmem_pos, threshold, decimated_timesamples, decimated_timesamples-local_offset, shift, max_list_size, (1<<f));
 			
 			checkCudaErrors(cudaGetLastError());
 		}
@@ -77,7 +77,7 @@ int Threshold_for_periodicity_old(float *d_input, ushort *d_input_harms, float *
 	#endif
 	
 	THR_init();
-	GPU_Threshold_for_periodicity_kernel_old<<<gridSize, blockSize>>>(d_input, d_input_harms, d_output_list, gmem_pos, d_MSD, threshold, primary_size, secondary_size, DM_shift, max_list_size, inBin);
+	call_kernel_GPU_Threshold_for_periodicity_kernel_old(gridSize, blockSize, d_input, d_input_harms, d_output_list, gmem_pos, d_MSD, threshold, primary_size, secondary_size, DM_shift, max_list_size, inBin);
 	
 	checkCudaErrors(cudaGetLastError());
 
@@ -134,7 +134,7 @@ int Threshold_for_periodicity(float *d_input, ushort *d_input_harms, float *d_ou
 		gridSize.y = nBlocks_s;
 		gridSize.z = 1;
 	
-		GPU_Threshold_for_periodicity_kernel<<<gridSize, blockSize>>>(&d_input[shift*primary_size], d_input_harms, d_output_list, gmem_pos, d_MSD, threshold, primary_size, secondary_size_per_chunk[f], DM_shift, max_list_size, inBin);
+		call_kernel_GPU_Threshold_for_periodicity_kernel(gridSize, blockSize, &d_input[shift*primary_size], d_input_harms, d_output_list, gmem_pos, d_MSD, threshold, primary_size, secondary_size_per_chunk[f], DM_shift, max_list_size, inBin);
 	
 		checkCudaErrors(cudaGetLastError());
 		shift = shift + secondary_size_per_chunk[f];

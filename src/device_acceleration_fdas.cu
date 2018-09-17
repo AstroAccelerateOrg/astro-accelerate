@@ -11,11 +11,15 @@
 #include <helper_cuda.h>
 #include <cuda_profiler_api.h>
 //
-#include "headers/params.h"
-#include "headers/fdas_test_parameters.h"
-#include "helper_cuda.h"
-#include "headers/fdas.h"
-#include "headers/fdas_host.h"
+#include "params.hpp"
+#include "fdas_test_parameters.hpp"
+#include <helper_cuda.h>
+#include "fdas.hpp"
+#include "fdas_host.hpp"
+#include "device_MSD.hpp"
+#include "device_peak_find.hpp"
+#include "presto_funcs.hpp"
+#include "presto.hpp"
 
 void acceleration_fdas(int range,
 					   int nsamp,

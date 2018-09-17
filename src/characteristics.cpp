@@ -1,5 +1,5 @@
-#include "headers/presto.h"
-#include "headers/cdflib.h"
+#include "presto.hpp"
+#include "cdflib.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>

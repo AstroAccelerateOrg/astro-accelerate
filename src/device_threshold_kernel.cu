@@ -1,12 +1,8 @@
-// Added by Karel Adamek 
+// Added by Karel Adamek
 
-#ifndef THRESHOLD_KERNEL_H_
-#define THRESHOLD_KERNEL_H_
-
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include "headers/params.h"
-//#include "device_stdev_approx.cu"
+#include "device_threshold_kernel.hpp"
+#include "device_peak_find_shared_kernel_functions.cuh"
+#include "device_threshold_shared_kernel_functions.cuh"
 
 __global__ void THR_GPU_WARP(float const* __restrict__ d_input, ushort *d_input_taps, unsigned int *d_output_list_DM, unsigned int *d_output_list_TS, float *d_output_list_SNR, unsigned int *d_output_list_BW, int *gmem_pos, float threshold, int nTimesamples, int offset, int shift, int max_list_size, int DIT_value) {
 	int local_id;
@@ -39,14 +35,6 @@ __global__ void THR_GPU_WARP(float const* __restrict__ d_input, ushort *d_input_
 		}
 		pos_x = pos_x + WARP;
 	}
-}
-
-__device__ __inline__ float white_noise(float *value, float *hrms, float *mean, float *sd){
-	return( __frsqrt_rn((*hrms)+1.0f)*((*value) - (*mean)*((*hrms)+1.0f))/((*sd)) );
-}
-
-__device__ __inline__ float inverse_white_noise(float *SNR, float *hrms, float *mean, float *sd){
-	return( (*SNR)*__fsqrt_rn((*hrms)+1.0f)*(*sd) + (*mean)*((*hrms)+1.0f) );
 }
 
 __global__ void GPU_Threshold_for_periodicity_kernel_old(float const* __restrict__ d_input, ushort *d_input_harms, float *d_output_list, int *gmem_pos, float *d_MSD, float threshold, int primary_size, int secondary_size, int DM_shift, int max_list_size, int DIT_value) {
@@ -123,6 +111,36 @@ __global__ void GPU_Threshold_for_periodicity_kernel(float const* __restrict__ d
 	}
 }
 
+void call_kernel_THR_GPU_WARP(dim3 grid_size, dim3 block_size,
+			      float const* d_input, ushort *d_input_taps,
+			      unsigned int *d_output_list_DM, unsigned int *d_output_list_TS,
+			      float *d_output_list_SNR, unsigned int *d_output_list_BW,
+			      int *gmem_pos, float threshold, int nTimesamples, int offset,
+			      int shift, int max_list_size, int DIT_value) {
+  THR_GPU_WARP<<<grid_size, block_size>>>(d_input, d_input_taps, d_output_list_DM, d_output_list_TS,
+					  d_output_list_SNR, d_output_list_BW,
+					  gmem_pos, threshold, nTimesamples, offset,
+					  shift, max_list_size, DIT_value);
+}
 
+void call_kernel_GPU_Threshold_for_periodicity_kernel_old(dim3 grid_size, dim3 block_size,
+							  float const* d_input, ushort *d_input_harms,
+							  float *d_output_list, int *gmem_pos, float *d_MSD,
+							  float threshold, int primary_size, int secondary_size,
+							  int DM_shift, int max_list_size, int DIT_value) {
+  GPU_Threshold_for_periodicity_kernel_old<<<grid_size, block_size>>>(d_input, d_input_harms, d_output_list,
+								      gmem_pos, d_MSD, threshold, primary_size,
+								      secondary_size, DM_shift, max_list_size, DIT_value);
 
-#endif
+}
+
+void call_kernel_GPU_Threshold_for_periodicity_kernel(dim3 grid_size, dim3 block_size,
+						      float const* d_input, ushort *d_input_harms,
+						      float *d_output_list, int *gmem_pos, float const* d_MSD,
+						      float threshold, int primary_size,
+						      int secondary_size, int DM_shift, int max_list_size, int DIT_value) {
+  GPU_Threshold_for_periodicity_kernel<<<grid_size, block_size>>>(d_input, d_input_harms,
+								 d_output_list, gmem_pos, d_MSD,
+								 threshold, primary_size,
+								 secondary_size, DM_shift, max_list_size, DIT_value);
+}

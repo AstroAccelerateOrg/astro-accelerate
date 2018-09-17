@@ -5,6 +5,8 @@
 #include <cufft.h>
 #include <math.h>
 #include <string.h>
+#include "fresnl.hpp"
+#include "presto_funcs.hpp"
 
 /* PRESTO defines */
 #define NUMLOCPOWAVG  20 //Number of bins (total) to average for local power:  Must be an even number (1/2 on each side). 

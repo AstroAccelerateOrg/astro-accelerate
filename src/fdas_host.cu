@@ -1,19 +1,5 @@
 	/* FDAS host functions */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <math.h>
-#include "headers/fdas_host.h"
-#include "headers/params.h"
-#include "headers/fdas_test_parameters.h"
-//#include <helper_functions.h>
-#include <helper_cuda.h>
-#include <curand.h>
-#include <libgen.h>
-//#include <random> // C++11 to use normal distribution
+#include "fdas_host.hpp"
 
 void  fdas_print_params_h()
 {
