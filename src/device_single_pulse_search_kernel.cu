@@ -1,11 +1,8 @@
-// Added by Karel Adamek 
-
-#ifndef SINGLE_PULSE_SEARCH_KERNEL_H_
-#define SINGLE_PULSE_SEARCH_KERNEL_H_
-
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "headers/params.h"
+#include "params.hpp"
+#include "device_single_pulse_search_kernel.hpp"
+#include "device_SPS_inplace_kernel.hpp"
 
 //__device__ __constant__ float c_sqrt_taps[PD_MAXTAPS + 1];
 
@@ -81,5 +78,7 @@ __global__ void PD_SEARCH_GPU(float const* __restrict__ d_input, float *d_output
 	}
 }
 
-#endif
-
+void call_kernel_PD_SEARCH_GPU(dim3 grid_size, dim3 block_size, int sm_size,
+		   float const* d_input, float *d_output, float *d_output_taps, float *d_MSD, int maxTaps, int nTimesamples) {
+  PD_SEARCH_GPU<<<grid_size, block_size, sm_size>>>(d_input, d_output, d_output_taps, d_MSD, maxTaps, nTimesamples);
+}

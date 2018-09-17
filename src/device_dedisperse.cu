@@ -1,7 +1,8 @@
 #include <stdio.h>
-#include "headers/params.h"
-#include "headers/device_bin.h"
-
+#include "params.hpp"
+#include "device_bin.hpp"
+#include "device_dedisperse.hpp"
+#include "device_dedispersion_kernel.hpp"
 //{{{ dedisperse 
 
 void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned short *d_input, float *d_output, int nchans, int nsamp, int maxshift, float *tsamp, float *dm_low, float *dm_high, float *dm_step, int *ndms, int nbits, int failsafe)
@@ -39,8 +40,8 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 				dim3 num_blocks(num_blocks_t, num_blocks_dm);
 
 				cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
-				cudaFuncSetCacheConfig(shared_dedisperse_kernel_16, cudaFuncCachePreferShared);
-				shared_dedisperse_kernel_16<<<num_blocks, threads_per_block>>>(inBin[i], d_input, d_output, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
+				//cudaFuncSetCacheConfig(shared_dedisperse_kernel_16, cudaFuncCachePreferShared); //Subsume in call_kernel_*
+				call_kernel_shared_dedisperse_kernel_16(num_blocks, threads_per_block, inBin[i], d_input, d_output, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
 			}
 			else
 			{
@@ -80,8 +81,8 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 				dim3 num_blocks(num_blocks_t, num_blocks_dm);
 
 				cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
-				cudaFuncSetCacheConfig(shared_dedisperse_kernel, cudaFuncCachePreferShared);
-				shared_dedisperse_kernel<<<num_blocks, threads_per_block>>>(inBin[i], d_input, d_output, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
+				//cudaFuncSetCacheConfig(shared_dedisperse_kernel, cudaFuncCachePreferShared); //Subsume in call_kernel_*
+				call_kernel_shared_dedisperse_kernel(num_blocks, threads_per_block, inBin[i], d_input, d_output, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
 			}
 			else
 			{
@@ -108,8 +109,8 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 			dim3 threads_per_block(divisions_in_t, divisions_in_dm);
 			dim3 num_blocks(num_blocks_t, num_blocks_dm);
 
-			cudaFuncSetCacheConfig(cache_dedisperse_kernel, cudaFuncCachePreferL1);
-			cache_dedisperse_kernel<<<num_blocks, threads_per_block>>>(inBin[i], d_input, d_output, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
+			//cudaFuncSetCacheConfig(cache_dedisperse_kernel, cudaFuncCachePreferL1); //Subsume in call_kernel_*
+			call_kernel_cache_dedisperse_kernel(num_blocks, threads_per_block, inBin[i], d_input, d_output, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
 	}
 }
 

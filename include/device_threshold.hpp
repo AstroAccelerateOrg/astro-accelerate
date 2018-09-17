@@ -10,7 +10,7 @@ extern int SPDT_threshold(float *d_input, ushort *d_input_taps, unsigned int *d_
 
 extern int Threshold_for_periodicity_old(float *d_input, ushort *d_input_harms, float *d_output_list, int *gmem_pos, float *d_MSD, float threshold, int primary_size, int secondary_size, int DM_shift, int inBin, int max_list_size);
 
-extern int Threshold_for_periodicity(float *d_input, ushort *d_input_harms, float *d_output_list, int *gmem_pos, float const* __restrict__ d_MSD, float threshold, int primary_size, int secondary_size, int DM_shift, int inBin, int max_list_size);
+extern int Threshold_for_periodicity(float *d_input, ushort *d_input_harms, float *d_output_list, int *gmem_pos, float *d_MSD, float threshold, int primary_size, int secondary_size, int DM_shift, int inBin, int max_list_size);
 
 #endif
 

@@ -6,15 +6,15 @@
 #include <vector>
 #include <stdio.h>
 #include <stdlib.h>
-#include "headers/params.h"
+#include "params.hpp"
 
-#include "headers/device_BC_plan.h"
-#include "headers/device_peak_find.h"
-#include "headers/device_MSD_plane_profile.h"
-#include "headers/device_SPS_long.h"
-#include "headers/device_threshold.h"
+#include "device_BC_plan.hpp"
+#include "device_peak_find.hpp"
+#include "device_MSD_plane_profile.hpp"
+#include "device_SPS_long.hpp"
+#include "device_threshold.hpp"
 
-#include "timer.h"
+#include "gpu_timer.hpp"
 
 //TODO:
 // Make BC_plan for arbitrary long pulses, by reusing last element in the plane

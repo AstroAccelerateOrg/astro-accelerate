@@ -1,8 +1,8 @@
 //Added by Karel Adamek
 //#define HS_DEBUG
 
-#include "headers/params.h"
-#include "device_harmonic_summing_kernel.cu"
+#include "params.hpp"
+#include "device_harmonic_summing_kernel.hpp"
 
 void periodicity_simple_harmonic_summing_old(float *d_input, float *d_output_SNR, ushort *d_output_harmonics, float *d_MSD, int nTimesamples, int nSpectra, int nHarmonics){
 	//---------> Task specific
@@ -23,7 +23,7 @@ void periodicity_simple_harmonic_summing_old(float *d_input, float *d_output_SNR
 	
 	cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
 	cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeFourByte);
-	PHS_GPU_kernel_old<<<gridSize,blockSize>>>(d_input, d_output_SNR, d_output_harmonics, d_MSD, nTimesamples, nSpectra, nHarmonics);
+	call_kernel_PHS_GPU_kernel_old(gridSize,blockSize, d_input, d_output_SNR, d_output_harmonics, d_MSD, nTimesamples, nSpectra, nHarmonics);
 }
 
 void periodicity_simple_harmonic_summing(float *d_input, float *d_output_SNR, ushort *d_output_harmonics, float *d_MSD, int nTimesamples, int nSpectra, int nHarmonics){
@@ -45,5 +45,5 @@ void periodicity_simple_harmonic_summing(float *d_input, float *d_output_SNR, us
 	
 	cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
 	cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeFourByte);
-	PHS_GPU_kernel<<<gridSize,blockSize>>>(d_input, d_output_SNR, d_output_harmonics, d_MSD, nTimesamples, nSpectra, nHarmonics);
+	call_kernel_PHS_GPU_kernel(gridSize, blockSize, d_input, d_output_SNR, d_output_harmonics, d_MSD, nTimesamples, nSpectra, nHarmonics);
 }

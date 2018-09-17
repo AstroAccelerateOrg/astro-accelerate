@@ -3,15 +3,19 @@
 #include <cufft.h>
 #include <math.h>
 #include <vector>
-#include "headers/params.h"
 
-#include "headers/device_periodicity_parameters.h"
-#include "headers/device_MSD_Configuration.h"
-#include "headers/device_MSD.h"
-#include "headers/device_MSD_plane_profile.h"
-#include "headers/device_peak_find.h"
-#include "headers/device_power.h"
-#include "headers/device_harmonic_summing.h"
+#include "device_periods.hpp"
+#include "params.hpp"
+
+#include "device_periodicity_parameters.hpp"
+#include "device_MSD_Configuration.hpp"
+#include "device_MSD.hpp"
+#include "device_MSD_plane_profile.hpp"
+#include "device_peak_find.hpp"
+#include "device_power.hpp"
+#include "device_harmonic_summing.hpp"
+#include "device_corner_turn.hpp"
+#include "device_threshold.hpp"
 
 #include <iostream>
 #include <fstream>

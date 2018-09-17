@@ -1,10 +1,7 @@
-#ifndef POWER_KERNEL_H_
-#define POWER_KERNEL_H_
-
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cufft.h>
-#include "headers/params.h"
+#include "params.hpp"
 
 //{{{ Set stretch
 __global__ void power_kernel(int half_samps, int acc, cufftComplex *d_signal_fft, float *d_signal_power) {
@@ -41,5 +38,12 @@ __global__ void GPU_simple_power_and_interbin_kernel(float2 *d_input_complex, fl
 	}
 }
 
-#endif
+void call_kernel_power_kernel(dim3 block_size, dim3 grid_size, int smem_bytes, cudaStream_t stream,
+			      int half_samps, int acc, cufftComplex *d_signal_fft, float *d_signal_power) {
+  power_kernel<<<block_size, grid_size, smem_bytes, stream>>>(half_samps, acc, d_signal_fft, d_signal_power);
+}
 
+void call_kernel_GPU_simple_power_and_interbin_kernel(dim3 grid_size, dim3 block_size,
+						      float2 *d_input_complex, float *d_output_power, float *d_output_interbinning, int nTimesamples, float norm) {
+  GPU_simple_power_and_interbin_kernel<<<grid_size, block_size>>>(d_input_complex, d_output_power, d_output_interbinning, nTimesamples, norm);
+}

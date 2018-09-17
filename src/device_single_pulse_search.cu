@@ -1,6 +1,8 @@
 //Added by Karel Adamek
 
-#include "headers/params.h"
+#include <stdio.h>
+#include "params.hpp"
+#include "device_single_pulse_search_kernel.hpp"
 
 void PD_SEARCH_init(void)
 {
@@ -35,7 +37,7 @@ int PD_SEARCH(float *d_input, float *d_output, float *d_output_taps, float *d_MS
 
 	//---------> Pulse detection FIR
 	PD_SEARCH_init();
-	PD_SEARCH_GPU<<<gridSize, blockSize, SM_size>>>(d_input, d_output, d_output_taps, d_MSD, maxTaps, nTimesamples);
+	call_kernel_PD_SEARCH_GPU(gridSize, blockSize, SM_size, d_input, d_output, d_output_taps, d_MSD, maxTaps, nTimesamples);
 
 	ut = nRest + maxTaps - 1;
 	return ( ut );

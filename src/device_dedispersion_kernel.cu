@@ -1,14 +1,6 @@
-#ifndef DEDISPERSE_KERNEL_H_
-#define DEDISPERSE_KERNEL_H_
-
-#define ARRAYSIZE SDIVINT * SDIVINDM
+#include "device_dedispersion_kernel.hpp"
 
 #include "float.h"
-
-// Stores temporary shift values
-__device__ __constant__ float dm_shifts[8192];
-__device__ __constant__ int i_nsamp, i_nchans, i_t_processed_s;
-__device__  __shared__ ushort2 f_line[UNROLLS][ARRAYSIZE + 2];
 
 //{{{ shared_dedisperse_loop
 
@@ -172,7 +164,21 @@ __global__ void cache_dedisperse_kernel(int bin, unsigned short *d_input, float 
 	d_output[shift] = (local_kernel / i_nchans / bin);
 
 }
-#endif
 
+void call_kernel_shared_dedisperse_kernel(dim3 block_size, dim3 grid_size,
+					  int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep) {
+  cudaFuncSetCacheConfig(shared_dedisperse_kernel_16, cudaFuncCachePreferShared);
+  shared_dedisperse_kernel<<<block_size, grid_size>>>(bin, d_input, d_output, mstartdm, mdmstep);
+}
 
+void call_kernel_shared_dedisperse_kernel_16(dim3 block_size, dim3 grid_size,
+					     int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep) {
+  cudaFuncSetCacheConfig(shared_dedisperse_kernel, cudaFuncCachePreferShared);
+  shared_dedisperse_kernel_16<<<block_size, grid_size>>>(bin, d_input, d_output, mstartdm, mdmstep);
+}
 
+void call_kernel_cache_dedisperse_kernel(dim3 block_size, dim3 grid_size,
+					 int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep) {
+  cudaFuncSetCacheConfig(cache_dedisperse_kernel, cudaFuncCachePreferL1);
+  cache_dedisperse_kernel<<<block_size, grid_size>>>(bin, d_input, d_output, mstartdm, mdmstep);
+}

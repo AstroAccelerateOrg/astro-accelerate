@@ -3,6 +3,9 @@
 //extern "C" void load_data(int i, float *device_pointer, float *host_pointer, size_t size, int nsamp, int maxshift, int nchans, int t_processed_s, int t_processed_c, float *dmshifts);
 
 //{{{ load_data_from_host_to_device
+#include "device_load_data.hpp"
+#include "device_dedispersion_kernel.hpp"
+#include "device_SPS_inplace_kernel.hpp"
 
 void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short *host_pointer, int t_processed, int maxshift, int nchans, float *dmshifts)
 {

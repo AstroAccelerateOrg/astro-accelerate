@@ -1,5 +1,6 @@
 #include <stdio.h>
-#include "headers/params.h"
+#include "params.hpp"
+#include "device_init.hpp"
 
 // CUDA-C includes
 #include <cuda.h>

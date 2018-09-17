@@ -1,12 +1,7 @@
-
-
-#ifndef HARMONIC_SUMMING_KERNEL_H_
-#define HARMONIC_SUMMING_KERNEL_H_
-
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "headers/params.h"
-
+#include "params.hpp"
+#include "device_harmonic_summing_kernel.hpp"
 
 __global__ void PHS_GPU_kernel_old(float const* __restrict__ d_input, float *d_output_SNR, ushort *d_output_harmonics, float *d_MSD, int nTimesamples, int nSpectra, int nHarmonics){
 	float signal_mean=d_MSD[0];
@@ -82,4 +77,14 @@ __global__ void PHS_GPU_kernel(float const* __restrict__ d_input, float *d_outpu
 	}
 }
 
-#endif
+void call_kernel_PHS_GPU_kernel_old(dim3 grid_size, dim3 block_size,
+				    float const* d_input, float *d_output_SNR, ushort *d_output_harmonics,
+				    float *d_MSD, int nTimesamples, int nSpectra, int nHarmonics) {
+  PHS_GPU_kernel_old<<<grid_size, block_size>>>(d_input, d_output_SNR, d_output_harmonics, d_MSD, nTimesamples, nSpectra, nHarmonics);
+}
+
+void call_kernel_PHS_GPU_kernel(dim3 grid_size, dim3 block_size,
+				float const* d_input, float *d_output_SNR, ushort *d_output_harmonics,
+				float *d_MSD, int nTimesamples, int nSpectra, int nHarmonics) {
+  PHS_GPU_kernel<<<grid_size, block_size>>>(d_input, d_output_SNR, d_output_harmonics, d_MSD, nTimesamples, nSpectra, nHarmonics);
+}
