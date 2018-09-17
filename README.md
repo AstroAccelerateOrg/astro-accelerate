@@ -55,7 +55,7 @@ Selecting the Graphics Processing Unit (GPU) in the case of a system with more t
 ===
 If you have a multi-GPU system, you need to modify two files to use one specific card.
 
-1. Edit `lib/AstroAccelerate/params.h`, so that the `CARD` variable is set to the right card number id:
+1. Edit `include/params.h`, so that the `CARD` variable is set to the right card number id:
     #define CARD ... 
 2. Edit the Makefile and set the `GENCODE_FLAG` to the correct architecture. For example:
     GENCODE_FLAGS := $(GENCODE_SM61)
@@ -188,9 +188,9 @@ Set-up the environment (which will add CUDA to PATH and LD_LIBRARY_PATH)
 `setup.sh` contains a hardcoded version number and a variable string to identify
 whether the system is a 64-bit or 32-bit architecture. The user may need to edit
 `setup.sh` to suit the CUDA version number, library paths, and the architecture number
-in order to suit their needs. Next, `cd` into the `lib` directory by doing
+in order to suit their needs. Next, run CMake
 
-    cd lib/
+    cmake .
 
 The software can be compiled using the supplied makefile. To do so, simply type
 
@@ -202,7 +202,11 @@ The result will be an executable called
 
     astro-accelerate
 
-in the astro-accelerate directory.
+in the astro-accelerate directory, and a shared object library called
+
+   libastroaccelerate.so
+
+against which the executable has been linked.
 
 Step 3: Run
 ==
