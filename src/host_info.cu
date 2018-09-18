@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/sysinfo.h>
+#include "host_info.hpp"
 
 void host_info(struct sysinfo *host_info)
 {

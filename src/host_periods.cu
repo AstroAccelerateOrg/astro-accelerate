@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <cufft.h>
 #include <math.h>
-#include "headers/params.h"
+#include "params.hpp"
 
 // define to see debug info
 #define GPU_PERIODICITY_SEARCH_DEBUG

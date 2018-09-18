@@ -1,61 +1,61 @@
-#include "headers/headers_mains.h"
+#include "headers_mains.hpp"
 
 #include <helper_cuda.h>
 
-#include "headers/device_bin.h"
-#include "headers/device_init.h"
-#include "headers/device_dedisperse.h"
-#include "headers/device_dedispersion_kernel.h"
-#include "headers/device_zero_dm.h"
-#include "headers/device_zero_dm_outliers.h"
-#include "headers/device_rfi.h"
+#include "device_bin.hpp"
+#include "device_init.hpp"
+#include "device_dedisperse.hpp"
+#include "device_dedispersion_kernel.hpp"
+#include "device_zero_dm.hpp"
+#include "device_zero_dm_outliers.hpp"
+#include "device_rfi.hpp"
 
 // MSD
-#include "headers/device_MSD_Configuration.h"
-#include "headers/device_MSD.h"
-#include "headers/device_MSD_plane_profile.h"
+#include "device_MSD_Configuration.hpp"
+#include "device_MSD.hpp"
+#include "device_MSD_plane_profile.hpp"
 
-#include "headers/device_SPS_inplace_kernel.h" //Added by KA
-#include "headers/device_SPS_inplace.h" //Added by KA
-#include "headers/device_SNR_limited.h" //Added by KA
-#include "headers/device_SPS_long.h" //Added by KA
-#include "headers/device_threshold.h" //Added by KA
-#include "headers/device_single_FIR.h" //Added by KA
-#include "headers/device_analysis.h" //Added by KA
-#include "headers/device_periods.h" //Added by KA
-#include "headers/device_peak_find.h" //Added by KA
-#include "headers/device_power.h"
-#include "headers/device_harmonic_summing.h"
+#include "device_SPS_inplace_kernel.hpp" //Added by KA
+#include "device_SPS_inplace.hpp" //Added by KA
+#include "device_SNR_limited.hpp" //Added by KA
+#include "device_SPS_long.hpp" //Added by KA
+#include "device_threshold.hpp" //Added by KA
+#include "device_single_FIR.hpp" //Added by KA
+#include "device_analysis.hpp" //Added by KA
+#include "device_periods.hpp" //Added by KA
+#include "device_peak_find.hpp" //Added by KA
+#include "device_power.hpp"
+#include "device_harmonic_summing.hpp"
 
 
 
-#include "headers/device_load_data.h"
-#include "headers/device_corner_turn.h"
-#include "headers/device_save_data.h"
-#include "headers/host_acceleration.h"
-#include "headers/host_allocate_memory.h"
-#include "headers/host_analysis.h"
-#include "headers/host_export.h"
-#include "headers/host_periods.h"
-#include "headers/host_debug.h"
-#include "headers/host_get_file_data.h"
-#include "headers/host_get_recorded_data.h"
-#include "headers/host_get_user_input.h"
-#include "headers/host_help.h"
-#include "headers/host_rfi.h"
-#include "headers/host_stratagy.h"
-#include "headers/host_MSD_stratagy.h" //Adding for MSD permanent memory
-#include "headers/host_write_file.h"
-#include "headers/host_info.h"
+#include "device_load_data.hpp"
+#include "device_corner_turn.hpp"
+#include "device_save_data.hpp"
+#include "host_acceleration.hpp"
+#include "host_allocate_memory.hpp"
+#include "host_analysis.hpp"
+#include "host_export.hpp"
+#include "host_periods.hpp"
+#include "host_debug.hpp"
+#include "host_get_file_data.hpp"
+#include "host_get_recorded_data.hpp"
+#include "host_get_user_input.hpp"
+#include "host_help.hpp"
+#include "host_rfi.hpp"
+#include "host_stratagy.hpp"
+#include "host_MSD_stratagy.hpp" //Adding for MSD permanent memory
+#include "host_write_file.hpp"
+#include "host_info.hpp"
 
 // fdas
-#include "headers/device_acceleration_fdas.h"
+#include "device_acceleration_fdas.hpp"
 
-#include "headers/host_main_function.h"
+#include "host_main_function.hpp"
 
-#include "headers/params.h"
+#include "params.hpp"
 
-#include "timer.h"
+#include "gpu_timer.hpp"
 
 
 //#define EXPORT_DD_DATA

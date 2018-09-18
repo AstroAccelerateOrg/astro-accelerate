@@ -1,10 +1,7 @@
-#ifndef STATS_KERNEL_H_
-#define STATS_KERNEL_H_
-
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cufft.h>
-#include "headers/params.h"
+#include "params.hpp"
 
 //{{{ Set stats
 __global__ void stats_kernel(int half_samps, float *d_sum, float *d_sum_square, float *d_signal_power)
@@ -25,5 +22,8 @@ __global__ void stats_kernel(int half_samps, float *d_sum, float *d_sum_square, 
 	d_sum[blockIdx.x * blockDim.x + threadIdx.x] = sum;
 	d_sum_square[blockIdx.x * blockDim.x + threadIdx.x] = sum_square;
 }
-#endif
 
+void call_kernel_stats_kernel(dim3 block_size, dim3 grid_size, int smem_bytes, cudaStream_t stream,
+			      int half_samps, float *d_sum, float *d_sum_square, float *d_signal_power) {
+  stats_kernel<<<block_size, grid_size, smem_bytes, stream>>>(half_samps, d_sum, d_sum_square, d_signal_power);
+}

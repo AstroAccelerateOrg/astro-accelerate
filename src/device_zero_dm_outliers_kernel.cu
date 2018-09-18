@@ -1,9 +1,6 @@
-#ifndef ZERODM_OUTLIERS_KERNEL_H_
-#define ZERODM_OUTLIERS_KERNEL_H_
-
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "headers/params.h"
+#include "params.hpp"
 
 #define MEAN	127.5f
 #define CUT 	2.0f
@@ -241,7 +238,15 @@ __global__ void zero_dm_outliers_kernel_two(unsigned short *d_input, int nchans,
 		}
 	}
 }
+
+void call_kernel_zero_dm_outliers_kernel_one(dim3 block_size, dim3 grid_size,
+					     unsigned short *d_input, int nchans, int nsamp) {
+  zero_dm_outliers_kernel_one<<<block_size, grid_size>>>(d_input, nchans, nsamp);
+}
+
+void call_kernel_zero_dm_outliers_kernel_two(dim3 block_size, dim3 grid_size,
+					     unsigned short *d_input, int nchans, int nsamp) {
+  zero_dm_outliers_kernel_two<<<block_size, grid_size>>>(d_input, nchans, nsamp);
+}
+
 //}}}
-
-#endif
-

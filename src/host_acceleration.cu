@@ -2,13 +2,12 @@
 #include <stdlib.h>
 #include <cufft.h>
 #include <time.h>
-// #include <omp.h>
-#include "headers/params.h"
-#include "headers/device_stats.h"
-#include "headers/device_stretch.h"
-#include "headers/device_set_stretch.h"
-#include "headers/device_power.h"
-#include "helper_cuda.h"
+#include "params.hpp"
+#include "device_stats.hpp"
+#include "device_stretch.hpp"
+#include "device_set_stretch.hpp"
+#include "device_power.hpp"
+#include <helper_cuda.h>
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)

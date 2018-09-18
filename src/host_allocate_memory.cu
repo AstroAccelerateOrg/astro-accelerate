@@ -13,8 +13,8 @@
 #include <cuda_runtime_api.h>
 //#include <omp.h>
 #include <cuda.h>
-#include "headers/params.h"
-#include "headers/host_info.h"
+#include "params.hpp"
+#include "host_info.hpp"
 #include <helper_cuda.h>
 
 

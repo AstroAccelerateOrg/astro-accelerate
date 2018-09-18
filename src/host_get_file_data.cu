@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+#include "host_get_file_data.hpp"
 /* Note we send in a pointer to the file pointer becuase this function needs to update the position of the file pointer
  */
 

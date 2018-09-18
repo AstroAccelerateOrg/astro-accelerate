@@ -1,12 +1,12 @@
-#include "headers/headers_mains.h"
-#include "headers/host_main_function.h" // Added by Nassim.O
-#include "headers/host_debug.h"
-#include "headers/host_get_user_input.h"
-#include "headers/host_get_file_data.h"
-#include "headers/host_allocate_memory.h"
-#include "headers/host_get_recorded_data.h"
-#include "headers/host_info.h"
-#include "headers/params.h"
+#include "headers_mains.hpp"
+#include "host_main_function.hpp" // Added by Nassim.O
+#include "host_debug.hpp"
+#include "host_get_user_input.hpp"
+#include "host_get_file_data.hpp"
+#include "host_allocate_memory.hpp"
+#include "host_get_recorded_data.hpp"
+#include "host_info.hpp"
+#include "params.hpp"
 
 int main(int argc, char* argv[])
 {

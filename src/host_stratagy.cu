@@ -1,4 +1,5 @@
-#include "headers/params.h"
+#include "host_stratagy.hpp"
+#include "params.hpp"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

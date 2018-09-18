@@ -1,9 +1,7 @@
-
-//#include <omp.h>
 #include <time.h>
 #include <stdio.h>
-#include "headers/params.h"
-#include "device_rfi_kernel.cu"
+#include "params.hpp"
+#include "device_rfi_kernel.hpp"
 
 //{{{ rfi_gpu
 
@@ -23,7 +21,8 @@ void rfi_gpu(unsigned short *d_input, int nchans, int nsamp) {
 	clock_t start_t, end_t;
 	start_t = clock();
 
-	rfi_gpu_kernel<<< num_blocks, threads_per_block >>>(d_input, nchans, nsamp);
+	call_kernel_rfi_gpu_kernel(num_blocks, threads_per_block,
+				   d_input, nchans, nsamp);
 	cudaDeviceSynchronize();
 
 	end_t = clock();

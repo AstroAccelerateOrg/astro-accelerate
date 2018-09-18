@@ -1,9 +1,7 @@
-
-//#include <omp.h>
 #include <time.h>
 #include <stdio.h>
-#include "headers/params.h"
-#include "device_zero_dm_kernel.cu"
+#include "params.hpp"
+#include "device_zero_dm_kernel.hpp"
 
 //{{{ zero_dm
 
@@ -25,7 +23,7 @@ void zero_dm(unsigned short *d_input, int nchans, int nsamp, int nbits) {
 
 	float normalization_factor = ((pow(2,nbits)-1)/2);
 
-	zero_dm_kernel<<< num_blocks, threads_per_block >>>(d_input, nchans, nsamp, normalization_factor);
+	call_kernel_zero_dm_kernel(num_blocks, threads_per_block, d_input, nchans, nsamp, normalization_factor);
 	cudaDeviceSynchronize();
 
 	end_t = clock();

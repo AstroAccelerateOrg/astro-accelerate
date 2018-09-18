@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "headers/params.h"
-#include "headers/host_MSD_stratagy.h"
-#include "headers/device_MSD_plane_profile.h"
-#include "headers/device_BC_plan.h"
+#include "params.hpp"
+#include "host_MSD_stratagy.hpp"
+#include "device_MSD_plane_profile.hpp"
+#include "device_BC_plan.hpp"
 
 
 

@@ -1,10 +1,9 @@
-//#include <omp.h>
 #include <time.h>
 #include <stdio.h>
 #include <cufft.h>
-#include "headers/params.h"
-#include "device_stats_kernel.cu"
-#include "helper_cuda.h"
+#include "params.hpp"
+#include "device_stats_kernel.hpp"
+#include <helper_cuda.h>
 
 //{{{ Return stats 
 
@@ -60,7 +59,7 @@ void stats_gpu(cudaEvent_t event, cudaStream_t stream, int samps, float *mean, f
 	checkCudaErrors(cudaMallocHost((void** )&h_sum_square, size * sizeof(float)));
 
 	cudaStreamWaitEvent(stream, event, 0);
-	stats_kernel<<<num_blocks, threads_per_block, 0, stream>>>(half_samps, d_sum, d_sum_square, d_signal_power);
+	call_kernel_stats_kernel(num_blocks, threads_per_block, 0, stream, half_samps, d_sum, d_sum_square, d_signal_power);
 	getLastCudaError("power_kernel failed");
 	cudaEventRecord(event, stream);
 

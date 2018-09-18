@@ -1,9 +1,6 @@
-#ifndef ZERODM_KERNEL_H_
-#define ZERODM_KERNEL_H_
-
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "headers/params.h"
+#include "params.hpp"
 
 
 //{{{ zero dm kernel - needs cleaning and optimizing // WA 21/10/16
@@ -18,7 +15,9 @@ __global__ void zero_dm_kernel(unsigned short *d_input, int nchans, int nsamp, f
 	for(int c = 0; c < nchans; c++) d_input[t*nchans + c]=(unsigned short)((unsigned char)((float)d_input[t*nchans + c]-sum));
 }
 
+void call_kernel_zero_dm_kernel(dim3 block_size, dim3 grid_size,
+				unsigned short *d_input, int nchans, int nsamp, float normalization_factor) {
+  zero_dm_kernel<<<block_size, grid_size >>>(d_input, nchans, nsamp, normalization_factor);
+}
+
 //}}}
-
-#endif
-

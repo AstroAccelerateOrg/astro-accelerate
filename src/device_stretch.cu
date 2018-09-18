@@ -1,8 +1,7 @@
-// #include <omp.h>
 #include <stdio.h>
-#include "headers/params.h"
-#include "device_stretch_kernel.cu"
-#include "helper_cuda.h"
+#include "params.hpp"
+#include "device_stretch_kernel.hpp"
+#include <helper_cuda.h>
 
 //{{{ Dopler Stretch 
 
@@ -29,7 +28,7 @@ void stretch_gpu(cudaEvent_t event, cudaStream_t stream, int acc, int samps, flo
 	//start_t = omp_get_wtime();
 
 	cudaStreamWaitEvent(stream, event, 0);
-	stretch_kernel<<<num_blocks, threads_per_block, 0, stream>>>(acc, samps, tsamp, d_input, d_output, t_zero, multiplier, tsamp_inverse);
+	call_kernel_stretch_kernel(num_blocks, threads_per_block, 0, stream, acc, samps, tsamp, d_input, d_output, t_zero, multiplier, tsamp_inverse);
 	getLastCudaError("stretch_kernel failed");
 	cudaEventRecord(event, stream);
 
