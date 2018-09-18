@@ -55,5 +55,10 @@ else
     fi
 fi
 
-export CUDA_INSTALL_PATH=/usr/local/cuda/
+# Make all necessary directories
+ echo "NOTICE: Make all necessary directories"
+ if [ ! -d astrolib ]; then
+     mkdir astrolib
+ fi
+
 echo "Done."
