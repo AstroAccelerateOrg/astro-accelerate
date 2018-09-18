@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
 echo "Setting up Astro-Accelerate..."
-AA_ARCHITECTURE="64" #Leave blank for 32-bit, set to 64 for 64-bit
+
 # CUDA required PATH and LD_LIBRARY_PATH
+AA_ARCHITECTURE="64" #Leave blank for 32-bit, set to 64 for 64-bit
 AA_ADD_PATH=/usr/local/cuda/bin
 AA_ADD_LD_LIBRARY_PATH=/usr/local/cuda/lib${AA_ARCHITECTURE}
 
@@ -54,10 +55,5 @@ else
     fi
 fi
 
-# Make all necessary directories
-echo "NOTICE: Make all necessary directories"
-if [ ! -d astrolib ]; then
-    mkdir astrolib
-fi
-
+export CUDA_INSTALL_PATH=/usr/local/cuda/
 echo "Done."
