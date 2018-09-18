@@ -1,5 +1,15 @@
 ### Add .gitignore entries here.
 
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# Compilation output
+astro-accelerate
+libastroaccelerate.so
+
 # Directories
 build/
 output/
