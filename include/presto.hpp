@@ -1,6 +1,6 @@
 /* PRESTO Function declarations */
-#ifndef ASTROACCELERATE_PRESTO_HPP
-#define ASTROACCELERATE_PRESTO_HPP
+#ifndef ASTRO_ACCELERATE_PRESTO_HPP
+#define ASTRO_ACCELERATE_PRESTO_HPP
 
 #include <math.h>
 #include <cufft.h>
