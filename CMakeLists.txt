@@ -11,16 +11,11 @@ set(CUDA_LINK_LIBRARIES_KEYWORD PUBLIC)
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS})
 
 list(APPEND CUDA_NVCC_FLAGS --ptxas-options= -Xptxas -dlcm=cg;)
-list(APPEND CUDA_NVCC_FLAGS -arch=sm_50;)
+list(APPEND CUDA_NVCC_FLAGS "-gencode arch=compute_50,code=sm_50")
 list(APPEND CUDA_NVCC_FLAGS -g;)
 list(APPEND CUDA_NVCC_FLAGS -lineinfo;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-O3;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;"-fopenmp";)
-#list(APPEND CUDA_DEV_LIBRARIES
-#            ${CUDA_cufft_LIBRARY}
-#            ${CUDA_curand_LIBRARY}
-#	     ${CUDA_cudart_LIBRARY}
-#	     ${CUDA_cudadevrt_LIBRARY})
 list(APPEND CMAKE_CXX_FLAGS "-std=c++11 -O3 -fopenmp -lm -Wall -ffast-math")
 
 # Status information
