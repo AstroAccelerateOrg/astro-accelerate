@@ -167,13 +167,13 @@ __global__ void cache_dedisperse_kernel(int bin, unsigned short *d_input, float 
 
 void call_kernel_shared_dedisperse_kernel(dim3 block_size, dim3 grid_size,
 					  int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep) {
-  cudaFuncSetCacheConfig(shared_dedisperse_kernel_16, cudaFuncCachePreferShared);
+  cudaFuncSetCacheConfig(shared_dedisperse_kernel, cudaFuncCachePreferShared);
   shared_dedisperse_kernel<<<block_size, grid_size>>>(bin, d_input, d_output, mstartdm, mdmstep);
 }
 
 void call_kernel_shared_dedisperse_kernel_16(dim3 block_size, dim3 grid_size,
 					     int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep) {
-  cudaFuncSetCacheConfig(shared_dedisperse_kernel, cudaFuncCachePreferShared);
+  cudaFuncSetCacheConfig(shared_dedisperse_kernel_16, cudaFuncCachePreferShared);
   shared_dedisperse_kernel_16<<<block_size, grid_size>>>(bin, d_input, d_output, mstartdm, mdmstep);
 }
 
