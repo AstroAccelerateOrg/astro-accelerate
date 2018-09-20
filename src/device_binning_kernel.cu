@@ -1,6 +1,3 @@
-#ifndef BIN_KERNEL_H_
-#define BIN_KERNEL_H_
-
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "params.hpp"
@@ -71,7 +68,5 @@ void call_kernel_bin(dim3 num_blocks, dim3 threads_per_block, unsigned short *d_
 void call_kernel_DiT_GPU_v2(dim3 gridSize, dim3 blockSize, float const* d_input, float *d_output, unsigned int nDMs, unsigned int nTimesamples, unsigned int dts) {
   DiT_GPU_v2<<<gridSize,blockSize>>>(d_input, d_output, nDMs, nTimesamples, (nTimesamples>>1));
 }
-
-#endif
 
 //}}}

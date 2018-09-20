@@ -1,8 +1,4 @@
 // Added by Karel Adamek 
-
-#ifndef ASTRO_ACCELERATE_DEVICE_SINGLE_FIR_KERNEL_CU
-#define ASTRO_ACCELERATE_DEVICE_SINGLE_FIR_KERNEL_CU
-
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "params.hpp"
@@ -121,5 +117,3 @@ void call_kernel_PD_FIR_GPUv1(dim3 grid_size, dim3 block_size, int SM_size, floa
 void call_kernel_Fir_L1(dim3 grid_size, dim3 block_size, float const* __restrict__ d_input, float* d_output, int nTaps, int nTimesamples) {
   Fir_L1<<<grid_size, block_size>>>(d_input, d_output, nTaps, nTimesamples);
 }
-
-#endif

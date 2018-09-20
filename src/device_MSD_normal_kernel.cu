@@ -1,6 +1,3 @@
-#ifndef ASTRO_ACCELERATE_DEVICE_MSD_NORMAL_KERNEL_CU
-#define ASTRO_ACCELERATE_DEVICE_MSD_NORMAL_KERNEL_CU
-
 #include "params.hpp"
 #include "device_MSD_Configuration.hpp"
 #include "device_MSD_shared_kernel_functions.cuh"
@@ -52,5 +49,3 @@ __global__ void MSD_GPU_limited(float const* __restrict__ d_input, float *d_outp
 void call_kernel_MSD_GPU_limited(dim3 grid_size, dim3 block_size, float const* d_input, float* d_output, int y_steps, int nTimesamples, int offset) {
   MSD_GPU_limited<<<grid_size, block_size>>>(d_input, d_output, y_steps, nTimesamples, offset);
 }
-
-#endif

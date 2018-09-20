@@ -1,6 +1,3 @@
-#ifndef ASTRO_ACCELERATE_DEVICE_CORNER_TURN_KERNEL_CU
-#define ASTRO_ACCELERATE_DEVICE_CORNER_TURN_KERNEL_CU
-
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "params.hpp"
@@ -80,6 +77,3 @@ void call_kernel_corner_turn_SM_kernel(dim3 grid_size, dim3 block_size, float co
 void call_kernel_swap(dim3 block_size, dim3 grid_size, unsigned short *d_input, float *d_output, int nchans, int nsamp) {
   swap<<<block_size, grid_size>>>(d_input, d_output, nchans, nsamp);
 }
-
-#endif
-

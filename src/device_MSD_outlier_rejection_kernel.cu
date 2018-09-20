@@ -1,6 +1,3 @@
-#ifndef ASTRO_ACCELERATE_DEVICE_MSD_OUTLIER_REJECTION_KERNEL_CU
-#define ASTRO_ACCELERATE_DEVICE_MSD_OUTLIER_REJECTION_KERNEL_CU
-
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "params.hpp"
@@ -495,6 +492,3 @@ void call_kernel_MSD_BLN_grid_calculate_partials(dim3 grid_size, dim3 block_size
 void call_kernel_MSD_BLN_grid_outlier_rejection(dim3 grid_size, dim3 block_size, float const* __restrict__ d_input, float *d_output, int size, float nElements, float multiplier) {
   MSD_BLN_grid_outlier_rejection<<<grid_size, block_size>>>(d_input, d_output, size, nElements, multiplier);
 }
-
-
-#endif
