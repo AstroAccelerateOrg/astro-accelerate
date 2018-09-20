@@ -458,7 +458,6 @@ void MSD_Interpolate_values(float *d_MSD_interpolated, float *d_MSD_DIT, std::ve
 #endif
   call_kernel_MSD_GPU_Interpolate_linear(1, nWidths,
 					 d_MSD_DIT, d_MSD_interpolated, d_MSD_DIT_widths, h_MSD_DIT_widths->size(), d_boxcar, max_width_performed);
-  //MSD_GPU_Interpolate_linear<<<1,nWidths>>>(d_MSD_DIT, d_MSD_interpolated, d_MSD_DIT_widths, h_MSD_DIT_widths->size(), d_boxcar, max_width_performed);
 
   //	for(int f=0; f<nWidths; f++){
   //		if(h_boxcar_widths->operator[](f)<=max_width_performed) {
