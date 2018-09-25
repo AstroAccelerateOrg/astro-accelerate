@@ -14,7 +14,6 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 	FILE *fp_in = NULL;
 
 	char string[100];
-	int i;
 
 	//{{{ Read in the command line parameters and open the input file
 	int nRanges = 0;
@@ -57,7 +56,6 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 		int temp_out_bin= 0;
 
 		// read dm range if enabled
-		i=0;
 		while (!feof(fp_in))
 		{
 			if ( fscanf(fp_in, "%s %f %f %f %d %d\n", string, &temp_low, &temp_high, &temp_step, &temp_in_bin, &temp_out_bin) == 0 )
@@ -67,11 +65,7 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 			}
 			if (strcmp(string, "range") == 0)
 			{
-			  ddtr_plan.user_dm_low[i]  = temp_low;
-			  ddtr_plan.user_dm_high[i] = temp_high;
-			  ddtr_plan.user_dm_step[i] = temp_step;
-			  ddtr_plan.inBin[i] = temp_in_bin;
-			  i++;
+              add_range(temp_low, temp_high, temp_step, temp_in_bin);
 			}
 		}
 		rewind(fp_in);
@@ -83,7 +77,7 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 		float temp_selected_low  = 0;
 		float temp_selected_high = 0;
 		// read selected dm range if enabled
-		i=0;
+		int i=0;
 		while (!feof(fp_in))
 		{
 			if ( fscanf(fp_in, "%s %f %f\n", string, &temp_selected_low, &temp_selected_high) == 0 )
