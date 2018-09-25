@@ -46,16 +46,8 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 		}
 		rewind(fp_in);
 
-		ddtr_plan.nRanges = nRanges;
-		int error = ddtr_plan.Allocate_user_ranges();
+		int error = ddtr_plan.allocate_ranges(nRanges);
 		if(error>1) exit(98);
-
-		
-		//*user_dm_low = (float *) malloc(( *range ) * sizeof(float));
-		//*user_dm_high = (float *) malloc(( *range ) * sizeof(float));
-		//*user_dm_step = (float *) malloc(( *range ) * sizeof(float));
-		//*outBin = (int *) malloc(( *range ) * sizeof(int));
-		//*inBin = (int *) malloc(( *range ) * sizeof(int));
 
 		// temporary variables to read dm range
 		float temp_low  = 0;

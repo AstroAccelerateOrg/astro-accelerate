@@ -1,13 +1,14 @@
 #include "host_strategy.hpp"
 
-DDTR_strategy::DDTR_strategy(const device_DDTR_plan ddtr_plan) : m_plan(ddtr_plan)
+DDTR_strategy::DDTR_strategy(const device_DDTR_plan& ddtr_plan)
+                                   : m_plan(ddtr_plan)
 							       , m_ready(false)
-							       , m_maxshift(ddtr_plan.maxshift)
-							       , m_tchunks(ddtr_plan.num_tchunks)
-							       , m_max_ndms(ddtr_plan.max_ndms)
+							       , m_maxshift(0)
+							       , m_tchunks(0)
+							       , m_max_ndms(0)
 							       , m_total_ndms(ddtr_plan.total_ndms)
 							       , m_max_dm(ddtr_plan.max_dm)
-							       , m_power(ddtr_plan.power)
+							       , m_power(2.0f)
 							       , m_gpu_inputsize(ddtr_plan.gpu_inputsize)
 							       , m_gpu_outputsize(ddtr_plan.gpu_outputsize)
 							       , m_host_inputsize(ddtr_plan.host_inputsize)
@@ -15,12 +16,18 @@ DDTR_strategy::DDTR_strategy(const device_DDTR_plan ddtr_plan) : m_plan(ddtr_pla
 							       , m_nchans(ddtr_plan.nchans)
 							       , m_nsamp(ddtr_plan.nsamp)
 							       , m_nbits(ddtr_plan.nbits)
-							       , m_tsamp(ddtr_plan.tsamp) {
-  
+							       , m_tsamp(ddtr_plan.tsamp)
+                                   , m_dmshifts(NULL)
+                                   , t_processed(NULL)
+{
 }
 
 DDTR_strategy::~DDTR_strategy() {
-
+    if(m_dmshifts!=NULL) free(dmshifts);
+    for(int r=0; r<m_plan.ranges(); ++r){
+        if(t_processed[r]!=NULL) free(t_processed[r]); 
+    }
+    if(t_processed!=NULL) free(t_processed);
 }
 
 void DDTR_strategy::setup() {
@@ -35,15 +42,49 @@ const device_DDTR_plan& DDTR_strategy::plan() const {
   return &m_plan;
 }
 
-void DDTR_strategy::strategy(int *max_samps, float fch1, float foff, int range, float *user_dm_low, float *user_dm_high, float *user_dm_step, float **dm_low, float **dm_high, float **dm_step, int **ndms, float **dmshifts, int *inBin, int ***t_processed, size_t *gpu_memory, int enable_analysis) {
+int DDTR_strategy::Allocate_dmshifts(){
+    m_dmshifts = (float *) malloc( nchans*sizeof(float) );
+    if(m_dmshifts==NULL) return(1);
+    return(0);
+}
+
+int DDTR_strategy::Allocate_t_processed_outer(){
+    t_processed = (size_t **) malloc( m_plan.ranges()*sizeof(size_t *) );
+    if(t_processed==NULL) return(1);
+    return(0);	
+}
+
+int DDTR_strategy::Allocate_t_processed_inner(size_t t_num_tchunks){
+    int error = 0;
+    num_tchunks = t_num_tchunks;
+    for(int r=0; r<nRanges; r++){
+        t_processed[r] = (size_t *) malloc( num_tchunks*sizeof(size_t) );
+        if(t_processed[r] == NULL ) error++;
+    }
+    return(error);
+}
+
+int DDTR_strategy::totalNumberOfTimeChunks() const
+{
+    return(m_plan.ranges()*m_num_tchunks);
+}
+
+int DDTR_strategy::totalNumberOfDMTrials() const
+{
+    return((int) m_total_ndms);		
+}
+	
+void DDTR_strategy::strategy(int *max_samps, float fch1, float foff, float tsamp,
+                             int *max_ndms, int *total_ndms, float *max_dm,
+                             int nchans, int nsamp,
+                             size_t *gpu_memory, int enable_analysis)
+{
 	// This method relies on defining points when nsamps is a multiple of
 	// nchans - bin on the diagonal or a fraction of it.
 	
 	double SPDT_fraction = 3.0/4.0; // 1.0 for MSD plane profile validation
 	
-	float foff     = m_plan->foff;
-	size_t nchans  = m_plan->nchans;
-	int nRanges    = m_plan->nRanges;
+	int range    = m_plan->ranges();
 	
 	int i = 0;
 	int j = 0;
@@ -52,8 +93,8 @@ void DDTR_strategy::strategy(int *max_samps, float fch1, float foff, int range, 
 
 	float n = 0;
 	float fmin = ( fch1 + ( foff * nchans ) );
-	float fmin_pow = powf(fmin, power);
-	float fmax_pow = powf(fch1, power);
+	float fmin_pow = powf(fmin, m_power);
+	float fmax_pow = powf(fch1, m_power);
 
 	*dm_low = (float *) malloc(( range ) * sizeof(float));
 	*dm_high = (float *) malloc(( range ) * sizeof(float));
