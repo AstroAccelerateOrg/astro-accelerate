@@ -8,7 +8,7 @@
 #include "host_help.hpp"
 #include "host_get_user_input.hpp"
 
-void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *enable_debug, int *enable_analysis, int *enable_periodicity, int *enable_acceleration, int *enable_output_ffdot_plan, int *enable_output_fdas_list, int *output_dmt, int *enable_zero_dm, int *enable_zero_dm_with_outliers, int *enable_rfi, int *enable_old_rfi, int *enable_fdas_custom_fft, int *enable_fdas_inbin, int *enable_fdas_norm, int *nboots, int *ntrial_bins, int *navdms, float *narrow, float *wide, float *aggression, int *nsearch, int **inBin, int **outBin, float *power, float *sigma_cutoff, float *sigma_constant, float *max_boxcar_width_in_sec, int *range, float **user_dm_low, float **user_dm_high, float **user_dm_step, int *candidate_algorithm, int *enable_sps_baselinenoise, float **selected_dm_low, float **selected_dm_high, int *nb_selected_dm, int *analysis_debug, int *failsafe, float *periodicity_sigma_cutoff, int *periodicity_nHarmonics)
+void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *enable_debug, int *enable_analysis, int *enable_periodicity, int *enable_acceleration, int *enable_output_ffdot_plan, int *enable_output_fdas_list, int *output_dmt, int *enable_zero_dm, int *enable_zero_dm_with_outliers, int *enable_rfi, int *enable_old_rfi, int *enable_fdas_custom_fft, int *enable_fdas_inbin, int *enable_fdas_norm, int *nboots, int *ntrial_bins, int *navdms, float *narrow, float *wide, float *aggression, int *nsearch, int **inBin, int **outBin, float *power, float *sigma_cutoff, float *sigma_constant, float *max_boxcar_width_in_sec, int *range, float **user_dm_low, float **user_dm_high, float **user_dm_step, int *candidate_algorithm, int *enable_sps_baselinenoise, float **selected_dm_low, float **selected_dm_high, int *nb_selected_dm, int *analysis_debug, int *failsafe, float *periodicity_sigma_cutoff, int *periodicity_nHarmonics, device_DDTR_plan &ddtr_plan)
 {
 
 	FILE *fp_in = NULL;
@@ -17,7 +17,7 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 	int i;
 
 	//{{{ Read in the command line parameters and open the input file
-
+	int nRanges = 0;
 	if (argc < 2)
 	{
 		fprintf(stderr, "Need input file.\n");
@@ -38,18 +38,24 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 				fprintf(stderr, "failed to read input\n");
 				exit(0);
 			}
-			if (strcmp(string, "range") == 0)
-				( *range )++;
+			if (strcmp(string, "range") == 0) {
+			  ++nRanges;
+			}
 			if (strcmp(string, "selected_dm") == 0)
 				( *nb_selected_dm )++;
 		}
 		rewind(fp_in);
 
-		*user_dm_low = (float *) malloc(( *range ) * sizeof(float));
-		*user_dm_high = (float *) malloc(( *range ) * sizeof(float));
-		*user_dm_step = (float *) malloc(( *range ) * sizeof(float));
-		*outBin = (int *) malloc(( *range ) * sizeof(int));
-		*inBin = (int *) malloc(( *range ) * sizeof(int));
+		ddtr_plan.nRanges = nRanges;
+		int error = ddtr_plan.Allocate_user_ranges();
+		if(error>1) exit(98);
+
+		
+		//*user_dm_low = (float *) malloc(( *range ) * sizeof(float));
+		//*user_dm_high = (float *) malloc(( *range ) * sizeof(float));
+		//*user_dm_step = (float *) malloc(( *range ) * sizeof(float));
+		//*outBin = (int *) malloc(( *range ) * sizeof(int));
+		//*inBin = (int *) malloc(( *range ) * sizeof(int));
 
 		// temporary variables to read dm range
 		float temp_low  = 0;
@@ -69,12 +75,11 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 			}
 			if (strcmp(string, "range") == 0)
 			{
-				(*user_dm_low)[i]  = temp_low;
-				(*user_dm_high)[i] = temp_high;
-				(*user_dm_step)[i] = temp_step;
-				(*inBin)[i]  = temp_in_bin;
-				(*outBin)[i] = temp_out_bin;
-				i++;
+			  ddtr_plan.user_dm_low[i]  = temp_low;
+			  ddtr_plan.user_dm_high[i] = temp_high;
+			  ddtr_plan.user_dm_step[i] = temp_step;
+			  ddtr_plan.inBin[i] = temp_in_bin;
+			  i++;
 			}
 		}
 		rewind(fp_in);
@@ -243,13 +248,13 @@ void get_user_input(FILE **fp, int argc, char *argv[], int *multi_file, int *ena
 				}
 			}
 			if (strcmp(string, "power") == 0)
-			{
-				if ( fscanf(fp_in, "%f", power) == 0 )
-				{
-					fprintf(stderr, "failed to read input\n");
-					exit(0);
-				}
-			}
+			  {
+			    if (fscanf(fp_in, "%f", &(ddtr_plan.power)) == 0)
+			      {
+				fprintf(stderr, "failed to read input\n");
+				exit(0);
+			      }
+			  }
 			if (strcmp(string, "file") == 0)
 			{
 				// this command expand "~" to "home/username/"

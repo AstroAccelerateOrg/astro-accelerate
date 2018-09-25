@@ -7,6 +7,7 @@
 #include "host_get_recorded_data.hpp"
 #include "host_info.hpp"
 #include "params.hpp"
+#include "device_DDTR_plan.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -101,6 +102,7 @@ int main(int argc, char* argv[])
 	// Timing parameters
 	clock_t start_time = clock();
 
+	device_DDTR_plan ddtr_plan;
 	// Users desired de-dispersion strategy. Pick up user defined values from the CLI.
 	get_user_input(&fp, argc, argv, &multi_file, &enable_debug, &enable_analysis,
 	    &enable_periodicity, &enable_acceleration, &enable_output_ffdot_plan,
@@ -109,7 +111,7 @@ int main(int argc, char* argv[])
 	    &enable_fdas_inbin, &enable_fdas_norm, &nboots, &ntrial_bins, &navdms,
 	    &narrow, &wide, &aggression, &nsearch, &inBin, &outBin, &power, &sigma_cutoff,
 	    &sigma_constant, &max_boxcar_width_in_sec, &range, &user_dm_low, &user_dm_high,
-	    &user_dm_step, &candidate_algorithm, &enable_sps_baselinenoise, &selected_dm_low, &selected_dm_high, &nb_selected_dm, &analysis_debug, &failsafe, &periodicity_sigma_cutoff, &periodicity_nHarmonics);
+		       &user_dm_step, &candidate_algorithm, &enable_sps_baselinenoise, &selected_dm_low, &selected_dm_high, &nb_selected_dm, &analysis_debug, &failsafe, &periodicity_sigma_cutoff, &periodicity_nHarmonics, ddtr_plan);
 	if (enable_debug == 1)
 		debug(1, start_time, range, outBin, enable_debug, enable_analysis,
 		output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low,
@@ -152,7 +154,7 @@ int main(int argc, char* argv[])
 		user_dm_high, user_dm_step, dm_low, dm_high, dm_step, ndms, nchans,
 		nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm,
 		nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
-
+	
 	main_function
 	(
 	  argc, argv,
@@ -176,7 +178,8 @@ int main(int argc, char* argv[])
 	  power, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, start_time, candidate_algorithm,
 	  nb_selected_dm, selected_dm_low, selected_dm_high, analysis_debug, failsafe,
 	  // Periodicity search
-	  periodicity_sigma_cutoff, periodicity_nHarmonics
+	  periodicity_sigma_cutoff, periodicity_nHarmonics,
+	  ddtr_plan
 	);
 
 	// write output here, not in the library
