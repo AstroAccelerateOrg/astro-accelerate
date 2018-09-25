@@ -1,8 +1,13 @@
 #include "device_dedispersion_kernel.hpp"
 
 #include "float.h"
+#include <helper_cuda.h>
+#include <stdio.h>
 
 //{{{ shared_dedisperse_loop
+
+__device__ __constant__ int i_nsamp, i_nchans, i_t_processed_s;
+__device__ __constant__ float dm_shifts[8192];
 
 __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep)
 {
@@ -163,6 +168,16 @@ __global__ void cache_dedisperse_kernel(int bin, unsigned short *d_input, float 
 
 	d_output[shift] = (local_kernel / i_nchans / bin);
 
+}
+
+void set_device_constants_dedispersion_kernel(const int& nchans, const int& length, const int& t_processed, const float *dmshifts) {
+  printf("Setting device constants\n");
+  cudaMemcpyToSymbol(dm_shifts, dmshifts, nchans * sizeof(float));
+  cudaMemcpyToSymbol(i_nchans, &nchans, sizeof(int));
+  cudaMemcpyToSymbol(i_nsamp, &length, sizeof(int));
+  cudaMemcpyToSymbol(i_t_processed_s, &t_processed, sizeof(int));
+  checkCudaErrors(cudaGetLastError());
+  printf("Finished setting without errors\n");
 }
 
 void call_kernel_shared_dedisperse_kernel(dim3 block_size, dim3 grid_size,

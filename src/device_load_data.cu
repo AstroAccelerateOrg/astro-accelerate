@@ -6,6 +6,7 @@
 #include "device_load_data.hpp"
 #include "device_dedispersion_kernel.hpp"
 #include "device_SPS_inplace_kernel.hpp"
+#include <stdio.h>
 
 void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short *host_pointer, int t_processed, int maxshift, int nchans, float *dmshifts)
 {
@@ -15,17 +16,19 @@ void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short
 	{
 		long int length = ( t_processed + maxshift );
 		size_t size = nchans * length * sizeof(unsigned short);
-		cudaMemcpyToSymbol(dm_shifts, dmshifts, nchans * sizeof(float));
+		//cudaMemcpyToSymbol(dm_shifts, dmshifts, nchans * sizeof(float));
 		cudaMemcpy(device_pointer, host_pointer, size, cudaMemcpyHostToDevice);
-		cudaMemcpyToSymbol(i_nchans, &nchans, sizeof(int));
-		cudaMemcpyToSymbol(i_nsamp, &length, sizeof(int));
-		cudaMemcpyToSymbol(i_t_processed_s, &t_processed, sizeof(int));
+		set_device_constants_dedispersion_kernel(nchans, length, t_processed, dmshifts);
+		//cudaMemcpyToSymbol(i_nchans, &nchans, sizeof(int));
+		//cudaMemcpyToSymbol(i_nsamp, &length, sizeof(int));
+		//cudaMemcpyToSymbol(i_t_processed_s, &t_processed, sizeof(int));
 	}
 	else if (i > 0)
 	{
-		long int length = ( t_processed + maxshift );
-		cudaMemcpyToSymbol(i_nsamp, &length, sizeof(int));
-		cudaMemcpyToSymbol(i_t_processed_s, &t_processed, sizeof(int));
+	  long int length = ( t_processed + maxshift );
+	  //Switch off to be able to compile for now
+	  //cudaMemcpyToSymbol(i_nsamp, &length, sizeof(int));
+	  //cudaMemcpyToSymbol(i_t_processed_s, &t_processed, sizeof(int));
 	}
 	//}}}
 
