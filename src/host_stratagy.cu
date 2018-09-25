@@ -1,20 +1,56 @@
-#include "host_stratagy.hpp"
-#include "params.hpp"
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "host_strategy.hpp"
 
-void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, int *total_ndms, float *max_dm, float power, int nchans, int nsamp, float fch1, float foff, float tsamp, int range, float *user_dm_low, float *user_dm_high, float *user_dm_step, float **dm_low, float **dm_high, float **dm_step, int **ndms, float **dmshifts, int *inBin, int ***t_processed, size_t *gpu_memory, int enable_analysis) {
+DDTR_strategy::DDTR_strategy(const device_DDTR_plan ddtr_plan) : m_plan(ddtr_plan)
+							       , m_ready(false)
+							       , m_maxshift(ddtr_plan.maxshift)
+							       , m_tchunks(ddtr_plan.num_tchunks)
+							       , m_max_ndms(ddtr_plan.max_ndms)
+							       , m_total_ndms(ddtr_plan.total_ndms)
+							       , m_max_dm(ddtr_plan.max_dm)
+							       , m_power(ddtr_plan.power)
+							       , m_gpu_inputsize(ddtr_plan.gpu_inputsize)
+							       , m_gpu_outputsize(ddtr_plan.gpu_outputsize)
+							       , m_host_inputsize(ddtr_plan.host_inputsize)
+							       , m_host_outputsize(ddtr_plan.host_outputsize)
+							       , m_nchans(ddtr_plan.nchans)
+							       , m_nsamp(ddtr_plan.nsamp)
+							       , m_nbits(ddtr_plan.nbits)
+							       , m_tsamp(ddtr_plan.tsamp) {
+  
+}
+
+DDTR_strategy::~DDTR_strategy() {
+
+}
+
+void DDTR_strategy::setup() {
+  strategy(m_plan);
+}
+
+bool DDTR_strategy::valid() const {
+  return m_ready;
+}
+
+const device_DDTR_plan& DDTR_strategy::plan() const {
+  return &m_plan;
+}
+
+void DDTR_strategy::strategy(int *max_samps, float fch1, float foff, int range, float *user_dm_low, float *user_dm_high, float *user_dm_step, float **dm_low, float **dm_high, float **dm_step, int **ndms, float **dmshifts, int *inBin, int ***t_processed, size_t *gpu_memory, int enable_analysis) {
 	// This method relies on defining points when nsamps is a multiple of
 	// nchans - bin on the diagonal or a fraction of it.
 	
 	double SPDT_fraction = 3.0/4.0; // 1.0 for MSD plane profile validation
 	
-
-	int i, j, c;
+	float foff     = m_plan->foff;
+	size_t nchans  = m_plan->nchans;
+	int nRanges    = m_plan->nRanges;
+	
+	int i = 0;
+	int j = 0;
+	int c = 0;
 	int maxshift_high = 0;
 
-	float n;
+	float n = 0;
 	float fmin = ( fch1 + ( foff * nchans ) );
 	float fmin_pow = powf(fmin, power);
 	float fmax_pow = powf(fch1, power);
@@ -250,4 +286,6 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 		printf("\nOutput memory needed:\t%lu MB", nchans * ( *maxshift ) * sizeof(float) / 1024 / 1024);
 	}
 
+	//If method reaches this point, the plan object is in a valid state.
+	m_ready = true;
 }

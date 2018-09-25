@@ -154,6 +154,11 @@ int main(int argc, char* argv[])
 		user_dm_high, user_dm_step, dm_low, dm_high, dm_step, ndms, nchans,
 		nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm,
 		nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
+
+	// Calculate the dedispersion strategy.
+	DDTR_strategy strategy(ddtr_plan);
+	checkCudaErrors(cudaGetLastError());
+
 	
 	main_function
 	(

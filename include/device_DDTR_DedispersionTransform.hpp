@@ -1,8 +1,8 @@
 #ifndef ASTRO_ACCELERATE_DEVICE_DDTR_DEDISPERSION_TRANSFORM_HPP
 #define ASTRO_ACCELERATE_DEVICE_DDTR_DEDISPERSION_TRANSFORM_HPP
 
-#include "headers/device_AA_Parameters.h"
-#include "headers/device_DDTR_Plan.h"
+#include "device_AA_Parameters.hpp"
+#include "device_DDTR_Plan.hpp"
 
 //#include "headers/device_load_data.h"
 
