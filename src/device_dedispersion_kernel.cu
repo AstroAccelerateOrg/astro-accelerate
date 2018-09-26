@@ -171,13 +171,16 @@ __global__ void cache_dedisperse_kernel(int bin, unsigned short *d_input, float 
 }
 
 void set_device_constants_dedispersion_kernel(const int& nchans, const int& length, const int& t_processed, const float *dmshifts) {
-  printf("Setting device constants\n");
   cudaMemcpyToSymbol(dm_shifts, dmshifts, nchans * sizeof(float));
   cudaMemcpyToSymbol(i_nchans, &nchans, sizeof(int));
   cudaMemcpyToSymbol(i_nsamp, &length, sizeof(int));
   cudaMemcpyToSymbol(i_t_processed_s, &t_processed, sizeof(int));
   checkCudaErrors(cudaGetLastError());
-  printf("Finished setting without errors\n");
+}
+
+void set_device_constants_dedispersion_kernel(const long int& length, const int& t_processed) {
+  cudaMemcpyToSymbol(i_nsamp, &length, sizeof(int));
+  cudaMemcpyToSymbol(i_t_processed_s, &t_processed, sizeof(int));
 }
 
 void call_kernel_shared_dedisperse_kernel(dim3 block_size, dim3 grid_size,
