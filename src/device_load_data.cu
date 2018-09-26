@@ -6,7 +6,6 @@
 #include "device_load_data.hpp"
 #include "device_dedispersion_kernel.hpp"
 #include "device_SPS_inplace_kernel.hpp"
-#include <stdio.h>
 
 void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short *host_pointer, int t_processed, int maxshift, int nchans, float *dmshifts)
 {
