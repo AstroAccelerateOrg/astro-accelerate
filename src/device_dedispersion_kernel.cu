@@ -2,7 +2,6 @@
 
 #include "float.h"
 #include <helper_cuda.h>
-#include <stdio.h>
 
 //{{{ shared_dedisperse_loop
 
