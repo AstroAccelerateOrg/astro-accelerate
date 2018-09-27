@@ -19,6 +19,8 @@
 #include "device_SPS_inplace.hpp" //Added by KA
 #include "device_SNR_limited.hpp" //Added by KA
 #include "device_SPS_long.hpp" //Added by KA
+#include "device_SPS_search.hpp"
+#include "device_SPS_plan.hpp"
 #include "device_threshold.hpp" //Added by KA
 #include "device_single_FIR.hpp" //Added by KA
 #include "device_analysis.hpp" //Added by KA
@@ -253,6 +255,8 @@ void main_function
 		
 		checkCudaErrors(cudaGetLastError());
 		
+		SPS_search spssearch;
+
 		int oldBin = 1;
 		for (dm_range = 0; dm_range < range; dm_range++) {
 			printf("\n\n%f\t%f\t%f\t%d", dm_low[dm_range], dm_high[dm_range], dm_step[dm_range], ndms[dm_range]), fflush(stdout);
@@ -336,10 +340,61 @@ void main_function
 					free(h_peak_list_SNR);
 					free(h_peak_list_BW);
 				}
-
+				printf("INC:\t%zu\n\n\n", processed_samples);
 				// This is for testing purposes and should be removed or commented out
 				//analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
 			}
+
+			checkCudaErrors(cudaGetLastError());
+			
+			if (AA_params->enable_analysis == 1) {
+				// NOTE: I am assuming for now these are correct
+				int dm_range = DDTR.getCurrentRange();
+				int time_chunk = DDTR.getCurrentTimeChunk();
+				
+				// Set maximum boxcar widths performed between decimations (This should be set at the beginning, so we do not need to set it before every run of SPDT) 
+				// NOTE: This has been moved to the SPS_Search constructor
+				//SPS_params->add_BC_width(PD_MAXTAPS);
+				//SPS_params->add_BC_width(16);
+				//SPS_params->add_BC_width(16);
+				//SPS_params->add_BC_width(16);
+				//SPS_params->add_BC_width(8);
+
+				if (spssearch.CheckVerbosity()) {
+					spssearch.PrintSearchPlan()
+				}
+				
+				// -----------------------------------------------------------------------
+				// ------------------------------ New way --------------------------------
+				// -----------------------------------------------------------------------
+				// TODO:
+				// 1) make it possible to use persistent memory allocation for multiple searches, both on the host as well as on the device.
+				SPS_Search_AA SPS_search;
+				
+				SPS_search.setParameters(SPS_params);
+				SPS_search.setMSDParameters(MSD_params);
+				
+				// TODO: DDRT should either return or have a getter for DDTR_OutputData object which would contain all information neccessary for the SPDT to work.
+				printf("dm_range: %d; time chunk: %d;\n", dm_range, time_chunk);
+				printf("tstart_local: %f; DDTR->tsamp: %f; DDTR->dm_step: %f; DDTR->dm_low: %f; DDTR->dm_high: %f; DDTR->inBin: %d; DDTR->t_processed: %f; DDTR->ndms: %f;\n", tstart_local, DDTR_plan->tsamp, DDTR_plan->dm_step[dm_range], DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->inBin[dm_range], DDTR_plan->t_processed[dm_range][time_chunk], DDTR_plan->ndms[dm_range]);
+				
+				SPS_search.SPS_data.set(tstart_local, DDTR_plan->tsamp, DDTR_plan->dm_step[dm_range], DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->inBin[dm_range], DDTR_plan->t_processed[dm_range][time_chunk], DDTR_plan->ndms[dm_range]);
+				
+				SPS_search.setInputData(d_DDTR_output);
+				
+				SPS_search.search();
+				
+				SPS_search.export_SPSData();
+				// or
+				candidatelist->clp.push_back(SPS_search.exportToSubList());
+				
+				SPS_search.clear();
+				// -----------------------------------------------------------------------<
+				
+				SPS_params->clear_BC_widths();
+			}
+			printf("INC:\t%zu\n\n\n", processed_samples);
+
 			oldBin = inBin[dm_range];
 		}
 
