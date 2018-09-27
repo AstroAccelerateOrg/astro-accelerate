@@ -6,6 +6,7 @@
 #include "device_MSD_parameters.hpp"
 #include "device_SPS_DataDescription.hpp"
 
+#include "device_analysis.hpp"
 // TODO: Treat this as a proper search plan
 class SPS_Search {
 private:
@@ -19,8 +20,8 @@ private:
 
 protected:
 
-	size_t max_nCandidates;
-	size_t nCandidates;
+	size_t max_candidates;
+	size_t number_candidates;
 	float *h_candidate_list;
 
 public:
@@ -53,12 +54,12 @@ public:
 		return verbose;
 	}
 
-	void Clear(){
-		if(h_candidate_list!=NULL) {
+	void ClearCandidateList(){
+		if (h_candidate_list != NULL) {
 			free(h_candidate_list);
 			h_candidate_list = NULL;
 		}
-		nCandidates = 0;
+		number_candidates = 0;
 	}
 
 	/**
@@ -66,7 +67,7 @@ public:
 	 * 
 	 * @return SPS_Plan&
 	 */
-	SPS_Plan GetSPSPlan(void) {
+	SPS_Plan GetSPSPlan(void) const {
 		return spsplan;
 	}
 
@@ -75,41 +76,15 @@ public:
      * 
      */
     void CreateSearchPlan() {
-        spsplan.CreateSPSPlan()
+        spsplan.CreateSPSPlan();
     }
-
-    /**
-     * @brief Set the Data Description object
-     * 
-     * @param t_time_start 
-     * @param t_sampling_time 
-     * @param t_dm_step 
-     * @param t_dm_low 
-     * @param t_dm_high 
-     * @param t_inBin 
-     * @param t_nTimesamples 
-     * @param t_nDMs 
-     */
-	void setDataDescription(float t_time_start, float t_sampling_time, float t_dm_step, float t_dm_low, float t_dm_high, int t_inBin, size_t t_nTimesamples, size_t t_nDMs){
-		SPS_data.time_start = t_time_start;
-		SPS_data.sampling_time = t_sampling_time;
-		SPS_data.dm_step = t_dm_step;
-		SPS_data.dm_low  = t_dm_low;
-		SPS_data.dm_high = t_dm_high;
-		SPS_data.inBin = t_inBin;
-		SPS_data.nTimesamples = t_nTimesamples;
-		SPS_data.nDMs = t_nDMs;
-	}
-
-	void SetSPSParameters(SPS_Parameters t_SPS_params){
-		SPS_params = t_SPS_params;
-	}
 
     /**
      * @brief Sets the pointer to the dedispersed time series
      * 
      * @param tmpinput pointer to the dedispersed time series memory
      */
+	// NOTE: This now becomes obsolete with passing the pointer directly to the RunSearch method
 	void SetSPSInputData(float *tmpinput){
 		d_input = tmpinput;
 	}
@@ -122,42 +97,39 @@ public:
 	 * 
 	 */
 	// TODO: There must be a better way of doing that
-	void PrintSearchPlan(void) {
+	void PrintSearchPlan(void) const {
 		spsplan.PrintSPSPlan();
 	}
 
-	int RunSPS(void) {
-		if(d_input==NULL) {
-			if(SPS_params.verbose) printf("ERROR: input data pointer is NULL!\n");
+	void UpdateSearchPlan(void) {
+		spsplan.UpdateSPSPlan();
+	}
+
+	int RunSearch(float *d_input) {
+		if (d_input == NULL) {
+			std::cerr << "ERROR: input data pointer is NULL!" << std::endl;
 			return(1);
 		}
-		max_nCandidates = 0;
-		nCandidates = 0;
-		max_nCandidates = (size_t) ( (SPS_data.nDMs*SPS_data.nTimesamples)/4 );
-		h_candidate_list = (float*) malloc(max_nCandidates*4*sizeof(float));
-		if(h_candidate_list==NULL) {
-			if(SPS_params.verbose) printf("ERROR: not enough memory to allocate candidate list\n");
+		max_candidates = 0;
+		number_candidates = 0;
+		max_candidates = static_cast<size_t>(spsplan.GetNumberDMs() * spsplan.GetTimeSamples() * 0.25);
+		h_candidate_list = (float*) malloc(max_candidates*4*sizeof(float));
+		if (h_candidate_list == NULL) {
+			std::cerr << "ERROR: not enough memory to allocate candidate list" << std::endl;
 			return(1);
 		}			
 		
-		analysis_GPU(h_candidate_list, &nCandidates, max_nCandidates, SPS_data, d_input, &SPS_params, &MSD_params);
+		analysis_GPU(verbose, d_input, h_candidate_list, number_candidates, max_candidates, spsplan);
+		
 		
 		return(0);
-	}
-	
-	void ClearCandidateList(){
-		if(h_candidate_list!=NULL) {
-			free(h_candidate_list);
-			h_candidate_list = NULL;
-		}
-		nCandidates = 0;
 	}
 
     int export_SPSData(void) const {
 		char filename[200];
 		
 		/*
-		for(int f=0; f<nCandidates; f++){
+		for(int f=0; f<number_candidates; f++){
 			h_candidate_list[4*list_pos]   = h_candidate_list[4*list_pos]*dm_step + dm_low;
 			h_candidate_list[4*list_pos+1] = h_candidate_list[4*list_pos+1]*sampling_time + start_time;
 			h_candidate_list[4*list_pos+2] = h_candidate_list[4*list_pos+2];
@@ -165,25 +137,25 @@ public:
 		}
 		*/
 		
-		if(SPS_params.candidate_algorithm==1){
-			sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high);
+		if (spsplan.GetSPSAlgorithm() == 0){
+			sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", spsplan.GetStartTime(), SPS_data.dm_low, SPS_data.dm_high);
 		}
-		else {
-			sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high);
+		else if (spsplan.GetSPSAlgorithm() == 1) {
+			sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", spsplan.GetStartTime(), SPS_data.dm_low, SPS_data.dm_high);
 		}
 					
 		FILE *fp_out;
 		
-		if(nCandidates>0){
+		if(number_candidates>0){
 			if (( fp_out = fopen(filename, "wb") ) == NULL) return(1);
-			fwrite(h_candidate_list, nCandidates*sizeof(float), 4, fp_out);
+			fwrite(h_candidate_list, number_candidates*sizeof(float), 4, fp_out);
 			fclose(fp_out);
 		}
 		return(0);
 	}
 	
 	CandidateSubListPointer exportToSubList(void){
-		CandidateSubListPointer newclp = new SPS_CandidateSubList(nCandidates, 0, h_candidate_list, NULL, NULL);
+		CandidateSubListPointer newclp = new SPS_CandidateSubList(number_candidates, 0, h_candidate_list, NULL, NULL);
 		newclp->time_start    = SPS_data.time_start;
 		newclp->sampling_time = SPS_data.sampling_time;
 		newclp->dm_step       = SPS_data.dm_step;

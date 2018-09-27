@@ -74,63 +74,63 @@ class SPS_Parameters {
 			}
 			std::cout << std::endl;
 			std::cout << "---------------------<" << std::endl;
-	}
-	
-	/**
-	 * @brief Clears the boxcar with vector
-	 * 
-	 */
-	void ClearBCWidths(void){
-		BC_widths.clear();
-	}
-
-    /**
-     * @brief Get the maximum iteration
-     * 
-     * @param max_width_performed 
-     * @param max_boxcar_width 
-     * @return int 
-     */
-	int GetMaxIteration(int *max_width_performed, int max_boxcar_width){
-		int startTaps, iteration, f;
-		
-		startTaps = 0;
-		iteration = 0;
-		f=0;
-		while(startTaps<max_boxcar_width){
-			startTaps = startTaps + get_BC_width(f)*(1<<f);
-			f = f + 1;
 		}
-		
-		iteration = f;
-		*max_width_performed=startTaps;
-		return(iteration);
-	}
+	
+		/**
+		 * @brief Clears the boxcar with vector
+		 * 
+		 */
+		void ClearBCWidths(void){
+			BC_widths.clear();
+		}
 
-	/**
-	 * @brief Set the algorithm number
-	 * @param algorithm user suppkied algorithm number: 0 - peak-find, 1 - threshold 
-	 */
-	void SetAlgorithm(short algorithm) {
-		candidate_algorithm = algorithm;
-	}
+		/**
+		 * @brief Get the maximum iteration
+		 * 
+		 * @param max_width_performed 
+		 * @param max_boxcar_width 
+		 * @return int 
+		 */
+		int GetMaxIteration(int *max_width_performed, int max_boxcar_width){
+			int startTaps, iteration, f;
+			
+			startTaps = 0;
+			iteration = 0;
+			f=0;
+			while(startTaps<max_boxcar_width){
+				startTaps = startTaps + get_BC_width(f)*(1<<f);
+				f = f + 1;
+			}
+			
+			iteration = f;
+			*max_width_performed=startTaps;
+			return(iteration);
+		}
 
-	/**
-	 * @brief Return the single-pulse detection algorithm currently in use
-	 * @return short
-	 */
-	short GetAlgorithms(void) const {
-		return candidate_algorithm;
-	}
+		/**
+		 * @brief Set the algorithm number
+		 * @param algorithm user suppkied algorithm number: 0 - peak-find, 1 - threshold 
+		 */
+		void SetAlgorithm(short algorithm) {
+			candidate_algorithm = algorithm;
+		}
 
-	/**
-	 * @brief Adds boxcar width
-	 * 
-	 * @param width width of boxcar function in time samples
-	 */
-    void AddBCWidth(int width) {
-        BC_widths.push_back(width);
-    }
+		/**
+		 * @brief Return the single-pulse detection algorithm currently in use
+		 * @return short
+		 */
+		short GetAlgorithms(void) const {
+			return candidate_algorithm;
+		}
+
+		/**
+		 * @brief Adds boxcar width
+		 * 
+		 * @param width width of boxcar function in time samples
+		 */
+		void AddBCWidth(int width) {
+			BC_widths.push_back(width);
+		}
 };
 
 

@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "headers_mains.hpp"
 
 #include <helper_cuda.h>
@@ -361,7 +363,7 @@ void main_function
 				//SPS_params->add_BC_width(8);
 
 				if (spssearch.CheckVerbosity()) {
-					spssearch.PrintSearchPlan()
+					spssearch.PrintSearchPlan();
 				}
 				
 				// -----------------------------------------------------------------------
@@ -369,16 +371,21 @@ void main_function
 				// -----------------------------------------------------------------------
 				// TODO:
 				// 1) make it possible to use persistent memory allocation for multiple searches, both on the host as well as on the device.
-				SPS_Search_AA SPS_search;
+				// SPS_Search_AA SPS_search;
 				
-				SPS_search.setParameters(SPS_params);
-				SPS_search.setMSDParameters(MSD_params);
+				// SPS_search.setParameters(SPS_params);
+				// SPS_search.setMSDParameters(MSD_params);
 				
 				// TODO: DDRT should either return or have a getter for DDTR_OutputData object which would contain all information neccessary for the SPDT to work.
-				printf("dm_range: %d; time chunk: %d;\n", dm_range, time_chunk);
-				printf("tstart_local: %f; DDTR->tsamp: %f; DDTR->dm_step: %f; DDTR->dm_low: %f; DDTR->dm_high: %f; DDTR->inBin: %d; DDTR->t_processed: %f; DDTR->ndms: %f;\n", tstart_local, DDTR_plan->tsamp, DDTR_plan->dm_step[dm_range], DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->inBin[dm_range], DDTR_plan->t_processed[dm_range][time_chunk], DDTR_plan->ndms[dm_range]);
 				
-				SPS_search.SPS_data.set(tstart_local, DDTR_plan->tsamp, DDTR_plan->dm_step[dm_range], DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->inBin[dm_range], DDTR_plan->t_processed[dm_range][time_chunk], DDTR_plan->ndms[dm_range]);
+				if (spsearch.CheckVerbosity()) {
+					std::cout << 
+					printf("dm_range: %d; time chunk: %d;\n", dm_range, time_chunk);
+					printf("tstart_local: %f; DDTR->tsamp: %f; DDTR->dm_step: %f; DDTR->dm_low: %f; DDTR->dm_high: %f; DDTR->inBin: %d; DDTR->t_processed: %f; DDTR->ndms: %f;\n", tstart_local, DDTR_plan->tsamp, DDTR_plan->dm_step[dm_range], DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->inBin[dm_range], DDTR_plan->t_processed[dm_range][time_chunk], DDTR_plan->ndms[dm_range]);
+				}
+
+				
+				/*SPS_search.SPS_data.set(tstart_local, DDTR_plan->tsamp, DDTR_plan->dm_step[dm_range], DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->inBin[dm_range], DDTR_plan->t_processed[dm_range][time_chunk], DDTR_plan->ndms[dm_range]);
 				
 				SPS_search.setInputData(d_DDTR_output);
 				
@@ -392,6 +399,12 @@ void main_function
 				// -----------------------------------------------------------------------<
 				
 				SPS_params->clear_BC_widths();
+				*/
+				spssearch.UpdateSearchPlan();
+				spsearch.RunSearch(d_DDTR_output);
+
+
+
 			}
 			printf("INC:\t%zu\n\n\n", processed_samples);
 
