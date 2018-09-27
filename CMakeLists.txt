@@ -1,9 +1,40 @@
 # Check if cmake has the required version
-CMAKE_MINIMUM_REQUIRED(VERSION 3.2.0 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6.0 FATAL_ERROR)
 set(PROJECT_NAME_STR astro-accelerate)
 set(PROJECT_LIB_NAME ASTRO_ACCELERATE)
-PROJECT(${PROJECT_NAME_STR} LANGUAGES CXX CUDA)
+PROJECT(${PROJECT_NAME_STR} LANGUAGES CXX)
+list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake)
 find_package(CUDA REQUIRED)
+
+# default installtion locations (note these will be prefixed by ${CMAKE_INSTALL_PREFIX})
+set(include_dir_name "astroaccelerate")
+if(NOT LIBRARY_INSTALL_DIR)
+    set(LIBRARY_INSTALL_DIR "lib")
+endif(NOT LIBRARY_INSTALL_DIR)
+
+if(NOT INCLUDE_INSTALL_DIR)
+    set(INCLUDE_INSTALL_DIR "include/${include_dir_name}")
+endif(NOT INCLUDE_INSTALL_DIR)
+
+if(NOT MODULES_INSTALL_DIR)
+    set (MODULES_INSTALL_DIR "share/${include_dir_name}")
+endif(NOT MODULES_INSTALL_DIR)
+
+if(NOT DOC_INSTALL_DIR)
+    set (DOC_INSTALL_DIR ${MODULES_INSTALL_DIR}/doc)
+endif(NOT DOC_INSTALL_DIR)
+
+if(NOT BINARY_INSTALL_DIR)
+    set(BINARY_INSTALL_DIR "bin/")
+endif(NOT BINARY_INSTALL_DIR)
+
+#Project Version
+include(git_version)
+configure_file(${PROJECT_SOURCE_DIR}/cmake/version.h.in
+    ${PROJECT_BINARY_DIR}/${include_dir_name}/version.h)
+install(FILES ${PROJECT_BINARY_DIR}/${include_dir_name}/version.h
+    DESTINATION ${INCLUDE_INSTALL_DIR})
+
 
 # Set NVCC flags
 set(PROJECT_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
