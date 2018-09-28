@@ -1,6 +1,8 @@
 #ifndef ASTRO_ACCELERATE_SPS_SEARCH_HPP
 #define ASTRO_ACCELERATE_SPS_SEARCH_HPP
 
+#include <tuple>
+
 #include "device_SPS_plan.hpp"
 #include "device_SPS_parameters.hpp"
 #include "device_MSD_parameters.hpp"
@@ -112,8 +114,8 @@ public:
 		}
 		max_candidates = 0;
 		number_candidates = 0;
-		max_candidates = static_cast<size_t>(spsplan.GetNumberDMs() * spsplan.GetTimeSamples() * 0.25);
-		h_candidate_list = (float*) malloc(max_candidates*4*sizeof(float));
+		max_candidates = spsplan.GetMaxCandidates();
+		h_candidate_list = (float*) malloc(max_candidates * 4 * sizeof(float));
 		if (h_candidate_list == NULL) {
 			std::cerr << "ERROR: not enough memory to allocate candidate list" << std::endl;
 			return(1);
@@ -138,10 +140,10 @@ public:
 		*/
 		
 		if (spsplan.GetSPSAlgorithm() == 0){
-			sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", spsplan.GetStartTime(), SPS_data.dm_low, SPS_data.dm_high);
+			sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", spsplan.GetStartTime(), std::get<0>(spsplan.GetDMLimits()), std::get<1>(spsplan.GetDMLimits()));
 		}
 		else if (spsplan.GetSPSAlgorithm() == 1) {
-			sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", spsplan.GetStartTime(), SPS_data.dm_low, SPS_data.dm_high);
+			sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", spsplan.GetStartTime(), std::get<0>(spsplan.GetDMLimits()), std::get<1>(spsplan.GetDMLimits()));
 		}
 					
 		FILE *fp_out;
@@ -154,7 +156,7 @@ public:
 		return(0);
 	}
 	
-	CandidateSubListPointer exportToSubList(void){
+	/* CandidateSubListPointer exportToSubList(void){
 		CandidateSubListPointer newclp = new SPS_CandidateSubList(number_candidates, 0, h_candidate_list, NULL, NULL);
 		newclp->time_start    = SPS_data.time_start;
 		newclp->sampling_time = SPS_data.sampling_time;
@@ -164,7 +166,7 @@ public:
 		newclp->inBin         = SPS_data.inBin;
 		return(newclp);
 	}
-
+	*/
 };
 
 #endif

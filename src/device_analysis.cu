@@ -4,18 +4,23 @@
 #define GPU_TIMER
 
 #include <iostream>
+#include <tuple>
 #include <vector>
+
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "params.hpp"
 
 #include "device_BC_plan.hpp"
 #include "device_peak_find.hpp"
 #include "device_MSD_plane_profile.hpp"
 #include "device_SPS_long.hpp"
+#include "device_SPS_plan"
 #include "device_threshold.hpp"
 
 #include "gpu_timer.hpp"
+
 
 //TODO:
 // Make BC_plan for arbitrary long pulses, by reusing last element in the plane
@@ -41,18 +46,19 @@ void Create_list_of_boxcar_widths(std::vector<int> *boxcar_widths, std::vector<i
 
 void analysis_GPU(bool verbose, float* d_SPS_input, float *h_candidate_list, size_t &number_candidates, size_t max_candidates, SPS_Plan &spsplan){
 	// Definition of some local variables
-	float  local_tsamp  = spsplan.binned_sampling_time; // SPS_data.sampling_time*SPS_data.inBin; // corrected sampling time
-	size_t nTimesamples = SPS_data.nTimesamples;
-	size_t nDMs         = SPS_data.nDMs;
+	float  local_tsamp  = spsplan.GetCurrentSamplingTime(); // SPS_data.sampling_time*SPS_data.inBin; // corrected sampling time
+	size_t nTimesamples = spsplan.;
+	size_t nDMs         = spsplan.GetNumberDMs();
 	if(verbose) {
 		std::cout << "----------> Single Pulse GPU analysis" << std::endl;
-		printf("  Dimensions: nTimesamples:%zu; nDMs:%zu; inBin:%d; sampling time: %f; corrected s. time: %f;\n", nTimesamples, nDMs, SPS_data.inBin, SPS_data.sampling_time, local_tsamp);
+		printf("  Dimensions: nTimesamples:%zu; nDMs:%zu; inBin:%d; sampling time: %f; corrected s. time: %f;\n", nTimesamples, nDMs, spsplan.GetCurrentBinningFactor(), spsplan.GetOriginalSamplingTime(), local_tsamp);
 	}
 	
 	//--------> Definition of SPDT boxcar plan
-	int max_desired_boxcar_width = (int) (SPS_params->max_boxcar_width_in_sec/local_tsamp);
+	int max_desired_boxcar_width = spsplan.GetCurrentMaxBoxcarWidth();
 	int max_width_performed = 0, max_iteration = 0;
 	
+	std::tuple<float, float, float> dm_limits = spsplan.GetDMLimits();
 	// Old version
 	//int t_BC_widths[10]={PD_MAXTAPS,16,16,16,8,8,8,8,8,8};
 	//std::vector<int> BC_widths(t_BC_widths,t_BC_widths+sizeof(t_BC_widths)/sizeof(int));
@@ -159,7 +165,7 @@ void analysis_GPU(bool verbose, float* d_SPS_input, float *h_candidate_list, siz
 	//-------------------------------------------------------------------------
 	//---------> Comparison between interpolated values and computed values
 	#ifdef MSD_BOXCAR_TEST
-		MSD_plane_profile_boxcars(d_SPS_input, nTimesamples, nDMs, &h_boxcar_widths, MSD_params->OR_sigma_multiplier, SPS_data.d,_low, SPS_data.dm_high, SPS_data.time_start);
+		MSD_plane_profile_boxcars(d_SPS_input, nTimesamples, nDMs, &h_boxcar_widths, MSD_params->OR_sigma_multiplier, std::get<0>(dm_limits), std::get<1>(dm_limits), spsplan.GetCurrentStartTime());
 	#endif
 	//---------> Comparison between interpolated values and computed values
 	//-------------------------------------------------------------------------
@@ -178,7 +184,7 @@ void analysis_GPU(bool verbose, float* d_SPS_input, float *h_candidate_list, siz
 	cudaMalloc((void **) &d_MSD_interpolated, MSD_profile_size_in_bytes);
 	cudaMalloc((void **) &temporary_workarea, workarea_size_in_bytes);
 	
-	MSD_plane_profile(d_MSD_interpolated, d_SPS_input, d_MSD_DIT, temporary_workarea, false, nTimesamples, nDMs, &h_boxcar_widths, SPS_data.time_start, SPS_data.dm_low, SPS_data.dm_high, MSD_params->OR_sigma_multiplier, MSD_params->enable_outlier_rejection, false, &MSD_time, &dit_time, &MSD_only_time);
+	MSD_plane_profile(d_MSD_interpolated, d_SPS_input, d_MSD_DIT, temporary_workarea, false, nTimesamples, nDMs, &h_boxcar_widths, spsplan.GetCurrentStartTime(), std::get<0>(dm_limits), std::get<1>(dm_limits), MSD_params->OR_sigma_multiplier, MSD_params->enable_outlier_rejection, false, &MSD_time, &dit_time, &MSD_only_time);
 	
 	#ifdef GPU_PARTIAL_TIMER
 		printf("    MSD time: Total: %f ms; DIT: %f ms; MSD: %f ms;\n", MSD_time, dit_time, MSD_only_time);
@@ -255,21 +261,20 @@ void analysis_GPU(bool verbose, float* d_SPS_input, float *h_candidate_list, siz
 			printf("    BC_shift:%d; DMs_per_cycle:%d; f*DMs_per_cycle:%d; max_iteration:%d;\n", DM_shift*nTimesamples, DM_list[f], DM_shift, max_iteration);
 			#endif
 			
-			if(SPS_params->candidate_algorithm==1){
+			if (spsplan.GetSPSAlgorithm() == 1) {
 				//-------------- Thresholding
 				timer.Start();
-				THRESHOLD(d_output_SNR, d_output_taps, d_peak_list, gmem_peak_pos, SPS_params->sigma_cutoff, DM_list[f], nTimesamples, DM_shift, &PD_plan, max_iteration, local_max_list_size, SPS_data.dm_step, SPS_data.dm_low, local_tsamp, SPS_data.inBin, SPS_data.time_start);
+				THRESHOLD(d_output_SNR, d_output_taps, d_peak_list, gmem_peak_pos, spsplan.GetSigmaCutoff(), DM_list[f], nTimesamples, DM_shift, &PD_plan, max_iteration, local_max_list_size, std::get<2>(dm_limits), std::get<0>(dm_limits), local_tsamp, spsplan.GetCurrentBinningFactor(), spsplan.GetCurrentStartTime());
 				timer.Stop();
 				PF_time += timer.Elapsed();
 				#ifdef GPU_PARTIAL_TIMER
 				printf("    Thresholding took:%f ms\n", timer.Elapsed());
 				#endif
 				//-------------- Thresholding
-			}
-			else {
+			} else if (spsplan.GetSPSAlgorithm() == 0) {
 				//-------------- Peak finding
 				timer.Start();
-				PEAK_FIND(d_output_SNR, d_output_taps, d_peak_list, DM_list[f], nTimesamples, SPS_params->sigma_cutoff, local_max_list_size, gmem_peak_pos, DM_shift, &PD_plan, max_iteration, SPS_data.dm_step, SPS_data.dm_low, local_tsamp, SPS_data.inBin, SPS_data.time_start);
+				PEAK_FIND(d_output_SNR, d_output_taps, d_peak_list, DM_list[f], nTimesamples, spsplan.GetSigmaCutoff(), local_max_list_size, gmem_peak_pos, DM_shift, &PD_plan, max_iteration, std::get<2>(dm_limits), std::get<0>(dm_limits), local_tsamp, spsplan.GetCurrentBinningFactor(), spsplan.GetCurrentStartTime());
 				timer.Stop();
 				PF_time = timer.Elapsed();
 				#ifdef GPU_PARTIAL_TIMER
