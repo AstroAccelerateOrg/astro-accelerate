@@ -4,6 +4,9 @@
 // TODO: We could change dedispersion plan to something like in periodicity and input and output data could inherit properties from some kind of base class. Then it would be easier to go through dedispersion time chunks.
 class DDTR_OutputData {
 public:
+    device_Ddtr_plan _plan;
+    FilterBankDataMeta _meta;
+
 	float  tstart_local;
 	float  sampling_time;
 	float  dm_step;

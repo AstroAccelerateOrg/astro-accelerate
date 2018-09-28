@@ -15,6 +15,10 @@
 #include "device_MSD.hpp"
 #include "device_MSD_plane_profile.hpp"
 
+// DDTR
+#include "headers/device_DDTR_DedispersionTransform.h"
+
+// SPS
 #include "device_SPS_inplace_kernel.hpp" //Added by KA
 #include "device_SPS_inplace.hpp" //Added by KA
 #include "device_SNR_limited.hpp" //Added by KA
