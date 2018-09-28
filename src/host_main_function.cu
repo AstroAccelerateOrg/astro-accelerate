@@ -15,6 +15,10 @@
 #include "device_MSD.hpp"
 #include "device_MSD_plane_profile.hpp"
 
+// DDTR
+#include "headers/device_DDTR_DedispersionTransform.h"
+
+// SPS
 #include "device_SPS_inplace_kernel.hpp" //Added by KA
 #include "device_SPS_inplace.hpp" //Added by KA
 #include "device_SNR_limited.hpp" //Added by KA
@@ -56,7 +60,6 @@
 #include "params.hpp"
 
 #include "gpu_timer.hpp"
-
 
 //#define EXPORT_DD_DATA
 
@@ -150,7 +153,8 @@ void main_function
 	int analysis_debug,
 	int failsafe,
 	float periodicity_sigma_cutoff,
-	int periodicity_nHarmonics
+	int periodicity_nHarmonics,
+	device_DDTR_plan const &ddtr_plan
 	)
 {
 
@@ -162,12 +166,9 @@ void main_function
 	checkCudaErrors(cudaGetLastError());
 	
 	// Calculate the dedispersion stratagy.
-	stratagy(&maxshift, &max_samps, &num_tchunks, &max_ndms, &total_ndms, &max_dm, power, nchans, nsamp, fch1, foff, tsamp, range, user_dm_low, user_dm_high, user_dm_step,
-                 &dm_low, &dm_high, &dm_step, &ndms, &dmshifts, inBin, &t_processed, &gpu_memory, enable_analysis);
-	if(enable_debug == 1) debug(4, start_time, range, outBin, enable_debug, enable_analysis, output_dmt, multi_file, sigma_cutoff, power, max_ndms, user_dm_low, user_dm_high,
-	user_dm_step, dm_low, dm_high, dm_step, ndms, nchans, nsamples, nifs, nbits, tsamp, tstart, fch1, foff, maxshift, max_dm, nsamp, gpu_inputsize, gpu_outputsize, inputsize, outputsize);
+	//THIS IS WHERE STRATAGY USED TO BE
+    	
 
-	checkCudaErrors(cudaGetLastError());
 
 	// Allocate memory on host and device.
 	allocate_memory_cpu_output(&fp, gpu_memory, &host_memory,  maxshift, num_tchunks, max_ndms, total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer, &output_buffer, &d_input, &d_output, &gpu_inputsize, &gpu_outputsize, &inputsize, &outputsize);
