@@ -12,7 +12,11 @@ Repository Conventions
 * Create a new issue on GitHub. Fill in the issue template. Assign the issue to someone.
 * Checkout a new branch named `abc_##_description` where `abc` are your initials, `##` is the issue number assigned by GitHub, and `description` is a very brief description of the branch.
 * Do not use special characters and in particular no slash characters when naming branches.
+
+### Committing and Pushing
 * Work and commit incrementally.
+* Commit messages to include an extended description, nominally 100 characters long or longer are permissible to provide detail.
+* Push the changes regularly.
    
 ### Pull Requests
    * When a branch is ready to commit, create a pull request and use the pull request template.
