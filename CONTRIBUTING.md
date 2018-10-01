@@ -4,7 +4,7 @@ Developers Guide
 Dependencies
 ===
 Astro-Accelerate depends on the CUDA libraries, and in particular the following libraries
-   * CUFFT
+   * cuFFT
    * cuRAND
 
 The minimum device architecture supported is `3.5` and above.
