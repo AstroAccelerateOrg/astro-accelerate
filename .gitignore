@@ -10,6 +10,9 @@ Makefile
 astro-accelerate
 libastroaccelerate.so
 
+# Profiler output
+profile_results/
+
 # Directories
 build/
 output/
