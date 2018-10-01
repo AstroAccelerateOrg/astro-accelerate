@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 job_name=$(basename "$1" .txt)
 
