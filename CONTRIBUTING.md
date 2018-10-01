@@ -38,9 +38,8 @@ Repository Conventions
 ### Forking
    * Changes from forked repositories will not be merged into the main repository code.
 
-Repository `master` Branch Guidelines
-===
-### Workflow and Branches
+
+### `master` Branch Guidelines
 
 * The `master` branch is protected. No one shall commit to it directly.
 * The `master` branch should always be stable and ready to be released and tagged.
