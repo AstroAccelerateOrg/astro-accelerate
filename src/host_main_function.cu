@@ -187,13 +187,15 @@ void main_function
 	unsigned long int MSD_data_info;
 	size_t MSD_profile_size_in_bytes;
 	int h_MSD_DIT_width;
-	stratagy_MSD(max_ndms,max_boxcar_width_in_sec, tsamp, t_processed[0][0], &MSD_data_info, &MSD_profile_size_in_bytes, &h_MSD_DIT_width);
-	//allocate memory for SPDT
+	//declare memory for SPDT
 	float *d_MSD_workarea = NULL;
         float *d_MSD_interpolated = NULL;
         ushort *d_MSD_output_taps = NULL;
-	allocate_memory_MSD(&d_MSD_workarea, &d_MSD_output_taps, &d_MSD_interpolated, MSD_data_info, h_MSD_DIT_width, t_processed[0][0], MSD_profile_size_in_bytes);
-
+	//Run allocation only if needed
+	if (enable_analysis == 1) {
+		stratagy_MSD(max_ndms,max_boxcar_width_in_sec, tsamp, t_processed[0][0], &MSD_data_info, &MSD_profile_size_in_bytes, &h_MSD_DIT_width);
+		allocate_memory_MSD(&d_MSD_workarea, &d_MSD_output_taps, &d_MSD_interpolated, MSD_data_info, h_MSD_DIT_width, t_processed[0][0], MSD_profile_size_in_bytes);
+	}
 
 	checkCudaErrors(cudaGetLastError());
 	
@@ -367,6 +369,10 @@ void main_function
 
 	cudaFree(d_input);
 	cudaFree(d_output);
+	// clean the SPDT memory only if
+	if (d_MSD_interpolated != NULL) cudaFree(d_MSD_interpolated);
+	if (d_MSD_workarea != NULL) cudaFree(d_MSD_workarea);
+	if (d_MSD_output_taps != NULL) cudaFree(d_MSD_output_taps);
 	//free(out_tmp);
 	free(input_buffer);
 	

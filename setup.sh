@@ -56,4 +56,5 @@ else
 fi
 
 export CUDA_INSTALL_PATH=/usr/local/cuda/
+
 echo "Done."
