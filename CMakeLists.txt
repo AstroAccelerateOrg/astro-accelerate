@@ -5,7 +5,7 @@ set(PROJECT_LIB_NAME ASTRO_ACCELERATE)
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake)
 find_package(CUDA REQUIRED)
 
-# default installtion locations (note these will be prefixed by ${CMAKE_INSTALL_PREFIX})
+# Default installation locations (note these will be prefixed by ${CMAKE_INSTALL_PREFIX})
 set(include_dir_name "astroaccelerate")
 if(NOT LIBRARY_INSTALL_DIR)
     set(LIBRARY_INSTALL_DIR "lib")
@@ -27,7 +27,7 @@ if(NOT BINARY_INSTALL_DIR)
     set(BINARY_INSTALL_DIR "bin/")
 endif(NOT BINARY_INSTALL_DIR)
 
-#Project Version
+# Project Version
 include(git_version)
 configure_file(${PROJECT_SOURCE_DIR}/cmake/version.h.in
     ${PROJECT_BINARY_DIR}/${include_dir_name}/version.h)
