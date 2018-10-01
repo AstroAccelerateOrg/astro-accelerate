@@ -3,6 +3,12 @@ Developers Guide
 
 Dependencies
 ===
+Astro-Accelerate depends on the CUDA libraries, and in particular the following libraries
+   * CUFFT
+   * cuRAND
+
+The minimum device architecture supported is `3.5` and above.
+
 Do not introduce any new dependencies on any other product without consultation.
 
 Repository Conventions
