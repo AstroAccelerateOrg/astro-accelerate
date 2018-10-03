@@ -34,6 +34,7 @@ public:
 	//SPS_Parameters SPS_params;
 	
 	MSD_Parameters MSD_params;
+	
 
 	SPS_Search(){
 		h_input = NULL;
@@ -69,7 +70,7 @@ public:
 	 * 
 	 * @return SPS_Plan&
 	 */
-	SPS_Plan GetSPSPlan(void) const {
+	SPS_Plan& GetSPSPlan(void) {
 		return spsplan;
 	}
 
@@ -122,7 +123,6 @@ public:
 		}			
 		
 		analysis_GPU(verbose, d_input, h_candidate_list, number_candidates, max_candidates, spsplan);
-		
 		
 		return(0);
 	}

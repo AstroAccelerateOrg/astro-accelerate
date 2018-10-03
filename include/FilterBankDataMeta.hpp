@@ -4,7 +4,7 @@
 class FilterBankDataMeta {
   public:
     // members
-	size_t    nsamp;  // the number of time samples
+	size_t    nsamples;  // the number of time samples
 	size_t    nifs;   // the number of polarisations in each channel
 	unsigned  nbits;  // the number of bits for each value
 	float     tsamp;   // the sampling time
@@ -34,13 +34,12 @@ class FilterBankDataMeta {
   public:
     // member functions
 	FilterBankDataMeta()
-		: nsamples(0);
-		, nsamp(0)
+		: nsamples(0)
 		, nifs(1)
 		, nbits(0)
 		, tsamp(0)
 		, tstart(0)
-        , m_nchans(0);
+        , m_nchans(0)
 		, m_fch1(0)
 		, m_foff(0)
     {
@@ -78,7 +77,7 @@ class FilterBankDataMeta {
     size_t data_size_in_bytes() const
     {
 
-        return nsamp*nchans*nifs*(nbits/8);
+        return nsamples * nchans * nifs * (nbits/8);
     }
 
     void Setup() {

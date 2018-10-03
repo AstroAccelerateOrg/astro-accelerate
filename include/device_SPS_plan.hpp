@@ -1,8 +1,11 @@
 #ifndef ASTRO_ACCELERATE_SPS_PLAN_HPP
 #define ASTRO_ACCELERATE_SPS_PLAN_HPP
 
+#include <iostream>
 #include <tuple>
+#include <vector>
 
+#include "device_MSD_parameters.hpp"
 #include "FilterBankDataMeta.hpp"
 #include "params.hpp"
 /**
@@ -63,7 +66,7 @@ class SPS_Plan {
 	    // Switches
 	    int enable_outlier_rejection;
 
-        FilterBankDataMeta *dataprop;
+        FilterBankDataMeta dataprop;
         MSD_Parameters msdparams;
 
     protected:
@@ -96,17 +99,17 @@ class SPS_Plan {
             , total_ut(0) 
             , unprocessed_samples(0) {
 
-            dataprop -> dm_low = 0.0f;
-            dataprop -> dm_high = 0.0f;
-            dataprop -> dm_step = 0.0f;
-            dataprop -> number_dms = 0;
+            dataprop.dm_low = 0.0f;
+            dataprop.dm_high = 0.0f;
+            dataprop.dm_step = 0.0f;
+            dataprop.number_dms = 0;
 
-            dataprop -> binning_factor = 0;
-            dataprop -> start_time = 0.0f;
-            dataprop -> sampling_time = 0.0f;
-            dataprop -> timesamples = 0;
+            dataprop.binning_factor = 0;
+            dataprop.start_time = 0.0f;
+            dataprop.sampling_time = 0.0f;
+            dataprop.timesamples = 0;
 
-            dataprop -> binned_sampling_time = dataprop -> sampling_time * dataprop -> binning_factor;
+            dataprop.binned_sampling_time = dataprop.sampling_time * dataprop.binning_factor;
 
             // NOTE: These were set just before the SPS run and reset after every iteration
             // TODO: Move this to a setup method - constructor can't throw
@@ -121,8 +124,8 @@ class SPS_Plan {
         ~SPS_Plan(void) = default;
 
         void Setup() {
-            max_candidates = static_cast<size_t>((dataprop -> number_dms) * (dataprop -> timesamples) * 0.25);
-            max_boxcar_width = static_cast<int>(max_boxcar_width_in_sec / (dataprop -> sampling_time));
+            max_candidates = static_cast<size_t>((dataprop. number_dms) * (dataprop.timesamples) * 0.25);
+            max_boxcar_width = static_cast<int>(max_boxcar_width_in_sec / (dataprop.sampling_time));
         }
 
         /**
@@ -182,27 +185,27 @@ class SPS_Plan {
         }
 
         size_t GetNumberDMs(void) const {
-            return dataprop -> number_dms;
+            return dataprop.number_dms;
         }
 
-        size_t GetTimeSamples(void) const {
-            return dataprop -> timesamples;
+        size_t GetCurrentTimeSamples(void) const {
+            return dataprop.timesamples;
         }
 
         int GetCurrentBinningFactor(void) const {
-            return dataprop -> binning_factor;
+            return dataprop.binning_factor;
         }
 
         float GetCurrentSamplingTime(void) const {
-            return dataprop -> binned_sampling_time;
+            return dataprop.binned_sampling_time;
         }
 
         float GetCurrentStartTime(void) const {
-            return dataprop -> start_time;
+            return dataprop.start_time;
         }
 
         float GetOriginalSamplingTime(void) const {
-            return dataprop -> sampling_time;
+            return dataprop.sampling_time;
         }
         /**
          * @brief Get the maximum iteration
@@ -329,7 +332,7 @@ class SPS_Plan {
         }
 
         float GetStartTime(void) const {
-            return dataprop -> start_time;
+            return dataprop.start_time;
         }
 
         /**
