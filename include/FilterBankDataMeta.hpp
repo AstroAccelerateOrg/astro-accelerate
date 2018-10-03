@@ -9,6 +9,21 @@ class FilterBankDataMeta {
 	unsigned  nbits;  // the number of bits for each value
 	float     tsamp;   // the sampling time
 	float     tstart;  // the absolute time of the first time sample
+    
+    // NOTE: These have to change
+    int binning_factor;
+    float dm_low;
+    float dm_high;
+    float dm_step;
+    float start_time;
+    float sampling_time;
+
+    float binned_sampling_time;
+
+    int binning_factor;
+
+    size_t number_dms;
+    size_t timesamples;
 
   protected:
     // we need to ensure these are not set without going through quality control
@@ -61,9 +76,17 @@ class FilterBankDataMeta {
      * @details warning this may be truncated if this value is > than can be contained in a size_t
      */
     size_t data_size_in_bytes() const
-    {:w
-:q
+    {
+
         return nsamp*nchans*nifs*(nbits/8);
+    }
+
+    void Setup() {
+        binned_sampling_time = sampling_time * binning_factor;
+    }
+
+    void SetBinningFactor(int ibin) {
+        binning_factor = ibin;
     }
 };
 
