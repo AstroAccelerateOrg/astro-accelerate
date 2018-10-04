@@ -1,6 +1,8 @@
 #ifndef ASTRO_ACCELERATE_HOST_MAIN_FUNCTION_HPP
 #define ASTRO_ACCELERATE_HOST_MAIN_FUNCTION_HPP
 
+#include "device_DDTR_plan.hpp"
+
 void main_function
 	(
 	int argc,
@@ -91,6 +93,7 @@ void main_function
 	int analysis_debug,
 	int failsafe,
 	float periodicity_sigma_cutoff,
-	int periodicity_nHarmonics
+	int periodicity_nHarmonics,
+	device_DDTR_plan const &ddtr_plan
 	);
 #endif
