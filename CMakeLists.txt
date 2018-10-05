@@ -8,6 +8,7 @@ find_package(OpenMP)
 if(OPENMP_FOUND)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    message("-- INFO: OpenMP FLAGS: ${OpenMP_CXX_FLAGS}")
 endif()
 
 find_package(CUDA REQUIRED)
@@ -27,7 +28,7 @@ list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-Wall;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-fopenmp;)
 
 if(OPENMP_FOUND)
-	#list(APPEND CUDA_NVCC_FLAGS -Xcompiler;${OpenMP_CXX_FLAGS};)
+	list(APPEND CUDA_NVCC_FLAGS -Xcompiler;${OpenMP_CXX_FLAGS};)
 endif()
 
 if(NOT DEFINED CUDA_ARCH)  
