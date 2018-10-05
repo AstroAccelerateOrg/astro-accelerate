@@ -3,6 +3,13 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.2.0 FATAL_ERROR)
 set(PROJECT_NAME_STR astro-accelerate)
 set(PROJECT_LIB_NAME ASTRO_ACCELERATE)
 PROJECT(${PROJECT_NAME_STR} LANGUAGES CXX CUDA)
+
+find_package(OpenMP)
+if(OPENMP_FOUND)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+
 find_package(CUDA REQUIRED)
 
 # Set NVCC flags
@@ -17,7 +24,11 @@ list(APPEND CUDA_NVCC_FLAGS -lineinfo;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-O3;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-lm;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-Wall;)
-list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-fopenmp;)
+#list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-fopenmp;)
+
+if(OPENMP_FOUND)
+	list(APPEND CUDA_NVCC_FLAGS -Xcompiler;${OpenMP_CXX_FLAGS};)
+endif()
 
 if(NOT DEFINED CUDA_ARCH)  
 	set(CUDA_ARCH "ALL")
