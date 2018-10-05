@@ -481,7 +481,7 @@ void call_kernel_MSD_BLN_pw_rejection_normal(const dim3 &grid_size, const dim3 &
   MSD_BLN_pw_rejection_normal<<<grid_size, block_size>>>(d_input, d_output, d_MSD, y_steps, nTimesamples, offset, bln_sigma_constant);
 }
 
-void call_kernel_MSD_BLN_grid_outlier_rejection_new(const dim3 &grid_size, const dim3 block_size, float *const d_input, float *const d_output, const int &size, const float &multiplier) {
+void call_kernel_MSD_BLN_grid_outlier_rejection_new(const dim3 &grid_size, const dim3 &block_size, float *const d_input, float *const d_output, const int &size, const float &multiplier) {
   MSD_BLN_grid_outlier_rejection_new<<<grid_size, block_size>>>(d_input, d_output, size, multiplier);
 }
 

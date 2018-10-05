@@ -24,7 +24,4 @@ void call_kernel_GPU_Threshold_for_periodicity_kernel(const dim3 &grid_size, con
 						      float *const d_output_list, int *const gmem_pos, float const *const d_MSD,
 						      const float &threshold, const int &primary_size, const int &secondary_size,
 						      const int &DM_shift, const int &max_list_size, const int &DIT_value);
-
-
-
 #endif

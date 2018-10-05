@@ -138,7 +138,7 @@ void call_kernel_GPU_Threshold_for_periodicity_kernel(const dim3 &grid_size, con
 						      float const *const d_input, ushort *const d_input_harms,
 						      float *const d_output_list, int *const gmem_pos, float const *const d_MSD,
 						      const float &threshold, const int &primary_size,
-						      const int &secondary_size, const int &DM_shift, const int &max_list_size, int DIT_value) {
+						      const int &secondary_size, const int &DM_shift, const int &max_list_size, const int &DIT_value) {
   GPU_Threshold_for_periodicity_kernel<<<grid_size, block_size>>>(d_input, d_input_harms,
 								 d_output_list, gmem_pos, d_MSD,
 								 threshold, primary_size,
