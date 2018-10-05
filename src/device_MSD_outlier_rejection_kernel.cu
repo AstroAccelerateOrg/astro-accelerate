@@ -477,18 +477,18 @@ __global__ void MSD_BLN_grid_outlier_rejection(float const* __restrict__ d_input
   //----------------------------------------------
 }
 
-void call_kernel_MSD_BLN_pw_rejection_normal(dim3 grid_size, dim3 block_size, float const* d_input, float *d_output, float *d_MSD, int y_steps, int nTimesamples, int offset, float bln_sigma_constant) {
+void call_kernel_MSD_BLN_pw_rejection_normal(const dim3 &grid_size, const dim3 &block_size, float const *const d_input, float *const d_output, float *const d_MSD, const int &y_steps, const int &nTimesamples, const int &offset, const float &bln_sigma_constant) {
   MSD_BLN_pw_rejection_normal<<<grid_size, block_size>>>(d_input, d_output, d_MSD, y_steps, nTimesamples, offset, bln_sigma_constant);
 }
 
-void call_kernel_MSD_BLN_grid_outlier_rejection_new(dim3 grid_size, dim3 block_size, float *d_input, float *d_output, int size, float multiplier) {
+void call_kernel_MSD_BLN_grid_outlier_rejection_new(const dim3 &grid_size, const dim3 block_size, float *const d_input, float *const d_output, const int &size, const float &multiplier) {
   MSD_BLN_grid_outlier_rejection_new<<<grid_size, block_size>>>(d_input, d_output, size, multiplier);
 }
 
-void call_kernel_MSD_BLN_grid_calculate_partials(dim3 grid_size, dim3 block_size, int threads, float const*d_input, float *d_output, int x_steps, int y_steps, int nColumns, int msd) {
+void call_kernel_MSD_BLN_grid_calculate_partials(const dim3 &grid_size, const dim3 &block_size, const int &threads, float const *const d_input, float *const d_output, const int &x_steps, const int &y_steps, const int &nColumns, const int &msd) {
   MSD_BLN_grid_calculate_partials<<<grid_size, block_size, threads>>>(d_input, d_output, x_steps, y_steps, nColumns, msd);
 }
 
-void call_kernel_MSD_BLN_grid_outlier_rejection(dim3 grid_size, dim3 block_size, float const* d_input, float *d_output, int size, float nElements, float multiplier) {
+void call_kernel_MSD_BLN_grid_outlier_rejection(const dim3 &grid_size, const dim3 &block_size, float const *const d_input, float *const d_output, const int &size, const float &nElements, const float &multiplier) {
   MSD_BLN_grid_outlier_rejection<<<grid_size, block_size>>>(d_input, d_output, size, nElements, multiplier);
 }

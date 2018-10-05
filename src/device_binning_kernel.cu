@@ -61,11 +61,11 @@ __global__ void DiT_GPU_v2(float const* __restrict__ d_input, float *d_output, u
 }
 
 //Add C-style wrapp functions for the above kernel functions
-void call_kernel_bin(dim3 num_blocks, dim3 threads_per_block, unsigned short *d_input, float *d_output, int in_nsamp) {
+void call_kernel_bin(const dim3 &num_blocks, const dim3 &threads_per_block, unsigned short *const d_input, float *const d_output, const int &in_nsamp) {
   bin<<<num_blocks, threads_per_block>>>(d_input, d_output, in_nsamp);
 }
 
-void call_kernel_DiT_GPU_v2(dim3 gridSize, dim3 blockSize, float const* d_input, float *d_output, unsigned int nDMs, unsigned int nTimesamples, unsigned int dts) {
+void call_kernel_DiT_GPU_v2(const dim3 &gridSize, const dim3 &blockSize, float const *const d_input, float *const d_output, const unsigned int &nDMs, const unsigned int &nTimesamples, const unsigned int &dts) {
   DiT_GPU_v2<<<gridSize,blockSize>>>(d_input, d_output, nDMs, nTimesamples, (nTimesamples>>1));
 }
 

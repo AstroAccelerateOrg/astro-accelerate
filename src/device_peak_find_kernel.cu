@@ -362,32 +362,32 @@ __global__ void dilate_peak_find_for_periods(const float *d_input, ushort* d_inp
     //d_output[idxY*width+idxX] = peak;
 }
 
-void call_kernel_dilate_peak_find(dim3 grid_size, dim3 block_size,
-				  const float *d_input, ushort* d_input_taps,  unsigned int *d_peak_list_DM,
-				  unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW,
-				  const int width, const int height, const int offset, const float threshold,
-				  int max_peak_size, int *gmem_pos, int shift, int DIT_value) {
+void call_kernel_dilate_peak_find(const dim3 &grid_size, const dim3 &block_size,
+				  float *const d_input, ushort *const d_input_taps,  unsigned int *const d_peak_list_DM,
+				  unsigned int *const d_peak_list_TS, float *const d_peak_list_SNR, unsigned int *const d_peak_list_BW,
+				  const int &width, const int &height, const int &offset, const float &threshold,
+				  const int &max_peak_size, int *const gmem_pos, const int &shift, const int &DIT_value) {
   dilate_peak_find<<<grid_size, block_size>>>(d_input, d_input_taps, d_peak_list_DM,
 					      d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW,
 					      width, height, offset, threshold,
 					      max_peak_size, gmem_pos, shift, DIT_value);
 }
 
-void call_kernel_dilate_peak_find_for_fdas(dim3 grid_size, dim3 block_size,
-					   const float *d_input, float *d_peak_list, float *d_MSD, const int width,
-					   const int height, const int offset, const float threshold,
-					   unsigned int max_peak_size, unsigned int *gmem_pos, float DM_trial) {
+void call_kernel_dilate_peak_find_for_fdas(const dim3 &grid_size, const dim3 &block_size,
+					   float *const d_input, float *const d_peak_list, float *const d_MSD, const int &width,
+					   const int &height, const int &offset, const float &threshold,
+					   const unsigned int &max_peak_size, unsigned int *const gmem_pos, const float &DM_trial) {
     dilate_peak_find_for_fdas<<<grid_size, block_size>>>( d_input, d_peak_list, d_MSD, width,
 							  height, offset, threshold,
 							  max_peak_size, gmem_pos, DM_trial);
 }
 
-void call_kernel_dilate_peak_find_for_periods_old(dim3 grid_size, dim3 block_size,
-						  const float *d_input, ushort* d_input_taps, float *d_peak_list,
-						  const int width, const int height, const int offset,
-						  const float threshold,
-						  int max_peak_size, int *gmem_pos, float *d_MDF,
-						  int DM_shift, int DIT_value) {
+void call_kernel_dilate_peak_find_for_periods_old(const dim3 &grid_size, const dim3 &block_size,
+						  float *const d_input, ushort *const d_input_taps, float *const d_peak_list,
+						  const int &width, const int &height, const int &offset,
+						  const float &threshold,
+						  const int &max_peak_size, int *const gmem_pos, float *const d_MDF,
+						  const int &DM_shift, const int &DIT_value) {
   dilate_peak_find_for_periods_old<<<grid_size, block_size>>>(d_input, d_input_taps, d_peak_list,
 							      width, height, offset,
 							      threshold,
@@ -395,12 +395,12 @@ void call_kernel_dilate_peak_find_for_periods_old(dim3 grid_size, dim3 block_siz
 							      DM_shift, DIT_value);
 }
 
-void call_kernel_dilate_peak_find_for_periods(dim3 grid_size, dim3 block_size,
-					      const float *d_input, ushort* d_input_taps,
-					      float *d_peak_list, const int width,
-					      const int height, const int offset, const float threshold,
-					      int max_peak_size,
-					      int *gmem_pos, float const* d_MSD, int DM_shift, int DIT_value) {
+void call_kernel_dilate_peak_find_for_periods(const dim3 &grid_size, const dim3 &block_size,
+					      float *const d_input, ushort *const d_input_taps,
+					      float *const d_peak_list, const int &width,
+					      const int &height, const int &offset, const float &threshold,
+					      const int &max_peak_size,
+					      int *const gmem_pos, float const *const d_MSD, const int &DM_shift, const int &DIT_value) {
   dilate_peak_find_for_periods<<<grid_size, block_size>>>(d_input, d_input_taps,
 							  d_peak_list, width,
 							  height, offset, threshold,

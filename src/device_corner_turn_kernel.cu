@@ -62,18 +62,18 @@ __global__ void swap(unsigned short *d_input, float *d_output, int nchans, int n
 
 }
 
-void call_kernel_simple_corner_turn_kernel(dim3 block_size, dim3 grid_size, unsigned short *d_input, float *d_output, int primary_size, int secondary_size) {
+void call_kernel_simple_corner_turn_kernel(const dim3 &block_size, const dim3 &grid_size, unsigned short *const d_input, float *const d_output, const int &primary_size, const int &secondary_size) {
   simple_corner_turn_kernel<<<block_size, grid_size>>>(d_input, d_output, primary_size, secondary_size);
 }
 
-void call_kernel_simple_corner_turn_kernel(dim3 block_size, dim3 grid_size, float *d_input, float *d_output, int primary_size, int secondary_size) {
+void call_kernel_simple_corner_turn_kernel(const dim3 &block_size, const dim3 &grid_size, float *const d_input, float *const d_output, const int &primary_size, const int &secondary_size) {
   simple_corner_turn_kernel<<<block_size, grid_size>>>(d_input, d_output, primary_size, secondary_size);
 }
 
-void call_kernel_corner_turn_SM_kernel(dim3 grid_size, dim3 block_size, float const* d_input, float *d_output, int primary_size, int secondary_size) {
+void call_kernel_corner_turn_SM_kernel(const dim3 &grid_size, const dim3 &block_size, float const *const d_input, float *const d_output, const int &primary_size, const int &secondary_size) {
   corner_turn_SM_kernel<<<grid_size,block_size>>>(d_input, d_output, primary_size, secondary_size);
 }
 
-void call_kernel_swap(dim3 block_size, dim3 grid_size, unsigned short *d_input, float *d_output, int nchans, int nsamp) {
+void call_kernel_swap(const dim3 &block_size, const dim3 &grid_size, unsigned short *const d_input, float *const d_output, const int &nchans, const int &nsamp) {
   swap<<<block_size, grid_size>>>(d_input, d_output, nchans, nsamp);
 }

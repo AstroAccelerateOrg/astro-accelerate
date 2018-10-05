@@ -9,10 +9,10 @@
 //It is also needed by device_load_data.cu and by device_single_pulse_search_kernel.cu
 __device__ __constant__ float c_sqrt_taps[PD_MAXTAPS + 1];
 
-void call_kernel_PD_ZC_GPU_KERNEL(dim3 grid_size, dim3 block_size, float *d_input, float *d_output,
-				  int maxTaps, int nTimesamples, int nLoops);
-void call_kernel_PD_INPLACE_GPU_KERNEL(dim3 grid_size, dim3 block_size, int SM_size, float *d_input,
-				       float *d_temp, unsigned char *d_output_taps, float *d_MSD,
-				       int maxTaps, int nTimesamples);
+void call_kernel_PD_ZC_GPU_KERNEL(const dim3 &grid_size, const dim3 &block_size, float *const d_input, float *const d_output,
+				  const int &maxTaps, const int &nTimesamples, const int &nLoops);
+void call_kernel_PD_INPLACE_GPU_KERNEL(const dim3 &grid_size, const dim3 &block_size, const int &SM_size, float *&d_input,
+				       float *const d_temp, unsigned char *const d_output_taps, float *const d_MSD,
+				       const int &maxTaps, const int &nTimesamples);
 
 #endif

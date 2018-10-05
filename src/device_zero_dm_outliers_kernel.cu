@@ -239,13 +239,13 @@ __global__ void zero_dm_outliers_kernel_two(unsigned short *d_input, int nchans,
 	}
 }
 
-void call_kernel_zero_dm_outliers_kernel_one(dim3 block_size, dim3 grid_size,
-					     unsigned short *d_input, int nchans, int nsamp) {
+void call_kernel_zero_dm_outliers_kernel_one(const dim3 &block_size, const dim3 &grid_size,
+					     unsigned short *const d_input, const int &nchans, const int &nsamp) {
   zero_dm_outliers_kernel_one<<<block_size, grid_size>>>(d_input, nchans, nsamp);
 }
 
-void call_kernel_zero_dm_outliers_kernel_two(dim3 block_size, dim3 grid_size,
-					     unsigned short *d_input, int nchans, int nsamp) {
+void call_kernel_zero_dm_outliers_kernel_two(const dim3 &block_size, const dim3 &grid_size,
+					     unsigned short *const d_input, const int &nchans, const int &nsamp) {
   zero_dm_outliers_kernel_two<<<block_size, grid_size>>>(d_input, nchans, nsamp);
 }
 

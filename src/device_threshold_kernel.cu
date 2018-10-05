@@ -111,34 +111,34 @@ __global__ void GPU_Threshold_for_periodicity_kernel(float const* __restrict__ d
 	}
 }
 
-void call_kernel_THR_GPU_WARP(dim3 grid_size, dim3 block_size,
-			      float const* d_input, ushort *d_input_taps,
-			      unsigned int *d_output_list_DM, unsigned int *d_output_list_TS,
-			      float *d_output_list_SNR, unsigned int *d_output_list_BW,
-			      int *gmem_pos, float threshold, int nTimesamples, int offset,
-			      int shift, int max_list_size, int DIT_value) {
+void call_kernel_THR_GPU_WARP(const dim3 &grid_size, const dim3 &block_size,
+			      float const *const d_input, ushort *const d_input_taps,
+			      unsigned int *const d_output_list_DM, unsigned int *const d_output_list_TS,
+			      float *const d_output_list_SNR, unsigned int *const d_output_list_BW,
+			      int *const gmem_pos, const float &threshold, const int &nTimesamples, const int &offset,
+			      const int &shift, const int &max_list_size, const int &DIT_value) {
   THR_GPU_WARP<<<grid_size, block_size>>>(d_input, d_input_taps, d_output_list_DM, d_output_list_TS,
 					  d_output_list_SNR, d_output_list_BW,
 					  gmem_pos, threshold, nTimesamples, offset,
 					  shift, max_list_size, DIT_value);
 }
 
-void call_kernel_GPU_Threshold_for_periodicity_kernel_old(dim3 grid_size, dim3 block_size,
-							  float const* d_input, ushort *d_input_harms,
-							  float *d_output_list, int *gmem_pos, float *d_MSD,
-							  float threshold, int primary_size, int secondary_size,
-							  int DM_shift, int max_list_size, int DIT_value) {
+void call_kernel_GPU_Threshold_for_periodicity_kernel_old(const dim3 &grid_size, const dim3 &block_size,
+							  float const *const d_input, ushort *const d_input_harms,
+							  float *const d_output_list, int *const gmem_pos, float *const d_MSD,
+							  const float &threshold, const int &primary_size, const int &secondary_size,
+							  const int &DM_shift, const int &max_list_size, const int &DIT_value) {
   GPU_Threshold_for_periodicity_kernel_old<<<grid_size, block_size>>>(d_input, d_input_harms, d_output_list,
 								      gmem_pos, d_MSD, threshold, primary_size,
 								      secondary_size, DM_shift, max_list_size, DIT_value);
 
 }
 
-void call_kernel_GPU_Threshold_for_periodicity_kernel(dim3 grid_size, dim3 block_size,
-						      float const* d_input, ushort *d_input_harms,
-						      float *d_output_list, int *gmem_pos, float const* d_MSD,
-						      float threshold, int primary_size,
-						      int secondary_size, int DM_shift, int max_list_size, int DIT_value) {
+void call_kernel_GPU_Threshold_for_periodicity_kernel(const dim3 &grid_size, const dim3 &block_size,
+						      float const *const d_input, ushort *const d_input_harms,
+						      float *const d_output_list, int *const gmem_pos, float const *const d_MSD,
+						      const float &threshold, const int &primary_size,
+						      const int &secondary_size, const int &DM_shift, const int &max_list_size, int DIT_value) {
   GPU_Threshold_for_periodicity_kernel<<<grid_size, block_size>>>(d_input, d_input_harms,
 								 d_output_list, gmem_pos, d_MSD,
 								 threshold, primary_size,

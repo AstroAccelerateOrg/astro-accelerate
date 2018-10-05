@@ -77,14 +77,14 @@ __global__ void PHS_GPU_kernel(float const* __restrict__ d_input, float *d_outpu
 	}
 }
 
-void call_kernel_PHS_GPU_kernel_old(dim3 grid_size, dim3 block_size,
-				    float const* d_input, float *d_output_SNR, ushort *d_output_harmonics,
-				    float *d_MSD, int nTimesamples, int nSpectra, int nHarmonics) {
+void call_kernel_PHS_GPU_kernel_old(const dim3 &grid_size, const dim3 &block_size,
+				    float const *const d_input, float *const d_output_SNR, ushort *const d_output_harmonics,
+				    float *const d_MSD, const int &nTimesamples, const int &nSpectra, const int &nHarmonics) {
   PHS_GPU_kernel_old<<<grid_size, block_size>>>(d_input, d_output_SNR, d_output_harmonics, d_MSD, nTimesamples, nSpectra, nHarmonics);
 }
 
-void call_kernel_PHS_GPU_kernel(dim3 grid_size, dim3 block_size,
-				float const* d_input, float *d_output_SNR, ushort *d_output_harmonics,
-				float *d_MSD, int nTimesamples, int nSpectra, int nHarmonics) {
+void call_kernel_PHS_GPU_kernel(const dim3 &grid_size, const dim3 &block_size,
+				float const *const d_input, float *const d_output_SNR, ushort *const d_output_harmonics,
+				float *const d_MSD, const int &nTimesamples, const int &nSpectra, const int &nHarmonics) {
   PHS_GPU_kernel<<<grid_size, block_size>>>(d_input, d_output_SNR, d_output_harmonics, d_MSD, nTimesamples, nSpectra, nHarmonics);
 }

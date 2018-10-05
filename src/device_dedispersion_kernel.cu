@@ -169,7 +169,7 @@ __global__ void cache_dedisperse_kernel(int bin, unsigned short *d_input, float 
 
 }
 
-void set_device_constants_dedispersion_kernel(const int& nchans, const int& length, const int& t_processed, const float *dmshifts) {
+void set_device_constants_dedispersion_kernel(const int &nchans, const int &length, const int &t_processed, const float *const dmshifts) {
   cudaMemcpyToSymbol(dm_shifts, dmshifts, nchans * sizeof(float));
   cudaMemcpyToSymbol(i_nchans, &nchans, sizeof(int));
   cudaMemcpyToSymbol(i_nsamp, &length, sizeof(int));
@@ -177,25 +177,25 @@ void set_device_constants_dedispersion_kernel(const int& nchans, const int& leng
   checkCudaErrors(cudaGetLastError());
 }
 
-void set_device_constants_dedispersion_kernel(const long int& length, const int& t_processed) {
+void set_device_constants_dedispersion_kernel(const long int &length, const int &t_processed) {
   cudaMemcpyToSymbol(i_nsamp, &length, sizeof(int));
   cudaMemcpyToSymbol(i_t_processed_s, &t_processed, sizeof(int));
 }
 
-void call_kernel_shared_dedisperse_kernel(dim3 block_size, dim3 grid_size,
-					  int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep) {
+void call_kernel_shared_dedisperse_kernel(const dim3 &block_size, const dim3 &grid_size,
+					  const int &bin, unsigned short *const d_input, float *const d_output, const float &mstartdm, const float &mdmstep) {
   cudaFuncSetCacheConfig(shared_dedisperse_kernel, cudaFuncCachePreferShared);
   shared_dedisperse_kernel<<<block_size, grid_size>>>(bin, d_input, d_output, mstartdm, mdmstep);
 }
 
-void call_kernel_shared_dedisperse_kernel_16(dim3 block_size, dim3 grid_size,
-					     int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep) {
+void call_kernel_shared_dedisperse_kernel_16(const dim3 &block_size, const dim3 &grid_size,
+					     const int &bin, unsigned short *const d_input, float *const d_output, const float &mstartdm, const float &mdmstep) {
   cudaFuncSetCacheConfig(shared_dedisperse_kernel_16, cudaFuncCachePreferShared);
   shared_dedisperse_kernel_16<<<block_size, grid_size>>>(bin, d_input, d_output, mstartdm, mdmstep);
 }
 
-void call_kernel_cache_dedisperse_kernel(dim3 block_size, dim3 grid_size,
-					 int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep) {
+void call_kernel_cache_dedisperse_kernel(const dim3 &block_size, const dim3 &grid_size,
+					 const int &bin, unsigned short *const d_input, float *const d_output, const float &mstartdm, const float &mdmstep) {
   cudaFuncSetCacheConfig(cache_dedisperse_kernel, cudaFuncCachePreferL1);
   cache_dedisperse_kernel<<<block_size, grid_size>>>(bin, d_input, d_output, mstartdm, mdmstep);
 }
