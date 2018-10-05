@@ -24,10 +24,10 @@ list(APPEND CUDA_NVCC_FLAGS -lineinfo;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-O3;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-lm;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-Wall;)
-#list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-fopenmp;)
+list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-fopenmp;)
 
 if(OPENMP_FOUND)
-	list(APPEND CUDA_NVCC_FLAGS -Xcompiler;${OpenMP_CXX_FLAGS};)
+	#list(APPEND CUDA_NVCC_FLAGS -Xcompiler;${OpenMP_CXX_FLAGS};)
 endif()
 
 if(NOT DEFINED CUDA_ARCH)  
