@@ -204,7 +204,7 @@ To run using the default Makefile, simply type
 
 To configure the build system using CMake, run CMake
 
-    cmake .
+   cmake .
 
 The software can then be compiled using the generated Makefile. To do so, simply type
 
