@@ -6,7 +6,6 @@
 //These device variables and definitions are needed by device_dedispersion_kernel.cu and device_load_data.cu
 // Stores temporary shift values
 #define ARRAYSIZE SDIVINT * SDIVINDM
-__device__  __shared__ ushort2 f_line[UNROLLS][ARRAYSIZE + 2];
 
 void set_device_constants_dedispersion_kernel(const int &nchans, const int &length, const int &t_processed, const float *const dm_shifts);
 void set_device_constants_dedispersion_kernel(const long int &length, const int &t_processed);

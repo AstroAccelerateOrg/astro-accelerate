@@ -5,6 +5,7 @@
 
 //{{{ shared_dedisperse_loop
 
+__device__  __shared__ ushort2 f_line[UNROLLS][ARRAYSIZE + 2];
 __device__ __constant__ int i_nsamp, i_nchans, i_t_processed_s;
 __device__ __constant__ float dm_shifts[8192];
 
