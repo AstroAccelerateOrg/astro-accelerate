@@ -225,7 +225,7 @@ against which the executable has been linked.
 In case of having used CMake to configure the build system, the library will be compiled
 as a shared object library called
 
-   libastroaccelerate.so
+    libastroaccelerate.so
 
 against which the executable has been linked.
 
