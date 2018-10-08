@@ -224,7 +224,8 @@ In both cases, the result will be an executable called
 
     astro-accelerate
 
-in the astro-accelerate directory. In case of building with the default Makefile,
+in the directory from which the build was performed.
+In case of building with the default Makefile,
 the library will be statically compiled as
 
     libastroaccelerate.a
