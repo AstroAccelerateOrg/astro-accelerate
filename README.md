@@ -195,16 +195,24 @@ that comes with the repository by default, or they can 2.) configure the build s
 themselves using CMake.
 
 Note that in the case of using CMake, the Makefile that CMake
-produces will overwrite the default Makefile.
-For this reason, the `.gitignore` file is configured to ignore changes to the Makefile.
+produces will overwrite the default Makefile if the build is performed
+in source.
 
 To run using the default Makefile, simply type
 
     make
 
-To configure the build system using CMake, run CMake
+To configure the build system using CMake, create a `build` directory
 
-    cmake .
+    mkdir build
+
+and then
+
+    cd build/
+
+run CMake
+
+    cmake ../
 
 The software can then be compiled using the generated Makefile. To do so, simply type
 
