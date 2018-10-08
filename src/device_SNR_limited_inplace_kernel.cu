@@ -94,11 +94,11 @@ __global__ void PD_GPUv1_const(float *d_input, float *d_temp, unsigned char *d_o
 	}
 }
 
-void call_kernel_PD_ZC_GPU(float *d_input, float *d_output, int maxTaps, int nTimesamples, int nLoops) {
+void call_kernel_PD_ZC_GPU(float *const d_input, float *const d_output, const int &maxTaps, const int &nTimesamples, const int &nLoops) {
   //This kernel looks like it is not called elsewhere in astro-accelerate, hence no implementation is provided.
 }
 
-void call_kernel_PD_GPUv1_const(float *d_input, float *d_temp, unsigned char *d_output_taps,
-				int maxTaps, int nTimesamples, float signal_mean, float signal_sd) {
+void call_kernel_PD_GPUv1_const(float *const d_input, float *const d_temp, unsigned char *const d_output_taps,
+				const int &maxTaps, const int &nTimesamples, const float &signal_mean, const float &signal_sd) {
   //This kernel looks like it is not called elsewhere in astro-accelerate, hence no implementation is provided.
 }

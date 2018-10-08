@@ -12,9 +12,9 @@ __global__ void set_stretch_kernel(int samps, float mean, float *d_input) {
 		d_input[t] = mean;
 }
 
-void call_kernel_set_stretch_kernel(dim3 block_size, dim3 grid_size,
-				    int smem_bytes, cudaStream_t stream,
-				    int samps, float mean, float *d_input) {
+void call_kernel_set_stretch_kernel(const dim3 &block_size, const dim3 &grid_size,
+				    const int &smem_bytes, const cudaStream_t &stream,
+				    const int &samps, const float &mean, float *const d_input) {
   set_stretch_kernel<<<block_size, grid_size, smem_bytes, stream>>>(samps, mean, d_input);
 }
 

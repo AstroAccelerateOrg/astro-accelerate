@@ -49,8 +49,8 @@ __global__ void rfi_gpu_kernel(unsigned short *d_input, int nchans, int nsamp)
 }
 
 
-void call_kernel_rfi_gpu_kernel(dim3 block_size, dim3 grid_size,
-				unsigned short *d_input, int nchans, int nsamp) {
+void call_kernel_rfi_gpu_kernel(const dim3 &block_size, const dim3 &grid_size,
+				unsigned short *const d_input, const int &nchans, const int &nsamp) {
   rfi_gpu_kernel<<<block_size, grid_size>>>(d_input, nchans, nsamp);
 }
 

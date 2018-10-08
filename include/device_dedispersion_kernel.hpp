@@ -8,11 +8,11 @@
 #define ARRAYSIZE SDIVINT * SDIVINDM
 __device__  __shared__ ushort2 f_line[UNROLLS][ARRAYSIZE + 2];
 
-void set_device_constants_dedispersion_kernel(const int& nchans, const int& length, const int& t_processed, const float *dm_shifts);
-void set_device_constants_dedispersion_kernel(const long int& length, const int& t_processed);
-void call_kernel_shared_dedisperse_kernel(dim3 block_size, dim3 grid_size, int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep);
-void call_kernel_shared_dedisperse_kernel_16(dim3 block_size, dim3 grid_size, int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep);
-void call_kernel_cache_dedisperse_kernel(dim3 block_size, dim3 grid_size, int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep);
+void set_device_constants_dedispersion_kernel(const int &nchans, const int &length, const int &t_processed, const float *const dm_shifts);
+void set_device_constants_dedispersion_kernel(const long int &length, const int &t_processed);
+void call_kernel_shared_dedisperse_kernel(const dim3 &block_size, const dim3 &grid_size, const int &bin, unsigned short *const d_input, float *const d_output, const float &mstartdm, const float &mdmstep);
+void call_kernel_shared_dedisperse_kernel_16(const dim3 &block_size, const dim3 &grid_size, const int &bin, unsigned short *const d_input, float *const d_output, const float &mstartdm, const float &mdmstep);
+void call_kernel_cache_dedisperse_kernel(const dim3 &block_size, const dim3 &grid_size, const int &bin, unsigned short *const d_input, float *const d_output, const float &mstartdm, const float &mdmstep);
 
 #endif
 

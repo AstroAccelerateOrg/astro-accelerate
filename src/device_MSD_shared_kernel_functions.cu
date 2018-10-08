@@ -128,22 +128,22 @@ __global__ void MSD_GPU_Interpolate_linear(float *d_MSD_DIT, float *d_MSD_interp
   }
 }
 
-void call_kernel_MSD_GPU_final_regular(dim3 grid_size, dim3 block_size, float *d_input, float *d_output, int size) {
+void call_kernel_MSD_GPU_final_regular(const dim3 &grid_size, const dim3 &block_size, float *const d_input, float *const d_output, const int &size) {
   MSD_GPU_final_regular<<<grid_size, block_size>>>(d_input, d_output, size);
 }
 
-void call_kernel_MSD_GPU_final_regular(dim3 grid_size, dim3 block_size, float *d_input, float *d_MSD, float *d_pp, int size) {
+void call_kernel_MSD_GPU_final_regular(const dim3 &grid_size, const dim3 &block_size, float *const d_input, float *const d_MSD, float *const d_pp, const int &size) {
   MSD_GPU_final_regular<<<grid_size,block_size>>>(d_input, d_MSD, d_pp, size);
 }
 
-void call_kernel_MSD_GPU_final_nonregular(dim3 grid_size, dim3 block_size, float *d_input, float *d_MSD, int size) {
+void call_kernel_MSD_GPU_final_nonregular(const dim3 &grid_size, const dim3 &block_size, float *const d_input, float *const d_MSD, const int &size) {
   MSD_GPU_final_nonregular<<<grid_size, block_size>>>(d_input, d_MSD, size);
 }
 
-void call_kernel_MSD_GPU_final_nonregular(dim3 grid_size, dim3 block_size, float *d_input, float *d_MSD, float *d_pp, int size) {
+void call_kernel_MSD_GPU_final_nonregular(const dim3 &grid_size, const dim3 &block_size, float *const d_input, float *const d_MSD, float *const d_pp, const int &size) {
   MSD_GPU_final_nonregular<<<grid_size, block_size>>>(d_input, d_MSD, d_pp, size);
 }
 
-void call_kernel_MSD_GPU_Interpolate_linear(dim3 grid_size, dim3 block_size, float *d_MSD_DIT, float *d_MSD_interpolated, int *d_MSD_DIT_widths, int MSD_DIT_size, int *boxcar, int max_width_performed) {
+void call_kernel_MSD_GPU_Interpolate_linear(const dim3 &grid_size, const dim3 &block_size, float *const d_MSD_DIT, float *const d_MSD_interpolated, int *const d_MSD_DIT_widths, const int &MSD_DIT_size, int *const boxcar, const int &max_width_performed) {
   MSD_GPU_Interpolate_linear<<<grid_size, block_size>>>(d_MSD_DIT, d_MSD_interpolated, d_MSD_DIT_widths, MSD_DIT_size, boxcar, max_width_performed);
 }

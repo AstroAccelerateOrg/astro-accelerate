@@ -78,7 +78,7 @@ __global__ void PD_SEARCH_GPU(float const* __restrict__ d_input, float *d_output
 	}
 }
 
-void call_kernel_PD_SEARCH_GPU(dim3 grid_size, dim3 block_size, int sm_size,
-		   float const* d_input, float *d_output, float *d_output_taps, float *d_MSD, int maxTaps, int nTimesamples) {
+void call_kernel_PD_SEARCH_GPU(const dim3 &grid_size, const dim3 &block_size, const int &sm_size,
+		   float const *const d_input, float *const d_output, float *const d_output_taps, float *const d_MSD, const int &maxTaps, const int &nTimesamples) {
   PD_SEARCH_GPU<<<grid_size, block_size, sm_size>>>(d_input, d_output, d_output_taps, d_MSD, maxTaps, nTimesamples);
 }

@@ -23,7 +23,7 @@ __global__ void stats_kernel(int half_samps, float *d_sum, float *d_sum_square, 
 	d_sum_square[blockIdx.x * blockDim.x + threadIdx.x] = sum_square;
 }
 
-void call_kernel_stats_kernel(dim3 block_size, dim3 grid_size, int smem_bytes, cudaStream_t stream,
-			      int half_samps, float *d_sum, float *d_sum_square, float *d_signal_power) {
+void call_kernel_stats_kernel(const dim3 &block_size, const dim3 &grid_size, const int &smem_bytes, const cudaStream_t &stream,
+			      const int &half_samps, float *const d_sum, float *const d_sum_square, float *const d_signal_power) {
   stats_kernel<<<block_size, grid_size, smem_bytes, stream>>>(half_samps, d_sum, d_sum_square, d_signal_power);
 }
