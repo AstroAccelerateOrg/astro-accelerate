@@ -43,7 +43,7 @@ endif
 
 LIBJOBS := libastroaccelerate.a
 
-all:	${LIBJOBS} ${COMPILEJOBS}
+all:	MAKE_OBJ_FOLDER ${LIBJOBS} ${COMPILEJOBS}
 
 $(BUILD_DIR)%.o :	${SRC_DIR}%.cu
 			@echo Compiling $@ ...
@@ -52,6 +52,9 @@ $(BUILD_DIR)%.o :	${SRC_DIR}%.cu
 $(BUILD_DIR)%.o :	${SRC_DIR}%.cpp
 			@echo Compiling $@ ...
 			nvcc $(NVCCFLAGS) -c -o $@ $<
+
+MAKE_OBJ_FOLDER :
+			mkdir -p obj/
 
 libastroaccelerate.a: ${OBJ_FILES}
 			@echo Making static library libastroaccelerate.a
