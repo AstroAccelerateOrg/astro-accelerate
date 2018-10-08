@@ -188,21 +188,42 @@ Set-up the environment (which will add CUDA to PATH and LD_LIBRARY_PATH)
 `setup.sh` contains a hardcoded version number and a variable string to identify
 whether the system is a 64-bit or 32-bit architecture. The user may need to edit
 `setup.sh` to suit the CUDA version number, library paths, and the architecture number
-in order to suit their needs. Next, run CMake
+in order to suit their needs.
+
+At this point, the user has a choice, they can either 1.) use the pre-configured Makefile
+that comes with the repository by default, or they can 2.) configure the build system
+themselves using CMake.
+
+Note that in the case of using CMake, the Makefile that CMake
+produces will overwrite the default Makefile.
+For this reason, the `.gitignore` file is configured to ignore changes to the Makefile.
+
+To run using the default Makefile, simply type
+
+   make
+
+To configure the build system using CMake, run CMake
 
     cmake .
 
-The software can be compiled using the supplied makefile. To do so, simply type
+The software can then be compiled using the generated Makefile. To do so, simply type
 
     make
 
-The compilation process indicates which components are being compiled. There should be no errors or warnings.
+In both cases, the compilation process indicates which components are being compiled.
 
-The result will be an executable called
+In both cases, the result will be an executable called
 
     astro-accelerate
 
-in the astro-accelerate directory, and a shared object library called
+in the astro-accelerate directory. In case of building with the default Makefile,
+the library will be statically compiled as
+
+    libastroaccelerate.a
+    
+against which the executable has been linked.
+In case of having used CMake to configure the build system, the library will be compiled
+as a shared object library called
 
    libastroaccelerate.so
 
