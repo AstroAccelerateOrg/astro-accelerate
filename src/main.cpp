@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
 	int nbits = 0;
 	int nsamples = 0;
 	int nifs = 0;
-	int **t_processed;
+	int** t_processed;
 	int nboots = -1;
 	int ntrial_bins;
 	int navdms = 1;
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
 
 	// Allocate memory on host.
 	allocate_memory_cpu_input(&fp, gpu_memory, &host_memory, maxshift, num_tchunks, max_ndms,
-	  total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer,
+				  total_ndms, nsamp, nchans, nbits, range, ndms, t_processed, &input_buffer,
 	  &output_buffer, &d_input, &d_output, &gpu_inputsize, &gpu_outputsize,
 	  &inputsize, &outputsize);
 
@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
 	  input_buffer, output_buffer, d_input, d_output, dmshifts, user_dm_low,
 	  user_dm_high, user_dm_step, dm_low, dm_high, dm_step,
 	  // Telescope parameters
-	  nchans, nsamp, nbits, nsamples, nifs, t_processed, nboots, ntrial_bins,
+	  nchans, nsamp, nbits, nsamples, nifs, t_processed,  nboots, ntrial_bins,
 	  navdms, nsearch, aggression, narrow, wide, maxshift_original,
 	  tsamp_original, inc, tstart, tstart_local, tsamp, fch1, foff,
 	  // Analysis variables
@@ -180,24 +180,21 @@ int main(int argc, char* argv[])
 	);
 
 	// write output here, not in the library
-
-	fclose(fp);
-
-	free(output_buffer);
+	if(fp != 0 && fp != NULL) fclose(fp);
+	
+	if(output_buffer != 0 && output_buffer != NULL) free(output_buffer);
 	free(t_processed);
-	free(dm_low);
-	free(dm_high);
-	free(dm_step);
-	free(dmshifts);
-	free(user_dm_low);
-	free(user_dm_high);
-	free(user_dm_step);
-	if (nb_selected_dm > 0)
-	{
-		free(selected_dm_low);
-		free(selected_dm_high);
+	if(dm_low != 0 && dm_low != NULL) free(dm_low);
+	if(dm_high != 0 && dm_high != NULL) free(dm_high);
+	if(dm_step != 0 && dm_step != NULL) free(dm_step);
+	if(dmshifts != 0 && dmshifts != NULL) free(dmshifts);
+	if(user_dm_low != 0 && user_dm_low != NULL) free(user_dm_low);
+	if(user_dm_high != 0 && user_dm_high != NULL) free(user_dm_high);
+	if(user_dm_step != 0 && user_dm_step != NULL) free(user_dm_step);
+	if(nb_selected_dm > 0) {
+	  free(selected_dm_low);
+	  free(selected_dm_high);
 	}
-
-	return 0;
-
+	
+	return 0;	
 }
