@@ -200,11 +200,11 @@ For this reason, the `.gitignore` file is configured to ignore changes to the Ma
 
 To run using the default Makefile, simply type
 
-   make
+    make
 
 To configure the build system using CMake, run CMake
 
-   cmake .
+    cmake .
 
 The software can then be compiled using the generated Makefile. To do so, simply type
 
