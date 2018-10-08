@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
 	if(fp != 0 && fp != NULL) fclose(fp);
 	
 	if(output_buffer != 0 && output_buffer != NULL) free(output_buffer);
-	free(t_processed);
+	//free(t_processed);
 	if(dm_low != 0 && dm_low != NULL) free(dm_low);
 	if(dm_high != 0 && dm_high != NULL) free(dm_high);
 	if(dm_step != 0 && dm_step != NULL) free(dm_step);
