@@ -200,9 +200,9 @@ The compilation process indicates which components are being compiled. There sho
 
 The result will be an executable called
 
-    astro-accelerate
+    dedisperse-gpu
 
-in the astro-accelerate directory.
+in the astro-accelerate build directory.
 
 Step 3: Run
 ==
@@ -210,7 +210,7 @@ Astro-Accelerate assumes its input is ready and compatible. To obtain compatible
 
 1. Run astro-accelerate using the format
 
-    ./astro-accelerate --settingname settingvalue
+    ./dedisperse-gpu --settingname settingvalue
 
 By default, the output of astro-accelerate will be located in the same directory in which astro-accelerate was executed.
 Configuration files may be used to further specify, set, and change options.
