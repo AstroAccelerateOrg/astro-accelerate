@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "host_help.hpp"
 
-void help(void)
+void help()
 {
 
 	printf("\n **** Astro-accelerate 0.9 (07 March 2013) **** \n");
