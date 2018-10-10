@@ -1,6 +1,9 @@
 #ifndef ASTRO_ACCELERATE_HOST_MAIN_FUNCTION_HPP
 #define ASTRO_ACCELERATE_HOST_MAIN_FUNCTION_HPP
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 void main_function
 	(
 	int argc,
@@ -93,4 +96,8 @@ void main_function
 	float periodicity_sigma_cutoff,
 	int periodicity_nHarmonics
 	);
+
+  #ifdef __cplusplus
+}
+#endif
 #endif
