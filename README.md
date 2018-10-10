@@ -219,24 +219,25 @@ The software can then be compiled using the generated Makefile. To do so, simply
     make
 
 In both cases, the compilation process indicates which components are being compiled.
-
-In both cases, the result will be an executable called
+The result is an executable called
 
     astro-accelerate
 
 in the directory from which the build was performed.
-In case of building with the default Makefile,
-the library will be statically compiled as
+In the case of using the default Makefile,
+the library is compiled as a static library called
 
     libastroaccelerate.a
     
-against which the executable has been linked.
-In case of having used CMake to configure the build system, the library will be compiled
+against which the executable is linked.
+In the case of using CMake to configure the build system, the library is compiled
 as a shared object library called
 
     libastroaccelerate.so
 
-against which the executable has been linked.
+
+against which the executable is linked.
+In both cases, the library file will be located in the astro-accelerate build directory.
 
 Step 3: Run
 ==
