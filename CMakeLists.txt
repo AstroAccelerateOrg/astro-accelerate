@@ -6,8 +6,6 @@ PROJECT(${PROJECT_NAME_STR} LANGUAGES CXX CUDA)
 
 find_package(OpenMP)
 if(OPENMP_FOUND)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
     message("-- INFO: OpenMP FLAGS: ${OpenMP_CXX_FLAGS}")
 endif()
 
@@ -27,7 +25,10 @@ list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-lm;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-Wall;)
 
 if(OPENMP_FOUND)
-	list(APPEND CUDA_NVCC_FLAGS -Xcompiler;${OpenMP_CXX_FLAGS};)
+	list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-fopenmp;)
+	list(APPEND CMAKE_CXX_FLAGS "-std=c++11 -O3 -fopenmp -lm -Wall")
+else()
+	list(APPEND CMAKE_CXX_FLAGS "-std=c++11 -O3 -lm -Wall")
 endif()
 
 if(NOT DEFINED CUDA_ARCH)  
