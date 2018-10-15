@@ -1,6 +1,5 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include <cufft.h>
 #include "params.hpp"
 
 //{{{ Set stretch
