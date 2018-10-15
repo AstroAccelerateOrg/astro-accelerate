@@ -4,4 +4,3 @@
 extern void zero_dm(unsigned short *d_input, int nchans, int nsamp, int nbits);
 
 #endif
-

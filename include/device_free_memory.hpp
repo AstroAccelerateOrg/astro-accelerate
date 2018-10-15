@@ -4,4 +4,3 @@
 extern void free_device_memory(float *device_pointer);
 
 #endif
-

@@ -4,4 +4,3 @@
 extern void rfi_gpu(unsigned short *d_input, int nchans, int nsamp);
 
 #endif
-

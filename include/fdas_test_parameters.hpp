@@ -1,5 +1,6 @@
 // basic test with top-hat filters
-// FDAS code uses series of filters. This parameter gives increment for the top-hat filter in this test. Effective number of filters is ZMAX/2.
+// FDAS code uses series of filters. This parameter gives increment for the
+// top-hat filter in this test. Effective number of filters is ZMAX/2.
 #define FDAS_TEST_FILTER_INCREMENT 2
 // length of one tooth in sawtooth wave
 #define FDAS_TEST_TOOTH_LENGTH 4096

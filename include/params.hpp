@@ -1,6 +1,6 @@
 #ifndef ASTRO_ACCELERATE_PARAMS_HPP
 #define ASTRO_ACCELERATE_PARAMS_HPP
-//P100 8,14,12,40
+// P100 8,14,12,40
 #define ACCMAX 350
 #define ACCSTEP 11
 #define CARD 0
@@ -15,7 +15,7 @@
 #define STATST 128
 #define STATSLOOP 8
 
-//Added by Karel Adamek
+// Added by Karel Adamek
 #define WARP 32
 #define HALF_WARP 16
 #define MSD_PARTIAL_SIZE 3
@@ -39,9 +39,9 @@
 #define RADIX 1
 #define NEXP 10
 #define POTWO (1 << NEXP)
-#define KERNLEN RADIX*POTWO
-#define ACCEL_STEP (float)(2.0) //1 //default acceleration step
-#define ACCEL_STEP_R (float)(1.0f/ACCEL_STEP)
+#define KERNLEN RADIX *POTWO
+#define ACCEL_STEP (float)(2.0) // 1 //default acceleration step
+#define ACCEL_STEP_R (float)(1.0f / ACCEL_STEP)
 #define ZMAX 96
 #define NKERN (ZMAX + 1)
 //#define ZLO  -(int)((ZMAX/ACCEL_STEP) )
@@ -49,7 +49,6 @@
 #define TBSIZEY 1
 #define PTBSIZEX 64
 #define PTBSIZEY 1
-
 
 // for corner turn in shared memory corner_turn_SM(...)
 #define CT_NTHREADS 512
