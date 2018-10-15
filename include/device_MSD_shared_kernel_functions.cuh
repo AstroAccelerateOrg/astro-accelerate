@@ -8,14 +8,14 @@
 //----------------------------------------------------------------------------------------
 //------------- Device functions
 __device__ __inline__ void
-Initiate(float *M, float *S, float *j, float element) {
+Initiate(float* M, float* S, float* j, float element) {
   *M = element;
   *S = 0;
   *j = 1.0f;
 }
 
 __device__ __inline__ void
-Add_one(float *M, float *S, float *j, float element) {
+Add_one(float* M, float* S, float* j, float element) {
   float ftemp;
   *j    = (*j) + 1.0f;
   *M    = (*M) + element;
@@ -24,7 +24,7 @@ Add_one(float *M, float *S, float *j, float element) {
 }
 
 __device__ __inline__ void
-Merge(float *A_M, float *A_S, float *A_j, float B_M, float B_S, float B_j) {
+Merge(float* A_M, float* A_S, float* A_j, float B_M, float B_S, float B_j) {
   float ftemp;
 
   ftemp  = (B_j / (*A_j) * (*A_M) - B_M);
@@ -34,7 +34,7 @@ Merge(float *A_M, float *A_S, float *A_j, float B_M, float B_S, float B_j) {
 }
 
 __device__ __inline__ void
-Reduce_SM(float *M, float *S, float *j, float *s_input) {
+Reduce_SM(float* M, float* S, float* j, float* s_input) {
   float jv;
 
   (*M) = s_input[threadIdx.x];
@@ -68,7 +68,7 @@ Reduce_SM(float *M, float *S, float *j, float *s_input) {
 }
 
 __device__ __inline__ void
-Reduce_SM_regular(float *M, float *S, float *j, float *s_input) {
+Reduce_SM_regular(float* M, float* S, float* j, float* s_input) {
   (*M) = s_input[threadIdx.x];
   (*S) = s_input[blockDim.x + threadIdx.x];
   (*j) = s_input[2 * blockDim.x + threadIdx.x];
@@ -90,7 +90,7 @@ Reduce_SM_regular(float *M, float *S, float *j, float *s_input) {
   }
 }
 
-__device__ __inline__ void Reduce_WARP(float *M, float *S, float *j) {
+__device__ __inline__ void Reduce_WARP(float* M, float* S, float* j) {
   float B_M, B_S, B_j;
 
   for(int q = HALF_WARP; q > 0; q = q >> 1) {
@@ -110,7 +110,7 @@ __device__ __inline__ void Reduce_WARP(float *M, float *S, float *j) {
   }
 }
 
-__device__ __inline__ void Reduce_WARP_regular(float *M, float *S, float *j) {
+__device__ __inline__ void Reduce_WARP_regular(float* M, float* S, float* j) {
   for(int q = HALF_WARP; q > 0; q = q >> 1) {
     Merge(M,
           S,
@@ -122,7 +122,7 @@ __device__ __inline__ void Reduce_WARP_regular(float *M, float *S, float *j) {
 }
 
 __device__ __inline__ void Sum_partials_regular(
-    float *M, float *S, float *j, float *d_input, float *s_input, int size) {
+    float* M, float* S, float* j, float* d_input, float* s_input, int size) {
   int pos;
 
   //----------------------------------------------
@@ -174,7 +174,7 @@ __device__ __inline__ void Sum_partials_regular(
 }
 
 __device__ __inline__ void Sum_partials_nonregular(
-    float *M, float *S, float *j, float *d_input, float *s_input, int size) {
+    float* M, float* S, float* j, float* d_input, float* s_input, int size) {
   int   pos;
   float jv;
 

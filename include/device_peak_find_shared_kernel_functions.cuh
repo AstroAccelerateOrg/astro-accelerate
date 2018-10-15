@@ -14,7 +14,7 @@ __device__ __inline__ ushort is_peak(const float original_value,
                                                                          : 0u;
 }
 
-__device__ __inline__ float3 load_row(const float *input, int idx) {
+__device__ __inline__ float3 load_row(const float* input, int idx) {
   float3 val;
   val.x = __ldg(input + idx);
   val.y = __ldg(input + idx + 1);
@@ -22,7 +22,7 @@ __device__ __inline__ float3 load_row(const float *input, int idx) {
   return val;
 }
 
-__device__ __inline__ float2 load_row2(const float *input, int idx) {
+__device__ __inline__ float2 load_row2(const float* input, int idx) {
   float2 val;
   val.x = __ldg(input + idx);
   val.y = __ldg(input + idx + 1);
@@ -30,7 +30,7 @@ __device__ __inline__ float2 load_row2(const float *input, int idx) {
 }
 
 __device__ __inline__ float3x3
-load_block(const float *input, int idxX, int idxY, int width) {
+load_block(const float* input, int idxX, int idxY, int width) {
   int      idx = idxY * width + idxX;
   float3x3 data;
   float3   yrow = load_row(input, idx - 1);
@@ -49,7 +49,7 @@ load_block(const float *input, int idxX, int idxY, int width) {
 }
 
 __device__ __inline__ float3x3
-load_block_top(const float *input, int idxX, int idxY, int width) {
+load_block_top(const float* input, int idxX, int idxY, int width) {
   int      idx = idxY * width + idxX;
   float3x3 data;
   float3   yrow = load_row(input, idx - 1);
@@ -64,7 +64,7 @@ load_block_top(const float *input, int idxX, int idxY, int width) {
 }
 
 __device__ __inline__ float3x3
-load_block_bottom(const float *input, int idxX, int idxY, int width) {
+load_block_bottom(const float* input, int idxX, int idxY, int width) {
   int      idx = idxY * width + idxX;
   float3x3 data;
   float3   yrow = load_row(input, idx - 1);
@@ -79,7 +79,7 @@ load_block_bottom(const float *input, int idxX, int idxY, int width) {
 }
 
 __device__ __inline__ float3x3
-load_block_left(const float *input, int idxX, int idxY, int width) {
+load_block_left(const float* input, int idxX, int idxY, int width) {
   int      idx = idxY * width + idxX;
   float3x3 data;
   float2   xrow = load_row2(input, idx - width);
@@ -95,7 +95,7 @@ load_block_left(const float *input, int idxX, int idxY, int width) {
 }
 
 __device__ __inline__ float3x3
-load_block_right(const float *input, int idxX, int idxY, int width) {
+load_block_right(const float* input, int idxX, int idxY, int width) {
   int      idx = idxY * width + idxX;
   float3x3 data;
   float2   xrow = load_row2(input, idx - width - 1);
@@ -110,7 +110,7 @@ load_block_right(const float *input, int idxX, int idxY, int width) {
   return data;
 }
 
-__device__ __inline__ float4 load_block_2x2(const float *input, int width) {
+__device__ __inline__ float4 load_block_2x2(const float* input, int width) {
   float2 first, second;
   first.x  = __ldg(input);
   first.y  = __ldg(input + 1);

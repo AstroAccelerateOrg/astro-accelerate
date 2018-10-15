@@ -26,7 +26,7 @@
 #define SLIGHT 299792458.0
 
 typedef struct {
-  float *acc_signal;
+  float* acc_signal;
   int    nsamps;
   double freq0;
   int    mul;
@@ -38,15 +38,15 @@ typedef struct {
 } fdas_new_acc_sig;
 
 typedef struct {
-  float * d_in_signal;
-  float2 *d_fft_signal;
-  float2 *d_ext_data;
-  float2 *d_kernel;
-  float * d_ffdot_pwr;
-  float * d_ffdot_summed;
-  float2 *d_ffdot_cpx;
-  float2 *ip_edge_points;   // edge points for interbinning in kfft
-  float * d_fdas_peak_list; // added by KA
+  float*  d_in_signal;
+  float2* d_fft_signal;
+  float2* d_ext_data;
+  float2* d_kernel;
+  float*  d_ffdot_pwr;
+  float*  d_ffdot_summed;
+  float2* d_ffdot_cpx;
+  float2* ip_edge_points;   // edge points for interbinning in kfft
+  float*  d_fdas_peak_list; // added by KA
   size_t  mem_insig;
   size_t  mem_rfft;
   size_t  mem_extsig;
@@ -84,45 +84,45 @@ void fdas_print_params_h();
 
 void fdas_cuda_check_devices(int devid);
 
-void fdas_alloc_gpu_arrays(fdas_gpuarrays *arrays, cmd_args *cmdargs);
+void fdas_alloc_gpu_arrays(fdas_gpuarrays* arrays, cmd_args* cmdargs);
 
-void fdas_free_gpu_arrays(fdas_gpuarrays *arrays, cmd_args *cmdargs);
+void fdas_free_gpu_arrays(fdas_gpuarrays* arrays, cmd_args* cmdargs);
 
-void fdas_create_acc_sig(fdas_new_acc_sig *acc_sig, cmd_args *cmdargs);
+void fdas_create_acc_sig(fdas_new_acc_sig* acc_sig, cmd_args* cmdargs);
 
-void fdas_create_acc_kernels(cufftComplex *d_kernel, cmd_args *cmdargs);
+void fdas_create_acc_kernels(cufftComplex* d_kernel, cmd_args* cmdargs);
 
-void fdas_cuda_create_fftplans(fdas_cufftplan *fftplans, fdas_params *params);
+void fdas_cuda_create_fftplans(fdas_cufftplan* fftplans, fdas_params* params);
 
-void fdas_cuda_basic(fdas_cufftplan *fftplans,
-                     fdas_gpuarrays *gpuarrays,
-                     cmd_args *      cmdargs,
-                     fdas_params *   params);
+void fdas_cuda_basic(fdas_cufftplan* fftplans,
+                     fdas_gpuarrays* gpuarrays,
+                     cmd_args*       cmdargs,
+                     fdas_params*    params);
 
-void fdas_cuda_customfft(fdas_cufftplan *fftplans,
-                         fdas_gpuarrays *gpuarrays,
-                         cmd_args *      cmdargs,
-                         fdas_params *   params);
+void fdas_cuda_customfft(fdas_cufftplan* fftplans,
+                         fdas_gpuarrays* gpuarrays,
+                         cmd_args*       cmdargs,
+                         fdas_params*    params);
 
-void fdas_write_list(fdas_gpuarrays *gpuarrays,
-                     cmd_args *      cmdargs,
-                     fdas_params *   params,
-                     float *         h_MSD,
+void fdas_write_list(fdas_gpuarrays* gpuarrays,
+                     cmd_args*       cmdargs,
+                     fdas_params*    params,
+                     float*          h_MSD,
                      float           dm_low,
                      int             dm_count,
                      float           dm_step,
                      unsigned int    list_size);
 
-void fdas_write_ffdot(fdas_gpuarrays *gpuarrays,
-                      cmd_args *      cmdargs,
-                      fdas_params *   params,
+void fdas_write_ffdot(fdas_gpuarrays* gpuarrays,
+                      cmd_args*       cmdargs,
+                      fdas_params*    params,
                       float           dm_low,
                       int             dm_count,
                       float           dm_step);
 
-void fdas_write_test_ffdot(fdas_gpuarrays *gpuarrays,
-                           cmd_args *      cmdargs,
-                           fdas_params *   params,
+void fdas_write_test_ffdot(fdas_gpuarrays* gpuarrays,
+                           cmd_args*       cmdargs,
+                           fdas_params*    params,
                            float           dm_low,
                            int             dm_count,
                            float           dm_step);

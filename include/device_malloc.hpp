@@ -3,6 +3,6 @@
 
 // It looks as though this function prototype is declared but not implemented or
 // used anywhere.
-extern float *malloc_gpu(size_t size, int zero_mem);
+extern float* malloc_gpu(size_t size, int zero_mem);
 
 #endif

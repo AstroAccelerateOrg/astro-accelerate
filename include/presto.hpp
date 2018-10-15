@@ -98,12 +98,12 @@
 // extern "C" int fresnl(double xxa, double *ssa, double *cca);
 
 // extern "C"
-cufftComplex *gen_z_response(double z, int numkern, int numbetween);
+cufftComplex* gen_z_response(double z, int numkern, int numbetween);
 
 // extern "C"
-void place_complex_kernel(cufftComplex *kernel,
+void place_complex_kernel(cufftComplex* kernel,
                           int           numkernel,
-                          cufftComplex *result,
+                          cufftComplex* result,
                           int           numresult);
 
 // extern "C"
@@ -112,10 +112,10 @@ int z_resp_halfwidth(double z, int accuracy);
 // extern "C" float median(float arr[], int n);
 
 // extern "C"
-void dereddensig(cufftComplex *fft, int numamps);
+void dereddensig(cufftComplex* fft, int numamps);
 
 // extern "C"
-void presto_norm(cufftComplex *fft, int numamps);
+void presto_norm(cufftComplex* fft, int numamps);
 
 // extern "C"
 double equivalent_gaussian_sigma(double logp);
