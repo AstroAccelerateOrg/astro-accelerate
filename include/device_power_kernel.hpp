@@ -1,6 +1,8 @@
 #ifndef ASTRO_ACCELERATE_DEVICE_POWER_KERNEL_HPP
 #define ASTRO_ACCELERATE_DEVICE_POWER_KERNEL_HPP
 
+#include <cufft.h>
+
 void call_kernel_power_kernel(const dim3 &        block_size,
                               const dim3 &        grid_size,
                               const int &         smem_bytes,
