@@ -10,8 +10,8 @@ void stretch_gpu(cudaEvent_t  event,
                  int          acc,
                  int          samps,
                  float        tsamp,
-                 float *      d_input,
-                 float *      d_output) {
+                 float*       d_input,
+                 float*       d_output) {
 
   //{{{ Simple corner turn on the GPU
 

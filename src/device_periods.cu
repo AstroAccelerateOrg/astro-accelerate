@@ -1211,7 +1211,7 @@ void GPU_periodicity(int      range,
   //      ->check is zero-th element does not mess up statistics
   //      ->prepare data on the host before copying them to device
   //		->There must by one inBin group per stream. We cannot have
-  //batches or Pranges per stream because MSD. :(
+  // batches or Pranges per stream because MSD. :(
 
   printf("\n");
   printf("------------ STARTING PERIODICITY SEARCH ------------\n\n");

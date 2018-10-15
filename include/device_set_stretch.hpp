@@ -5,6 +5,6 @@ extern void set_stretch_gpu(cudaEvent_t  event,
                             cudaStream_t stream,
                             int          samps,
                             float        mean,
-                            float *      d_input);
+                            float*       d_input);
 
 #endif

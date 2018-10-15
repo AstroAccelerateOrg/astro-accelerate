@@ -89,7 +89,7 @@ void stratagy_MSD(int                nDMs,
   //        &temporary_workarea, workarea_size_in_bytes);
 
   //	size_t MSD_profile_size_in_bytes, MSD_DIT_profile_size_in_bytes,
-  //workarea_size_in_bytes;
+  // workarea_size_in_bytes;
   //	Get_MSD_plane_profile_memory_requirements(&MSD_profile_size_in_bytes,
   //&MSD_DIT_profile_size_in_bytes, &workarea_size_in_bytes, nTimesamples, nDMs,
   //&h_boxcar_widths);

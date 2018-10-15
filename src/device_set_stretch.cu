@@ -11,7 +11,7 @@ void set_stretch_gpu(cudaEvent_t  event,
                      cudaStream_t stream,
                      int          samps,
                      float        mean,
-                     float *      d_input) {
+                     float*       d_input) {
 
   int divisions_in_t = 32;
   int num_blocks_t   = samps / divisions_in_t;
