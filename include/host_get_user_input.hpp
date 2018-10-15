@@ -1,6 +1,9 @@
 #ifndef ASTRO_ACCELERATE_HOST_GET_USER_INPUT_HPP
 #define ASTRO_ACCELERATE_HOST_GET_USER_INPUT_HPP
 
+#include <stdio.h>
+#include <wordexp.h>
+
 void get_user_input(FILE ** fp,
                     int     argc,
                     char *  argv[],

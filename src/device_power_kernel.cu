@@ -2,6 +2,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+#include "device_power_kernel.hpp"
 //{{{ Set stretch
 __global__ void power_kernel(int           half_samps,
                              int           acc,

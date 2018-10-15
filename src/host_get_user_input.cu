@@ -5,8 +5,6 @@
 #include "host_get_user_input.hpp"
 #include "host_help.hpp"
 #include "params.hpp"
-#include <stdio.h>
-#include <wordexp.h>
 
 void get_user_input(FILE ** fp,
                     int     argc,
