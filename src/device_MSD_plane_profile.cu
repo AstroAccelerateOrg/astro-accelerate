@@ -726,7 +726,7 @@ void MSD_Interpolate_values(float *           d_MSD_interpolated,
                                   cudaMemcpyHostToDevice));
 
   //	checkCudaErrors(cudaMemcpy(h_MSD_DIT, d_MSD_DIT,
-  //nMSDs*MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
+  // nMSDs*MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
 
 #ifdef MSD_PLANE_DEBUG
   printf("------------------ MSD_plane_profile DEBUG - Linear interpolation "
@@ -745,7 +745,7 @@ void MSD_Interpolate_values(float *           d_MSD_interpolated,
   //		if(h_boxcar_widths->operator[](f)<=max_width_performed) {
   //			float mean, StDev;
   //			MSD_Interpolate_linear(&mean, &StDev, (float)
-  //h_boxcar_widths->operator[](f), h_MSD_DIT, h_MSD_DIT_widths);
+  // h_boxcar_widths->operator[](f), h_MSD_DIT, h_MSD_DIT_widths);
   //			h_MSD_interpolated[f*MSD_INTER_SIZE] = mean;
   //			h_MSD_interpolated[f*MSD_INTER_SIZE+1] = StDev;
   //		}
@@ -778,7 +778,7 @@ void MSD_Interpolate_values(float *           d_MSD_interpolated,
 #endif
 
   //	checkCudaErrors(cudaMemcpy(d_MSD_interpolated, h_MSD_interpolated,
-  //nWidths*MSD_INTER_SIZE*sizeof(float), cudaMemcpyHostToDevice));
+  // nWidths*MSD_INTER_SIZE*sizeof(float), cudaMemcpyHostToDevice));
 
   //	delete[] h_MSD_DIT;
   //	delete[] h_MSD_interpolated;
@@ -843,9 +843,10 @@ void Get_MSD_plane_profile_memory_requirements(
 
 // TODO:
 //		Make it fail reasonably, which means if max_boxcar_width = 1
-//calculate only MSD for given plane and omit DIT completely 		Add checks when
-//StDev blows up because of too much DIT 		Add checks if there is enough
-//timesamples to do DIT.
+// calculate only MSD for given plane and omit DIT completely 		Add
+// checks when
+// StDev blows up because of too much DIT 		Add checks if there is
+// enough timesamples to do DIT.
 // Note: By separating DIT = 2 into two parts we slightly decreasing precision
 // if compared to non spit case, because outlier rejection has fewer points to
 // work with. This could be a problem if we have a plane small enough to fit

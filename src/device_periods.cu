@@ -736,8 +736,8 @@ void Find_Periodicity_Plan(int *                max_nDMs_in_memory,
 }
 
 void Copy_data_for_periodicity_search(
-    float * d_one_A,
-    float **dedispersed_data,
+    float *            d_one_A,
+    float **           dedispersed_data,
     Periodicity_Batch *batch) { // TODO add "cudaStream_t stream1"
   for(int ff = 0; ff < batch->nDMs_per_batch; ff++) {
     checkCudaErrors(cudaMemcpy(&d_one_A[ff * batch->nTimesamples],
@@ -831,7 +831,7 @@ void Periodicity_search(
     size_t                             input_plane_size,
     int                                inBin,
     Periodicity_Batch *                batch,
-    std::vector<int> *                 h_boxcar_widths) { // TODO add "cudaStream_t stream1"
+    std::vector<int> *h_boxcar_widths) { // TODO add "cudaStream_t stream1"
   int local_max_list_size = (input_plane_size) / 4;
 
   float *d_dedispersed_data, *d_FFT_complex_output, *d_frequency_power,
@@ -1210,8 +1210,8 @@ void GPU_periodicity(int      range,
   //      ->max_ndms is possibly the same thing as max_nDMs! Investigate.
   //      ->check is zero-th element does not mess up statistics
   //      ->prepare data on the host before copying them to device
-  //		->There must by one inBin group per stream. We cannot have batches
-  //or Pranges per stream because MSD. :(
+  //		->There must by one inBin group per stream. We cannot have
+  //batches or Pranges per stream because MSD. :(
 
   printf("\n");
   printf("------------ STARTING PERIODICITY SEARCH ------------\n\n");
