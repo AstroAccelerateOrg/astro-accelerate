@@ -1264,7 +1264,7 @@ __global__ void cuda_ffdotpow_concat_2d_ndm_inbin(float2* d_ffdot_plane_cpx,
         __syncthreads();
         // write data back to global memory
         //	int inbin_idx = 2*dmidx_f + 2*(by * sig_totlen) + i*2*siglen +
-        //2*bx* blockDim.x + tx ; 	if (inbin_idx + PTBSIZEX < ffdotlen){
+        // 2*bx* blockDim.x + tx ; 	if (inbin_idx + PTBSIZEX < ffdotlen){
         d_ffdot_plane[2 * dmidx_f + 2 * (by * sig_totlen) + i * 2 * siglen +
                       2 * bx * blockDim.x + tx] = local_data_inbin[tx];
         d_ffdot_plane[2 * dmidx_f + 2 * (by * sig_totlen) + i * 2 * siglen +

@@ -182,8 +182,8 @@ void get_file_data(FILE** fp,
     // assumption: nchans is a multiple of 2
     //		if ((*nchans / 4) != 0)
     //		{
-    //			printf("\nNumber of frequency channels must be divisible by 8 with 1
-    //bit data samples\n"); 			exit(0);
+    //			printf("\nNumber of frequency channels must be divisible by 8 with
+    //1 bit data samples\n"); 			exit(0);
     //		}
     int            nb_bytes = *nchans / 4;
     unsigned char* temp_buffer =
@@ -206,8 +206,8 @@ void get_file_data(FILE** fp,
     // assumption: nchans is a multiple of 2
     //		if ((*nchans / 8) != 0)
     //		{
-    //			printf("\nNumber of frequency channels must be divisible by 8 with 1
-    //bit data samples\n"); 			exit(0);
+    //			printf("\nNumber of frequency channels must be divisible by 8 with
+    //1 bit data samples\n"); 			exit(0);
     //		}
     int            nb_bytes = *nchans / 8;
     unsigned char* temp_buffer =

@@ -51,7 +51,8 @@ void bin_gpu(unsigned short* d_input, float* d_output, int nchans, int nsamp) {
 
   cudaMemset(d_output, 0, nchans * nsamp * sizeof(float));
   // cudaMemcpy(input_buffer, bin_buffer, sizeof(float)*nchans*(nsamp/2),
-  // cudaMemcpyDeviceToDevice); 	getLastCudaError("Kernel execution failed");
+  // cudaMemcpyDeviceToDevice); 	getLastCudaError("Kernel execution
+  // failed");
 }
 
 int GPU_DiT_v2_wrapper(float* d_input,

@@ -91,7 +91,7 @@ void stats_gpu(cudaEvent_t  event,
   float total_sum        = 0.0;
   float total_sum_square = 0.0;
   //#pragma omp parallel for default(shared) private(a) schedule(static,chunk)
-  //reduction(+:total_sum,total_sum_square)
+  // reduction(+:total_sum,total_sum_square)
   for(a = 0; a < size; a++) {
     total_sum += (h_sum[a]);
     total_sum_square += (h_sum_square[a]);

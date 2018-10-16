@@ -536,15 +536,16 @@ void main_function(int   argc,
                            sizeof(float) * t_processed[dm_range][t]);
         }
         //	save_data(d_output, &output_buffer[dm_range][0][((long
-        //int)inc)/inBin[dm_range]], gpu_outputsize);
+        // int)inc)/inBin[dm_range]], gpu_outputsize);
       }
 
       if(output_dmt == 1) {
         // for (int k = 0; k < ndms[dm_range]; k++)
         //	write_output(dm_range, t_processed[dm_range][t], ndms[dm_range],
-        //gpu_memory, output_buffer[dm_range][k], gpu_outputsize, dm_low,
-        //dm_high); write_output(dm_range, t_processed[dm_range][t],
-        // ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low, dm_high);
+        // gpu_memory, output_buffer[dm_range][k], gpu_outputsize, dm_low,
+        // dm_high); write_output(dm_range, t_processed[dm_range][t],
+        // ndms[dm_range], gpu_memory, out_tmp, gpu_outputsize, dm_low,
+        // dm_high);
       }
 
       checkCudaErrors(cudaGetLastError());
@@ -635,8 +636,8 @@ void main_function(int   argc,
 
         // This is for testing purposes and should be removed or commented out
         // analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t],
-        // (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms,
-        // outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
+        // (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms,
+        // ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
       }
       oldBin = inBin[dm_range];
     }

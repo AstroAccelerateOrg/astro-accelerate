@@ -9,7 +9,7 @@
 #define ACC 0.000001f
 
 //{{{ Dristribution based RFI removal - needs cleaning and optimizing // WA
-//07/08/18
+// 07/08/18
 __global__ void
 zero_dm_outliers_kernel_one(unsigned short* d_input, int nchans, int nsamp) {
 

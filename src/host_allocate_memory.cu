@@ -108,7 +108,7 @@ void allocate_memory_cpu_output(FILE**           fp,
   *host_memory = *host_memory - *outputsize;
   //      printf("\noutput: Memory available: %zu", (*host_memory)/1024/1024);
   //	printf("\noutput size: %llu",(unsigned long
-  //long)(*outputsize/1024/1024));
+  // long)(*outputsize/1024/1024));
 }
 
 void allocate_memory_gpu(FILE**           fp,
