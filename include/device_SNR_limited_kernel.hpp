@@ -5,8 +5,8 @@
 #include <cuda_runtime.h>
 #include "params.hpp"
 
-void call_kernel_SNR_GPU_limited(dim3 grid_size, dim3 block_size, float *d_FIR_input, float *d_SNR_output,
-				 ushort *d_SNR_taps, float *d_MSD, int x_steps, int nTaps,
-				 int nColumns, int offset);
+void call_kernel_SNR_GPU_limited(const dim3 &grid_size, const dim3 &block_size, float *const d_FIR_input, float *const d_SNR_output,
+				 ushort *const d_SNR_taps, float *const d_MSD, const int &x_steps, const int &nTaps,
+				 const int &nColumns, const int &offset);
 
 #endif
