@@ -4,8 +4,7 @@
 
 void help()
 {
-
-	printf("\n **** Astro-accelerate 0.9 (07 March 2013) **** \n");
+	printf("\n **** Astro-Accelerate **** \n");
 	printf("\n Astro-accelerate is a program that performs the de-dispersion of time-series filterbank data.");
 	printf("\n The code has algorithms for both CPU and NVIDIA GPU acceleration (Fermi and Kepler).");
 	printf("\n Currently astro-accelerate works with a single polarisation and 32-bit data (more to come).");
@@ -13,8 +12,8 @@ void help()
 	printf("\n");
 	printf("\n Please send any bug reports to wes.armour@oerc.ox.ac.uk");
 	printf("\n");
-	printf("\n Usage: dedisperse-gpu <filename>\t\tAutomatically de-disperse input data file");
-	printf("\n Usage: dedisperse-gpu [arguments]\t\tSpecify arguments for dedispersion");
+	printf("\n Usage: ./astro-accelerate <filename>\t\tAutomatically de-disperse input data file");
+	printf("\n Usage: ./astro-accelerate [arguments]\t\tSpecify arguments for dedispersion");
 	printf("\n");
 	printf("\n Arguments: \n");
 	printf("\n");
@@ -33,7 +32,7 @@ void help()
 	printf("\n\t\t\t\t\t\t This can be CPU GPU GPU-CACHE.");
 	printf("\n\t\t\t\t\t\t CPU will excecute on the CPU.");
 	printf("\n\t\t\t\t\t\t GPU is the default and will use the GPU shared memory. This is our fastest algorithm");
-	printf("\n\t\t\t\t\t\t GPU-CACHE will excecute on the gpu and use the gpu cache. this is much faster than CPU but about 3x slower than GPU.");
+	printf("\n\t\t\t\t\t\t GPU-CACHE will excecute on the gpu and use the gpu cache. This is much faster than CPU but about 3x slower than GPU.");
 	printf("\n");
 	exit(0);
 }
