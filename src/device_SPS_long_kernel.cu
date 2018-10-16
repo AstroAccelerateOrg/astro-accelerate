@@ -1,5 +1,6 @@
 // Added by Karel Adamek 
 #include "device_SPS_long_kernel.hpp"
+#include "device_SPS_plan.hpp"
 
 //--------------------------------------------------------------------------------------
 //------------- device functions

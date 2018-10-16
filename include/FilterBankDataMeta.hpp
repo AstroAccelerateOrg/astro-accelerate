@@ -20,8 +20,6 @@ class FilterBankDataMeta {
 
     float binned_sampling_time;
 
-    int binning_factor;
-
     size_t number_dms;
     size_t timesamples;
 

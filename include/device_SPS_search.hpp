@@ -57,7 +57,7 @@ public:
 		return verbose;
 	}
 
-	void ClearCandidateList(){
+	void ClearCandidateList(void){
 		if (h_candidate_list != NULL) {
 			free(h_candidate_list);
 			h_candidate_list = NULL;

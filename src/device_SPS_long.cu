@@ -19,7 +19,19 @@ void Assign_parameters(int f, std::vector<PulseDetection_plan> *PD_plan, int *de
 	*shift                 = PD_plan->operator[](f).shift;           
 	*startTaps             = PD_plan->operator[](f).startTaps; 
 	*unprocessed_samples   = PD_plan->operator[](f).unprocessed_samples;
-	*total_ut              = PD_plan->operator[](f).total_ut;	
+	*total_ut              = PD_plan->operator[](f).total_ut;
+	
+	*decimated_timesamples = PD_plan->operator[](f).decimated_timesamples;
+	*dtm                   = PD_plan->operator[](f).dtm;
+	*iteration             = PD_plan->operator[](f).iteration;
+	*nBoxcars              = PD_plan->operator[](f).nBoxcars;
+	*nBlocks               = PD_plan->operator[](f).nBlocks;
+	*output_shift          = PD_plan->operator[](f).output_shift;
+	*shift                 = PD_plan->operator[](f).shift;           
+	*startTaps             = PD_plan->operator[](f).startTaps; 
+	*unprocessed_samples   = PD_plan->operator[](f).unprocessed_samples;
+	*total_ut              = PD_plan->operator[](f).total_ut;
+	
 }
 
 void PD_SEARCH_LONG_init() {
@@ -29,7 +41,7 @@ void PD_SEARCH_LONG_init() {
 }
 
 
-int SPDT_search_long_MSD_plane(float *d_input, float *d_boxcar_values, float *d_decimated, float *d_output_SNR, ushort *d_output_taps, float *d_MSD_interpolated, std::vector<PulseDetection_plan> *PD_plan, int max_iteration, int nTimesamples, int nDMs) {
+int SPDT_search_long_MSD_plane(float *d_input, float *d_boxcar_values, float *d_decimated, float *d_output_SNR, ushort *d_output_taps, float *d_MSD_interpolated, SPS_Plan &spsplan, int max_iteration, int nTimesamples, int nDMs) {
 	//---------> CUDA block and CUDA grid parameters
 	dim3 gridSize(1, 1, 1);
 	dim3 blockSize(PD_NTHREADS, 1, 1);
@@ -41,7 +53,7 @@ int SPDT_search_long_MSD_plane(float *d_input, float *d_boxcar_values, float *d_
 	int decimated_timesamples, dtm, iteration, nBoxcars, nBlocks, output_shift, shift, startTaps, unprocessed_samples, total_ut, MSD_plane_pos;
 	
 	// ----------> First iteration
-	Assign_parameters(0, PD_plan, &decimated_timesamples, &dtm, &iteration, &nBoxcars, &nBlocks, &output_shift, &shift, &startTaps, &unprocessed_samples, &total_ut);
+	Assign_parameters(0, spsplan, &decimated_timesamples, &dtm, &iteration, &nBoxcars, &nBlocks, &output_shift, &shift, &startTaps, &unprocessed_samples, &total_ut);
 	MSD_plane_pos = 0;
 	gridSize.x=nBlocks; gridSize.y=nDMs; gridSize.z=1;
 	blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
@@ -56,6 +68,8 @@ int SPDT_search_long_MSD_plane(float *d_input, float *d_boxcar_values, float *d_
 	
 	for(f=1; f<max_iteration; f++){
 		MSD_plane_pos = MSD_plane_pos + nBoxcars;
+		// TODO: Need to update the spsplan here
+		spsplan.UpdateSPSPlan(iteration);
 		Assign_parameters(f, PD_plan, &decimated_timesamples, &dtm, &iteration, &nBoxcars, &nBlocks, &output_shift, &shift, &startTaps, &unprocessed_samples, &total_ut);
 		gridSize.x=nBlocks; gridSize.y=nDMs; gridSize.z=1;
 		blockSize.x=PD_NTHREADS; blockSize.y=1; blockSize.z=1;
