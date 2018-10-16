@@ -28,8 +28,8 @@ void statistics(char*        string,
 
   if(strcmp(string, "dedisperse in") == 0) {
     *in_time = clock();
-
-  } else if(strcmp(string, "dedisperse out") == 0) {
+  }
+  else if(strcmp(string, "dedisperse out") == 0) {
     *out_time = clock();
     time      = double(*out_time - *in_time) / CLOCKS_PER_SEC;
 
@@ -64,13 +64,13 @@ void statistics(char*        string,
 
     float size_gb = (nchans * (nsamp - maxshift)) / 1000000000.0;
     printf("\nTelescope data throughput in Gb/s: %f", size_gb / time);
-
-  } else if(strcmp(string, "save in") == 0) {
-
-  } else if(strcmp(string, "save out") == 0) {
-
-  } else if(strcmp(string, "analyse in") == 0) {
-
-  } else if(strcmp(string, "analyse out") == 0) {
+  }
+  else if(strcmp(string, "save in") == 0) {
+  }
+  else if(strcmp(string, "save out") == 0) {
+  }
+  else if(strcmp(string, "analyse in") == 0) {
+  }
+  else if(strcmp(string, "analyse out") == 0) {
   }
 }

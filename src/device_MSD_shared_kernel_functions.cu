@@ -110,7 +110,8 @@ __global__ void MSD_GPU_Interpolate_linear(float* d_MSD_DIT,
       //                (*StDev) = StDev1;
       d_MSD_interpolated[tid * 2]     = mean1;
       d_MSD_interpolated[tid * 2 + 1] = StDev1;
-    } else {
+    }
+    else {
       float width2            = d_MSD_DIT_widths[position + 1];
       float distance_in_width = width2 - width1;
 

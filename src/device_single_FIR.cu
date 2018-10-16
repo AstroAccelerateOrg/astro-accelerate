@@ -104,7 +104,8 @@ int PPF_L1(
     // printf("Running...\n");
     call_kernel_Fir_L1(
         GridSize, BlockSize, d_input, d_output, nTaps, nTimesamples);
-  } else
+  }
+  else
     return (-1);
 
   return (nTaps - 1);

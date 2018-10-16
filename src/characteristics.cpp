@@ -75,7 +75,8 @@ double equivalent_gaussian_sigma(double logp)
 
   if(logp < -600.0) {
     x = extended_equiv_gaussian_sigma(logp);
-  } else {
+  }
+  else {
     int    which, status;
     double p, q, bound, mean = 0.0, sd = 1.0;
     q      = exp(logp);
@@ -87,9 +88,11 @@ double equivalent_gaussian_sigma(double logp)
     if(status) {
       if(status == -2) {
         x = 0.0;
-      } else if(status == -3) {
+      }
+      else if(status == -3) {
         x = 38.5;
-      } else {
+      }
+      else {
         printf("\nError in cdfnor() (candidate_sigma()):\n");
         printf("   status = %d, bound = %g\n", status, bound);
         printf("   p = %g, q = %g, x = %g, mean = %g, sd = %g\n\n",
@@ -124,7 +127,8 @@ double chi2_logp(double chi2, int dof)
     //   this is eqn 26.4.19 of A & S
     logp = log_asymtotic_incomplete_gamma(0.5 * dof, 0.5 * chi2) -
            log_asymtotic_gamma(0.5 * dof);
-  } else {
+  }
+  else {
     int    which, status;
     double p, q, bound, df = dof, x = chi2;
 

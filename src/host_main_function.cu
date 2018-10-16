@@ -581,7 +581,8 @@ void main_function(int   argc,
                        tsamp,
                        max_boxcar_width_in_sec);
           free(out_tmp);
-        } else {
+        }
+        else {
           unsigned int* h_peak_list_DM;
           unsigned int* h_peak_list_TS;
           float*        h_peak_list_SNR;

@@ -58,7 +58,8 @@ zero_dm_outliers_kernel_one(unsigned short* d_input, int nchans, int nsamp) {
     }
     g_mean[threadIdx.x] = mean = MEAN;
     g_stdev[threadIdx.x] = stdev = 0.0f;
-  } else {
+  }
+  else {
     g_mean[threadIdx.x]  = mean;
     g_stdev[threadIdx.x] = stdev;
   }
@@ -106,19 +107,22 @@ zero_dm_outliers_kernel_one(unsigned short* d_input, int nchans, int nsamp) {
     for(int c = 0; c < nchans; c++) {
       d_input[t * nchans + c] = MEAN;
     }
-  } else if((g_stdev[threadIdx.x] - mean_of_stdev) > s_cutoff ||
-            (g_stdev[threadIdx.x] - mean_of_stdev) < -s_cutoff) {
+  }
+  else if((g_stdev[threadIdx.x] - mean_of_stdev) > s_cutoff ||
+          (g_stdev[threadIdx.x] - mean_of_stdev) < -s_cutoff) {
     for(int c = 0; c < nchans; c++) {
       d_input[t * nchans + c] = MEAN;
     }
-  } else {
+  }
+  else {
     for(int c = 0; c < nchans; c++) {
       if((d_input[t * nchans + c] - mean < R_CUT * stdev) &&
          (d_input[t * nchans + c] - mean > -R_CUT * stdev)) {
         d_input[t * nchans + c] =
             (unsigned short)((float)d_input[t * nchans + c] - (float)mean +
                              MEAN);
-      } else {
+      }
+      else {
         d_input[t * nchans + c] = MEAN;
       }
     }
@@ -181,7 +185,8 @@ zero_dm_outliers_kernel_two(unsigned short* d_input, int nchans, int nsamp) {
     }
     g_mean[threadIdx.x] = mean = MEAN;
     g_stdev[threadIdx.x] = stdev = 0.0f;
-  } else {
+  }
+  else {
     g_mean[threadIdx.x]  = mean;
     g_stdev[threadIdx.x] = stdev;
   }
@@ -229,19 +234,22 @@ zero_dm_outliers_kernel_two(unsigned short* d_input, int nchans, int nsamp) {
     for(int t = 0; t < nsamp; t++) {
       d_input[t * nchans + c] = MEAN;
     }
-  } else if((g_stdev[threadIdx.x] - mean_of_stdev) > s_cutoff ||
-            (g_stdev[threadIdx.x] - mean_of_stdev) < -s_cutoff) {
+  }
+  else if((g_stdev[threadIdx.x] - mean_of_stdev) > s_cutoff ||
+          (g_stdev[threadIdx.x] - mean_of_stdev) < -s_cutoff) {
     for(int t = 0; t < nsamp; t++) {
       d_input[t * nchans + c] = MEAN;
     }
-  } else {
+  }
+  else {
     for(int t = 0; t < nsamp; t++) {
       if((d_input[t * nchans + c] - mean < R_CUT * stdev) &&
          (d_input[t * nchans + c] - mean > -R_CUT * stdev)) {
         d_input[t * nchans + c] =
             (unsigned short)((float)d_input[t * nchans + c] - (float)mean +
                              MEAN);
-      } else {
+      }
+      else {
         d_input[t * nchans + c] = MEAN;
       }
     }

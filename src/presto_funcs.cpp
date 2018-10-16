@@ -51,8 +51,8 @@ int presto_z_resp_halfwidth(double z, int accuracy)
 
     if(z > 100 && m > 1.2 * z)
       m = 1.2 * z;
-
-  } else {
+  }
+  else {
     m = (long)(z * (0.00089 * z + 0.3131) + NUMFINTBINS);
     m = (m < NUMFINTBINS) ? NUMFINTBINS : m;
 

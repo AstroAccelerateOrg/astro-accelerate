@@ -74,7 +74,8 @@ void acceleration_fdas(int      range,
   if(enable_custom_fft == 1) {
     cmdargs.basic = 0; //
     cmdargs.kfft  = 1; //
-  } else {
+  }
+  else {
     cmdargs.basic = 1; //
     cmdargs.kfft  = 0; //
   }
@@ -490,7 +491,8 @@ void acceleration_fdas(int      range,
                                        NKERN,
                                        0,
                                        sigma_constant);
-          } else {
+          }
+          else {
             printf("Point\n");
             Find_MSD(d_MSD,
                      gpuarrays.d_ffdot_pwr,

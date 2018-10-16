@@ -30,7 +30,8 @@ void Do_MSD_normal(float* d_MSD,
   if(enable_outlier_rejection) {
     MSD_outlier_rejection(
         d_MSD, d_input, d_MSD_workarea, &conf, OR_sigma_multiplier);
-  } else {
+  }
+  else {
     MSD_normal(d_MSD, d_input, d_MSD_workarea, &conf);
   }
 }
@@ -52,7 +53,8 @@ void Do_MSD_continuous(float* d_MSD,
                                      d_MSD_workarea,
                                      &conf,
                                      OR_sigma_multiplier);
-  } else {
+  }
+  else {
     MSD_normal_continuous(
         d_MSD, d_input, d_previous_partials, d_MSD_workarea, &conf);
   }
@@ -196,7 +198,8 @@ void MSD_of_input_plane(float*            d_MSD_DIT,
     nRest = GPU_DiT_v2_wrapper(d_lichy, d_sudy, nDMs, decimated_timesamples);
     timer.Stop();
     t_dit_time += timer.Elapsed();
-  } else {
+  }
+  else {
     // printf("Low memory: DIT=2 is split in two\n");
     // First decimation is split into two parts, that way we can lower the
     // memory requirements for MSD_plane_profile First half of the decimation
@@ -329,7 +332,8 @@ void MSD_of_input_plane(float*            d_MSD_DIT,
                perform_continuous);
         timer.Stop();
         t_MSD_time += timer.Elapsed();
-      } else {
+      }
+      else {
         timer.Start();
         //                            in      out :|
         nRest =
@@ -403,7 +407,8 @@ void MSD_of_input_plane(float*            d_MSD_DIT,
              perform_continuous);
       timer.Stop();
       t_MSD_time += timer.Elapsed();
-    } else {
+    }
+    else {
       timer.Start();
       //               in       out      :|
       nRest = PPF_L1(d_sudy, d_lichy, nDMs, decimated_timesamples, nTaps);
@@ -462,7 +467,8 @@ void MSD_of_input_plane(float*            d_MSD_DIT,
     if(f % 2 == 0) {
       input_pointer  = d_lichy;
       output_pointer = d_sudy;
-    } else {
+    }
+    else {
       input_pointer  = d_sudy;
       output_pointer = d_lichy;
     }
@@ -589,7 +595,8 @@ void MSD_Interpolate_linear(float*            mean,
   if(position == MSD_DIT_size - 1 && width1 == (int)desired_width) {
     (*mean)  = mean1;
     (*StDev) = StDev1;
-  } else {
+  }
+  else {
     float width2 = h_MSD_DIT_widths->operator[](position + 1);
     float                            distance_in_width = width2 - width1;
 
@@ -638,7 +645,8 @@ void MSD_Interpolate_square(float*            mean,
      h_MSD_DIT_widths->operator[](position) == (int)desired_width) {
     (*mean)  = h_MSD_DIT[(position)*MSD_RESULTS_SIZE];
     (*StDev) = h_MSD_DIT[(position)*MSD_RESULTS_SIZE + 1];
-  } else {
+  }
+  else {
     float w = desired_width;
 
     float w0                           = h_MSD_DIT_widths->operator[](position);
@@ -883,7 +891,8 @@ void MSD_plane_profile(float*            d_MSD_interpolated,
     d_MSD_DIT      = &workarea[datasize / 4 + datasize / 2];
     d_MSD_workarea = &workarea[datasize / 4 + datasize / 2 +
                                (nDecimations + 1) * MSD_RESULTS_SIZE];
-  } else {
+  }
+  else {
     d_MSD_DIT = &workarea[datasize / 2];
     d_MSD_workarea =
         &workarea[datasize / 2 + (nDecimations + 1) * MSD_RESULTS_SIZE];

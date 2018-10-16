@@ -61,13 +61,15 @@ void dedisperse(int             i,
                                                 d_output,
                                                 (float)(startdm / (*tsamp)),
                                                 (float)(dm_step[i] / (*tsamp)));
-      } else {
+      }
+      else {
         printf("\nERROR: smem line length is too short.\nRun the auto tuner "
                "again!\n");
         failsafe = 1;
         //	exit(0);
       }
-    } else {
+    }
+    else {
       // FOR KEPLER SMEM....
       float shift_one = (SDIVINDM - 1) * (dm_step[i] / (*tsamp));
       int   shifta =
@@ -106,7 +108,8 @@ void dedisperse(int             i,
                                              d_output,
                                              (float)(startdm / (*tsamp)),
                                              (float)(dm_step[i] / (*tsamp)));
-      } else {
+      }
+      else {
         printf("\nERROR: smem line length is too short.\nRun the auto tuner "
                "again!\n");
         failsafe = 1;

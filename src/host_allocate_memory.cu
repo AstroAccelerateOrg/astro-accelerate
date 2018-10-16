@@ -139,7 +139,8 @@ void allocate_memory_gpu(FILE**           fp,
 
   if(nchans < max_ndms) {
     *gpu_outputsize = (size_t)time_samps * (size_t)max_ndms * sizeof(float);
-  } else {
+  }
+  else {
     *gpu_outputsize = (size_t)time_samps * (size_t)nchans * sizeof(float);
   }
   checkCudaErrors(cudaMalloc((void**)d_output, *gpu_outputsize));

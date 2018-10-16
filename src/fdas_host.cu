@@ -463,7 +463,8 @@ void fdas_cuda_basic(fdas_cufftplan* fftplans,
         params->nblocks,
         params->extlen,
         params->siglen);
-  } else {
+  }
+  else {
     cuda_ffdotpow_concat_2d<<<pwblocks, pwthreads>>>(gpuarrays->d_ffdot_cpx,
                                                      gpuarrays->d_ffdot_pwr,
                                                      params->sigblock,
@@ -568,7 +569,8 @@ void fdas_cuda_customfft(fdas_cufftplan* fftplans,
         params->offset,
         params->scale,
         gpuarrays->ip_edge_points);
-  } else {
+  }
+  else {
     // cuda_convolve_customfft_wes_no_reorder02<<< params->nblocks, KERNLEN >>>(
     // gpuarrays->d_kernel, gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr,
     // params->sigblock, params->extlen, params->siglen, params->offset,
@@ -675,7 +677,8 @@ void fdas_write_list(fdas_gpuarrays* gpuarrays,
     fclose(fp_c);
 
     free(h_fdas_peak_list);
-  } else {
+  }
+  else {
     printf("Error: mean or standard deviation was NaN or Inf!\n");
   }
 }

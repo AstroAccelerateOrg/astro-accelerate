@@ -324,7 +324,8 @@ void read_input_file_cpx(char* fname, float2* array) {
       printf("\nError reading file %s : %s\n", fname, strerror(errno));
       exit(1);
     }
-  } else {
+  }
+  else {
     printf("\nError opening file %s for reading: %s\nRun with -wsig to create "
            "file and try again\n",
            fname,

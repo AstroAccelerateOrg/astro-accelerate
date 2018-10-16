@@ -67,7 +67,8 @@ void get_recorded_data(FILE**           fp,
       total_data++;
     }
     free(temp_buffer);
-  } else if(nbits == 16) {
+  }
+  else if(nbits == 16) {
 
     // Allocate a tempory buffer to store a line of frequency data
     unsigned short* temp_buffer =
@@ -86,7 +87,8 @@ void get_recorded_data(FILE**           fp,
       total_data++;
     }
     free(temp_buffer);
-  } else if(nbits == 8) {
+  }
+  else if(nbits == 8) {
 
     // Allocate a tempory buffer to store a line of frequency data
     unsigned char* temp_buffer =
@@ -105,7 +107,8 @@ void get_recorded_data(FILE**           fp,
       total_data++;
     }
     free(temp_buffer);
-  } else if(nbits == 4) {
+  }
+  else if(nbits == 4) {
     // Allocate a temporary buffer to store a line of frequency data
     // each byte stores 2 frequency data
     int            nb_bytes = nchans / 2;
@@ -131,7 +134,8 @@ void get_recorded_data(FILE**           fp,
       total_data++;
     }
     free(temp_buffer);
-  } else if(nbits == 2) {
+  }
+  else if(nbits == 2) {
     // Allocate a temporary buffer to store a line of frequency data
     // each byte stores 4 frequency data
     int            nb_bytes = nchans / 4;
@@ -157,7 +161,8 @@ void get_recorded_data(FILE**           fp,
       total_data++;
     }
     free(temp_buffer);
-  } else if(nbits == 1) {
+  }
+  else if(nbits == 1) {
     // each byte stores 8 frequency data
     int nb_bytes = nchans / 8;
 
@@ -184,7 +189,8 @@ void get_recorded_data(FILE**           fp,
       total_data++;
     }
     free(temp_buffer);
-  } else {
+  }
+  else {
     printf("\n\n=============================== ERROR "
            "====================================\n");
     printf(" This is a SKA prototype code and only runs with 4, 8, 16 and 32 "

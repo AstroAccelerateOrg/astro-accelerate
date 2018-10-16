@@ -4,7 +4,8 @@
 #include <cuda_runtime.h>
 #include <stdio.h>
 
-class MSD_Configuration {
+class MSD_Configuration
+{
 public:
   ushort2 nBlocks;
   ushort2 nSteps;

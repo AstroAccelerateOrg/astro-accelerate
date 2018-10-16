@@ -1,7 +1,8 @@
 #ifndef ASTRO_ACCELERATE_DEVICE_PERIODICITY_PARAMETERS_HPP
 #define ASTRO_ACCELERATE_DEVICE_PERIODICITY_PARAMETERS_HPP
 
-class Periodicity_parameters {
+class Periodicity_parameters
+{
 public:
   float sigma_cutoff;
   int   nHarmonics;

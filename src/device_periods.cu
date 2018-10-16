@@ -40,7 +40,8 @@
 // link batches to ranges. Batches to ranges could be done vie Id of the range
 // and inBin groups could be linked via list of ranges, but I'm not sure.
 
-class Dedispersion_Range {
+class Dedispersion_Range
+{
 public:
   float dm_low;
   float dm_high;
@@ -105,7 +106,8 @@ public:
   }
 };
 
-class Dedispersion_Plan {
+class Dedispersion_Plan
+{
 public:
   std::vector<Dedispersion_Range> DD_range;
   float                           sampling_time;
@@ -119,7 +121,8 @@ public:
   }
 };
 
-class Periodicity_Batch {
+class Periodicity_Batch
+{
 public:
   int nDMs_per_batch;
   int nTimesamples;
@@ -158,7 +161,8 @@ public:
   }
 };
 
-class Periodicity_Range {
+class Periodicity_Range
+{
 public:
   Dedispersion_Range             range;
   int                            rangeid;
@@ -249,7 +253,8 @@ public:
   }
 };
 
-class Periodicity_inBin_Group {
+class Periodicity_inBin_Group
+{
 public:
   int                            total_MSD_blocks;
   std::vector<Periodicity_Range> Prange;
@@ -262,7 +267,8 @@ public:
   }
 };
 
-class AA_Periodicity_Plan {
+class AA_Periodicity_Plan
+{
 public:
   int                                  nHarmonics;
   int                                  max_total_MSD_blocks;
@@ -295,7 +301,8 @@ public:
   }
 };
 
-class Candidate_List {
+class Candidate_List
+{
 private:
   float linear_approximation(float value, int harmonic, float* MSD) {
     float SNR;
@@ -386,7 +393,8 @@ public:
   }
 };
 
-class GPU_Memory_for_Periodicity_Search {
+class GPU_Memory_for_Periodicity_Search
+{
 private:
   int MSD_interpolated_size;
   int MSD_DIT_size;
@@ -945,7 +953,8 @@ void Periodicity_search(
                           &batch->MSD_conf,
                           per_param.OR_sigma_multiplier);
 #endif
-  } else {
+  }
+  else {
 #ifdef PS_REUSE_MSD_WITHIN_INBIN
     MSD_normal_continuous(gmem->d_MSD,
                           d_frequency_power,
@@ -1101,7 +1110,8 @@ void Periodicity_search(
                               local_max_list_size);
 #endif
     //-------------- Thresholding
-  } else {
+  }
+  else {
 //-------------- Peak finding
 #ifdef OLD_PERIODICITY
     Peak_find_for_periodicity_search_old(d_power_SNR,
@@ -1210,7 +1220,7 @@ void GPU_periodicity(int      range,
   //      ->check is zero-th element does not mess up statistics
   //      ->prepare data on the host before copying them to device
   //		->There must by one inBin group per stream. We cannot have
-  //batches or Pranges per stream because MSD. :(
+  // batches or Pranges per stream because MSD. :(
 
   printf("\n");
   printf("------------ STARTING PERIODICITY SEARCH ------------\n\n");

@@ -429,7 +429,8 @@ void Find_MSD(float* d_MSD,
   if(enable_outlier_rejection) {
     MSD_outlier_rejection(
         d_MSD, d_input, d_MSD_workarea, &conf, OR_sigma_multiplier);
-  } else {
+  }
+  else {
     MSD_normal(d_MSD, d_input, d_MSD_workarea, &conf);
   }
   checkCudaErrors(cudaFree(d_MSD_workarea));
@@ -444,7 +445,8 @@ void Find_MSD(float*             d_MSD,
   if(enable_outlier_rejection) {
     MSD_outlier_rejection(
         d_MSD, d_input, d_MSD_workarea, conf, OR_sigma_multiplier);
-  } else {
+  }
+  else {
     MSD_normal(d_MSD, d_input, d_MSD_workarea, conf);
   }
 }
@@ -469,7 +471,8 @@ void Find_MSD_continuous(float* d_MSD,
                                      d_MSD_workarea,
                                      &conf,
                                      OR_sigma_multiplier);
-  } else {
+  }
+  else {
     MSD_normal_continuous(
         d_MSD, d_input, d_previous_partials, d_MSD_workarea, &conf);
   }
@@ -490,7 +493,8 @@ void Find_MSD_continuous(float*             d_MSD,
                                      d_MSD_workarea,
                                      conf,
                                      OR_sigma_multiplier);
-  } else {
+  }
+  else {
     MSD_normal_continuous(
         d_MSD, d_input, d_previous_partials, d_MSD_workarea, conf);
   }
@@ -515,7 +519,8 @@ int MSD_grid_outlier_rejection(float* d_MSD,
   if(CellDim_y < HALF_WARP) {
     y_steps  = 1;
     nThreads = WARP * CellDim_y;
-  } else {
+  }
+  else {
     nThreads = WARP * HALF_WARP;
     y_steps  = CellDim_y / HALF_WARP;
   }

@@ -56,40 +56,47 @@ void get_file_data(FILE** fp,
           exit(0);
         }
         *tsamp = (float)temp;
-      } else if(strcmp(string, "tstart") == 0) {
+      }
+      else if(strcmp(string, "tstart") == 0) {
         if(fread(&temp, sizeof(double), 1, *fp) != 1) {
           fprintf(stderr, "\nError while reading file\n");
           exit(0);
         }
         *tstart = (float)temp;
-      } else if(strcmp(string, "fch1") == 0) {
+      }
+      else if(strcmp(string, "fch1") == 0) {
         if(fread(&temp, sizeof(double), 1, *fp) != 1) {
           fprintf(stderr, "\nError while reading file\n");
           exit(0);
         }
         *fch1 = (float)temp;
-      } else if(strcmp(string, "foff") == 0) {
+      }
+      else if(strcmp(string, "foff") == 0) {
         if(fread(&temp, sizeof(double), 1, *fp) != 1) {
           fprintf(stderr, "\nError while reading file\n");
           exit(0);
         }
         *foff = (float)temp;
-      } else if(strcmp(string, "nchans") == 0) {
+      }
+      else if(strcmp(string, "nchans") == 0) {
         if(fread(nchans, sizeof(int), 1, *fp) != 1) {
           fprintf(stderr, "\nError while reading file\n");
           exit(0);
         }
-      } else if(strcmp(string, "nifs") == 0) {
+      }
+      else if(strcmp(string, "nifs") == 0) {
         if(fread(nifs, sizeof(int), 1, *fp) != 1) {
           fprintf(stderr, "\nError while reading file\n");
           exit(0);
         }
-      } else if(strcmp(string, "nbits") == 0) {
+      }
+      else if(strcmp(string, "nbits") == 0) {
         if(fread(nbits, sizeof(int), 1, *fp) != 1) {
           fprintf(stderr, "\nError while reading file\n");
           exit(0);
         }
-      } else if(strcmp(string, "nsamples") == 0) {
+      }
+      else if(strcmp(string, "nsamples") == 0) {
         if(fread(nsamples, sizeof(int), 1, *fp) != 1) {
           fprintf(stderr, "\nError while reading file\n");
           exit(0);
@@ -118,7 +125,8 @@ void get_file_data(FILE** fp,
     }
     *nsamp = total_data - 1;
     free(temp_buffer);
-  } else if((*nbits) == 16) {
+  }
+  else if((*nbits) == 16) {
     // Allocate a tempory buffer to store a line of frequency data
     unsigned short* temp_buffer =
         (unsigned short*)malloc((*nchans) * sizeof(unsigned short));
@@ -135,7 +143,8 @@ void get_file_data(FILE** fp,
     }
     *nsamp = total_data - 1;
     free(temp_buffer);
-  } else if((*nbits) == 8) {
+  }
+  else if((*nbits) == 8) {
     // Allocate a tempory buffer to store a line of frequency data
     unsigned char* temp_buffer =
         (unsigned char*)malloc((*nchans) * sizeof(unsigned char));
@@ -152,7 +161,8 @@ void get_file_data(FILE** fp,
     }
     *nsamp = total_data - 1;
     free(temp_buffer);
-  } else if((*nbits) == 4) {
+  }
+  else if((*nbits) == 4) {
     // Allocate a tempory buffer to store a line of frequency data
     // each byte stores 2 frequency data
     // assumption: nchans is a multiple of 2
@@ -176,14 +186,15 @@ void get_file_data(FILE** fp,
     }
     *nsamp = total_data - 1;
     free(temp_buffer);
-  } else if((*nbits) == 2) {
+  }
+  else if((*nbits) == 2) {
     // Allocate a tempory buffer to store a line of frequency data
     // each byte stores 2 frequency data
     // assumption: nchans is a multiple of 2
     //		if ((*nchans / 4) != 0)
     //		{
-    //			printf("\nNumber of frequency channels must be divisible by 8 with
-    //1 bit data samples\n"); 			exit(0);
+    //			printf("\nNumber of frequency channels must be divisible by
+    //8 with 1 bit data samples\n"); 			exit(0);
     //		}
     int            nb_bytes = *nchans / 4;
     unsigned char* temp_buffer =
@@ -200,14 +211,15 @@ void get_file_data(FILE** fp,
     }
     *nsamp = total_data - 1;
     free(temp_buffer);
-  } else if((*nbits) == 1) {
+  }
+  else if((*nbits) == 1) {
     // Allocate a tempory buffer to store a line of frequency data
     // each byte stores 2 frequency data
     // assumption: nchans is a multiple of 2
     //		if ((*nchans / 8) != 0)
     //		{
-    //			printf("\nNumber of frequency channels must be divisible by 8 with
-    //1 bit data samples\n"); 			exit(0);
+    //			printf("\nNumber of frequency channels must be divisible by
+    //8 with 1 bit data samples\n"); 			exit(0);
     //		}
     int            nb_bytes = *nchans / 8;
     unsigned char* temp_buffer =

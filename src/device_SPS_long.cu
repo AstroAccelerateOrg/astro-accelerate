@@ -166,7 +166,8 @@ int SPDT_search_long_MSD_plane(float*  d_input,
             startTaps,
             (1 << iteration),
             dtm);
-    } else {
+    }
+    else {
       if(nBlocks > 0)
         call_kernel_SPDT_GPU_Nth_plane(
             gridSize,

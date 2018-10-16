@@ -46,13 +46,15 @@ __global__ void dilate_peak_find(const float*  d_input,
       float4 block  = load_block_2x2(d_input + width - offset - 2, width);
       dilated_value = dilate4(block);
       my_value      = block.y;
-    } else {
+    }
+    else {
       float3x3 block = load_block_top(d_input, idxX, idxY, width);
       dilated_value  = dilate3x3_top(block);
       my_value       = block.y2;
     }
     // bottom edge
-  } else if(idxY == height - 1) {
+  }
+  else if(idxY == height - 1) {
     // Special case for width of 1
     if(width == 1) {
       my_value = dilated_value = d_input[width * (height - 1)];
@@ -69,24 +71,27 @@ __global__ void dilate_peak_find(const float*  d_input,
           d_input + width * (height - 2) + width - offset - 2, width);
       dilated_value = dilate4(block);
       my_value      = block.w;
-    } else {
+    }
+    else {
       float3x3 block = load_block_bottom(d_input, idxX, idxY, width);
       dilated_value  = dilate3x3_bottom(block);
       my_value       = block.y2;
     }
     // Left edge
-  } else if(idxX == 0) {
+  }
+  else if(idxX == 0) {
     float3x3 block = load_block_left(d_input, idxX, idxY, width);
     dilated_value  = dilate3x3_left(block);
     my_value       = block.y2;
 
     // right edge
-  } else if(idxX == (width - offset - 1)) {
+  }
+  else if(idxX == (width - offset - 1)) {
     float3x3 block = load_block_right(d_input, idxX, idxY, width);
     dilated_value  = dilate3x3_right(block);
     my_value       = block.y2;
-
-  } else {
+  }
+  else {
     float3x3 block = load_block(d_input, idxX, idxY, width);
     dilated_value  = dilate3x3(block);
     my_value       = block.y2;
@@ -146,13 +151,15 @@ __global__ void dilate_peak_find_for_fdas(const float*  d_input,
       float4 block  = load_block_2x2(d_input + width - offset - 2, width);
       dilated_value = dilate4(block);
       my_value      = block.y;
-    } else {
+    }
+    else {
       float3x3 block = load_block_top(d_input, idxX, idxY, width);
       dilated_value  = dilate3x3_top(block);
       my_value       = block.y2;
     }
     // bottom edge
-  } else if(idxY == height - 1) {
+  }
+  else if(idxY == height - 1) {
     // Special case for width of 1
     if(width == 1) {
       my_value = dilated_value = d_input[width * (height - 1)];
@@ -169,24 +176,27 @@ __global__ void dilate_peak_find_for_fdas(const float*  d_input,
           d_input + width * (height - 2) + width - offset - 2, width);
       dilated_value = dilate4(block);
       my_value      = block.w;
-    } else {
+    }
+    else {
       float3x3 block = load_block_bottom(d_input, idxX, idxY, width);
       dilated_value  = dilate3x3_bottom(block);
       my_value       = block.y2;
     }
     // Left edge
-  } else if(idxX == 0) {
+  }
+  else if(idxX == 0) {
     float3x3 block = load_block_left(d_input, idxX, idxY, width);
     dilated_value  = dilate3x3_left(block);
     my_value       = block.y2;
 
     // right edge
-  } else if(idxX == (width - offset - 1)) {
+  }
+  else if(idxX == (width - offset - 1)) {
     float3x3 block = load_block_right(d_input, idxX, idxY, width);
     dilated_value  = dilate3x3_right(block);
     my_value       = block.y2;
-
-  } else {
+  }
+  else {
     float3x3 block = load_block(d_input, idxX, idxY, width);
     dilated_value  = dilate3x3(block);
     my_value       = block.y2;
@@ -252,13 +262,15 @@ __global__ void dilate_peak_find_for_periods_old(const float* d_input,
       float4 block  = load_block_2x2(d_input + width - offset - 2, width);
       dilated_value = dilate4(block);
       my_value      = block.y;
-    } else {
+    }
+    else {
       float3x3 block = load_block_top(d_input, idxX, idxY, width);
       dilated_value  = dilate3x3_top(block);
       my_value       = block.y2;
     }
     // bottom edge
-  } else if(idxY == height - 1) {
+  }
+  else if(idxY == height - 1) {
     // Special case for width of 1
     if(width == 1) {
       my_value = dilated_value = d_input[width * (height - 1)];
@@ -275,24 +287,27 @@ __global__ void dilate_peak_find_for_periods_old(const float* d_input,
           d_input + width * (height - 2) + width - offset - 2, width);
       dilated_value = dilate4(block);
       my_value      = block.w;
-    } else {
+    }
+    else {
       float3x3 block = load_block_bottom(d_input, idxX, idxY, width);
       dilated_value  = dilate3x3_bottom(block);
       my_value       = block.y2;
     }
     // Left edge
-  } else if(idxX == 0) {
+  }
+  else if(idxX == 0) {
     float3x3 block = load_block_left(d_input, idxX, idxY, width);
     dilated_value  = dilate3x3_left(block);
     my_value       = block.y2;
 
     // right edge
-  } else if(idxX == (width - offset - 1)) {
+  }
+  else if(idxX == (width - offset - 1)) {
     float3x3 block = load_block_right(d_input, idxX, idxY, width);
     dilated_value  = dilate3x3_right(block);
     my_value       = block.y2;
-
-  } else {
+  }
+  else {
     float3x3 block = load_block(d_input, idxX, idxY, width);
     dilated_value  = dilate3x3(block);
     my_value       = block.y2;
@@ -354,13 +369,15 @@ __global__ void dilate_peak_find_for_periods(const float* d_input,
       float4 block  = load_block_2x2(d_input + width - offset - 2, width);
       dilated_value = dilate4(block);
       my_value      = block.y;
-    } else {
+    }
+    else {
       float3x3 block = load_block_top(d_input, idxX, idxY, width);
       dilated_value  = dilate3x3_top(block);
       my_value       = block.y2;
     }
     // bottom edge
-  } else if(idxY == height - 1) {
+  }
+  else if(idxY == height - 1) {
     // Special case for width of 1
     if(width == 1) {
       my_value = dilated_value = d_input[width * (height - 1)];
@@ -377,24 +394,27 @@ __global__ void dilate_peak_find_for_periods(const float* d_input,
           d_input + width * (height - 2) + width - offset - 2, width);
       dilated_value = dilate4(block);
       my_value      = block.w;
-    } else {
+    }
+    else {
       float3x3 block = load_block_bottom(d_input, idxX, idxY, width);
       dilated_value  = dilate3x3_bottom(block);
       my_value       = block.y2;
     }
     // Left edge
-  } else if(idxX == 0) {
+  }
+  else if(idxX == 0) {
     float3x3 block = load_block_left(d_input, idxX, idxY, width);
     dilated_value  = dilate3x3_left(block);
     my_value       = block.y2;
 
     // right edge
-  } else if(idxX == (width - offset - 1)) {
+  }
+  else if(idxX == (width - offset - 1)) {
     float3x3 block = load_block_right(d_input, idxX, idxY, width);
     dilated_value  = dilate3x3_right(block);
     my_value       = block.y2;
-
-  } else {
+  }
+  else {
     float3x3 block = load_block(d_input, idxX, idxY, width);
     dilated_value  = dilate3x3(block);
     my_value       = block.y2;

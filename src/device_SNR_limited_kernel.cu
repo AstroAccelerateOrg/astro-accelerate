@@ -37,11 +37,13 @@ __global__ void SNR_GPU_limited(float*  d_FIR_input,
         d_SNR_output[pos_y + pos_x] = new_SNR;
         d_SNR_taps[pos_y + pos_x]   = nTaps;
         //}
-      } else if(new_SNR > old_SNR) {
+      }
+      else if(new_SNR > old_SNR) {
         d_SNR_output[pos_y + pos_x] = new_SNR;
         d_SNR_taps[pos_y + pos_x]   = nTaps;
       }
-    } else {
+    }
+    else {
       if(pos_x >= (nColumns - offset) && pos_x < nColumns) {
         d_SNR_output[pos_y + pos_x] = 0;
         d_SNR_taps[pos_y + pos_x]   = 0;

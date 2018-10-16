@@ -49,7 +49,8 @@ Reduce_SM(float* M, float* S, float* j, float* s_input) {
           (*S) = s_input[blockDim.x + i + threadIdx.x];
           (*M) = s_input[i + threadIdx.x];
           (*j) = jv;
-        } else {
+        }
+        else {
           Merge(M,
                 S,
                 j,
@@ -103,7 +104,8 @@ __device__ __inline__ void Reduce_WARP(float* M, float* S, float* j) {
         (*S) = B_S;
         (*M) = B_M;
         (*j) = B_j;
-      } else {
+      }
+      else {
         Merge(M, S, j, B_M, B_S, B_j);
       }
     }
@@ -152,7 +154,8 @@ __device__ __inline__ void Sum_partials_regular(
 
     Reduce_SM_regular(M, S, j, s_input);
     Reduce_WARP_regular(M, S, j);
-  } else {
+  }
+  else {
     if(threadIdx.x == 0) {
       pos  = 0;
       (*M) = d_input[3 * pos];
@@ -192,7 +195,8 @@ __device__ __inline__ void Sum_partials_nonregular(
           (*M) = d_input[3 * pos];
           (*S) = d_input[3 * pos + 1];
           (*j) = jv;
-        } else {
+        }
+        else {
           Merge(M, S, j, d_input[3 * pos], d_input[3 * pos + 1], jv);
         }
       }
@@ -207,7 +211,8 @@ __device__ __inline__ void Sum_partials_nonregular(
 
     Reduce_SM(M, S, j, s_input);
     Reduce_WARP(M, S, j);
-  } else {
+  }
+  else {
     if(threadIdx.x == 0) {
       pos  = 0;
       (*M) = 0;
@@ -220,7 +225,8 @@ __device__ __inline__ void Sum_partials_nonregular(
             (*M) = d_input[3 * pos];
             (*S) = d_input[3 * pos + 1];
             (*j) = jv;
-          } else {
+          }
+          else {
             Merge(M, S, j, d_input[3 * pos], d_input[3 * pos + 1], jv);
           }
         }

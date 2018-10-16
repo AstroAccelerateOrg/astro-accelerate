@@ -180,7 +180,8 @@ inline int getCmdLineArgumentInt(const int    argc,
         if(length + 1 <= (int)strlen(string_argv)) {
           int auto_inc = (string_argv[length] == '=') ? 1 : 0;
           value        = atoi(&string_argv[length + auto_inc]);
-        } else {
+        }
+        else {
           value = 0;
         }
 
@@ -192,7 +193,8 @@ inline int getCmdLineArgumentInt(const int    argc,
 
   if(bFound) {
     return value;
-  } else {
+  }
+  else {
     return 0;
   }
 }
@@ -213,7 +215,8 @@ inline float getCmdLineArgumentFloat(const int    argc,
         if(length + 1 <= (int)strlen(string_argv)) {
           int auto_inc = (string_argv[length] == '=') ? 1 : 0;
           value        = (float)atof(&string_argv[length + auto_inc]);
-        } else {
+        }
+        else {
           value = 0.f;
         }
 
@@ -225,7 +228,8 @@ inline float getCmdLineArgumentFloat(const int    argc,
 
   if(bFound) {
     return value;
-  } else {
+  }
+  else {
     return 0;
   }
 }
@@ -651,7 +655,8 @@ inline char* sdkFindFilePath(const char* filename,
       if(executable_path != 0) {
         path.replace(
             executable_name_pos, strlen("<executable_name>"), executable_name);
-      } else {
+      }
+      else {
         // Skip this path entry if no executable argument is given
         continue;
       }

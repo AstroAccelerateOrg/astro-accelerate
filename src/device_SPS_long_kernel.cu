@@ -125,12 +125,14 @@ __global__ void SPDT_GPU_1st_plane(float const* __restrict__ d_input,
   if(ftemp2.x > ftemp1.x) {
     ftemp1.x = ftemp2.x;
     taps1.x  = 2;
-  } else
+  }
+  else
     taps1.x = 1;
   if(ftemp2.y > ftemp1.y) {
     ftemp1.y = ftemp2.y;
     taps1.y  = 2;
-  } else
+  }
+  else
     taps1.y = 1;
 
   stat     = d_MSD[2];
@@ -142,25 +144,29 @@ __global__ void SPDT_GPU_1st_plane(float const* __restrict__ d_input,
   if(ftemp3.x > ftemp2.x) {
     ftemp2.x = ftemp3.x;
     taps2.x  = 4;
-  } else
+  }
+  else
     taps2.x = 3;
   if(ftemp3.y > ftemp2.y) {
     ftemp2.y = ftemp3.y;
     taps2.y  = 4;
-  } else
+  }
+  else
     taps2.y = 3;
 
   if(ftemp1.x > ftemp2.x) {
     SNR.x  = ftemp1.x;
     taps.x = taps1.x;
-  } else {
+  }
+  else {
     SNR.x  = ftemp2.x;
     taps.x = taps2.x;
   }
   if(ftemp1.y > ftemp2.y) {
     SNR.y  = ftemp1.y;
     taps.y = taps1.y;
-  } else {
+  }
+  else {
     SNR.y  = ftemp2.y;
     taps.y = taps2.y;
   }
@@ -194,12 +200,14 @@ __global__ void SPDT_GPU_1st_plane(float const* __restrict__ d_input,
       if(ftemp2.x > ftemp1.x) {
         ftemp1.x = ftemp2.x;
         taps1.x  = d + 2;
-      } else
+      }
+      else
         taps1.x = d + 1;
       if(ftemp2.y > ftemp1.y) {
         ftemp1.y = ftemp2.y;
         taps1.y  = d + 2;
-      } else
+      }
+      else
         taps1.y = d + 1;
 
       // Using constant memory
@@ -212,12 +220,14 @@ __global__ void SPDT_GPU_1st_plane(float const* __restrict__ d_input,
       if(ftemp3.x > ftemp2.x) {
         ftemp2.x = ftemp3.x;
         taps2.x  = d + 4;
-      } else
+      }
+      else
         taps2.x = d + 3;
       if(ftemp3.y > ftemp2.y) {
         ftemp2.y = ftemp3.y;
         taps2.y  = d + 4;
-      } else
+      }
+      else
         taps2.y = d + 3;
 
       if(ftemp2.x > ftemp1.x) {
@@ -342,12 +352,14 @@ __global__ void SPDT_GPU_Nth_plane(float const* __restrict__ d_input,
   if(ftemp2.x > ftemp1.x) {
     ftemp1.x = ftemp2.x;
     taps1.x  = 2;
-  } else
+  }
+  else
     taps1.x = 1;
   if(ftemp2.y > ftemp1.y) {
     ftemp1.y = ftemp2.y;
     taps1.y  = 2;
-  } else
+  }
+  else
     taps1.y = 1;
 
   taps2.x  = 3;
@@ -361,25 +373,29 @@ __global__ void SPDT_GPU_Nth_plane(float const* __restrict__ d_input,
   if(ftemp3.x > ftemp2.x) {
     ftemp2.x = ftemp3.x;
     taps2.x  = 4;
-  } else
+  }
+  else
     taps2.x = 3;
   if(ftemp3.y > ftemp2.y) {
     ftemp2.y = ftemp3.y;
     taps2.y  = 4;
-  } else
+  }
+  else
     taps2.y = 3;
 
   if(ftemp1.x > ftemp2.x) {
     SNR.x  = ftemp1.x;
     taps.x = taps1.x;
-  } else {
+  }
+  else {
     SNR.x  = ftemp2.x;
     taps.x = taps2.x;
   }
   if(ftemp1.y > ftemp2.y) {
     SNR.y  = ftemp1.y;
     taps.y = taps1.y;
-  } else {
+  }
+  else {
     SNR.y  = ftemp2.y;
     taps.y = taps2.y;
   }
@@ -415,12 +431,14 @@ __global__ void SPDT_GPU_Nth_plane(float const* __restrict__ d_input,
       if(ftemp2.x > ftemp1.x) {
         ftemp1.x = ftemp2.x;
         taps1.x  = d + 2;
-      } else
+      }
+      else
         taps1.x = d + 1;
       if(ftemp2.y > ftemp1.y) {
         ftemp1.y = ftemp2.y;
         taps1.y  = d + 2;
-      } else
+      }
+      else
         taps1.y = d + 1;
 
       taps2.x  = d + 3;
@@ -434,12 +452,14 @@ __global__ void SPDT_GPU_Nth_plane(float const* __restrict__ d_input,
       if(ftemp3.x > ftemp2.x) {
         ftemp2.x = ftemp3.x;
         taps2.x  = d + 4;
-      } else
+      }
+      else
         taps2.x = d + 3;
       if(ftemp3.y > ftemp2.y) {
         ftemp2.y = ftemp3.y;
         taps2.y  = d + 4;
-      } else
+      }
+      else
         taps2.y = d + 3;
 
       if(ftemp2.x > ftemp1.x) {

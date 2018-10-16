@@ -25,7 +25,8 @@ void load_data(int             i,
     cudaMemcpy(device_pointer, host_pointer, size, cudaMemcpyHostToDevice);
     set_device_constants_dedispersion_kernel(
         nchans, length, t_processed, dmshifts);
-  } else if(i > 0) {
+  }
+  else if(i > 0) {
     long int length = (t_processed + maxshift);
     set_device_constants_dedispersion_kernel(length, t_processed);
   }

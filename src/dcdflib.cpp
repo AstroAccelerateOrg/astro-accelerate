@@ -1797,7 +1797,8 @@ S300:
     */
     cumbet(x, y, a, b, p, q);
     *status = 0;
-  } else if(2 == *which) {
+  }
+  else if(2 == *which) {
     /*
          Calculating X and Y
     */
@@ -1845,7 +1846,8 @@ S300:
     *bound  = 1.0e0;
   S400:
   S390:;
-  } else if(3 == *which) {
+  }
+  else if(3 == *which) {
     /*
          Computing A
     */
@@ -1883,7 +1885,8 @@ S300:
     *bound  = inf;
   S470:
   S460:;
-  } else if(4 == *which) {
+  }
+  else if(4 == *which) {
     /*
          Computing B
     */
@@ -2208,7 +2211,8 @@ S320:
     */
     cumbin(s, xn, pr, ompr, p, q);
     *status = 0;
-  } else if(2 == *which) {
+  }
+  else if(2 == *which) {
     /*
          Calculating S
     */
@@ -2244,7 +2248,8 @@ S320:
     *bound  = *xn;
   S400:
   S390:;
-  } else if(3 == *which) {
+  }
+  else if(3 == *which) {
     /*
          Calculating XN
     */
@@ -2282,7 +2287,8 @@ S320:
     *bound  = inf;
   S470:
   S460:;
-  } else if(4 == *which) {
+  }
+  else if(4 == *which) {
     /*
          Calculating PR and OMPR
     */
@@ -2558,7 +2564,8 @@ S210:
       *status = 10;
       return;
     }
-  } else if(2 == *which) {
+  }
+  else if(2 == *which) {
     /*
          Calculating X
     */
@@ -2600,7 +2607,8 @@ S210:
     *bound  = inf;
   S300:
   S290:;
-  } else if(3 == *which) {
+  }
+  else if(3 == *which) {
     /*
          Calculating DF
     */
@@ -2840,7 +2848,8 @@ S120:
     */
     cumchn(x, df, pnonc, p, q);
     *status = 0;
-  } else if(2 == *which) {
+  }
+  else if(2 == *which) {
     /*
          Calculating X
     */
@@ -2871,7 +2880,8 @@ S120:
     *bound  = inf;
   S180:
   S170:;
-  } else if(3 == *which) {
+  }
+  else if(3 == *which) {
     /*
          Calculating DF
     */
@@ -2903,7 +2913,8 @@ S120:
     *bound  = inf;
   S230:
   S220:;
-  } else if(4 == *which) {
+  }
+  else if(4 == *which) {
     /*
          Calculating PNONC
     */
@@ -3169,7 +3180,8 @@ S200:
     */
     cumf(f, dfn, dfd, p, q);
     *status = 0;
-  } else if(2 == *which) {
+  }
+  else if(2 == *which) {
     /*
          Calculating F
     */
@@ -3206,7 +3218,8 @@ S200:
     *bound  = inf;
   S280:
   S270:;
-  } else if(3 == *which) {
+  }
+  else if(3 == *which) {
     /*
          Calculating DFN
     */
@@ -3244,7 +3257,8 @@ S200:
     *bound  = inf;
   S350:
   S340:;
-  } else if(4 == *which) {
+  }
+  else if(4 == *which) {
     /*
          Calculating DFD
     */
@@ -3502,7 +3516,8 @@ S140:
     */
     cumfnc(f, dfn, dfd, phonc, p, q);
     *status = 0;
-  } else if(2 == *which) {
+  }
+  else if(2 == *which) {
     /*
          Calculating F
     */
@@ -3533,7 +3548,8 @@ S140:
     *bound  = inf;
   S200:
   S190:;
-  } else if(3 == *which) {
+  }
+  else if(3 == *which) {
     /*
          Calculating DFN
     */
@@ -3565,7 +3581,8 @@ S140:
     *bound  = inf;
   S250:
   S240:;
-  } else if(4 == *which) {
+  }
+  else if(4 == *which) {
     /*
          Calculating DFD
     */
@@ -3597,7 +3614,8 @@ S140:
     *bound  = inf;
   S300:
   S290:;
-  } else if(5 == *which) {
+  }
+  else if(5 == *which) {
     /*
          Calculating PHONC
     */
@@ -3888,7 +3906,8 @@ S230:
     if(*p > 1.5e0 || *q > 1.5e0) {
       *status = 10;
     }
-  } else if(2 == *which) {
+  }
+  else if(2 == *which) {
     /*
          Computing X
     */
@@ -3897,11 +3916,13 @@ S230:
     if(ierr < 0.0e0) {
       *status = 10;
       return;
-    } else {
+    }
+    else {
       *x      = xx / *scale;
       *status = 0;
     }
-  } else if(3 == *which) {
+  }
+  else if(3 == *which) {
     /*
          Computing SHAPE
     */
@@ -3945,7 +3966,8 @@ S230:
     *bound  = inf;
   S320:
   S310:;
-  } else if(4 == *which) {
+  }
+  else if(4 == *which) {
     /*
          Computing SCALE
     */
@@ -3954,7 +3976,8 @@ S230:
     if(ierr < 0.0e0) {
       *status = 10;
       return;
-    } else {
+    }
+    else {
       *scale  = xx / *x;
       *status = 0;
     }
@@ -4246,7 +4269,8 @@ S300:
     */
     cumnbn(s, xn, pr, ompr, p, q);
     *status = 0;
-  } else if(2 == *which) {
+  }
+  else if(2 == *which) {
     /*
          Calculating S
     */
@@ -4283,7 +4307,8 @@ S300:
     *bound  = inf;
   S380:
   S370:;
-  } else if(3 == *which) {
+  }
+  else if(3 == *which) {
     /*
          Calculating XN
     */
@@ -4320,7 +4345,8 @@ S300:
     *bound  = inf;
   S450:
   S440:;
-  } else if(4 == *which) {
+  }
+  else if(4 == *which) {
     /*
          Calculating PR and OMPR
     */
@@ -4574,19 +4600,22 @@ S160:
     */
     z = (*x - *mean) / *sd;
     cumnor(&z, p, q);
-  } else if(2 == *which) {
+  }
+  else if(2 == *which) {
     /*
          Computing X
     */
     z  = dinvnr(p, q);
     *x = *sd * z + *mean;
-  } else if(3 == *which) {
+  }
+  else if(3 == *which) {
     /*
          Computing the MEAN
     */
     z     = dinvnr(p, q);
     *mean = *x - *sd * z;
-  } else if(4 == *which) {
+  }
+  else if(4 == *which) {
     /*
          Computing SD
     */
@@ -4796,7 +4825,8 @@ S180:
     */
     cumpoi(s, xlam, p, q);
     *status = 0;
-  } else if(2 == *which) {
+  }
+  else if(2 == *which) {
     /*
          Calculating S
     */
@@ -4833,7 +4863,8 @@ S180:
     *bound  = inf;
   S260:
   S250:;
-  } else if(3 == *which) {
+  }
+  else if(3 == *which) {
     /*
          Calculating XLAM
     */
@@ -5066,7 +5097,8 @@ S160:
     */
     cumt(t, df, p, q);
     *status = 0;
-  } else if(2 == *which) {
+  }
+  else if(2 == *which) {
     /*
          Computing T
          .. Get initial approximation for T
@@ -5105,7 +5137,8 @@ S160:
     *bound  = rtinf;
   S240:
   S230:;
-  } else if(3 == *which) {
+  }
+  else if(3 == *which) {
     /*
          Computing DF
     */
@@ -5288,7 +5321,8 @@ S100:
   if(1 == *which) {
     cumtnc(t, df, pnonc, p, q);
     *status = 0;
-  } else if(2 == *which) {
+  }
+  else if(2 == *which) {
     *t = 5.0e0;
     T1 = -inf;
     T2 = inf;
@@ -5317,7 +5351,8 @@ S100:
     *bound  = inf;
   S150:
   S140:;
-  } else if(3 == *which) {
+  }
+  else if(3 == *which) {
     *df = 5.0e0;
     T7  = zero;
     T8  = tent4;
@@ -5346,7 +5381,8 @@ S100:
     *bound  = inf;
   S200:
   S190:;
-  } else if(4 == *which) {
+  }
+  else if(4 == *which) {
     *pnonc = 5.0e0;
     T11    = -tent4;
     T12    = tent4;
@@ -5839,7 +5875,8 @@ S10:
   if(xx > half) {
     yy = prod / dsum;
     xx = done - yy;
-  } else
+  }
+  else
     yy = done - xx;
   T1 = *dfd * half;
   T2 = *dfn * half;
@@ -5966,7 +6003,8 @@ S20:
   if(yy > half) {
     xx = prod / dsum;
     yy = done - xx;
-  } else
+  }
+  else
     xx = done - yy;
   T2 = *dfn * half + (double)icent;
   T3 = *dfd * half;
@@ -6561,7 +6599,8 @@ void cumtnc(double* t, double* df, double* pnonc, double* cum, double* ccum)
   if(qrevs) {
     tt     = -*t;
     dpnonc = -*pnonc;
-  } else {
+  }
+  else {
     tt     = *t;
     dpnonc = *pnonc;
   }
@@ -6617,7 +6656,8 @@ void cumtnc(double* t, double* df, double* pnonc, double* cum, double* ccum)
     if(qrevs) {
       *cum  = zero;
       *ccum = one;
-    } else {
+    }
+    else {
       *cum  = one;
       *ccum = zero;
     }
@@ -6706,7 +6746,8 @@ S30:
   if(qrevs) {
     *cum  = half * *ccum;
     *ccum = one - *cum;
-  } else {
+  }
+  else {
     *ccum = half * *ccum;
     *cum  = one - *ccum;
   }

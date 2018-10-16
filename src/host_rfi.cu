@@ -185,7 +185,8 @@ void rfi(int nsamp, int nchans, unsigned short** input_buffer) {
            ((stage[c * (size_t)nsamp + t] - chan_mean[c]) / chan_var[c]) <
                -sigma_cut) {
           spectra_mask[t] = 0;
-        } else {
+        }
+        else {
           spectra_mask[t] = 1;
         }
       }
@@ -209,7 +210,8 @@ void rfi(int nsamp, int nchans, unsigned short** input_buffer) {
             (stage[c * (size_t)nsamp + t] - (float)chan_mean[c]) /
             (float)chan_var[c];
       }
-    } else {
+    }
+    else {
       int perm_one = (int)(((float)rand() / (float)RAND_MAX) * nsamp);
       for(int t = 0; t < nsamp; t++) {
         stage[c * (size_t)nsamp + t] = random_chan_one[(t + perm_one) % nsamp];
@@ -284,7 +286,8 @@ void rfi(int nsamp, int nchans, unsigned short** input_buffer) {
              ((stage[c * (size_t)nsamp + t] - spectra_mean[t]) /
               spectra_var[t]) < -sigma_cut) {
             chan_mask[c] = 0;
-          } else {
+          }
+          else {
             chan_mask[c] = 1;
           }
         }
@@ -309,7 +312,8 @@ void rfi(int nsamp, int nchans, unsigned short** input_buffer) {
             (stage[c * (size_t)nsamp + t] - (float)spectra_mean[t]) /
             (float)spectra_var[t];
       }
-    } else {
+    }
+    else {
       int perm_one = (int)(((float)rand() / (float)RAND_MAX) * nchans);
       for(int c = 0; c < nchans; c++) {
         stage[c * (size_t)nsamp + t] =

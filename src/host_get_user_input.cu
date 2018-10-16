@@ -63,7 +63,8 @@ void get_user_input(FILE**  fp,
   if(argc < 2) {
     fprintf(stderr, "Need input file.\n");
     exit(0);
-  } else if(argc == 2 && strcmp(argv[1], "-help") != 0) {
+  }
+  else if(argc == 2 && strcmp(argv[1], "-help") != 0) {
     if((fp_in = fopen(argv[1], "r")) == NULL) {
       fprintf(stderr, "Invalid input file!\n");
       exit(0);
@@ -283,10 +284,11 @@ void get_user_input(FILE**  fp,
         wordfree(&expanded_string);
       }
     }
-
-  } else if(argc == 2 && strcmp(argv[1], "-help") == 0) {
+  }
+  else if(argc == 2 && strcmp(argv[1], "-help") == 0) {
     help();
-  } else {
+  }
+  else {
     fprintf(stderr,
             "Cannot recognise input, try \"./astro-accelerate -help.\"\n");
     exit(0);

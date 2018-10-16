@@ -27,7 +27,8 @@ void init_gpu(int argc, char** arg, int enable_debug, size_t* gpu_memory) {
   // This function call returns 0 if there are no CUDA capable devices.
   if(deviceCount == 0) {
     printf("There are no available device(s) that support CUDA\n");
-  } else {
+  }
+  else {
     printf("Detected %d CUDA Capable device(s)\n", deviceCount);
   }
 

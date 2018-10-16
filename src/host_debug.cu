@@ -63,11 +63,13 @@ void debug(int     test,
     printf("\nGot user input:\t\t%.16g(s)\n",
            (double)(now - start_time) / CLOCKS_PER_SEC);
     fflush(stdout);
-  } else if(test == 2) {
+  }
+  else if(test == 2) {
     printf("\nInitialised GPU:\t\t%.16g(s)\n",
            (double)(now - start_time) / CLOCKS_PER_SEC);
     fflush(stdout);
-  } else if(test == 3) {
+  }
+  else if(test == 3) {
     printf("\ntsamp:\t\t\t%lf", tsamp);
     printf("\ntstart:\t\t\t%lf", tstart);
     printf("\nfch1:\t\t\t%lf", fch1);
@@ -80,7 +82,8 @@ void debug(int     test,
     printf("\nGot file header info:\t%.16g(s)\n",
            (double)(now - start_time) / CLOCKS_PER_SEC);
     fflush(stdout);
-  } else if(test == 4) {
+  }
+  else if(test == 4) {
     printf("\n\nmaximum DM:\t\t%f", max_dm);
     printf("\nmaxshift:\t\t%d", maxshift);
     printf("\nmax_ndms:\t\t%d", max_ndms), fflush(stdout);
@@ -91,7 +94,8 @@ void debug(int     test,
     printf("\nCalculated strategy:\t%.16g(s)\n",
            (double)(now - start_time) / CLOCKS_PER_SEC);
     fflush(stdout);
-  } else if(test == 5) {
+  }
+  else if(test == 5) {
     printf("\nMaxshift efficiency:\t\t%.2f%%",
            100.0f - ((float)maxshift / (float)nsamp) * 100.0f);
     printf("\nHost Input size:\t\t%d MB", (int)(inputsize / 1024 / 1024));
@@ -102,15 +106,18 @@ void debug(int     test,
     printf("\nAllocated memory:\t%.16g(s)\n",
            (double)(now - start_time) / CLOCKS_PER_SEC);
     fflush(stdout);
-  } else if(test == 6) {
+  }
+  else if(test == 6) {
     printf("\nCalculated dm shifts:\t%.16g(s)\n",
            (double)(now - start_time) / CLOCKS_PER_SEC);
     fflush(stdout);
-  } else if(test == 7) {
+  }
+  else if(test == 7) {
     printf("\nGot input filterbank data:\t%.16g(s)\n",
            (double)(now - start_time) / CLOCKS_PER_SEC);
     fflush(stdout);
-  } else if(test == 8) {
+  }
+  else if(test == 8) {
     printf("\nLoaded data onto the GPU:\t%.16g(s)\n",
            (double)(now - start_time) / CLOCKS_PER_SEC);
     fflush(stdout);

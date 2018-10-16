@@ -36,7 +36,19 @@ BraceWrapping:
   SplitEmptyRecord: true
   SplitEmptyNamespace: true
 BreakBeforeBinaryOperators: None
-BreakBeforeBraces: Attach
+BreakBeforeBraces: Custom
+BraceWrapping: {
+    AfterClass: 'true'
+    AfterControlStatement: 'false'
+    AfterEnum : 'false'
+    AfterFunction : 'false'
+    AfterNamespace : 'false'
+    AfterStruct : 'false'
+    AfterUnion : 'false'
+    BeforeCatch : 'true'
+    BeforeElse : 'true'
+    IndentBraces : 'false'
+}
 BreakBeforeInheritanceComma: false
 BreakInheritanceList: BeforeColon
 BreakBeforeTernaryOperators: true

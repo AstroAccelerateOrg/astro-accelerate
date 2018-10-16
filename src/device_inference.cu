@@ -196,7 +196,8 @@ void gpu_blocked_bootstrap(float** d_idata,
   if(BSTRAP == 3) {
     (cudaMalloc((void**)&d_irand,
                 (num_bins) * (num_boots) * sizeof(unsigned int)));
-  } else {
+  }
+  else {
     (cudaMalloc((void**)&d_irand,
                 (num_bins) * (num_subboots) * sizeof(unsigned int)));
   }
@@ -205,7 +206,8 @@ void gpu_blocked_bootstrap(float** d_idata,
 
   if(BSTRAP == 3) {
     curandGenerate(gen, d_irand, (num_bins) * (num_boots));
-  } else {
+  }
+  else {
     curandGenerate(gen, d_irand, (num_bins) * (num_subboots));
   }
   cudaDeviceSynchronize();

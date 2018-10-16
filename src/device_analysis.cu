@@ -363,7 +363,8 @@ void analysis_GPU(unsigned int*     h_peak_list_DM,
         printf("    Thresholding took:%f ms\n", timer.Elapsed());
 #endif
         //-------------- Thresholding
-      } else {
+      }
+      else {
         //-------------- Peak finding
         timer.Start();
         SPDT_peak_find(d_output_SNR,
@@ -422,7 +423,8 @@ void analysis_GPU(unsigned int*     h_peak_list_DM,
                                    temp_peak_pos * sizeof(unsigned int),
                                    cudaMemcpyDeviceToHost));
         *peak_pos = (*peak_pos) + temp_peak_pos;
-      } else
+      }
+      else
         printf("Error peak list is too small!\n");
 
       DM_shift = DM_shift + DM_list[f];
@@ -458,7 +460,8 @@ void analysis_GPU(unsigned int*     h_peak_list_DM,
         fwrite(h_peak_list, (*peak_pos) * sizeof(float), 4, fp_out);
         fclose(fp_out);
       }
-    } else {
+    }
+    else {
       if((*peak_pos) > 0) {
         sprintf(filename,
                 "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat",
@@ -475,8 +478,8 @@ void analysis_GPU(unsigned int*     h_peak_list_DM,
     }
     delete[] h_peak_list;
     //------------------------> Output
-
-  } else
+  }
+  else
     printf("Error not enough memory to search for pulses\n");
 
   total_timer.Stop();

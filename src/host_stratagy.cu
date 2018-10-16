@@ -58,7 +58,8 @@ void stratagy(int*    maxshift,
       (*dmshifts)[c] = 4148.741601f * ((1.0 / pow((fch1 + (foff * c)), power)) -
                                        (1.0 / pow(fch1, power)));
     }
-  } else {
+  }
+  else {
     // Calculate time independent dm shifts
     for(c = 0; c < nchans; c++) {
       (*dmshifts)[c] =
@@ -210,7 +211,8 @@ void stratagy(int*    maxshift,
       }
       (*num_tchunks) = 1;
       printf("\nIn 1\n");
-    } else {
+    }
+    else {
       // We have case 3)
       // Work out how many time samples we can fit into ram
       int samp_block_size = max_tsamps - (*maxshift);
@@ -257,7 +259,8 @@ void stratagy(int*    maxshift,
       printf("\nIn 3\n");
       printf("\nnum_blocks:\t%d", num_blocks);
     }
-  } else {
+  }
+  else {
     // This means that we cannot cornerturn into the allocated output buffer
     // without increasing the memory needed. Set the output buffer to be as
     // large as the input buffer:
@@ -299,7 +302,8 @@ void stratagy(int*    maxshift,
       }
       (*num_tchunks) = 1;
       printf("\nIn 2\n");
-    } else {
+    }
+    else {
       // We have case 4)
       // Work out how many time samples we can fit into ram
       int samp_block_size = max_tsamps - (*maxshift);
@@ -353,7 +357,8 @@ void stratagy(int*    maxshift,
   if(nchans < (*max_ndms)) {
     printf("\nOutput memory needed:\t%lu MB",
            (*max_ndms) * (*maxshift) * sizeof(float) / 1024 / 1024);
-  } else {
+  }
+  else {
     printf("\nOutput memory needed:\t%lu MB",
            nchans * (*maxshift) * sizeof(float) / 1024 / 1024);
   }

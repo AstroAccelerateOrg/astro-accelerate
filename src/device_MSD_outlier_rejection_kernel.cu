@@ -29,7 +29,8 @@ __global__ void MSD_BLN_pw_rejection_normal(float const* __restrict__ d_input,
       if((ftemp > limit_down) && (ftemp < limit_up)) {
         if(j == 0) {
           Initiate(&M, &S, &j, ftemp);
-        } else {
+        }
+        else {
           Add_one(&M, &S, &j, ftemp);
         }
       }
@@ -104,7 +105,8 @@ __global__ void MSD_BLN_grid_outlier_rejection_new(float* d_input,
               M = Mt;
               S = __ldg(&d_input[3 * pos + 1]);
               j = jv;
-            } else {
+            }
+            else {
               Merge(&M, &S, &j, Mt, __ldg(&d_input[3 * pos + 1]), jv);
             }
           }
@@ -120,7 +122,8 @@ __global__ void MSD_BLN_grid_outlier_rejection_new(float* d_input,
 
       Reduce_SM(&M, &S, &j, s_input);
       Reduce_WARP(&M, &S, &j);
-    } else {
+    }
+    else {
       if(threadIdx.x == 0) {
         pos = 0;
         M   = 0;
@@ -136,7 +139,8 @@ __global__ void MSD_BLN_grid_outlier_rejection_new(float* d_input,
                 M = Mt;
                 S = __ldg(&d_input[3 * pos + 1]);
                 j = jv;
-              } else {
+              }
+              else {
                 Merge(&M, &S, &j, Mt, __ldg(&d_input[3 * pos + 1]), jv);
               }
             }
@@ -258,7 +262,8 @@ MSD_BLN_grid_calculate_partials(float const* __restrict__ d_input,
       // produce mean and sd instead of T and S
       d_output[3 * pos]     = M / j;
       d_output[3 * pos + 1] = sqrt(S / j);
-    } else {
+    }
+    else {
       d_output[3 * pos]     = M;
       d_output[3 * pos + 1] = S;
     }
@@ -332,8 +337,8 @@ MSD_BLN_grid_outlier_rejection(float const* __restrict__ d_input,
       M     = M + __shfl_down(M, q);
       j     = j + jv;
     }
-
-  } else {
+  }
+  else {
     if(threadIdx.x == 0) {
       pos = 0;
       M   = __ldg(&d_input[3 * pos]);
@@ -381,7 +386,8 @@ MSD_BLN_grid_outlier_rejection(float const* __restrict__ d_input,
             M = Mt;
             S = __ldg(&d_input[3 * pos + 1]);
             j = nElements;
-          } else {
+          }
+          else {
             jv    = nElements;
             ftemp = (jv / j * M - Mt);
             S     = S + __ldg(&d_input[3 * pos + 1]) +
@@ -408,7 +414,8 @@ MSD_BLN_grid_outlier_rejection(float const* __restrict__ d_input,
               S = Ss[i + threadIdx.x];
               M = Ms[i + threadIdx.x];
               j = jv;
-            } else {
+            }
+            else {
               ftemp = (jv / j * M - Ms[i + threadIdx.x]);
               S     = S + Ss[i + threadIdx.x] +
                   (j / (jv * (j + jv))) * ftemp * ftemp;
@@ -433,7 +440,8 @@ MSD_BLN_grid_outlier_rejection(float const* __restrict__ d_input,
             S = __shfl_down(S, q);
             M = __shfl_down(M, q);
             j = jv;
-          } else {
+          }
+          else {
             ftemp = (jv / j * M - __shfl_down(M, q));
             S = S + __shfl_down(S, q) + (j / (jv * (j + jv))) * ftemp * ftemp;
             M = M + __shfl_down(M, q);
@@ -441,8 +449,8 @@ MSD_BLN_grid_outlier_rejection(float const* __restrict__ d_input,
           }
         }
       }
-
-    } else {
+    }
+    else {
       if(threadIdx.x == 0) {
         M = 0;
         S = 0;
@@ -455,7 +463,8 @@ MSD_BLN_grid_outlier_rejection(float const* __restrict__ d_input,
               M = Mt;
               S = __ldg(&d_input[3 * pos + 1]);
               j = nElements;
-            } else {
+            }
+            else {
               jv    = nElements;
               ftemp = (jv / j * M - __ldg(&d_input[3 * pos]));
               S     = S + __ldg(&d_input[3 * pos + 1]) +
