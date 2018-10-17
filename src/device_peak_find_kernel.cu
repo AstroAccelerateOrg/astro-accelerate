@@ -4,7 +4,7 @@
 #include "device_peak_find_shared_kernel_functions.cuh"
 #include "device_threshold_shared_kernel_functions.cuh"
 
-__global__ void dilate_peak_find(const float *d_input, ushort* d_input_taps,  unsigned int *d_peak_list_DM,  unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW, const int width, const int height, const int offset, const float threshold, int max_peak_size, int *gmem_pos, int shift, int DIT_value) {
+__global__ void dilate_peak_find(const float *d_input, ushort* d_input_taps, float *d_peak_list, const int width, const int height, const int offset, const float threshold, int max_peak_size, int *gmem_pos, int shift, int DIT_value, float dm_step, float dm_low, float sampling_time, float inBin, float start_time) {
     int idxX = blockDim.x * blockIdx.x + threadIdx.x;
     int idxY = blockDim.y * blockIdx.y + threadIdx.y;
     if (idxX >= width-offset) return;
@@ -79,13 +79,12 @@ __global__ void dilate_peak_find(const float *d_input, ushort* d_input_taps,  un
 	if(peak==1){
 		list_pos=atomicAdd(gmem_pos, 1);
 		if(list_pos<max_peak_size){
-			d_peak_list_DM[list_pos]  = idxY + shift; // DM coordinate (y)
-			d_peak_list_TS[list_pos]  = idxX*DIT_value + d_input_taps[idxY*width+idxX]/2; // time coordinate (x)
-			d_peak_list_SNR[list_pos] = my_value; // SNR value
-			d_peak_list_BW[list_pos]  = d_input_taps[idxY*width+idxX]; // width of the boxcar
+			d_peak_list[4*list_pos]   = (idxY + shift)*dm_step + dm_low; // DM coordinate (y)
+			d_peak_list[4*list_pos+1] = (idxX*DIT_value + (float) d_input_taps[idxY*width+idxX]/2.0)*sampling_time + start_time; // time coordinate (x)
+			d_peak_list[4*list_pos+2] = my_value; // SNE value
+			d_peak_list[4*list_pos+3] = ((float) d_input_taps[idxY*width+idxX])*inBin; // width of the boxcar
 		}
 	}
-	
     //d_output[idxY*width+idxX] = peak;
 }
 

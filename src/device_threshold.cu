@@ -1,12 +1,15 @@
 //Added by Karel Adamek
 //#define THRESHOLD_DEBUG
 
+#include <tuple>
+
 #include <helper_cuda.h>
 #include "device_threshold.hpp"
 #include "device_BC_plan.hpp"
 
 #include "params.hpp"
 #include "device_threshold_kernel.hpp"
+#include "device_SPS_plan.hpp"
 
 void THR_init(void) {
 	//---------> Specific nVidia stuff
@@ -14,7 +17,8 @@ void THR_init(void) {
 	cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
 }
 
-int SPDT_threshold(float *d_input, ushort *d_input_taps, unsigned int *d_output_list_DM, unsigned int *d_output_list_TS, float *d_output_list_SNR, unsigned int *d_output_list_BW, int *gmem_pos, float threshold, int nDMs, int nTimesamples, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration, int max_list_size) {
+int SPDT_threshold(float *d_input, unsigned short *d_input_taps, float *d_output_list, int *gmem_pos, float threshold, int nDMs, int nTimesamples, int shift, SPS_Plan spsplan, int max_iteration, int max_list_size, std::tuple<float, float, float> &dmlimits, float sampling_time, float inBin, float start_time) {
+	
 	//---------> Task specific
 	int nBlocks, nRest, Elements_per_block, output_offset, decimated_timesamples, local_offset;
 	int nCUDAblocks_x, nCUDAblocks_y;
@@ -24,13 +28,16 @@ int SPDT_threshold(float *d_input, ushort *d_input_taps, unsigned int *d_output_
 	
 	THR_init();
 	
+	ProcessingDetails tmpdetails;
+
 	output_offset=0;
-	for(int f=0; f<max_iteration; f++){
-		decimated_timesamples = PD_plan->operator[](f).decimated_timesamples;
+	for(int f = 0; f < max_iteration; f++){
+		tmpdetails = spsplan.GetDetails(f);
+		decimated_timesamples = tmpdetails.decimated_timesamples;
 		//local_offset = (offset>>f);
-		local_offset = PD_plan->operator[](f).unprocessed_samples;
-		if( (decimated_timesamples-local_offset)>0 ){
-			Elements_per_block = WARP*THR_ELEM_PER_THREAD;
+		local_offset = tmpdetails.unprocessed_samples;
+		if( (decimated_timesamples - local_offset) > 0 ){
+			Elements_per_block = WARP * THR_ELEM_PER_THREAD;
 			nBlocks = (decimated_timesamples-local_offset)/Elements_per_block;
 			nRest = (decimated_timesamples-local_offset) - nBlocks*Elements_per_block;
 			if(nRest>0) nBlocks++;
@@ -41,10 +48,10 @@ int SPDT_threshold(float *d_input, ushort *d_input_taps, unsigned int *d_output_
 			gridSize.x=nCUDAblocks_x; gridSize.y=nCUDAblocks_y; gridSize.z=1;
 			blockSize.x=WARP*THR_WARPS_PER_BLOCK; blockSize.y=1; blockSize.z=1;
 			
-			output_offset = nDMs*PD_plan->operator[](f).output_shift;
+			output_offset = nDMs * tmpdetails.output_shift;
 			
-			call_kernel_THR_GPU_WARP(gridSize, blockSize, &d_input[output_offset], &d_input_taps[output_offset], d_output_list_DM, d_output_list_TS, d_output_list_SNR, d_output_list_BW, gmem_pos, threshold, decimated_timesamples, decimated_timesamples-local_offset, shift, max_list_size, (1<<f));
-			
+			THR_GPU_WARP<<<gridSize, blockSize>>>(&d_input[output_offset], &d_input_taps[output_offset], d_output_list, gmem_pos, threshold, decimated_timesamples, decimated_timesamples-local_offset, shift, max_list_size, (1<<f), std::get<2>(dmlimits), std::get<0>(dmlimits), sampling_time, inBin, start_time);
+
 			checkCudaErrors(cudaGetLastError());
 		}
 	}

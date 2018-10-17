@@ -27,15 +27,7 @@ protected:
 	float *h_candidate_list;
 
 public:
-
-
-	// NOTE: Now part of SPS_plan
-	//SPS_DataDescription SPS_data;	
-	//SPS_Parameters SPS_params;
 	
-	MSD_Parameters MSD_params;
-	
-
 	SPS_Search(){
 		h_input = NULL;
 		d_input = NULL;
@@ -47,7 +39,7 @@ public:
 	}
 
 	/**
-	 * @brief 
+	 * @brief Check the verbosity mode set for the single pulse search
 	 * 
 	 * @return true verbose mode is on
 	 * @return false verbose mode is off
@@ -57,6 +49,10 @@ public:
 		return verbose;
 	}
 
+	/**
+	 * @brief Clears the candidate list
+	 * 
+	 */
 	void ClearCandidateList(void){
 		if (h_candidate_list != NULL) {
 			free(h_candidate_list);
@@ -65,36 +61,14 @@ public:
 		number_candidates = 0;
 	}
 
-	/**
-	 * @brief Get a copy of the single-pulse search plan
-	 * 
-	 * @return SPS_Plan&
-	 */
-	SPS_Plan& GetSPSPlan(void) {
-		return spsplan;
-	}
-
     /**
      * @brief Creates a single pulse search plan
      * 
      */
     void CreateSearchPlan() {
-        spsplan.CreateSPSPlan();
+        spsplan.Setup();
     }
 
-    /**
-     * @brief Sets the pointer to the dedispersed time series
-     * 
-     * @param tmpinput pointer to the dedispersed time series memory
-     */
-	// NOTE: This now becomes obsolete with passing the pointer directly to the RunSearch method
-	void SetSPSInputData(float *tmpinput){
-		d_input = tmpinput;
-	}
-
-	void getCandidates() {
-		
-	}
 	/**
 	 * @brief Wrapper around the PrintSPSPlan method
 	 * 
@@ -104,16 +78,17 @@ public:
 		spsplan.PrintSPSPlan();
 	}
 
-	void UpdateSearchPlan(void) {
-		spsplan.UpdateSPSPlan();
-	}
-
+	/**
+	 * @brief Starts the single pulse search
+	 * 
+	 * @param d_input pointer to the device memory containing dedispersed time series
+	 * @return int 
+	 */
 	int RunSearch(float *d_input) {
 		if (d_input == NULL) {
 			std::cerr << "ERROR: input data pointer is NULL!" << std::endl;
 			return(1);
 		}
-		max_candidates = 0;
 		number_candidates = 0;
 		max_candidates = spsplan.GetMaxCandidates();
 		h_candidate_list = (float*) malloc(max_candidates * 4 * sizeof(float));
@@ -122,11 +97,18 @@ public:
 			return(1);
 		}			
 		
-		analysis_GPU(verbose, d_input, h_candidate_list, number_candidates, max_candidates, spsplan);
+		analysis_GPU(verbose, d_input, h_candidate_list, number_candidates, spsplan);
 		
 		return(0);
 	}
 
+	/**
+	 * @brief Saves the single pulse search candidates to file
+	 * 
+	 *  We still need to agree on the output data format and how to propagate it between different pipeline stages
+	 * 
+	 * @return int No error checking at the moment anyway
+	 */
     int export_SPSData(void) const {
 		char filename[200];
 		

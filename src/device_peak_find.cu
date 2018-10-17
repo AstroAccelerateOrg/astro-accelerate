@@ -2,26 +2,28 @@
 //#define PEAK_FIND_DEBUG
 
 #include "device_peak_find.hpp"
+#include "device_SPS_plan.hpp"
 
 
-void SPDT_peak_find(float *d_output_SNR, ushort *d_output_taps, unsigned int *d_peak_list_DM, unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW, int nDMs, int nTimesamples, float threshold, int max_peak_size, int *gmem_peak_pos, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration){
+void SPDT_peak_find(float *d_output_SNR, unsigned short *d_output_taps, float *d_peak_list, int nDMs, int nTimesamples, float threshold, int max_peak_size, int *gmem_peak_pos, int shift, SPS_Plan spsplan, int max_iteration, std::tuple<float, float, float> dmlimits, float sampling_time, float inBin, float start_time){
 	int decimated_timesamples, local_offset;
-	
 	
 	dim3 blockDim(32, 2, 1);
 	dim3 gridSize(1, 1, 1);
-		
+	
+	ProcessingDetails tmpdetails;
 	
 	for(int f=0; f<max_iteration; f++){
-		decimated_timesamples = PD_plan->operator[](f).decimated_timesamples;
+		tmpdetails = spsplan.GetDetails(f);
+		decimated_timesamples = tmpdetails.decimated_timesamples;
 		//local_offset = offset>>f;
-		local_offset = PD_plan->operator[](f).unprocessed_samples;
+		local_offset = tmpdetails.unprocessed_samples;
 		if( (decimated_timesamples-local_offset-1)>0 ){		
 			gridSize.x = 1 + ((decimated_timesamples-local_offset-1)/blockDim.x);
 			gridSize.y = 1 + ((nDMs-1)/blockDim.y);
 			gridSize.z = 1;		
 			
-			call_kernel_dilate_peak_find(gridSize, blockDim, &d_output_SNR[nDMs*PD_plan->operator[](f).output_shift], &d_output_taps[nDMs*PD_plan->operator[](f).output_shift], d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW, decimated_timesamples, nDMs, local_offset, threshold, max_peak_size, gmem_peak_pos, shift, (1<<f));
+			dilate_peak_find<<<gridSize, blockDim>>>(&d_output_SNR[nDMs*PD_plan->operator[](f).output_shift], &d_output_taps[nDMs*PD_plan->operator[](f).output_shift], d_peak_list, decimated_timesamples, nDMs, local_offset, threshold, max_peak_size, gmem_peak_pos, shift, (1<<f), std::get<2>(dmlimits), std::get<0>(dmlimits), sampling_time, inBin, start_time);		
 		}
 	}
 }

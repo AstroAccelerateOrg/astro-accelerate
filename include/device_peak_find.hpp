@@ -3,15 +3,16 @@
 #ifndef ASTRO_ACCELERATE_DEVICE_PEAK_FIND_HPP
 #define ASTRO_ACCELERATE_DEVICE_PEAK_FIND_HPP
 
-#include <vector>
+#include <tuple>
 #include <npp.h>
 #include <helper_cuda.h>
 
 #include "params.hpp"
 #include "device_peak_find_kernel.hpp"
 #include "device_BC_plan.hpp"
+#include "device_SPS_plan.hpp"
 
-extern void SPDT_peak_find(float *d_output_SNR, ushort *d_output_taps, unsigned int *d_peak_list_DM, unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW, int nDMs, int nTimesamples, float threshold, int max_peak_size, int *gmem_peak_pos, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration);
+extern void SPDT_peak_find(float *d_output_SNR, unsigned short *d_output_taps, float *d_peak_list, int nDMs, int nTimesamples, float threshold, int max_peak_size, int *gmem_peak_pos, int shift, SPS_Plan spsplan, int max_iteration, std::tuple<float, float, float> dmlimits, float sampling_time, float inBin, float start_time);
 
 extern void PEAK_FIND_FOR_FDAS(float *d_ffdot_plane, float *d_peak_list, float *d_MSD, int nDMs, int nTimesamples, float threshold, unsigned int max_peak_size, unsigned int *gmem_peak_pos, float DM_trial);
 

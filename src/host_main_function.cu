@@ -309,112 +309,50 @@ void main_function
 			checkCudaErrors(cudaGetLastError());
 			
 			if (enable_analysis == 1) {
-				
-				printf("\n VALUE OF ANALYSIS DEBUG IS %d\n", analysis_debug);
-
-				if (analysis_debug == 1) {
-					float *out_tmp;
-					gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
-					out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
-					memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
-					save_data(d_output, out_tmp, gpu_outputsize);
-					analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp, max_boxcar_width_in_sec);
-					free(out_tmp);
-				}
-				else {
-					unsigned int *h_peak_list_DM;
-					unsigned int *h_peak_list_TS;
-					float *h_peak_list_SNR;
-					unsigned int *h_peak_list_BW;
-					size_t max_peak_size;
-					size_t peak_pos;
-					max_peak_size = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 );
-					h_peak_list_DM  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
-					h_peak_list_TS  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
-					h_peak_list_SNR = (float*) malloc(max_peak_size*sizeof(float));
-					h_peak_list_BW  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
-
-					peak_pos=0;
-					analysis_GPU(h_peak_list_DM, h_peak_list_TS, h_peak_list_SNR, h_peak_list_BW, &peak_pos, max_peak_size, dm_range, tstart_local, t_processed[dm_range][t], inBin[dm_range], outBin[dm_range], &maxshift, max_ndms, ndms, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, d_output, dm_low, dm_high, dm_step, tsamp, candidate_algorithm, d_MSD_workarea, d_MSD_output_taps, d_MSD_interpolated, MSD_data_info, enable_sps_baselinenoise);
-
-					free(h_peak_list_DM);
-					free(h_peak_list_TS);
-					free(h_peak_list_SNR);
-					free(h_peak_list_BW);
-				}
-				printf("INC:\t%zu\n\n\n", processed_samples);
-				// This is for testing purposes and should be removed or commented out
-				//analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp);
-			}
-
-			checkCudaErrors(cudaGetLastError());
-			
-			if (enable_analysis == 1) {
 				// NOTE: I am assuming for now these are correct
 				int dm_range = DDTR.getCurrentRange();
 				int time_chunk = DDTR.getCurrentTimeChunk();
 				
-				// Set maximum boxcar widths performed between decimations (This should be set at the beginning, so we do not need to set it before every run of SPDT) 
-				// NOTE: This has been moved to the SPS_Search constructor
-				//SPS_params->add_BC_width(PD_MAXTAPS);
-				//SPS_params->add_BC_width(16);
-				//SPS_params->add_BC_width(16);
-				//SPS_params->add_BC_width(16);
-				//SPS_params->add_BC_width(8);
-
 				if (spssearch.CheckVerbosity()) {
 					spssearch.PrintSearchPlan();
 				}
-
-				/*SPS_search.SPS_data.set(tstart_local, DDTR_plan->tsamp, DDTR_plan->dm_step[dm_range], DDTR_plan->dm_low[dm_range], DDTR_plan->dm_high[dm_range], DDTR_plan->inBin[dm_range], DDTR_plan->t_processed[dm_range][time_chunk], DDTR_plan->ndms[dm_range]);
 				
-				SPS_search.setInputData(d_DDTR_output);
-				
-				SPS_search.search();
-				
-				SPS_search.export_SPSData();
-				// or
-				candidatelist->clp.push_back(SPS_search.exportToSubList());
-				
-				SPS_search.clear();
-				// -----------------------------------------------------------------------<
-				
-				SPS_params->clear_BC_widths();
-				*/
-				spssearch.UpdateSearchPlan();
+				//TODO: This needs glue with DDTR output - we need to agree on useful and reliable interface
+				spssearch.CreateSPSPlan();
 				spsearch.RunSearch(d_DDTR_output);
+				checkCudaErrors(cudaGetLastError());
 			}
 			printf("INC:\t%zu\n\n\n", processed_samples);
-
+			
 			oldBin = inBin[dm_range];
 		}
-
+		
 		//memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
-
+		
 		inc = inc + t_processed[0][t];
 		printf("\nINC:\t%ld", inc);
 		tstart_local = ( tsamp_original * inc );
 		tsamp = tsamp_original;
 		maxshift = maxshift_original;
 	}
-
+	
 	timer.Stop();
 	float time = timer.Elapsed() / 1000;
-
+	
 	printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
-
+	
 	printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)",  time);
 	printf("\nAmount of telescope time processed: %f", tstart_local);
 	printf("\nNumber of samples processed: %ld", inc);
 	printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
-
+	
 	cudaFree(d_input);
 	cudaFree(d_output);
 	//free(out_tmp);
 	free(input_buffer);
 	
 	#ifdef EXPORT_DD_DATA
-		size_t DMs_per_file;
+	size_t DMs_per_file;
 		int *ranges_to_export;
 		ranges_to_export = new int[range];
 		for(int f=0; f<range; f++) ranges_to_export[f]=1;

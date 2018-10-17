@@ -33,23 +33,26 @@ struct DataProperties {
  * @brief Class which holds the SPS plan
  * 
  */
-class SPS_Plan {
 
-    private:
+struct ProcessingDetails {
         int decimated_timesamples;
-        int dtm;    // decimated time samples
+        int dtm;
         int iteration;
-        int number_boxcars;
         int number_blocks;
-        int max_iterations;
+        int number_boxcars;
         int output_shift;
         int shift;
         int start_taps;
+        int total_unprocessed;
         int unprocessed_samples;
+};
+
+class SPS_Plan {
+
+    private:
+        int max_iterations;
         // NOTE: Replaced with total_unprocessed
         //int total_ut;
-        int total_unprocessed;
-
         size_t max_candidates;
         size_t max_boxcar_width_desired;
         size_t max_boxcar_width_performed;
@@ -74,6 +77,8 @@ class SPS_Plan {
         FilterBankDataMeta dataprop;
         MSD_Parameters msdparams;
 
+        std::vector<ProcessingDetails> details;
+
     protected:
 
     public:
@@ -81,23 +86,14 @@ class SPS_Plan {
     public:
         SPS_Plan(void)
             : candidate_algorithm(0)
-            , decimated_timesamples(0)
-            , dtm(0)
-            , iteration(0)
-            , max_boxcar_width_in_sec(0.0f)
+            , max_boxcar_width_in_sec(0.50f)
             , max_boxcar_width_desired(0)
             , max_boxcar_width_performed(0)
             , max_candidates(0)
             , max_candidate_array_size_in_bytes(0)
-            , number_boxcars(0)
-            , number_blocks(0)
-            , output_shift(0)
-            , shift(0)
-            , sigma_cutoff(0.0f)
-            , start_taps(0)
-            , total_unprocessed(0)
-            , unprocessed_samples(0) {
+            , sigma_cutoff(6.0f) {
 
+            // TODO: We still need to pass this information
             dataprop.dm_low = 0.0f;
             dataprop.dm_high = 0.0f;
             dataprop.dm_step = 0.0f;
@@ -110,57 +106,9 @@ class SPS_Plan {
 
             dataprop.binned_sampling_time = dataprop.sampling_time * dataprop.binning_factor; // = 0.0f at the startup
 
-
         }
 
         ~SPS_Plan(void) = default;
-
-        void Setup() {
-            max_candidates = static_cast<size_t>((dataprop. number_dms) * (dataprop.timesamples) * 0.25);
-            max_boxcar_width_desired = static_cast<int>(max_boxcar_width_in_sec / (dataprop.sampling_time));
-
-            // NOTE: Set maximum boxcar widths performed between decimations
-            decimate_bc_limits.push_back(PD_MAXTAPS);   
-            decimate_bc_limits.push_back(16);
-            decimate_bc_limits.push_back(16);
-            decimate_bc_limits.push_back(16);
-            decimate_bc_limits.push_back(8);  
-        }
-
-        /**
-         * @brief Prints our basic single pulse search parameters
-         */
-        void PrintSPSPlan(void) const {
-            std::cout << "Current Single Pulse Search Plan:" << std::endl;
-            std::cout << "\tmax_boxcar_with_in_sec: " << max_boxcar_width_in_sec << std::endl;
-            std::cout << "\tsigma_cutoff: " << sigma_cutoff << std::endl;
-            std::cout << "\tmax_candidate_array_size_in_bytes: " << max_candidate_array_size_in_bytes << std::endl;
-
-            // NOTE: Technically there are 2 atm, but there might be more in the future?
-            if (candidate_algorithm == 1) {
-                std::cout << "\tcandidate algorithm: threshold" << std::endl;
-            } else if (candidate_algorithm == 0) {
-                std::cout << "\tcandidate algorithm: peak-find" << std::endl;
-            }
-            std::cout << "\tBC widths: ";
-            if (BC_widths.size() == 0) {
-                std::cout << "not set" << std::endl;
-            } else {
-                for (std::vector<int>::const_iterator iwidth = BC_widths.begin(); iwidth != BC_widths.end(); ++iwidth) {
-                    std::cout << *iwidth << " ";
-                }
-            }
-            std::cout << std::endl;
-            std::cout << "---------------------<" << std::endl;
-        }
-
-        size_t GetCurrentMaxBoxcarWidth(void) const {
-            return max_boxcar_width_performed;
-        }
-
-        std::tuple<float, float, float> GetDMLimits(void) const {
-            return std::make_tuple(dataprop.dm_low, dataprop.dm_high, dataprop.dm_step);
-        }
 
         /**
          * @brief Returns boxcar width for a given widths vector and element within the vector.
@@ -168,51 +116,24 @@ class SPS_Plan {
          * The function checks for the out-of-range access - returns the last element if element beyond the size of the vector is requested.
          * 
          * @param element index of the element to return 
-         * @param bc_vector vector of boxcar widths to read values from
+         * @param wodths vector of boxcar widths to read values from
          * @return int the requested boxcar width
          */
-    	int GetBCWidth(int element) const {
+    	int GetBCWidth(int element, std::vector<int> &widths) const {
             // NOTE: There is enough elements in the widths list
-            if (element < BC_widths.size()) {
-                return BC_widths.at(element);
+            if (element < widths.size()) {
+                return widths.at(element);
             // NOTE: Not enough elements - get the last element
-            } else if (BC_widths.size() > 0) {
-                return BC_widths.back();
+            } else if (widths.size() > 0) {
+                return widths.back();
             // NOTE: Edge case - the widths vector is empty
             } else {
                 return 0;
             }
 	    }
-
-        size_t GetMaxCandidates(void) const {
-            return max_candidates;
-        }
-
-        size_t GetNumberDMs(void) const {
-            return dataprop.number_dms;
-        }
-
-        size_t GetCurrentTimeSamples(void) const {
-            return dataprop.timesamples;
-        }
-
-        int GetCurrentBinningFactor(void) const {
-            return dataprop.binning_factor;
-        }
-
-        float GetCurrentSamplingTime(void) const {
-            return dataprop.binned_sampling_time;
-        }
-
-        float GetCurrentStartTime(void) const {
-            return dataprop.start_time;
-        }
-
-        float GetOriginalSamplingTime(void) const {
-            return dataprop.sampling_time;
-        }
+        
         /**
-         * @brief Get the maximum iteration
+         * @brief Calculates the number of averaging iterations
          * 
          * @param max_width_performed 
          * @param max_boxcar_width 
@@ -220,146 +141,26 @@ class SPS_Plan {
          */
         int CalculateMaxIteration(int max_boxcar_width) {
             int iteration = 0;
+            max_boxcar_width_performed = 0;
             while (max_boxcar_width_performed < max_boxcar_width) {
-                max_boxcar_width_performed += GetBCWidth(iteration) *  (1 << iteration);
+                max_boxcar_width_performed += GetBCWidth(iteration, decimate_bc_limits) *  (1 << iteration);
                 iteration++;
             }
             max_iterations = iteration;
             return iteration;
         }
 
-        int GetMaxIteration(void) const {
-            return max_iterations;
-        }
-
-        void CreateSPSplan(void){
-            int elements_per_block;
-            int nRest;
-
-            if(max_boxcar_width_desired > dataprop.timesamples) 
-                max_iterations = CalculateMaxIteration(dataprop.timesamples);
-            else
-                max_iterations = CalculateMaxIteration(max_boxcar_width_desired);
-            
-            if(max_iterations > 0) {
-                // NOTE: Set in the constructor
-                // PDmp.shift        = 0;
-                // PDmp.output_shift = 0;
-                // PDmp.startTaps    = 0;
-                // PDmp.iteration    = 0;
-                
-                // PDmp.decimated_timesamples = nTimesamples;
-                // PDmp.dtm = (nTimesamples>>(PDmp.iteration+1));
-                // PDmp.dtm = PDmp.dtm - (PDmp.dtm&1);
-                
-                decimated_timesamples = dataprop.timesamples;
-                // NOTE: Each iteration decimates the data by a factor of 2 in the time dimension
-                dtm = (dataprop.timesamples) >> (iteration + 1);
-                // NOTE: That creates an even number of decimated time samples
-                dtm = dtm - (dtm & 1);
-
-                // NOTE: That doesn't sound right really
-                // PDmp.nBoxcars = get_BC_width(0);
-                // Elements_per_block = PD_NTHREADS*2 - PDmp.nBoxcars;
-                // itemp = PDmp.decimated_timesamples;
-                // PDmp.nBlocks = itemp/Elements_per_block;
-                // nRest = itemp - PDmp.nBlocks*Elements_per_block;
-                // if(nRest>0) PDmp.nBlocks++;
-                // PDmp.unprocessed_samples = PDmp.nBoxcars + 6; // 6 is from where?
-                // if(PDmp.decimated_timesamples<PDmp.unprocessed_samples) PDmp.nBlocks=0;
-                // PDmp.total_ut = PDmp.unprocessed_samples;
-                
-                // TODO: What's the logic behind this?
-                number_boxcars = GetBCWidth(0);
-                elements_per_block = PD_NTHREADS * 2 - number_boxcars;
-                number_blocks = decimated_timesamples / elements_per_block;
-                nRest = decimated_timesamples - number_blocks * elements_per_block;
-
-                if (nRest > 0) {
-                    number_blocks++;
-                }
-
-                // TODO: What's the logic behind this equation?
-                unprocessed_samples = number_boxcars + 6;
-
-                if (decimated_timesamples < unprocessed_samples) {
-                    number_blocks = 0;
-                }
-
-                total_unprocessed = unprocessed_samples;
-            }
-        }
-        
         /**
-         * @brief Updates the plan depending on the decimation iteration
+         * @brief Creates a list of boxcar widths
          * 
-         * @param iteration 
          */
-        void UpdateSPSPlan(int iteration) {
-            int elements_per_block;
-            int nRest;
-
-            // for(int f=1; f<max_iterations; f++){
-            //     // These are based on previous values of PDmp
-            //     // PDmp.shift        = PDmp.nBoxcars/2;
-            //     // PDmp.output_shift = PDmp.output_shift + PDmp.decimated_timesamples;
-            //     // PDmp.startTaps    = PDmp.startTaps + PDmp.nBoxcars*(1<<PDmp.iteration);
-            //     // PDmp.iteration    = PDmp.iteration + 1;
-                
-            //     // Definition of new PDmp values
-            //     PDmp.decimated_timesamples = PDmp.dtm;
-            //     PDmp.dtm = (nTimesamples>>(PDmp.iteration+1));
-            //     PDmp.dtm = PDmp.dtm - (PDmp.dtm&1);
-                
-            //     PDmp.nBoxcars = get_BC_width(f);
-
-
-
-            //     Elements_per_block=PD_NTHREADS*2 - PDmp.nBoxcars;
-            //     itemp = PDmp.decimated_timesamples;
-            //     PDmp.nBlocks = itemp/Elements_per_block;
-            //     nRest = itemp - PDmp.nBlocks*Elements_per_block;
-            //     if(nRest>0) PDmp.nBlocks++;
-            //     PDmp.unprocessed_samples = PDmp.unprocessed_samples/2 + PDmp.nBoxcars + 6;
-            //     if(PDmp.decimated_timesamples<PDmp.unprocessed_samples) PDmp.nBlocks=0;
-            //     PDmp.total_ut = PDmp.unprocessed_samples*(1<<PDmp.iteration);
-                
-            //     PD_plan->push_back(PDmp);
-            // }
-
-            shift = number_boxcars / 2;
-            output_shift = output_shift + decimated_timesamples;
-            start_taps = start_taps + number_boxcars * (1 << iteration);
-
-            decimated_timesamples = dtm;
-            dtm = (dataprop.timesamples) >> (iteration + 1);
-            dtm = dtm - (dtm & 1);
-
-            // TODO: This has to access the original vector containing 32, 16, 16, 16, 8 rather than the ones generated properly
-            number_boxcars = GetBCWidth(iteration);
-            elements_per_block = PD_NTHREADS * 2 - number_boxcars;
-            number_blocks = decimated_timesamples / elements_per_block;
-            nRest = decimated_timesamples - number_blocks * elements_per_block;
-            if (nRest > 0) {
-                number_blocks++;
-            }
-
-            unprocessed_samples = unprocessed_samples / 2 + number_boxcars + 6;
-            if (decimated_timesamples < unprocessed_samples) {
-                number_blocks = 0;
-            }
-
-            total_unprocessed = unprocessed_samples * (1 << iteration);
-
-        }
-
-        std::vector<int> CreateListOfBoxcars(int max_width_performed){
+        void CreateListOfBoxcars(){
             int current_decimation = 1;
             int width = 0;
             int f = 0;
 
-            while (width < max_width_performed) {
-                for (int b = 0; b < GetBCWidth(f); b++) {
+            while (width < max_boxcar_width_performed) {
+                for (int b = 0; b < GetBCWidth(f, decimate_bc_limits); b++) {
                     width = width + current_decimation;
                     boxcar_widths.push_back(width);
                 }
@@ -369,8 +170,230 @@ class SPS_Plan {
         }
 
         /**
+         * @brief Creates the actual plan calculating all the necessary variables
+         * 
+         */
+        // TODO: This should really accept a structure that contains all the necessary information about the current data chunk
+        void Setup() {
+
+            max_candidates = static_cast<size_t>((dataprop. number_dms) * (dataprop.timesamples) * 0.25);
+            max_boxcar_width_desired = static_cast<int>(max_boxcar_width_in_sec / (dataprop.sampling_time));
+
+            // NOTE: Set maximum boxcar widths performed between decimations
+            decimate_bc_limits.push_back(PD_MAXTAPS);   
+            decimate_bc_limits.push_back(16);
+            decimate_bc_limits.push_back(16);
+            decimate_bc_limits.push_back(16);
+            decimate_bc_limits.push_back(8);  
+
+            int elements_per_block;
+            int elements_rem;
+
+            ProcessingDetails tmpdetails = {0};
+
+            if(max_boxcar_width_desired > dataprop.timesamples) 
+                max_iterations = CalculateMaxIteration(dataprop.timesamples);
+            else
+                max_iterations = CalculateMaxIteration(max_boxcar_width_desired);
+            
+            if(max_iterations > 0) {
+                tmpdetails.shift = 0;
+                tmpdetails.output_shift = 0;
+                tmpdetails.start_taps = 0;
+                tmpdetails.iteration = 0;
+
+                tmpdetails.decimated_timesamples = dataprop.timesamples;
+                // NOTE: Each iteration decimates the data by a factor of 2 in the time dimension
+                tmpdetails.dtm = (dataprop.timesamples) >> (tmpdetails.iteration + 1);
+                // NOTE: That creates an even number of decimated time samples
+                tmpdetails.dtm = tmpdetails.dtm - (tmpdetails.dtm & 1);
+                
+                // TODO: What's the logic behind this?
+                tmpdetails.number_boxcars = GetBCWidth(0, decimate_bc_limits);
+                elements_per_block = PD_NTHREADS * 2 - tmpdetails.number_boxcars;
+                tmpdetails.number_blocks = tmpdetails.decimated_timesamples / elements_per_block;
+                elements_rem = tmpdetails.decimated_timesamples - tmpdetails.number_blocks * elements_per_block;
+
+                if (elements_rem > 0) {
+                    tmpdetails.number_blocks++;
+                }
+
+                // TODO: What's the logic behind this equation?
+                tmpdetails.unprocessed_samples = tmpdetails.number_boxcars + 6;
+
+                if (tmpdetails.decimated_timesamples < tmpdetails.unprocessed_samples) {
+                    tmpdetails.number_blocks = 0;
+                }
+
+                tmpdetails.total_unprocessed = tmpdetails.unprocessed_samples;
+
+                details.push_back(tmpdetails);
+            }
+
+            for (int iiter = 0; iiter < max_iterations; ++iiter) {
+                tmpdetails.shift = tmpdetails.number_boxcars / 2;
+                tmpdetails.output_shift = tmpdetails.output_shift + tmpdetails.decimated_timesamples;
+                tmpdetails.start_taps = tmpdetails.start_taps + tmpdetails.number_boxcars * (1 << tmpdetails.iteration);
+                tmpdetails.iteration = tmpdetails.iteration + 1;
+
+                tmpdetails.decimated_timesamples = tmpdetails.dtm;
+                tmpdetails.dtm = (dataprop.timesamples) >> (tmpdetails.iteration + 1);
+                tmpdetails.dtm = tmpdetails.dtm - (tmpdetails.dtm & 1);
+
+                // TODO: This has to access the original vector containing 32, 16, 16, 16, 8 rather than the ones generated properly
+                tmpdetails.number_boxcars = GetBCWidth(tmpdetails.iteration, decimate_bc_limits);
+                elements_per_block = PD_NTHREADS * 2 - tmpdetails.number_boxcars;
+                tmpdetails.number_blocks = tmpdetails.decimated_timesamples / elements_per_block;
+                elements_rem = tmpdetails.decimated_timesamples - tmpdetails.number_blocks * elements_per_block;
+                if (elements_rem > 0) {
+                    tmpdetails.number_blocks++;
+                }
+
+                tmpdetails.unprocessed_samples = tmpdetails.unprocessed_samples / 2 + tmpdetails.number_boxcars + 6;
+                if (tmpdetails.decimated_timesamples < tmpdetails.unprocessed_samples) {
+                    tmpdetails.number_blocks = 0;
+                }
+
+                tmpdetails.total_unprocessed = tmpdetails.unprocessed_samples * (1 << tmpdetails.iteration);
+
+                details.push_back(tmpdetails);
+            }
+
+            CreateListOfBoxcars();
+        }
+
+        /**
+         * @brief Prints our basic single pulse search parameters
+         */
+        void PrintSPSPlan(void) const {
+            std::cout << "Current Single Pulse Search Plan:" << std::endl;
+            std::cout << "\tmax_boxcar_with_in_sec: " << max_boxcar_width_in_sec << std::endl;
+            std::cout << "\tmax_boxcar_width_desired: " << max_boxcar_width_desired << std::endl;
+            std::cout << "\tmax_boxcar_width_performed: " << max_boxcar_width_performed << std::endl;
+            std::cout << "\tsigma_cutoff: " << sigma_cutoff << std::endl;
+            std::cout << "\tmax_candidate_array_size_in_bytes: " << max_candidate_array_size_in_bytes << std::endl;
+
+            // NOTE: Technically there are 2 atm, but there might be more in the future?
+            if (candidate_algorithm == 1) {
+                std::cout << "\tcandidate algorithm: threshold" << std::endl;
+            } else if (candidate_algorithm == 0) {
+                std::cout << "\tcandidate algorithm: peak-find" << std::endl;
+            }
+
+            std::cout << "\tBC widths: ";
+            if (boxcar_widths.size() == 0) {
+                std::cout << "not set" << std::endl;
+            } else {
+                for (std::vector<int>::const_iterator iwidth = boxcar_widths.begin(); iwidth != boxcar_widths.end(); ++iwidth) {
+                    std::cout << *iwidth << " ";
+                }
+                std::cout << std::endl;
+            }
+
+            std::cout << "\tNumber of decimation iterations: " << max_iterations << std::endl;
+            if (decimate_bc_limits.size() > 0) {
+                std::cout << "\tDecimation in time at the following BC widths: ";
+                for (std::vector<int>::const_iterator iwidth = decimate_bc_limits.begin(); iwidth != decimate_bc_limits.end(); ++iwidth) {
+                    std::cout << *iwidth << " ";
+                }
+            }
+
+            std::cout << std::endl;
+            std::cout << "---------------------<" << std::endl;
+        }
+
+        ProcessingDetails GetDetails(int iteration) {
+            return details.at(iteration);
+        }
+
+        size_t GetCurrentMaxBoxcarWidth(void) const {
+            return max_boxcar_width_performed;
+        }
+
+        std::tuple<float, float, float> GetDMLimits(void) const {
+            return std::make_tuple(dataprop.dm_low, dataprop.dm_high, dataprop.dm_step);
+        }
+        /**
+         * @brief Returns the number of candidates we can safely process
+         * 
+         * @return size_t 
+         */
+        size_t GetMaxCandidates(void) const {
+            return max_candidates;
+        }
+
+        /**
+         * @brief Returns the number of DM values in the current data chunk
+         * 
+         * @return size_t 
+         */
+        size_t GetNumberDMs(void) const {
+            return dataprop.number_dms;
+        }
+        /**
+         * @brief Returns the number of time samples in the current data chunk
+         * 
+         * @return size_t 
+         */
+        size_t GetCurrentTimeSamples(void) const {
+            return dataprop.timesamples;
+        }
+        /**
+         * @brief Returns the binning (averaging) factor for the current data chunk
+         * 
+         * @return int 
+         */
+        int GetCurrentBinningFactor(void) const {
+            return dataprop.binning_factor;
+        }
+
+        /**
+         * @brief Returns the current sampling time for the current data chunk
+         * 
+         * That includes the binning factors
+         * 
+         * @return float 
+         */
+        float GetCurrentSamplingTime(void) const {
+            return dataprop.binned_sampling_time;
+        }
+
+        /**
+         * @brief Returns the start time of the current data chunk
+         * 
+         * @return float 
+         */
+        float GetCurrentStartTime(void) const {
+            return dataprop.start_time;
+        }
+
+        /**
+         * @brief Returns the original sampling time of the current data chunk
+         * 
+         * This does not include any pre- and post-dedispersion averaging factors
+         * 
+         * @return float 
+         */
+        float GetOriginalSamplingTime(void) const {
+            return dataprop.sampling_time;
+        }
+
+        /**
+         * @brief Returns the number of time decimation iterations to be run during single pulse search
+         * 
+         * @return int 
+         */
+        int GetMaxIteration(void) const {
+            return max_iterations;
+        }
+
+        std::vector<int> GetListOfBoxcars(void) const {
+            return boxcar_widths;
+        }
+
+        /**
          * @brief Set the algorithm number
-         * @param algorithm user suppkied algorithm number: 0 - peak-find, 1 - threshold 
+         * @param algorithm user supplied algorithm number: 0 - peak-find, 1 - threshold 
          */
         void SetAlgorithm(short algorithm) {
             candidate_algorithm = algorithm;
@@ -397,22 +420,10 @@ class SPS_Plan {
             return dataprop.start_time;
         }
 
-        /**
-         * @brief Adds boxcar width
-         * 
-         * @param width width of boxcar function in time samples
-         */
-        void AddBCWidth(int width) {
-            BC_widths.push_back(width);
+        MSD_Parameters GetMSDParameters(void) const {
+            return msdparams;
         }
 
-            /**
-         * @brief Clears the boxcar width vector
-         * 
-         */
-        void ClearBCWidths(void){
-            BC_widths.clear();
-        }
 };
 
 #endif
