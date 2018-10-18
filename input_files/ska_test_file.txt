@@ -11,7 +11,7 @@ sigma_constant  3.0
 max_boxcar_width_in_sec 0.5
 periodicity_sigma_cutoff 20
 periodicity_harmonics 32
--analysis
+analysis
 -acceleration
 -output_ffdot_plan
 -output_fdas_list
@@ -21,12 +21,12 @@ periodicity_harmonics 32
 -zero_dm_with_outliers
 -rfi
 -oldrfi
--threshold
--baselinenoise
--fdas_custom_fft
+threshold
+baselinenoise
+fdas_custom_fft
 -fdas_inbin
 -fdas_norm
--debug
+debug
 -analysis_debug
 -failsafe
 file /mnt/data/filterbank/ska-mid-b2.fil
