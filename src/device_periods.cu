@@ -419,7 +419,7 @@ public:
 
 
 void Create_DD_plan(Dedispersion_Plan *D_plan, int nRanges, float *dm_low, float *dm_high, float *dm_step, int *inBin, int nTimesamples, int *ndms, float sampling_time){
-	size_t max_nDMs = 0;
+	int max_nDMs = 0;
 	for(int f=0; f<nRanges; f++){
 		Dedispersion_Range trange;
 		trange.Assign(dm_low[f], dm_high[f], dm_step[f], inBin[f], nTimesamples/inBin[f], ndms[f], sampling_time);
@@ -433,7 +433,7 @@ void Create_DD_plan(Dedispersion_Plan *D_plan, int nRanges, float *dm_low, float
 }
 
 int Calculate_max_nDMs_in_memory(size_t max_nTimesamples, size_t max_nDMs, size_t memory_available, float multiple_float, float multiple_ushort) {
-	int max_nDMs_in_memory, itemp;
+	size_t max_nDMs_in_memory, itemp;
 
 	size_t memory_per_DM = ((max_nTimesamples+2)*(multiple_float*sizeof(float) + multiple_ushort*sizeof(ushort)));
 	printf("   Memory required for one DM is %0.3f MB available memory is %0.3f MB %zu\n", memory_per_DM/(1024.0*1024.0), (memory_available*0.95)/(1024.0*1024.0), memory_available);
@@ -519,7 +519,7 @@ void Find_Periodicity_Plan(int *max_nDMs_in_memory, AA_Periodicity_Plan *P_plan,
 		printf("   Memory available for the module: %0.3f MB (%zu bytes)\n", (float) memory_available/(1024.0*1024.0), memory_available);
 		printf("   Memory allocated by the module: %0.3f MB (%zu bytes)\n", (float) memory_allocated/(1024.0*1024.0), memory_allocated);
 
-		if(t_max_nTimesamples!=P_plan->max_nTimesamples) printf("Interesting!\n");
+		if(t_max_nTimesamples!=(size_t)P_plan->max_nTimesamples) printf("Interesting!\n");
 		
 		if(memory_allocated>memory_available) {
 			printf("Not enough memory for given configuration of periodicity plan. Calculating new plan...\n");

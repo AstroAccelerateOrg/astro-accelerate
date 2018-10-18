@@ -111,49 +111,6 @@ void fdas_free_gpu_arrays(fdas_gpuarrays *arrays,  cmd_args *cmdargs)
 	cudaFree(arrays->d_fdas_peak_list);
 }
 
-/*
-void fdas_create_acc_sig(fdas_new_acc_sig *acc_sig, cmd_args *cmdargs)
-/* Create accelerated signal with given parameters in a float array */
-/*
-{
-  double t0, tau;
-  double omega = 2*M_PI*acc_sig->freq0;
-  double accel;
-  double tobs;
-
-  // gaussian distribution from C++ <random>
-  std::default_random_engine rgen;
-  std::normal_distribution<float> gdist(0.0,cmdargs->nsig);
-
-  tobs = (double) (TSAMP*acc_sig->nsamps);
-  accel = ((double)acc_sig->zval * SLIGHT) / (acc_sig->freq0*tobs*tobs);
-  printf("\n\npreparing test signal, observation time = %f s, %d nsamps f0 = %f Hz with %d harmonics\n", tobs, acc_sig->nsamps, acc_sig->freq0, acc_sig->nharms);
-  printf("\nz = %d accelereation = %f m/s^2\n", acc_sig->zval, accel);
-  acc_sig->acc_signal = (float*)malloc(acc_sig->nsamps*sizeof(float));
-     
-  printf("\nNow creating accelerated signal with fc=%f, accel=%f, harmonics=%d, duty cycle=%.1f%, noise=%d signal samples=%d, signal level: %.2f\n", acc_sig->freq0, accel, acc_sig->nharms, acc_sig->duty*100.0, cmdargs->nsig, acc_sig->nsamps,acc_sig->sigamp);
-  
-  for ( int i=0; i<acc_sig->nsamps; ++i){	    
-    t0 = i*TSAMP;
-    tau = t0 + (t0*(accel*t0) / SLIGHT /2.0);
-    if (cmdargs->nsig!=0){
-      acc_sig->acc_signal[i] = gdist(rgen);
-    }
-    for (int j = 1; j <= acc_sig->nharms; ++j){
-      acc_sig->acc_signal[i] += (2.0/(j*M_PI)*sin(j*M_PI*acc_sig->duty))*acc_sig->sigamp*cos(j*omega*tau); 
-    }
-  }
-  //Write to file 
-  char afname[200];
-  sprintf(afname, "data/acc_sig_8192x%d_%dharms_%dduty_%.3fHz_%dz_%dnsigma.dat",  acc_sig->mul,  acc_sig->nharms, (int)( acc_sig->duty*100.0),  acc_sig->freq0,  acc_sig->zval, acc_sig->nsig );
-
-  write_output_file(afname, &acc_sig->acc_signal, acc_sig->nsamps );
-
-  free(acc_sig->acc_signal);
-}
-*/
-
-
 void fdas_create_acc_kernels(cufftComplex* d_kernel, cmd_args *cmdargs )
 {
 /* Create kernel templates for the correlation technique (Ransom et. al. 2002),  */
@@ -459,8 +416,9 @@ void fdas_write_list(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *
 		if ((fp_c=fopen(pfname, "w")) == NULL) {
 			fprintf(stderr, "Error opening %s file for writing: %s\n",pfname, strerror(errno));
 		}
-		
-		for(int f=0; f<list_size; f++){
+
+		int i_list_size = (int)list_size;
+		for(int f=0; f<i_list_size; f++){
 			int j;
 			double a, acc, acc1, jfreq, pow, SNR;
 			a   = h_fdas_peak_list[4*f];
@@ -500,7 +458,8 @@ void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params 
   double mean;
   double stddev;
   // unsigned int j;
-  for ( int j = 0; j < params->ffdotlen; ++j){
+  int i_params_ffdotlen = (int)params->ffdotlen;
+  for ( int j = 0; j < i_params_ffdotlen; ++j){
 	total += (double)(h_ffdotpwr[j]);
     if(isnan(total)){
       printf("\nnan detected during sum for mean at j=%d\nValue at j:%f\n",j,h_ffdotpwr[j]);
@@ -514,7 +473,7 @@ void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params 
       
   // Calculate standard deviation
   total = 0.0;
-  for ( int j = 0; j < params->ffdotlen; ++j){
+  for ( int j = 0; j < i_params_ffdotlen; ++j){
     total += ((double)h_ffdotpwr[j] - mean ) * ((double)h_ffdotpwr[j] - mean);
     if(isnan(total)||isinf(total)){
       printf("\ninf/nan detected during sum for mean at j=%d\nValue at j:%f\n",j,h_ffdotpwr[j]);
@@ -592,7 +551,8 @@ void fdas_write_test_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_pa
   double mean;
   double stddev;
   // unsigned int j;
-  for ( int j = 0; j < params->ffdotlen; ++j){
+  int i_params_ffdotlen = (int)params->ffdotlen;
+  for ( int j = 0; j < i_params_ffdotlen; ++j){
 	total += (double)(h_ffdotpwr[j]);
     if(isnan(total)){
       printf("\nnan detected during sum for mean at j=%d\nValue at j:%f\n",j,h_ffdotpwr[j]);
@@ -600,20 +560,20 @@ void fdas_write_test_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_pa
     }
   }
   
-  mean = total / ((double)(params->ffdotlen)); 
+  mean = total / ((double)(i_params_ffdotlen)); 
 
   printf("\ntotal ffdot:%lf\tmean ffdot: %lf", total, mean);
       
   // Calculate standard deviation
   total = 0.0;
-  for ( int j = 0; j < params->ffdotlen; ++j){
+  for ( int j = 0; j < i_params_ffdotlen; ++j){
     total += ((double)h_ffdotpwr[j] - mean ) * ((double)h_ffdotpwr[j] - mean);
     if(isnan(total)||isinf(total)){
       printf("\ninf/nan detected during sum for mean at j=%d\nValue at j:%f\n",j,h_ffdotpwr[j]);
       exit(1);
     }
   }
-  stddev = sqrt(abs(total) / (double)(params->ffdotlen - 1)); 
+  stddev = sqrt(abs(total) / (double)(i_params_ffdotlen - 1)); 
   printf("\nmean ffdot: %f\tstd ffdot: %lf\n", mean, stddev);
 
   //prepare file
