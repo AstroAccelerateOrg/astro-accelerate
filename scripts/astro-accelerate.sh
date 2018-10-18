@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 job_name=$(basename "$1" .txt)
 
@@ -11,7 +11,7 @@ scripts_dir=$PWD
 project_top=$(dirname "$scripts_dir")
 output_dir="$project_top/output"
 job_dir=$output_dir/$job_name
-build_dir=$project_top/build
+build_dir=$project_top
 
 input_file=$(readlink -f $1)
 
@@ -27,7 +27,7 @@ rm -f harmonic*
 rm -f candidate*
 rm -f peak*
 
-time $build_dir/dedisperse-gpu $input_file
+time $build_dir/astro-accelerate $input_file
 
 cat analysed* > global_analysed_frb.dat
 cat fourier-* > global_periods.dat

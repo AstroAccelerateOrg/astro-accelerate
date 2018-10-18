@@ -1,7 +1,0 @@
-#ifndef ASTROACCELERATE_DEDISPERSION_KERNEL_H_
-#define ASTROACCELERATE_DEDISPERSION_KERNEL_H_
-
-#include "params.h"
-
-#endif
-
