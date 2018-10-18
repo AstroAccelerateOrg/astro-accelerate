@@ -3,6 +3,7 @@
 #include "device_threshold_kernel.hpp"
 #include "device_peak_find_shared_kernel_functions.cuh"
 #include "device_threshold_shared_kernel_functions.cuh"
+#include "device_cuda_deprecated_wrappers.cuh"
 
 __global__ void THR_GPU_WARP(float const* __restrict__ d_input, ushort *d_input_taps, unsigned int *d_output_list_DM, unsigned int *d_output_list_TS, float *d_output_list_SNR, unsigned int *d_output_list_BW, int *gmem_pos, float threshold, int nTimesamples, int offset, int shift, int max_list_size, int DIT_value) {
 	int local_id;
@@ -20,10 +21,10 @@ __global__ void THR_GPU_WARP(float const* __restrict__ d_input, ushort *d_input_
 		if(pos_x<offset){
 			R=__ldg(&d_input[pos_x + pos_y]);
 			if(R > threshold) {
-				mask=__ballot(1);
+			  mask=aa_ballot(AA_ASSUME_MASK,1);
 				leader=__ffs(mask)-1;
 				if(local_id==leader) list_pos=atomicAdd(gmem_pos,__popc(mask));
-				list_pos=__shfl(list_pos,leader);
+				list_pos=aa_shfl(AA_ASSUME_MASK,list_pos,leader);
 				list_pos=list_pos+__popc(mask&((1<<local_id)-1));
 				if(list_pos<max_list_size){
 					d_output_list_DM[list_pos]  = blockIdx.y*THR_WARPS_PER_BLOCK + warp_id + shift;
@@ -55,10 +56,10 @@ __global__ void GPU_Threshold_for_periodicity_kernel_old(float const* __restrict
 			//--------> Thresholding
 			R = __ldg(&d_input[pos]);
 			if(R > threshold) {
-				mask=__ballot(1);
+			  mask=aa_ballot(AA_ASSUME_MASK,1);
 				leader=__ffs(mask)-1;
 				if(threadIdx.x==leader) list_pos=atomicAdd(gmem_pos,__popc(mask));
-				list_pos=__shfl(list_pos,leader);
+				list_pos=aa_shfl(AA_ASSUME_MASK,list_pos,leader);
 				list_pos=list_pos+__popc(mask&((1<<threadIdx.x)-1));
 				if(list_pos<max_list_size){
 					d_output_list[4*list_pos]   = pos_p + DM_shift;
@@ -91,10 +92,10 @@ __global__ void GPU_Threshold_for_periodicity_kernel(float const* __restrict__ d
 			//--------> Thresholding
 			R = __ldg(&d_input[pos]);
 			if(R > threshold) {
-				mask=__ballot(1);
+			  mask=aa_ballot(AA_ASSUME_MASK,1);
 				leader=__ffs(mask)-1;
 				if(threadIdx.x==leader) list_pos=atomicAdd(gmem_pos,__popc(mask));
-				list_pos=__shfl(list_pos,leader);
+				list_pos=aa_shfl(AA_ASSUME_MASK,list_pos,leader);
 				list_pos=list_pos+__popc(mask&((1<<threadIdx.x)-1));
 				if(list_pos<max_list_size){
 					d_output_list[4*list_pos]   = pos_p + DM_shift;

@@ -4,6 +4,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "params.hpp"
+#include "device_cuda_deprecated_wrappers.cuh"
 
 
 //----------------------------------------------------------------------------------------
@@ -81,9 +82,9 @@ __device__ __inline__ void Reduce_WARP(float *M, float *S, float *j){
   float B_M, B_S, B_j;
   
   for (int q = HALF_WARP; q > 0; q = q >> 1) {
-    B_M = __shfl_down((*M), q);
-    B_S = __shfl_down((*S), q);
-    B_j = __shfl_down((*j), q);
+    B_M = aa_shfl_down(0xFFFFFFFF, (*M), q);
+    B_S = aa_shfl_down(0xFFFFFFFF, (*S), q);
+    B_j = aa_shfl_down(0xFFFFFFFF, (*j), q);
     
     if(B_j>0){
       if( (*j)==0 ) {
@@ -100,7 +101,7 @@ __device__ __inline__ void Reduce_WARP(float *M, float *S, float *j){
 
 __device__ __inline__ void Reduce_WARP_regular(float *M, float *S, float *j){
   for (int q = HALF_WARP; q > 0; q = q >> 1) {
-    Merge(M, S, j, __shfl_down((*M), q), __shfl_down((*S), q), __shfl_down((*j), q));
+    Merge(M, S, j, aa_shfl_down(0xFFFFFFFF, (*M), q), aa_shfl_down(0xFFFFFFFF, (*S), q), aa_shfl_down(0xFFFFFFFF, (*j), q));
   }
 }
 

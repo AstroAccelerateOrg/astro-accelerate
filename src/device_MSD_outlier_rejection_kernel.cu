@@ -2,8 +2,8 @@
 #include <cuda_runtime.h>
 #include "params.hpp"
 #include "device_MSD_outlier_rejection_kernel.hpp"
-
 #include "device_MSD_shared_kernel_functions.cuh"
+#include "device_cuda_deprecated_wrappers.cuh"
 
 __global__ void MSD_BLN_pw_rejection_normal(float const* __restrict__ d_input, float *d_output, float *d_MSD, int y_steps, int nTimesamples, int offset, float bln_sigma_constant) {
   __shared__ float s_input[3*PD_NTHREADS];
@@ -230,9 +230,9 @@ __global__ void MSD_BLN_grid_calculate_partials(float const* __restrict__ d_inpu
   // by now we should have only 32 partial results. shuffle reduction follows
   for(int q=HALF_WARP; q>0; q=q>>1){
     j=j*2;
-    ftemp = (M - __shfl_down(M, q));
-    S = S + __shfl_down(S, q) + (1.0f/j)*ftemp*ftemp;
-    M = M + __shfl_down(M, q);
+    ftemp = (M - aa_shfl_down(AA_ASSUME_MASK, M, q));
+    S = S + aa_shfl_down(AA_ASSUME_MASK,S, q) + (1.0f/j)*ftemp*ftemp;
+    M = M + aa_shfl_down(AA_ASSUME_MASK,M, q);
   }
 	
   //----------------------------------------------
@@ -308,10 +308,10 @@ __global__ void MSD_BLN_grid_outlier_rejection(float const* __restrict__ d_input
 		
     // by now we should have only 32 partial results. shuffle reduction follows
     for(int q=HALF_WARP; q>0; q=q>>1){
-      jv=__shfl_down(j, q);
-      ftemp = (jv/j*M - __shfl_down(M, q));
-      S = S + __shfl_down(S, q) + (j/(jv*(j+jv)))*ftemp*ftemp;
-      M = M + __shfl_down(M, q);
+      jv=aa_shfl_down(AA_ASSUME_MASK,j, q);
+      ftemp = (jv/j*M - aa_shfl_down(AA_ASSUME_MASK,M, q));
+      S = S + aa_shfl_down(AA_ASSUME_MASK, S, q) + (j/(jv*(j+jv)))*ftemp*ftemp;
+      M = M + aa_shfl_down(AA_ASSUME_MASK, M, q);
       j=j+jv;
     }
 		
@@ -406,17 +406,17 @@ __global__ void MSD_BLN_grid_outlier_rejection(float const* __restrict__ d_input
 			
       // by now we should have only 32 partial results. shuffle reduction follows
       for(int q=HALF_WARP; q>0; q=q>>1){
-	jv=__shfl_down(j, q);
+	jv=aa_shfl_down(AA_ASSUME_MASK,j, q);
 	if(jv!=0){
 	  if(j==0) {
-	    S = __shfl_down(S, q);
-	    M = __shfl_down(M, q);
+	    S = aa_shfl_down(AA_ASSUME_MASK,S, q);
+	    M = aa_shfl_down(AA_ASSUME_MASK,M, q);
 	    j = jv;
 	  }
 	  else {
-	    ftemp = (jv/j*M - __shfl_down(M, q));
-	    S = S + __shfl_down(S, q) + (j/(jv*(j+jv)))*ftemp*ftemp;
-	    M = M + __shfl_down(M, q);
+	    ftemp = (jv/j*M - aa_shfl_down(AA_ASSUME_MASK,M, q));
+	    S = S + aa_shfl_down(AA_ASSUME_MASK,S, q) + (j/(jv*(j+jv)))*ftemp*ftemp;
+	    M = M + aa_shfl_down(AA_ASSUME_MASK,M, q);
 	    j=j+jv;						
 	  }
 
