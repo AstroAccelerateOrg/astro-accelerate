@@ -265,7 +265,6 @@ void presto_dered_sig(cufftComplex * fft, int numamps)
 
   /* Step through the input FFT and create powers */
   for (ii = 0; ii < numamps; ii++) {
-    float powargr, powargi;
     powers[ii] = fft[ii].x*fft[ii].x + fft[ii].y*fft[ii].y;
   }
 

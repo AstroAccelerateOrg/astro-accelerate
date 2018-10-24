@@ -32,7 +32,7 @@ void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned sho
 		// Find the minimum and maximum values in the input file.
 		while (!feof(*fp))
 		{
-			if (fread(temp_buffer, sizeof(float), nchans, *fp) != nchans)
+		  if (fread(temp_buffer, sizeof(float), nchans, *fp) != (size_t)nchans)
 				break;
 			for (c = 0; c < nchans; c++)
 			{
@@ -53,7 +53,7 @@ void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned sho
 		total_data = 0;
 		while (!feof(*fp))
 		{
-			if (fread(temp_buffer, sizeof(float), nchans, *fp) != nchans)
+		  if (fread(temp_buffer, sizeof(float), nchans, *fp) != (size_t)nchans)
 				break;
 			for (c = 0; c < nchans; c++)
 			{
@@ -74,7 +74,7 @@ void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned sho
 		while (!feof(*fp))
 		{
 
-			if (fread(temp_buffer, sizeof(unsigned short), nchans, *fp) != nchans)
+		  if (fread(temp_buffer, sizeof(unsigned short), nchans, *fp) != (size_t)nchans)
 				break;
 			for (c = 0; c < nchans; c++)
 			{
@@ -95,7 +95,7 @@ void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned sho
 		while (!feof(*fp))
 		{
 
-			if (fread(temp_buffer, sizeof(unsigned char), nchans, *fp) != nchans)
+		  if (fread(temp_buffer, sizeof(unsigned char), nchans, *fp) != (size_t)nchans)
 				break;
 			for (c = 0; c < nchans; c++)
 			{
@@ -117,7 +117,7 @@ void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned sho
 		char mask = 0x0f;
 		while (!feof(*fp))
 		{
-			if (fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp) != nb_bytes)
+		  if (fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp) != (size_t)nb_bytes)
 				break;
 			for (c = 0; c < nb_bytes; c++)
 			{
@@ -144,7 +144,7 @@ void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned sho
 		char mask = 0x03;
 		while (!feof(*fp))
 		{
-			if (fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp) != nb_bytes)
+		  if (fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp) != (size_t)nb_bytes)
 				break;
 			for (c = 0; c < nb_bytes; c++)
 			{
@@ -170,7 +170,7 @@ void get_recorded_data(FILE **fp, int nsamp, int nchans, int nbits, unsigned sho
 
 		while (!feof(*fp))
 		{
-			if (fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp) != nb_bytes)
+		  if (fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp) != (size_t)nb_bytes)
 				break;
 
 			for (c = 0; c < nb_bytes; c++)

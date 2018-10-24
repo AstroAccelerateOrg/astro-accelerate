@@ -46,7 +46,7 @@ void Export_DD_data(int range, float ***dedispersed_data, size_t max_nTimesample
 			for(int i=0; i<(int) chunk_size.size(); i++){
 				sprintf(final_filename,"%s_%d_%d.dat", base_filename, r, i);
 				
-				for(size_t d=0; d<chunk_size[i]; d++) {
+				for(int d=0; d<chunk_size[i]; d++) {
 					for(size_t t=0; t<nTimesamples; t++) {
 						h_data[d*nTimesamples + t] = dedispersed_data[r][inner_DM_shift + d][t];
 					}
@@ -61,7 +61,7 @@ void Export_DD_data(int range, float ***dedispersed_data, size_t max_nTimesample
 				fclose(fp_out);
 				
 				inner_DM_shift = inner_DM_shift + chunk_size[i];
-				printf("    Exported: %0.2f% \n", ((float) inner_DM_shift)*percent_per_DMtrial);
+				printf("    Exported: %0.2f%% \n", ((float) inner_DM_shift)*percent_per_DMtrial);
 			}
 		
 			delete [] h_data;
@@ -101,7 +101,7 @@ void Export_data_raw(float *h_data, size_t primary_dimension, size_t secondary_d
 	for(int i=0; i<(int) chunk_size.size(); i++){
 		sprintf(final_filename,"%s_%d.dat", base_filename, i);
 		
-		for(size_t d=0; d<chunk_size[i]; d++) {
+		for(int d=0; d<chunk_size[i]; d++) {
 			for(size_t t=0; t<primary_dimension; t++) {
 				h_export_data[d*primary_dimension + t] = h_data[(inner_sec_dim_shift + d)*primary_dimension + t];
 			}
@@ -116,7 +116,7 @@ void Export_data_raw(float *h_data, size_t primary_dimension, size_t secondary_d
 		fclose(fp_out);
 		
 		inner_sec_dim_shift = inner_sec_dim_shift + chunk_size[i];
-		printf("    Exported: %0.2f%\n", ((float) inner_sec_dim_shift)*percent_per_chunk);
+		printf("    Exported: %0.2f%%\n", ((float) inner_sec_dim_shift)*percent_per_chunk);
 	}
 
 	delete [] h_export_data;
@@ -145,7 +145,7 @@ void Export_data_as_list(float *h_data, size_t primary_dimension, float prim_mul
 	for(int i=0; i<(int) chunk_size.size(); i++){
 		sprintf(final_filename,"%s_%d.dat", base_filename, i);
 		
-		for(size_t sec=0; sec<chunk_size[i]; sec++) {
+		for(int sec=0; sec<chunk_size[i]; sec++) {
 			for(size_t prim=0; prim<primary_dimension; prim++) {
 				h_data_to_export[3*(sec*primary_dimension + prim)] = ((float) sec)*sec_mul + sec_add;
 				h_data_to_export[3*(sec*primary_dimension + prim)+1] = ((float) prim)*prim_mul + prim_add;
@@ -162,7 +162,7 @@ void Export_data_as_list(float *h_data, size_t primary_dimension, float prim_mul
 		fclose(fp_out);
 		
 		inner_sec_dim_shift = inner_sec_dim_shift + chunk_size[i];
-		printf("    Exported: %0.2f%\n", (float) (inner_sec_dim_shift*percent_per_chunk));
+		printf("    Exported: %0.2f%%\n", (float) (inner_sec_dim_shift*percent_per_chunk));
 	}
 	
 	delete [] h_data_to_export;

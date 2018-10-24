@@ -118,14 +118,14 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 		max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short)*nchans + sizeof(float)*(*max_ndms) + SPDT_memory_requirements )); // maximum number of timesamples we can fit into GPU memory
 		
 		// Check that we dont have an out of range maxshift:
-		if (( *maxshift ) > max_tsamps)	{
+		if ((unsigned int)( *maxshift ) > max_tsamps)	{
 			printf("\nERROR!! Your GPU doens't have enough memory for this number of dispersion trials.");
 			printf("\nReduce your maximum dm or increase the size of your dm step");
 			exit(0);
 		}
 
 		// Next check to see if nsamp fits in GPU RAM:
-		if (nsamp < max_tsamps)	{
+		if ((unsigned int)nsamp < max_tsamps)	{
 			// We have case 1)
 			// Allocate memory to hold the values of nsamps to be processed
 			unsigned long int local_t_processed = (unsigned long int) floor(( (double) ( nsamp - (*maxshift) ) / (double) inBin[range - 1] ) / (double) ( SDIVINT*2*SNUMREG )); //number of timesamples per block
@@ -185,14 +185,14 @@ void stratagy(int *maxshift, int *max_samps, int *num_tchunks, int *max_ndms, in
 		max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + sizeof(unsigned short) )+ SPDT_memory_requirements ));
 
 		// Check that we dont have an out of range maxshift:
-		if (( *maxshift ) > max_tsamps) {
+		if (( *maxshift ) > (int)max_tsamps) {
 			printf("\nERROR!! Your GPU doens't have enough memory for this number of dispersion trials.");
 			printf("\nReduce your maximum dm or increase the size of your dm step");
 			exit(0);
 		}
 
 		// Next check to see if nsamp fits in GPU RAM:
-		if (nsamp < max_tsamps) {
+		if ((unsigned int)nsamp < max_tsamps) {
 			// We have case 2)
 			// Allocate memory to hold the values of nsamps to be processed
 			int local_t_processed = (int) floor(( (float) ( nsamp - ( *maxshift ) ) / (float) inBin[range - 1] ) / (float) ( SDIVINT*2*SNUMREG ));

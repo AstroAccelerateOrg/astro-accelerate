@@ -233,7 +233,8 @@ void analysis_GPU(unsigned int *h_peak_list_DM, unsigned int *h_peak_list_TS, fl
 		cudaMemset((void*) gmem_peak_pos, 0, sizeof(int));
 		
 		DM_shift = 0;
-		for(int f=0; f<DM_list.size(); f++) {
+		int DM_list_size = (int)DM_list.size();
+		for(int f=0; f<DM_list_size; f++) {
 			//-------------- SPDT
 			timer.Start();
 			SPDT_search_long_MSD_plane(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD_interpolated, &PD_plan, max_iteration, nTimesamples, DM_list[f]);
@@ -299,8 +300,9 @@ void analysis_GPU(unsigned int *h_peak_list_DM, unsigned int *h_peak_list_TS, fl
 		//------------------------> Output
 		float *h_peak_list;
 		h_peak_list = new float[4*(*peak_pos)];
+		int i_peak_pos = (int)(*peak_pos);
 		#pragma omp parallel for
-		for (int count = 0; count < (*peak_pos); count++){
+		for (int count = 0; count < i_peak_pos; count++){
 			h_peak_list[4*count]     = ((double) h_peak_list_DM[count])*dm_step[i] + dm_low[i];
 			h_peak_list[4*count + 1] = ((double) h_peak_list_TS[count])*tsamp + tstart;
 			h_peak_list[4*count + 2] = ((double) h_peak_list_SNR[count]);

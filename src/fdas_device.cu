@@ -2,6 +2,7 @@
 /* 06/11/2014 Sofia Dimoudi sofia.dimoudi@oerc.ox.ac.uk */
 
 #include "fdas_device.hpp"
+#include "device_cuda_deprecated_wrappers.cuh"
 
 static __device__ __inline__ float2 Get_W_value(int N, int m){
 	float2 ctemp;
@@ -153,10 +154,10 @@ static __device__ __inline__ void do_FFT_CT_DIF_2elem_no_reorder(float2 *s_input
 		parity=(1-j*2);
 		W = Get_W_value(PoT, j*(m_param-PoTm1));
 		
-		Aftemp.x = parity*A_DFT_value.x + __shfl_xor(A_DFT_value.x, PoTm1);
-		Aftemp.y = parity*A_DFT_value.y + __shfl_xor(A_DFT_value.y, PoTm1);
-		Bftemp.x = parity*B_DFT_value.x + __shfl_xor(B_DFT_value.x, PoTm1);
-		Bftemp.y = parity*B_DFT_value.y + __shfl_xor(B_DFT_value.y, PoTm1);
+		Aftemp.x = parity*A_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK,A_DFT_value.x, PoTm1);
+		Aftemp.y = parity*A_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK,A_DFT_value.y, PoTm1);
+		Bftemp.x = parity*B_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK,B_DFT_value.x, PoTm1);
+		Bftemp.y = parity*B_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK,B_DFT_value.y, PoTm1);
 		
 		A_DFT_value.x = W.x*Aftemp.x - W.y*Aftemp.y; 
 		A_DFT_value.y = W.x*Aftemp.y + W.y*Aftemp.x;
@@ -274,14 +275,14 @@ static __device__ __inline__ void do_FFT_CT_DIF_4elem_no_reorder(float2 *s_input
 		parity=(1-j*2);
 		W = Get_W_value(PoT, j*(m_param-PoTm1));
 		
-		Aftemp.x = parity*A_DFT_value.x + __shfl_xor(A_DFT_value.x, PoTm1);
-		Aftemp.y = parity*A_DFT_value.y + __shfl_xor(A_DFT_value.y, PoTm1);
-		Bftemp.x = parity*B_DFT_value.x + __shfl_xor(B_DFT_value.x, PoTm1);
-		Bftemp.y = parity*B_DFT_value.y + __shfl_xor(B_DFT_value.y, PoTm1);
-		Cftemp.x = parity*C_DFT_value.x + __shfl_xor(C_DFT_value.x, PoTm1);
-		Cftemp.y = parity*C_DFT_value.y + __shfl_xor(C_DFT_value.y, PoTm1);
-		Dftemp.x = parity*D_DFT_value.x + __shfl_xor(D_DFT_value.x, PoTm1);
-		Dftemp.y = parity*D_DFT_value.y + __shfl_xor(D_DFT_value.y, PoTm1);
+		Aftemp.x = parity*A_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK,A_DFT_value.x, PoTm1);
+		Aftemp.y = parity*A_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK,A_DFT_value.y, PoTm1);
+		Bftemp.x = parity*B_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK,B_DFT_value.x, PoTm1);
+		Bftemp.y = parity*B_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK,B_DFT_value.y, PoTm1);
+		Cftemp.x = parity*C_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK,C_DFT_value.x, PoTm1);
+		Cftemp.y = parity*C_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK,C_DFT_value.y, PoTm1);
+		Dftemp.x = parity*D_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK,D_DFT_value.x, PoTm1);
+		Dftemp.y = parity*D_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK,D_DFT_value.y, PoTm1);
 		
 		A_DFT_value.x = W.x*Aftemp.x - W.y*Aftemp.y; 
 		A_DFT_value.y = W.x*Aftemp.y + W.y*Aftemp.x;
@@ -338,11 +339,11 @@ static __device__ __inline__ void do_IFFT_no_reorder(float2 *s_input, int N, int
 		A_DFT_value=s_input[local_id + warp_id*2*WARP];
 		B_DFT_value=s_input[local_id + warp_id*2*WARP + WARP];
 		
-		A_DFT_value.x=parity*A_DFT_value.x+ __shfl(A_DFT_value.x,local_id+parity);
-		A_DFT_value.y=parity*A_DFT_value.y+ __shfl(A_DFT_value.y,local_id+parity);
+		A_DFT_value.x=parity*A_DFT_value.x+ aa_shfl(AA_ASSUME_MASK,A_DFT_value.x,local_id+parity);
+		A_DFT_value.y=parity*A_DFT_value.y+ aa_shfl(AA_ASSUME_MASK,A_DFT_value.y,local_id+parity);
 		
-		B_DFT_value.x=parity*B_DFT_value.x+ __shfl(B_DFT_value.x,local_id+parity);
-		B_DFT_value.y=parity*B_DFT_value.y+ __shfl(B_DFT_value.y,local_id+parity);
+		B_DFT_value.x=parity*B_DFT_value.x+ aa_shfl(AA_ASSUME_MASK,B_DFT_value.x,local_id+parity);
+		B_DFT_value.y=parity*B_DFT_value.y+ aa_shfl(AA_ASSUME_MASK,B_DFT_value.y,local_id+parity);
 		
 		//--> First iteration
 		
@@ -360,15 +361,15 @@ static __device__ __inline__ void do_IFFT_no_reorder(float2 *s_input, int N, int
 			A_read_index=local_id+parity*itemp*PoT;
 			B_read_index=local_id+(1-itemp)*PoT;
 			
-			ftemp2.x=__shfl(A_DFT_value.x,B_read_index);
-			ftemp2.y=__shfl(A_DFT_value.y,B_read_index);					
-			A_DFT_value.x=__shfl(A_DFT_value.x,A_read_index) + W.x*ftemp2.x-W.y*ftemp2.y;
-			A_DFT_value.y=__shfl(A_DFT_value.y,A_read_index) + W.x*ftemp2.y+W.y*ftemp2.x;
+			ftemp2.x=aa_shfl(AA_ASSUME_MASK,A_DFT_value.x,B_read_index);
+			ftemp2.y=aa_shfl(AA_ASSUME_MASK,A_DFT_value.y,B_read_index);					
+			A_DFT_value.x=aa_shfl(AA_ASSUME_MASK,A_DFT_value.x,A_read_index) + W.x*ftemp2.x-W.y*ftemp2.y;
+			A_DFT_value.y=aa_shfl(AA_ASSUME_MASK,A_DFT_value.y,A_read_index) + W.x*ftemp2.y+W.y*ftemp2.x;
 			
-			ftemp.x=__shfl(B_DFT_value.x,B_read_index);
-			ftemp.y=__shfl(B_DFT_value.y,B_read_index);					
-			B_DFT_value.x=__shfl(B_DFT_value.x,A_read_index) + W.x*ftemp.x - W.y*ftemp.y;
-			B_DFT_value.y=__shfl(B_DFT_value.y,A_read_index) + W.x*ftemp.y + W.y*ftemp.x;		
+			ftemp.x=aa_shfl(AA_ASSUME_MASK,B_DFT_value.x,B_read_index);
+			ftemp.y=aa_shfl(AA_ASSUME_MASK,B_DFT_value.y,B_read_index);					
+			B_DFT_value.x=aa_shfl(AA_ASSUME_MASK,B_DFT_value.x,A_read_index) + W.x*ftemp.x - W.y*ftemp.y;
+			B_DFT_value.y=aa_shfl(AA_ASSUME_MASK,B_DFT_value.y,A_read_index) + W.x*ftemp.y + W.y*ftemp.x;		
 			
 			PoT=PoT<<1;
 			PoTp1=PoTp1<<1;
@@ -443,15 +444,15 @@ static __device__ __inline__ void do_IFFT_mk11_2elem_2vertical_no_reorder(float2
 	
 	__syncthreads();
 	
-	A_DFT_value1.x=parity*A_DFT_value1.x + __shfl_xor(A_DFT_value1.x,1);
-	A_DFT_value1.y=parity*A_DFT_value1.y + __shfl_xor(A_DFT_value1.y,1);
-	B_DFT_value1.x=parity*B_DFT_value1.x + __shfl_xor(B_DFT_value1.x,1);
-	B_DFT_value1.y=parity*B_DFT_value1.y + __shfl_xor(B_DFT_value1.y,1);
+	A_DFT_value1.x=parity*A_DFT_value1.x + aa_shfl_xor(AA_ASSUME_MASK,A_DFT_value1.x,1);
+	A_DFT_value1.y=parity*A_DFT_value1.y + aa_shfl_xor(AA_ASSUME_MASK,A_DFT_value1.y,1);
+	B_DFT_value1.x=parity*B_DFT_value1.x + aa_shfl_xor(AA_ASSUME_MASK,B_DFT_value1.x,1);
+	B_DFT_value1.y=parity*B_DFT_value1.y + aa_shfl_xor(AA_ASSUME_MASK,B_DFT_value1.y,1);
 	
-	A_DFT_value2.x=parity*A_DFT_value2.x + __shfl_xor(A_DFT_value2.x,1);
-	A_DFT_value2.y=parity*A_DFT_value2.y + __shfl_xor(A_DFT_value2.y,1);
-	B_DFT_value2.x=parity*B_DFT_value2.x + __shfl_xor(B_DFT_value2.x,1);
-	B_DFT_value2.y=parity*B_DFT_value2.y + __shfl_xor(B_DFT_value2.y,1);
+	A_DFT_value2.x=parity*A_DFT_value2.x + aa_shfl_xor(AA_ASSUME_MASK,A_DFT_value2.x,1);
+	A_DFT_value2.y=parity*A_DFT_value2.y + aa_shfl_xor(AA_ASSUME_MASK,A_DFT_value2.y,1);
+	B_DFT_value2.x=parity*B_DFT_value2.x + aa_shfl_xor(AA_ASSUME_MASK,B_DFT_value2.x,1);
+	B_DFT_value2.y=parity*B_DFT_value2.y + aa_shfl_xor(AA_ASSUME_MASK,B_DFT_value2.y,1);
 	
 	
 	//--> Second through Fifth iteration (no synchronization)
@@ -473,15 +474,15 @@ static __device__ __inline__ void do_IFFT_mk11_2elem_2vertical_no_reorder(float2
 		Bftemp2.x = W.x*B_DFT_value2.x - W.y*B_DFT_value2.y;
 		Bftemp2.y = W.x*B_DFT_value2.y + W.y*B_DFT_value2.x;
 		
-		A_DFT_value1.x = Aftemp1.x + parity*__shfl_xor(Aftemp1.x,PoT);
-		A_DFT_value1.y = Aftemp1.y + parity*__shfl_xor(Aftemp1.y,PoT);
-		B_DFT_value1.x = Bftemp1.x + parity*__shfl_xor(Bftemp1.x,PoT);
-		B_DFT_value1.y = Bftemp1.y + parity*__shfl_xor(Bftemp1.y,PoT);
+		A_DFT_value1.x = Aftemp1.x + parity*aa_shfl_xor(AA_ASSUME_MASK,Aftemp1.x,PoT);
+		A_DFT_value1.y = Aftemp1.y + parity*aa_shfl_xor(AA_ASSUME_MASK,Aftemp1.y,PoT);
+		B_DFT_value1.x = Bftemp1.x + parity*aa_shfl_xor(AA_ASSUME_MASK,Bftemp1.x,PoT);
+		B_DFT_value1.y = Bftemp1.y + parity*aa_shfl_xor(AA_ASSUME_MASK,Bftemp1.y,PoT);
 		
-		A_DFT_value2.x = Aftemp2.x + parity*__shfl_xor(Aftemp2.x,PoT);
-		A_DFT_value2.y = Aftemp2.y + parity*__shfl_xor(Aftemp2.y,PoT);
-		B_DFT_value2.x = Bftemp2.x + parity*__shfl_xor(Bftemp2.x,PoT);
-		B_DFT_value2.y = Bftemp2.y + parity*__shfl_xor(Bftemp2.y,PoT);	
+		A_DFT_value2.x = Aftemp2.x + parity*aa_shfl_xor(AA_ASSUME_MASK,Aftemp2.x,PoT);
+		A_DFT_value2.y = Aftemp2.y + parity*aa_shfl_xor(AA_ASSUME_MASK,Aftemp2.y,PoT);
+		B_DFT_value2.x = Bftemp2.x + parity*aa_shfl_xor(AA_ASSUME_MASK,Bftemp2.x,PoT);
+		B_DFT_value2.y = Bftemp2.y + parity*aa_shfl_xor(AA_ASSUME_MASK,Bftemp2.y,PoT);	
 		
 		PoT=PoT<<1;
 		PoTp1=PoTp1<<1;
@@ -556,11 +557,11 @@ static __device__ __inline__ void do_IFFT_mk11_2elem_no_reorder(float2 *s_input)
 	
 	__syncthreads();
 	
-	A_DFT_value.x=parity*A_DFT_value.x + __shfl_xor(A_DFT_value.x,1);
-	A_DFT_value.y=parity*A_DFT_value.y + __shfl_xor(A_DFT_value.y,1);
+	A_DFT_value.x=parity*A_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK,A_DFT_value.x,1);
+	A_DFT_value.y=parity*A_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK,A_DFT_value.y,1);
 	
-	B_DFT_value.x=parity*B_DFT_value.x + __shfl_xor(B_DFT_value.x,1);
-	B_DFT_value.y=parity*B_DFT_value.y + __shfl_xor(B_DFT_value.y,1);
+	B_DFT_value.x=parity*B_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK,B_DFT_value.x,1);
+	B_DFT_value.y=parity*B_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK,B_DFT_value.y,1);
 	
 	
 	//--> Second through Fifth iteration (no synchronization)
@@ -577,10 +578,10 @@ static __device__ __inline__ void do_IFFT_mk11_2elem_no_reorder(float2 *s_input)
 		ftemp.x = W.x*B_DFT_value.x - W.y*B_DFT_value.y;
 		ftemp.y = W.x*B_DFT_value.y + W.y*B_DFT_value.x;
 		
-		A_DFT_value.x = ftemp2.x + parity*__shfl_xor(ftemp2.x,PoT);
-		A_DFT_value.y = ftemp2.y + parity*__shfl_xor(ftemp2.y,PoT);
-		B_DFT_value.x = ftemp.x + parity*__shfl_xor(ftemp.x,PoT);
-		B_DFT_value.y = ftemp.y + parity*__shfl_xor(ftemp.y,PoT);
+		A_DFT_value.x = ftemp2.x + parity*aa_shfl_xor(AA_ASSUME_MASK,ftemp2.x,PoT);
+		A_DFT_value.y = ftemp2.y + parity*aa_shfl_xor(AA_ASSUME_MASK,ftemp2.y,PoT);
+		B_DFT_value.x = ftemp.x + parity*aa_shfl_xor(AA_ASSUME_MASK,ftemp.x,PoT);
+		B_DFT_value.y = ftemp.y + parity*aa_shfl_xor(AA_ASSUME_MASK,ftemp.y,PoT);
 		
 		PoT=PoT<<1;
 		PoTp1=PoTp1<<1;
@@ -647,14 +648,14 @@ static __device__ __inline__ void do_IFFT_mk11_4elem_no_reorder(float2 *s_input)
 	
 	__syncthreads();
 	
-	A_DFT_value.x=parity*A_DFT_value.x + __shfl_xor(A_DFT_value.x,1);
-	A_DFT_value.y=parity*A_DFT_value.y + __shfl_xor(A_DFT_value.y,1);
-	B_DFT_value.x=parity*B_DFT_value.x + __shfl_xor(B_DFT_value.x,1);
-	B_DFT_value.y=parity*B_DFT_value.y + __shfl_xor(B_DFT_value.y,1);
-	C_DFT_value.x=parity*C_DFT_value.x + __shfl_xor(C_DFT_value.x,1);
-	C_DFT_value.y=parity*C_DFT_value.y + __shfl_xor(C_DFT_value.y,1);
-	D_DFT_value.x=parity*D_DFT_value.x + __shfl_xor(D_DFT_value.x,1);
-	D_DFT_value.y=parity*D_DFT_value.y + __shfl_xor(D_DFT_value.y,1);
+	A_DFT_value.x=parity*A_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK,A_DFT_value.x,1);
+	A_DFT_value.y=parity*A_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK,A_DFT_value.y,1);
+	B_DFT_value.x=parity*B_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK,B_DFT_value.x,1);
+	B_DFT_value.y=parity*B_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK,B_DFT_value.y,1);
+	C_DFT_value.x=parity*C_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK,C_DFT_value.x,1);
+	C_DFT_value.y=parity*C_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK,C_DFT_value.y,1);
+	D_DFT_value.x=parity*D_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK,D_DFT_value.x,1);
+	D_DFT_value.y=parity*D_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK,D_DFT_value.y,1);
 	
 	
 	//--> Second through Fifth iteration (no synchronization)
@@ -675,14 +676,14 @@ static __device__ __inline__ void do_IFFT_mk11_4elem_no_reorder(float2 *s_input)
 		Dftemp.x = W.x*D_DFT_value.x - W.y*D_DFT_value.y;
 		Dftemp.y = W.x*D_DFT_value.y + W.y*D_DFT_value.x;
 		
-		A_DFT_value.x = Aftemp.x + parity*__shfl_xor(Aftemp.x,PoT);
-		A_DFT_value.y = Aftemp.y + parity*__shfl_xor(Aftemp.y,PoT);
-		B_DFT_value.x = Bftemp.x + parity*__shfl_xor(Bftemp.x,PoT);
-		B_DFT_value.y = Bftemp.y + parity*__shfl_xor(Bftemp.y,PoT);
-		C_DFT_value.x = Cftemp.x + parity*__shfl_xor(Cftemp.x,PoT);
-		C_DFT_value.y = Cftemp.y + parity*__shfl_xor(Cftemp.y,PoT);
-		D_DFT_value.x = Dftemp.x + parity*__shfl_xor(Dftemp.x,PoT);
-		D_DFT_value.y = Dftemp.y + parity*__shfl_xor(Dftemp.y,PoT);	
+		A_DFT_value.x = Aftemp.x + parity*aa_shfl_xor(AA_ASSUME_MASK,Aftemp.x,PoT);
+		A_DFT_value.y = Aftemp.y + parity*aa_shfl_xor(AA_ASSUME_MASK,Aftemp.y,PoT);
+		B_DFT_value.x = Bftemp.x + parity*aa_shfl_xor(AA_ASSUME_MASK,Bftemp.x,PoT);
+		B_DFT_value.y = Bftemp.y + parity*aa_shfl_xor(AA_ASSUME_MASK,Bftemp.y,PoT);
+		C_DFT_value.x = Cftemp.x + parity*aa_shfl_xor(AA_ASSUME_MASK,Cftemp.x,PoT);
+		C_DFT_value.y = Cftemp.y + parity*aa_shfl_xor(AA_ASSUME_MASK,Cftemp.y,PoT);
+		D_DFT_value.x = Dftemp.x + parity*aa_shfl_xor(AA_ASSUME_MASK,Dftemp.x,PoT);
+		D_DFT_value.y = Dftemp.y + parity*aa_shfl_xor(AA_ASSUME_MASK,Dftemp.y,PoT);	
 		
 		PoT=PoT<<1;
 		PoTp1=PoTp1<<1;
@@ -797,23 +798,23 @@ static __device__ __inline__ void do_IFFT_mk11_4elem_2vertical_no_reorder(float2
 	
 	__syncthreads();
 	
-	A_DFT_value1.x=parity*A_DFT_value1.x + __shfl_xor(A_DFT_value1.x,1);
-	A_DFT_value1.y=parity*A_DFT_value1.y + __shfl_xor(A_DFT_value1.y,1);
-	B_DFT_value1.x=parity*B_DFT_value1.x + __shfl_xor(B_DFT_value1.x,1);
-	B_DFT_value1.y=parity*B_DFT_value1.y + __shfl_xor(B_DFT_value1.y,1);
-	C_DFT_value1.x=parity*C_DFT_value1.x + __shfl_xor(C_DFT_value1.x,1);
-	C_DFT_value1.y=parity*C_DFT_value1.y + __shfl_xor(C_DFT_value1.y,1);
-	D_DFT_value1.x=parity*D_DFT_value1.x + __shfl_xor(D_DFT_value1.x,1);
-	D_DFT_value1.y=parity*D_DFT_value1.y + __shfl_xor(D_DFT_value1.y,1);
+	A_DFT_value1.x=parity*A_DFT_value1.x + aa_shfl_xor(AA_ASSUME_MASK,A_DFT_value1.x,1);
+	A_DFT_value1.y=parity*A_DFT_value1.y + aa_shfl_xor(AA_ASSUME_MASK,A_DFT_value1.y,1);
+	B_DFT_value1.x=parity*B_DFT_value1.x + aa_shfl_xor(AA_ASSUME_MASK,B_DFT_value1.x,1);
+	B_DFT_value1.y=parity*B_DFT_value1.y + aa_shfl_xor(AA_ASSUME_MASK,B_DFT_value1.y,1);
+	C_DFT_value1.x=parity*C_DFT_value1.x + aa_shfl_xor(AA_ASSUME_MASK,C_DFT_value1.x,1);
+	C_DFT_value1.y=parity*C_DFT_value1.y + aa_shfl_xor(AA_ASSUME_MASK,C_DFT_value1.y,1);
+	D_DFT_value1.x=parity*D_DFT_value1.x + aa_shfl_xor(AA_ASSUME_MASK,D_DFT_value1.x,1);
+	D_DFT_value1.y=parity*D_DFT_value1.y + aa_shfl_xor(AA_ASSUME_MASK,D_DFT_value1.y,1);
 	
-	A_DFT_value2.x=parity*A_DFT_value2.x + __shfl_xor(A_DFT_value2.x,1);
-	A_DFT_value2.y=parity*A_DFT_value2.y + __shfl_xor(A_DFT_value2.y,1);
-	B_DFT_value2.x=parity*B_DFT_value2.x + __shfl_xor(B_DFT_value2.x,1);
-	B_DFT_value2.y=parity*B_DFT_value2.y + __shfl_xor(B_DFT_value2.y,1);
-	C_DFT_value2.x=parity*C_DFT_value2.x + __shfl_xor(C_DFT_value2.x,1);
-	C_DFT_value2.y=parity*C_DFT_value2.y + __shfl_xor(C_DFT_value2.y,1);
-	D_DFT_value2.x=parity*D_DFT_value2.x + __shfl_xor(D_DFT_value2.x,1);
-	D_DFT_value2.y=parity*D_DFT_value2.y + __shfl_xor(D_DFT_value2.y,1);
+	A_DFT_value2.x=parity*A_DFT_value2.x + aa_shfl_xor(AA_ASSUME_MASK,A_DFT_value2.x,1);
+	A_DFT_value2.y=parity*A_DFT_value2.y + aa_shfl_xor(AA_ASSUME_MASK,A_DFT_value2.y,1);
+	B_DFT_value2.x=parity*B_DFT_value2.x + aa_shfl_xor(AA_ASSUME_MASK,B_DFT_value2.x,1);
+	B_DFT_value2.y=parity*B_DFT_value2.y + aa_shfl_xor(AA_ASSUME_MASK,B_DFT_value2.y,1);
+	C_DFT_value2.x=parity*C_DFT_value2.x + aa_shfl_xor(AA_ASSUME_MASK,C_DFT_value2.x,1);
+	C_DFT_value2.y=parity*C_DFT_value2.y + aa_shfl_xor(AA_ASSUME_MASK,C_DFT_value2.y,1);
+	D_DFT_value2.x=parity*D_DFT_value2.x + aa_shfl_xor(AA_ASSUME_MASK,D_DFT_value2.x,1);
+	D_DFT_value2.y=parity*D_DFT_value2.y + aa_shfl_xor(AA_ASSUME_MASK,D_DFT_value2.y,1);
 	
 	
 	//--> Second through Fifth iteration (no synchronization)
@@ -843,23 +844,23 @@ static __device__ __inline__ void do_IFFT_mk11_4elem_2vertical_no_reorder(float2
 		Dftemp2.x = W.x*D_DFT_value2.x - W.y*D_DFT_value2.y;
 		Dftemp2.y = W.x*D_DFT_value2.y + W.y*D_DFT_value2.x;
 		
-		A_DFT_value1.x = Aftemp1.x + parity*__shfl_xor(Aftemp1.x,PoT);
-		A_DFT_value1.y = Aftemp1.y + parity*__shfl_xor(Aftemp1.y,PoT);
-		B_DFT_value1.x = Bftemp1.x + parity*__shfl_xor(Bftemp1.x,PoT);
-		B_DFT_value1.y = Bftemp1.y + parity*__shfl_xor(Bftemp1.y,PoT);
-		C_DFT_value1.x = Cftemp1.x + parity*__shfl_xor(Cftemp1.x,PoT);
-		C_DFT_value1.y = Cftemp1.y + parity*__shfl_xor(Cftemp1.y,PoT);
-		D_DFT_value1.x = Dftemp1.x + parity*__shfl_xor(Dftemp1.x,PoT);
-		D_DFT_value1.y = Dftemp1.y + parity*__shfl_xor(Dftemp1.y,PoT);	
+		A_DFT_value1.x = Aftemp1.x + parity*aa_shfl_xor(AA_ASSUME_MASK,Aftemp1.x,PoT);
+		A_DFT_value1.y = Aftemp1.y + parity*aa_shfl_xor(AA_ASSUME_MASK,Aftemp1.y,PoT);
+		B_DFT_value1.x = Bftemp1.x + parity*aa_shfl_xor(AA_ASSUME_MASK,Bftemp1.x,PoT);
+		B_DFT_value1.y = Bftemp1.y + parity*aa_shfl_xor(AA_ASSUME_MASK,Bftemp1.y,PoT);
+		C_DFT_value1.x = Cftemp1.x + parity*aa_shfl_xor(AA_ASSUME_MASK,Cftemp1.x,PoT);
+		C_DFT_value1.y = Cftemp1.y + parity*aa_shfl_xor(AA_ASSUME_MASK,Cftemp1.y,PoT);
+		D_DFT_value1.x = Dftemp1.x + parity*aa_shfl_xor(AA_ASSUME_MASK,Dftemp1.x,PoT);
+		D_DFT_value1.y = Dftemp1.y + parity*aa_shfl_xor(AA_ASSUME_MASK,Dftemp1.y,PoT);
 		
-		A_DFT_value2.x = Aftemp2.x + parity*__shfl_xor(Aftemp2.x,PoT);
-		A_DFT_value2.y = Aftemp2.y + parity*__shfl_xor(Aftemp2.y,PoT);
-		B_DFT_value2.x = Bftemp2.x + parity*__shfl_xor(Bftemp2.x,PoT);
-		B_DFT_value2.y = Bftemp2.y + parity*__shfl_xor(Bftemp2.y,PoT);
-		C_DFT_value2.x = Cftemp2.x + parity*__shfl_xor(Cftemp2.x,PoT);
-		C_DFT_value2.y = Cftemp2.y + parity*__shfl_xor(Cftemp2.y,PoT);
-		D_DFT_value2.x = Dftemp2.x + parity*__shfl_xor(Dftemp2.x,PoT);
-		D_DFT_value2.y = Dftemp2.y + parity*__shfl_xor(Dftemp2.y,PoT);	
+		A_DFT_value2.x = Aftemp2.x + parity*aa_shfl_xor(AA_ASSUME_MASK,Aftemp2.x,PoT);
+		A_DFT_value2.y = Aftemp2.y + parity*aa_shfl_xor(AA_ASSUME_MASK,Aftemp2.y,PoT);
+		B_DFT_value2.x = Bftemp2.x + parity*aa_shfl_xor(AA_ASSUME_MASK,Bftemp2.x,PoT);
+		B_DFT_value2.y = Bftemp2.y + parity*aa_shfl_xor(AA_ASSUME_MASK,Bftemp2.y,PoT);
+		C_DFT_value2.x = Cftemp2.x + parity*aa_shfl_xor(AA_ASSUME_MASK,Cftemp2.x,PoT);
+		C_DFT_value2.y = Cftemp2.y + parity*aa_shfl_xor(AA_ASSUME_MASK,Cftemp2.y,PoT);
+		D_DFT_value2.x = Dftemp2.x + parity*aa_shfl_xor(AA_ASSUME_MASK,Dftemp2.x,PoT);
+		D_DFT_value2.y = Dftemp2.y + parity*aa_shfl_xor(AA_ASSUME_MASK,Dftemp2.y,PoT);	
 		
 		PoT=PoT<<1;
 		PoTp1=PoTp1<<1;
@@ -1296,16 +1297,16 @@ __global__ void cuda_convolve_customfft_wes_no_reorder02(float2* d_kernel, float
       sB_DFT_value=s_input_trans[local_id + warp_id*2*WARP + WARP];
 
       //1st template
-      A_DFT_value.x=parity*A_DFT_value.x+ __shfl(A_DFT_value.x,local_id+parity);
-      A_DFT_value.y=parity*A_DFT_value.y+ __shfl(A_DFT_value.y,local_id+parity);
-      B_DFT_value.x=parity*B_DFT_value.x+ __shfl(B_DFT_value.x,local_id+parity);
-      B_DFT_value.y=parity*B_DFT_value.y+ __shfl(B_DFT_value.y,local_id+parity);
+      A_DFT_value.x=parity*A_DFT_value.x+ aa_shfl(AA_ASSUME_MASK,A_DFT_value.x,local_id+parity);
+      A_DFT_value.y=parity*A_DFT_value.y+ aa_shfl(AA_ASSUME_MASK,A_DFT_value.y,local_id+parity);
+      B_DFT_value.x=parity*B_DFT_value.x+ aa_shfl(AA_ASSUME_MASK,B_DFT_value.x,local_id+parity);
+      B_DFT_value.y=parity*B_DFT_value.y+ aa_shfl(AA_ASSUME_MASK,B_DFT_value.y,local_id+parity);
       //2nd template
 
-      sA_DFT_value.x=parity*sA_DFT_value.x+ __shfl(sA_DFT_value.x,local_id+parity);
-      sA_DFT_value.y=parity*sA_DFT_value.y+ __shfl(sA_DFT_value.y,local_id+parity);
-      sB_DFT_value.x=parity*sB_DFT_value.x+ __shfl(sB_DFT_value.x,local_id+parity);
-      sB_DFT_value.y=parity*sB_DFT_value.y+ __shfl(sB_DFT_value.y,local_id+parity);
+      sA_DFT_value.x=parity*sA_DFT_value.x+ aa_shfl(AA_ASSUME_MASK,sA_DFT_value.x,local_id+parity);
+      sA_DFT_value.y=parity*sA_DFT_value.y+ aa_shfl(AA_ASSUME_MASK,sA_DFT_value.y,local_id+parity);
+      sB_DFT_value.x=parity*sB_DFT_value.x+ aa_shfl(AA_ASSUME_MASK,sB_DFT_value.x,local_id+parity);
+      sB_DFT_value.y=parity*sB_DFT_value.y+ aa_shfl(AA_ASSUME_MASK,sB_DFT_value.y,local_id+parity);
 
       //--> First iteration end
 		
@@ -1327,33 +1328,33 @@ __global__ void cuda_convolve_customfft_wes_no_reorder02(float2* d_kernel, float
 	B_read_index=local_id+(1-itemp)*PoT;
 			
 	//1st template
-	ftemp2.x=__shfl(A_DFT_value.x,B_read_index);
-	ftemp2.y=__shfl(A_DFT_value.y,B_read_index);				
+	ftemp2.x=aa_shfl(AA_ASSUME_MASK,A_DFT_value.x,B_read_index);
+	ftemp2.y=aa_shfl(AA_ASSUME_MASK,A_DFT_value.y,B_read_index);
 	//2nd template
-	stemp2.x=__shfl(sA_DFT_value.x,B_read_index);
-	stemp2.y=__shfl(sA_DFT_value.y,B_read_index);
+	stemp2.x=aa_shfl(AA_ASSUME_MASK,sA_DFT_value.x,B_read_index);
+	stemp2.y=aa_shfl(AA_ASSUME_MASK,sA_DFT_value.y,B_read_index);
 	
 	//1st template
-	A_DFT_value.x=__shfl(A_DFT_value.x,A_read_index) + W.x*ftemp2.x-W.y*ftemp2.y;
-	A_DFT_value.y=__shfl(A_DFT_value.y,A_read_index) + W.x*ftemp2.y+W.y*ftemp2.x;
+	A_DFT_value.x=aa_shfl(AA_ASSUME_MASK,A_DFT_value.x,A_read_index) + W.x*ftemp2.x-W.y*ftemp2.y;
+	A_DFT_value.y=aa_shfl(AA_ASSUME_MASK,A_DFT_value.y,A_read_index) + W.x*ftemp2.y+W.y*ftemp2.x;
 	//2nd template
-	sA_DFT_value.x=__shfl(sA_DFT_value.x,A_read_index) + W.x*stemp2.x-W.y*stemp2.y;
-	sA_DFT_value.y=__shfl(sA_DFT_value.y,A_read_index) + W.x*stemp2.y+W.y*stemp2.x;
+	sA_DFT_value.x=aa_shfl(AA_ASSUME_MASK,sA_DFT_value.x,A_read_index) + W.x*stemp2.x-W.y*stemp2.y;
+	sA_DFT_value.y=aa_shfl(AA_ASSUME_MASK,sA_DFT_value.y,A_read_index) + W.x*stemp2.y+W.y*stemp2.x;
 	
 
 	//1st template	  
-	ftemp.x=__shfl(B_DFT_value.x,B_read_index);
-	ftemp.y=__shfl(B_DFT_value.y,B_read_index);
+	ftemp.x=aa_shfl(AA_ASSUME_MASK,B_DFT_value.x,B_read_index);
+	ftemp.y=aa_shfl(AA_ASSUME_MASK,B_DFT_value.y,B_read_index);
 	//2nd template	  
-	stemp.x=__shfl(sB_DFT_value.x,B_read_index);
-	stemp.y=__shfl(sB_DFT_value.y,B_read_index);
+	stemp.x=aa_shfl(AA_ASSUME_MASK,sB_DFT_value.x,B_read_index);
+	stemp.y=aa_shfl(AA_ASSUME_MASK,sB_DFT_value.y,B_read_index);
 	
 	//1st template
-	B_DFT_value.x=__shfl(B_DFT_value.x,A_read_index) + W.x*ftemp.x - W.y*ftemp.y;
-	B_DFT_value.y=__shfl(B_DFT_value.y,A_read_index) + W.x*ftemp.y + W.y*ftemp.x;		
+	B_DFT_value.x=aa_shfl(AA_ASSUME_MASK,B_DFT_value.x,A_read_index) + W.x*ftemp.x - W.y*ftemp.y;
+	B_DFT_value.y=aa_shfl(AA_ASSUME_MASK,B_DFT_value.y,A_read_index) + W.x*ftemp.y + W.y*ftemp.x;
 	//2nd template
-	sB_DFT_value.x=__shfl(sB_DFT_value.x,A_read_index) + W.x*stemp.x - W.y*stemp.y;
-	sB_DFT_value.y=__shfl(sB_DFT_value.y,A_read_index) + W.x*stemp.y + W.y*stemp.x;		
+	sB_DFT_value.x=aa_shfl(AA_ASSUME_MASK,sB_DFT_value.x,A_read_index) + W.x*stemp.x - W.y*stemp.y;
+	sB_DFT_value.y=aa_shfl(AA_ASSUME_MASK,sB_DFT_value.y,A_read_index) + W.x*stemp.y + W.y*stemp.x;
 	  
 	PoT=PoT<<1;
 	fPoT=fPoT*2.0f;
@@ -1540,15 +1541,15 @@ __global__ void cuda_convolve_customfft_wes_no_reorder02_inbin(float2* d_kernel,
       sB_DFT_value=s_input_trans[local_id + warp_id*2*WARP + WARP];
 
       //1st template
-      A_DFT_value.x=parity*A_DFT_value.x+ __shfl(A_DFT_value.x,local_id+parity);
-      A_DFT_value.y=parity*A_DFT_value.y+ __shfl(A_DFT_value.y,local_id+parity);
-      B_DFT_value.x=parity*B_DFT_value.x+ __shfl(B_DFT_value.x,local_id+parity);
-      B_DFT_value.y=parity*B_DFT_value.y+ __shfl(B_DFT_value.y,local_id+parity);
+      A_DFT_value.x=parity*A_DFT_value.x+ aa_shfl(AA_ASSUME_MASK,A_DFT_value.x,local_id+parity);
+      A_DFT_value.y=parity*A_DFT_value.y+ aa_shfl(AA_ASSUME_MASK,A_DFT_value.y,local_id+parity);
+      B_DFT_value.x=parity*B_DFT_value.x+ aa_shfl(AA_ASSUME_MASK,B_DFT_value.x,local_id+parity);
+      B_DFT_value.y=parity*B_DFT_value.y+ aa_shfl(AA_ASSUME_MASK,B_DFT_value.y,local_id+parity);
       //2nd template
-      sA_DFT_value.x=parity*sA_DFT_value.x+ __shfl(sA_DFT_value.x,local_id+parity);
-      sA_DFT_value.y=parity*sA_DFT_value.y+ __shfl(sA_DFT_value.y,local_id+parity);
-      sB_DFT_value.x=parity*sB_DFT_value.x+ __shfl(sB_DFT_value.x,local_id+parity);
-      sB_DFT_value.y=parity*sB_DFT_value.y+ __shfl(sB_DFT_value.y,local_id+parity);
+      sA_DFT_value.x=parity*sA_DFT_value.x+ aa_shfl(AA_ASSUME_MASK,sA_DFT_value.x,local_id+parity);
+      sA_DFT_value.y=parity*sA_DFT_value.y+ aa_shfl(AA_ASSUME_MASK,sA_DFT_value.y,local_id+parity);
+      sB_DFT_value.x=parity*sB_DFT_value.x+ aa_shfl(AA_ASSUME_MASK,sB_DFT_value.x,local_id+parity);
+      sB_DFT_value.y=parity*sB_DFT_value.y+ aa_shfl(AA_ASSUME_MASK,sB_DFT_value.y,local_id+parity);
       
       //--> First iteration end
 		
@@ -1567,32 +1568,32 @@ __global__ void cuda_convolve_customfft_wes_no_reorder02_inbin(float2* d_kernel,
 	B_read_index=local_id+(1-itemp)*PoT;
 			
 	//1st template
-	ftemp2.x=__shfl(A_DFT_value.x,B_read_index);
-	ftemp2.y=__shfl(A_DFT_value.y,B_read_index);				
+	ftemp2.x=aa_shfl(AA_ASSUME_MASK,A_DFT_value.x,B_read_index);
+	ftemp2.y=aa_shfl(AA_ASSUME_MASK,A_DFT_value.y,B_read_index);
 	//2nd template
-	stemp2.x=__shfl(sA_DFT_value.x,B_read_index);
-	stemp2.y=__shfl(sA_DFT_value.y,B_read_index);
+	stemp2.x=aa_shfl(AA_ASSUME_MASK,sA_DFT_value.x,B_read_index);
+	stemp2.y=aa_shfl(AA_ASSUME_MASK,sA_DFT_value.y,B_read_index);
 	
 	//1st template
-	A_DFT_value.x=__shfl(A_DFT_value.x,A_read_index) + W.x*ftemp2.x-W.y*ftemp2.y;
-	A_DFT_value.y=__shfl(A_DFT_value.y,A_read_index) + W.x*ftemp2.y+W.y*ftemp2.x;
+	A_DFT_value.x=aa_shfl(AA_ASSUME_MASK,A_DFT_value.x,A_read_index) + W.x*ftemp2.x-W.y*ftemp2.y;
+	A_DFT_value.y=aa_shfl(AA_ASSUME_MASK,A_DFT_value.y,A_read_index) + W.x*ftemp2.y+W.y*ftemp2.x;
 	//2nd template
-	sA_DFT_value.x=__shfl(sA_DFT_value.x,A_read_index) + W.x*stemp2.x-W.y*stemp2.y;
-	sA_DFT_value.y=__shfl(sA_DFT_value.y,A_read_index) + W.x*stemp2.y+W.y*stemp2.x;
+	sA_DFT_value.x=aa_shfl(AA_ASSUME_MASK,sA_DFT_value.x,A_read_index) + W.x*stemp2.x-W.y*stemp2.y;
+	sA_DFT_value.y=aa_shfl(AA_ASSUME_MASK,sA_DFT_value.y,A_read_index) + W.x*stemp2.y+W.y*stemp2.x;
 	
 	//1st template	  
-	ftemp.x=__shfl(B_DFT_value.x,B_read_index);
-	ftemp.y=__shfl(B_DFT_value.y,B_read_index);
+	ftemp.x=aa_shfl(AA_ASSUME_MASK,B_DFT_value.x,B_read_index);
+	ftemp.y=aa_shfl(AA_ASSUME_MASK,B_DFT_value.y,B_read_index);
 	//2nd template	  
-	stemp.x=__shfl(sB_DFT_value.x,B_read_index);
-	stemp.y=__shfl(sB_DFT_value.y,B_read_index);
+	stemp.x=aa_shfl(AA_ASSUME_MASK,sB_DFT_value.x,B_read_index);
+	stemp.y=aa_shfl(AA_ASSUME_MASK,sB_DFT_value.y,B_read_index);
 
 	//1st template
-	B_DFT_value.x=__shfl(B_DFT_value.x,A_read_index) + W.x*ftemp.x - W.y*ftemp.y;
-	B_DFT_value.y=__shfl(B_DFT_value.y,A_read_index) + W.x*ftemp.y + W.y*ftemp.x;		
+	B_DFT_value.x=aa_shfl(AA_ASSUME_MASK,B_DFT_value.x,A_read_index) + W.x*ftemp.x - W.y*ftemp.y;
+	B_DFT_value.y=aa_shfl(AA_ASSUME_MASK,B_DFT_value.y,A_read_index) + W.x*ftemp.y + W.y*ftemp.x;
 	//2nd template
-	sB_DFT_value.x=__shfl(sB_DFT_value.x,A_read_index) + W.x*stemp.x - W.y*stemp.y;
-	sB_DFT_value.y=__shfl(sB_DFT_value.y,A_read_index) + W.x*stemp.y + W.y*stemp.x;		
+	sB_DFT_value.x=aa_shfl(AA_ASSUME_MASK,sB_DFT_value.x,A_read_index) + W.x*stemp.x - W.y*stemp.y;
+	sB_DFT_value.y=aa_shfl(AA_ASSUME_MASK,sB_DFT_value.y,A_read_index) + W.x*stemp.y + W.y*stemp.x;
 	
 	PoT=PoT<<1;
 	fPoT=fPoT*2.0f;

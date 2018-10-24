@@ -14,7 +14,9 @@ int main(int argc, char* argv[])
 	// File pointers
 	FILE *fp = NULL;
 	// Counters and flags
-	int i, t, dm_range;
+	int i = 0;
+	int t = 0;
+	int dm_range = 0;
 	int range = 0;
 	int nb_selected_dm = 0;
 	int enable_debug = 0;
@@ -65,15 +67,14 @@ int main(int argc, char* argv[])
 	float *selected_dm_low = NULL;
 	float *selected_dm_high = NULL;
 	// host info; memory available
-	struct sysinfo info;
-	size_t host_memory;
+       	size_t host_memory;
 	// Telescope parameters
 	int nchans = 0;
 	int nsamp = 0;
 	int nbits = 0;
 	int nsamples = 0;
 	int nifs = 0;
-	int** t_processed;
+	int** t_processed = NULL;
 	int nboots = -1;
 	int ntrial_bins;
 	int navdms = 1;
@@ -81,8 +82,8 @@ int main(int argc, char* argv[])
 	float aggression = 2.5;
 	float narrow = 0.001f;
 	float wide = 0.1f;
-	int maxshift_original;
-	double tsamp_original;
+	int maxshift_original = 0;
+	double tsamp_original = 0;
 	long int inc = 0;
 	float tstart = 0.0f;
 	float tstart_local = 0.0f;

@@ -40,7 +40,7 @@ void stratagy_MSD(int nDMs, float max_boxcar_width_in_sec, float tsamp, int nTim
         printf("  Memory required by boxcar filters:%0.3f MB\n",(4.5*vals*sizeof(float) + 2*vals*sizeof(ushort))/(1024.0*1024) );
         printf("  Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
 	*maxtimesamples = (free_mem*0.95)/((5.5*sizeof(float) + 2*sizeof(ushort)));
-	printf("  Max samples: :%lld\n", (*maxtimesamples));
+	printf("  Max samples: :%lu\n", (*maxtimesamples));
 
         int DMs_per_cycle = (*maxtimesamples)/nTimesamples;
         int itemp = (int) (DMs_per_cycle/THR_WARPS_PER_BLOCK);
@@ -61,7 +61,7 @@ void stratagy_MSD(int nDMs, float max_boxcar_width_in_sec, float tsamp, int nTim
 //	*MSD_nDIT_widths = 20;
         *MSD_nDIT_widths = (int)(max_boxcar_width_in_sec/tsamp);
 
-        printf("\n  Size MSD: %zu \tSize workarea: %zu, int: %i\n",  *MSD_profile_size_in_bytes, workarea_size_in_bytes/1024/1024.0, *MSD_nDIT_widths);
+        printf("\n  Size MSD: %zu \tSize workarea: %f, int: %d\n", *MSD_profile_size_in_bytes, workarea_size_in_bytes/1024/1024.0, *MSD_nDIT_widths);
 	printf("------------------------------------------------------------\n");
 
 //        float *d_MSD_interpolated = NULL;

@@ -3679,7 +3679,7 @@ void cdfgam(int *which, double *p, double *q, double *x, double *shape,
    static int K1 = 1;
    static double K5 = 0.5e0;
    static double K6 = 5.0e0;
-   static double xx, fx, xscale, cum, ccum, pq, porq;
+   static double xx, fx, xscale, cum, ccum, pq;
    static int ierr;
    static unsigned long qhi, qleft, qporq;
    static double T2, T3, T4, T7, T8, T9;
@@ -3801,10 +3801,10 @@ void cdfgam(int *which, double *p, double *q, double *x, double *shape,
    qporq = *p <= *q;
    if (!qporq)
       goto S220;
-   porq = *p;
+   //   porq = *p;//Not used
    goto S230;
  S220:
-   porq = *q;
+   // porq = *q;//Not used
  S240:
  S230:
 /*
@@ -6776,7 +6776,7 @@ static void E0000(int IENTRY, int *status, double *x, double *fx,
    static double absstp, abstol, big, fbig, fsmall, relstp, reltol, small, step,
        stpmul, xhi, xlb, xlo, xsave, xub, yy;
    static int i99999;
-   static unsigned long qbdd, qcond, qdum1, qdum2, qincr, qlim, qok, qup;
+   static unsigned long qbdd, qcond, qdum1, qdum2, qincr, qlim, qup;
    switch (IENTRY) {
    case 0:
       goto DINVR;
@@ -6856,7 +6856,7 @@ static void E0000(int IENTRY, int *status, double *x, double *fx,
    if (!(yy == 0.0e0))
       goto S100;
    *status = 0;
-   qok = 1;
+   //qok = 1;//Not used
    return;
  S100:
    qup = (qincr && yy < 0.0e0) || (!qincr && yy > 0.0e0);

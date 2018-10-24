@@ -148,7 +148,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 		total_data = 0;
 		while (!feof(*fp))
 		{
-			if (((fread(temp_buffer, sizeof(unsigned short), ( *nchans ), *fp)) != (*nchans)) && (total_data == 0))
+		  if (((fread(temp_buffer, sizeof(unsigned short), ( *nchans ), *fp)) != (size_t)(*nchans)) && (total_data == 0))
 			{
 				fprintf(stderr, "\nError while reading file\n");
 				exit(0);
@@ -166,7 +166,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 		total_data = 0;
 		while (!feof(*fp))
 		{
-			if (((fread(temp_buffer, sizeof(unsigned char), ( *nchans ), *fp)) != (*nchans)) && (total_data == 0))
+		  if (((fread(temp_buffer, sizeof(unsigned char), ( *nchans ), *fp)) != (size_t)(*nchans)) && (total_data == 0))
 			{
 				fprintf(stderr, "\nError while reading file\n");
 				exit(0);
@@ -191,7 +191,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 		total_data = 0;
 		while (!feof(*fp))
 		{
-			if (((fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp)) != nb_bytes) && (total_data == 0))
+		  if (((fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp)) != (size_t)nb_bytes) && (total_data == 0))
 			{
 				fprintf(stderr, "\nError while reading file\n");
 				exit(0);
@@ -216,7 +216,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 		total_data = 0;
 		while (!feof(*fp))
 		{
-			if (((fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp)) != nb_bytes) && (total_data == 0))
+		  if (((fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp)) != (size_t)nb_bytes) && (total_data == 0))
 			{
 				fprintf(stderr, "\nError while reading file\n");
 				exit(0);
@@ -241,7 +241,7 @@ void get_file_data(FILE **fp, int *nchans, int *nsamples, int *nsamp, int *nifs,
 		total_data = 0;
 		while (!feof(*fp))
 		{
-			if (((fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp)) != nb_bytes) && (total_data == 0))
+		  if (((fread(temp_buffer, sizeof(unsigned char), nb_bytes, *fp)) != (size_t)nb_bytes) && (total_data == 0))
 			{
 				fprintf(stderr, "\nError while reading file\n");
 				exit(0);
