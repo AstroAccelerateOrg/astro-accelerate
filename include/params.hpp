@@ -80,10 +80,10 @@
 //#define SFDIVINDM 60.0f
 
 // Ussual
-#define UNROLLS 4
-#define SNUMREG 4
-#define SDIVINT 48
-#define SDIVINDM 21
-#define SFDIVINDM 21.0f
+#define UNROLLS 8
+#define SNUMREG 8
+#define SDIVINT 14
+#define SDIVINDM 40
+#define SFDIVINDM 40.0f
 
 #endif
