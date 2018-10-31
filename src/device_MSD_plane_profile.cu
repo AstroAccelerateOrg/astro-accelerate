@@ -444,7 +444,7 @@ void MSD_Interpolate_values(float *d_MSD_interpolated, float *d_MSD_DIT, std::ve
   //	h_MSD_interpolated = new float[nWidths*MSD_INTER_SIZE];
 
   // adding memory for the interpolate kernel
-  int MSD_DIT_size = h_boxcar_widths->size();
+  int MSD_DIT_size = h_MSD_DIT_widths->size();
   int *d_MSD_DIT_widths;
   int *d_boxcar;
   checkCudaErrors(cudaMalloc((void **) &d_MSD_DIT_widths, sizeof(int)*MSD_DIT_size));
