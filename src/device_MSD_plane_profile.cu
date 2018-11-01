@@ -444,13 +444,13 @@ void MSD_Interpolate_values(float *d_MSD_interpolated, float *d_MSD_DIT, std::ve
   //	h_MSD_interpolated = new float[nWidths*MSD_INTER_SIZE];
 
   // adding memory for the interpolate kernel
-  int MSD_DIT_size = h_boxcar_widths->size();
+  int MSD_DIT_size = h_MSD_DIT_widths->size();
   int *d_MSD_DIT_widths;
   int *d_boxcar;
   checkCudaErrors(cudaMalloc((void **) &d_MSD_DIT_widths, sizeof(int)*MSD_DIT_size));
-  checkCudaErrors(cudaMemcpyAsync(d_MSD_DIT_widths, &h_MSD_DIT_widths->operator[](0), sizeof(int)*MSD_DIT_size,cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_MSD_DIT_widths, &h_MSD_DIT_widths->operator[](0), sizeof(int)*MSD_DIT_size,cudaMemcpyHostToDevice));
   cudaMalloc((void **) &d_boxcar, sizeof(int)*nWidths);
-  checkCudaErrors(cudaMemcpyAsync(d_boxcar, &h_boxcar_widths->operator[](0), sizeof(int)*nWidths,cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_boxcar, &h_boxcar_widths->operator[](0), sizeof(int)*nWidths,cudaMemcpyHostToDevice));
 
 	
   //	checkCudaErrors(cudaMemcpy(h_MSD_DIT, d_MSD_DIT, nMSDs*MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
