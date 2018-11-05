@@ -133,7 +133,6 @@ bool aa_sigproc_input::get_file_data(aa_filterbank_metadata &metadata) {
                 }
             }
             else if(strcmp(string, "az_start") == 0) {
-                printf("az_start\n");
                 if (fread(&az_start, sizeof(az_start), 1, fp) != 1) {
                     fprintf(stderr, "\nError while reading file\n");
                     return false;
