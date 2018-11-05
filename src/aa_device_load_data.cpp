@@ -27,15 +27,12 @@ void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short
         set_device_constants_dedispersion_kernel(length, t_processed);
     }
 
-    
     float h_sqrt_taps[PD_MAXTAPS + 1];
     for(int f = 0; f <= PD_MAXTAPS; f++) {
-        h_sqrt_taps[f] = (float) sqrt((double) f);
+      h_sqrt_taps[f] = (float) sqrt((double) f);
     }
-    checkCudaErrors(cudaGetLastError());
     std::cout << "Checking for sqrt_taps" << std::endl;
-    __device__ __constant__ float my_c_sqrt_taps[PD_MAXTAPS + 1];
-    cudaError_t myError = cudaMemcpyToSymbol(my_c_sqrt_taps, &h_sqrt_taps, ( PD_MAXTAPS + 1 ) * sizeof(float));
+    cudaError_t myError = cudaMemcpyToSymbol(c_sqrt_taps, &h_sqrt_taps, ( PD_MAXTAPS + 1 ) * sizeof(float));
     if(myError == cudaSuccess) {
       std::cout << "Success " << std::endl;
     }
@@ -43,6 +40,5 @@ void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short
       std::cout << "Not success" << std::endl;
     }
     std::cout << "The error was " << cudaGetErrorName (myError) << std::endl;
-    checkCudaErrors(cudaGetLastError());
-    std::cout << "sqrt_taps done " << std::endl;
+
 }
