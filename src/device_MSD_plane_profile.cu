@@ -1,7 +1,7 @@
 #include <helper_cuda.h>
 
 #include "device_single_FIR.hpp"
-#include "device_bin.hpp"
+#include "aa_bin_gpu.hpp"
 #include "device_MSD.hpp"
 #include "gpu_timer.hpp"
 

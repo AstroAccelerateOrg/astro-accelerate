@@ -14,7 +14,7 @@
 #include "device_peak_find.hpp"
 #include "device_power.hpp"
 #include "device_harmonic_summing.hpp"
-#include "device_corner_turn.hpp"
+#include "aa_corner_turn.hpp"
 #include "device_threshold.hpp"
 
 #include <iostream>
