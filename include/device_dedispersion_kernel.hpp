@@ -2,7 +2,7 @@
 #define ASTRO_ACCELERATE_DEDISPERSION_KERNEL_HPP
 
 #include "params.hpp"
-
+#include <vector_types.h>
 //These device variables and definitions are needed by device_dedispersion_kernel.cu and device_load_data.cu
 // Stores temporary shift values
 #define ARRAYSIZE SDIVINT * SDIVINDM

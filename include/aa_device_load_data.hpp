@@ -12,10 +12,6 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include "params.hpp"
-
 void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short *host_pointer, int t_processed, int maxshift, int nchans, float *dmshifts);
 
 #endif /* aa_device_load_data_hpp */

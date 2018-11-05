@@ -559,7 +559,6 @@ bool aa_sigproc_input::get_recorded_data(std::vector<T> &input_buffer) {
         printf("ERROR: Invalid number of bits in input data.\n");
         return false;
     }
-    std::cout << "Input_buffer has " << input_buffer.size() << std::endl;
     
     return true;
 }
