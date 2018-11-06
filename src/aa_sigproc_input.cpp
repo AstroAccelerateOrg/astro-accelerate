@@ -390,7 +390,8 @@ bool aa_sigproc_input::get_file_data(aa_filterbank_metadata &metadata) {
 
 template <typename T>
 bool aa_sigproc_input::get_recorded_data(std::vector<T> &input_buffer) {
-    input_buffer.resize(m_meta.nsamples() * m_meta.nchans());
+  //FIX THIS
+    input_buffer.reserve(m_meta.nsamples() * m_meta.nchans());
     
     int c;
     
