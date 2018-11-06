@@ -113,5 +113,10 @@ target_link_libraries(${PROJECT_NAME} astroaccelerate)
 
 
 # Add tests/ directory
-ENABLE_TESTING()
-include(tests/CMakeLists.txt)
+cmake_policy(SET CMP0012 NEW)
+option(ENABLE_TESTS "Enable tests" OFF)
+if(${ENABLE_TESTS})
+	message(STATUS "INFO: ENABLE_TESTS ON")
+	enable_testing()
+	include(tests/CMakeLists.txt)
+endif()
