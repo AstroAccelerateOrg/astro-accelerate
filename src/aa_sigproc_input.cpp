@@ -236,8 +236,6 @@ bool aa_sigproc_input::get_file_data(aa_filterbank_metadata &metadata) {
     fpos_t file_loc;
     fgetpos(fp, &file_loc); //Position of end of header
     
-    
-    unsigned long int total_data = 0;
     unsigned long int nsamp = 0;
 
     // Getting number of time-samples based on file size
@@ -277,7 +275,6 @@ bool aa_sigproc_input::get_file_data(aa_filterbank_metadata &metadata) {
     fsetpos(fp, &file_loc);
     
     nsamples = (int)((nsamples) ? nsamples : (nsamp) ? nsamp : 0);
-    std::cout << "Number of samples is " << nsamples << std::endl;
     aa_filterbank_metadata meta(telescope_id,
                                 machine_id,
                                 data_type,
@@ -310,10 +307,8 @@ bool aa_sigproc_input::get_file_data(aa_filterbank_metadata &metadata) {
 
 template <typename T>
 bool aa_sigproc_input::get_recorded_data(std::vector<T> &input_buffer) {
-  //FIX THIS
-    input_buffer.resize(m_meta.nsamples() * m_meta.nchans());
-    std::cout << "Resize to " << m_meta.nsamples() * m_meta.nchans() << std::endl;
-    
+    const size_t inputsize = (size_t)m_meta.nsamples() * (size_t)m_meta.nchans();
+    input_buffer.resize(inputsize);
     int c;
     
     unsigned long int total_data;
