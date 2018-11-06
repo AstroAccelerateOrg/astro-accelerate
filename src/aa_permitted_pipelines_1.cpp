@@ -13,7 +13,6 @@ void allocate_memory_gpu(const int &maxshift, const int &max_ndms, const int &nc
     int time_samps = t_processed[0][0] + maxshift;
     printf("\n\n\n%d\n\n\n", time_samps);
     size_t gpu_inputsize = (size_t) time_samps * (size_t) nchans * sizeof(unsigned short);
-    std::cout << "Vars in allocate_memory_gpu " << gpu_inputsize << std::endl;
 
     checkCudaErrors( cudaMalloc((void **) d_input, gpu_inputsize) );
 
