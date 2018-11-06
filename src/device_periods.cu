@@ -981,12 +981,12 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 			GPU_memory.Get_MSD(h_MSD);
 
 			
-			#pragma omp parallel for
+
 			for(int f=0; f<(int)PowerCandidates.size(); f++) {
 				//PowerCandidates[f].Rescale_Threshold_and_Process(h_MSD, &P_plan.inBin_group[p], per_param.sigma_cutoff, 1.0);
 				PowerCandidates[f].Process(h_MSD, &P_plan.inBin_group[p], 1.0);
 			}
-			#pragma omp parallel for
+
 			for(int f=0; f<(int)InterbinCandidates.size(); f++) {
 				//InterbinCandidates[f].Rescale_Threshold_and_Process(h_MSD, &P_plan.inBin_group[p], per_param.sigma_cutoff, 2.0);
 				InterbinCandidates[f].Process(h_MSD, &P_plan.inBin_group[p], 2.0);

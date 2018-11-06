@@ -301,7 +301,7 @@ void analysis_GPU(unsigned int *h_peak_list_DM, unsigned int *h_peak_list_TS, fl
 		float *h_peak_list;
 		h_peak_list = new float[4*(*peak_pos)];
 		int i_peak_pos = (int)(*peak_pos);
-		#pragma omp parallel for
+
 		for (int count = 0; count < i_peak_pos; count++){
 			h_peak_list[4*count]     = ((double) h_peak_list_DM[count])*dm_step[i] + dm_low[i];
 			h_peak_list[4*count + 1] = ((double) h_peak_list_TS[count])*tsamp + tstart;
