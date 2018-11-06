@@ -58,7 +58,7 @@ void aa_pipeline_generic(const std::vector<aa_compute::modules> &selected_module
     // Bind the Plan to the manager
     aa_ddtr_plan ddtr_plan;
     for(auto i : dm_ranges) {
-      ddtr_plan.add_dm(i); 
+      ddtr_plan.add_dm(i);
     }
 
     if(pipeline_manager.bind(ddtr_plan)) {

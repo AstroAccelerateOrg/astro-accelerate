@@ -13,6 +13,7 @@ void allocate_memory_gpu(const int &maxshift, const int &max_ndms, const int &nc
     int time_samps = t_processed[0][0] + maxshift;
     printf("\n\n\n%d\n\n\n", time_samps);
     size_t gpu_inputsize = (size_t) time_samps * (size_t) nchans * sizeof(unsigned short);
+    std::cout << "Vars in allocate_memory_gpu " << gpu_inputsize << std::endl;
 
     checkCudaErrors( cudaMalloc((void **) d_input, gpu_inputsize) );
 
@@ -52,6 +53,7 @@ void run_pipeline_1(const aa_filterbank_metadata &metadata, const aa_ddtr_strate
     //Allocate GPU memory
     unsigned short *d_input             = NULL;
     float *d_output                     = NULL;
+
     allocate_memory_gpu(maxshift, max_ndms, nchans, t_processed, &d_input, &d_output);
     //Put the dm low, high, step struct contents into separate arrays again.
     //This is needed so that the kernel wrapper functions don't need to be modified.
