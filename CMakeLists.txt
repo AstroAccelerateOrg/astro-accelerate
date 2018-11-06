@@ -1,12 +1,18 @@
 # Check if cmake has the required version
-CMAKE_MINIMUM_REQUIRED(VERSION 3.2.0 FATAL_ERROR)
-set(PROJECT_NAME_STR astro-accelerate)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6.0 FATAL_ERROR)
+set(PROJECT_NAME astro-accelerate)
+set(PROJECT_VERSION 1.2.0)	# Tagged release version
 set(PROJECT_LIB_NAME ASTRO_ACCELERATE)
-PROJECT(${PROJECT_NAME_STR} LANGUAGES CXX CUDA)
 
-find_package(OpenMP)
-if(OPENMP_FOUND)
-    message("-- INFO: OpenMP FLAGS: ${OpenMP_CXX_FLAGS}")
+# Set date and time of build
+string(TIMESTAMP ASTRO_ACCELERATE_BUILD_DATE_UTC "%d/%m/%Y" UTC)
+string(TIMESTAMP ASTRO_ACCELERATE_BUILD_TIME_UTC "%H:%M:%S" UTC)
+if(NOT ASTRO_ACCELERATE_BUILD_DATE_UTC)
+set(ASTRO_ACCELERATE_BUILD_DATE_UTC "EMPTY")
+endif()
+
+if(NOT ASTRO_ACCELERATE_BUILD_TIME_UTC)
+set(ASTRO_ACCELERATE_BUILD_TIME_UTC "EMPTY")
 endif()
 
 find_package(CUDA REQUIRED)
@@ -14,6 +20,7 @@ find_package(CUDA REQUIRED)
 # Set NVCC flags
 set(PROJECT_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(CUDA_LINK_LIBRARIES_KEYWORD PUBLIC)
+set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS})
 
 list(APPEND CUDA_NVCC_FLAGS --ptxas-options= -Xptxas -dlcm=cg -use_fast_math)
@@ -23,13 +30,7 @@ list(APPEND CUDA_NVCC_FLAGS -lineinfo;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-O3;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-lm;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-Wall;)
-
-if(OPENMP_FOUND)
-	list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-fopenmp;)
-	list(APPEND CMAKE_CXX_FLAGS "-std=c++11 -O3 -fopenmp -lm -Wall")
-else()
-	list(APPEND CMAKE_CXX_FLAGS "-std=c++11 -O3 -lm -Wall")
-endif()
+list(APPEND CMAKE_CXX_FLAGS "-std=c++11 -O3 -lm -Wall")
 
 if(NOT DEFINED CUDA_ARCH)  
 	set(CUDA_ARCH "ALL")
@@ -80,6 +81,9 @@ foreach(ARCH ${CUDA_ARCH})
 	message(FATAL_ERROR "-- CUDA_ARCH ${ARCH} not recognised or not defined")
 	endif()
 endforeach()
+
+# Configure file
+configure_file("${PROJECT_SOURCE_DIR}/cmake/version.h.in" "${PROJECT_SOURCE_DIR}/include/version.h")
 
 # Status information
 message(STATUS "Using: ${CMAKE_CXX_COMPILER} with compiler ID ${CMAKE_CXX_COMPILER_ID} and compiler version ${CXX_VERSION}")
