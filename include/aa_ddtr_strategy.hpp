@@ -6,8 +6,8 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#ifndef aa_ddtr_strategy_hpp
-#define aa_ddtr_strategy_hpp
+#ifndef ASTRO_ACCELERATE_DDTR_STRATEGY_HPP
+#define ASTRO_ACCELERATE_DDTR_STRATEGY_HPP
 
 #include <iostream>
 #include <stdio.h>
@@ -94,4 +94,4 @@ private:
     float ***output_buffer; //3D array that contains the output
 };
 
-#endif /* aa_ddtr_strategy_hpp */
+#endif /* ASTRO_ACCELERATE_DDTR_STRATEGY */

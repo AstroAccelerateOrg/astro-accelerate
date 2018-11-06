@@ -6,8 +6,8 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#ifndef aa_pipeline_generic_hpp
-#define aa_pipeline_generic_hpp
+#ifndef ASTRO_ACCELERATE_PIPELINE_GENERIC_HPP
+#define ASTRO_ACCELERATE_PIPELINE_GENERIC_HPP
 
 #include <iostream>
 
@@ -125,4 +125,4 @@ void aa_pipeline_generic(const std::vector<aa_compute::modules> &selected_module
 }
 
 
-#endif /* aa_pipeline_generic_hpp */
+#endif /* ASTRO_ACCELERATE_PIPELINE_GENERIC_HPP */

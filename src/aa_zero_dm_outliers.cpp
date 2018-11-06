@@ -24,10 +24,8 @@ void zero_dm_outliers(unsigned short *const d_input, const int nchans, const int
     clock_t start_t, end_t;
     start_t = clock();
     
-#if(AA_CUDA == 1)
     call_kernel_zero_dm_outliers_kernel_one(num_blocks, threads_per_block, d_input, nchans, nsamp);
     cudaDeviceSynchronize();
-#endif
     
     int divisions_in_c  = 100;
     int num_blocks_c    = nchans/divisions_in_c;
@@ -39,9 +37,7 @@ void zero_dm_outliers(unsigned short *const d_input, const int nchans, const int
     
     dim3 threads_per_block_c(divisions_in_c, 1);
     dim3 c_blocks(num_blocks_c,1);
-#if(AA_CUDA == 1)
     call_kernel_zero_dm_outliers_kernel_two(c_blocks, threads_per_block_c, d_input, nchans, nsamp);
-#endif
     end_t = clock();
     double time = (double)(end_t-start_t) / CLOCKS_PER_SEC;
     printf("\nPerformed ZDM: %lf (GPU estimate)", time);

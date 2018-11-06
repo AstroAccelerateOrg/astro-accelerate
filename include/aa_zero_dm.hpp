@@ -6,8 +6,8 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#ifndef aa_zero_dm_hpp
-#define aa_zero_dm_hpp
+#ifndef ASTRO_ACCELERATE_ZERO_DM_HPP
+#define ASTRO_ACCELERATE_ZERO_DM_HPP
 
 #include <time.h>
 #include <math.h>
@@ -23,4 +23,4 @@
 
 void zero_dm(unsigned short *const d_input, const int nchans, const int nsamp, const int nbits);
 
-#endif /* aa_zero_dm_hpp */
+#endif /* ASTRO_ACCELERATE_ZERO_DM_HPP */

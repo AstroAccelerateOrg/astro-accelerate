@@ -28,12 +28,10 @@ void corner_turn(unsigned short *const d_input, float *const d_output, const int
     clock_t start_t, end_t;
     start_t = clock();
     
-#if(AA_CUDA == 1)
     call_kernel_simple_corner_turn_kernel(num_blocks, threads_per_block, d_input, d_output, nchans, nsamp);
     cudaDeviceSynchronize();
     call_kernel_swap(num_blocks, threads_per_block, d_input, d_output, nchans, nsamp);
     cudaDeviceSynchronize();
-#endif
     
     end_t = clock();
     double time = (double) ( end_t - start_t )/CLOCKS_PER_SEC;
@@ -63,10 +61,8 @@ int corner_turn(float *const d_input, float *const d_output, const int primary_s
     
     dim3 threads_per_block(divisions_in_primary, divisions_in_secondary);
     dim3 num_blocks(num_blocks_primary, num_blocks_secondary);
-#if(AA_CUDA == 1)
     call_kernel_simple_corner_turn_kernel(num_blocks, threads_per_block, d_input, d_output, primary_size, secondary_size);
     cudaDeviceSynchronize();
-#endif
     
     return(0);
 }
@@ -96,11 +92,9 @@ int corner_turn_SM(float *const d_input, float *const d_output, const int primar
     printf("Shared memory: %d bytes; %d floats\n", SM_size, SM_size/4);
 #endif
     
-#if(AA_CUDA == 1)
     cudaDeviceSetCacheConfig(cudaFuncCachePreferShared);
     cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeFourByte);
     call_kernel_corner_turn_SM_kernel(gridSize, blockSize, d_input, d_output, primary_size, secondary_size);
-#endif
     
     return(nRest);
 }

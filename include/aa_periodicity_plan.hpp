@@ -6,8 +6,8 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#ifndef aa_periodicity_plan_hpp
-#define aa_periodicity_plan_hpp
+#ifndef ASTRO_ACCELERATE_AA_PERIODICITY_PLAN_HPP
+#define ASTRO_ACCELERATE_AA_PERIODICITY_PLAN_HPP
 
 #include <stdio.h>
 
@@ -20,4 +20,4 @@ private:
     
 };
 
-#endif /* aa_periodicity_plan_hpp */
+#endif /* ASTRO_ACCELERATE_AA_PERIODICITY_PLAN_HPP */

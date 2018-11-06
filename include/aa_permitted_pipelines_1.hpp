@@ -6,8 +6,8 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#ifndef aa_permitted_pipelines_1_hpp
-#define aa_permitted_pipelines_1_hpp
+#ifndef ASTRO_ACCELERATE_PERMITTED_PIPELINES_1_HPP
+#define ASTRO_ACCELERATE_PERMITTED_PIPELINES_1_HPP
 
 
 #include <cuda.h>
@@ -27,4 +27,4 @@
 
 void run_pipeline_1(const aa_filterbank_metadata &metadata, const aa_ddtr_strategy &ddtr_strategy, unsigned short *const input_buffer);
 
-#endif /* aa_permitted_pipelines_1_hpp */
+#endif /* ASTRO_ACCELERATE_PERMITTED_PIPELINES_1_HPP */

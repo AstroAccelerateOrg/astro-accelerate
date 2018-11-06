@@ -6,8 +6,8 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#ifndef aa_host_malloc_hpp
-#define aa_host_malloc_hpp
+#ifndef ASTRO_ACCELERATE_HOST_MALLOC_HPP
+#define ASTRO_ACCELERATE_HOST_MALLOC_HPP
 
 #include <stdio.h>
 
@@ -113,4 +113,4 @@ protected:
     }
 };
 
-#endif /* aa_host_malloc_hpp */
+#endif /* ASTRO_ACCELERATE_HOST_MALLOC_HPP */

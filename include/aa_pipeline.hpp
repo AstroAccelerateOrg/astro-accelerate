@@ -6,8 +6,8 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#ifndef aa_pipeline_hpp
-#define aa_pipeline_hpp
+#ifndef ASTRO_ACCELERATE_PIPELINE_HPP
+#define ASTRO_ACCELERATE_PIPELINE_HPP
 
 #include <iostream>
 #include <stdio.h>
@@ -312,4 +312,4 @@ private:
     U*                          ptr_data_out;
 };
 
-#endif /* aa_pipeline_hpp */
+#endif /* ASTRO_ACCELERATE_PIPELINE_HPP */

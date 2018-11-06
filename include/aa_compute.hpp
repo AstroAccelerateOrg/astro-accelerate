@@ -1,5 +1,5 @@
-#ifndef ASTRO_ACCELERATE_AA_PIPELINE_HPP
-#define ASTRO_ACCELERATE_AA_PIPELINE_HPP
+#ifndef ASTRO_ACCELERATE_AA_COMPUTE_HPP
+#define ASTRO_ACCELERATE_AA_COMPUTE_HPP
 
 #include <set>
 #include <string>
@@ -104,4 +104,4 @@ namespace aa_compute {
 }
 
 
-#endif // ASTRO_ACCELERATE_AA_PIPELINE_HPP
+#endif // ASTRO_ACCELERATE_AA_COMPUTE_HPP

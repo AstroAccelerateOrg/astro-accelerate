@@ -1,8 +1,8 @@
 range	0    370   0.307  1 1
 range	370  740   0.652  2 2
 range	740  1480  1.266  4 4 
-range	1480 2950  2.512  8 8
-range	2950 5000  4.000  16 16
+-range	1480 2950  2.512  8 8
+-range	2950 5000  4.000  16 16
 sigma_cutoff	6
 sigma_constant  4.0
 max_boxcar_width_in_sec 0.05
@@ -24,4 +24,4 @@ fdas_custom_fft
 debug
 -analysis_debug
 -failsafe
-file ~/filterbank/BenMeerKAT.fil
+file /mnt/data/AstroAccelerate/filterbank/J2144-3933_ia_500_200_4096_8_1_8_21sep2017.raw.0.03per.200s.DM2000.fil

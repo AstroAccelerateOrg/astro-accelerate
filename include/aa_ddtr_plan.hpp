@@ -6,8 +6,8 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#ifndef aa_ddtr_plan_hpp
-#define aa_ddtr_plan_hpp
+#ifndef ASTRO_ACCELERATE_DDTR_PLAN_HPP
+#define ASTRO_ACCELERATE_DDTR_PLAN_HPP
 
 #include <stdio.h>
 #include <vector>
@@ -45,4 +45,4 @@ private:
     
 };
 
-#endif /* aa_ddtr_plan_hpp */
+#endif /* ASTRO_ACCELERATE_DDTR_PLAN_HPP */

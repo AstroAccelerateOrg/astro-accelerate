@@ -6,8 +6,8 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#ifndef aa_strategy_hpp
-#define aa_strategy_hpp
+#ifndef ASTRO_ACCELERATE_STRATEGY_HPP
+#define ASTRO_ACCELERATE_STRATEGY_HPP
 
 #include <stdio.h>
 
@@ -18,4 +18,4 @@ private:
 
 };
 
-#endif /* aa_strategy_hpp */
+#endif /* ASTRO_ACCELERATE_STRATEGY_HPP */

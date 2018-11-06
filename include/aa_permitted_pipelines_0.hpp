@@ -6,11 +6,11 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#ifndef aa_permitted_pipelines_0_hpp
-#define aa_permitted_pipelines_0_hpp
+#ifndef ASTRO_ACCELERATE_PERMITTED_PIPELINES_0_HPP
+#define ASTRO_ACCELERATE_PERMITTED_PIPELINES_0_HPP
 
 #include <stdio.h>
 
 void run_pipeline_0();
 
-#endif /* aa_permitted_pipelines_0_hpp */
+#endif /* ASTRO_ACCELERATE_PERMITTED_PIPELINES_0_HPP */

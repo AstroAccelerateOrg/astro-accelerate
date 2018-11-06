@@ -20,7 +20,7 @@
 
 int main(int argc, const char * argv[]) {
     
-      aa_sigproc_input       filterbank_datafile("/mnt/data/AstroAccelerate/filterbank/J2144-3933_ia_500_200_4096_8_1_8_21sep2017.raw.0.03per.200s.DM2000.fil");
+      aa_sigproc_input       filterbank_datafile("/home/carels/filterbank/BenMeerKAT.fil");
       aa_filterbank_metadata filterbank_metadata = filterbank_datafile.read_metadata();
       filterbank_datafile.read_telescope();
       float *my_output_data = NULL;

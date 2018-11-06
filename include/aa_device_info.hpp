@@ -6,8 +6,8 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#ifndef aa_device_init_hpp
-#define aa_device_init_hpp
+#ifndef ASTRO_ACCELERATE_DEVICE_INFO_HPP
+#define ASTRO_ACCELERATE_DEVICE_INFO_HPP
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -119,4 +119,4 @@ private:
     size_t selected_card_idx;  //Index into card_info for the current selected card.
 };
 
-#endif /* aa_device_init_hpp */
+#endif /* ASTRO_ACCELERATE_DEVICE_INFO_HPP */
