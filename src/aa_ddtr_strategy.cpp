@@ -314,8 +314,8 @@ bool aa_ddtr_strategy::setup() {
      */
     
     //output_buffer is used by the pipeline, but is it also used by the user?
-    allocate_memory_cpu_output();
+   allocate_memory_cpu_output();
     
-    is_setup = true;
-    return true;
+   is_setup = true;
+   return true;
 }

@@ -110,3 +110,8 @@ set_target_properties(astroaccelerate PROPERTIES BUILD_SHARED_LIBS ON)
 file(GLOB_RECURSE SOURCE_FILES "src/*.cpp")
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} astroaccelerate)
+
+
+# Add tests/ directory
+ENABLE_TESTING()
+include(tests/CMakeLists.txt)
