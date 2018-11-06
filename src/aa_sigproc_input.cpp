@@ -239,125 +239,45 @@ bool aa_sigproc_input::get_file_data(aa_filterbank_metadata &metadata) {
     
     unsigned long int total_data = 0;
     unsigned long int nsamp = 0;
-    if (( nbits ) == 32) {
-        // Allocate a tempory buffer to store a line of frequency data
-        float *temp_buffer = (float *) malloc(( nchans ) * sizeof(float));
-        
-        // Count how many time samples we have
-        total_data = 0;
-        while (!feof(fp)) {
-            fread(temp_buffer, sizeof(float), ( nchans ), fp);
-            total_data++;
-        }
-        nsamp = total_data - 1;
-        free(temp_buffer);
+
+    // Getting number of time-samples based on file size
+    unsigned long int data_start = ftell(fp);
+    if (fseek(fp, 0, SEEK_END) != 0) {
+      printf("\nERROR!! Failed to seek to the end of data file\n");
+      exit(1);
     }
-    else if (( nbits ) == 16) {
-        // Allocate a tempory buffer to store a line of frequency data
-        unsigned short *temp_buffer = (unsigned short *) malloc(( nchans ) * sizeof(unsigned short));
-        
-        total_data = 0;
-        while (!feof(fp))
-        {
-            if (((fread(temp_buffer, sizeof(unsigned short), ( nchans ), fp)) != (size_t)(nchans)) && (total_data == 0))
-            {
-                fprintf(stderr, "\nError while reading file\n");
-                return false;
-            }
-            total_data++;
-        }
-        nsamp = total_data - 1;
-        free(temp_buffer);
-    }
-    else if (( nbits ) == 8) {
-        // Allocate a tempory buffer to store a line of frequency data
-        unsigned char *temp_buffer = (unsigned char *) malloc(( nchans ) * sizeof(unsigned char));
-        
-        total_data = 0;
-        while (!feof(fp)) {
-            if (((fread(temp_buffer, sizeof(unsigned char), ( nchans ), fp)) != (size_t)(nchans)) && (total_data == 0)) {
-                fprintf(stderr, "\nError while reading file\n");
-            }
-            total_data++;
-        }
-        nsamp = total_data - 1;
-        free(temp_buffer);
-    }
-    else if (( nbits ) == 4) {
-        // Allocate a tempory buffer to store a line of frequency data
-        // each byte stores 2 frequency data
-        // assumption: nchans is a multiple of 2
-        if ((nchans % 2) != 0) {
-            printf("\nNumber of frequency channels must be a power of 2 with 4 bit data\n");
-        }
-        int nb_bytes = nchans/2;
-        unsigned char *temp_buffer = (unsigned char *) malloc( nb_bytes * sizeof(unsigned char));
-        total_data = 0;
-        while (!feof(fp)) {
-            if (((fread(temp_buffer, sizeof(unsigned char), nb_bytes, fp)) != (size_t)nb_bytes) && (total_data == 0)) {
-                fprintf(stderr, "\nError while reading file\n");
-            }
-            total_data++;
-        }
-        nsamp = total_data - 1;
-        free(temp_buffer);
-    }
-    else if (( nbits ) == 2) {
-        // Allocate a tempory buffer to store a line of frequency data
-        // each byte stores 2 frequency data
-        // assumption: nchans is a multiple of 2
-        //        if ((*nchans / 4) != 0)
-        //        {
-        //            printf("\nNumber of frequency channels must be divisible by 8 with 1 bit data samples\n");
-        //            exit(0);
-        //        }
-        int nb_bytes = nchans/4;
-        unsigned char *temp_buffer = (unsigned char *) malloc( nb_bytes * sizeof(unsigned char));
-        total_data = 0;
-        while (!feof(fp))
-        {
-            if (((fread(temp_buffer, sizeof(unsigned char), nb_bytes, fp)) != (size_t)nb_bytes) && (total_data == 0))
-            {
-                fprintf(stderr, "\nError while reading file\n");
-            }
-            total_data++;
-        }
-        nsamp = total_data - 1;
-        free(temp_buffer);
-    }
-    else if (( nbits ) == 1) {
-        // Allocate a tempory buffer to store a line of frequency data
-        // each byte stores 2 frequency data
-        // assumption: nchans is a multiple of 2
-        //        if ((*nchans / 8) != 0)
-        //        {
-        //            printf("\nNumber of frequency channels must be divisible by 8 with 1 bit data samples\n");
-        //            exit(0);
-        //        }
-        int nb_bytes = nchans/8;
-        unsigned char *temp_buffer = (unsigned char *) malloc( nb_bytes * sizeof(unsigned char));
-        total_data = 0;
-        while (!feof(fp))
-        {
-            if (((fread(temp_buffer, sizeof(unsigned char), nb_bytes, fp)) != (size_t)nb_bytes) && (total_data == 0))
-            {
-                fprintf(stderr, "\nError while reading file\n");
-                exit(0);
-            }
-            total_data++;
-        }
-        nsamp = total_data - 1;
-        free(temp_buffer);
-    }
-    else {
-        printf(    " Currently this code only runs with 1, 2, 4 8 and 16 bit data \n");
-    }
+	unsigned long int exp_total_data = ftell(fp);
+	exp_total_data = exp_total_data - data_start;
+	fseek(fp, data_start, SEEK_SET);
+
+	if (( nbits ) == 32) {
+		nsamp = exp_total_data/((nchans)*4);
+	}
+	else if (( nbits ) == 16) {
+		nsamp = exp_total_data/((nchans)*2);
+	}
+	else if (( nbits ) == 8) {
+		nsamp = exp_total_data/((nchans));
+	}
+	else if (( nbits ) == 4) {
+		nsamp = 2*exp_total_data/((nchans));
+	}
+	else if (( nbits ) == 2) {
+		nsamp = 4*exp_total_data/((nchans));
+	}
+	else if (( nbits ) == 1) {
+		nsamp = 8*exp_total_data/((nchans));
+	}
+	else {
+	  printf("ERROR: Currently this code only runs with 1, 2, 4, 8, and 16 bit data\n");
+	  return false;
+       	}
     
     // Move the file pointer back to the end of the header
     fsetpos(fp, &file_loc);
     
     nsamples = (int)((nsamples) ? nsamples : (nsamp) ? nsamp : 0);
-    
+    std::cout << "Number of samples is " << nsamples << std::endl;
     aa_filterbank_metadata meta(telescope_id,
                                 machine_id,
                                 data_type,
@@ -391,7 +311,8 @@ bool aa_sigproc_input::get_file_data(aa_filterbank_metadata &metadata) {
 template <typename T>
 bool aa_sigproc_input::get_recorded_data(std::vector<T> &input_buffer) {
   //FIX THIS
-    input_buffer.reserve(m_meta.nsamples() * m_meta.nchans());
+    input_buffer.resize(m_meta.nsamples() * m_meta.nchans());
+    std::cout << "Resize to " << m_meta.nsamples() * m_meta.nchans() << std::endl;
     
     int c;
     
