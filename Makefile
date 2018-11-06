@@ -33,10 +33,10 @@ GENCODE_SM70	:= -gencode arch=compute_70,code=sm_70 # Volta
 GENCODE_FLAGS   := $(GENCODE_SM53)
 
 ifeq ($(cache),off)
-        NVCCFLAGS := $(INC) ${INCLUDE} -g -lineinfo -Xcompiler -fopenmp -O3 -lm --use_fast_math\
+        NVCCFLAGS := $(INC) ${INCLUDE} -g -lineinfo -Xcompiler -O3 -lm --use_fast_math\
         --ptxas-options=-v -Xptxas -dlcm=cg $(GENCODE_FLAGS)
 else
-        NVCCFLAGS := $(INC) ${INCLUDE} -g -lineinfo -Xcompiler -fopenmp -O3 -lm --use_fast_math\
+        NVCCFLAGS := $(INC) ${INCLUDE} -g -lineinfo -Xcompiler -O3 -lm --use_fast_math\
         --ptxas-options=-v -lcuda -lcudart  -lcurand -lcufft -lcudadevrt -Xptxas -dlcm=cg $(GENCODE_FLAGS)
 endif
 
