@@ -17,7 +17,7 @@
 #include "aa_pipeline.hpp"
 
 template <typename T, typename U>
-void aa_pipeline_generic(const std::vector<aa_compute::modules> &selected_modules, const aa_filterbank_metadata &filterbank_data, T *input_data, U *output_data) {
+void aa_pipeline_generic(const std::vector<aa_compute::modules> &selected_modules, const aa_filterbank_metadata &filterbank_data, std::vector<aa_ddtr_plan::dm> dm_ranges, T *input_data, U *output_data) {
     /**
      * Boilerplate code for executing a pipeline of modules
      */
@@ -57,8 +57,10 @@ void aa_pipeline_generic(const std::vector<aa_compute::modules> &selected_module
     
     // Bind the Plan to the manager
     aa_ddtr_plan ddtr_plan;
-    ddtr_plan.add_dm(0, 370, 0.307, 1, 1);    //Just a test, the user should be able to provide these.
-    ddtr_plan.add_dm(370,740,0.652, 2, 2);    //Just a test, the user should be able to provide these.
+    for(auto i : dm_ranges) {
+      ddtr_plan.add_dm(i); 
+    }
+
     if(pipeline_manager.bind(ddtr_plan)) {
         std::cout << "NOTICE: ddtr_plan bound successfully." << std::endl;
     }

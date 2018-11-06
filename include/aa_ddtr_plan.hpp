@@ -31,6 +31,11 @@ public:
         m_user_dm.push_back(std::move(tmp));
         return true;
     }
+
+    const bool add_dm(aa_ddtr_plan::dm &DM) {
+        m_user_dm.push_back(std::move(DM));
+	return true;
+    }
     
     const size_t range() const {
         return m_user_dm.size();

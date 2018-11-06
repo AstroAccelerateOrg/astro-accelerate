@@ -18,7 +18,7 @@
 void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short *host_pointer, int t_processed, int maxshift, int nchans, float *dmshifts) {
     if(i == -1) {
         long int length = ( t_processed + maxshift );
-        size_t size = nchans * length * sizeof(unsigned short);
+        size_t size = (size_t)nchans * (size_t)length * (size_t)sizeof(unsigned short);
         cudaMemcpy(device_pointer, host_pointer, size, cudaMemcpyHostToDevice);
 	checkCudaErrors(cudaGetLastError());
         set_device_constants_dedispersion_kernel(nchans, length, t_processed, dmshifts);
