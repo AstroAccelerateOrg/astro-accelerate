@@ -214,6 +214,10 @@ run CMake
 
     cmake ../
 
+The CUDA architecture can be specified with the `-DCUDA_ARCH` flag. For example, for architecture `7.0`, do
+
+    cmake -DCUDA_ARCH="7.0" ../
+
 The software can then be compiled using the generated Makefile. To do so, simply type
 
     make
@@ -238,6 +242,17 @@ as a shared object library called
 
 against which the executable is linked.
 In both cases, the library file will be located in the astro-accelerate build directory.
+
+The user or developer may also with to run unit tests as part of the build. In this case, CMake should first be run with `-DENABLE_TESTS=ON` (the default is `OFF`) in order to enable the compilation of the tests, as follows
+
+    cmake -DCUDA_ARCH="7.0" -DENABLE_TESTS=ON ../
+
+The tests can then be run as follows
+
+    make test
+
+The test results will be printed to the console.
+The test executables are located in a separate folder in the build directory and are separate from the main standalone executable, they do not form a part of the compiled library or standalone astro-accelerate executable.
 
 Step 3: Run
 ==
@@ -285,21 +300,28 @@ More detailed information can be found on the [Wiki page of the repository](http
 
 Using Astro-Accelerate as a library
 ===
-Astro-accelerate can be compiled and linked against as a library.
+Astro-accelerate can be compiled and linked against as a library. A good demonstration of the user interface is provided in `main.cpp`. For more advanced use cases, a good example boilerplate code is provided in `aa_pipeline_generic.cpp`.
 
-A good demonstration of the user interface is provided in `main.cpp`.
+The user interface is centred around the user requesting a series of modules that the library will compute as a pipeline. The ordering of the pipeline modules is determined by the library, however the user may create a series of pipelines to create their own custom ordering.
 
-For more advanced used, a good example boilerplate code is provided in `aa_pipeline_generic.cpp`.
+Return types are provided as a `boolean` to indicate whether a method was successful or not. When a method in the pipeline configuration process returns `false`, the pipeline will not run, and the user should revisit their settings.
 
-The user interface is centred around the user requesting a series of modules that the library will compute as a pipeline.
+When a method returns an object, then if the library cannot create a valid object, it will return an empty or trivial object. When an empty or trivial object is passed to the library at a later point, the relevant method will return `false`, or provide another empty or trivial object. Such a scenario prevents the astro-accelerate pipeline from running, in which case the user should revisit their settings. 
 
-The ordering of the pipeline modules is determined by the library, however the user may create a series of pipelines to create their own custom ordering.
+The user can read `.fil` files or provide a `std::vector<unsigned short>` or a raw pointer of type `unsigned short`, but must in either case provide a valid `aa_filterbank_metadata` object that matches a filterbank data file (sigproc format).
 
-Return types are provided as a boolean true/false to indicate whether a method was successful or not.
+__User-side__
+* Select modules (*__dedispersion__*, *__rfi__*, *__zero_dm__*, *__threshold__*,…).
+* Provide settings for the modules (*__plan__*, *__strategy__*).
+* Provide the data (*__bind__* and *__transfer__*).
+* Run the pipeline (*__run__*).
+* Retrieve the data (*__transfer__*).
 
-When a method in the pipeline configuration process returns false, the pipeline will not run, and the user should revisit their settings.
-
-The user can read .fil files or provide a std::vector<unsigned short> or a raw pointer of type unsigned short, but must in either case provide metadata that matches a filterbank data file (sigproc format).
+__Library-Side__
+* Astro accelerate decides on the *__strategy__* and the module ordering.
+* Data remain inside the pipeline until the end of the pipeline.
+* Validate the user settings beforehand.
+* All modules adhere to the same programming idiom (*__plan__*, *__validate__*, *__strategy__*, *__validate__*, *__run__*).
 
 Contact and Support
 ===
