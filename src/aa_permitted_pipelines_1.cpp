@@ -30,7 +30,7 @@ void allocate_memory_gpu(const int &maxshift, const int &max_ndms, const int &nc
 }
 
 void run_pipeline_1(const aa_filterbank_metadata &metadata, const aa_ddtr_strategy &ddtr_strategy, unsigned short *const input_buffer) {
-    printf("NOTICE: Pipeline started run_pipeline_1\n");
+    printf("NOTICE: Pipeline started run_pipeline_1.\n");
     int num_tchunks                     = ddtr_strategy.num_tchunks();
     int **t_processed                   = ddtr_strategy.t_processed();
     std::vector<float> dm_shifts        = ddtr_strategy.dmshifts();
@@ -129,5 +129,5 @@ void run_pipeline_1(const aa_filterbank_metadata &metadata, const aa_ddtr_strate
         tsamp = tsamp_original;
         maxshift = maxshift_original;
     }
-    printf("NOTICE: Pipeline ended run_pipeline_1\n");
+    printf("NOTICE: Pipeline ended run_pipeline_1.\n");
 }

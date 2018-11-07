@@ -21,7 +21,7 @@ bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const aa_filterbank_me
      * This method relies on defining points when nsamps is a multiple of
      * nchans - bin on the diagonal or a fraction of it.
      */
-    std::cout << "Calculating strategy" << std::endl;
+    std::cout << "NOTICE: Calculating strategy." << std::endl;
     const float power         = 2.0;  //This variable is set to 2.0 in host_main_function, and used only here (unless it is modified in get_user_input when the input_file.txt is read).
     
     //Part of the filterbank metadata
@@ -72,7 +72,7 @@ bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const aa_filterbank_me
             m_max_ndms = m_ndms[i]; // looking for maximum number of DM trials for memory allocation
         m_total_ndms = m_total_ndms + m_ndms[i];
     }
-    printf("\nMaximum number of dm trials in any of the range steps:\t%d", m_max_ndms);
+    printf("\nNOTICE: Maximum number of dm trials in any of the range steps:\t%d.", m_max_ndms);
     
     str_dm[0].low = plan.user_dm(0).low;                        //
     str_dm[0].high = str_dm[0].low + ( m_ndms[0] * ( plan.user_dm(0).step ) );   // Redefines DM plan to suit GPU
@@ -105,17 +105,17 @@ bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const aa_filterbank_me
     m_max_dm = ceil(str_dm[range-1].high);
     
     m_maxshift = ( m_maxshift_high + ( SNUMREG * 2 * SDIVINT ) );
-    printf("\nRange:\t%lu, MAXSHIFT:\t%d, Scrunch value:\t%d", range - 1, m_maxshift, plan.user_dm(range-1).inBin);
-    printf("\nMaximum dispersive delay:\t%.2f (s)", m_maxshift * tsamp);
+    printf("\nNOTICE: Range:\t%lu, MAXSHIFT:\t%d, Scrunch value:\t%d.", range - 1, m_maxshift, plan.user_dm(range-1).inBin);
+    printf("\nNOTICE: Maximum dispersive delay:\t%.2f (s).", m_maxshift * tsamp);
     
     if (m_maxshift >= nsamp)    {
-        printf("\n\nERROR!! Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial\n\n");
+        printf("\n\nERROR: Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial.\n\n");
         return false;
     }
     
-    printf("\nDiagonal DM:\t%f", ( tsamp * nchans * 0.0001205 * powf(( fch1 + ( foff * ( nchans / 2 ) ) ), 3.0) ) / ( -foff * nchans ));
+    printf("\nNOTICE: Diagonal DM:\t%f.", ( tsamp * nchans * 0.0001205 * powf(( fch1 + ( foff * ( nchans / 2 ) ) ), 3.0) ) / ( -foff * nchans ));
     if (m_maxshift >= nsamp)    {
-        printf("ERROR!! Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial");
+        printf("ERROR: Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial.");
         return false;
     }
     
@@ -142,7 +142,7 @@ bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const aa_filterbank_me
         // Check that we dont have an out of range maxshift:
         if ((unsigned int)( m_maxshift ) > max_tsamps)    {
             printf("\nERROR: The selected GPU does not have enough memory for this number of dispersion trials.");
-            printf("\nReduce maximum dm or increase the size of dm step");
+            printf("\nReduce maximum dm or increase the size of dm step.");
             return false;
         }
         
@@ -209,7 +209,7 @@ bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const aa_filterbank_me
         // Check that we dont have an out of range maxshift:
         if (( m_maxshift ) > (int)max_tsamps) {
             printf("\nERROR: The selected GPU does not have enough memory for this number of dispersion trials.");
-            printf("\nReduce maximum dm or increase the size of dm step");
+            printf("\nReduce maximum dm or increase the size of dm step.");
             return false;
         }
         
@@ -264,12 +264,12 @@ bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const aa_filterbank_me
             printf("\nIn 4\n");
         }
     }
-    printf("\nMaxshift memory needed:\t%lu MB", nchans * ( m_maxshift ) * sizeof(unsigned short) / 1024 / 1024);
+    printf("\nNOTICE: Maxshift memory needed:\t%lu MB.", nchans * ( m_maxshift ) * sizeof(unsigned short) / 1024 / 1024);
     if (nchans < ( m_max_ndms ))    {
-        printf("\nOutput memory needed:\t%lu MB", ( m_max_ndms ) * ( m_maxshift ) * sizeof(float) / 1024 / 1024);
+        printf("\nNOTICE: Output memory needed:\t%lu MB.", ( m_max_ndms ) * ( m_maxshift ) * sizeof(float) / 1024 / 1024);
     }
     else {
-        printf("\nOutput memory needed:\t%lu MB\n", nchans * ( m_maxshift ) * sizeof(float) / 1024 / 1024);
+        printf("\nNOTICE: Output memory needed:\t%lu MB.\n", nchans * ( m_maxshift ) * sizeof(float) / 1024 / 1024);
     }
     
     //Strategy does not change inBin, outBin.

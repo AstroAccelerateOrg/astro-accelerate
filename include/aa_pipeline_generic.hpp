@@ -99,15 +99,15 @@ void aa_pipeline_generic(const std::vector<aa_compute::modules> &selected_module
         std::cout << "NOTICE: Pipeline is ready." << std::endl;
     }
     else {
-        std::cout << "NOTICE: Pipeline is not ready" << std::endl;
+        std::cout << "NOTICE: Pipeline is not ready." << std::endl;
     }
     
     // Run the pipeline
     if(pipeline_manager.run()) {
-        std::cout << "NOTICE: The pipeline finished successfully" << std::endl;
+        std::cout << "NOTICE: The pipeline finished successfully." << std::endl;
     }
     else {
-        std::cout << "NOTICE: The pipeline could not start or had errors" << std::endl;
+        std::cout << "NOTICE: The pipeline could not start or had errors." << std::endl;
     }
     
     // Bring data back from device to host
