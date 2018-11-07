@@ -11,7 +11,6 @@
 
 
 int main(int argc, const char * argv[]) {
-    
       aa_sigproc_input       filterbank_datafile("/mnt/data/AstroAccelerate/filterbank/ska-mid-b2.fil");
       aa_filterbank_metadata filterbank_metadata = filterbank_datafile.read_metadata();
       filterbank_datafile.read_telescope();
