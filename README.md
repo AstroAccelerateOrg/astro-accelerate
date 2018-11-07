@@ -283,6 +283,24 @@ Further Documentation
 ===
 More detailed information can be found on the [Wiki page of the repository](https://github.com/AstroAccelerateOrg/astro-accelerate/wiki) and the [Astro-Accelerate webpage](http://www.oerc.ox.ac.uk/projects/astroaccelerate).
 
+Using Astro-Accelerate as a library
+===
+Astro-accelerate can be compiled and linked against as a library.
+
+A good demonstration of the user interface is provided in `main.cpp`.
+
+For more advanced used, a good example boilerplate code is provided in `aa_pipeline_generic.cpp`.
+
+The user interface is centred around the user requesting a series of modules that the library will compute as a pipeline.
+
+The ordering of the pipeline modules is determined by the library, however the user may create a series of pipelines to create their own custom ordering.
+
+Return types are provided as a boolean true/false to indicate whether a method was successful or not.
+
+When a method in the pipeline configuration process returns false, the pipeline will not run, and the user should revisit their settings.
+
+The user can read .fil files or provide a std::vector<unsigned short> or a raw pointer of type unsigned short, but must in either case provide metadata that matches a filterbank data file (sigproc format).
+
 Contact and Support
 ===
 If you notice any errors or have suggestions,
