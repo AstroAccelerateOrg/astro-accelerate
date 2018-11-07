@@ -39,6 +39,6 @@ int main(int argc, const char * argv[]) {
       dm_ranges.push_back(range8);
       
       dedisperse_telescope_data(filterbank_metadata, dm_ranges, filterbank_datafile.input_buffer(), my_output_data);
-    
+      std::cout << "NOTICE: Finished."
       return 0;
 }
