@@ -12,8 +12,11 @@ aa_sigproc_input::~aa_sigproc_input() {
 
 bool aa_sigproc_input::open() {
     fp = fopen(file_path.c_str(), "rb");
+    if(fp == NULL) {
+      return false;
+    }
     isopen = true;
-    return false;
+    return true;
 }
 
 bool aa_sigproc_input::close() {
@@ -30,7 +33,10 @@ bool aa_sigproc_input::close() {
 
 aa_filterbank_metadata aa_sigproc_input::read_metadata() {
     if(!isopen) {
-        open();
+      if(!open()) {
+	aa_filterbank_metadata empty;
+	return empty;
+      }
     }
     
     aa_filterbank_metadata metadata;

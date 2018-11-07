@@ -11,9 +11,12 @@
 
 
 int main(int argc, const char * argv[]) {
-      aa_sigproc_input       filterbank_datafile("/mnt/data/AstroAccelerate/filterbank/ska-mid-b2.fil");
+      aa_sigproc_input       filterbank_datafile("/home/carels/filterbank/BenMeerKAT.fil");
       aa_filterbank_metadata filterbank_metadata = filterbank_datafile.read_metadata();
-      filterbank_datafile.read_telescope();
+      if(!filterbank_datafile.read_telescope()) {
+	std::cout << "ERROR: Could not read telescope data." << std::endl;
+	return 0;
+      }
       float *my_output_data = NULL;
 
       std::vector<aa_ddtr_plan::dm> dm_ranges;
