@@ -79,6 +79,7 @@ public:
             cudaMemGetInfo(&free, &total);
 	    tmp.free_memory = free;
 	    tmp.total_memory = total;
+	    std::cout << "Device info " << i << " free " << free << std::endl;
             m_card_info.push_back(std::move(tmp));
         }
         
@@ -97,6 +98,11 @@ public:
             if(m_card_info.at(i).card_number == id) {
                 selected_card_idx = i;
                 cudaSetDevice(i);
+		size_t free     = 0;
+                size_t total    = 0;
+                cudaMemGetInfo(&free, &total);
+		m_card_info.at(i).free_memory = free;
+		m_card_info.at(i).total_memory = total;
                 card_info = m_card_info.at(i);
                 return true;
             }

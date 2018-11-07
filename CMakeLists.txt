@@ -99,7 +99,7 @@ include_directories($ENV{CUDA_INSTALL_PATH}/samples/common/inc/)
 include_directories(${CUDA_LIBRARY_DIRS})
 
 # CUDA library object
-file(GLOB_RECURSE GPU_SOURCE_FILES "src/*.cu" "src/*.cpp")
+file(GLOB_RECURSE GPU_SOURCE_FILES "src/*.cu")
 cuda_add_library(astroaccelerate SHARED ${GPU_SOURCE_FILES})
 target_link_libraries(astroaccelerate PRIVATE ${CUDA_LIBRARY_DIRS} ${CUDA_CUFFT_LIBRARIES} ${CUDA_curand_LIBRARY})
 set_target_properties(astroaccelerate PROPERTIES CUDA_SEPARABLE_COMPILATION OFF)

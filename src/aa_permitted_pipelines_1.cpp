@@ -7,6 +7,7 @@
 //
 
 #include "aa_permitted_pipelines_1.hpp"
+#include "aa_device_info.hpp"
 
 void allocate_memory_gpu(const int &maxshift, const int &max_ndms, const int &nchans, int **const t_processed, unsigned short **const d_input, float **const d_output) {
     
@@ -24,6 +25,7 @@ void allocate_memory_gpu(const int &maxshift, const int &max_ndms, const int &nc
         gpu_outputsize = (size_t)time_samps * (size_t)nchans * sizeof(float);
     }
 
+    std::cout << "gpu_outputsize " << gpu_outputsize << std::endl;
     checkCudaErrors( cudaMalloc((void **) d_output, gpu_outputsize) );
     cudaMemset(*d_output, 0, gpu_outputsize);
 

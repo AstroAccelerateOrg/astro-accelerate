@@ -48,7 +48,7 @@ void aa_pipeline_generic(const std::vector<aa_compute::modules> &selected_module
     else {
       std::cout << "ERROR: init_card incomplete." << std::endl;
     }
-    
+        
     aa_config configuration(the_pipeline);   // Set the pipeline and other run settings that would come from an input_file
     the_pipeline = configuration.setup();    // The configuration validates whether the pipeline is valid and returns either a valid pipeline or a trivial pipeline
     
