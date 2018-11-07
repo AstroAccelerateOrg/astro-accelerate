@@ -71,7 +71,7 @@ void run_pipeline_1(const aa_filterbank_metadata &metadata, const aa_ddtr_strate
     
     
     for(int t = 0; t < num_tchunks; t++) {
-        printf("\nt_processed:\t%d, %d", t_processed[0][t], t);
+        printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][t], t);
 
         checkCudaErrors(cudaGetLastError());
         load_data(-1, inBin, d_input, &input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
@@ -97,7 +97,7 @@ void run_pipeline_1(const aa_filterbank_metadata &metadata, const aa_ddtr_strate
 
         int oldBin = 1;
         for(size_t dm_range = 0; dm_range < range; dm_range++) {
-            printf("\n\n%f\t%f\t%f\t%d\n", ddtr_strategy.dm(dm_range).low, ddtr_strategy.dm(dm_range).high, ddtr_strategy.dm(dm_range).step, ddtr_strategy.ndms(dm_range));
+            printf("\n\nNOTICE: %f\t%f\t%f\t%d\n", ddtr_strategy.dm(dm_range).low, ddtr_strategy.dm(dm_range).high, ddtr_strategy.dm(dm_range).step, ddtr_strategy.ndms(dm_range));
             printf("\nAmount of telescope time processed: %f\n", tstart_local);
             maxshift = maxshift_original / inBin[dm_range];
 
@@ -124,7 +124,7 @@ void run_pipeline_1(const aa_filterbank_metadata &metadata, const aa_ddtr_strate
         }
         
         inc = inc + t_processed[0][t];
-        printf("\nINC:\t%ld\n", inc);
+        printf("\nNOTICE: INC:\t%ld\n", inc);
         tstart_local = ( tsamp_original * inc );
         tsamp = tsamp_original;
         maxshift = maxshift_original;
