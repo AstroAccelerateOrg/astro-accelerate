@@ -1,5 +1,6 @@
 # CMakeLists.txt for tests
 include(CTest)
 
+include(tests/test_filterbank_metadata_1.cmake)
 include(tests/test_ddtr_strategy_1.cmake)
 include(tests/test_ddtr_strategy_2.cmake)
