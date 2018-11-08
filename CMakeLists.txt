@@ -108,10 +108,11 @@ set_target_properties(astroaccelerate PROPERTIES BUILD_SHARED_LIBS ON)
 
 
 # Standalone executable to link against CUDA library
-file(GLOB_RECURSE SOURCE_FILES "src/*.cpp")
+file(GLOB_RECURSE SOURCE_FILES "src/main.cpp")
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} astroaccelerate)
 
+install(TARGETS astroaccelerate DESTINATION bin)
 
 # Add tests/ directory
 cmake_policy(SET CMP0012 NEW)
