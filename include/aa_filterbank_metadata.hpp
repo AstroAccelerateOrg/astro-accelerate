@@ -97,91 +97,91 @@ public:
         
     }
     
-    const double az_start() const {
+    double az_start() const {
         return m_az_start;
     }
     
-    const double za_start() const {
+    double za_start() const {
         return m_za_start;
     }
     
-    const double src_raj() const {
+    double src_raj() const {
         return m_src_raj;
     }
     
-    const double src_dej() const {
+    double src_dej() const {
         return m_src_dej;
     }
     
-    const double tstart() const {
+    double tstart() const {
         return m_tstart;
     }
     
-    const double tsamp() const {
+    double tsamp() const {
         return m_tsamp;
     }
     
-    const double refdm() const {
+    double refdm() const {
         return m_refdm;
     }
     
-    const double period() const {
+    double period() const {
         return m_period;
     }
     
-    const double fch1() const {
+    double fch1() const {
         return m_fch1;
     }
     
-    const double foff() const {
+    double foff() const {
         return m_foff;
     }
     
-    const double fchannel() const {
+    double fchannel() const {
         return m_fchannel;
     }
     
-    const int telescope_id() const {
+    int telescope_id() const {
         return m_telescope_id;
     }
     
-    const int machine_id() const {
+    int machine_id() const {
         return m_machine_id;
     }
     
-    const int data_type() const {
+    int data_type() const {
         return m_data_type;
     }
     
-    const int barycentric() const {
+    int barycentric() const {
         return m_barycentric;
     }
     
-    const int pulsarcentric() const {
+    int pulsarcentric() const {
         return m_pulsarcentric;
     }
     
-    const int nbits() const {
+    int nbits() const {
         return m_nbits;
     }
     
-    const int nsamples() const {
+    int nsamples() const {
         return m_nsamples;
     }
     
-    const int nchans() const {
+    int nchans() const {
         return m_nchans;
     }
     
-    const int nifs() const {
+    int nifs() const {
         return m_nifs;
     }
     
-    const char FREQUENCY_START() const {
+    char FREQUENCY_START() const {
         return m_FREQUENCY_START;
     }
     
-    const char FREQUENCY_END() const {
+    char FREQUENCY_END() const {
         return m_FREQUENCY_END;
     }
     
@@ -193,16 +193,16 @@ public:
         return m_source_name;
     }
     
-    const int N() const {
+    int N() const {
         return (m_nifs * m_nchans * m_nsamples);
     }
     
-    const int array_index(const int &sample_idx, const int &channel_idx, const int &frequency_channel) const {
+    int array_index(const int &sample_idx, const int &channel_idx, const int &frequency_channel) const {
         return ((sample_idx * m_nifs * m_nchans)
                 + (channel_idx * m_nchans + frequency_channel));
     }
     
-    const double sky_frequency(const int &channel_idx) const {
+    double sky_frequency(const int &channel_idx) const {
         return (m_fch1 + channel_idx * m_foff);
     }
     

@@ -6,6 +6,9 @@
 #include <set>
 #include <vector>
 #include <wordexp.h>
+#include <algorithm>
+
+#include "aa_ddtr_plan.hpp"
 #include "aa_compute.hpp"
 #include "aa_permitted_pipelines.hpp"
 
@@ -70,7 +73,9 @@ public:
         return true;
     }
     
-    bool add_dispersion_measure(const float &low, const float &high, const float &step) {
+  bool add_dispersion_measure(const float &low, const float &high, const float &step, const int &inBin, const int &outBin) {
+        aa_ddtr_plan::dm tmp = {low, high, step, inBin, outBin};
+        m_dm_ranges.push_back(tmp);
         ++(flg.range);
         return true;
     }
@@ -113,6 +118,7 @@ protected:
     aa_config_flags flg;  // configuration flags
     aa_compute::pipeline pipeline;
     aa_CLI user_cli;
+    std::vector<aa_ddtr_plan::dm> m_dm_ranges;
     
     
     bool get_user_input(const aa_CLI &cli_input) {
@@ -353,7 +359,12 @@ protected:
                     wordfree(&expanded_string);
                 }
             }
-            
+
+	    //Apply overrides to the input txt file that were supplied via the CLI
+	    if(std::find(cli_input.input.begin(), cli_input.input.end(), "narrow") != cli_input.input.end()) {
+	      //Parse the override string...
+	    }
+	    
         }
         else if (argc == 2 && strcmp(user_cli.input[1].c_str(), "-help") == 0)
         {

@@ -33,7 +33,7 @@ public:
         std::string name;
     };
     
-    const bool check_for_devices() {
+    bool check_for_devices() {
         int deviceCount = 0;
         cudaError_t error_id = cudaGetDeviceCount(&deviceCount);
         
@@ -89,7 +89,7 @@ public:
         return true;
     }
     
-    const bool init_card(const CARD_ID &id, aa_card_info &card_info) {
+    bool init_card(const CARD_ID &id, aa_card_info &card_info) {
         if(!is_init) {
             return false;
         }
@@ -111,7 +111,7 @@ public:
         return true;
     }
     
-    const size_t gpu_memory() const {
+    size_t gpu_memory() const {
         if(is_init) {
             return m_card_info.at(selected_card_idx).free_memory;
         }

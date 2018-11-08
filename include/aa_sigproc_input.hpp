@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "aa_input.hpp"
-#include "aa_host_malloc.hpp"
 
 /**
  * The aa_sigproc_input class is used to parse a sigproc (.fil) file.
@@ -38,7 +37,6 @@ private:
     bool header_is_read;
     
     aa_filterbank_metadata m_meta;
-    aa_malloc              m_mem;
     
     std::string file_path;
     FILE *fp;

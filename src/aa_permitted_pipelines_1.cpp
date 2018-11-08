@@ -116,7 +116,7 @@ void run_pipeline_1(const aa_filterbank_metadata &metadata, const aa_ddtr_strate
             
             checkCudaErrors(cudaGetLastError());
 
-            dedisperse(dm_range, t_processed[dm_range][t], inBin, dmshifts, d_input, d_output, nchans, t_processed[dm_range][t] + maxshift, maxshift, &tsamp, dm_low, dm_high, dm_step, ndms, nbits, failsafe);
+            dedisperse(dm_range, t_processed[dm_range][t], inBin, dmshifts, d_input, d_output, nchans, &tsamp, dm_low, dm_step, ndms, nbits, failsafe);
 
             checkCudaErrors(cudaGetLastError());
 

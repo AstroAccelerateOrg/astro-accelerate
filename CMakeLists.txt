@@ -30,7 +30,7 @@ list(APPEND CUDA_NVCC_FLAGS -lineinfo;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-O3;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-lm;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-Wall;)
-list(APPEND CMAKE_CXX_FLAGS "-std=c++11 -O3 -lm -Wall")
+list(APPEND CMAKE_CXX_FLAGS "-std=c++11 -O3 -lm -Wall -Wpedantic -Wextra")
 
 if(NOT DEFINED CUDA_ARCH)  
 	set(CUDA_ARCH "ALL")
@@ -99,12 +99,13 @@ include_directories($ENV{CUDA_INSTALL_PATH}/samples/common/inc/)
 include_directories(${CUDA_LIBRARY_DIRS})
 
 # CUDA library object
-file(GLOB_RECURSE GPU_SOURCE_FILES "src/*.cu")
+file(GLOB_RECURSE GPU_SOURCE_FILES "src/*.cu" "src/*.cpp")
 cuda_add_library(astroaccelerate SHARED ${GPU_SOURCE_FILES})
 target_link_libraries(astroaccelerate PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUFFT_LIBRARIES} ${CUDA_curand_LIBRARY})
 set_target_properties(astroaccelerate PROPERTIES CUDA_SEPARABLE_COMPILATION OFF)
 set_target_properties(astroaccelerate PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(astroaccelerate PROPERTIES BUILD_SHARED_LIBS ON)
+
 
 # Standalone executable to link against CUDA library
 file(GLOB_RECURSE SOURCE_FILES "src/*.cpp")

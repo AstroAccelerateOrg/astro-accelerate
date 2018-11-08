@@ -26,18 +26,18 @@ public:
         int outBin;
     };
     
-    const bool add_dm(const float &low, const float &high, const float &step, const int &inBin, const int &outBin) {
+    bool add_dm(const float &low, const float &high, const float &step, const int &inBin, const int &outBin) {
         const dm tmp = {low, high, step, inBin, outBin};
         m_user_dm.push_back(std::move(tmp));
         return true;
     }
 
-    const bool add_dm(aa_ddtr_plan::dm &DM) {
+    bool add_dm(aa_ddtr_plan::dm &DM) {
         m_user_dm.push_back(std::move(DM));
 	return true;
     }
     
-    const size_t range() const {
+    size_t range() const {
         return m_user_dm.size();
     }
     

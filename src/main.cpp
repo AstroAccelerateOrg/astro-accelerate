@@ -10,7 +10,7 @@
 #include "aa_ddtr_pipeline.hpp"
 
 
-int main(int argc, const char * argv[]) {
+int main() {
       aa_sigproc_input       filterbank_datafile("/home/carels/filterbank/BenMeerKAT.fil");
       aa_filterbank_metadata filterbank_metadata = filterbank_datafile.read_metadata();
       if(!filterbank_datafile.read_telescope()) {

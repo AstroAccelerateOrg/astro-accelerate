@@ -33,11 +33,11 @@ public:
     aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis);
     bool setup();
     
-    const int maxshift() const {
+    int maxshift() const {
         return m_maxshift;
     }
     
-    int **const t_processed() const {
+    int** t_processed() const {
         return m_t_processed;
     }
     
@@ -49,15 +49,15 @@ public:
         return str_dm.at(i);
     }
     
-    const size_t range() const {
+    size_t range() const {
         return str_dm.size();
     }
     
-    const int ndms(const size_t &i) const {
+    int ndms(const size_t &i) const {
         return m_ndms.at(i);
     }
     
-    const int max_ndms() const {
+    int max_ndms() const {
         return m_max_ndms;
     }
     
@@ -65,11 +65,11 @@ public:
         return m_ndms.data();
     }
     
-    const int num_tchunks() const {
+    int num_tchunks() const {
         return m_num_tchunks;
     }
     
-    const bool ready() const {
+    bool ready() const {
         return m_ready;
     }
     

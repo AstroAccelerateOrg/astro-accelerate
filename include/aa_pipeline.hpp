@@ -70,7 +70,7 @@ public:
     
     //TODO: If any plan is offered to a bind method after a bind has already happened,
     //then all flags indicating readiness must be invalidated.
-    const bool bind(aa_ddtr_plan &plan) {
+    bool bind(aa_ddtr_plan &plan) {
         pipeline_ready = false;
         
         //Does the pipeline actually need this plan?
@@ -110,7 +110,7 @@ public:
         return true;
     }
     
-    const bool bind(aa_analysis_plan &plan) {
+    bool bind(aa_analysis_plan &plan) {
         pipeline_ready = false;
         
         //Does the pipeline actually need this plan?
@@ -128,7 +128,7 @@ public:
         return true;
     }
     
-    const bool bind(aa_periodicity_plan &plan) {
+    bool bind(aa_periodicity_plan &plan) {
         pipeline_ready = false;
         
         //Does the pipeline actually need this plan?
@@ -145,7 +145,7 @@ public:
         return true;
     }
     
-    const aa_ddtr_strategy ddtr_strategy() const {
+    aa_ddtr_strategy ddtr_strategy() const {
         //if(have_ddtr_strategy) don't recompute, just return
         
         //Does the pipeline actually need this strategy?
@@ -160,13 +160,13 @@ public:
     }
     
     //Bind vector data of any type
-    const bool bind_data(const std::vector<T> &data) {
+    bool bind_data(const std::vector<T> &data) {
         pipeline_ready = false;
         input_data_bound = true;
         return true;
     }
     
-    const bool bind_data_managed(const std::vector<T> &data) {
+    bool bind_data_managed(const std::vector<T> &data) {
         pipeline_ready = false;
         data_in = std::move(data);
         input_data_bound = true;
@@ -174,7 +174,7 @@ public:
     }
     
     //Bind raw C-array data of any type
-    const bool bind_data(T *const data) {
+    bool bind_data(T *const data) {
         /**
          * This approach does not guarantee persistence of the data
          */
@@ -185,7 +185,7 @@ public:
         return true;
     }
     
-    const bool transfer_data_to_device() {
+    bool transfer_data_to_device() {
         pipeline_ready = false;
         if(input_data_bound) {
             data_on_device = true;
@@ -194,7 +194,7 @@ public:
         return true;
     }
     
-    const bool transfer_data_to_host(std::vector<U> &data) {
+    bool transfer_data_to_host(std::vector<U> &data) {
         if(data_on_device) {
             data = std::move(data_out);
             data_on_device = false;
@@ -205,7 +205,7 @@ public:
         return false;
     }
     
-    const bool transfer_data_to_host(U* data) {
+    bool transfer_data_to_host(U *&data) {
         if(data_on_device) {
             data = ptr_data_out;
             data_on_device = false;
@@ -216,7 +216,7 @@ public:
         return false;
     }
     
-    const bool unbind_data() {
+    bool unbind_data() {
         /**
          * If the data is managed, then either it was either moved out via the transfer,
          * or it will be freed at de-allocation if the user forgot to transfer.
@@ -229,7 +229,7 @@ public:
         return true;
     }
     
-    const bool ready() {
+    bool ready() {
         pipeline_ready = false;
         
         if(!data_on_device) {
@@ -252,7 +252,7 @@ public:
         return true;
     }
     
-    const bool run() {
+    bool run() {
         if(pipeline_ready && data_on_device) {
             //A function callback can run the pipeline from elsewhere
             for(auto strategy : m_all_strategy) {
@@ -273,7 +273,7 @@ public:
         }
     }
     
-    const bool handoff(aa_pipeline &next_pipeline) {
+    bool handoff(aa_pipeline &next_pipeline) {
         /**
          * Handoff control over the data to the next pipeline.
          *
