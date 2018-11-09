@@ -11,6 +11,19 @@ if(NOT ASTRO_ACCELERATE_BUILD_DATE_UTC)
 set(ASTRO_ACCELERATE_BUILD_DATE_UTC "EMPTY")
 endif()
 
+# Find Git and Git info
+
+find_package(Git)
+if(GIT_FOUND)
+  message("-- INFO: Git found: ${GIT_EXECUTABLE}")
+  execute_process(COMMAND git log -1 --format=%H
+  	          WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+		  OUTPUT_VARIABLE GIT_COMMIT_HASH
+		  OUTPUT_STRIP_TRAILING_WHITESPACE)
+		  
+endif()
+add_definitions("-DGIT_COMMIT_HASH=${GIT_COMMIT_HASH}")
+
 if(NOT ASTRO_ACCELERATE_BUILD_TIME_UTC)
 set(ASTRO_ACCELERATE_BUILD_TIME_UTC "EMPTY")
 endif()
