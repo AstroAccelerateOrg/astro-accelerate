@@ -36,6 +36,11 @@ public:
         m_user_dm.push_back(std::move(DM));
 	return true;
     }
+
+    bool add_dm(std::vector<aa_ddtr_plan::dm> &DM) {
+        m_user_dm.insert(end(m_user_dm), begin(DM), end(DM));
+	return true;
+    }
     
     size_t range() const {
         return m_user_dm.size();
