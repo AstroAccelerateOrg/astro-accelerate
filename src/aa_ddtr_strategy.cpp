@@ -21,6 +21,11 @@ bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const aa_filterbank_me
      * This method relies on defining points when nsamps is a multiple of
      * nchans - bin on the diagonal or a fraction of it.
      */
+    if(m_strategy_already_calculated) {
+         std::cout << "NOTICE: Strategy already calculated." << std::endl;
+         return true;
+    }
+
     std::cout << "NOTICE: Calculating strategy." << std::endl;
     const float power         = 2.0;  //This variable is set to 2.0 in host_main_function, and used only here (unless it is modified in get_user_input when the input_file.txt is read).
     
@@ -280,6 +285,7 @@ bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const aa_filterbank_me
     }
     
     m_ready = true;
+    m_strategy_already_calculated = true;
     return true;
 }
 

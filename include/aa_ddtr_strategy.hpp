@@ -81,6 +81,7 @@ public:
 private:
     bool strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis);
     bool m_ready;
+    bool m_strategy_already_calculated;
     void allocate_memory_cpu_output();
     
     bool is_setup;  //Has setup been called already?
