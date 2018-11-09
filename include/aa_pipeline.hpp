@@ -70,12 +70,12 @@ public:
     
     //TODO: If any plan is offered to a bind method after a bind has already happened,
     //then all flags indicating readiness must be invalidated.
-    bool bind(aa_ddtr_plan &plan) {
+    bool bind(aa_ddtr_plan plan) {
         pipeline_ready = false;
         
         //Does the pipeline actually need this plan?
         if(required_plans.find(aa_compute::modules::dedispersion) != required_plans.end()) {
-            m_ddtr_plan = std::move(plan);
+            m_ddtr_plan = plan;
             
             //If the plan is valid then the supplied_plan becomes true
             supplied_plans.at(aa_compute::modules::dedispersion) = true;
@@ -110,12 +110,12 @@ public:
         return true;
     }
     
-    bool bind(aa_analysis_plan &plan) {
+    bool bind(aa_analysis_plan plan) {
         pipeline_ready = false;
         
         //Does the pipeline actually need this plan?
         if(required_plans.find(aa_compute::modules::analysis) != required_plans.end()) {
-            m_analysis_plan = std::move(plan);
+            m_analysis_plan = plan;
             
             //If the plan is valid then the supplied_plan becomes true
             supplied_plans.at(aa_compute::modules::analysis) = true;
@@ -128,12 +128,12 @@ public:
         return true;
     }
     
-    bool bind(aa_periodicity_plan &plan) {
+    bool bind(aa_periodicity_plan plan) {
         pipeline_ready = false;
         
         //Does the pipeline actually need this plan?
         if(required_plans.find(aa_compute::modules::periodicity) != required_plans.end()) {
-            m_periodicity_plan = std::move(plan);
+            m_periodicity_plan = plan;
             //If the plan is valid then the supplied_plan becomes true
             supplied_plans.at(aa_compute::modules::periodicity) = true;
         }
@@ -166,7 +166,7 @@ public:
         return true;
     }
     
-    bool bind_data_managed(const std::vector<T> &data) {
+    bool bind_data_managed(std::vector<T> &data) {
         pipeline_ready = false;
         data_in = std::move(data);
         input_data_bound = true;
