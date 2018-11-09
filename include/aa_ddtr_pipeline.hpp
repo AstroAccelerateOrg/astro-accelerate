@@ -15,7 +15,7 @@
 #include "aa_filterbank_metadata.hpp"
 #include "aa_pipeline_generic.hpp"
 
-void dedisperse_telescope_data(const aa_filterbank_metadata &filterbank_data, std::vector<aa_ddtr_plan::dm> dm_ranges, unsigned short *input_data, float *output_data);
-void dedisperse_telescope_data(const aa_filterbank_metadata &filterbank_data, std::vector<aa_ddtr_plan::dm> dm_ranges, std::vector<unsigned short> input_data, float *output_data);
+void dedisperse_telescope_data(const aa_filterbank_metadata &filterbank_data, std::vector<aa_ddtr_plan::dm> dm_ranges, unsigned short *input_data, float *&output_data);
+void dedisperse_telescope_data(const aa_filterbank_metadata &filterbank_data, std::vector<aa_ddtr_plan::dm> dm_ranges, std::vector<unsigned short> input_data, float *&output_data);
 
 #endif /* ASTRO_ACCELERATE_DDTR_PIPELINE_HPP */

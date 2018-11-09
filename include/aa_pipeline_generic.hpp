@@ -17,7 +17,7 @@
 #include "aa_pipeline.hpp"
 
 template <typename T, typename U>
-void aa_pipeline_generic(const std::vector<aa_compute::modules> &selected_modules, const aa_filterbank_metadata &filterbank_data, std::vector<aa_ddtr_plan::dm> dm_ranges, T *input_data, U *output_data) {
+void aa_pipeline_generic(const std::vector<aa_compute::modules> &selected_modules, const aa_filterbank_metadata &filterbank_data, std::vector<aa_ddtr_plan::dm> dm_ranges, T *input_data, U *&output_data) {
     /**
      * Boilerplate code for executing a pipeline of modules
      */

@@ -31,6 +31,11 @@ class aa_ddtr_strategy : public aa_strategy {
 public:
     aa_ddtr_strategy();
     aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis);
+
+    ~aa_ddtr_strategy() {
+      
+    }
+    
     bool setup();
     
     int maxshift() const {
