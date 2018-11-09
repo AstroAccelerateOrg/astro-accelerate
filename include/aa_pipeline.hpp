@@ -15,20 +15,14 @@
 #include <functional>
 
 #include "aa_compute.hpp"
-
 #include "aa_ddtr_plan.hpp"
 #include "aa_ddtr_strategy.hpp"
-
 #include "aa_analysis_plan.hpp"
 #include "aa_analysis_strategy.hpp"
-
 #include "aa_periodicity_plan.hpp"
 #include "aa_periodicity_strategy.hpp"
-
 #include "aa_filterbank_metadata.hpp"
-
 #include "aa_device_info.hpp"
-
 #include "aa_permitted_pipelines_1.hpp"
 
 /**
