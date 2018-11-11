@@ -10,15 +10,15 @@
 
 namespace astroaccelerate {
 
-aa_ddtr_strategy::aa_ddtr_strategy() : m_ready(false), is_setup(false), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0) {
+  aa_ddtr_strategy::aa_ddtr_strategy() : m_ready(false), m_strategy_already_calculated(false), is_setup(false), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_t_processed_dim1_size(0), m_output_buffer_dim1_size(0), m_output_buffer_dim2_size(0), m_output_buffer_dim3_size(0) {
     
 }
 
-aa_ddtr_strategy::aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis) : m_ready(false), is_setup(false), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0) {
-    strategy(plan, metadata, free_memory, enable_analysis);
+  aa_ddtr_strategy::aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis) : m_ready(false), m_strategy_already_calculated(false), is_setup(false), m_metadata(metadata), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_t_processed_dim1_size(0), m_output_buffer_dim1_size(0), m_output_buffer_dim2_size(0), m_output_buffer_dim3_size(0) {
+    strategy(plan, free_memory, enable_analysis);
 }
 
-bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis) {
+bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const size_t &free_memory, const bool &enable_analysis) {
     /**
      * This method relies on defining points when nsamps is a multiple of
      * nchans - bin on the diagonal or a fraction of it.
@@ -32,11 +32,11 @@ bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const aa_filterbank_me
     const float power         = 2.0;  //This variable is set to 2.0 in host_main_function, and used only here (unless it is modified in get_user_input when the input_file.txt is read).
     
     //Part of the filterbank metadata
-    const int nchans  = metadata.nchans();
-    const int nsamp   = metadata.nsamples();
-    const float fch1  = metadata.fch1();
-    const float foff  = metadata.foff();
-    const float tsamp = metadata.tsamp();
+    const int nchans  = m_metadata.nchans();
+    const int nsamp   = m_metadata.nsamples();
+    const float fch1  = m_metadata.fch1();
+    const float foff  = m_metadata.foff();
+    const float tsamp = m_metadata.tsamp();
     
     if(!plan.range()) {
         //No user requested dm settings have been added, this is an invalid aa_ddtr_plan.
@@ -135,148 +135,153 @@ bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const aa_filterbank_me
     
     unsigned int max_tsamps;
     // Allocate memory to store the t_processed ranges:
-    m_t_processed = (int **) malloc(range * sizeof(int *));
+    //m_t_processed = (int **) malloc(range * sizeof(int *));
+    m_t_processed.resize(range);
     
     if (nchans < ( m_max_ndms )) {
-        // This means that we can cornerturn into the allocated output buffer
-        // without increasing the memory needed
+      // This means that we can cornerturn into the allocated output buffer
+      // without increasing the memory needed
+      
+      // Maximum number of samples we can fit in our GPU RAM is then given by:
+      //max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short) * ( (*m_max_ndms) + nchans ) ) ); // maximum number of timesamples we can fit into GPU memory
+      size_t SPDT_memory_requirements = (enable_analysis ? (sizeof(float)*(m_max_ndms)*SPDT_fraction) : 0 );
+      max_tsamps = (unsigned int) ( (gpu_memory) / ( sizeof(unsigned short)*nchans + sizeof(float)*(m_max_ndms) + SPDT_memory_requirements )); // maximum number of timesamples we can fit into GPU memory
+      
+      // Check that we dont have an out of range maxshift:
+      if ((unsigned int)( m_maxshift ) > max_tsamps)    {
+	printf("\nERROR: The selected GPU does not have enough memory for this number of dispersion trials.");
+	printf("\nReduce maximum dm or increase the size of dm step.");
+	return false;
+      }
+      
+      // Next check to see if nsamp fits in GPU RAM:
+      if ((unsigned int)nsamp < max_tsamps)    {
+	// We have case 1)
+	// Allocate memory to hold the values of nsamps to be processed
+	unsigned long int local_t_processed = (unsigned long int) floor(( (double) ( nsamp - (m_maxshift) ) / (double) plan.user_dm(range-1).inBin ) / (double) ( SDIVINT*2*SNUMREG )); //number of timesamples per block
+	local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	for (size_t i = 0; i < range; i++)    {
+	  m_t_processed[i].resize(1);
+	  //m_t_processed[i] = (int *) malloc(sizeof(int)); // TODO: change to size_t
+	  m_t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
+	  m_t_processed[i][0] = m_t_processed[i][0] * ( SDIVINT*2*SNUMREG );
+	}
+	( m_num_tchunks ) = 1;
+	printf("\nIn 1\n");
+      }
+      else {
+	// We have case 3)
+	// Work out how many time samples we can fit into ram
+	int samp_block_size = max_tsamps - ( m_maxshift );
         
-        // Maximum number of samples we can fit in our GPU RAM is then given by:
-        //max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short) * ( (*m_max_ndms) + nchans ) ) ); // maximum number of timesamples we can fit into GPU memory
-        size_t SPDT_memory_requirements = (enable_analysis ? (sizeof(float)*(m_max_ndms)*SPDT_fraction) : 0 );
-        max_tsamps = (unsigned int) ( (gpu_memory) / ( sizeof(unsigned short)*nchans + sizeof(float)*(m_max_ndms) + SPDT_memory_requirements )); // maximum number of timesamples we can fit into GPU memory
+	// Work out how many blocks of time samples we need to complete the processing
+	// upto nsamp-maxshift
+	//int num_blocks = (int) floor(( (float) nsamp - ( *maxshift ) )) / ( (float) ( samp_block_size ) ) + 1;
         
-        // Check that we dont have an out of range maxshift:
-        if ((unsigned int)( m_maxshift ) > max_tsamps)    {
-            printf("\nERROR: The selected GPU does not have enough memory for this number of dispersion trials.");
-            printf("\nReduce maximum dm or increase the size of dm step.");
-            return false;
-        }
+	// Find the common integer amount of samples between all bins
+	int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) plan.user_dm(range-1).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
+	local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
         
-        // Next check to see if nsamp fits in GPU RAM:
-        if ((unsigned int)nsamp < max_tsamps)    {
-            // We have case 1)
-            // Allocate memory to hold the values of nsamps to be processed
-            unsigned long int local_t_processed = (unsigned long int) floor(( (double) ( nsamp - (m_maxshift) ) / (double) plan.user_dm(range-1).inBin ) / (double) ( SDIVINT*2*SNUMREG )); //number of timesamples per block
-            local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
-            for (size_t i = 0; i < range; i++)    {
-                m_t_processed[i] = (int *) malloc(sizeof(int)); // TODO: change to size_t
-                m_t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-                m_t_processed[i][0] = m_t_processed[i][0] * ( SDIVINT*2*SNUMREG );
-            }
-            ( m_num_tchunks ) = 1;
-            printf("\nIn 1\n");
-        }
-        else {
-            // We have case 3)
-            // Work out how many time samples we can fit into ram
-            int samp_block_size = max_tsamps - ( m_maxshift );
-            
-            // Work out how many blocks of time samples we need to complete the processing
-            // upto nsamp-maxshift
-            //int num_blocks = (int) floor(( (float) nsamp - ( *maxshift ) )) / ( (float) ( samp_block_size ) ) + 1;
-            
-            // Find the common integer amount of samples between all bins
-            int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) plan.user_dm(range-1).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-            local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
-            
-            int num_blocks = (int) floor(( (float) nsamp - (float)( m_maxshift ) )) / ( (float) ( local_t_processed ) );
-            
-            // Work out the remaining fraction to be processed
-            int remainder =  nsamp -  (num_blocks*local_t_processed ) - (m_maxshift) ;
-            remainder = (int) floor((float) remainder / (float) plan.user_dm(range-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
-            remainder = remainder * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
-            
-            for (size_t i = 0; i < range; i++)    {
-                // Allocate memory to hold the values of nsamps to be processed
-                m_t_processed[i] = (int *) malloc((num_blocks + 1) * sizeof(int));
-                // Remember the last block holds less!
-                for (int j = 0; j < num_blocks; j++) {
-                    m_t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-                    m_t_processed[i][j] = m_t_processed[i][j] * ( SDIVINT*2*SNUMREG );
-                }
-                // fractional bit
-                m_t_processed[i][num_blocks] = (int) floor(( (float) ( remainder ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-                m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks] * ( SDIVINT*2*SNUMREG );
-            }
-            ( m_num_tchunks ) = num_blocks + 1;
-            printf("\nIn 3\n");
-            printf("\nnum_blocks:\t%d", num_blocks);
-        }
+	int num_blocks = (int) floor(( (float) nsamp - (float)( m_maxshift ) )) / ( (float) ( local_t_processed ) );
+        
+	// Work out the remaining fraction to be processed
+	int remainder =  nsamp -  (num_blocks*local_t_processed ) - (m_maxshift) ;
+	remainder = (int) floor((float) remainder / (float) plan.user_dm(range-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
+	remainder = remainder * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+        
+	for (size_t i = 0; i < range; i++)    {
+	  // Allocate memory to hold the values of nsamps to be processed
+	  //m_t_processed[i] = (int *) malloc((num_blocks + 1) * sizeof(int));
+	  m_t_processed[i].resize(num_blocks + 1);
+	  // Remember the last block holds less!
+	  for (int j = 0; j < num_blocks; j++) {
+	    m_t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
+	    m_t_processed[i][j] = m_t_processed[i][j] * ( SDIVINT*2*SNUMREG );
+	  }
+	  // fractional bit
+	  m_t_processed[i][num_blocks] = (int) floor(( (float) ( remainder ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
+	  m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks] * ( SDIVINT*2*SNUMREG );
+	}
+	( m_num_tchunks ) = num_blocks + 1;
+	printf("\nIn 3\n");
+	printf("\nnum_blocks:\t%d", num_blocks);
+      }
     }
     else {
-        // This means that we cannot cornerturn into the allocated output buffer
-        // without increasing the memory needed. Set the output buffer to be as large as the input buffer:
+      // This means that we cannot cornerturn into the allocated output buffer
+      // without increasing the memory needed. Set the output buffer to be as large as the input buffer:
+      
+      // Maximum number of samples we can fit in our GPU RAM is then given by:
+      //max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + 2 * sizeof(unsigned short) ) ) );
+      size_t SPDT_memory_requirements = (enable_analysis ? (sizeof(float)*(m_max_ndms)*SPDT_fraction) : 0 );
+      max_tsamps = (unsigned int) ( ( gpu_memory ) / ( nchans * ( sizeof(float) + sizeof(unsigned short) )+ SPDT_memory_requirements ));
+      
+      // Check that we dont have an out of range maxshift:
+      if (( m_maxshift ) > (int)max_tsamps) {
+	printf("\nERROR: The selected GPU does not have enough memory for this number of dispersion trials.");
+	printf("\nReduce maximum dm or increase the size of dm step.");
+	return false;
+      }
+      
+      // Next check to see if nsamp fits in GPU RAM:
+      if ((unsigned int)nsamp < max_tsamps) {
+	// We have case 2)
+	// Allocate memory to hold the values of nsamps to be processed
+	int local_t_processed = (int) floor(( (float) ( nsamp - ( m_maxshift ) ) / (float) plan.user_dm(range-1).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
+	local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	for (size_t i = 0; i < range; i++) {
+	  //m_t_processed[i] = (int *) malloc(sizeof(int));
+	  m_t_processed[i].resize(1);
+	  m_t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
+	  m_t_processed[i][0] = m_t_processed[i][0] * ( SDIVINT*2*SNUMREG );
+	}
+	( m_num_tchunks ) = 1;
+	printf("\nIn 2\n");
+      }
+      else {
+	// We have case 4)
+	// Work out how many time samples we can fit into ram
+	int samp_block_size = max_tsamps - ( m_maxshift );
         
-        // Maximum number of samples we can fit in our GPU RAM is then given by:
-        //max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + 2 * sizeof(unsigned short) ) ) );
-        size_t SPDT_memory_requirements = (enable_analysis ? (sizeof(float)*(m_max_ndms)*SPDT_fraction) : 0 );
-        max_tsamps = (unsigned int) ( ( gpu_memory ) / ( nchans * ( sizeof(float) + sizeof(unsigned short) )+ SPDT_memory_requirements ));
+	// Work out how many blocks of time samples we need to complete the processing
+	// upto nsamp-maxshift
+	//int num_blocks = (int) floor(( (float) nsamp - (float) ( *maxshift ) ) / ( (float) samp_block_size ));
         
-        // Check that we dont have an out of range maxshift:
-        if (( m_maxshift ) > (int)max_tsamps) {
-            printf("\nERROR: The selected GPU does not have enough memory for this number of dispersion trials.");
-            printf("\nReduce maximum dm or increase the size of dm step.");
-            return false;
-        }
+	// Find the common integer amount of samples between all bins
+	int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) plan.user_dm(range-1).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
+	local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
         
-        // Next check to see if nsamp fits in GPU RAM:
-        if ((unsigned int)nsamp < max_tsamps) {
-            // We have case 2)
-            // Allocate memory to hold the values of nsamps to be processed
-            int local_t_processed = (int) floor(( (float) ( nsamp - ( m_maxshift ) ) / (float) plan.user_dm(range-1).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-            local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
-            for (size_t i = 0; i < range; i++) {
-                m_t_processed[i] = (int *) malloc(sizeof(int));
-                m_t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-                m_t_processed[i][0] = m_t_processed[i][0] * ( SDIVINT*2*SNUMREG );
-            }
-            ( m_num_tchunks ) = 1;
-            printf("\nIn 2\n");
-        }
-        else {
-            // We have case 4)
-            // Work out how many time samples we can fit into ram
-            int samp_block_size = max_tsamps - ( m_maxshift );
-            
-            // Work out how many blocks of time samples we need to complete the processing
-            // upto nsamp-maxshift
-            //int num_blocks = (int) floor(( (float) nsamp - (float) ( *maxshift ) ) / ( (float) samp_block_size ));
-            
-            // Find the common integer amount of samples between all bins
-            int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) plan.user_dm(range-1).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-            local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
-            
-            // samp_block_size was not used to calculate remainder instead there is local_t_processed which might be different
-            int num_blocks = (int) floor(( (float) nsamp - (float) ( m_maxshift ) ) / ( (float) local_t_processed ));
-            
-            // Work out the remaining fraction to be processed
-            int remainder = nsamp - ( num_blocks * local_t_processed ) - ( m_maxshift );
-            remainder = (int) floor((float) remainder / (float) plan.user_dm(range-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
-            remainder = remainder * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
-            
-            for (size_t i = 0; i < range; i++)    {
-                // Allocate memory to hold the values of nsamps to be processed
-                m_t_processed[i] = (int *) malloc(( num_blocks + 1 ) * sizeof(int));
-                // Remember the last block holds less!
-                for (int j = 0; j < num_blocks; j++) {
-                    m_t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-                    m_t_processed[i][j] = m_t_processed[i][j] * ( SDIVINT*2*SNUMREG );
-                }
-                // fractional bit
-                m_t_processed[i][num_blocks] = (int) floor(( (float) ( remainder ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-                m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks] * ( SDIVINT*2*SNUMREG );
-            }
-            ( m_num_tchunks ) = num_blocks + 1;
-            printf("\nIn 4\n");
-        }
+	// samp_block_size was not used to calculate remainder instead there is local_t_processed which might be different
+	int num_blocks = (int) floor(( (float) nsamp - (float) ( m_maxshift ) ) / ( (float) local_t_processed ));
+        
+	// Work out the remaining fraction to be processed
+	int remainder = nsamp - ( num_blocks * local_t_processed ) - ( m_maxshift );
+	remainder = (int) floor((float) remainder / (float) plan.user_dm(range-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
+	remainder = remainder * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+        
+	for (size_t i = 0; i < range; i++)    {
+	  // Allocate memory to hold the values of nsamps to be processed
+	  //m_t_processed[i] = (int *) malloc(( num_blocks + 1 ) * sizeof(int));
+	  m_t_processed[i].resize(num_blocks + 1);
+	  // Remember the last block holds less!
+	  for (int j = 0; j < num_blocks; j++) {
+	    m_t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
+	    m_t_processed[i][j] = m_t_processed[i][j] * ( SDIVINT*2*SNUMREG );
+	  }
+	  // fractional bit
+	  m_t_processed[i][num_blocks] = (int) floor(( (float) ( remainder ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
+	  m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks] * ( SDIVINT*2*SNUMREG );
+	}
+	( m_num_tchunks ) = num_blocks + 1;
+	printf("\nIn 4\n");
+      }
     }
     printf("\nNOTICE: Maxshift memory needed:\t%lu MB.", nchans * ( m_maxshift ) * sizeof(unsigned short) / 1024 / 1024);
     if (nchans < ( m_max_ndms ))    {
-        printf("\nNOTICE: Output memory needed:\t%lu MB.", ( m_max_ndms ) * ( m_maxshift ) * sizeof(float) / 1024 / 1024);
+      printf("\nNOTICE: Output memory needed:\t%lu MB.", ( m_max_ndms ) * ( m_maxshift ) * sizeof(float) / 1024 / 1024);
     }
     else {
-        printf("\nNOTICE: Output memory needed:\t%lu MB.\n", nchans * ( m_maxshift ) * sizeof(float) / 1024 / 1024);
+      printf("\nNOTICE: Output memory needed:\t%lu MB.\n", nchans * ( m_maxshift ) * sizeof(float) / 1024 / 1024);
     }
     
     //Strategy does not change inBin, outBin.
@@ -285,7 +290,6 @@ bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const aa_filterbank_me
         str_dm.at(i).inBin = plan.user_dm(i).inBin;
         str_dm.at(i).outBin = plan.user_dm(i).outBin;
     }
-    
     m_ready = true;
     m_strategy_already_calculated = true;
     return true;
@@ -303,14 +307,17 @@ void aa_ddtr_strategy::allocate_memory_cpu_output() {
     
     outputsize = 0;
     output_buffer = (float ***) malloc(range * sizeof(float **));
+    m_output_buffer_dim1_size += range;
     for(size_t i = 0; i < range; i++) {
         int total_samps = 0;
         for(int k = 0; k < m_num_tchunks; k++) {
             total_samps += m_t_processed[i][k];
         }
         output_buffer[i] = (float **) malloc(m_ndms[i] * sizeof(float *));
+	m_output_buffer_dim2_size += m_ndms[i];
         for (int j = 0; j < m_ndms[i]; j++) {
             output_buffer[i][j] = (float *) malloc(( total_samps ) * sizeof(float));
+	    m_output_buffer_dim3_size += total_samps;
         }
         outputsize += ( total_samps ) * m_ndms[i] * sizeof(float);
     }
@@ -325,7 +332,12 @@ bool aa_ddtr_strategy::setup() {
     allocate_memory_cpu_output();
     
     is_setup = true;
-    return true;
+    if(is_setup && ready()) {
+      return true;
+    }
+    else {
+      return false;
+    }
 }
 
 } //namespace astroaccelerate

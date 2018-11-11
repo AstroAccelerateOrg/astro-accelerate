@@ -12,7 +12,6 @@
 #include <iostream>
 #include <stdio.h>
 #include <map>
-#include <functional>
 
 #include "aa_compute.hpp"
 #include "aa_ddtr_plan.hpp"
@@ -80,7 +79,7 @@ public:
             if(required_plans.find(aa_compute::modules::analysis) != required_plans.end()) {
                 aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_card_info.free_memory, true);
                 if(ddtr_strategy.ready()) {
-                    m_ddtr_strategy = ddtr_strategy;
+		    m_ddtr_strategy = std::move(ddtr_strategy);
                     m_all_strategy.push_back(&m_ddtr_strategy);
                 }
                 else {
@@ -90,10 +89,11 @@ public:
             else {
                 aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_card_info.free_memory, false);
                 if(ddtr_strategy.ready()) {
-                    m_ddtr_strategy = ddtr_strategy;
+       		    m_ddtr_strategy = std::move(ddtr_strategy);
                     m_all_strategy.push_back(&m_ddtr_strategy);
                 }
                 else {
+		  std::cout << "ddtr_strategy not ready" << std::endl;
                     return false;
                 }
             }
@@ -239,10 +239,6 @@ public:
         }
         
         //Do any last checks on the plans as a whole
-        //ddtr_strategy();
-        configured_pipeline = std::bind(run_pipeline_1, m_filterbank_metadata, m_ddtr_strategy, ptr_data_in);
-        
-        
         pipeline_ready = true;
         
         return true;
@@ -260,7 +256,7 @@ public:
                 }
             }
             
-            configured_pipeline();
+	    run_pipeline_1(m_ddtr_strategy, ptr_data_in);
             
             return true;
         }
@@ -283,7 +279,6 @@ private:
     std::map<aa_compute::modules, bool> supplied_plans; //Plans supplied by the user
     std::vector<aa_strategy*>   m_all_strategy;
     aa_compute::pipeline        m_requested_pipeline;
-    std::function<void()> configured_pipeline;          //Will hold a bound configured function from aa_permitted_pipelines
     aa_device_info::aa_card_info m_card_info;
     
     aa_filterbank_metadata      m_filterbank_metadata;

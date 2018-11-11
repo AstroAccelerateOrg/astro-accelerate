@@ -31,21 +31,33 @@ void allocate_memory_gpu(const int &maxshift, const int &max_ndms, const int &nc
 
 }
 
-void run_pipeline_1(const aa_filterbank_metadata &metadata, const aa_ddtr_strategy &ddtr_strategy, unsigned short *const input_buffer) {
+void run_pipeline_1(const aa_ddtr_strategy &ddtr_strategy, unsigned short *const input_buffer) {
     printf("NOTICE: Pipeline started run_pipeline_1.\n");
     int num_tchunks                     = ddtr_strategy.num_tchunks();
-    int **t_processed                   = ddtr_strategy.t_processed();
+    size_t t_processed_size = ddtr_strategy.t_processed().size();
+
+    int **t_processed = new int*[t_processed_size];
+    for(size_t i = 0; i < t_processed_size; i++) {
+      t_processed[i] = new int[ddtr_strategy.t_processed().at(i).size()];
+    }
+
+    for(size_t i = 0; i < t_processed_size; i++) {
+      for(size_t j = 0; j < ddtr_strategy.t_processed().at(i).size(); j++) {
+	t_processed[i][j] = ddtr_strategy.t_processed().at(i).at(j);
+      }
+    }
+    
     std::vector<float> dm_shifts        = ddtr_strategy.dmshifts();
     float* dmshifts                     = dm_shifts.data();
     int maxshift                        = ddtr_strategy.maxshift();
     int max_ndms                        = ddtr_strategy.max_ndms();
-    int nchans                          = metadata.nchans();
-    int nbits                           = metadata.nbits();
+    int nchans                          = ddtr_strategy.metadata().nchans();
+    int nbits                           = ddtr_strategy.metadata().nbits();
     int enable_zero_dm                  = 0;
     int enable_zero_dm_with_outliers    = 0;
     int failsafe                        = 0;
     long int inc                        = 0;
-    float tsamp                         = metadata.tsamp();
+    float tsamp                         = ddtr_strategy.metadata().tsamp();
     float tsamp_original                = tsamp;
     int maxshift_original               = maxshift;
     size_t range                        = ddtr_strategy.range();

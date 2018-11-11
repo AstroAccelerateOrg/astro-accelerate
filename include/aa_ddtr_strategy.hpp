@@ -33,9 +33,9 @@ class aa_ddtr_strategy : public aa_strategy {
 public:
     aa_ddtr_strategy();
     aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis);
-
+  aa_ddtr_strategy(const aa_ddtr_strategy&) = delete;
     ~aa_ddtr_strategy() {
-      
+
     }
     
     bool setup();
@@ -44,7 +44,7 @@ public:
         return m_maxshift;
     }
     
-    int** t_processed() const {
+    const std::vector<std::vector<int>>& t_processed() const {
         return m_t_processed;
     }
     
@@ -79,15 +79,20 @@ public:
     bool ready() const {
         return m_ready;
     }
+
+    const aa_filterbank_metadata metadata() const {
+      return m_metadata;
+    }
     
 private:
-    bool strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis);
+    bool strategy(const aa_ddtr_plan &plan, const size_t &free_memory, const bool &enable_analysis);
     bool m_ready;
     bool m_strategy_already_calculated;
     void allocate_memory_cpu_output();
     
     bool is_setup;  //Has setup been called already?
-    
+
+    aa_filterbank_metadata m_metadata;
     std::vector<int> m_ndms;
     std::vector<float> m_dmshifts;
     std::vector<aa_ddtr_plan::dm> str_dm;
@@ -98,8 +103,12 @@ private:
     int m_maxshift_high;  //Is used for assignment and assigning in this method
     
     int m_max_ndms;       //This variable is set to 0 in main.cpp and never used until here
-    int **m_t_processed; //Is allocated in this class, and used elsewhere in the pipeline
+    std::vector<std::vector<int>> m_t_processed; //Is allocated in this class, and used elsewhere in the pipeline
+    size_t m_t_processed_dim1_size;
     float ***output_buffer; //3D array that contains the output
+    size_t m_output_buffer_dim1_size;
+    size_t m_output_buffer_dim2_size;
+    size_t m_output_buffer_dim3_size;
 };
 
 } //namespace astroaccelerate

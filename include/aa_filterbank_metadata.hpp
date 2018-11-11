@@ -12,9 +12,9 @@ namespace astroaccelerate {
 
 class aa_filterbank_metadata {
 public:
-    aa_filterbank_metadata() {
+  aa_filterbank_metadata() {
         
-    }
+  }
     
   aa_filterbank_metadata(const aa_filterbank_metadata &meta) : m_az_start(meta.m_az_start),
 							       m_za_start(meta.m_za_start),
@@ -94,6 +94,40 @@ public:
       m_source_name(source_name) {
         
     }
+
+  aa_filterbank_metadata(const double &tstart,
+			 const double &tsamp,
+			 const int &nbits,
+			 const int &nsamples,
+			 const double &fch1,
+			 const double &foff,
+			 const int &nchans,
+			 const int &nifs) : m_az_start(0),
+			     m_za_start(0),
+			     m_src_raj(0),
+			     m_src_dej(0),
+			     m_tstart(tstart),
+			     m_tsamp(tsamp),
+			     m_refdm(0),
+			     m_period(0),
+			     m_fch1(fch1),
+			     m_foff(foff),
+			     m_fchannel(0),
+			     m_telescope_id(0),
+			     m_machine_id(0),
+			     m_data_type(0),
+			     m_barycentric(0),
+			     m_pulsarcentric(0),
+			     m_nbits(nbits),
+			     m_nsamples(nsamples),
+			     m_nchans(nchans),
+			     m_nifs(nifs),
+			     m_FREQUENCY_START(0),
+			     m_FREQUENCY_END(0),
+			     m_rawdatafile(""),
+			     m_source_name("") {
+
+  }
     
     ~aa_filterbank_metadata() {
         

@@ -27,7 +27,7 @@
 
 namespace astroaccelerate {
 
-void run_pipeline_1(const aa_filterbank_metadata &metadata, const aa_ddtr_strategy &ddtr_strategy, unsigned short *const input_buffer);
+void run_pipeline_1(const aa_ddtr_strategy &ddtr_strategy, unsigned short *const input_buffer);
 
 }
   
