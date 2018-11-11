@@ -307,17 +307,14 @@ void aa_ddtr_strategy::allocate_memory_cpu_output() {
     
     outputsize = 0;
     output_buffer = (float ***) malloc(range * sizeof(float **));
-    m_output_buffer_dim1_size += range;
     for(size_t i = 0; i < range; i++) {
         int total_samps = 0;
         for(int k = 0; k < m_num_tchunks; k++) {
             total_samps += m_t_processed[i][k];
         }
         output_buffer[i] = (float **) malloc(m_ndms[i] * sizeof(float *));
-	m_output_buffer_dim2_size += m_ndms[i];
         for (int j = 0; j < m_ndms[i]; j++) {
             output_buffer[i][j] = (float *) malloc(( total_samps ) * sizeof(float));
-	    m_output_buffer_dim3_size += total_samps;
         }
         outputsize += ( total_samps ) * m_ndms[i] * sizeof(float);
     }
