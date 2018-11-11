@@ -1,6 +1,8 @@
 #ifndef ASTRO_ACCELERATE_DEVICE_PERIODICITY_PARAMETERS_HPP
 #define ASTRO_ACCELERATE_DEVICE_PERIODICITY_PARAMETERS_HPP
 
+namespace astroaccelerate {
+
 class Periodicity_parameters {
 public:
 	float sigma_cutoff;
@@ -29,5 +31,7 @@ public:
 		printf("Export powers:       %d\n", export_powers);
 	}
 };
+
+} //namespace astroaccelerate
 
 #endif

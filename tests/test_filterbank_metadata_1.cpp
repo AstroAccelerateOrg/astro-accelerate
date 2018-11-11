@@ -1,6 +1,8 @@
 #include <iostream>
 #include "aa_filterbank_metadata.hpp"
 
+using namespace astroaccelerate;
+
 int main() {
 
   const double az_start = 0;

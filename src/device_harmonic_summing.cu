@@ -4,6 +4,8 @@
 #include "params.hpp"
 #include "device_harmonic_summing_kernel.hpp"
 
+namespace astroaccelerate {
+
 void periodicity_simple_harmonic_summing_old(float *d_input, float *d_output_SNR, ushort *d_output_harmonics, float *d_MSD, int nTimesamples, int nSpectra, int nHarmonics){
 	//---------> Task specific
 	int nBlocks_x, nBlocks_y;
@@ -47,3 +49,5 @@ void periodicity_simple_harmonic_summing(float *d_input, float *d_output_SNR, us
 	cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeFourByte);
 	call_kernel_PHS_GPU_kernel(gridSize, blockSize, d_input, d_output_SNR, d_output_harmonics, d_MSD, nTimesamples, nSpectra, nHarmonics);
 }
+
+} //namespace astroaccelerate

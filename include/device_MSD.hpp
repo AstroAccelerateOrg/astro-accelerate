@@ -10,6 +10,8 @@
 #include "device_MSD_normal_kernel.hpp"
 #include "device_MSD_outlier_rejection_kernel.hpp"
 
+namespace astroaccelerate {
+
 extern void MSD_init(void);
 extern int MSD_normal(float *d_MSD, float *d_input, float *d_temp, MSD_Configuration *MSD_conf);
 extern int MSD_normal(float *d_MSD, float *d_input, int nTimesamples, int nDMs, int offset);
@@ -27,4 +29,7 @@ extern void Find_MSD(float *d_MSD, float *d_input, int nTimesamples, int nDMs, i
 extern void Find_MSD(float *d_MSD, float *d_input, float *d_MSD_workarea, MSD_Configuration *conf, float OR_sigma_multiplier, int enable_outlier_rejection);
 extern void Find_MSD_continuous(float *d_MSD, float *d_input, float *d_previous_partials, int nTimesamples, int nDMs, int offset, float OR_sigma_multiplier, int enable_outlier_rejection);
 extern void Find_MSD_continuous(float *d_MSD, float *d_input, float *d_previous_partials, float *d_MSD_workarea, MSD_Configuration *conf, float OR_sigma_multiplier, int enable_outlier_rejection);
+
+} //namespace astroaccelerate
+  
 #endif

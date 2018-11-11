@@ -8,6 +8,8 @@
 
 #include "aa_zero_dm.hpp"
 
+namespace astroaccelerate {
+
 void zero_dm(unsigned short *const d_input, const int nchans, const int nsamp, const int nbits) {
     
     int threads_for_sum  = 256;
@@ -33,3 +35,5 @@ void zero_dm(unsigned short *const d_input, const int nchans, const int nsamp, c
     double time = (double)(end_t-start_t) / CLOCKS_PER_SEC;
     printf("\nPerformed ZDM: %lf (GPU estimate)", time);    
 }
+
+} //namespace astroaccelerate

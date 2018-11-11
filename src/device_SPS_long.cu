@@ -3,6 +3,7 @@
 
 #include "device_SPS_long.hpp"
 
+namespace astroaccelerate {
 
 size_t Get_memory_requirement_of_SPS(){
 	return((size_t) (5.5*sizeof(float) + 2*sizeof(ushort)));
@@ -79,3 +80,4 @@ int SPDT_search_long_MSD_plane(float *d_input, float *d_boxcar_values, float *d_
 	return(0);
 }
 
+} //namespace astroaccelerate

@@ -1,19 +1,16 @@
-//
+#include "device_acceleration_fdas.hpp"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <cufft.h>
-//#include <omp.h>
-//
 #include <errno.h>
 #include <string.h>
 #include <sys/time.h>
-//#include <helper_functions.h>
 #include <helper_cuda.h>
 #include <cuda_profiler_api.h>
-//
+
 #include "params.hpp"
 #include "fdas_test_parameters.hpp"
-#include <helper_cuda.h>
 #include "fdas.hpp"
 #include "fdas_host.hpp"
 #include "device_MSD.hpp"
@@ -21,38 +18,38 @@
 #include "presto_funcs.hpp"
 #include "presto.hpp"
 
+namespace astroaccelerate {
 void acceleration_fdas(int range,
-					   int nsamp,
-					   int max_ndms,
-					   int processed,
-					   int nboots,
-					   int num_trial_bins,
-					   int navdms,
-					   float narrow,
-					   float wide,
-					   int nsearch,
-					   float aggression,
-					   float cutoff,
-					   float ***output_buffer,
-					   int *ndms,
-					   int *inBin,
-					   float *dm_low,
-					   float *dm_high,
-					   float *dm_step,
-					   float tsamp,
-					   int enable_custom_fft,
-					   int enable_inbin,
-					   int enable_norm,
-					   float sigma_constant,
-					   int enable_output_ffdot_plan,
-					   int enable_output_fdas_list)
-{
+		       int nsamp,
+		       int max_ndms,
+		       int processed,
+		       int nboots,
+		       int num_trial_bins,
+		       int navdms,
+		       float narrow,
+		       float wide,
+		       int nsearch,
+		       float aggression,
+		       float cutoff,
+		       float ***output_buffer,
+		       int *ndms,
+		       int *inBin,
+		       float *dm_low,
+		       float *dm_high,
+		       float *dm_step,
+		       float tsamp,
+		       int enable_custom_fft,
+		       int enable_inbin,
+		       int enable_norm,
+		       float sigma_constant,
+		       int enable_output_ffdot_plan,
+		       int enable_output_fdas_list) {
 
-	fdas_params params;
+        astroaccelerate::fdas_params params;
 	// fdas_new_acc_sig acc_sig;
-	cmd_args cmdargs;
-	fdas_gpuarrays gpuarrays;
-	fdas_cufftplan fftplans;
+	astroaccelerate::cmd_args cmdargs;
+	astroaccelerate::fdas_gpuarrays gpuarrays;
+	astroaccelerate::fdas_cufftplan fftplans;
 	//float *acc_signal = NULL;
 	struct timeval t_start, t_end;
 	double t_gpu = 0.0, t_gpu_i = 0.0;
@@ -112,7 +109,7 @@ void acceleration_fdas(int range,
 	params.tsamp = tsamp;
 
 	/// Print params.h
-	fdas_print_params_h();
+	astroaccelerate::fdas_print_params_h();
 
 	// prepare signal
 	params.offset = presto_z_resp_halfwidth((double) ZMAX, 0); //array offset when we pick signal points for the overlp-save method
@@ -460,3 +457,5 @@ void acceleration_fdas(int range,
 	}
 
 }
+
+} //namespace astroaccelerate

@@ -11,6 +11,8 @@
 
 #include <stdio.h>
 
+namespace astroaccelerate {
+
 class aa_analysis_plan {
 public:
     aa_analysis_plan() {
@@ -20,5 +22,7 @@ public:
 private:
     
 };
+
+} //namespace astroaccelerate
 
 #endif /* ASTRO_ACCELERATE_ANALYSIS_PLAN_HPP */

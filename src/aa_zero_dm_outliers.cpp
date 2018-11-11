@@ -8,6 +8,8 @@
 
 #include "aa_zero_dm_outliers.hpp"
 
+namespace astroaccelerate {
+
 void zero_dm_outliers(unsigned short *const d_input, const int nchans, const int nsamp) {
     
     int divisions_in_t  = 224;
@@ -45,3 +47,5 @@ void zero_dm_outliers(unsigned short *const d_input, const int nchans, const int
     //}}}
     
 }
+
+} //namespace astroaccelerate

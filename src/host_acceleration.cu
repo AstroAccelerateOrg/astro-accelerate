@@ -9,6 +9,8 @@
 #include "device_power.hpp"
 #include <helper_cuda.h>
 
+namespace astroaccelerate {
+
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
 {
@@ -283,3 +285,5 @@ void acceleration(int range, int nsamp, int max_ndms, int processed, int nboots,
 		cudaFree(d_signal_transformed_o);
 	}
 }
+
+} //namespace astroaccelerate

@@ -16,6 +16,10 @@
 #include <cuda_runtime.h>
 #include "device_zero_dm_outliers_kernel.hpp"
 
+namespace astroaccelerate {
+
 void zero_dm_outliers(unsigned short *const d_input, const int nchans, const int nsamp);
 
+} //namespace astroaccelerate
+  
 #endif /* ASTRO_ACCELERATE_ZERO_DM_OUTLIERS_HPP */

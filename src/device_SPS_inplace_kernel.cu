@@ -1,6 +1,8 @@
 // Added by Karel Adamek
 #include "device_SPS_inplace_kernel.hpp"
 
+namespace astroaccelerate {
+
 __global__ void PD_ZC_GPU_KERNEL(float *d_input, float *d_output, int maxTaps, int nTimesamples, int nLoops)
 {
 	int x_r, y_r, x_w, y_w;
@@ -129,3 +131,5 @@ void call_kernel_PD_INPLACE_GPU_KERNEL(const dim3 &grid_size, const dim3 &block_
   PD_INPLACE_GPU_KERNEL<<<grid_size, block_size, SM_size>>>(d_input, d_temp, d_output_taps,
 							    d_MSD, maxTaps, nTimesamples);
 }
+
+} //namespace astroaccelerate

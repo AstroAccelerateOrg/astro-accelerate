@@ -5,6 +5,8 @@
 #include <cuda_runtime.h>
 #include "params.hpp"
 
+namespace astroaccelerate {
+
 void call_kernel_THR_GPU_WARP(const dim3 &grid_size, const dim3 &block_size,
 			      float const *const d_input, ushort *const d_input_taps, unsigned int *const d_output_list_DM,
 			      unsigned int *const d_output_list_TS, float *const d_output_list_SNR,
@@ -24,4 +26,6 @@ void call_kernel_GPU_Threshold_for_periodicity_kernel(const dim3 &grid_size, con
 						      float *const d_output_list, int *const gmem_pos, float const *const d_MSD,
 						      const float &threshold, const int &primary_size, const int &secondary_size,
 						      const int &DM_shift, const int &max_list_size, const int &DIT_value);
+
+} //namespace astroaccelerate
 #endif

@@ -8,6 +8,8 @@
 
 #include "aa_bin_gpu.hpp"
 
+namespace astroaccelerate {
+
 void bin_gpu(unsigned short *const d_input, float *const d_output, const int nchans, const int nsamp) {
     
     int divisions_in_t = BINDIVINT;
@@ -77,3 +79,6 @@ int GPU_DiT_v2_wrapper(float *d_input, float *d_output, int nDMs, int nTimesampl
   ut=0;
   return(ut);
 }
+
+
+} //namespace astroaccelerate

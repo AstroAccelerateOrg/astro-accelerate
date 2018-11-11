@@ -1,3 +1,4 @@
+namespace astroaccelerate {
 int ipmpar(int *);
 /*
 -----------------------------------------------------------------------
@@ -424,3 +425,4 @@ int ipmpar(int *i)
    ipmparval = imach[*i];
    return ipmparval;
 }
+} //namespace astroaccelerate

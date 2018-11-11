@@ -5,6 +5,8 @@
 
 //{{{ rfi_gpu
 
+namespace astroaccelerate {
+
 void rfi_gpu(unsigned short *d_input, int nchans, int nsamp) {
 
 	int divisions_in_f  = 32;
@@ -32,6 +34,8 @@ void rfi_gpu(unsigned short *d_input, int nchans, int nsamp) {
 	//}}}
 
 }
+
+} //namespace astroaccelerate
 
 //}}}
 

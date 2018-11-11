@@ -8,6 +8,8 @@
 
 #include "aa_ddtr_strategy.hpp"
 
+namespace astroaccelerate {
+
 aa_ddtr_strategy::aa_ddtr_strategy() : m_ready(false), is_setup(false), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0) {
     
 }
@@ -325,3 +327,5 @@ bool aa_ddtr_strategy::setup() {
     is_setup = true;
     return true;
 }
+
+} //namespace astroaccelerate

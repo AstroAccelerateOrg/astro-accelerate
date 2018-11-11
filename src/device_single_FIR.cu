@@ -3,6 +3,8 @@
 #include "params.hpp"
 #include "device_single_FIR_kernel.hpp"
 
+namespace astroaccelerate {
+
 void PD_FIR_init(void)
 {
   //---------> Specific nVidia stuff
@@ -86,3 +88,5 @@ int PPF_L1(float *d_input, float *d_output, int nDMs, int nTimesamples, int nTap
 	
   return (nTaps-1);
 }
+
+} //namespace astroaccelerate

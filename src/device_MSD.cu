@@ -5,6 +5,8 @@
 // TODO:
 // Remove MSD_legacy
 
+namespace astroaccelerate {
+
 
 void MSD_init(void) {
   //---------> Specific nVidia stuff
@@ -329,3 +331,5 @@ int MSD_grid_outlier_rejection(float *d_MSD, float *d_input, int CellDim_x, int 
 	
   return(1);
 }
+
+} //namespace astroaccelerate

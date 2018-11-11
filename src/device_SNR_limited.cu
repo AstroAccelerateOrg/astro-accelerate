@@ -1,5 +1,7 @@
 #include "device_SNR_limited.hpp"
 
+namespace astroaccelerate {
+
 int Choose_dim(int grid_dim) {
 	int seive[15] =
 	{ 32, 31, 29, 23, 19, 17, 16, 13, 11, 8, 7, 5, 4, 3, 2 };
@@ -71,3 +73,5 @@ int SNR_limited(float *d_FIR_input, float *d_SNR_output, ushort *d_SNR_taps, flo
 		return ( 0 );
 
 }
+
+} //namespace astroaccelerate

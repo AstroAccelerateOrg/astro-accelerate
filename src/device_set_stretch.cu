@@ -5,6 +5,8 @@
 #include "device_set_stretch_kernel.hpp"
 #include <helper_cuda.h>
 
+namespace astroaccelerate {
+
 //{{{ Dopler Stretch 
 
 void set_stretch_gpu(cudaEvent_t event, cudaStream_t stream, int samps, float mean, float *d_input)
@@ -24,3 +26,4 @@ void set_stretch_gpu(cudaEvent_t event, cudaStream_t stream, int samps, float me
 
 //}}}
 
+} //namespace astroaccelerate

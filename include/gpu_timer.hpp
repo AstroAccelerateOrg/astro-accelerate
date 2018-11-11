@@ -3,6 +3,8 @@
 
 #include <cuda_runtime.h>
 
+namespace astroaccelerate {
+
 struct GpuTimer
 {
   cudaEvent_t start;
@@ -38,5 +40,7 @@ struct GpuTimer
     return elapsed;
   }
 };
+
+} //namespace astroaccelerate
 
 #endif  /* GPU_TIMER_H__ */

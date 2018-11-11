@@ -8,6 +8,8 @@
 #include <cufft.h>
 #include <curand.h>
 
+namespace astroaccelerate {
+
 #define BSTRAP 2
 #define ELPB 32
 #define NTDM 4
@@ -257,3 +259,5 @@ void gpu_blocked_bootstrap(float **d_idata, int dms_to_average, int num_els, int
 	free(random_bin_array);
 	free(boots_array);
 }
+
+} //namespace astroaccelerate

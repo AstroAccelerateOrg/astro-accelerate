@@ -4,6 +4,8 @@
 #include "device_peak_find_shared_kernel_functions.cuh"
 #include "device_threshold_shared_kernel_functions.cuh"
 
+namespace astroaccelerate {
+
 __global__ void dilate_peak_find(const float *d_input, ushort* d_input_taps,  unsigned int *d_peak_list_DM,  unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW, const int width, const int height, const int offset, const float threshold, int max_peak_size, int *gmem_pos, int shift, int DIT_value) {
     int idxX = blockDim.x * blockIdx.x + threadIdx.x;
     int idxY = blockDim.y * blockIdx.y + threadIdx.y;
@@ -407,3 +409,5 @@ void call_kernel_dilate_peak_find_for_periods(const dim3 &grid_size, const dim3 
 							  max_peak_size,
 							  gmem_pos, d_MSD, DM_shift, DIT_value);
 }
+
+} //namespace astroaccelerate

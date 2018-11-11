@@ -1,3 +1,5 @@
+namespace astroaccelerate {
+
 //{{{ save_data_from_device_to_host
 
 //void save_data(cudaStream_t stream, float *device_pointer, float *host_pointer, size_t size) {
@@ -26,3 +28,5 @@ void save_data_offset(float *device_pointer, int device_offset, float *host_poin
 
 }
 //}}}
+
+} //namespace astroaccelerate

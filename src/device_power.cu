@@ -9,6 +9,8 @@
 
 //{{{ Dopler Stretch 
 
+namespace astroaccelerate {
+
 void power_gpu(cudaEvent_t event, cudaStream_t stream, int samps, int acc, cufftComplex *d_signal_fft, float *d_signal_power)
 {
 
@@ -47,3 +49,5 @@ void simple_power_and_interbin(float2 *d_input, float *d_power_output, float *d_
 	
 	call_kernel_GPU_simple_power_and_interbin_kernel(gridSize,blockDim, d_input, d_power_output, d_interbin_output, nTimesamples, sqrt(nTimesamples));
 }
+
+} //namespace astroaccelerate

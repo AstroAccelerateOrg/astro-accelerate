@@ -2,6 +2,8 @@
 #include <cuda_runtime.h>
 #include "params.hpp"
 
+namespace astroaccelerate {
+
 #define MEAN	127.5f
 #define CUT 	2.0f
 #define R_CUT	4.0f
@@ -249,4 +251,6 @@ void call_kernel_zero_dm_outliers_kernel_two(const dim3 &block_size, const dim3 
   zero_dm_outliers_kernel_two<<<block_size, grid_size>>>(d_input, nchans, nsamp);
 }
 
+} //namespace astroaccelerate
+  
 //}}}

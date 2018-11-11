@@ -1,6 +1,8 @@
 #ifndef ASTRO_ACCELERATE_DEVICE_PEAK_FIND_SHARED_KERNEL_FUNCTIONS_CUH
 #define ASTRO_ACCELERATE_DEVICE_PEAK_FIND_SHARED_KERNEL_FUNCTIONS_CUH
 
+namespace astroaccelerate {
+
 struct float3x3 {
   float x1, x2, x3;
   float y1, y2, y3;
@@ -166,5 +168,5 @@ __device__ __inline__ float dilate3x3(const float3x3 i) {
   return max;
 }
 
-
+} //namespace astroaccelerate
 #endif

@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "host_help.hpp"
 
+namespace astroaccelerate {
+
 void help()
 {
 	printf("\n **** Astro-Accelerate **** \n");
@@ -37,3 +39,4 @@ void help()
 	exit(0);
 }
 
+} //namespace astroaccelerate

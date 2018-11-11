@@ -5,6 +5,8 @@
 #include <cuda_runtime.h>
 #include "params.hpp"
 
+namespace astroaccelerate {
+
 //This device constant is needed by the SPS (and SPS long) module and the SNR module
 //It is also needed by device_load_data.cu and by device_single_pulse_search_kernel.cu
 __device__ __constant__ float c_sqrt_taps[PD_MAXTAPS + 1];
@@ -15,4 +17,6 @@ void call_kernel_PD_INPLACE_GPU_KERNEL(const dim3 &grid_size, const dim3 &block_
 				       float *const d_temp, unsigned char *const d_output_taps, float *const d_MSD,
 				       const int &maxTaps, const int &nTimesamples);
 
+} //namespace astroaccelerate
+  
 #endif

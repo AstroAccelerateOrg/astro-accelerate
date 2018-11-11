@@ -14,6 +14,8 @@
 
 #include <helper_cuda.h>
 
+namespace astroaccelerate {
+
 void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short *host_pointer, int t_processed, int maxshift, int nchans, float *dmshifts) {
     if(i == -1) {
         const long int length = ( t_processed + maxshift );
@@ -33,3 +35,5 @@ void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short
     }
     cudaMemcpyToSymbol(c_sqrt_taps, &h_sqrt_taps, ( PD_MAXTAPS + 1 ) * sizeof(float));
 }
+
+} //namespace astroaccelerate

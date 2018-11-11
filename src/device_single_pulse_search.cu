@@ -4,6 +4,8 @@
 #include "params.hpp"
 #include "device_single_pulse_search_kernel.hpp"
 
+namespace astroaccelerate {
+
 void PD_SEARCH_init(void)
 {
 	//---------> Specific nVidia stuff
@@ -42,3 +44,5 @@ int PD_SEARCH(float *d_input, float *d_output, float *d_output_taps, float *d_MS
 	ut = nRest + maxTaps - 1;
 	return ( ut );
 }
+
+} //namespace astroaccelerate

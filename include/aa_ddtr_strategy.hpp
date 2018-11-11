@@ -27,6 +27,8 @@
  * The code that does this was formerly known as "stratagy" in "host_stratagy.cu".
  */
 
+namespace astroaccelerate {
+
 class aa_ddtr_strategy : public aa_strategy {
 public:
     aa_ddtr_strategy();
@@ -99,5 +101,7 @@ private:
     int **m_t_processed; //Is allocated in this class, and used elsewhere in the pipeline
     float ***output_buffer; //3D array that contains the output
 };
+
+} //namespace astroaccelerate
 
 #endif /* ASTRO_ACCELERATE_DDTR_STRATEGY */

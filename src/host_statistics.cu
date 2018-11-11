@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include "headers_mains.hpp"
 
+namespace astroaccelerate {
+
 void statistics(char *string, int i, cudaStream_t stream, clock_t *in_time, clock_t *out_time, int maxshift, int total_ndms, int nchans, int nsamp, float tsamp, float *dm_low, float *dm_high, float *dm_step, int *ndms)
 {
 
@@ -67,3 +69,5 @@ void statistics(char *string, int i, cudaStream_t stream, clock_t *in_time, cloc
 
 	}
 }
+
+} //namespace astroaccelerate

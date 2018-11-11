@@ -19,8 +19,12 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+namespace astroaccelerate {
+
 void corner_turn(unsigned short *const d_input, float *const d_output, const int nchans, const int nsamp);
 int corner_turn(float *const d_input, float *const d_output, const int primary_size, const int secondary_size);
 int corner_turn_SM(float *const d_input, float *const d_output, const int primary_size, const int secondary_size);
 
+} //namespace astroaccelerate
+  
 #endif /* ASTRO_ACCELERATE_CORNER_TURN_HPP */

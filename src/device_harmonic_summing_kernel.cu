@@ -3,6 +3,8 @@
 #include "params.hpp"
 #include "device_harmonic_summing_kernel.hpp"
 
+namespace astroaccelerate {
+
 __global__ void PHS_GPU_kernel_old(float const* __restrict__ d_input, float *d_output_SNR, ushort *d_output_harmonics, float *d_MSD, int nTimesamples, int nSpectra, int nHarmonics){
 	float signal_mean=d_MSD[0];
 	float signal_sd=d_MSD[1];
@@ -88,3 +90,5 @@ void call_kernel_PHS_GPU_kernel(const dim3 &grid_size, const dim3 &block_size,
 				float *const d_MSD, const int &nTimesamples, const int &nSpectra, const int &nHarmonics) {
   PHS_GPU_kernel<<<grid_size, block_size>>>(d_input, d_output_SNR, d_output_harmonics, d_MSD, nTimesamples, nSpectra, nHarmonics);
 }
+
+} //namespace astroaccelerate

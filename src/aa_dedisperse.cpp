@@ -8,6 +8,8 @@
 
 #include "aa_dedisperse.hpp"
 
+namespace astroaccelerate {
+
 void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned short *d_input, float *d_output, int nchans, float *tsamp, float *dm_low, float *dm_step, int const*const ndms, int nbits, int failsafe) {    
   if (failsafe == 0)
     {
@@ -114,3 +116,5 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
       call_kernel_cache_dedisperse_kernel(num_blocks, threads_per_block, inBin[i], d_input, d_output, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
     }
 }
+
+} //namespace astroaccelerate

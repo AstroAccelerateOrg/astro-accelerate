@@ -11,6 +11,8 @@
 
 #include <stdio.h>
 
+namespace astroaccelerate {
+
 class aa_periodicity_plan {
 public:
     aa_periodicity_plan() {
@@ -19,5 +21,7 @@ public:
 private:
     
 };
+
+}
 
 #endif /* ASTRO_ACCELERATE_AA_PERIODICITY_PLAN_HPP */

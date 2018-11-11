@@ -8,6 +8,8 @@
 
 #include "aa_corner_turn.hpp"
 
+namespace astroaccelerate {
+
 void corner_turn(unsigned short *const d_input, float *const d_output, const int nchans, const int nsamp) {
     
     //{{{ Simple corner turn on the GPU
@@ -98,3 +100,5 @@ int corner_turn_SM(float *const d_input, float *const d_output, const int primar
     
     return(nRest);
 }
+
+} //namespace astroaccelerate

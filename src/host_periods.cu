@@ -4,6 +4,8 @@
 #include <math.h>
 #include "params.hpp"
 
+namespace astroaccelerate {
+
 // define to see debug info
 #define GPU_PERIODICITY_SEARCH_DEBUG
 
@@ -527,3 +529,4 @@ void periodicity(int range, int nsamp, int max_ndms, int processed, int nboots, 
 //	}
 
 
+} //namespace astroaccelerate

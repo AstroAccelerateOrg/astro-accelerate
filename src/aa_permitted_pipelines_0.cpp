@@ -8,6 +8,10 @@
 
 #include "aa_permitted_pipelines_0.hpp"
 
+namespace astroaccelerate {
+
 void run_pipeline_0() {
     
 }
+
+} //namespace astroaccelerate

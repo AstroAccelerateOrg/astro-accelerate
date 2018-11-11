@@ -15,12 +15,15 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-//#include <helper_cuda.h>
 #include <vector_types.h>
 
 #include "params.hpp"
 #include "device_zero_dm_kernel.hpp"
 
+namespace astroaccelerate {
+
 void zero_dm(unsigned short *const d_input, const int nchans, const int nsamp, const int nbits);
 
+} //namespace astroaccelerate
+  
 #endif /* ASTRO_ACCELERATE_ZERO_DM_HPP */

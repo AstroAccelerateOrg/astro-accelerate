@@ -2,6 +2,8 @@
 
 #include "device_SPS_inplace.hpp"
 
+namespace astroaccelerate {
+
 int Choose_dim_SPS(int grid_dim)
 {
 	int seive[15] =
@@ -82,3 +84,4 @@ int PD_SEARCH_INPLACE(float *d_input, unsigned char *d_output_taps, float *d_MSD
 	return ( maxTaps );
 }
 
+} //namespace astroaccelerate

@@ -3,6 +3,8 @@
 #include <cufft.h>
 #include "params.hpp"
 
+namespace astroaccelerate {
+
 //{{{ Set stretch
 __global__ void power_kernel(int half_samps, int acc, cufftComplex *d_signal_fft, float *d_signal_power) {
 	int t = blockIdx.x * blockDim.x + threadIdx.x;
@@ -47,3 +49,5 @@ void call_kernel_GPU_simple_power_and_interbin_kernel(const dim3 &grid_size, con
 						      float2 *const d_input_complex, float *const d_output_power, float *const d_output_interbinning, const int &nTimesamples, const float &norm) {
   GPU_simple_power_and_interbin_kernel<<<grid_size, block_size>>>(d_input_complex, d_output_power, d_output_interbinning, nTimesamples, norm);
 }
+
+} //namespace astroaccelerate

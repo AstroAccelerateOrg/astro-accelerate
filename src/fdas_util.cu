@@ -1,5 +1,7 @@
 #include "fdas_util.hpp"
 
+namespace astroaccelerate {
+
 void print_usage()
 {
 
@@ -278,3 +280,4 @@ void write_output_file(char *fname, float **array,  unsigned long len)
 
 }
 
+} //namespace astroaccelerate

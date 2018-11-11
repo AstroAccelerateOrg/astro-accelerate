@@ -2,6 +2,8 @@
 #include <cuda_runtime.h>
 #include "params.hpp"
 
+namespace astroaccelerate {
+
 __global__ void simple_corner_turn_kernel(float *d_input, float *d_output, int primary_size, int secondary_size){
 
   int primary = blockIdx.x * blockDim.x + threadIdx.x;
@@ -77,3 +79,5 @@ void call_kernel_corner_turn_SM_kernel(const dim3 &grid_size, const dim3 &block_
 void call_kernel_swap(const dim3 &block_size, const dim3 &grid_size, unsigned short *const d_input, float *const d_output, const int &nchans, const int &nsamp) {
   swap<<<block_size, grid_size>>>(d_input, d_output, nchans, nsamp);
 }
+
+} //namespace astroaccelerate

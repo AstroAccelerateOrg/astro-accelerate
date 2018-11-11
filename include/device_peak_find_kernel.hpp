@@ -3,6 +3,7 @@
 
 #include "device_threshold_kernel.hpp"
 
+namespace astroaccelerate {
 
 void call_kernel_dilate_peak_find(const dim3 &grid_size, const dim3 &block_size,
 				  float *const d_input, ushort *const d_input_taps,  unsigned int *const d_peak_list_DM,
@@ -28,4 +29,7 @@ void call_kernel_dilate_peak_find_for_periods(const dim3 &grid_size, const dim3 
 					      const int &height, const int &offset, const float &threshold,
 					      const int &max_peak_size,
 					      int *const gmem_pos, float const *const d_MSD, const int &DM_shift, const int &DIT_value);
+
+} //namespace astroaccelerate
+
 #endif

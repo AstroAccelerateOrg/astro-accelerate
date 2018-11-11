@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
 
+namespace astroaccelerate {
+
 class MSD_Configuration {
 public:
   ushort2 nBlocks;
@@ -121,5 +123,5 @@ public:
   }
 };
 
-
+} //namespace astroaccelerate
 #endif

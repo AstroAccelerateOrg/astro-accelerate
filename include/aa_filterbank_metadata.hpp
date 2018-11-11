@@ -3,6 +3,8 @@
 
 #include <string>
 
+namespace astroaccelerate {
+
 /**
  * Data description from "SIGPROC-v3.7 (Pulsar) Signal Processing Programs"
  * Source: http://sigproc.sourceforge.net/sigproc.pdf
@@ -236,4 +238,6 @@ private:
     std::string m_source_name;
 };
 
+} //namespace astroaccelerate
+  
 #endif // ASTRO_ACCELERATE_AA_FILTERBANK_METADATA_HPP

@@ -3,6 +3,8 @@
 #include <math.h>
 #include "cdflib.hpp"
 
+namespace astroaccelerate {
+
 static void E0000(int, int *, double *, double *, unsigned long *,
                   unsigned long *, double *, double *, double *,
                   double *, double *, double *, double *);
@@ -9816,3 +9818,5 @@ long fifmod(long a, long b)
 {
    return a % b;
 }
+
+} //namespace astroaccelerate

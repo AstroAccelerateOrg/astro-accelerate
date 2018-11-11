@@ -1,6 +1,8 @@
 #ifndef ASTRO_ACCELERATE_DEVICE_CUDA_DEPRECATED_WRAPPERS_CUH
 #define ASTRO_ACCELERATE_DEVICE_CUDA_DEPRECATED_WRAPPERS_CUH
 
+namespace astroaccelerate {
+
 #ifndef AA_ASSUME_MASK
 #define AA_ASSUME_MASK 0xFFFFFFFF
 #endif
@@ -49,5 +51,7 @@ __device__ __inline__ T aa_ballot(const U &mask, const T &XX) {
   return(__ballot(XX));
 #endif
 }
+
+} //namespace astroaccelerate
 
 #endif //ASTRO_ACCELERATE_DEVICE_CUDA_DEPRECATED_WRAPPERS_CUH

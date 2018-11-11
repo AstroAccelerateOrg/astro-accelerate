@@ -12,6 +12,8 @@
 #include "aa_compute.hpp"
 #include "aa_permitted_pipelines.hpp"
 
+namespace astroaccelerate {
+
 struct aa_CLI {
     std::vector<std::string> input;
 };
@@ -381,4 +383,6 @@ protected:
     }
 };
 
+} //namespace astroaccelerate
+  
 #endif // ASTRO_ACCELERATE_AA_CONFIG_HPP

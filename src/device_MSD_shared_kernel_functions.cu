@@ -1,6 +1,8 @@
 #include "device_MSD_shared_kernel_functions.cuh"
 #include "device_MSD_shared_kernel_functions.hpp"
 
+namespace astroaccelerate {
+
 // Computes mean and standard deviation from partial
 __global__ void MSD_GPU_final_regular(float *d_input, float *d_output, int size) {
   __shared__ float s_input[3*WARP*WARP];
@@ -147,3 +149,5 @@ void call_kernel_MSD_GPU_final_nonregular(const dim3 &grid_size, const dim3 &blo
 void call_kernel_MSD_GPU_Interpolate_linear(const dim3 &grid_size, const dim3 &block_size, float *const d_MSD_DIT, float *const d_MSD_interpolated, int *const d_MSD_DIT_widths, const int &MSD_DIT_size, int *const boxcar, const int &max_width_performed) {
   MSD_GPU_Interpolate_linear<<<grid_size, block_size>>>(d_MSD_DIT, d_MSD_interpolated, d_MSD_DIT_widths, MSD_DIT_size, boxcar, max_width_performed);
 }
+
+} //namespace astroaccelerate

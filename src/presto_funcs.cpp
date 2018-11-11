@@ -8,6 +8,8 @@
 #include "fresnl.hpp"
 #include "presto_funcs.hpp"
 
+namespace astroaccelerate {
+
 /* PRESTO defines */
 #define NUMLOCPOWAVG  20 //Number of bins (total) to average for local power:  Must be an even number (1/2 on each side). 
 #define DELTAAVGBINS  5 // Number of bins next to freq in question to ignore (on each side) when determining local power.
@@ -336,3 +338,4 @@ void presto_norm(cufftComplex * fft, int numamps)
 
 free(powers);
 }
+} //namespace astroaccelerate

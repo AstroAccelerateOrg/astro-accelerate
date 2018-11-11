@@ -2,6 +2,8 @@
 #include <cuda_runtime.h>
 #include "params.hpp"
 
+namespace astroaccelerate {
+
 #define BINARRAYSIZE 2 * BINDIVINT * BINDIVINF
 
 __shared__ float f_line_bin[BINARRAYSIZE];
@@ -69,4 +71,6 @@ void call_kernel_DiT_GPU_v2(const dim3 &gridSize, const dim3 &blockSize, float c
   DiT_GPU_v2<<<gridSize,blockSize>>>(d_input, d_output, nDMs, nTimesamples, (nTimesamples>>1));
 }
 
+} //namespace astroaccelerate
+  
 //}}}

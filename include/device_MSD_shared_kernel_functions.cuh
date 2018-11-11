@@ -6,6 +6,7 @@
 #include "params.hpp"
 #include "device_cuda_deprecated_wrappers.cuh"
 
+namespace astroaccelerate {
 
 //----------------------------------------------------------------------------------------
 //------------- Device functions
@@ -205,5 +206,6 @@ __device__ __inline__ void Sum_partials_nonregular(float *M, float *S, float *j,
 
 //------------- Device functions
 //----------------------------------------------------------------------------------------
+} //namespace astroaccelerate
 
 #endif

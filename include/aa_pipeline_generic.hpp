@@ -16,6 +16,8 @@
 #include "aa_config.hpp"
 #include "aa_pipeline.hpp"
 
+namespace astroaccelerate {
+
 template <typename T, typename U>
 void aa_pipeline_generic(const std::vector<aa_compute::modules> &selected_modules, const aa_filterbank_metadata &filterbank_data, std::vector<aa_ddtr_plan::dm> dm_ranges, T *input_data, U *&output_data) {
     /**
@@ -124,5 +126,6 @@ void aa_pipeline_generic(const std::vector<aa_compute::modules> &selected_module
     }
 }
 
+} //namespace astroaccelerate
 
 #endif /* ASTRO_ACCELERATE_PIPELINE_GENERIC_HPP */

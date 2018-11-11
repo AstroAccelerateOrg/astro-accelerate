@@ -5,6 +5,8 @@
 #include "device_MSD_shared_kernel_functions.cuh"
 #include "device_cuda_deprecated_wrappers.cuh"
 
+namespace astroaccelerate {
+
 __global__ void MSD_BLN_pw_rejection_normal(float const* __restrict__ d_input, float *d_output, float *d_MSD, int y_steps, int nTimesamples, int offset, float bln_sigma_constant) {
   __shared__ float s_input[3*PD_NTHREADS];
   float M, S, j, ftemp;
@@ -492,3 +494,5 @@ void call_kernel_MSD_BLN_grid_calculate_partials(const dim3 &grid_size, const di
 void call_kernel_MSD_BLN_grid_outlier_rejection(const dim3 &grid_size, const dim3 &block_size, float const *const d_input, float *const d_output, const int &size, const float &nElements, const float &multiplier) {
   MSD_BLN_grid_outlier_rejection<<<grid_size, block_size>>>(d_input, d_output, size, nElements, multiplier);
 }
+
+} //namespace astroaccelerate

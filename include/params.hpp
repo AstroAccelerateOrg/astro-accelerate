@@ -1,5 +1,8 @@
 #ifndef ASTRO_ACCELERATE_PARAMS_HPP
 #define ASTRO_ACCELERATE_PARAMS_HPP
+
+namespace astroaccelerate {
+
 //P100 8,14,12,40
 #define ACCMAX 350
 #define ACCSTEP 11
@@ -86,4 +89,6 @@
 #define SDIVINDM 40
 #define SFDIVINDM 40.0f
 
+} //namespace astroaccelerate
+  
 #endif

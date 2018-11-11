@@ -4,6 +4,8 @@
 #include "fdas_device.hpp"
 #include "device_cuda_deprecated_wrappers.cuh"
 
+namespace astroaccelerate {
+
 static __device__ __inline__ float2 Get_W_value(int N, int m){
 	float2 ctemp;
 	ctemp.x=cosf( -2.0f*3.141592654f*fdividef( (float) m, (float) N) );
@@ -1015,6 +1017,10 @@ __global__ void cuda_overlap_copy(float2* d_ext_data, float2* d_cpx_signal, int 
 
 }
 
+void call_kernel_cuda_overlap_copy(float2 *const d_ext_data, float2 *const d_cpx_signal, const int &sigblock, const int &sig_rfftlen, const int &sig_tot_convlen, const int &kern_offset, const int &total_blocks) {
+  cuda_overlap_copy<<<KERNLEN/64, 64 >>>(d_ext_data, d_cpx_signal, sigblock, sig_rfftlen, sig_tot_convlen, kern_offset, total_blocks);
+}
+
 __global__ void cuda_overlap_copy_smallblk(float2* d_ext_data, float2* d_cpx_signal, int sigblock, int sig_rfftlen, int sig_tot_convlen, int kern_offset, int total_blocks)
 {
   int tid = blockIdx.x*blockDim.x + threadIdx.x;
@@ -1034,6 +1040,10 @@ __global__ void cuda_overlap_copy_smallblk(float2* d_ext_data, float2* d_cpx_sig
   if (blockIdx.x > 0 && read_idx < sig_rfftlen){    
     d_ext_data[write_idx] = d_cpx_signal[read_idx];
   }
+}
+
+void call_kernel_cuda_overlap_copy_smallblk(const int &blocks, float2 *const d_ext_data, float2 *const d_cpx_signal, const int &sigblock, const int &sig_rfftlen, const int &sig_tot_convlen, const int &kern_offset, const int &total_blocks) {
+  cuda_overlap_copy_smallblk<<<blocks, KERNLEN>>>(d_ext_data, d_cpx_signal, sigblock, sig_rfftlen, sig_tot_convlen, kern_offset, total_blocks);
 }
 
 __global__ void cuda_convolve_reg_1d_halftemps(float2* d_kernel, float2* d_signal, float2* d_ffdot_plane,int sig_tot_convlen, float scale)
@@ -1066,6 +1076,10 @@ __global__ void cuda_convolve_reg_1d_halftemps(float2* d_kernel, float2* d_signa
   }
 }
 
+void call_kernel_cuda_convolve_reg_1d_halftemps(const int &blocks, const int &threads, float2 *const d_kernel, float2 *const d_signal, float2 *const d_ffdot_plane, const int &sig_tot_convlen, const float &scale) {
+  cuda_convolve_reg_1d_halftemps<<<blocks, threads>>>(d_kernel, d_signal, d_ffdot_plane, sig_tot_convlen, scale);
+}
+
 __global__ void cuda_ffdotpow_concat_2d(float2* d_ffdot_plane_cpx, float* d_ffdot_plane, int sigblock, int kern_offset, int total_blocks, int sig_tot_convlen, int sig_totlen)
  /* Copies useful points from convolved complex f-fdot array (discarding contaminated ends) */
  /* calculates complex signal power and places result in float f-fdot array */
@@ -1084,6 +1098,10 @@ __global__ void cuda_ffdotpow_concat_2d(float2* d_ffdot_plane_cpx, float* d_ffdo
      }
    }
  }
+
+void call_kernel_cuda_ffdotpow_concat_2d(const dim3 &blocks, const dim3 &threads, float2 *const d_ffdot_plane_cpx, float *const d_ffdot_plane, const int &sigblock, const int &kern_offset, const int &total_blocks, const int &sig_tot_convlen, const int &sig_totlen) {
+  cuda_ffdotpow_concat_2d_inbin<<<blocks, threads>>>(d_ffdot_plane_cpx, d_ffdot_plane, sigblock, kern_offset, total_blocks, sig_tot_convlen, sig_totlen);
+}
 
  __global__ void cuda_ffdotpow_concat_2d_inbin(float2* d_ffdot_plane_cpx, float* d_ffdot_plane, int sigblock, int kern_offset, int total_blocks, int sig_tot_convlen, int sig_totlen)
  /* Copies useful points from convolved complex f-fdot array (discarding contaminated ends) */
@@ -1135,6 +1153,10 @@ __global__ void cuda_ffdotpow_concat_2d(float2* d_ffdot_plane_cpx, float* d_ffdo
      }
    }
  }
+
+void call_kernel_cuda_ffdotpow_concat_2d_inbin(const dim3 &blocks, const dim3 &threads, float2 *const d_ffdot_plane_cpx, float *const d_ffdot_plane, const int &sigblock, const int &kern_offset, const int &total_blocks, const int &sig_tot_convlen, const int &sig_totlen) {
+  cuda_ffdotpow_concat_2d_inbin<<<blocks, threads>>>(d_ffdot_plane_cpx, d_ffdot_plane, sigblock, kern_offset, total_blocks, sig_tot_convlen, sig_totlen);
+}
 
 __global__ void cuda_ffdotpow_concat_2d_ndm_inbin(float2* d_ffdot_plane_cpx, float* d_ffdot_plane, int kernlen, int siglen, int nkern, int kern_offset, int total_blocks, int sig_tot_convlen, int sig_totlen, int ndm)
 /* Copies useful points from convolved complex f-fdot array (discarding contaminated ends) */
@@ -1209,6 +1231,10 @@ __global__ void customfft_fwd_temps_no_reorder(float2* d_signal)
 
   d_signal[tx +bx*KERNLEN] = s_input[tx];
 
+}
+
+void call_kernel_customfft_fwd_temps_no_reorder(float2 *const d_signal) {
+  customfft_fwd_temps_no_reorder<<<NKERN,KERNLEN>>>( d_signal);
 }
 
 __global__ void cuda_convolve_customfft_wes_no_reorder02(float2* d_kernel, float2* d_signal, float *d_ffdot_pw, int sigblock, int sig_tot_convlen, int sig_totlen, int offset, float scale)
@@ -1440,6 +1466,10 @@ __global__ void cuda_convolve_customfft_wes_no_reorder02(float2* d_kernel, float
     d_ffdot_pw[(ZMAX/2) * sig_totlen + index] = pwcalc(s_input[tx+offset]);
 
   //-------END
+}
+
+void call_kernel_cuda_convolve_customfft_wes_no_reorder02(const int &blocks, float2 *const d_kernel, float2 *const d_signal, float *const d_ffdot_pw, const int &sigblock, const int &sig_tot_convlen, const int &sig_totlen, const int &offset, const float &scale) {
+  cuda_convolve_customfft_wes_no_reorder02<<<blocks, KERNLEN>>>(d_kernel, d_signal, d_ffdot_pw, sigblock, sig_tot_convlen, sig_totlen, offset, scale); 
 }
 
 __global__ void cuda_convolve_customfft_wes_no_reorder02_inbin(float2* d_kernel, float2* d_signal, float *d_ffdot_pw, int sigblock, int sig_tot_convlen, int sig_totlen, int offset, float scale, float2 *ip_edge_points)
@@ -1728,6 +1758,10 @@ __global__ void cuda_convolve_customfft_wes_no_reorder02_inbin(float2* d_kernel,
   //--------END
 }
 
+void call_kernel_cuda_convolve_customfft_wes_no_reorder02_inbin(const int &blocks, float2 *const d_kernel, float2 *const d_signal, float *const d_ffdot_pw, const int &sigblock, const int &sig_tot_convlen, const int &sig_totlen, const int &offset, const float &scale, float2 *const ip_edge_points) {
+  cuda_convolve_customfft_wes_no_reorder02_inbin<<<blocks, KERNLEN>>>(d_kernel, d_signal, d_ffdot_pw, sigblock, sig_tot_convlen, sig_totlen, offset, scale, ip_edge_points);
+}
+
 
 __global__ void GPU_CONV_kFFT_mk11_2elem_2v(float2 const* __restrict__ d_input_signal, float *d_output_plane_reduced, float2 const* __restrict__ d_templates, int useful_part_size, int offset, int nConvolutions, float scale) {
 	__shared__ float2 s_input_1[KERNLEN];
@@ -1967,4 +2001,11 @@ __global__ void GPU_CONV_kFFT_mk11_4elem_2v(float2 const* __restrict__ d_input_s
 	}
 	
 }
+
+void call_kernel_GPU_CONV_kFFT_mk11_4elem_2v(const dim3 &grid_size, const dim3 &block_size, float2 const*const d_input_signal, float *const d_output_plane_reduced, float2 const*const d_templates, const int &useful_part_size, const int &offset, const int &nConvolutions, const float &scale) {
+  GPU_CONV_kFFT_mk11_4elem_2v<<<grid_size, block_size>>>(d_input_signal, d_output_plane_reduced, d_templates, useful_part_size, offset, nConvolutions, scale);
+}
+
+} //namespace astroaccelerate
+  
 #endif

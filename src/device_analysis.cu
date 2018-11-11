@@ -19,6 +19,7 @@
 //TODO:
 // Make BC_plan for arbitrary long pulses, by reusing last element in the plane
 
+namespace astroaccelerate {
 
 void Create_list_of_boxcar_widths(std::vector<int> *boxcar_widths, std::vector<int> *BC_widths, int max_boxcar_width){
 	int DIT_value, DIT_factor, width;
@@ -351,3 +352,5 @@ void analysis_GPU(unsigned int *h_peak_list_DM, unsigned int *h_peak_list_TS, fl
 	//---------------------------------------------------------------------------
 	
 }
+
+} //namespace astroaccelerate

@@ -7,6 +7,8 @@
  * aa_input provides a uniform interface to the data stream, which must be implemented in derived classes.
  */
 
+namespace astroaccelerate {
+
 class aa_input {
 public:
     aa_input();
@@ -18,5 +20,7 @@ public:
 protected:
     bool isopen;
 };
+
+} //namespace astroaccelerate
 
 #endif // ASTRO_ACCELERATE_AA_INPUT_HPP

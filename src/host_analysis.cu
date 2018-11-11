@@ -8,6 +8,8 @@
 #define OUTPUT_TO_FILE 1
 #define OUTPUT_TO_LIST 0
 
+namespace astroaccelerate {
+
 void analysis_CPU(int i, float tstart, int t_processed, int nsamp, int nchans, int maxshift, int max_ndms, int *ndms, int *outBin, float cutoff, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, float max_boxcar_width_in_sec) {
 
 	int max_boxcar_width = (int) (max_boxcar_width_in_sec/tsamp);
@@ -173,3 +175,5 @@ void analysis_CPU(int i, float tstart, int t_processed, int nsamp, int nchans, i
 	free(output_list);
 	fclose(fp_out);
 }
+
+} //namespace astroaccelerate

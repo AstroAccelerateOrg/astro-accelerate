@@ -3,6 +3,8 @@
 #include "float.h"
 #include <helper_cuda.h>
 
+namespace astroaccelerate {
+
 //{{{ shared_dedisperse_loop
 
 __device__  __shared__ ushort2 f_line[UNROLLS][ARRAYSIZE + 2];
@@ -200,3 +202,5 @@ void call_kernel_cache_dedisperse_kernel(const dim3 &block_size, const dim3 &gri
   cudaFuncSetCacheConfig(cache_dedisperse_kernel, cudaFuncCachePreferL1);
   cache_dedisperse_kernel<<<block_size, grid_size>>>(bin, d_input, d_output, mstartdm, mdmstep);
 }
+
+} //namespace astroaccelerate

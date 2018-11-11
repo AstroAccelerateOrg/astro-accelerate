@@ -9,7 +9,7 @@
 //#define MSD_PLANE_DEBUG
 //#define MSD_PLANE_EXPORT
 
-
+namespace astroaccelerate {
 
 struct MSD_Data {
   int width;
@@ -841,6 +841,8 @@ void MSD_plane_profile_boxcars(float *d_input_data, size_t nTimesamples, size_t 
   FILEOUT.close();
 }
 
+} //namespace astroaccelerate
+  
 //------------- MSD plane profile boxcars
 //---------------------------------------------------------------
 

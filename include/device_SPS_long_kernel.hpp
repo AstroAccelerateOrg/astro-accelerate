@@ -7,6 +7,8 @@
 #include "params.hpp"
 #include "device_SPS_inplace_kernel.hpp"
 
+namespace astroaccelerate {
+
 void call_kernel_SPDT_GPU_1st_plane(const dim3 &grid_size, const dim3 &block_size, float const *const d_input,
 				    float *const d_bv_out, float *const d_decimated,
 				    float *const d_output_SNR, ushort *const d_output_taps, float2 const *const d_MSD,
@@ -18,5 +20,7 @@ void call_kernel_SPDT_GPU_Nth_plane(const dim3 &grid_size, const dim3 &block_siz
 				    const int &nTimesamples, const int &nBoxcars, const int &startTaps,
 				    const int &DIT_value, const int &dtm);
 
+} //namespace astroaccelerate
+  
 #endif
 

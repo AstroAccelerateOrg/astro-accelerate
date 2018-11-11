@@ -9,6 +9,7 @@
 #include "aa_sigproc_input.hpp"
 #include "aa_ddtr_pipeline.hpp"
 
+using namespace astroaccelerate;
 
 int main() {
       aa_sigproc_input       filterbank_datafile("/home/carels/filterbank/BenMeerKAT.fil");

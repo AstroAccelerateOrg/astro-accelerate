@@ -11,6 +11,10 @@
 
 #include <stdio.h>
 
+namespace astroaccelerate {
+
 void run_pipeline_0();
+
+}
 
 #endif /* ASTRO_ACCELERATE_PERMITTED_PIPELINES_0_HPP */

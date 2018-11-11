@@ -2,6 +2,8 @@
 #include "aa_device_info.hpp"
 #include "aa_ddtr_strategy.hpp"
 
+using namespace astroaccelerate;
+
 int main() {
   std::cout << "Running test_ddtr_strategy_1.cpp" << std::endl;
   aa_device_info device_info;

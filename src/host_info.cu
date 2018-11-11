@@ -3,6 +3,8 @@
 #include <sys/sysinfo.h>
 #include "host_info.hpp"
 
+namespace astroaccelerate {
+
 void host_info(struct sysinfo *host_info)
 {
         if ( sysinfo(host_info)== -1){
@@ -44,3 +46,4 @@ void host_mem_error(unsigned int inputsize, unsigned int host_memory, const char
 	exit(0);
 }
 
+} //namespace astroaccelerate

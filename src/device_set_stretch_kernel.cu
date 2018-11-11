@@ -3,6 +3,8 @@
 #include "params.hpp"
 #include "device_set_stretch_kernel.hpp"
 
+namespace astroaccelerate {
+
 //{{{ Set stretch
 __global__ void set_stretch_kernel(int samps, float mean, float *d_input) {
 
@@ -19,3 +21,5 @@ void call_kernel_set_stretch_kernel(const dim3 &block_size, const dim3 &grid_siz
 }
 
 //}}}
+
+} //namespace astroaccelerate

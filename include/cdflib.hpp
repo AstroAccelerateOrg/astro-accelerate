@@ -3,6 +3,8 @@
 
 #include "ipmpar.hpp"
 
+namespace astroaccelerate {
+
 double algdiv(double*,double*);
 double alngam(double*);
 double alnrel(double*);
@@ -83,4 +85,6 @@ long fifmod(long,long);
 void ftnstop(char*);
 extern int ipmpar(int*);
 
+} //namespace astroaccelerate
+  
 #endif

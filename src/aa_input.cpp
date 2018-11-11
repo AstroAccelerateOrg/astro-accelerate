@@ -1,5 +1,7 @@
 #include "aa_input.hpp"
 
+namespace astroaccelerate {
+
 aa_input::aa_input() {
 
 }
@@ -23,3 +25,5 @@ aa_filterbank_metadata aa_input::read_metadata() {
     aa_filterbank_metadata empty;
     return empty;
 }
+
+} //namespace astroaccelerate

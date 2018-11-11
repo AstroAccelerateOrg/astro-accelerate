@@ -3,6 +3,8 @@
 #include "params.hpp"
 
 
+namespace astroaccelerate {
+
 //{{{ zero dm kernel - needs cleaning and optimizing // WA 21/10/16
 __global__ void rfi_gpu_kernel(unsigned short *d_input, int nchans, int nsamp)
 {
@@ -56,3 +58,5 @@ void call_kernel_rfi_gpu_kernel(const dim3 &block_size, const dim3 &grid_size,
 
 
 //}}}
+
+} //namespace astroaccelerate

@@ -1,6 +1,8 @@
 // Added by Karel Adamek 
 #include "device_SPS_long_kernel.hpp"
 
+namespace astroaccelerate {
+
 //--------------------------------------------------------------------------------------
 //------------- device functions
 __device__ __inline__ float2 Calculate_SNR_const_memory(float x, float y, ushort Taps){
@@ -318,3 +320,5 @@ void call_kernel_SPDT_GPU_Nth_plane(const dim3 &grid_size, const dim3 &block_siz
 					       d_MSD, nTimesamples,
 					       nBoxcars, startTaps, DIT_value, dtm);
 }
+
+} //namespace astroaccelerate

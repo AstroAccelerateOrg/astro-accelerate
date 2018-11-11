@@ -1,5 +1,7 @@
 #include "aa_sigproc_input.hpp"
 
+namespace astroaccelerate {
+
 aa_sigproc_input::aa_sigproc_input(const std::string &path) : header_is_read(false), file_path(path) {
   isopen = false;
 }
@@ -484,3 +486,5 @@ bool aa_sigproc_input::get_recorded_data(std::vector<T> &input_buffer) {
     
     return true;
 }
+
+} //namespace astroaccelerate

@@ -3,6 +3,8 @@
 #include <cuda_runtime.h>
 #include "params.hpp"
 
+namespace astroaccelerate {
+
 __global__ void PD_FIR_GPU(float const* __restrict__ d_input, float *d_output, int nTaps, int nLoops, int nTimesamples) {
   extern __shared__ float s_input[];
 
@@ -117,3 +119,5 @@ void call_kernel_PD_FIR_GPUv1(const dim3 &grid_size, const dim3 &block_size, con
 void call_kernel_Fir_L1(const dim3 &grid_size, const dim3 &block_size, float const *const d_input, float *const d_output, const int &nTaps, const int &nTimesamples) {
   Fir_L1<<<grid_size, block_size>>>(d_input, d_output, nTaps, nTimesamples);
 }
+
+} //namespace astroaccelerate

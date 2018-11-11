@@ -1,7 +1,8 @@
 #include "device_SNR_limited_inplace_kernel.hpp"
 
-//__device__ __constant__ float c_sqrt_taps[PD_MAXTAPS+1];
+namespace astroaccelerate {
 
+//__device__ __constant__ float c_sqrt_taps[PD_MAXTAPS+1];
 
 __global__ void PD_ZC_GPU(float *d_input, float *d_output, int maxTaps, int nTimesamples, int nLoops) {
 	int x_r, y_r, x_w, y_w;
@@ -102,3 +103,6 @@ void call_kernel_PD_GPUv1_const(float *const d_input, float *const d_temp, unsig
 				const int &maxTaps, const int &nTimesamples, const float &signal_mean, const float &signal_sd) {
   //This kernel looks like it is not called elsewhere in astro-accelerate, hence no implementation is provided.
 }
+
+
+} //namespace astroaccelerate

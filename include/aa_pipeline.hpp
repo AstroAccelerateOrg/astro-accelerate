@@ -25,6 +25,8 @@
 #include "aa_device_info.hpp"
 #include "aa_permitted_pipelines_1.hpp"
 
+namespace astroaccelerate {
+
 /**
  * This class manages pipelines and their constituent modules, plans, and strategies,
  * as well as delegating the movement of host memory into and out of the pipeline,
@@ -306,4 +308,6 @@ private:
     U*                          ptr_data_out;
 };
 
+} //namespace astroaccelerate
+  
 #endif /* ASTRO_ACCELERATE_PIPELINE_HPP */

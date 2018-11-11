@@ -13,6 +13,8 @@
 #include "aa_permitted_pipelines_0.hpp"
 #include "aa_permitted_pipelines_1.hpp"
 
+namespace astroaccelerate {
+
 /**
  * This class is used to check whether a pipeline is valid and permitted.
  * This class can also be used to obtain a valid pipeline.
@@ -48,5 +50,7 @@ public:
     }
     
 };
+
+} //namespace astroaccelerate
 
 #endif /* ASTRO_ACCELERATE_PERMITTED_PIPELINES_HPP */

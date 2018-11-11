@@ -5,6 +5,8 @@
 #include "device_threshold_shared_kernel_functions.cuh"
 #include "device_cuda_deprecated_wrappers.cuh"
 
+namespace astroaccelerate {
+
 __global__ void THR_GPU_WARP(float const* __restrict__ d_input, ushort *d_input_taps, unsigned int *d_output_list_DM, unsigned int *d_output_list_TS, float *d_output_list_SNR, unsigned int *d_output_list_BW, int *gmem_pos, float threshold, int nTimesamples, int offset, int shift, int max_list_size, int DIT_value) {
 	int local_id;
 	local_id = threadIdx.x & (WARP - 1);
@@ -145,3 +147,5 @@ void call_kernel_GPU_Threshold_for_periodicity_kernel(const dim3 &grid_size, con
 								 threshold, primary_size,
 								 secondary_size, DM_shift, max_list_size, DIT_value);
 }
+
+} //namespace astroaccelerate

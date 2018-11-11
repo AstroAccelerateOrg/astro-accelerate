@@ -9,6 +9,8 @@
 
 #include "presto_funcs.hpp"
 
+namespace astroaccelerate {
+
 #define ELEM_SWAP(a,b) { register float t=(a);(a)=(b);(b)=t; }
 
 float median(float arr[], int n)
@@ -71,3 +73,4 @@ float median(float arr[], int n)
 }
 
 #undef ELEM_SWAP
+} //namespace astroaccelerate

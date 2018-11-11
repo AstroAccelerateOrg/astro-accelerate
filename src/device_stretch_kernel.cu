@@ -3,6 +3,8 @@
 #include "params.hpp"
 #include <cufft.h>
 
+namespace astroaccelerate {
+
 //{{{ stretch
 __global__ void stretch_kernel(int acc, int samps, float tsamp, float *d_input, float *d_output, float t_zero, float multiplier, float tsamp_inverse)
 {
@@ -25,3 +27,4 @@ void call_kernel_stretch_kernel(const dim3 &block_size, const dim3 &grid_size, c
 }
 
 //}}}
+} //namespace astroaccelerate

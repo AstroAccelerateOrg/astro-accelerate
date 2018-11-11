@@ -8,6 +8,8 @@
 
 #include "aa_permitted_pipelines_1.hpp"
 
+namespace astroaccelerate {
+
 void allocate_memory_gpu(const int &maxshift, const int &max_ndms, const int &nchans, int **const t_processed, unsigned short **const d_input, float **const d_output) {
     
     int time_samps = t_processed[0][0] + maxshift;
@@ -131,3 +133,5 @@ void run_pipeline_1(const aa_filterbank_metadata &metadata, const aa_ddtr_strate
     }
     printf("NOTICE: Pipeline ended run_pipeline_1.\n");
 }
+
+} //namespace astroaccelerate

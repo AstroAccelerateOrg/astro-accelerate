@@ -21,6 +21,8 @@
 #include <fstream>
 #include <iomanip>
 
+namespace astroaccelerate {
+
 // define to see debug info
 #define GPU_PERIODICITY_SEARCH_DEBUG
 
@@ -1029,3 +1031,5 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 
 	cudaDeviceSynchronize();
 };
+
+} //namespace astroaccelerate

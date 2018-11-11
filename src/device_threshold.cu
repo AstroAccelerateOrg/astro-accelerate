@@ -8,6 +8,8 @@
 #include "params.hpp"
 #include "device_threshold_kernel.hpp"
 
+namespace astroaccelerate {
+
 void THR_init(void) {
 	//---------> Specific nVidia stuff
 	cudaDeviceSetCacheConfig (cudaFuncCachePreferShared);
@@ -142,3 +144,5 @@ int Threshold_for_periodicity(float *d_input, ushort *d_input_harms, float *d_ou
 
 	return (0);
 }
+
+} //namespace astroaccelerate

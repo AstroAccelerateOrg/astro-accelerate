@@ -12,6 +12,7 @@
 //	unsigned long int max_timesamples;
 //};
 
+namespace astroaccelerate {
 
 void Create_list_of_boxcar_widths2(std::vector<int> *boxcar_widths, std::vector<int> *BC_widths){
         int DIT_value, DIT_factor, width;
@@ -74,3 +75,5 @@ void stratagy_MSD(int nDMs, float max_boxcar_width_in_sec, float tsamp, int nTim
 //	size_t MSD_profile_size_in_bytes, MSD_DIT_profile_size_in_bytes, workarea_size_in_bytes;
 //	Get_MSD_plane_profile_memory_requirements(&MSD_profile_size_in_bytes, &MSD_DIT_profile_size_in_bytes, &workarea_size_in_bytes, nTimesamples, nDMs, &h_boxcar_widths);
 }
+
+} //namespace astroaccelerate

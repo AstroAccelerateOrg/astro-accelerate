@@ -25,6 +25,10 @@
 #include "aa_corner_turn.hpp"
 #include "aa_dedisperse.hpp"
 
+namespace astroaccelerate {
+
 void run_pipeline_1(const aa_filterbank_metadata &metadata, const aa_ddtr_strategy &ddtr_strategy, unsigned short *const input_buffer);
 
+}
+  
 #endif /* ASTRO_ACCELERATE_PERMITTED_PIPELINES_1_HPP */

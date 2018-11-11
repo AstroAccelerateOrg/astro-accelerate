@@ -5,6 +5,8 @@
 #include "device_stats_kernel.hpp"
 #include <helper_cuda.h>
 
+namespace astroaccelerate {
+
 //{{{ Return stats 
 
 void stats_gpu(cudaEvent_t event, cudaStream_t stream, int samps, float *mean, float *stddev, float *h_signal_power, float *d_signal_power)
@@ -90,3 +92,4 @@ void stats_gpu(cudaEvent_t event, cudaStream_t stream, int samps, float *mean, f
 
 //}}}
 
+} //namespace astroaccelerate

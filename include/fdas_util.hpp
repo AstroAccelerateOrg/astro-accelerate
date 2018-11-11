@@ -4,10 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include "fdas_util.hpp"
 #include <getopt.h>
 #include <string.h>
 #include <sys/stat.h>
+
+namespace astroaccelerate {
 
 typedef struct {
   int search;
@@ -43,5 +44,7 @@ void read_input_file_cpx(char *fname, float2 *array);
 
 void write_output_file(char *fname, float **array, unsigned long len);
 }
+
+} //namespace astroaccelerate
 
 #endif /* FDAS_UTIL_H */

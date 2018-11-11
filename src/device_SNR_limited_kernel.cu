@@ -1,5 +1,7 @@
 #include "device_SNR_limited_kernel.hpp"
 
+namespace astroaccelerate {
+
 __global__ void SNR_GPU_limited(float *d_FIR_input, float *d_SNR_output, ushort *d_SNR_taps, float *d_MSD, int x_steps, int nTaps, int nColumns, int offset) {
 	int local_id = threadIdx.x & ( WARP - 1 );
 	int warp_id = threadIdx.x >> 5;
@@ -58,3 +60,6 @@ void call_kernel_SNR_GPU_limited(const dim3 &grid_size, const dim3 &block_size, 
   SNR_GPU_limited<<<grid_size, block_size>>>(d_FIR_input, d_SNR_output, d_SNR_taps, d_MSD,
 					     x_steps, nTaps, nColumns, offset);
 }
+
+
+} //namespace astroaccelerate

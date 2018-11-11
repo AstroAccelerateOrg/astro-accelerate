@@ -8,6 +8,8 @@
 
 #include "aa_input.hpp"
 
+namespace astroaccelerate {
+
 /**
  * The aa_sigproc_input class is used to parse a sigproc (.fil) file.
  * Data description from "SIGPROC-v3.7 (Pulsar) Signal Processing Programs"
@@ -42,5 +44,7 @@ private:
     FILE *fp;
     
 };
+
+} //namespace astroaccelerate
 
 #endif // ASTRO_ACCELERATE_AA_SIGPROC_INPUT_HPP

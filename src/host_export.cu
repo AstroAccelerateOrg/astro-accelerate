@@ -2,6 +2,8 @@
 #include <fstream>
 #include <vector>
 
+namespace astroaccelerate {
+
 size_t Calculate_sd_per_file_from_file_size(size_t size_in_MB, size_t primary_dimension, size_t floats_per_elements) {
 	size_t nFloats = (size_in_MB*1024*1024)/4;
 	size_t sd_per_file = (nFloats*floats_per_elements)/primary_dimension;
@@ -168,6 +170,4 @@ void Export_data_as_list(float *h_data, size_t primary_dimension, float prim_mul
 	delete [] h_data_to_export;
 }
 
-
-
-
+} //namespace astroaccelerate

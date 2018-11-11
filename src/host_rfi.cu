@@ -3,6 +3,8 @@
 #include "params.hpp"
 #include "host_rfi.hpp"
 
+namespace astroaccelerate {
+
 void rfi(int nsamp, int nchans, unsigned short **input_buffer)
 {
 	int 	file_reducer 	= 1;
@@ -519,3 +521,4 @@ void rfi(int nsamp, int nchans, unsigned short **input_buffer)
 	free(stage);
 }
 
+} //namespace astroaccelerate

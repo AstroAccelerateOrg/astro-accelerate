@@ -22,6 +22,8 @@
 #include <libgen.h>
 //#include <random> // C++11 to use normal distribution
 
+namespace astroaccelerate {
+
 #define LOWACC 0
 #define SLIGHT 299792458.0
 
@@ -119,4 +121,6 @@ void fdas_write_test_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_pa
   double candidate_sigma(double power, int numsum, double numtrials);
 }*/
 
+} //namespace astroaccelerate
+  
 #endif /* FDAS_HOST_H */

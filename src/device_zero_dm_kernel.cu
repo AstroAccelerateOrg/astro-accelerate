@@ -3,6 +3,7 @@
 #include "params.hpp"
 #include "device_cuda_deprecated_wrappers.cuh"
 
+namespace astroaccelerate {
 
 __device__ __inline__ void Reduce_SM(float *s_input){
 
@@ -66,3 +67,4 @@ void call_kernel_zero_dm_kernel(const dim3 &block_size, const dim3 &grid_size, c
 }
 
 //}}}
+} //namespace astroaccelerate
