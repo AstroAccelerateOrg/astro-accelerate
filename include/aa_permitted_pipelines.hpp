@@ -10,6 +10,7 @@
 #define ASTRO_ACCELERATE_PERMITTED_PIPELINES_HPP
 
 #include "aa_compute.hpp"
+#include "aa_permitted_pipelines.hpp"
 #include "aa_permitted_pipelines_0.hpp"
 #include "aa_permitted_pipelines_1.hpp"
 

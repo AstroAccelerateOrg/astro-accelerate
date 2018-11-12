@@ -255,8 +255,14 @@ public:
                     //Setup failed.
                 }
             }
-            
-	    run_pipeline_1(m_ddtr_strategy, ptr_data_in);
+	    run_pipeline_1 runner(m_ddtr_strategy, ptr_data_in);
+	    if(runner.setup()) {
+	      std::vector<float> out;
+
+	      while(runner.next(out)) {
+		std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
+	      }
+	    }
             
             return true;
         }

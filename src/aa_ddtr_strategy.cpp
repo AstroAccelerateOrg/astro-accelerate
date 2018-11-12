@@ -10,11 +10,11 @@
 
 namespace astroaccelerate {
 
-  aa_ddtr_strategy::aa_ddtr_strategy() : m_ready(false), m_strategy_already_calculated(false), is_setup(false), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_t_processed_dim1_size(0), m_output_buffer_dim1_size(0), m_output_buffer_dim2_size(0), m_output_buffer_dim3_size(0) {
+  aa_ddtr_strategy::aa_ddtr_strategy() : m_ready(false), m_strategy_already_calculated(false), is_setup(false), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_t_processed_dim1_size(0) {
     
 }
 
-  aa_ddtr_strategy::aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis) : m_ready(false), m_strategy_already_calculated(false), is_setup(false), m_metadata(metadata), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_t_processed_dim1_size(0), m_output_buffer_dim1_size(0), m_output_buffer_dim2_size(0), m_output_buffer_dim3_size(0) {
+  aa_ddtr_strategy::aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis) : m_ready(false), m_strategy_already_calculated(false), is_setup(false), m_metadata(metadata), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_t_processed_dim1_size(0) {
     strategy(plan, free_memory, enable_analysis);
 }
 
@@ -296,6 +296,9 @@ bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const size_t &free_mem
 }
 
 void aa_ddtr_strategy::allocate_memory_cpu_output() {
+  /**
+   * Allocate a 3D array that is an output buffer that stores dedispersed array data.
+   */
     size_t estimate_outputbuffer_size = 0;
     size_t outputsize = 0;
     const size_t range = str_dm.size();
@@ -326,7 +329,7 @@ bool aa_ddtr_strategy::setup() {
      */
     
     //output_buffer is used by the pipeline, but is it also used by the user?
-    allocate_memory_cpu_output();
+    //allocate_memory_cpu_output();//Disable as part of refactoring to aa_permitted_pipelines_1
     
     is_setup = true;
     if(is_setup && ready()) {

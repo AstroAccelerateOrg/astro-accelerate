@@ -33,9 +33,9 @@ class aa_ddtr_strategy : public aa_strategy {
 public:
     aa_ddtr_strategy();
     aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis);
-    aa_ddtr_strategy(const aa_ddtr_strategy&) = delete;
+  //    aa_ddtr_strategy(const aa_ddtr_strategy&) = delete;
     ~aa_ddtr_strategy() {
-      std::cout << "dim1, dim2, dim3 " << m_output_buffer_dim1_size << " " << m_output_buffer_dim2_size << " " << m_output_buffer_dim3_size << std::endl;
+
     }
     
     bool setup();
@@ -106,9 +106,6 @@ private:
     std::vector<std::vector<int>> m_t_processed; //Is allocated in this class, and used elsewhere in the pipeline
     size_t m_t_processed_dim1_size;
     float ***output_buffer; //3D array that contains the output
-    size_t m_output_buffer_dim1_size;
-    size_t m_output_buffer_dim2_size;
-    size_t m_output_buffer_dim3_size;
 };
 
 } //namespace astroaccelerate
