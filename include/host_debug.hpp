@@ -1,7 +1,7 @@
 #ifndef ASTRO_ACCELERATE_HOST_DEBUG_HPP
 #define ASTRO_ACCELERATE_HOST_DEBUG_HPP
 
-#include <time.h>
+#include <ctime>
 
 namespace astroaccelerate {
 
