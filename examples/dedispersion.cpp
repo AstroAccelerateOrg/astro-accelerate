@@ -33,7 +33,7 @@ int main() {
   
   const size_t free_memory = 2147483648; // Free memory on the GPU in bytes
   bool enable_analysis = false;       // The strategy will be optimised to run just dedispersion
-  aa_ddtr_strategy strategy(ddtr_plan, metadata, free_memory, false);
+  aa_ddtr_strategy strategy(ddtr_plan, metadata, free_memory, enable_analysis);
   
   if(!(strategy.ready())) {
     std::cout << "There was an error" << std::endl;
