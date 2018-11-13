@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <cmath>
+
 #include "params.hpp"
 #include "host_rfi.hpp"
 
