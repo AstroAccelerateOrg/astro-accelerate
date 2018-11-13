@@ -23,8 +23,7 @@ inline void save_data_offset(float *device_pointer, int device_offset, float *ho
   printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][t], t);
   
   checkCudaErrors(cudaGetLastError());
-  load_data(-1, inBin, d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
-  
+  load_data(-1, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
   checkCudaErrors(cudaGetLastError());
   
   if (enable_zero_dm) {
@@ -54,7 +53,7 @@ inline void save_data_offset(float *device_pointer, int device_offset, float *ho
     cudaDeviceSynchronize();
     checkCudaErrors(cudaGetLastError());
     
-    load_data(dm_range, inBin, d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t], maxshift, nchans, dmshifts);
+    load_data(dm_range, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t], maxshift, nchans, dmshifts);
     
     checkCudaErrors(cudaGetLastError());
     
@@ -66,7 +65,7 @@ inline void save_data_offset(float *device_pointer, int device_offset, float *ho
     
     checkCudaErrors(cudaGetLastError());
     
-    dedisperse(dm_range, t_processed[dm_range][t], inBin, dmshifts, d_input, d_output, nchans, &tsamp, dm_low, dm_step, ndms, nbits, failsafe);
+    dedisperse(dm_range, t_processed[dm_range][t], inBin.data(), dmshifts, d_input, d_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
 
     if(dump_ddtr_output) {
       //Resize vector to contain the output array
@@ -74,7 +73,6 @@ inline void save_data_offset(float *device_pointer, int device_offset, float *ho
       for (int k = 0; k < num_tchunks; k++) {
 	total_samps += t_processed[dm_range][k];
       }
-      std::cout << "total_samps " << total_samps << std::endl;
       output_buffer.resize(total_samps);
       for (int k = 0; k < ndms[dm_range]; k++) {
 	//	save_data_offset(d_output, k * t_processed[dm_range][t], output_buffer.data(), inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);

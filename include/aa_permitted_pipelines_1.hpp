@@ -42,33 +42,33 @@ namespace astroaccelerate {
       return run_pipeline(output_buffer);
     }
   private:
-    int              **t_processed;
-    aa_ddtr_strategy m_ddtr_strategy;
-    unsigned short   *m_input_buffer;
-    int num_tchunks;
+    int                **t_processed;
+    aa_ddtr_strategy   m_ddtr_strategy;
+    unsigned short     *m_input_buffer;
+    int                num_tchunks;
     std::vector<float> dm_shifts;
-    float* dmshifts;
-    int maxshift;
-    int max_ndms;
-    int nchans;
-    int nbits;
-    int enable_zero_dm;
-    int enable_zero_dm_with_outliers;
-    int failsafe;
-    long int inc;
-    float tsamp;
-    float tsamp_original;
-    int maxshift_original;
-    size_t range;
-    float tstart_local;
+    float              *dmshifts;
+    int                maxshift;
+    int                max_ndms;
+    int                nchans;
+    int                nbits;
+    int                enable_zero_dm;
+    int                enable_zero_dm_with_outliers;
+    int                failsafe;
+    long int           inc;
+    float              tsamp;
+    float              tsamp_original;
+    int                maxshift_original;
+    size_t             range;
+    float              tstart_local;
 
-    unsigned short *d_input;
-    float *d_output;
+    unsigned short     *d_input;
+    float              *d_output;
 
-    float *dm_low;
-    float *dm_high;
-    float *dm_step;
-    int   *inBin;
+    std::vector<float> dm_low;
+    std::vector<float> dm_high;
+    std::vector<float> dm_step;
+    std::vector<int>   inBin;
     
     //Loop counter variables
     int t;
@@ -95,6 +95,7 @@ namespace astroaccelerate {
     }
 
     bool run_pipeline(std::vector<float> &output_buffer);
+    
     bool set_data() {
       num_tchunks = m_ddtr_strategy.num_tchunks();
       size_t t_processed_size = m_ddtr_strategy.t_processed().size();
@@ -133,10 +134,10 @@ namespace astroaccelerate {
       allocate_memory_gpu(maxshift, max_ndms, nchans, t_processed, &d_input, &d_output);
       //Put the dm low, high, step struct contents into separate arrays again.
       //This is needed so that the kernel wrapper functions don't need to be modified.
-      dm_low  = (float*)malloc(m_ddtr_strategy.range() * sizeof(float));
-      dm_high = (float*)malloc(m_ddtr_strategy.range() * sizeof(float));
-      dm_step = (float*)malloc(m_ddtr_strategy.range() * sizeof(float));
-      inBin   = (int*)malloc(m_ddtr_strategy.range() * sizeof(int));
+      dm_low.resize(m_ddtr_strategy.range());
+      dm_high.resize(m_ddtr_strategy.range());
+      dm_step.resize(m_ddtr_strategy.range());
+      inBin.resize(m_ddtr_strategy.range());
       for(size_t i = 0; i < m_ddtr_strategy.range(); i++) {
 	dm_low[i]   = m_ddtr_strategy.dm(i).low;
 	dm_high[i]  = m_ddtr_strategy.dm(i).high;
