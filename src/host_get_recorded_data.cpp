@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <cuda_runtime.h>
 
 /* Again this funtion uses a pointer to the file pointer so that it can update the position of the file pointer :)
