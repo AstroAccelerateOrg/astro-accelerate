@@ -2,7 +2,9 @@
  * The input data file should always be the last argument on the CLI.
  */
 
+#include <stdlib.h>
 #include <stdio.h>
+#include <cstring>
 #include <wordexp.h>
 #include "params.hpp"
 #include "host_help.hpp"
