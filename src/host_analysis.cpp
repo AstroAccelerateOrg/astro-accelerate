@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "params.hpp"
-#include "host_periods.hpp"
 
 #define OUTPUT_TO_FILE 1
 #define OUTPUT_TO_LIST 0
