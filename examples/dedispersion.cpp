@@ -50,6 +50,9 @@ int main() {
   if(runner.setup()) {
     std::vector<float> out;
 
+    // The user should consume the output vector data
+    // upon each iteration of .next(out), since
+    // the vector memory is re-allocated for the next chunk.
     while(runner.next(out)) {
       std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
     }
