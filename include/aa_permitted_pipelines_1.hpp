@@ -28,8 +28,14 @@
 namespace astroaccelerate {
   class aa_permitted_pipelines_1 {
   public:
-    aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy, unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy), m_input_buffer(input_buffer), t(0) {
+    aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy, unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy), m_input_buffer(input_buffer), t(0), memory_cleanup(false) {
 
+    }
+
+    ~aa_permitted_pipelines_1() {
+      if(!memory_cleanup) {
+	cleanup();
+      }
     }
 
     aa_permitted_pipelines_1(const aa_permitted_pipelines_1 &) = delete;
@@ -40,6 +46,13 @@ namespace astroaccelerate {
 
     bool next(std::vector<float> &output_buffer) {
       return run_pipeline(output_buffer);
+    }
+
+    bool cleanup() {
+      if(!memory_cleanup) {
+	cudaFree(d_input);
+	cudaFree(d_output);
+      }
     }
   private:
     int                **t_processed;
@@ -69,6 +82,8 @@ namespace astroaccelerate {
     std::vector<float> dm_high;
     std::vector<float> dm_step;
     std::vector<int>   inBin;
+
+    bool memory_cleanup;
     
     //Loop counter variables
     int t;
