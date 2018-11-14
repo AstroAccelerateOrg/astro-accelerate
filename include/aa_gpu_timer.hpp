@@ -1,40 +1,34 @@
-#ifndef ASTRO_ACCELERATE_GPU_TIMER_HPP
-#define ASTRO_ACCELERATE_GPU_TIMER_HPP
+#ifndef ASTRO_ACCELERATE_AA_GPU_TIMER_HPP
+#define ASTRO_ACCELERATE_AA_GPU_TIMER_HPP
 
 #include <cuda_runtime.h>
 
 namespace astroaccelerate {
 
-struct GpuTimer
-{
+struct aa_gpu_timer {
   cudaEvent_t start;
   cudaEvent_t stop;
 
-  GpuTimer()
-  {
+  aa_gpu_timer() {
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
   }
 
-  ~GpuTimer()
-  {
+  ~aa_gpu_timer() {
     cudaEventDestroy(start);
     cudaEventDestroy(stop);
   }
 
-  void Start()
-  {
+  void Start() {
     cudaEventRecord(start, 0);
   }
 
-  void Stop()
-  {
+  void Stop() {
     cudaEventRecord(stop, 0);
   }
 
-  float Elapsed()
-  {
-    float elapsed;
+  float Elapsed() {
+    float elapsed = 0.0;
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&elapsed, start, stop);
     return elapsed;
@@ -43,4 +37,4 @@ struct GpuTimer
 
 } //namespace astroaccelerate
 
-#endif  /* GPU_TIMER_H__ */
+#endif  /* ASTRO_ACCELERATE_AA_GPU_TIMER_HPP */

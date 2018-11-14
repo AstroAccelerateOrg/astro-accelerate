@@ -1,3 +1,6 @@
+#include <iostream>
+#include <fstream>
+#include <iomanip>
 #include <stdio.h>
 #include <stdlib.h>
 #include <cufft.h>
@@ -16,10 +19,7 @@
 #include "device_harmonic_summing.hpp"
 #include "aa_corner_turn.hpp"
 #include "device_threshold.hpp"
-
-#include <iostream>
-#include <fstream>
-#include <iomanip>
+#include "aa_gpu_timer.hpp"
 
 namespace astroaccelerate {
 
@@ -635,7 +635,7 @@ void Periodicity_search(GPU_Memory_for_Periodicity_Search *gmem, Periodicity_par
 	int t_nDMs_per_batch    = batch->nDMs_per_batch;
 	int t_DM_shift          = batch->DM_shift;
 	
-	GpuTimer timer;
+	aa_gpu_timer timer;
 	
 	checkCudaErrors(cudaGetLastError());
 	
@@ -873,7 +873,7 @@ void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float si
 	
 	// Timing
 	double Total_periodicity_time = 0, Total_calc_time = 0, calc_time_per_range = 0, Total_copy_time = 0, copy_time_per_range = 0;
-	GpuTimer timer, periodicity_timer;
+	aa_gpu_timer timer, periodicity_timer;
 	
 	periodicity_timer.Start();
 	

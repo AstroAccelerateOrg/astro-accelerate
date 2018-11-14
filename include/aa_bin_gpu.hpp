@@ -13,7 +13,6 @@
 #include <vector_types.h>
 
 #include "params.hpp"
-#include "gpu_timer.hpp"
 #include "device_binning_kernel.hpp"
 #include "device_corner_turn_kernel.hpp"
 

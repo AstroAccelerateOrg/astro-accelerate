@@ -6,7 +6,10 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
+#include <cuda_runtime.h>
+
 #include "aa_bin_gpu.hpp"
+#include "aa_gpu_timer.hpp"
 
 namespace astroaccelerate {
 
@@ -46,7 +49,7 @@ void bin_gpu(unsigned short *const d_input, float *const d_output, const int nch
 }
 
 int GPU_DiT_v2_wrapper(float *d_input, float *d_output, int nDMs, int nTimesamples) {
-  GpuTimer timer;
+  aa_gpu_timer timer;
 
   //---------> Task specific
   int ut;

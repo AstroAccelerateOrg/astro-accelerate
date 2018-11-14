@@ -1,7 +1,7 @@
-#include "params.hpp"
 #include <stdio.h>
 #include <stdlib.h>
-#include "headers_mains.hpp"
+
+#include "params.hpp"
 
 namespace astroaccelerate {
 

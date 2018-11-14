@@ -14,7 +14,7 @@
 #include "device_SPS_long.hpp"
 #include "device_threshold.hpp"
 
-#include "gpu_timer.hpp"
+#include "aa_gpu_timer.hpp"
 
 //TODO:
 // Make BC_plan for arbitrary long pulses, by reusing last element in the plane
@@ -134,7 +134,7 @@ void analysis_GPU(unsigned int *h_peak_list_DM, unsigned int *h_peak_list_TS, fl
 	//----------> GPU part
 	printf("\n----------> GPU analysis part\n");
 	printf("  Dimensions nDMs:%d; nTimesamples:%d; inBin:%d; outBin:%d; maxshift:%d; \n", ndms[i], t_processed, inBin, outBin, *maxshift);
-	GpuTimer total_timer, timer;
+	aa_gpu_timer total_timer, timer;
 	total_timer.Start();
 	
 

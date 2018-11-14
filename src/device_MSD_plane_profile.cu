@@ -3,7 +3,7 @@
 #include "device_single_FIR.hpp"
 #include "aa_bin_gpu.hpp"
 #include "device_MSD.hpp"
-#include "gpu_timer.hpp"
+#include "aa_gpu_timer.hpp"
 
 #include "device_MSD_shared_kernel_functions.hpp"
 //#define MSD_PLANE_DEBUG
@@ -56,7 +56,7 @@ void MSD_plane_profile_debug(float *d_MSD, int DIT_value, int nTimesamples, int 
 
 
 void MSD_of_input_plane(float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, float *d_input_data, float *d_MSD_DIT_previous, float *d_sudy, float *d_lichy, float *d_MSD_workarea, size_t nTimesamples, size_t nDMs, int nDecimations, int max_width_performed, float OR_sigma_multiplier, int enable_outlier_rejection, bool high_memory, bool perform_continuous, double *total_time, double *dit_time, double *MSD_time){
-  GpuTimer timer, total_timer;
+  aa_gpu_timer timer, total_timer;
   double t_dit_time=0, t_MSD_time=0;
   int nRest;
   size_t decimated_timesamples;
@@ -434,7 +434,7 @@ void MSD_Export_plane(const char *filename, float *h_MSD_DIT, std::vector<int> *
 
 void MSD_Interpolate_values(float *d_MSD_interpolated, float *d_MSD_DIT, std::vector<int> *h_MSD_DIT_widths, int nMSDs, std::vector<int> *h_boxcar_widths, int max_width_performed, const char *filename){
 #ifdef GPU_PARTIAL_TIMER
-  GpuTimer timer;
+  aa_gpu_timer timer;
   timer.Start();
 #endif
 	
@@ -575,7 +575,7 @@ void MSD_plane_profile(float *d_MSD_interpolated, float *d_input_data, float *d_
 //------------- MSD plane profile boxcars
 
 void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vector<MSD_Data> *boxcar_MSD, std::vector<MSD_Data> *boxcar_MSD_BLN, int max_nTaps, int max_boxcar_width, float OR_sigma_multiplier){
-  GpuTimer timer;
+  aa_gpu_timer timer;
   double total_time = 0;
   int nRest;
   MSD_Data mdtemp;
