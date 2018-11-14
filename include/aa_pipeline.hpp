@@ -255,7 +255,7 @@ public:
                     //Setup failed.
                 }
             }
-	    run_pipeline_1 runner(m_ddtr_strategy, ptr_data_in);
+	    aa_permitted_pipelines_1 runner(m_ddtr_strategy, ptr_data_in);
 	    if(runner.setup()) {
 	      std::vector<float> out;
 

@@ -6,8 +6,8 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#ifndef ASTRO_ACCELERATE_PERMITTED_PIPELINES_1_HPP
-#define ASTRO_ACCELERATE_PERMITTED_PIPELINES_1_HPP
+#ifndef ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_1_HPP
+#define ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_1_HPP
 
 
 #include <cuda.h>
@@ -26,13 +26,13 @@
 #include "aa_dedisperse.hpp"
 
 namespace astroaccelerate {
-  class run_pipeline_1 {
+  class aa_permitted_pipelines_1 {
   public:
-    run_pipeline_1(const aa_ddtr_strategy &ddtr_strategy, unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy), m_input_buffer(input_buffer), t(0) {
+    aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy, unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy), m_input_buffer(input_buffer), t(0) {
 
     }
 
-    run_pipeline_1(const run_pipeline_1 &) = delete;
+    aa_permitted_pipelines_1(const aa_permitted_pipelines_1 &) = delete;
 
     bool setup() {
       return set_data();
@@ -149,4 +149,4 @@ namespace astroaccelerate {
   };
 }//namespace astroaccelerate
   
-#endif /* ASTRO_ACCELERATE_PERMITTED_PIPELINES_1_HPP */
+#endif /* ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_1_HPP */

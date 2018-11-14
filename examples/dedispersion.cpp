@@ -46,7 +46,7 @@ int main() {
     i = 0.0;
   }
   
-  run_pipeline_1 runner(strategy, input_data.data());
+  aa_permitted_pipelines_1 runner(strategy, input_data.data());
   if(runner.setup()) {
     std::vector<float> out;
 

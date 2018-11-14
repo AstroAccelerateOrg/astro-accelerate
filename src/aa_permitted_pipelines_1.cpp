@@ -14,7 +14,7 @@ inline void save_data_offset(float *device_pointer, int device_offset, float *ho
     cudaMemcpy(host_pointer + host_offset, device_pointer + device_offset, size, cudaMemcpyDeviceToHost);
 }
   
-  bool run_pipeline_1::run_pipeline(std::vector<float> &output_buffer) {
+  bool aa_permitted_pipelines_1::run_pipeline(std::vector<float> &output_buffer) {
   printf("NOTICE: Pipeline start/resume run_pipeline_1.\n");
   const int *ndms = m_ddtr_strategy.ndms_data();
   bool dump_ddtr_output = true;
