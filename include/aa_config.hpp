@@ -60,26 +60,12 @@ struct aa_config_flags {
 
 class aa_config {
 public:
-    
-    aa_config(const std::string &config_file_path, const aa_CLI &cli_input) : configure_from_file(true), fpath(config_file_path), user_cli(cli_input) {
+    aa_config(const aa_CLI &cli_input) : configure_from_file(true), user_cli(cli_input) {
         
     }
     
-    aa_config(aa_compute::pipeline &user_pipeline) : configure_from_file(false), pipeline(std::move(user_pipeline)) {
+    aa_config(aa_compute::pipeline &user_pipeline) : configure_from_file(false), pipeline(user_pipeline) {
         
-    }
-    
-    bool set_sigma(const float &sigma_constant, const float &sigma_cutoff) {
-        flg.sigma_constant  = sigma_constant;
-        flg.sigma_cutoff    = sigma_cutoff;
-        return true;
-    }
-    
-  bool add_dispersion_measure(const float &low, const float &high, const float &step, const int &inBin, const int &outBin) {
-        aa_ddtr_plan::dm tmp = {low, high, step, inBin, outBin};
-        m_dm_ranges.push_back(tmp);
-        ++(flg.range);
-        return true;
     }
     
     //This specialisation of the setup method happens only if reading from an input_file
@@ -361,12 +347,6 @@ protected:
                     wordfree(&expanded_string);
                 }
             }
-
-	    //Apply overrides to the input txt file that were supplied via the CLI
-	    if(std::find(cli_input.input.begin(), cli_input.input.end(), "narrow") != cli_input.input.end()) {
-	      //Parse the override string...
-	    }
-	    
         }
         else if (argc == 2 && strcmp(user_cli.input[1].c_str(), "-help") == 0)
         {
