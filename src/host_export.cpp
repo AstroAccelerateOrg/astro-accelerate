@@ -11,7 +11,7 @@ size_t Calculate_sd_per_file_from_file_size(size_t size_in_MB, size_t primary_di
 }
 
 
-void Export_DD_data(int range, float ***dedispersed_data, size_t max_nTimesamples, int *ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, const char *base_filename, int *ranges_to_export, int DMs_per_file) {
+void Export_DD_data(int range, float ***dedispersed_data, size_t max_nTimesamples, int *ndms, int *inBin, const char *base_filename, int *ranges_to_export, int DMs_per_file) {
 	char final_filename[200];
 	
 	int inner_DM_shift;	

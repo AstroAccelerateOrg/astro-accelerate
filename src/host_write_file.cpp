@@ -6,7 +6,7 @@
 
 namespace astroaccelerate {
 
-void write_output(int i, int t_processed, int ndms, size_t gpu_memory, float *output_buffer, size_t gpu_outputsize, float *dm_low, float *dm_high)
+void write_output(int i, int t_processed, int ndms, float *output_buffer, float *dm_low, float *dm_high)
 {
 
 	FILE *fp_out;
