@@ -52,6 +52,12 @@ namespace astroaccelerate {
       if(!memory_cleanup) {
 	cudaFree(d_input);
 	cudaFree(d_output);
+
+	size_t t_processed_size = m_ddtr_strategy.t_processed().size();
+	for(size_t i = 0; i < t_processed_size; i++) {
+	  free(t_processed[i]);
+	}
+	free(t_processed);
       }
       return true;
     }
