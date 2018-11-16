@@ -75,7 +75,7 @@ inline void save_data_offset(float *device_pointer, int device_offset, float *ho
       }
       output_buffer.resize(total_samps);
       for (int k = 0; k < ndms[dm_range]; k++) {
-	//	save_data_offset(d_output, k * t_processed[dm_range][t], output_buffer.data(), inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
+	save_data_offset(d_output, k * t_processed[dm_range][t], output_buffer.data(), inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
       }
     }
     
