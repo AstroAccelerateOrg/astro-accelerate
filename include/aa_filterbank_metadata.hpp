@@ -12,7 +12,30 @@ namespace astroaccelerate {
 
 class aa_filterbank_metadata {
 public:
-  aa_filterbank_metadata() {
+  aa_filterbank_metadata() : m_az_start(0),
+			     m_za_start(0),
+			     m_src_raj(0),
+			     m_src_dej(0),
+			     m_tstart(0),
+			     m_tsamp(0),
+			     m_refdm(0),
+			     m_period(0),
+			     m_fch1(0),
+			     m_foff(0),
+			     m_fchannel(0),
+			     m_telescope_id(0),
+			     m_machine_id(0),
+			     m_data_type(0),
+			     m_barycentric(0),
+			     m_pulsarcentric(0),
+			     m_nbits(0),
+			     m_nsamples(0),
+			     m_nchans(0),
+			     m_nifs(0),
+			     m_FREQUENCY_START(0),
+			     m_FREQUENCY_END(0),
+			     m_rawdatafile(""),
+			     m_source_name("") {
         
   }
     
