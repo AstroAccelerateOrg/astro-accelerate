@@ -175,7 +175,7 @@ namespace astroaccelerate {
 
     bool run_pipeline(std::vector<float> &output_buffer, const bool dump_ddtr_output) {
       printf("NOTICE: Pipeline start/resume run_pipeline_1.\n");
-      if(t >= num_tchunks) return false;//In this case, there are no more chunks to process.                                                                                                                                                      
+      if(t >= num_tchunks) return false;//In this case, there are no more chunks to process.
       printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][t], t);
 
       const int *ndms = m_ddtr_strategy.ndms_data();
@@ -233,7 +233,7 @@ namespace astroaccelerate {
 	dedisperse(dm_range, t_processed[dm_range][t], inBin.data(), dmshifts, d_input, d_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
 
 	if(dump_ddtr_output) {
-	  //Resize vector to contain the output array                                                                                                                                                                                             
+	  //Resize vector to contain the output array
 	  size_t total_samps = 0;
 	  for (int k = 0; k < num_tchunks; k++) {
 	    total_samps += t_processed[dm_range][k];
