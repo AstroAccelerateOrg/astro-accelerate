@@ -25,6 +25,7 @@ namespace aa_compute {
         fdas_custom_fft,
         fdas_inbin,
         fdas_norm,
+	output_dmt,
         output_ffdot_plan,
         output_fdas_list,
         candidate_algorithm
@@ -81,6 +82,9 @@ namespace aa_compute {
             case modules::output_fdas_list:
                 return "output_fdas_list";
                 break;
+	    case modules::output_dmt:
+	         return "output_dmt";
+		 break;
             case modules::candidate_algorithm:
                 return "candidate_algorithm";
                 break;
