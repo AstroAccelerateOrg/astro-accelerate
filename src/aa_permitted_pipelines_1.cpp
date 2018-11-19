@@ -41,6 +41,13 @@ bool aa_permitted_pipelines_1::run_pipeline(std::vector<float> &output_buffer, c
   corner_turn(d_input, d_output, nchans, t_processed[0][t] + maxshift);
   
   checkCudaErrors(cudaGetLastError());
+
+  if(m_enable_old_rfi) {
+    printf("\nPerforming old GPU rfi...");
+    rfi_gpu(d_input, nchans, t_processed[0][t]+maxshift);
+  }
+
+  checkCudaErrors(cudaGetLastError());
   
   int oldBin = 1;
   for(size_t dm_range = 0; dm_range < range; dm_range++) {

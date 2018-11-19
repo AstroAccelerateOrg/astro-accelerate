@@ -23,13 +23,18 @@
 #include "aa_zero_dm.hpp"
 #include "aa_zero_dm_outliers.hpp"
 #include "aa_corner_turn.hpp"
+#include "device_rfi.hpp"
 #include "aa_dedisperse.hpp"
 
 namespace astroaccelerate {
   class aa_permitted_pipelines_1 {
   public:
-    aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy, unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy), m_input_buffer(input_buffer), memory_cleanup(false), t(0) {
-
+    aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy, unsigned short *const input_buffer, const bool enable_old_rfi=false) : m_ddtr_strategy(ddtr_strategy),
+																	   m_input_buffer(input_buffer),
+																	   m_enable_old_rfi(enable_old_rfi),
+																	   memory_cleanup(false),
+																	   t(0) {
+      
     }
 
     ~aa_permitted_pipelines_1() {
@@ -72,6 +77,7 @@ namespace astroaccelerate {
     int                max_ndms;
     int                nchans;
     int                nbits;
+    bool               m_enable_old_rfi;
     int                enable_zero_dm;
     int                enable_zero_dm_with_outliers;
     int                failsafe;
