@@ -260,8 +260,9 @@ public:
 	    aa_permitted_pipelines_1<aa_compute::modules::zero_dm, false> runner(m_ddtr_strategy, ptr_data_in);
 	    if(runner.setup()) {
 	      std::vector<float> out;
-
-	      while(runner.next(out)) {
+	      int chunk_idx = 0;
+	      std::vector<int> range_samples;
+	      while(runner.next(out, chunk_idx, range_samples)) {
 		std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
 	      }
 	    }

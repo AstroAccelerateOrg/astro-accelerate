@@ -190,7 +190,6 @@ namespace astroaccelerate {
 
       checkCudaErrors(cudaGetLastError());
 
-
       if(zero_dm_type == aa_compute::modules::zero_dm_with_outliers) {
 	zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
       }
@@ -246,7 +245,7 @@ namespace astroaccelerate {
 	checkCudaErrors(cudaGetLastError());
 
 	//Add analysis
-        if(enable_analysis == 1) {                                                                                                                                                                                                          
+        /*if(enable_analysis == 1) {
           printf("\n VALUE OF ANALYSIS DEBUG IS %d\n", analysis_debug); 
           if(analysis_debug == 1) {
             float *out_tmp;
@@ -260,11 +259,11 @@ namespace astroaccelerate {
           else {
             unsigned int *h_peak_list_DM;
             unsigned int *h_peak_list_TS;
-            float *h_peak_list_SNR;
+            float        *h_peak_list_SNR;
             unsigned int *h_peak_list_BW;
-            size_t max_peak_size;
-            size_t peak_pos;
-            max_peak_size = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 );
+            size_t        max_peak_size;
+            size_t        peak_pos;
+            max_peak_size   = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 );
             h_peak_list_DM  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
             h_peak_list_TS  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
             h_peak_list_SNR = (float*) malloc(max_peak_size*sizeof(float));
@@ -304,7 +303,7 @@ namespace astroaccelerate {
             free(h_peak_list_SNR);
             free(h_peak_list_BW);
           }
-	}
+	  }*/
 	
 	oldBin = inBin[dm_range];
       }

@@ -46,8 +46,8 @@ namespace astroaccelerate {
       return set_data();
     }
 
-    bool next(std::vector<float> &output_buffer) {
-      return run_pipeline(output_buffer, true);
+    bool next(std::vector<float> &output_buffer, int &chunk_idx, std::vector<int> &range_samples) {
+      return run_pipeline(output_buffer, true, chunk_idx, range_samples);
     }
     
     bool cleanup() {
@@ -173,7 +173,7 @@ namespace astroaccelerate {
       cudaMemcpy(host_pointer + host_offset, device_pointer + device_offset, size, cudaMemcpyDeviceToHost);
     }
 
-    bool run_pipeline(std::vector<float> &output_buffer, const bool dump_ddtr_output) {
+    bool run_pipeline(std::vector<float> &output_buffer, const bool dump_ddtr_output, int &chunk_idx, std::vector<int> &range_samples) {
       printf("NOTICE: Pipeline start/resume run_pipeline_1.\n");
       if(t >= num_tchunks) return false;//In this case, there are no more chunks to process.
       printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][t], t);
@@ -235,8 +235,11 @@ namespace astroaccelerate {
 	if(dump_ddtr_output) {
 	  //Resize vector to contain the output array
 	  size_t total_samps = 0;
+	  chunk_idx = t;
+	  range_samples.resize(num_tchunks);
 	  for (int k = 0; k < num_tchunks; k++) {
 	    total_samps += t_processed[dm_range][k];
+	    range_samples.at(k) = t_processed[dm_range][k];
 	  }
 	  output_buffer.resize(total_samps);
 	  for (int k = 0; k < ndms[dm_range]; k++) {
