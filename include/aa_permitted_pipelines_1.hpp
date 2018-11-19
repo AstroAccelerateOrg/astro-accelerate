@@ -245,6 +245,69 @@ namespace astroaccelerate {
 	}
 	checkCudaErrors(cudaGetLastError());
 
+
+	//Add analysis
+	/*if(enable_analysis == 1) {
+	  printf("\n VALUE OF ANALYSIS DEBUG IS %d\n", analysis_debug);
+	  
+	  if(analysis_debug == 1) {
+	    float *out_tmp;
+	    gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
+	    out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
+	    memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
+	    save_data(d_output, out_tmp, gpu_outputsize);
+	    analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp, max_boxcar_width_in_sec);
+	    free(out_tmp);
+	  }
+	  else {
+	    unsigned int *h_peak_list_DM;
+	    unsigned int *h_peak_list_TS;
+	    float *h_peak_list_SNR;
+	    unsigned int *h_peak_list_BW;
+	    size_t max_peak_size;
+	    size_t peak_pos;
+	    max_peak_size = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 );
+	    h_peak_list_DM  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
+	    h_peak_list_TS  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
+	    h_peak_list_SNR = (float*) malloc(max_peak_size*sizeof(float));
+	    h_peak_list_BW  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
+
+	    peak_pos=0;
+	    analysis_GPU(h_peak_list_DM,
+			 h_peak_list_TS,
+			 h_peak_list_SNR,
+			 h_peak_list_BW,
+			 &peak_pos,
+			 max_peak_size,
+			 dm_range,
+			 tstart_local,
+			 t_processed[dm_range][t],
+			 inBin[dm_range],
+			 outBin[dm_range],
+			 &maxshift,
+			 max_ndms,
+			 ndms,
+			 sigma_cutoff,
+			 sigma_constant,
+			 max_boxcar_width_in_sec,
+			 d_output,
+			 dm_low,
+			 dm_high,
+			 dm_step,
+			 tsamp,
+			 candidate_algorithm,
+			 d_MSD_workarea,
+			 d_MSD_output_taps,
+			 d_MSD_interpolated,
+			 MSD_data_info,
+			 enable_sps_baselinenoise);
+
+	    free(h_peak_list_DM);
+	    free(h_peak_list_TS);
+	    free(h_peak_list_SNR);
+	    free(h_peak_list_BW);
+	  }
+	  }*/
 	oldBin = inBin[dm_range];
       }
 
