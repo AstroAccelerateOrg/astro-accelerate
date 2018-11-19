@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <cuda_runtime.h>
+
 #include "params.hpp"
-#include "host_MSD_stratagy.hpp"
+#include "host_MSD_strategy.hpp"
 #include "device_MSD_plane_profile.hpp"
 #include "device_BC_plan.hpp"
 
