@@ -1,0 +1,44 @@
+image: gitlab/gitlab-runner
+
+stages:
+  - build
+  - test
+  - run
+  
+build:
+  stage: build
+  tags:
+    - gitlab-runner
+  script:
+    - pwd
+    - mkdir build/
+    - cd build/
+    - source ../setup.sh
+    - cmake -DCUDA_ARCH="6.1" ../
+    - make -j2
+  artifacts:
+    paths:
+      - build/
+      - include/version.h
+    expire_in: 1 day
+
+test:
+  stage: test
+  tags:
+    - gitlab-runner
+  script:
+    - cd build/
+    - make test
+  dependencies:
+    - build
+
+
+run:
+  stage: run
+  tags:
+    - gitlab-runner
+  script:
+    - cd build/
+    - ./astro-accelerate ../input_files/BenMeerKAT.txt
+  dependencies:
+    - build
