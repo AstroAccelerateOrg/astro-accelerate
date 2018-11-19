@@ -24,4 +24,4 @@ fdas_custom_fft
 debug
 -analysis_debug
 -failsafe
-file /mnt/data/AstroAccelerate/filterbank/J2144-3933_ia_500_200_4096_8_1_8_21sep2017.raw.0.03per.200s.DM2000.fil
+file /mnt/data/AstroAccelerate/filterbank/BenMeerKAT.fil
