@@ -30,11 +30,6 @@ namespace aa_compute {
         candidate_algorithm
     };
         
-    enum class memory_model : int {
-        managed = 0,
-        unmanaged
-    };
-        
     //Function to convert module types into strings so that the user can query the pipeline
     inline const std::string module_name(const aa_compute::modules &module) {
         switch (module) {
