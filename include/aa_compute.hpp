@@ -27,7 +27,6 @@ namespace aa_compute {
         fdas_norm,
         output_ffdot_plan,
         output_fdas_list,
-        output_dmt,
         candidate_algorithm
     };
         
