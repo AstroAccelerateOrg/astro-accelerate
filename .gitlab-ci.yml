@@ -21,17 +21,6 @@ build:
       - include/version.h
     expire_in: 1 day
 
-test:
-  stage: test
-  tags:
-    - gitlab-runner
-  script:
-    - cd build/
-    - make test
-  dependencies:
-    - build
-
-
 run:
   stage: run
   tags:
