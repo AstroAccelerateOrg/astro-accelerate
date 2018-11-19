@@ -2,7 +2,6 @@ image: gitlab/gitlab-runner
 
 stages:
   - build
-  - test
   - run
   
 build:
