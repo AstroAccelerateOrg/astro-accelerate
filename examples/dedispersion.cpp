@@ -27,8 +27,9 @@ int main() {
   const double fch1 = 1564;
   const double foff = -0.208984;
   const double nchans = 2048;
+  const double nifs = 1;
   
-  aa_filterbank_metadata metadata(tstart, tsamp, nbits, nsamples, fch1, foff, nchans);
+  aa_filterbank_metadata metadata(tstart, tsamp, nbits, nsamples, fch1, foff, nchans, nifs);
   
   const size_t free_memory = 2147483648; // Free memory on the GPU in bytes
   bool enable_analysis = false;       // The strategy will be optimised to run just dedispersion
