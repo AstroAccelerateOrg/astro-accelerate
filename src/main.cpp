@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
     cli.input.push_back(argv[i]);
   }
   aa_config configuration(cli);
+
   aa_ddtr_plan ddtr_plan;
   std::string file_path;
   aa_compute::pipeline pipeline = configuration.setup(ddtr_plan, file_path);
@@ -31,7 +32,7 @@ int main(int argc, char *argv[]) {
   }
 
 
-  for(auto i : pipeline) {
+  for(auto const i : pipeline) {
     std::cout << module_name(i) << std::endl;
   }
   

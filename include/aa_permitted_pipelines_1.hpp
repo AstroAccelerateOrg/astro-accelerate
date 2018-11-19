@@ -45,9 +45,9 @@ namespace astroaccelerate {
     }
 
     bool next(std::vector<float> &output_buffer) {
-      return run_pipeline(output_buffer);
+      return run_pipeline(output_buffer, true);
     }
-
+    
     bool cleanup() {
       if(!memory_cleanup) {
 	cudaFree(d_input);
@@ -116,7 +116,7 @@ namespace astroaccelerate {
 
     }
 
-    bool run_pipeline(std::vector<float> &output_buffer);
+    bool run_pipeline(std::vector<float> &output_buffer, const bool dump_ddtr_output);
     
     bool set_data() {
       num_tchunks = m_ddtr_strategy.num_tchunks();

@@ -13,14 +13,13 @@ namespace astroaccelerate {
 inline void save_data_offset(float *device_pointer, int device_offset, float *host_pointer, int host_offset, size_t size) {
     cudaMemcpy(host_pointer + host_offset, device_pointer + device_offset, size, cudaMemcpyDeviceToHost);
 }
-  
-  bool aa_permitted_pipelines_1::run_pipeline(std::vector<float> &output_buffer) {
+
+bool aa_permitted_pipelines_1::run_pipeline(std::vector<float> &output_buffer, const bool dump_ddtr_output) {
   printf("NOTICE: Pipeline start/resume run_pipeline_1.\n");
-  const int *ndms = m_ddtr_strategy.ndms_data();
-  bool dump_ddtr_output = true;
   if(t >= num_tchunks) return false;//In this case, there are no more chunks to process.
-  
   printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][t], t);
+
+  const int *ndms = m_ddtr_strategy.ndms_data();
   
   checkCudaErrors(cudaGetLastError());
   load_data(-1, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
