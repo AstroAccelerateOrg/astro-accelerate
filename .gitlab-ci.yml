@@ -7,7 +7,7 @@ stages:
 build:
   stage: build
   tags:
-    - gitlab-runner
+    - astraios
   script:
     - pwd
     - mkdir build/
@@ -24,7 +24,7 @@ build:
 run:
   stage: run
   tags:
-    - gitlab-runner
+    - astraios
   script:
     - cd build/
     - ./astro-accelerate ../input_files/BenMeerKAT.txt
