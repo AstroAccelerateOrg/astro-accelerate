@@ -81,9 +81,6 @@ namespace aa_compute {
             case modules::output_fdas_list:
                 return "output_fdas_list";
                 break;
-            case modules::output_dmt:
-                return "output_dmt";
-                break;
             case modules::candidate_algorithm:
                 return "candidate_algorithm";
                 break;
