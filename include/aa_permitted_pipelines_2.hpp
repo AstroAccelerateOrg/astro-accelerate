@@ -28,7 +28,6 @@
 #include "aa_dedisperse.hpp"
 
 #include "device_analysis.hpp"
-#include "aa_host_analysis.hpp"
 
 namespace astroaccelerate {
   template<aa_compute::modules zero_dm_type, bool enable_old_rfi>
