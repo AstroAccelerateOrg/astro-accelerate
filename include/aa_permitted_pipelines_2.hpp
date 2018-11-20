@@ -260,21 +260,9 @@ namespace astroaccelerate {
 
 	dedisperse(dm_range, t_processed[dm_range][t], inBin.data(), dmshifts, d_input, d_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
 
-	if(dump_ddtr_output) {
-	  //Resize vector to contain the output array
-	  size_t total_samps = 0;
-	  for (int k = 0; k < num_tchunks; k++) {
-	    total_samps += t_processed[dm_range][k];
-	  }
-	  output_buffer.resize(total_samps);
-	  for (int k = 0; k < ndms[dm_range]; k++) {
-	    save_data_offset(d_output, k * t_processed[dm_range][t], output_buffer.data(), inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
-	  }
-	}
 	checkCudaErrors(cudaGetLastError());
 
 	//Add analysis
-
 	unsigned int *h_peak_list_DM;
 	unsigned int *h_peak_list_TS;
 	float        *h_peak_list_SNR;
@@ -338,13 +326,13 @@ namespace astroaccelerate {
   template<> inline aa_permitted_pipelines_2<aa_compute::modules::zero_dm, false>::aa_permitted_pipelines_2(const aa_ddtr_strategy &ddtr_strategy,
 													    const aa_analysis_strategy &analysis_strategy,
 													    unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																 m_analysis_strategy(analysis_strategy),
-																 m_input_buffer(input_buffer),
-																 memory_cleanup(false),
-																 t(0),
-																 m_d_MSD_workarea(NULL),
-																 m_d_MSD_interpolated(NULL),
-																 m_d_MSD_output_taps(NULL) {
+																		  m_analysis_strategy(analysis_strategy),
+																		  m_input_buffer(input_buffer),
+																		  memory_cleanup(false),
+																		  t(0),
+																		  m_d_MSD_workarea(NULL),
+																		  m_d_MSD_interpolated(NULL),
+																		  m_d_MSD_output_taps(NULL) {
     
     
   }
