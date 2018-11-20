@@ -11,7 +11,7 @@ namespace aa_compute {
     };
         
     enum class modules : int {
-        empty = 0,
+	empty = 0,
         dedispersion,
         analysis,
         acceleration,
@@ -30,7 +30,7 @@ namespace aa_compute {
         output_fdas_list,
         candidate_algorithm
     };
-        
+
     //Function to convert module types into strings so that the user can query the pipeline
     inline const std::string module_name(const aa_compute::modules &module) {
         switch (module) {

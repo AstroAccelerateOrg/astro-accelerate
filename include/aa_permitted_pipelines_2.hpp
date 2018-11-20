@@ -27,12 +27,18 @@
 #include "device_rfi.hpp"
 #include "aa_dedisperse.hpp"
 
+#include "device_analysis.hpp"
+#include "aa_host_analysis.hpp"
+
 namespace astroaccelerate {
   template<aa_compute::modules zero_dm_type, bool enable_old_rfi>
   class aa_permitted_pipelines_2 {
   public:
     aa_permitted_pipelines_2(const aa_ddtr_strategy &ddtr_strategy,
-			     unsigned short *const input_buffer);
+			     const aa_analysis_strategy &analysis_strategy,
+			     unsigned short *const input_buffer) {
+      
+    }
     
     ~aa_permitted_pipelines_2() {
       if(!memory_cleanup) {
@@ -40,7 +46,7 @@ namespace astroaccelerate {
       }
     }
 
-    aa_permitted_pipelines_2(const aa_permitted_pipelines_1 &) = delete;
+    aa_permitted_pipelines_2(const aa_permitted_pipelines_2 &) = delete;
 
     bool setup() {
       return set_data();
@@ -66,6 +72,7 @@ namespace astroaccelerate {
   private:
     int                **t_processed;
     aa_ddtr_strategy   m_ddtr_strategy;
+    aa_analysis_strategy m_analysis_strategy;
     unsigned short     *m_input_buffer;
     int                num_tchunks;
     std::vector<float> dm_shifts;
@@ -86,7 +93,7 @@ namespace astroaccelerate {
 
     unsigned short     *d_input;
     float              *d_output;
-
+    
     std::vector<float> dm_low;
     std::vector<float> dm_high;
     std::vector<float> dm_step;
@@ -96,7 +103,11 @@ namespace astroaccelerate {
     
     //Loop counter variables
     int t;
-
+    
+    float  *m_d_MSD_workarea         = NULL;
+    float  *m_d_MSD_interpolated     = NULL;
+    ushort *m_d_MSD_output_taps      = NULL;
+    
     void allocate_memory_gpu(const int &maxshift, const int &max_ndms, const int &nchans, int **const t_processed, unsigned short **const d_input, float **const d_output) {
 
       int time_samps = t_processed[0][0] + maxshift;
@@ -115,8 +126,17 @@ namespace astroaccelerate {
 
       checkCudaErrors( cudaMalloc((void **) d_output, gpu_outputsize) );
       cudaMemset(*d_output, 0, gpu_outputsize);
-
     }
+
+
+    void allocate_memory_MSD(float **const d_MSD_workarea, unsigned short **const d_MSD_output_taps, float **const d_MSD_interpolated,
+			     const unsigned long int &MSD_maxtimesamples, const int &MSD_DIT_widths, const int &nTimesamples, const size_t &MSD_profile_size) {      
+      checkCudaErrors(cudaMalloc((void **) d_MSD_workarea,        MSD_maxtimesamples*5.5*sizeof(float)));
+      checkCudaErrors(cudaMalloc((void **) &(*d_MSD_output_taps), sizeof(ushort)*2*MSD_maxtimesamples));
+      checkCudaErrors(cudaMalloc((void **) d_MSD_interpolated,    sizeof(float)*MSD_profile_size));
+    }
+    
+    
 
     bool set_data() {
       num_tchunks = m_ddtr_strategy.num_tchunks();
@@ -166,6 +186,12 @@ namespace astroaccelerate {
 	dm_step[i]  = m_ddtr_strategy.dm(i).step;
 	inBin[i]    = m_ddtr_strategy.dm(i).inBin;
       }
+
+
+      // Allocate SPS memory
+      allocate_memory_MSD(&m_d_MSD_workarea, &m_d_MSD_output_taps, &m_d_MSD_interpolated,
+			  m_analysis_strategy.MSD_data_info(), m_analysis_strategy.h_MSD_DIT_width(), t_processed[0][0], m_analysis_strategy.MSD_profile_size_in_bytes());
+      
       return true;
     }
 
@@ -173,9 +199,13 @@ namespace astroaccelerate {
       cudaMemcpy(host_pointer + host_offset, device_pointer + device_offset, size, cudaMemcpyDeviceToHost);
     }
 
+    inline void save_data(float *const device_pointer, float *const host_pointer, const size_t &size) {
+      cudaMemcpy(host_pointer, device_pointer, size, cudaMemcpyDeviceToHost);
+    }
+
     bool run_pipeline(std::vector<float> &output_buffer, const bool dump_ddtr_output) {
       printf("NOTICE: Pipeline start/resume run_pipeline_1.\n");
-      if(t >= num_tchunks) return false;//In this case, there are no more chunks to process.
+      if(t >= num_tchunks) return false; // In this case, there are no more chunks to process.
       printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][t], t);
 
       const int *ndms = m_ddtr_strategy.ndms_data();
@@ -245,69 +275,55 @@ namespace astroaccelerate {
 	checkCudaErrors(cudaGetLastError());
 
 	//Add analysis
-        /*if(enable_analysis == 1) {
-          printf("\n VALUE OF ANALYSIS DEBUG IS %d\n", analysis_debug); 
-          if(analysis_debug == 1) {
-            float *out_tmp;
-            gpu_outputsize = ndms[dm_range] * ( t_processed[dm_range][t] ) * sizeof(float);
-            out_tmp = (float *) malloc(( t_processed[0][0] + maxshift ) * max_ndms * sizeof(float));
-            memset(out_tmp, 0.0f, t_processed[0][0] + maxshift * max_ndms * sizeof(float));
-            save_data(d_output, out_tmp, gpu_outputsize);
-            analysis_CPU(dm_range, tstart_local, t_processed[dm_range][t], (t_processed[dm_range][t]+maxshift), nchans, maxshift, max_ndms, ndms, outBin, sigma_cutoff, out_tmp,dm_low, dm_high, dm_step, tsamp, max_boxcar_width_in_sec);
-            free(out_tmp);
-          } 
-          else {
-            unsigned int *h_peak_list_DM;
-            unsigned int *h_peak_list_TS;
-            float        *h_peak_list_SNR;
-            unsigned int *h_peak_list_BW;
-            size_t        max_peak_size;
-            size_t        peak_pos;
-            max_peak_size   = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 );
-            h_peak_list_DM  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
-            h_peak_list_TS  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
-            h_peak_list_SNR = (float*) malloc(max_peak_size*sizeof(float));
-            h_peak_list_BW  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
-	    peak_pos=0;
-	    analysis_GPU(h_peak_list_DM,
-                         h_peak_list_TS,
-                         h_peak_list_SNR,
-                         h_peak_list_BW,
-                         &peak_pos,
-                         max_peak_size,
-                         dm_range,
-                         tstart_local,
-                         t_processed[dm_range][t],
-                         inBin[dm_range],
-                         outBin[dm_range],
-                         &maxshift,
-                         max_ndms,
-                         ndms,
-                         sigma_cutoff,
-                         sigma_constant,
-                         max_boxcar_width_in_sec,
-                         d_output,
-                         dm_low,
-                         dm_high,
-                         dm_step,
-                         tsamp,
-                         candidate_algorithm,
-                         d_MSD_workarea,
-                         d_MSD_output_taps,
-                         d_MSD_interpolated,
-                         MSD_data_info,
-                         enable_sps_baselinenoise);
-	    
-            free(h_peak_list_DM);
-            free(h_peak_list_TS);
-            free(h_peak_list_SNR);
-            free(h_peak_list_BW);
-          }
-	  }*/
+
+	unsigned int *h_peak_list_DM;
+	unsigned int *h_peak_list_TS;
+	float        *h_peak_list_SNR;
+	unsigned int *h_peak_list_BW;
+	size_t        max_peak_size;
+	size_t        peak_pos;
+	max_peak_size   = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 );
+	h_peak_list_DM  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
+	h_peak_list_TS  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
+	h_peak_list_SNR = (float*) malloc(max_peak_size*sizeof(float));
+	h_peak_list_BW  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
+	peak_pos=0;
+	analysis_GPU(h_peak_list_DM,
+		     h_peak_list_TS,
+		     h_peak_list_SNR,
+		     h_peak_list_BW,
+		     &peak_pos,
+		     max_peak_size,
+		     dm_range,
+		     tstart_local,
+		     t_processed[dm_range][t],
+		     inBin[dm_range],
+		     &maxshift,
+		     max_ndms,
+		     ndms,
+		     m_analysis_strategy.sigma_cutoff(),
+		     m_analysis_strategy.sigma_constant(),
+		     m_analysis_strategy.max_boxcar_width_in_sec(),
+		     d_output,
+		     dm_low.data(),
+		     dm_high.data(),
+		     dm_step.data(),
+		     tsamp,
+		     m_analysis_strategy.candidate_algorithm(),
+		     m_d_MSD_workarea,
+		     m_d_MSD_output_taps,
+		     m_d_MSD_interpolated,
+		     m_analysis_strategy.MSD_data_info(),
+		     m_analysis_strategy.enable_sps_baseline_noise());
+	
+	free(h_peak_list_DM);
+	free(h_peak_list_TS);
+	free(h_peak_list_SNR);
+	free(h_peak_list_BW);
 	
 	oldBin = inBin[dm_range];
       }
-
+      
       inc = inc + t_processed[0][t];
       printf("\nNOTICE: INC:\t%ld\n", inc);
       tstart_local = ( tsamp_original * inc );
@@ -321,37 +337,59 @@ namespace astroaccelerate {
   };
 
   template<> inline aa_permitted_pipelines_2<aa_compute::modules::zero_dm, false>::aa_permitted_pipelines_2(const aa_ddtr_strategy &ddtr_strategy,
-													    unsigned short *const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
-																		     m_input_buffer(input_buffer),
-																		     memory_cleanup(false),
-																		     t(0) {
+													    const aa_analysis_strategy &analysis_strategy,
+													    unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																 m_analysis_strategy(analysis_strategy),
+																 m_input_buffer(input_buffer),
+																 memory_cleanup(false),
+																 t(0),
+																 m_d_MSD_workarea(NULL),
+																 m_d_MSD_interpolated(NULL),
+																 m_d_MSD_output_taps(NULL) {
+    
     
   }
-
+  
   template<> inline aa_permitted_pipelines_2<aa_compute::modules::zero_dm, true>::aa_permitted_pipelines_2(const aa_ddtr_strategy &ddtr_strategy,
-													   unsigned short *const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
-																		    m_input_buffer(input_buffer),
-																		    memory_cleanup(false),
-																		    t(0) {
+													   const aa_analysis_strategy &analysis_strategy,
+													   unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																		 m_analysis_strategy(analysis_strategy),
+																		 m_input_buffer(input_buffer),
+																		 memory_cleanup(false),
+																		 t(0),
+																		 m_d_MSD_workarea(NULL),
+																		 m_d_MSD_interpolated(NULL),
+																		 m_d_MSD_output_taps(NULL) {
     
   }
   
   template<> inline aa_permitted_pipelines_2<aa_compute::modules::zero_dm_with_outliers, false>::aa_permitted_pipelines_2(const aa_ddtr_strategy &ddtr_strategy,
-															  unsigned short *const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
-																				   m_input_buffer(input_buffer),
-																				   memory_cleanup(false),
-																				   t(0) {
+															  const aa_analysis_strategy &analysis_strategy,
+															  unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																				m_analysis_strategy(analysis_strategy),
+																				m_input_buffer(input_buffer),
+																				memory_cleanup(false),
+																				t(0),
+																				m_d_MSD_workarea(NULL),
+																				m_d_MSD_interpolated(NULL),
+																				m_d_MSD_output_taps(NULL) {
+    
     
   }
   
   template<> inline aa_permitted_pipelines_2<aa_compute::modules::zero_dm_with_outliers, true>::aa_permitted_pipelines_2(const aa_ddtr_strategy &ddtr_strategy,
-															 unsigned short *const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
-																				  m_input_buffer(input_buffer),
-																				  memory_cleanup(false),
-																				  t(0) {
+															 const aa_analysis_strategy &analysis_strategy,
+															 unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																			       m_analysis_strategy(analysis_strategy),
+																			       m_input_buffer(input_buffer),
+																			       memory_cleanup(false),
+																			       t(0),
+																			       m_d_MSD_workarea(NULL),
+																			       m_d_MSD_interpolated(NULL),
+																			       m_d_MSD_output_taps(NULL) {
     
   }
   
-}//namespace astroaccelerate
+} //namespace astroaccelerate
   
 #endif /* ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_2_HPP */

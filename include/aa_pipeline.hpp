@@ -23,6 +23,7 @@
 #include "aa_filterbank_metadata.hpp"
 #include "aa_device_info.hpp"
 #include "aa_permitted_pipelines_1.hpp"
+#include "aa_permitted_pipelines_2.hpp"
 
 namespace astroaccelerate {
 
