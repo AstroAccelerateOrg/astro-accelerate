@@ -165,36 +165,42 @@ bool aa_sigproc_input::get_file_data(aa_filterbank_metadata &metadata) {
                 }
             }
             else if (strcmp(string, "tstart") == 0) {
+	      std::cout << "tstart " << tstart << std::endl;
                 if (fread(&tstart, sizeof(tstart), 1, fp) != 1) {
                     fprintf(stderr, "\nError while reading file\n");
                     return false;
                 }
             }
             else if (strcmp(string, "tsamp") == 0) {
+	      std::cout << "tsamp " << tsamp << std::endl;
                 if (fread(&tsamp, sizeof(tsamp), 1, fp) != 1) {
                     fprintf(stderr, "\nError while reading file\n");
                     return false;
                 }
             }
             else if (strcmp(string, "nbits") == 0) {
+	      std::cout << "nbits " << nbits << std::endl;
                 if (fread(&nbits, sizeof(nbits), 1, fp) != 1) {
                     fprintf(stderr, "\nError while reading file\n");
                     return false;
                 }
             }
             else if (strcmp(string, "nsamples") == 0) {
+	      std::cout << "nsamples " << nsamples << std::endl;
                 if (fread(&nsamples, sizeof(nsamples), 1, fp) != 1) {
                     fprintf(stderr, "\nError while reading file\n");
                     return false;
                 }
             }
             else if (strcmp(string, "fch1") == 0) {
+	      std::cout << "fch1 " << fch1 << std::endl;
                 if (fread(&fch1, sizeof(fch1), 1, fp) != 1) {
                     fprintf(stderr, "\nError while reading file\n");
                     return false;
                 }
             }
             else if (strcmp(string, "foff") == 0) {
+	      std::cout << "foff " << foff << std::endl;
                 if (fread(&foff, sizeof(foff), 1, fp) != 1) {
                     fprintf(stderr, "\nError while reading file\n");
                     return false;
@@ -207,6 +213,7 @@ bool aa_sigproc_input::get_file_data(aa_filterbank_metadata &metadata) {
                 }
             }
             else if (strcmp(string, "nchans") == 0) {
+	      std::cout << "nchans " << nchans << std::endl;
                 if (fread(&nchans, sizeof(nchans), 1, fp) != 1) {
                     fprintf(stderr, "\nError while reading file\n");
                     return false;
