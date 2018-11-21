@@ -38,7 +38,7 @@ namespace astroaccelerate {
 template<typename T, typename U>
 class aa_pipeline {
 public:
-  aa_pipeline(const aa_compute::pipeline &requested_pipeline, const aa_filterbank_metadata &filterbank_metadata, const aa_device_info::aa_card_info &card_info) : m_card_info(card_info), m_filterbank_metadata(filterbank_metadata), bound_with_raw_ptr(false), input_data_bound(false), data_on_device(false), pipeline_ready(false) {
+  aa_pipeline(const aa_compute::pipeline &requested_pipeline, const aa_filterbank_metadata &filterbank_metadata, T const*const input_data, const aa_device_info::aa_card_info &card_info) : m_card_info(card_info), m_filterbank_metadata(filterbank_metadata), bound_with_raw_ptr(true), input_data_bound(true), data_on_device(false), pipeline_ready(false), ptr_data_in(input_data) {
         
         //Add requested pipeline modules
         for(auto i : requested_pipeline) {
@@ -154,32 +154,6 @@ public:
             aa_ddtr_strategy empty_strategy;
             return empty_strategy;
         }
-    }
-    
-    //Bind vector data of any type
-    bool bind_data(const std::vector<T> &data) {
-        pipeline_ready = false;
-        input_data_bound = true;
-        return true;
-    }
-    
-    bool bind_data_managed(std::vector<T> &data) {
-        pipeline_ready = false;
-        data_in = std::move(data);
-        input_data_bound = true;
-        return true;
-    }
-    
-    //Bind raw C-array data of any type
-    bool bind_data(T *const data) {
-        /**
-         * This approach does not guarantee persistence of the data
-         */
-        pipeline_ready = false;
-        ptr_data_in = data;
-        input_data_bound = true;
-        bound_with_raw_ptr = true;
-        return true;
     }
     
     bool transfer_data_to_device() {
@@ -309,7 +283,7 @@ private:
     
     std::vector<T>              data_in;
     std::vector<U>              data_out;
-    T*                          ptr_data_in;
+    T const*const               ptr_data_in;
     U*                          ptr_data_out;
 };
 

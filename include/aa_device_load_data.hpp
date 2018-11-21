@@ -14,7 +14,7 @@
 
 namespace astroaccelerate {
 
-void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short *host_pointer, int t_processed, int maxshift, int nchans, float *dmshifts);
+void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short const*const host_pointer, int t_processed, int maxshift, int nchans, float *dmshifts);
 
 } //namespace astroaccelerate
 

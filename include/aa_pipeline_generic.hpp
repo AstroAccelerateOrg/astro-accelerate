@@ -22,7 +22,7 @@ namespace astroaccelerate {
   void aa_pipeline_generic(const std::vector<aa_compute::modules> &selected_modules,
 			   const aa_filterbank_metadata &filterbank_data,
 			   std::vector<aa_ddtr_plan::dm> dm_ranges,
-			   T *input_data, U *&output_data,
+			   T const*const input_data, U *&output_data,
 			   const float &analysis_sigma_cutoff = 0.0,
 			   const float &analysis_sigma_constant = 0.0,
 			   const float &analysis_max_boxcar_width_in_sec = 0.0,
@@ -70,7 +70,7 @@ namespace astroaccelerate {
     
     // Supply the requested pipeline and telescope data to a pipeline manager, which will check which modules are required to be configured.
     // If a module is not required, then even if it is supplied, it will be ignored.
-    aa_pipeline<T, U> pipeline_manager(the_pipeline, filterbank_data, selected_card_info);
+    aa_pipeline<T, U> pipeline_manager(the_pipeline, filterbank_data, input_data, selected_card_info);
     
     // Bind the Plan to the manager
     aa_ddtr_plan ddtr_plan;
@@ -126,14 +126,6 @@ namespace astroaccelerate {
     
     // Bind further plans as necessary
     // ...
-    
-    // Bind data
-    if(pipeline_manager.bind_data(input_data)) {
-      std::cout << "NOTICE: The data was bound to the pipeline successfully." << std::endl;
-    }
-    else {
-      std::cout << "ERROR: The data could not be bound to the pipeline." << std::endl;
-    }
     
     if(pipeline_manager.transfer_data_to_device()) {
       std::cout << "NOTICE: The data was transferred to the device successfully." << std::endl;

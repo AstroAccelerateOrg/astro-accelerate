@@ -32,7 +32,7 @@ namespace astroaccelerate {
   class aa_permitted_pipelines_1 {
   public:
     aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
-			     unsigned short *const input_buffer);
+			     unsigned short const*const input_buffer);
     
     ~aa_permitted_pipelines_1() {
       if(!memory_cleanup) {
@@ -66,7 +66,7 @@ namespace astroaccelerate {
   private:
     int                **t_processed;
     aa_ddtr_strategy   m_ddtr_strategy;
-    unsigned short     *m_input_buffer;
+    unsigned short     const*const m_input_buffer;
     int                num_tchunks;
     std::vector<float> dm_shifts;
     float              *dmshifts;
@@ -263,37 +263,37 @@ namespace astroaccelerate {
   };
 
   template<> inline aa_permitted_pipelines_1<aa_compute::modules::zero_dm, false>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
-													    unsigned short *const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
-																		     m_input_buffer(input_buffer),
-																		     memory_cleanup(false),
-																		     t(0) {
+													    unsigned short const*const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
+																			  m_input_buffer(input_buffer),
+																			  memory_cleanup(false),
+																			  t(0) {
     
   }
 
   template<> inline aa_permitted_pipelines_1<aa_compute::modules::zero_dm, true>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
-													   unsigned short *const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
-																		    m_input_buffer(input_buffer),
-																		    memory_cleanup(false),
-																		    t(0) {
+													   unsigned short const*const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
+																			 m_input_buffer(input_buffer),
+																			 memory_cleanup(false),
+																			 t(0) {
     
   }
   
   template<> inline aa_permitted_pipelines_1<aa_compute::modules::zero_dm_with_outliers, false>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
-															  unsigned short *const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
-																				   m_input_buffer(input_buffer),
-																				   memory_cleanup(false),
-																				   t(0) {
+															  unsigned short const*const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
+																					m_input_buffer(input_buffer),
+																					memory_cleanup(false),
+																					t(0) {
     
   }
   
   template<> inline aa_permitted_pipelines_1<aa_compute::modules::zero_dm_with_outliers, true>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
-															 unsigned short *const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
-																				  m_input_buffer(input_buffer),
-																				  memory_cleanup(false),
-																				  t(0) {
+															 unsigned short const*const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
+																				       m_input_buffer(input_buffer),
+																				       memory_cleanup(false),
+																				       t(0) {
     
   }
   
 }//namespace astroaccelerate
-  
+
 #endif /* ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_1_HPP */
