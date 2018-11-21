@@ -18,6 +18,9 @@
 #include "aa_compute.hpp"
 #include "aa_ddtr_strategy.hpp"
 #include "aa_ddtr_plan.hpp"
+#include "aa_analysis_plan.hpp"
+#include "aa_analysis_strategy.hpp"
+
 #include "aa_filterbank_metadata.hpp"
 #include "aa_device_load_data.hpp"
 #include "aa_bin_gpu.hpp"
@@ -51,8 +54,8 @@ namespace astroaccelerate {
       return set_data();
     }
 
-    bool next(std::vector<float> &output_buffer) {
-      return run_pipeline(output_buffer, true);
+    bool next() {
+      return run_pipeline();
     }
     
     bool cleanup() {
@@ -202,7 +205,7 @@ namespace astroaccelerate {
       cudaMemcpy(host_pointer, device_pointer, size, cudaMemcpyDeviceToHost);
     }
 
-    bool run_pipeline(std::vector<float> &output_buffer, const bool dump_ddtr_output) {
+    bool run_pipeline() {
       printf("NOTICE: Pipeline start/resume run_pipeline_1.\n");
       if(t >= num_tchunks) return false; // In this case, there are no more chunks to process.
       printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][t], t);

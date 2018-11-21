@@ -60,27 +60,27 @@ namespace astroaccelerate {
       
     }
 
-    aa_analysis_strategy(const aa_analysis_plan &analysis_plan, const aa_ddtr_strategy &ddtr_strategy) : m_metadata(ddtr_strategy.metadata()),
-													 m_sigma_cutoff(analysis_plan.sigma_cutoff()),
-													 m_sigma_constant(analysis_plan.sigma_constant()),
-													 m_max_boxcar_width_in_sec(analysis_plan.max_boxcar_width_in_sec()),
-													 m_MSD_data_info(0),
-													 m_MSD_profile_size_in_bytes(0),
-													 m_h_MSD_DIT_width(0),
-													 m_candidate_algorithm(analysis_plan.candidate_algorithm()),
-													 m_enable_sps_baseline_noise(analysis_plan.enable_sps_baseline_noise()),
-													 m_ready(false) {
+    aa_analysis_strategy(const aa_analysis_plan &analysis_plan) : m_metadata(analysis_plan.ddtr_strategy().metadata()),
+								  m_sigma_cutoff(analysis_plan.sigma_cutoff()),
+								  m_sigma_constant(analysis_plan.sigma_constant()),
+								  m_max_boxcar_width_in_sec(analysis_plan.max_boxcar_width_in_sec()),
+								  m_MSD_data_info(0),
+								  m_MSD_profile_size_in_bytes(0),
+								  m_h_MSD_DIT_width(0),
+								  m_candidate_algorithm(analysis_plan.candidate_algorithm()),
+								  m_enable_sps_baseline_noise(analysis_plan.enable_sps_baseline_noise()),
+								  m_ready(false) {
       /**
        * Constructor for aa_analysis_strategy.
        * This constructor is intended to be used when ddtr has also been used.
        * Since it uses the aa_filterbank_metadata from ddtr_strategy, the state aa_analysis_strategy
        * stays consistent with that of aa_ddtr_strategy.
        */
-      if(ddtr_strategy.configured_for_analysis()) {
-	stratagy_MSD(ddtr_strategy.max_ndms(),
+      if(analysis_plan.ddtr_strategy().configured_for_analysis()) {
+	stratagy_MSD(analysis_plan.ddtr_strategy().max_ndms(),
 		     analysis_plan.max_boxcar_width_in_sec(),
-		     ddtr_strategy.metadata().tsamp(),
-		     ddtr_strategy.t_processed().at(0).at(0),
+		     analysis_plan.ddtr_strategy().metadata().tsamp(),
+		     analysis_plan.ddtr_strategy().t_processed().at(0).at(0),
 		     m_MSD_data_info, m_MSD_profile_size_in_bytes, m_h_MSD_DIT_width);
       }
     }
