@@ -18,8 +18,8 @@ using namespace astroaccelerate;
 
 int main() {
   aa_ddtr_plan ddtr_plan;
-  ddtr_plan.add_dm(0, 150, 0.1, 1, 1); // Add dm_ranges: dm_low, dm_high, dm_step, inBin, outBin (unused).
-  ddtr_plan.add_dm(150, 300, 0.2, 1, 1);
+  ddtr_plan.add_dm(0, 370, 0.307, 1, 1); // Add dm_ranges: dm_low, dm_high, dm_step, inBin, outBin (unused).
+  ddtr_plan.add_dm(370, 740, 0.652, 2, 2);
 
   // Filterbank metadata
   // (Data description from "SIGPROC-v3.7 (Pulsar) Signal Processing Programs")
@@ -35,11 +35,11 @@ int main() {
   aa_filterbank_metadata metadata(tstart, tsamp, nbits, nsamples, fch1, foff, nchans, nifs);
   
   const size_t free_memory = 2147483648; // Free memory on the GPU in bytes
-  bool enable_analysis = false;       // The strategy will be optimised to run just dedispersion
+  bool enable_analysis = true;       // The strategy will be optimised to run just dedispersion
   aa_ddtr_strategy ddtr_strategy(ddtr_plan, metadata, free_memory, enable_analysis);
   
   if(!(ddtr_strategy.ready())) {
-    std::cout << "There was an error" << std::endl;
+    std::cout << "ERROR: ddtr_strategy not ready." << std::endl;
     return 0;
   }
 
@@ -49,16 +49,16 @@ int main() {
     i = 0.0;
   }
 
-  const float sigma_cutoff = 0.0;
-  const float sigma_constant = 0.0;
-  const float max_boxcar_width_in_sec = 0.0;
+  const float sigma_cutoff = 6.0;
+  const float sigma_constant = 4.0;
+  const float max_boxcar_width_in_sec = 0.05;
   const aa_analysis_plan::selectable_candidate_algorithm algo = aa_analysis_plan::selectable_candidate_algorithm::off;
   
   aa_analysis_plan analysis_plan(ddtr_strategy, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, algo, false);
   aa_analysis_strategy analysis_strategy(analysis_plan);
 
   if(!(analysis_strategy.ready())) {
-    std::cout << "There was an error" << std::endl;
+    std::cout << "ERROR: analysis_strategy not ready." << std::endl;
     return 0;
   }
   
