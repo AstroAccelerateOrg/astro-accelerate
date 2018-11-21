@@ -15,8 +15,11 @@ using namespace astroaccelerate;
 
 int main() {
   aa_ddtr_plan ddtr_plan;
-  ddtr_plan.add_dm(0, 150, 0.1, 1, 1); // Add dm_ranges: dm_low, dm_high, dm_step, inBin, outBin (unused).
-  ddtr_plan.add_dm(150, 300, 0.2, 1, 1);
+  ddtr_plan.add_dm(0, 370, 0.307, 1, 1); // Add dm_ranges: dm_low, dm_high, dm_step, inBin, outBin (unused).
+  ddtr_plan.add_dm(370, 740, 0.652, 1, 1);
+  ddtr_plan.add_dm(740, 1480, 1.266, 4, 4);
+  ddtr_plan.add_dm(1480, 2950, 25.12, 8, 8);
+  ddtr_plan.add_dm(2950, 5000, 4.000, 16, 16);
 
   // Filterbank metadata
   // (Data description from "SIGPROC-v3.7 (Pulsar) Signal Processing Programs")
@@ -27,9 +30,8 @@ int main() {
   const double fch1 = 1564;
   const double foff = -0.208984;
   const double nchans = 2048;
-  const double nifs = 1;
   
-  aa_filterbank_metadata metadata(tstart, tsamp, nbits, nsamples, fch1, foff, nchans, nifs);
+  aa_filterbank_metadata metadata(tstart, tsamp, nbits, nsamples, fch1, foff, nchans);
   
   const size_t free_memory = 2147483648; // Free memory on the GPU in bytes
   bool enable_analysis = false;       // The strategy will be optimised to run just dedispersion
