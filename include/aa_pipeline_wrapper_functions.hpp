@@ -6,8 +6,8 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#ifndef ASTRO_ACCELERATE_DDTR_PIPELINE_HPP
-#define ASTRO_ACCELERATE_DDTR_PIPELINE_HPP
+#ifndef ASTRO_ACCELERATE_PIPELINE_WRAPPER_FUNCTIONS_HPP
+#define ASTRO_ACCELERATE_PIPELINE_WRAPPER_FUNCTIONS_HPP
 
 #include <stdio.h>
 #include <vector>
@@ -22,4 +22,4 @@ void dedisperse_telescope_data(const aa_filterbank_metadata &filterbank_data, st
 
 } //namespace astroaccelerate
 
-#endif /* ASTRO_ACCELERATE_DDTR_PIPELINE_HPP */
+#endif /* ASTRO_ACCELERATE_PIPELINE_WRAPPER_FUNCTIONS_HPP */

@@ -6,7 +6,7 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#include "aa_ddtr_pipeline.hpp"
+#include "aa_pipeline_wrapper_functions.hpp"
 
 namespace astroaccelerate {
 

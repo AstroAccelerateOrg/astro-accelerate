@@ -9,7 +9,7 @@
 #include "aa_config.hpp"
 
 #include "aa_sigproc_input.hpp"
-#include "aa_ddtr_pipeline.hpp"
+#include "aa_pipeline_wrapper_functions.hpp"
 
 using namespace astroaccelerate;
 
