@@ -30,7 +30,8 @@ namespace astroaccelerate {
 			     m_MSD_profile_size_in_bytes(0),
 			     m_h_MSD_DIT_width(0),
 			     m_candidate_algorithm(aa_analysis_plan::selectable_candidate_algorithm::off),
-			     m_enable_sps_baseline_noise(0) {
+			     m_enable_sps_baseline_noise(0),
+			     m_ready(false) {
       
     }
     
@@ -42,7 +43,8 @@ namespace astroaccelerate {
 													  m_MSD_profile_size_in_bytes(0),
 													  m_h_MSD_DIT_width(0),
 													  m_candidate_algorithm(analysis_plan.candidate_algorithm()),
-													  m_enable_sps_baseline_noise(analysis_plan.enable_sps_baseline_noise()) {
+													  m_enable_sps_baseline_noise(analysis_plan.enable_sps_baseline_noise()),
+													  m_ready(false) {
       /**
        * Constructor for aa_analysis_strategy.
        * This constructor is intended to be used when analysis is to be run in isolation,
@@ -66,18 +68,21 @@ namespace astroaccelerate {
 													 m_MSD_profile_size_in_bytes(0),
 													 m_h_MSD_DIT_width(0),
 													 m_candidate_algorithm(analysis_plan.candidate_algorithm()),
-													 m_enable_sps_baseline_noise(analysis_plan.enable_sps_baseline_noise()) {
+													 m_enable_sps_baseline_noise(analysis_plan.enable_sps_baseline_noise()),
+													 m_ready(false) {
       /**
        * Constructor for aa_analysis_strategy.
        * This constructor is intended to be used when ddtr has also been used.
        * Since it uses the aa_filterbank_metadata from ddtr_strategy, the state aa_analysis_strategy
        * stays consistent with that of aa_ddtr_strategy.
        */
-      stratagy_MSD(ddtr_strategy.max_ndms(),
-		   analysis_plan.max_boxcar_width_in_sec(),
-		   ddtr_strategy.metadata().tsamp(),
-		   ddtr_strategy.t_processed().at(0).at(0),
-		   m_MSD_data_info, m_MSD_profile_size_in_bytes, m_h_MSD_DIT_width);
+      if(ddtr_strategy.configured_for_analysis()) {
+	stratagy_MSD(ddtr_strategy.max_ndms(),
+		     analysis_plan.max_boxcar_width_in_sec(),
+		     ddtr_strategy.metadata().tsamp(),
+		     ddtr_strategy.t_processed().at(0).at(0),
+		     m_MSD_data_info, m_MSD_profile_size_in_bytes, m_h_MSD_DIT_width);
+      }
     }
     
     float sigma_cutoff() const {
@@ -123,6 +128,10 @@ namespace astroaccelerate {
     int enable_sps_baseline_noise() const {
       return (m_enable_sps_baseline_noise) ? 1 : 0;
     }
+
+    bool ready() const {
+      return m_ready;
+    }
     
   private:
     aa_filterbank_metadata m_metadata;
@@ -133,7 +142,8 @@ namespace astroaccelerate {
     size_t            m_MSD_profile_size_in_bytes;
     int               m_h_MSD_DIT_width;
     aa_analysis_plan::selectable_candidate_algorithm m_candidate_algorithm;
-    bool                m_enable_sps_baseline_noise;
+    bool              m_enable_sps_baseline_noise;
+    bool              m_ready;
     
     void Create_list_of_boxcar_widths2(std::vector<int> *boxcar_widths, std::vector<int> *BC_widths){
       int DIT_value, DIT_factor, width;
@@ -185,7 +195,8 @@ namespace astroaccelerate {
       MSD_nDIT_widths = (int)(max_boxcar_width_in_sec/tsamp);
 
       printf("\n  Size MSD: %zu \tSize workarea: %f, int: %d\n", MSD_profile_size_in_bytes, workarea_size_in_bytes/1024/1024.0, MSD_nDIT_widths);
-      printf("------------------------------------------------------------\n");      
+      printf("------------------------------------------------------------\n");
+      m_ready = true;
     }
   };
 

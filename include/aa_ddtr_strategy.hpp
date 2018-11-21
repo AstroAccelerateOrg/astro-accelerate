@@ -29,11 +29,11 @@
 
 namespace astroaccelerate {
 
-class aa_ddtr_strategy : public aa_strategy {
-public:
+  class aa_ddtr_strategy : public aa_strategy {
+  public:
     aa_ddtr_strategy();
     aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis);
-  //    aa_ddtr_strategy(const aa_ddtr_strategy&) = delete;
+    //    aa_ddtr_strategy(const aa_ddtr_strategy&) = delete;
     ~aa_ddtr_strategy() {
 
     }
@@ -41,55 +41,60 @@ public:
     bool setup();
     
     int maxshift() const {
-        return m_maxshift;
+      return m_maxshift;
     }
     
     const std::vector<std::vector<int>>& t_processed() const {
-        return m_t_processed;
+      return m_t_processed;
     }
     
     std::vector<float> dmshifts() const {
-        return m_dmshifts;
+      return m_dmshifts;
     }
     
     const aa_ddtr_plan::dm dm(const size_t &i) const {
-        return str_dm.at(i);
+      return str_dm.at(i);
     }
     
     size_t range() const {
-        return str_dm.size();
+      return str_dm.size();
     }
     
     int ndms(const size_t &i) const {
-        return m_ndms.at(i);
+      return m_ndms.at(i);
     }
     
     int max_ndms() const {
-        return m_max_ndms;
+      return m_max_ndms;
     }
     
     const int* ndms_data() const {
-        return m_ndms.data();
+      return m_ndms.data();
     }
     
     int num_tchunks() const {
-        return m_num_tchunks;
+      return m_num_tchunks;
     }
     
     bool ready() const {
-        return m_ready;
+      return m_ready;
     }
 
     const aa_filterbank_metadata metadata() const {
       return m_metadata;
     }
+
+    bool configured_for_analysis() const {
+      return m_configured_for_analysis;
+    }
     
-private:
+  private:
     bool strategy(const aa_ddtr_plan &plan, const size_t &free_memory, const bool &enable_analysis);
     bool m_ready;
     bool m_strategy_already_calculated;
     void allocate_memory_cpu_output();
-    
+
+    bool m_configured_for_analysis;
     bool is_setup;  //Has setup been called already?
 
     aa_filterbank_metadata m_metadata;
@@ -106,7 +111,7 @@ private:
     std::vector<std::vector<int>> m_t_processed; //Is allocated in this class, and used elsewhere in the pipeline
     size_t m_t_processed_dim1_size;
     float ***output_buffer; //3D array that contains the output
-};
+  };
 
 } //namespace astroaccelerate
 

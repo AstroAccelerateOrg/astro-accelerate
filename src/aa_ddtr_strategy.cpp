@@ -10,11 +10,11 @@
 
 namespace astroaccelerate {
 
-  aa_ddtr_strategy::aa_ddtr_strategy() : m_ready(false), m_strategy_already_calculated(false), is_setup(false), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_t_processed_dim1_size(0) {
+  aa_ddtr_strategy::aa_ddtr_strategy() : m_ready(false), m_strategy_already_calculated(false), m_configured_for_analysis(false), is_setup(false), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_t_processed_dim1_size(0) {
     
 }
 
-  aa_ddtr_strategy::aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis) : m_ready(false), m_strategy_already_calculated(false), is_setup(false), m_metadata(metadata), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_t_processed_dim1_size(0) {
+  aa_ddtr_strategy::aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis) : m_ready(false), m_strategy_already_calculated(false), m_configured_for_analysis(enable_analysis), is_setup(false), m_metadata(metadata), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_t_processed_dim1_size(0) {
     strategy(plan, free_memory, enable_analysis);
 }
 
