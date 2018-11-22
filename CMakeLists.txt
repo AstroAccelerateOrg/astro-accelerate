@@ -155,3 +155,5 @@ if(${ENABLE_TESTS})
 	enable_testing()
 	include(tests/CMakeLists.txt)
 endif()
+
+add_subdirectory(examples)

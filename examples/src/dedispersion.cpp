@@ -44,7 +44,7 @@ int main() {
 
   std::vector<unsigned short> input_data(nsamples*nchans);
 
-  for(auto i : input_data) {
+  for(auto &i : input_data) {
     i = 0.0;
   }
   

@@ -131,7 +131,7 @@ namespace astroaccelerate {
     }
     
     void allocate_memory_MSD(float **const d_MSD_workarea, unsigned short **const d_MSD_output_taps, float **const d_MSD_interpolated,
-			     const unsigned long int &MSD_maxtimesamples, const int &MSD_DIT_widths, const int &nTimesamples, const size_t &MSD_profile_size) {
+			     const unsigned long int &MSD_maxtimesamples, const size_t &MSD_profile_size) {
       checkCudaErrors(cudaMalloc((void **) d_MSD_workarea,        MSD_maxtimesamples*5.5*sizeof(float)));
       checkCudaErrors(cudaMalloc((void **) &(*d_MSD_output_taps), sizeof(ushort)*2*MSD_maxtimesamples));
       checkCudaErrors(cudaMalloc((void **) d_MSD_interpolated,    sizeof(float)*MSD_profile_size));
@@ -188,8 +188,7 @@ namespace astroaccelerate {
 
 
       // Allocate SPS memory
-      allocate_memory_MSD(&m_d_MSD_workarea, &m_d_MSD_output_taps, &m_d_MSD_interpolated,
-			  m_analysis_strategy.MSD_data_info(), m_analysis_strategy.h_MSD_DIT_width(), t_processed[0][0], m_analysis_strategy.MSD_profile_size_in_bytes());
+      allocate_memory_MSD(&m_d_MSD_workarea, &m_d_MSD_output_taps, &m_d_MSD_interpolated, m_analysis_strategy.MSD_data_info(), m_analysis_strategy.MSD_profile_size_in_bytes());
       
       return true;
     }
