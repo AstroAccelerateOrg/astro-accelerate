@@ -1,0 +1,32 @@
+image: gitlab/gitlab-runner
+
+stages:
+  - build
+  - run
+  
+build:
+  stage: build
+  tags:
+    - astraios
+  script:
+    - pwd
+    - mkdir build/
+    - cd build/
+    - source ../setup.sh
+    - cmake -DCUDA_ARCH="6.1" ../
+    - make -j2
+  artifacts:
+    paths:
+      - build/
+      - include/version.h
+    expire_in: 1 day
+
+run:
+  stage: run
+  tags:
+    - astraios
+  script:
+    - cd build/
+    - ./astro-accelerate ../input_files/BenMeerKAT.txt
+  dependencies:
+    - build
