@@ -172,7 +172,10 @@ namespace astroaccelerate {
       d_input                         = NULL;
       d_output                        = NULL;
 
+      //Allocate GPU memory for dedispersion
       allocate_memory_gpu(maxshift, max_ndms, nchans, t_processed, &d_input, &d_output);
+      //Allocate GPU memory for SPS (i.e. analysis)
+      allocate_memory_MSD(&m_d_MSD_workarea, &m_d_MSD_output_taps, &m_d_MSD_interpolated, m_analysis_strategy.MSD_data_info(), m_analysis_strategy.MSD_profile_size_in_bytes());
       //Put the dm low, high, step struct contents into separate arrays again.
       //This is needed so that the kernel wrapper functions don't need to be modified.
       dm_low.resize(m_ddtr_strategy.range());
@@ -185,11 +188,6 @@ namespace astroaccelerate {
 	dm_step[i]  = m_ddtr_strategy.dm(i).step;
 	inBin[i]    = m_ddtr_strategy.dm(i).inBin;
       }
-
-
-      // Allocate SPS memory
-      allocate_memory_MSD(&m_d_MSD_workarea, &m_d_MSD_output_taps, &m_d_MSD_interpolated, m_analysis_strategy.MSD_data_info(), m_analysis_strategy.MSD_profile_size_in_bytes());
-      
       return true;
     }
 
