@@ -32,7 +32,6 @@ test:
   dependencies:
     - build
 
-
 run:
   stage: run
   tags:
