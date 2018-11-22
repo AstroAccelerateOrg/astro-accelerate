@@ -11,6 +11,8 @@
 #include "aa_sigproc_input.hpp"
 #include "aa_pipeline_wrapper_functions.hpp"
 
+#include "aa_device_info.hpp"
+
 using namespace astroaccelerate;
 
 int main(int argc, char *argv[]) {
@@ -35,8 +37,29 @@ int main(int argc, char *argv[]) {
   for(auto const i : pipeline) {
     std::cout << module_name(i) << std::endl;
   }
+
   
+  //Select card                                                                                                                                                                                 
+    aa_device_info device_info;
+    if(device_info.check_for_devices()) {
+      std::cout << "NOTICE: Checked for devices." << std::endl;
+    }
+    else {
+      std::cout << "ERROR: Could not find any devices." << std::endl;
+    }
+
+
+aa_device_info::CARD_ID selected_card = 0;
+    aa_device_info::aa_card_info selected_card_info;
   
+  std::cout << "Going to init card " << std::endl;
+    if(device_info.init_card(selected_card, selected_card_info)) {
+      std::cout << "NOTICE: init_card complete." << std::endl;
+    }
+    else {
+      std::cout << "ERROR: init_card incomplete." << std::endl;
+    }
+
   
   std::cout << "NOTICE: Finished." << std::endl;
   return 0;

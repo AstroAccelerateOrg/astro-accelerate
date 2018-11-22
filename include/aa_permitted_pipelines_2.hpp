@@ -132,17 +132,7 @@ namespace astroaccelerate {
     
     void allocate_memory_MSD(float **const d_MSD_workarea, unsigned short **const d_MSD_output_taps, float **const d_MSD_interpolated,
 			     const unsigned long int &MSD_maxtimesamples, const int &MSD_DIT_widths, const int &nTimesamples, const size_t &MSD_profile_size) {
-      size_t free = 0;
-      size_t total = 0;
-      cudaMemGetInfo(&free, &total);
-      std::cout << "free/total " << free << " "	<< total << std::endl;
-      std::cout << "required  " << MSD_maxtimesamples*5.5*sizeof(float) <<std::endl;
       checkCudaErrors(cudaMalloc((void **) d_MSD_workarea,        MSD_maxtimesamples*5.5*sizeof(float)));
-      cudaMemGetInfo(&free, &total);
-      std::cout << "free/total " << free << " " << total << std::endl;
-      std::cout << "required " << sizeof(ushort)*2*MSD_maxtimesamples << std::endl;
-      
-      
       checkCudaErrors(cudaMalloc((void **) &(*d_MSD_output_taps), sizeof(ushort)*2*MSD_maxtimesamples));
       checkCudaErrors(cudaMalloc((void **) d_MSD_interpolated,    sizeof(float)*MSD_profile_size));
     }

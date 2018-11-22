@@ -199,7 +199,6 @@ bool aa_sigproc_input::get_file_data(aa_filterbank_metadata &metadata) {
                     fprintf(stderr, "\nError while reading file\n");
                     return false;
                 }
-		std::cout << "foff " << foff << std::endl;
             }
             else if (strcmp(string, "fchannel") == 0) {
                 if (fread(&fchannel, sizeof(fchannel), 1, fp) != 1) {
