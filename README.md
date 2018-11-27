@@ -188,7 +188,8 @@ Set-up the environment (which will add CUDA to PATH and LD_LIBRARY_PATH)
 `setup.sh` contains a hardcoded version number and a variable string to identify
 whether the system is a 64-bit or 32-bit architecture. The user may need to edit
 `setup.sh` to suit the CUDA version number, library paths, and the architecture number
-in order to suit their needs.
+in order to suit their needs. Users who already have all relevant CUDA paths configured
+do not need to source setup.sh.
 
 At this point, the user has a choice, they can either 1.) use the pre-configured Makefile
 that comes with the repository by default, or they can 2.) configure the build system
