@@ -19,6 +19,8 @@
 #include "device_MSD_plane_profile.hpp"
 #include "device_BC_plan.hpp"
 
+#include "aa_device_memory_manager.hpp"
+
 namespace astroaccelerate {
   
   class aa_analysis_strategy {
@@ -169,9 +171,8 @@ namespace astroaccelerate {
       // Calculate the total number of values
       vals = ((size_t) nDMs)*((size_t) nTimesamples);
 
-      size_t free_mem,total_mem;
-
-      cudaMemGetInfo(&free_mem,&total_mem);
+      aa_device_memory_manager mem;
+      size_t free_mem = mem.free_memory();
       printf("\n----------------------- MSD info ---------------------------\n");
       printf("  Memory required by boxcar filters:%0.3f MB\n",(4.5*vals*sizeof(float) + 2*vals*sizeof(ushort))/(1024.0*1024) );
       printf("  Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
@@ -196,6 +197,13 @@ namespace astroaccelerate {
 
       printf("\n  Size MSD: %zu \tSize workarea: %f, int: %d\n", MSD_profile_size_in_bytes, workarea_size_in_bytes/1024/1024.0, MSD_nDIT_widths);
       printf("------------------------------------------------------------\n");
+
+      // Inform aa_device_memory_manager of the memory that will be required
+      // This memory required is given by the allocate_memory_MSD function
+      mem.request(maxtimesamples*5.5*sizeof(float));
+      mem.request(sizeof(ushort)*2*maxtimesamples);
+      mem.request(sizeof(float)*MSD_profile_size_in_bytes);
+      
       m_ready = true;
     }
   };

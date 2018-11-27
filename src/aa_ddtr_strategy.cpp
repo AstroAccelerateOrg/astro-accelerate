@@ -8,6 +8,8 @@
 
 #include "aa_ddtr_strategy.hpp"
 
+#include "aa_device_memory_manager.hpp"
+
 namespace astroaccelerate {
 
   aa_ddtr_strategy::aa_ddtr_strategy() : m_ready(false), m_strategy_already_calculated(false), m_configured_for_analysis(false), is_setup(false), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_t_processed_dim1_size(0) {
@@ -18,7 +20,7 @@ namespace astroaccelerate {
     strategy(plan, free_memory, enable_analysis);
 }
 
-bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const size_t &free_memory, const bool &enable_analysis) {
+  bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const size_t &free_memory, const bool &enable_analysis) {
     /**
      * This method relies on defining points when nsamps is a multiple of
      * nchans - bin on the diagonal or a fraction of it.
@@ -51,7 +53,7 @@ bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const size_t &free_mem
     
     //Strategy set DM settings
     str_dm.resize(range);
-    
+
     const size_t gpu_memory = free_memory;
     
     const double SPDT_fraction = 3.0/4.0; // 1.0 for MSD plane profile validation
@@ -283,6 +285,19 @@ bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const size_t &free_mem
     else {
       printf("\nNOTICE: Output memory needed:\t%lu MB.\n", nchans * ( m_maxshift ) * sizeof(float) / 1024 / 1024);
     }
+
+    // The memory that will be allocated on the GPU in function allocate_memory_gpu is given by gpu_inputsize + gpu_outputsize
+    // gpu_inputsize
+    aa_device_memory_manager mem; // Manages the total amount of requested memory for the currently selected device.
+    int time_samps = m_t_processed[0][0] + m_maxshift;
+    mem.request((size_t) time_samps * (size_t)nchans * sizeof(unsigned short));
+    // gpu_outputsize depends on nchans
+    if (nchans < m_max_ndms) {
+      mem.request((size_t)time_samps * (size_t)m_max_ndms * sizeof(float));
+    }
+    else {
+      mem.request((size_t)time_samps * (size_t)nchans * sizeof(float));
+    }
     
     //Strategy does not change inBin, outBin.
     //Re-assign original inBin, outBin to the strategy.
@@ -290,6 +305,7 @@ bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const size_t &free_mem
         str_dm.at(i).inBin = plan.user_dm(i).inBin;
         str_dm.at(i).outBin = plan.user_dm(i).outBin;
     }
+    
     m_ready = true;
     m_strategy_already_calculated = true;
     return true;
