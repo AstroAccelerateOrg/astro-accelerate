@@ -6,8 +6,8 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#ifndef ASTRO_ACCELERATE_PIPELINE_WRAPPER_FUNCTIONS_HPP
-#define ASTRO_ACCELERATE_PIPELINE_WRAPPER_FUNCTIONS_HPP
+#ifndef ASTRO_ACCELERATE_AA_PIPELINE_WRAPPER_FUNCTIONS_HPP
+#define ASTRO_ACCELERATE_AA_PIPELINE_WRAPPER_FUNCTIONS_HPP
 
 #include <stdio.h>
 #include <vector>
@@ -26,4 +26,4 @@ namespace astroaccelerate {
   
 } //namespace astroaccelerate
 
-#endif /* ASTRO_ACCELERATE_PIPELINE_WRAPPER_FUNCTIONS_HPP */
+#endif /* ASTRO_ACCELERATE_AA_PIPELINE_WRAPPER_FUNCTIONS_HPP */
