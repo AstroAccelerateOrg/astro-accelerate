@@ -15,6 +15,7 @@
 
 #include <cuda_runtime.h>
 
+#include "aa_strategy.hpp"
 #include "params.hpp"
 #include "device_MSD_plane_profile.hpp"
 #include "device_BC_plan.hpp"
@@ -23,7 +24,7 @@
 
 namespace astroaccelerate {
   
-  class aa_analysis_strategy {
+  class aa_analysis_strategy : public aa_strategy {
   public:
     aa_analysis_strategy() : m_sigma_cutoff(0),
 			     m_sigma_constant(0),
@@ -132,6 +133,10 @@ namespace astroaccelerate {
     }
 
     bool ready() const {
+      return m_ready;
+    }
+
+    bool setup() {
       return m_ready;
     }
     

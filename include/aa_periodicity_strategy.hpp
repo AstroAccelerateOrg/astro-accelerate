@@ -11,11 +11,12 @@
 
 #include <stdio.h>
 
+#include "aa_strategy.hpp"
 #include "aa_periodicity_plan.hpp"
 
 namespace astroaccelerate {
   
-  class aa_periodicity_strategy {
+  class aa_periodicity_strategy : public aa_strategy {
   public:
     aa_periodicity_strategy() : m_sigma_cutoff(0),
 				m_OR_sigma_multiplier(0),
@@ -61,6 +62,10 @@ namespace astroaccelerate {
     }
 
     bool ready() const {
+      return m_ready;
+    }
+
+    bool setup() {
       return m_ready;
     }
 
