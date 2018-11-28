@@ -200,7 +200,7 @@ namespace astroaccelerate {
     }
 
     bool run_pipeline() {
-      printf("NOTICE: Pipeline start/resume run_pipeline_1.\n");
+      printf("NOTICE: Pipeline start/resume run_pipeline_2.\n");
       if(t >= num_tchunks) return false; // In this case, there are no more chunks to process.
       printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][t], t);
 
@@ -315,7 +315,7 @@ namespace astroaccelerate {
       maxshift = maxshift_original;
 
       ++t;
-      printf("NOTICE: Pipeline ended run_pipeline_1 over chunk %d / %d.\n", t, num_tchunks);
+      printf("NOTICE: Pipeline ended run_pipeline_2 over chunk %d / %d.\n", t, num_tchunks);
       return true;
     }    
   };
