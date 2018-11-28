@@ -15,7 +15,12 @@ namespace astroaccelerate {
 
   class aa_periodicity_plan {
   public:
-    aa_periodicity_plan() {
+    aa_periodicity_plan() : m_sigma_cutoff(0),
+			    m_OR_sigma_multiplier(0),
+			    m_nHarmonics(0),
+			    m_export_powers(0),
+			    m_candidate_algorithm(false),
+			    m_enable_outlier_rejection(false) {
       
     }
     
@@ -49,7 +54,7 @@ namespace astroaccelerate {
       return m_export_powers;
     }
 
-    bool m_candidate_algorithm() const {
+    bool candidate_algorithm() const {
       return m_candidate_algorithm;
     }
 

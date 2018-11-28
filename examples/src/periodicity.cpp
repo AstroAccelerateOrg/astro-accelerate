@@ -14,6 +14,9 @@
 #include "aa_analysis_plan.hpp"
 #include "aa_analysis_strategy.hpp"
 
+#include "aa_periodicity_plan.hpp"
+#include "aa_periodicity_strategy.hpp"
+
 using namespace astroaccelerate;
 
 int main() {
@@ -61,7 +64,21 @@ int main() {
     return 0;
   }
   
-  aa_permitted_pipelines_3<aa_compute::modules::zero_dm, false> runner(ddtr_strategy, analysis_strategy, input_data.data());
+  const float periodicity_sigma_cutoff = 0.0;
+  const float OR_sigma_multiplier = 0.0;
+  const int   nHarmonics = 0;
+  const int   export_powers = 0;
+  const bool  candidate_algorithm = false;
+  const bool  enable_outlier_rejection = false;
+  
+  aa_periodicity_plan periodicity_plan(periodicity_sigma_cutoff, OR_sigma_multiplier, nHarmonics, export_powers, candidate_algorithm, enable_outlier_rejection);
+  aa_periodicity_strategy periodicity_strategy(periodicity_plan);
+
+  if(!periodicity_strategy.ready()) {
+    std::cout << "ERROR: periodicity_strategy not ready." << std::endl;
+  }
+  
+  aa_permitted_pipelines_3<aa_compute::modules::zero_dm, false> runner(ddtr_strategy, analysis_strategy, periodicity_strategy, input_data.data());
   if(runner.setup()) {
     while(runner.next()) {
       std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
