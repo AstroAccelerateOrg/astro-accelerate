@@ -420,7 +420,7 @@ public:
 
 
 
-void Create_DD_plan(Dedispersion_Plan *D_plan, int nRanges, float *dm_low, float *dm_high, float *dm_step, int *inBin, int nTimesamples, int *ndms, float sampling_time){
+void Create_DD_plan(Dedispersion_Plan *D_plan, int nRanges, float *dm_low, float *dm_high, float *dm_step, int *inBin, int nTimesamples, int const*const ndms, float sampling_time){
 	int max_nDMs = 0;
 	for(int f=0; f<nRanges; f++){
 		Dedispersion_Range trange;
@@ -809,7 +809,7 @@ int Get_Number_of_Candidates(int *GPU_data){
 
 
 
-void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float sigma_cutoff, float ***output_buffer, int *ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp, int nHarmonics, bool candidate_algorithm, bool enable_outlier_rejection, float OR_sigma_multiplier) {
+void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float sigma_cutoff, float ***output_buffer, int const*const ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp, int nHarmonics, bool candidate_algorithm, bool enable_outlier_rejection, float OR_sigma_multiplier) {
 	// processed = maximum number of time-samples through out all ranges
 	// nTimesamples = number of time-samples in given range 'i'
 	// TODO:

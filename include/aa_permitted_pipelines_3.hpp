@@ -109,6 +109,7 @@ namespace astroaccelerate {
     std::vector<int>   inBin;
 
     bool memory_cleanup;
+    bool periodicity_did_run;
     
     //Loop counter variables
     int t;
@@ -144,6 +145,37 @@ namespace astroaccelerate {
       checkCudaErrors(cudaMalloc((void **) d_MSD_interpolated,    sizeof(float)*MSD_profile_size));
     }
 
+    void allocate_memory_cpu_output() {
+      /**
+       * Allocate a 3D array that is an output buffer that stores dedispersed array data.
+       * This array is used by periodicity.
+       */
+      size_t estimate_outputbuffer_size = 0;
+      size_t outputsize = 0;
+      const size_t range = m_ddtr_strategy.range();
+      const int *ndms = m_ddtr_strategy.ndms_data();
+      
+      for(size_t i = 0; i < range; i++) {
+        for(int j = 0; j < m_ddtr_strategy.num_tchunks(); j++) {
+	  estimate_outputbuffer_size += (size_t)(t_processed[i][j]*sizeof(float)*ndms[i]);
+        }
+      }
+      
+      outputsize = 0;
+      m_output_buffer = (float ***) malloc(range * sizeof(float **));
+      for(size_t i = 0; i < range; i++) {
+        int total_samps = 0;
+        for(int k = 0; k < num_tchunks; k++) {
+	  total_samps += t_processed[i][k];
+        }
+        m_output_buffer[i] = (float **) malloc(ndms[i] * sizeof(float *));
+        for (int j = 0; j < ndms[i]; j++) {
+	  m_output_buffer[i][j] = (float *) malloc(( total_samps ) * sizeof(float));
+        }
+        outputsize += ( total_samps ) * ndms[i] * sizeof(float);
+      }
+    }
+    
     bool set_data() {
       num_tchunks = m_ddtr_strategy.num_tchunks();
       size_t t_processed_size = m_ddtr_strategy.t_processed().size();
@@ -183,6 +215,9 @@ namespace astroaccelerate {
       allocate_memory_gpu(maxshift, max_ndms, nchans, t_processed, &d_input, &d_output);
       //Allocate GPU memory for SPS (i.e. analysis)
       allocate_memory_MSD(&m_d_MSD_workarea, &m_d_MSD_output_taps, &m_d_MSD_interpolated, m_analysis_strategy.MSD_data_info(), m_analysis_strategy.MSD_profile_size_in_bytes());
+      //Allocate memory for CPU output for periodicity
+      allocate_memory_cpu_output();
+      
       //Put the dm low, high, step struct contents into separate arrays again.
       //This is needed so that the kernel wrapper functions don't need to be modified.
       dm_low.resize(m_ddtr_strategy.range());
@@ -208,7 +243,10 @@ namespace astroaccelerate {
 
     bool run_pipeline() {
       printf("NOTICE: Pipeline start/resume run_pipeline_3.\n");
-      if(t >= num_tchunks) return false; // In this case, there are no more chunks to process.
+      if(t >= num_tchunks) {
+	return periodicity();
+	return false; // In this case, there are no more chunks to process.
+      }
       printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][t], t);
       
       const int *ndms = m_ddtr_strategy.ndms_data();
@@ -327,6 +365,7 @@ namespace astroaccelerate {
     }
 
     bool periodicity() {
+      if(periodicity_did_run) return false;
       aa_gpu_timer timer;
       timer.Start();
       const int *ndms =	m_ddtr_strategy.ndms_data();
@@ -355,6 +394,7 @@ namespace astroaccelerate {
       printf("\nAmount of telescope time processed: %f", tstart_local);
       printf("\nNumber of samples processed: %ld", inc);
       printf("\nReal-time speedup factor: %f", ( tstart_local ) / ( time ));
+      periodicity_did_run = true;
       return true;
     }
   };
@@ -367,6 +407,7 @@ namespace astroaccelerate {
 																		  m_periodicity_strategy(periodicity_strategy),
 																		  m_input_buffer(input_buffer),
 																		  memory_cleanup(false),
+																		  periodicity_did_run(false),
 																		  t(0),
 																		  m_d_MSD_workarea(NULL),
 																		  m_d_MSD_interpolated(NULL),
@@ -383,6 +424,7 @@ namespace astroaccelerate {
 																		 m_periodicity_strategy(periodicity_strategy),
 																		 m_input_buffer(input_buffer),
 																		 memory_cleanup(false),
+																		 periodicity_did_run(false),
 																		 t(0),
 																		 m_d_MSD_workarea(NULL),
 																		 m_d_MSD_interpolated(NULL),
@@ -398,6 +440,7 @@ namespace astroaccelerate {
 																				m_periodicity_strategy(periodicity_strategy),
 																				m_input_buffer(input_buffer),
 																				memory_cleanup(false),
+																				periodicity_did_run(false),
 																				t(0),
 																				m_d_MSD_workarea(NULL),
 																				m_d_MSD_interpolated(NULL),
@@ -414,6 +457,7 @@ namespace astroaccelerate {
 																			       m_periodicity_strategy(periodicity_strategy),
 																			       m_input_buffer(input_buffer),
 																			       memory_cleanup(false),
+																			       periodicity_did_run(false),
 																			       t(0),
 																			       m_d_MSD_workarea(NULL),
 																			       m_d_MSD_interpolated(NULL),
