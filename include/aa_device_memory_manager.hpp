@@ -113,6 +113,7 @@ private:
       printf("Detected %d CUDA Capable device(s)\n", deviceCount);
       m_mem.resize(deviceCount, 0);
     }
+    m_init = true;
     return true;
   }
   
