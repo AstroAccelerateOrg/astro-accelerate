@@ -6,8 +6,8 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#ifndef ASTRO_ACCELERATE_ANALYSIS_PLAN_HPP
-#define ASTRO_ACCELERATE_ANALYSIS_PLAN_HPP
+#ifndef ASTRO_ACCELERATE_AA_ANALYSIS_PLAN_HPP
+#define ASTRO_ACCELERATE_AA_ANALYSIS_PLAN_HPP
 
 #include <stdio.h>
 
@@ -76,4 +76,4 @@ namespace astroaccelerate {
   
 } //namespace astroaccelerate
 
-#endif /* ASTRO_ACCELERATE_ANALYSIS_PLAN_HPP */
+#endif /* ASTRO_ACCELERATE_AA_ANALYSIS_PLAN_HPP */

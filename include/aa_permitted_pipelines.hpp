@@ -16,41 +16,44 @@
 
 namespace astroaccelerate {
 
-/**
- * This class is used to check whether a pipeline is valid and permitted.
- * This class can also be used to obtain a valid pipeline.
- */
+  /**
+   * This class is used to check whether a pipeline is valid and permitted.
+   * This class can also be used to obtain a valid pipeline.
+   */
 
-class aa_permitted_pipelines {
-public:
+  class aa_permitted_pipelines {
+  public:
     
     //Example valid pipelines
     static const aa_compute::pipeline pipeline0;
     static const aa_compute::pipeline pipeline1;
     static const aa_compute::pipeline pipeline2;
+    static const aa_compute::pipeline pipeline3;
+    static const aa_compute::pipeline pipeline4;
+    static const aa_compute::pipeline pipeline5;
     
     static bool is_permitted(const aa_compute::pipeline &pipeline) {
-        /**
-         * Check if pipeline exists and is valid.
-         */
+      /**
+       * Check if pipeline exists and is valid.
+       */
         
-        if(pipeline == pipeline0) {
-            return true;
-        }
-        else if(pipeline == pipeline1) {
-            return true;
-        }
-        else if(pipeline == pipeline2) {
-            return true;
-        }
-        else {
-            return false;
-        }
+      if(pipeline == pipeline0) {
+	return true;
+      }
+      else if(pipeline == pipeline1) {
+	return true;
+      }
+      else if(pipeline == pipeline2) {
+	return true;
+      }
+      else {
+	return false;
+      }
         
-        return false;
+      return false;
     }
     
-};
+  };
 
 } //namespace astroaccelerate
 
