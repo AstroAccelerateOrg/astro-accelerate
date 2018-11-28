@@ -91,7 +91,6 @@ namespace astroaccelerate {
     bool strategy(const aa_ddtr_plan &plan, const size_t &free_memory, const bool &enable_analysis);
     bool m_ready;
     bool m_strategy_already_calculated;
-    void allocate_memory_cpu_output();
 
     bool m_configured_for_analysis;
     bool is_setup;  //Has setup been called already?

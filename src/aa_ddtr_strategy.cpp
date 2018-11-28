@@ -311,41 +311,10 @@ namespace astroaccelerate {
     return true;
 }
 
-void aa_ddtr_strategy::allocate_memory_cpu_output() {
-  /**
-   * Allocate a 3D array that is an output buffer that stores dedispersed array data.
-   */
-    size_t estimate_outputbuffer_size = 0;
-    size_t outputsize = 0;
-    const size_t range = str_dm.size();
-    for(size_t i = 0; i < range; i++) {
-        for(int j = 0; j < m_num_tchunks; j++) {
-            estimate_outputbuffer_size += (size_t)(m_t_processed[i][j]*sizeof(float)*m_ndms[i]);
-        }
-    }
-    
-    outputsize = 0;
-    output_buffer = (float ***) malloc(range * sizeof(float **));
-    for(size_t i = 0; i < range; i++) {
-        int total_samps = 0;
-        for(int k = 0; k < m_num_tchunks; k++) {
-            total_samps += m_t_processed[i][k];
-        }
-        output_buffer[i] = (float **) malloc(m_ndms[i] * sizeof(float *));
-        for (int j = 0; j < m_ndms[i]; j++) {
-            output_buffer[i][j] = (float *) malloc(( total_samps ) * sizeof(float));
-        }
-        outputsize += ( total_samps ) * m_ndms[i] * sizeof(float);
-    }
-}
-
 bool aa_ddtr_strategy::setup() {
     /**
      * Performs memory allocations and other setup before dedispersion can be run.
      */
-    
-    //output_buffer is used by the pipeline, but is it also used by the user?
-    //allocate_memory_cpu_output();//Disable as part of refactoring to aa_permitted_pipelines_1
     
     is_setup = true;
     if(is_setup && ready()) {
