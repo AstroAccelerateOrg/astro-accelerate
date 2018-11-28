@@ -137,7 +137,6 @@ namespace astroaccelerate {
     
     unsigned int max_tsamps;
     // Allocate memory to store the t_processed ranges:
-    //m_t_processed = (int **) malloc(range * sizeof(int *));
     m_t_processed.resize(range);
     
     if (nchans < ( m_max_ndms )) {
@@ -164,7 +163,6 @@ namespace astroaccelerate {
 	local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
 	for (size_t i = 0; i < range; i++)    {
 	  m_t_processed[i].resize(1);
-	  //m_t_processed[i] = (int *) malloc(sizeof(int)); // TODO: change to size_t
 	  m_t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
 	  m_t_processed[i][0] = m_t_processed[i][0] * ( SDIVINT*2*SNUMREG );
 	}
@@ -193,7 +191,6 @@ namespace astroaccelerate {
         
 	for (size_t i = 0; i < range; i++)    {
 	  // Allocate memory to hold the values of nsamps to be processed
-	  //m_t_processed[i] = (int *) malloc((num_blocks + 1) * sizeof(int));
 	  m_t_processed[i].resize(num_blocks + 1);
 	  // Remember the last block holds less!
 	  for (int j = 0; j < num_blocks; j++) {
@@ -232,7 +229,6 @@ namespace astroaccelerate {
 	int local_t_processed = (int) floor(( (float) ( nsamp - ( m_maxshift ) ) / (float) plan.user_dm(range-1).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
 	local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
 	for (size_t i = 0; i < range; i++) {
-	  //m_t_processed[i] = (int *) malloc(sizeof(int));
 	  m_t_processed[i].resize(1);
 	  m_t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
 	  m_t_processed[i][0] = m_t_processed[i][0] * ( SDIVINT*2*SNUMREG );
@@ -263,7 +259,6 @@ namespace astroaccelerate {
         
 	for (size_t i = 0; i < range; i++)    {
 	  // Allocate memory to hold the values of nsamps to be processed
-	  //m_t_processed[i] = (int *) malloc(( num_blocks + 1 ) * sizeof(int));
 	  m_t_processed[i].resize(num_blocks + 1);
 	  // Remember the last block holds less!
 	  for (int j = 0; j < num_blocks; j++) {
