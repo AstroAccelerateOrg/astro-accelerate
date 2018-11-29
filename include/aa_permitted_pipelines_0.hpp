@@ -12,9 +12,9 @@
 #include <stdio.h>
 
 namespace astroaccelerate {
-
-void run_pipeline_0();
-
+  class aa_permitted_pipelines_0 {
+    void run_pipeline_0();
+  };
 }
 
 #endif /* ASTRO_ACCELERATE_PERMITTED_PIPELINES_0_HPP */
