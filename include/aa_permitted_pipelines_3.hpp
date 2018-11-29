@@ -366,6 +366,7 @@ namespace astroaccelerate {
 
     bool periodicity() {
       if(periodicity_did_run) return false;
+      cleanup();
       aa_gpu_timer timer;
       timer.Start();
       const int *ndms =	m_ddtr_strategy.ndms_data();
@@ -393,7 +394,7 @@ namespace astroaccelerate {
       printf("\nPerformed Periodicity Location: %f (GPU estimate)", time);
       printf("\nAmount of telescope time processed: %f", tstart_local);
       printf("\nNumber of samples processed: %ld", inc);
-      printf("\nReal-time speedup factor: %f", ( tstart_local ) / ( time ));
+      printf("\nReal-time speedup factor: %f\n", ( tstart_local ) / ( time ));
       periodicity_did_run = true;
       return true;
     }

@@ -34,7 +34,10 @@ namespace astroaccelerate {
 							       m_export_powers(plan.export_powers()),
 							       m_candidate_algorithm(plan.candidate_algorithm()),
 							       m_enable_outlier_rejection(plan.enable_outlier_rejection()),
-							       m_ready(true) {
+							       m_ready(false) {
+      if((m_nHarmonics > 0) && (m_OR_sigma_multiplier > 0) && (m_export_powers > 0)) {
+	m_ready = true;
+      }      
     }
     
     float sigma_cutoff() const {

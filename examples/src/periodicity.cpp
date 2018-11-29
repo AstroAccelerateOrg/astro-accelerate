@@ -66,7 +66,7 @@ int main() {
   
   const float periodicity_sigma_cutoff = 0.0;
   const float OR_sigma_multiplier = 0.0;
-  const int   nHarmonics = 0;
+  const int   nHarmonics = 3;
   const int   export_powers = 0;
   const bool  candidate_algorithm = false;
   const bool  enable_outlier_rejection = false;

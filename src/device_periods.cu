@@ -360,6 +360,7 @@ public:
 		if ( cudaSuccess != cudaMalloc((void**) &gmem_interbin_peak_pos, 1*sizeof(int)) )  printf("Periodicity Allocation error! gmem_interbin_peak_pos\n");
 		
 		if ( cudaSuccess != cudaMalloc((void**) &d_MSD, sizeof(float)*MSD_interpolated_size*2)) {printf("Periodicity Allocation error! d_MSD\n");}
+		printf("DEBUG--------------------------------- MSD_DIT_size %d -------- MSD_PARTIAL_SIZE %d\n", MSD_DIT_size, MSD_PARTIAL_SIZE);
 		if ( cudaSuccess != cudaMalloc((void**) &d_previous_partials, sizeof(float)*MSD_DIT_size*MSD_PARTIAL_SIZE)) {printf("Periodicity Allocation error! d_previous_partials\n");}
 		if ( cudaSuccess != cudaMalloc((void**) &d_all_blocks, sizeof(float)*P_plan->max_total_MSD_blocks*MSD_PARTIAL_SIZE)) {printf("Periodicity Allocation error! d_MSD\n");}
 		
