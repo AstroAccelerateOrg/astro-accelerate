@@ -112,12 +112,12 @@ public:
 	  return false;
 	}
 	else {
-	  std::cout << "NOTICE: Compiled for compute capability " << ASTRO_ACCELERATE_CUDA_SM_VERSION << "." << std::endl;
-	  std::cout << "        The requested a device has capability " << device_compute_capability << "." << std::endl;
+	  std::cout << "NOTICE: Application binary compiled for compute capability " << ASTRO_ACCELERATE_CUDA_SM_VERSION << "." << std::endl;
+	  std::cout << "        The requested device has capability " << device_compute_capability << "." << std::endl;
 	}
         #else
-	std::cout << "NOTICE: Because #include \"version.h\" is not defined by this build system, the compute capability of the device cannot be determined." << std::endl;
-	std::cout << "        Please consider compiling using CMake." << std::endl;
+	std::cout << "NOTICE: Because #include \"version.h\" is not created by this build system, the compute capability of the device cannot be determined." << std::endl;
+	std::cout << "        Please consider compiling using the CMakeLists file provided in the repository." << std::endl;
 	#endif
 	selected_card_idx = i;
 	cudaSetDevice(i);
