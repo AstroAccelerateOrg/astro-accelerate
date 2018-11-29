@@ -64,6 +64,8 @@ public:
   size_t free_memory() {
     /**
      * Free memory on the currently selected card.
+     * TODO: Make a distinction between memory that is requested but not yet
+     * allocated, and the actual amount of memory that is free.
      */
     if(!m_init) {
       if(!init()) {

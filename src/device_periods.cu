@@ -504,7 +504,7 @@ void Find_Periodicity_Plan(int *max_nDMs_in_memory, AA_Periodicity_Plan *P_plan,
 	printf("--------------------------------- FINDING PERIODICITY PLAN -------------------------------\n");
 	memory_for_data = memory_available;
 	do {
-		printf("   Memory_for_data: %zu = %0.2f MB\n", memory_for_data, (float) memory_for_data/(1024.0*1024.0));
+		printf("   Memory_for_data: %zu = %0.3f MB\n", memory_for_data, (float) memory_for_data/(1024.0*1024.0));
 		t_max_nDMs_in_memory = Calculate_max_nDMs_in_memory(t_max_nTimesamples, t_max_nDMs, memory_for_data, multiple_float, multiple_ushort);
 		if(t_max_nDMs_in_memory==0) { printf("Error not enough memory for periodicity search!"); exit(1); }
 		input_plane_size = (t_max_nTimesamples+2)*t_max_nDMs_in_memory;
