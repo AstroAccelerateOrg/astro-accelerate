@@ -48,7 +48,7 @@ int main() {
     i = 0.0;
   }
   
-  aa_permitted_pipelines_1<aa_compute::modules::zero_dm, false> runner(strategy, input_data.data());
+  aa_permitted_pipelines_1<aa_compute::module_option::zero_dm, false> runner(strategy, input_data.data());
   if(runner.setup()) {
     std::vector<float> out;
     int chunk_idx = 0;

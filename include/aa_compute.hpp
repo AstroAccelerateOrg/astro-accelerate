@@ -14,21 +14,24 @@ namespace astroaccelerate {
 			      empty = 0,
 			      dedispersion,
 			      analysis,
-			      acceleration,
 			      periodicity,
-			      dmt,
-			      zero_dm,
-			      zero_dm_with_outliers,
-			      rfi,
-			      old_rfi,
-			      sps_baseline_noise,
+			      acceleration,
 			      fdas_custom_fft,
 			      fdas_inbin,
-			      fdas_norm,
-			      output_dmt,
-			      output_ffdot_plan,
-			      output_fdas_list,
-			      candidate_algorithm
+			      fdas_norm
+    };
+
+    enum class module_option : int {
+				    empty = 0,
+				    zero_dm,
+				    zero_dm_with_outliers,
+				    rfi,
+				    old_rfi,
+				    sps_baseline_noise,
+				    output_dmt,
+				    output_ffdot_plan,
+				    output_fdas_list,
+				    candidate_algorithm
     };
 
     //Function to convert module types into strings so that the user can query the pipeline
@@ -49,24 +52,6 @@ namespace astroaccelerate {
       case modules::periodicity:
 	return "periodicity";
 	break;
-      case modules::dmt:
-	return "dmt";
-	break;
-      case modules::zero_dm:
-	return "zero_dm";
-	break;
-      case modules::zero_dm_with_outliers:
-	return "zero_dm_with_outliers";
-	break;
-      case modules::rfi:
-	return "rfi";
-	break;
-      case modules::old_rfi:
-	return "old_rfi";
-	break;
-      case modules::sps_baseline_noise:
-	return "sps_baseline_noise";
-	break;
       case modules::fdas_custom_fft:
 	return "fdas_custom_fft";
 	break;
@@ -76,18 +61,6 @@ namespace astroaccelerate {
       case modules::fdas_norm:
 	return "fdas_norm";
 	break;
-      case modules::output_ffdot_plan:
-	return "output_ffdot_plan";
-	break;
-      case modules::output_fdas_list:
-	return "output_fdas_list";
-	break;
-      case modules::output_dmt:
-	return "output_dmt";
-	break;
-      case modules::candidate_algorithm:
-	return "candidate_algorithm";
-	break;
       default:
 	return "ERROR: Module name not found";
 	break;
@@ -95,7 +68,8 @@ namespace astroaccelerate {
     }
     
     typedef std::set<aa_compute::modules> pipeline;
-        
+    typedef std::set<aa_compute::module_option> pipeline_detail;
+    
   }//namespace aa_compute
 }//namespace astroaccelerate
 

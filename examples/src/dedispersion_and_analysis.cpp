@@ -61,7 +61,7 @@ int main() {
     return 0;
   }
   
-  aa_permitted_pipelines_2<aa_compute::modules::zero_dm, false> runner(ddtr_strategy, analysis_strategy, input_data.data());
+  aa_permitted_pipelines_2<aa_compute::module_option::zero_dm, false> runner(ddtr_strategy, analysis_strategy, input_data.data());
   if(runner.setup()) {
     while(runner.next()) {
       std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;

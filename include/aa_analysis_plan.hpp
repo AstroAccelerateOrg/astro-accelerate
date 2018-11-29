@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 
-#include "aa_ddtr_plan.hpp"
+#include "aa_ddtr_strategy.hpp"
 
 namespace astroaccelerate {
 

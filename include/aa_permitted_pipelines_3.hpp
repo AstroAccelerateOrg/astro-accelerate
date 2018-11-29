@@ -37,7 +37,7 @@
 #include "device_periods.hpp"
 
 namespace astroaccelerate {
-  template<aa_compute::modules zero_dm_type, bool enable_old_rfi>
+  template<aa_compute::module_option zero_dm_type, bool enable_old_rfi>
   class aa_permitted_pipelines_3 {
   public:
     aa_permitted_pipelines_3(const aa_ddtr_strategy &ddtr_strategy,
@@ -255,13 +255,13 @@ namespace astroaccelerate {
       load_data(-1, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
       checkCudaErrors(cudaGetLastError());
 
-      if(zero_dm_type == aa_compute::modules::zero_dm) {
+      if(zero_dm_type == aa_compute::module_option::zero_dm) {
 	zero_dm(d_input, nchans, t_processed[0][t]+maxshift, nbits);
       }
 
       checkCudaErrors(cudaGetLastError());
 
-      if(zero_dm_type == aa_compute::modules::zero_dm_with_outliers) {
+      if(zero_dm_type == aa_compute::module_option::zero_dm_with_outliers) {
 	zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
       }
 
@@ -400,69 +400,69 @@ namespace astroaccelerate {
     }
   };
 
-  template<> inline aa_permitted_pipelines_3<aa_compute::modules::zero_dm, false>::aa_permitted_pipelines_3(const aa_ddtr_strategy &ddtr_strategy,
-													    const aa_analysis_strategy &analysis_strategy,
-													    const aa_periodicity_strategy &periodicity_strategy,
-													    unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																		  m_analysis_strategy(analysis_strategy),
-																		  m_periodicity_strategy(periodicity_strategy),
-																		  m_input_buffer(input_buffer),
-																		  memory_cleanup(false),
-																		  periodicity_did_run(false),
-																		  t(0),
-																		  m_d_MSD_workarea(NULL),
-																		  m_d_MSD_interpolated(NULL),
-																		  m_d_MSD_output_taps(NULL) {
+  template<> inline aa_permitted_pipelines_3<aa_compute::module_option::zero_dm, false>::aa_permitted_pipelines_3(const aa_ddtr_strategy &ddtr_strategy,
+														  const aa_analysis_strategy &analysis_strategy,
+														  const aa_periodicity_strategy &periodicity_strategy,
+														  unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																			m_analysis_strategy(analysis_strategy),
+																			m_periodicity_strategy(periodicity_strategy),
+																			m_input_buffer(input_buffer),
+																			memory_cleanup(false),
+																			periodicity_did_run(false),
+																			t(0),
+																			m_d_MSD_workarea(NULL),
+																			m_d_MSD_interpolated(NULL),
+																			m_d_MSD_output_taps(NULL) {
     
     
   }
   
-  template<> inline aa_permitted_pipelines_3<aa_compute::modules::zero_dm, true>::aa_permitted_pipelines_3(const aa_ddtr_strategy &ddtr_strategy,
-													   const aa_analysis_strategy &analysis_strategy,
-													   const aa_periodicity_strategy &periodicity_strategy,
-													   unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																		 m_analysis_strategy(analysis_strategy),
-																		 m_periodicity_strategy(periodicity_strategy),
-																		 m_input_buffer(input_buffer),
-																		 memory_cleanup(false),
-																		 periodicity_did_run(false),
-																		 t(0),
-																		 m_d_MSD_workarea(NULL),
-																		 m_d_MSD_interpolated(NULL),
-																		 m_d_MSD_output_taps(NULL) {
+  template<> inline aa_permitted_pipelines_3<aa_compute::module_option::zero_dm, true>::aa_permitted_pipelines_3(const aa_ddtr_strategy &ddtr_strategy,
+														 const aa_analysis_strategy &analysis_strategy,
+														 const aa_periodicity_strategy &periodicity_strategy,
+														 unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																		       m_analysis_strategy(analysis_strategy),
+																		       m_periodicity_strategy(periodicity_strategy),
+																		       m_input_buffer(input_buffer),
+																		       memory_cleanup(false),
+																		       periodicity_did_run(false),
+																		       t(0),
+																		       m_d_MSD_workarea(NULL),
+																		       m_d_MSD_interpolated(NULL),
+																		       m_d_MSD_output_taps(NULL) {
     
   }
   
-  template<> inline aa_permitted_pipelines_3<aa_compute::modules::zero_dm_with_outliers, false>::aa_permitted_pipelines_3(const aa_ddtr_strategy &ddtr_strategy,
-															  const aa_analysis_strategy &analysis_strategy,
-															  const aa_periodicity_strategy &periodicity_strategy,
-															  unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																				m_analysis_strategy(analysis_strategy),
-																				m_periodicity_strategy(periodicity_strategy),
-																				m_input_buffer(input_buffer),
-																				memory_cleanup(false),
-																				periodicity_did_run(false),
-																				t(0),
-																				m_d_MSD_workarea(NULL),
-																				m_d_MSD_interpolated(NULL),
-																				m_d_MSD_output_taps(NULL) {
+  template<> inline aa_permitted_pipelines_3<aa_compute::module_option::zero_dm_with_outliers, false>::aa_permitted_pipelines_3(const aa_ddtr_strategy &ddtr_strategy,
+																const aa_analysis_strategy &analysis_strategy,
+																const aa_periodicity_strategy &periodicity_strategy,
+																unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																				      m_analysis_strategy(analysis_strategy),
+																				      m_periodicity_strategy(periodicity_strategy),
+																				      m_input_buffer(input_buffer),
+																				      memory_cleanup(false),
+																				      periodicity_did_run(false),
+																				      t(0),
+																				      m_d_MSD_workarea(NULL),
+																				      m_d_MSD_interpolated(NULL),
+																				      m_d_MSD_output_taps(NULL) {
     
     
   }
   
-  template<> inline aa_permitted_pipelines_3<aa_compute::modules::zero_dm_with_outliers, true>::aa_permitted_pipelines_3(const aa_ddtr_strategy &ddtr_strategy,
-															 const aa_analysis_strategy &analysis_strategy,
-															 const aa_periodicity_strategy &periodicity_strategy,
-															 unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																			       m_analysis_strategy(analysis_strategy),
-																			       m_periodicity_strategy(periodicity_strategy),
-																			       m_input_buffer(input_buffer),
-																			       memory_cleanup(false),
-																			       periodicity_did_run(false),
-																			       t(0),
-																			       m_d_MSD_workarea(NULL),
-																			       m_d_MSD_interpolated(NULL),
-																			       m_d_MSD_output_taps(NULL) {
+  template<> inline aa_permitted_pipelines_3<aa_compute::module_option::zero_dm_with_outliers, true>::aa_permitted_pipelines_3(const aa_ddtr_strategy &ddtr_strategy,
+															       const aa_analysis_strategy &analysis_strategy,
+															       const aa_periodicity_strategy &periodicity_strategy,
+															       unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																				     m_analysis_strategy(analysis_strategy),
+																				     m_periodicity_strategy(periodicity_strategy),
+																				     m_input_buffer(input_buffer),
+																				     memory_cleanup(false),
+																				     periodicity_did_run(false),
+																				     t(0),
+																				     m_d_MSD_workarea(NULL),
+																				     m_d_MSD_interpolated(NULL),
+																				     m_d_MSD_output_taps(NULL) {
     
   }
   

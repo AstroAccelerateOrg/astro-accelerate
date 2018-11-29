@@ -339,7 +339,7 @@ namespace astroaccelerate {
 	}
 
 	//Choose a specialisation of zero_dm for now
-	aa_permitted_pipelines_1<aa_compute::modules::zero_dm, false> runner(m_ddtr_strategy, ptr_data_in);
+	aa_permitted_pipelines_1<aa_compute::module_option::zero_dm, false> runner(m_ddtr_strategy, ptr_data_in);
 	if(runner.setup()) {
 	  std::vector<float> out;
 	  int chunk_idx = 0;
