@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <stdio.h>
+#include <memory>
 #include <map>
 
 #include "aa_compute.hpp"
@@ -24,6 +25,7 @@
 #include "aa_device_info.hpp"
 #include "aa_permitted_pipelines_1.hpp"
 #include "aa_permitted_pipelines_2.hpp"
+#include "aa_permitted_pipelines_3.hpp"
 
 namespace astroaccelerate {
 
@@ -109,9 +111,15 @@ namespace astroaccelerate {
     
     bool bind(aa_analysis_plan plan) {
       pipeline_ready = false;
-        
+      
       //Does the pipeline actually need this plan?
       if(required_plans.find(aa_compute::modules::analysis) != required_plans.end()) {
+	//Is the ddtr_strategy provided by this analysis_plan ready?
+	if(!plan.ddtr_strategy().ready()) {
+	  //This ddtr_strategy is not ready, so ignore this analysis_plan.
+	  return false;
+	}
+	
 	m_analysis_plan = plan;
 
 	aa_analysis_strategy analysis_strategy(m_analysis_plan);
@@ -338,13 +346,67 @@ namespace astroaccelerate {
 	  }
 	}
 
-	//Choose a specialisation of zero_dm for now
-	aa_permitted_pipelines_1<aa_compute::module_option::zero_dm, false> runner(m_ddtr_strategy, ptr_data_in);
-	if(runner.setup()) {
-	  std::vector<float> out;
-	  int chunk_idx = 0;
-	  std::vector<int> range_samples;
-	  while(runner.next(out, chunk_idx, range_samples)) {
+
+	/**
+	 * The following code requires some explanation, especially for developers unfamiliar with modern C++.
+	 * The purpose of the following block of code is to be a runtime dispatch. What this does is look up
+	 * which version of the pipeline function matches what the user requested.
+	 *
+	 * All pipelines are contained inside classes of the form aa_permitted_pipelines_x, where x is a number.
+	 * These pipeline classes are templated over two parameters, a module_option relating to which zero_dm
+	 * version will be used, and another to indicate which candidate algorithm will be used.
+	 * The zero_dm option is contained inside aa_compute::module_option::zero_dm
+	 * and aa_compute::module_option::zero_dm_with_outliers.
+	 * To make the code less verbose, constexpr are used to make create "abbreviations" for this syntax.
+	 *
+	 * All aa_permitted_pipeline_x classes are derived from a base class aa_pipeline_runner.
+	 * A std::unique_ptr is used because this provides automatic storage (when the std::unique_ptr goes out of
+	 * scope, the destructor is called for the object to which it points).
+	 * A base class pointer of type aa_pipeline_runner is used so that it can point to any of the aa_permitted_pipelines_x.
+	 * Runtime polymorphism ensures the methods for the selected aa_permitted_pipeline_x class are called.
+	 *
+	 * The code checks the m_requested_pipeline against the possible pipelines, and selects the one matching the user
+	 * settings. The syntax of std::unique_ptr implies that the templated class and the template parameters must be specified
+	 * both when specifying the type of the std::unique_ptr, and when the type is "new"'d.
+	 *
+	 * Lastly, because the type is being constructed, the parameters for the constructor must also be provided.
+	 * 
+	 */
+
+	//Use constexpr to create less syntactically verbose naming convention of zero_dm and zero_dm_with_outliers.
+	constexpr aa_compute::module_option zero_dm               = aa_compute::module_option::zero_dm;
+	constexpr aa_compute::module_option zero_dm_with_outliers = aa_compute::module_option::zero_dm_with_outliers;
+
+	//Create a std::unique_ptr of the base class type
+	std::unique_ptr<aa_pipeline_runner> runner;
+
+	//Check which pipeline the user has requested (given by m_requested_pipeline) against the possible permitted pipelines.
+	//Then, assign a new object of that type to the base class pointer.
+	if(m_requested_pipeline == aa_permitted_pipelines::pipeline1) {
+	  runner = std::unique_ptr<aa_permitted_pipelines_1<zero_dm,               true>> (new aa_permitted_pipelines_1<zero_dm,               true> (m_ddtr_strategy, ptr_data_in));
+	  //runner = std::unique_ptr<aa_permitted_pipelines_1<zero_dm,               false>>(new aa_permitted_pipelines_1<zero_dm,               false>(m_ddtr_strategy, ptr_data_in));
+	  //runner = std::unique_ptr<aa_permitted_pipelines_1<zero_dm_with_outliers, true>> (new aa_permitted_pipelines_1<zero_dm_with_outliers, true> (m_ddtr_strategy, ptr_data_in));
+	  //runner = std::unique_ptr<aa_permitted_pipelines_1<zero_dm_with_outliers, false>>(new aa_permitted_pipelines_1<zero_dm_with_outliers, false>(m_ddtr_strategy, ptr_data_in));
+	}
+	else if(m_requested_pipeline == aa_permitted_pipelines::pipeline2) {
+	  runner = std::unique_ptr<aa_permitted_pipelines_2<zero_dm,               true>> (new aa_permitted_pipelines_2<zero_dm,               true> (m_ddtr_strategy, m_analysis_strategy, ptr_data_in));
+	  //runner = std::unique_ptr<aa_permitted_pipelines_2<zero_dm,               false>>(new aa_permitted_pipelines_2<zero_dm,               false>(m_ddtr_strategy, m_analysis_strategy, ptr_data_in));
+	  //runner = std::unique_ptr<aa_permitted_pipelines_2<zero_dm_with_outliers, true>> (new aa_permitted_pipelines_2<zero_dm_with_outliers, true> (m_ddtr_strategy, m_analysis_strategy, ptr_data_in));
+	  //runner = std::unique_ptr<aa_permitted_pipelines_2<zero_dm_with_outliers, false>>(new aa_permitted_pipelines_2<zero_dm_with_outliers, false>(m_ddtr_strategy, m_analysis_strategy, ptr_data_in));
+	}
+	else if(m_requested_pipeline == aa_permitted_pipelines::pipeline3) {
+	  runner = std::unique_ptr<aa_permitted_pipelines_3<zero_dm,               true>> (new aa_permitted_pipelines_3<zero_dm,               true> (m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
+	  //runner = std::unique_ptr<aa_permitted_pipelines_3<zero_dm,               false>>(new aa_permitted_pipelines_3<zero_dm,               false>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
+	  //runner = std::unique_ptr<aa_permitted_pipelines_3<zero_dm_with_outliers, true>> (new aa_permitted_pipelines_3<zero_dm_with_outliers, true> (m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
+	  //runner = std::unique_ptr<aa_permitted_pipelines_3<zero_dm_with_outliers, false>>(new aa_permitted_pipelines_3<zero_dm_with_outliers, false>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
+	}
+	else {
+	  //Pipeline 0
+	}
+
+	// Run the pipeline
+	if(runner->setup()) {
+	  while(runner->next()) {
 	    std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
 	  }
 	}

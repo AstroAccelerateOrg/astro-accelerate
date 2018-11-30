@@ -31,14 +31,15 @@
 #include "aa_dedisperse.hpp"
 
 #include "device_analysis.hpp"
+#include "aa_pipeline_runner.hpp"
 
 namespace astroaccelerate {
   template<aa_compute::module_option zero_dm_type, bool enable_old_rfi>
-  class aa_permitted_pipelines_2 {
+  class aa_permitted_pipelines_2 : public aa_pipeline_runner {
   public:
     aa_permitted_pipelines_2(const aa_ddtr_strategy &ddtr_strategy,
 			     const aa_analysis_strategy &analysis_strategy,
-			     unsigned short *const input_buffer) {
+			     unsigned short const*const input_buffer) {
       
     }
     
@@ -75,7 +76,7 @@ namespace astroaccelerate {
     int                **t_processed;
     aa_ddtr_strategy   m_ddtr_strategy;
     aa_analysis_strategy m_analysis_strategy;
-    unsigned short     *m_input_buffer;
+    unsigned short     const*const m_input_buffer;
     int                num_tchunks;
     std::vector<float> dm_shifts;
     float              *dmshifts;
@@ -130,7 +131,7 @@ namespace astroaccelerate {
       cudaMemset(*d_output, 0, gpu_outputsize);
     }
     
-    void allocate_memory_MSD(float **const d_MSD_workarea, unsigned short **const d_MSD_output_taps, float **const d_MSD_interpolated,
+    void allocate_memory_MSD(float **const d_MSD_workarea, unsigned short **d_MSD_output_taps, float **const d_MSD_interpolated,
 			     const unsigned long int &MSD_maxtimesamples, const size_t &MSD_profile_size) {
       checkCudaErrors(cudaMalloc((void **) d_MSD_workarea,        MSD_maxtimesamples*5.5*sizeof(float)));
       checkCudaErrors(cudaMalloc((void **) &(*d_MSD_output_taps), sizeof(ushort)*2*MSD_maxtimesamples));
@@ -322,55 +323,55 @@ namespace astroaccelerate {
 
   template<> inline aa_permitted_pipelines_2<aa_compute::module_option::zero_dm, false>::aa_permitted_pipelines_2(const aa_ddtr_strategy &ddtr_strategy,
 														  const aa_analysis_strategy &analysis_strategy,
-														  unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																			m_analysis_strategy(analysis_strategy),
-																			m_input_buffer(input_buffer),
-																			memory_cleanup(false),
-																			t(0),
-																			m_d_MSD_workarea(NULL),
-																			m_d_MSD_interpolated(NULL),
-																			m_d_MSD_output_taps(NULL) {
+														  unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																			     m_analysis_strategy(analysis_strategy),
+																			     m_input_buffer(input_buffer),
+																			     memory_cleanup(false),
+																			     t(0),
+																			     m_d_MSD_workarea(NULL),
+																			     m_d_MSD_interpolated(NULL),
+																			     m_d_MSD_output_taps(NULL) {
     
     
   }
   
   template<> inline aa_permitted_pipelines_2<aa_compute::module_option::zero_dm, true>::aa_permitted_pipelines_2(const aa_ddtr_strategy &ddtr_strategy,
 														 const aa_analysis_strategy &analysis_strategy,
-														 unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																		       m_analysis_strategy(analysis_strategy),
-																		       m_input_buffer(input_buffer),
-																		       memory_cleanup(false),
-																		       t(0),
-																		       m_d_MSD_workarea(NULL),
-																		       m_d_MSD_interpolated(NULL),
-																		       m_d_MSD_output_taps(NULL) {
+														 unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																			    m_analysis_strategy(analysis_strategy),
+																			    m_input_buffer(input_buffer),
+																			    memory_cleanup(false),
+																			    t(0),
+																			    m_d_MSD_workarea(NULL),
+																			    m_d_MSD_interpolated(NULL),
+																			    m_d_MSD_output_taps(NULL) {
     
   }
   
   template<> inline aa_permitted_pipelines_2<aa_compute::module_option::zero_dm_with_outliers, false>::aa_permitted_pipelines_2(const aa_ddtr_strategy &ddtr_strategy,
 																const aa_analysis_strategy &analysis_strategy,
-																unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																				      m_analysis_strategy(analysis_strategy),
-																				      m_input_buffer(input_buffer),
-																				      memory_cleanup(false),
-																				      t(0),
-																				      m_d_MSD_workarea(NULL),
-																				      m_d_MSD_interpolated(NULL),
-																				      m_d_MSD_output_taps(NULL) {
+																unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																					   m_analysis_strategy(analysis_strategy),
+																					   m_input_buffer(input_buffer),
+																					   memory_cleanup(false),
+																					   t(0),
+																					   m_d_MSD_workarea(NULL),
+																					   m_d_MSD_interpolated(NULL),
+																					   m_d_MSD_output_taps(NULL) {
     
     
   }
   
   template<> inline aa_permitted_pipelines_2<aa_compute::module_option::zero_dm_with_outliers, true>::aa_permitted_pipelines_2(const aa_ddtr_strategy &ddtr_strategy,
 															       const aa_analysis_strategy &analysis_strategy,
-															       unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																				     m_analysis_strategy(analysis_strategy),
-																				     m_input_buffer(input_buffer),
-																				     memory_cleanup(false),
-																				     t(0),
-																				     m_d_MSD_workarea(NULL),
-																				     m_d_MSD_interpolated(NULL),
-																				     m_d_MSD_output_taps(NULL) {
+															       unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																					  m_analysis_strategy(analysis_strategy),
+																					  m_input_buffer(input_buffer),
+																					  memory_cleanup(false),
+																					  t(0),
+																					  m_d_MSD_workarea(NULL),
+																					  m_d_MSD_interpolated(NULL),
+																					  m_d_MSD_output_taps(NULL) {
     
   }
   

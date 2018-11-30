@@ -177,8 +177,7 @@ namespace astroaccelerate {
     else {
       std::cout << "NOTICE: Data could not be unbound." << std::endl;
     }
-  }
-
+  }  
 } //namespace astroaccelerate
 
 #endif /* ASTRO_ACCELERATE_PIPELINE_GENERIC_HPP */

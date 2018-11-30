@@ -27,9 +27,11 @@
 #include "device_rfi.hpp"
 #include "aa_dedisperse.hpp"
 
+#include "aa_pipeline_runner.hpp"
+
 namespace astroaccelerate {
   template<aa_compute::module_option zero_dm_type, bool enable_old_rfi>
-  class aa_permitted_pipelines_1 {
+  class aa_permitted_pipelines_1 : public aa_pipeline_runner {
   public:
     aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
 			     unsigned short const*const input_buffer);
@@ -45,7 +47,7 @@ namespace astroaccelerate {
     bool setup() {
       return set_data();
     }
-
+    
     bool next(std::vector<float> &output_buffer, int &chunk_idx, std::vector<int> &range_samples) {
       return run_pipeline(output_buffer, true, chunk_idx, range_samples);
     }

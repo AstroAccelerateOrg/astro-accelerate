@@ -35,15 +35,16 @@
 
 #include "device_analysis.hpp"
 #include "device_periods.hpp"
+#include "aa_pipeline_runner.hpp"
 
 namespace astroaccelerate {
   template<aa_compute::module_option zero_dm_type, bool enable_old_rfi>
-  class aa_permitted_pipelines_3 {
+  class aa_permitted_pipelines_3 : public aa_pipeline_runner {
   public:
     aa_permitted_pipelines_3(const aa_ddtr_strategy &ddtr_strategy,
 			     const aa_analysis_strategy &analysis_strategy,
 			     const aa_periodicity_strategy &periodicity_strategy,
-			     unsigned short *const input_buffer) {
+			     unsigned short const*const input_buffer) {
       
     }
     
@@ -82,7 +83,7 @@ namespace astroaccelerate {
     aa_ddtr_strategy        m_ddtr_strategy;
     aa_analysis_strategy    m_analysis_strategy;
     aa_periodicity_strategy m_periodicity_strategy;
-    unsigned short     *m_input_buffer;
+    unsigned short     const*const m_input_buffer;
     int                num_tchunks;
     std::vector<float> dm_shifts;
     float              *dmshifts;
@@ -403,16 +404,16 @@ namespace astroaccelerate {
   template<> inline aa_permitted_pipelines_3<aa_compute::module_option::zero_dm, false>::aa_permitted_pipelines_3(const aa_ddtr_strategy &ddtr_strategy,
 														  const aa_analysis_strategy &analysis_strategy,
 														  const aa_periodicity_strategy &periodicity_strategy,
-														  unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																			m_analysis_strategy(analysis_strategy),
-																			m_periodicity_strategy(periodicity_strategy),
-																			m_input_buffer(input_buffer),
-																			memory_cleanup(false),
-																			periodicity_did_run(false),
-																			t(0),
-																			m_d_MSD_workarea(NULL),
-																			m_d_MSD_interpolated(NULL),
-																			m_d_MSD_output_taps(NULL) {
+														  unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																			     m_analysis_strategy(analysis_strategy),
+																			     m_periodicity_strategy(periodicity_strategy),
+																			     m_input_buffer(input_buffer),
+																			     memory_cleanup(false),
+																			     periodicity_did_run(false),
+																			     t(0),
+																			     m_d_MSD_workarea(NULL),
+																			     m_d_MSD_interpolated(NULL),
+																			     m_d_MSD_output_taps(NULL) {
     
     
   }
@@ -420,32 +421,32 @@ namespace astroaccelerate {
   template<> inline aa_permitted_pipelines_3<aa_compute::module_option::zero_dm, true>::aa_permitted_pipelines_3(const aa_ddtr_strategy &ddtr_strategy,
 														 const aa_analysis_strategy &analysis_strategy,
 														 const aa_periodicity_strategy &periodicity_strategy,
-														 unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																		       m_analysis_strategy(analysis_strategy),
-																		       m_periodicity_strategy(periodicity_strategy),
-																		       m_input_buffer(input_buffer),
-																		       memory_cleanup(false),
-																		       periodicity_did_run(false),
-																		       t(0),
-																		       m_d_MSD_workarea(NULL),
-																		       m_d_MSD_interpolated(NULL),
-																		       m_d_MSD_output_taps(NULL) {
+														 unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																			    m_analysis_strategy(analysis_strategy),
+																			    m_periodicity_strategy(periodicity_strategy),
+																			    m_input_buffer(input_buffer),
+																			    memory_cleanup(false),
+																			    periodicity_did_run(false),
+																			    t(0),
+																			    m_d_MSD_workarea(NULL),
+																			    m_d_MSD_interpolated(NULL),
+																			    m_d_MSD_output_taps(NULL) {
     
   }
   
   template<> inline aa_permitted_pipelines_3<aa_compute::module_option::zero_dm_with_outliers, false>::aa_permitted_pipelines_3(const aa_ddtr_strategy &ddtr_strategy,
 																const aa_analysis_strategy &analysis_strategy,
 																const aa_periodicity_strategy &periodicity_strategy,
-																unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																				      m_analysis_strategy(analysis_strategy),
-																				      m_periodicity_strategy(periodicity_strategy),
-																				      m_input_buffer(input_buffer),
-																				      memory_cleanup(false),
-																				      periodicity_did_run(false),
-																				      t(0),
-																				      m_d_MSD_workarea(NULL),
-																				      m_d_MSD_interpolated(NULL),
-																				      m_d_MSD_output_taps(NULL) {
+																unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																					   m_analysis_strategy(analysis_strategy),
+																					   m_periodicity_strategy(periodicity_strategy),
+																					   m_input_buffer(input_buffer),
+																					   memory_cleanup(false),
+																					   periodicity_did_run(false),
+																					   t(0),
+																					   m_d_MSD_workarea(NULL),
+																					   m_d_MSD_interpolated(NULL),
+																					   m_d_MSD_output_taps(NULL) {
     
     
   }
@@ -453,16 +454,16 @@ namespace astroaccelerate {
   template<> inline aa_permitted_pipelines_3<aa_compute::module_option::zero_dm_with_outliers, true>::aa_permitted_pipelines_3(const aa_ddtr_strategy &ddtr_strategy,
 															       const aa_analysis_strategy &analysis_strategy,
 															       const aa_periodicity_strategy &periodicity_strategy,
-															       unsigned short *const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																				     m_analysis_strategy(analysis_strategy),
-																				     m_periodicity_strategy(periodicity_strategy),
-																				     m_input_buffer(input_buffer),
-																				     memory_cleanup(false),
-																				     periodicity_did_run(false),
-																				     t(0),
-																				     m_d_MSD_workarea(NULL),
-																				     m_d_MSD_interpolated(NULL),
-																				     m_d_MSD_output_taps(NULL) {
+															       unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																					  m_analysis_strategy(analysis_strategy),
+																					  m_periodicity_strategy(periodicity_strategy),
+																					  m_input_buffer(input_buffer),
+																					  memory_cleanup(false),
+																					  periodicity_did_run(false),
+																					  t(0),
+																					  m_d_MSD_workarea(NULL),
+																					  m_d_MSD_interpolated(NULL),
+																					  m_d_MSD_output_taps(NULL) {
     
   }
   

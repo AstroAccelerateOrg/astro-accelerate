@@ -7,7 +7,8 @@
 //
 
 #include "aa_config.hpp"
-
+#include "aa_pipeline.hpp"
+#include "aa_compute.hpp"
 #include "aa_sigproc_input.hpp"
 #include "aa_pipeline_wrapper_functions.hpp"
 
@@ -20,13 +21,13 @@ int main(int argc, char *argv[]) {
   for(int i = 0; i < argc; i++) {
     cli.input.push_back(argv[i]);
   }
-  aa_config configuration(cli);
+  aa_config cli_configuration(cli);
 
   aa_ddtr_plan ddtr_plan;
   std::string file_path;
   aa_config_flags user_flags = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_compute::debug>()};
   aa_compute::pipeline_detail pipeline_details;
-  aa_compute::pipeline pipeline = configuration.setup(ddtr_plan, user_flags, pipeline_details, file_path);
+  aa_compute::pipeline pipeline = cli_configuration.setup(ddtr_plan, user_flags, pipeline_details, file_path);
 
   std::cout << "File path " << file_path << std::endl;
   for(auto const i : pipeline) {
@@ -35,6 +36,11 @@ int main(int argc, char *argv[]) {
   
   aa_sigproc_input       filterbank_datafile(file_path.c_str());
   aa_filterbank_metadata filterbank_metadata = filterbank_datafile.read_metadata();
+
+  if(!filterbank_datafile.read_telescope()) {
+    std::cout << "ERROR: Could not read telescope data." << std::endl;
+    return 0;
+  }
   
   //Select card
   aa_device_info device_info;
@@ -54,19 +60,20 @@ int main(int argc, char *argv[]) {
     std::cout << "ERROR: init_card incomplete." << std::endl;
   }
   
-  const size_t free_memory = selected_card_info.free_memory;
+  aa_config configuration(pipeline);   // Set the pipeline and other run settings that would come from an input_file
+  float *output_data = NULL;
+  aa_pipeline<unsigned short, float> pipeline_manager(pipeline,
+						      filterbank_metadata,
+						      filterbank_datafile.input_buffer().data(),
+						      selected_card_info);
   
-  bool enable_analysis = false;
-  if(pipeline.find(aa_compute::modules::analysis) != pipeline.end()) {
-    enable_analysis = true;
+  if(pipeline_manager.bind(ddtr_plan)) {
+    std::cout << "NOTICE: ddtr_plan bound successfully." << std::endl;
   }
-    
-  aa_ddtr_strategy ddtr_strategy(ddtr_plan, filterbank_metadata, free_memory, enable_analysis);
-  if(!ddtr_strategy.ready()) {
-    std::cout << "ERROR: Could not configure ddtr_strategy." << std::endl;
-    return 0;
+  else {
+    std::cout << "ERROR: Could not bind ddtr_plan." << std::endl;
   }
-
+  
   aa_analysis_plan::selectable_candidate_algorithm candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::off;
   if(user_flags.candidate_algorithm) {
     candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::on;
@@ -78,23 +85,24 @@ int main(int argc, char *argv[]) {
   }
 
   if(pipeline.find(aa_compute::modules::analysis) != pipeline.end()) {
-    aa_analysis_plan analysis_plan(ddtr_strategy,
+    aa_analysis_plan analysis_plan(pipeline_manager.ddtr_strategy(),
 				   user_flags.sigma_cutoff,
 				   user_flags.sigma_constant,
 				   user_flags.max_boxcar_width_in_sec,
 				   candidate_algorithm,
 				   sps_baseline_noise);
-    aa_analysis_strategy analysis_strategy(analysis_plan);
-    if(!analysis_strategy.ready()) {
-      std::cout << "Could not configure analysis_strategy." << std::endl;
-      return 0;
+    if(pipeline_manager.bind(analysis_plan)) {
+      std::cout << "NOTICE: analysis_plan bound successfully." << std::endl;
+    }
+    else {
+      std::cout << "ERROR: Could not bind analysis_plan." << std::endl;
     }
   }
   
   if(pipeline.find(aa_compute::modules::periodicity) != pipeline.end()) { 
-    const float OR_sigma_multiplier = 1.0;
-    const bool periodicity_candidate_algorithm = false;
-    const bool enable_outlier_rejection = false;
+    const float OR_sigma_multiplier = 1.0;              //Is this setting in the input_file? Is it the same one as for analysis?
+    const bool periodicity_candidate_algorithm = false; //Is this setting in the input_file? Is it the same one as for analysis?
+    const bool enable_outlier_rejection = false;        //Is this setting in the input_file? Is it the same one as for analysis?
     aa_periodicity_plan periodicity_plan(user_flags.sigma_cutoff,
 					 OR_sigma_multiplier,
 					 user_flags.periodicity_nHarmonics,
@@ -102,11 +110,7 @@ int main(int argc, char *argv[]) {
 					 periodicity_candidate_algorithm,
 					 enable_outlier_rejection);
     
-    aa_periodicity_strategy periodicity_strategy(periodicity_plan);
-    if(!periodicity_strategy.ready()) {
-      std::cout << "ERROR: Could not configure periodicity_strategy." << std::endl;
-      return 0;
-    }
+    pipeline_manager.bind(periodicity_plan);
   }
   
   for(size_t i = 0; i < ddtr_plan.range(); i++) {
@@ -117,6 +121,45 @@ int main(int argc, char *argv[]) {
 	      << ddtr_plan.user_dm(i).outBin << std::endl;
   }
 
+  if(pipeline_manager.transfer_data_to_device()) {
+    std::cout << "NOTICE: The data was transferred to the device successfully." << std::endl;
+  }
+  else {
+    std::cout << "ERROR: The data could not be transferred to the device." << std::endl;
+  }
+  
+  // Validate if all Plans and Strategies are valid and ready to run
+  // Optional: Add throw catch to force user to check their settings
+  if(pipeline_manager.ready()) {
+    std::cout << "NOTICE: Pipeline is ready." << std::endl;
+  }
+  else {
+    std::cout << "NOTICE: Pipeline is not ready." << std::endl;
+  }
+  
+  // Run the pipeline
+  if(pipeline_manager.run()) {
+    std::cout << "NOTICE: The pipeline finished successfully." << std::endl;
+  }
+  else {
+    std::cout << "NOTICE: The pipeline could not start or had errors." << std::endl;
+  }
+
+  // Bring data back from device to host                                                      
+  if(pipeline_manager.transfer_data_to_host(output_data)) {
+    std::cout << "NOTICE: Data was transferred back to host successfully." << std::endl;
+  }
+  else {
+    std::cout << "NOTICE: Data was not transferred back to host." << std::endl;
+  }
+  
+  if(pipeline_manager.unbind_data()) {
+    std::cout << "NOTICE: Data was unbound successfully." << std::endl;
+  }
+  else {
+    std::cout << "NOTICE: Data could not be unbound." << std::endl;
+  }
+  
   std::cout << "NOTICE: Finished." << std::endl;
   return 0;
 }
