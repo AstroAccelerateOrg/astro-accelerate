@@ -28,22 +28,21 @@ void acceleration_fdas(int range,
 		       int navdms,
 		       float narrow,
 		       float wide,
-		       int nsearch,
 		       float aggression,
 		       float cutoff,
 		       float ***output_buffer,
-		       int *ndms,
+		       int const*const ndms,
 		       int *inBin,
 		       float *dm_low,
 		       float *dm_high,
 		       float *dm_step,
 		       float tsamp,
-		       int enable_custom_fft,
-		       int enable_inbin,
-		       int enable_norm,
+		       const bool enable_custom_fft,
+		       const bool enable_inbin,
+		       const bool enable_norm,
 		       float sigma_constant,
-		       int enable_output_ffdot_plan,
-		       int enable_output_fdas_list) {
+		       const bool enable_output_ffdot_plan,
+		       const bool enable_output_fdas_list) {
 
         astroaccelerate::fdas_params params;
 	// fdas_new_acc_sig acc_sig;
@@ -69,7 +68,7 @@ void acceleration_fdas(int range,
 	cmdargs.sigamp = 0.1; //
 	cmdargs.basic = 0; //
 	cmdargs.kfft = 1; //
-	if (enable_custom_fft == 1){
+	if (enable_custom_fft){
 		cmdargs.basic = 0; //
 		cmdargs.kfft = 1; //
 	}
@@ -78,12 +77,12 @@ void acceleration_fdas(int range,
 		cmdargs.kfft  = 0; //
 	}
 	//
-	if (enable_inbin == 1)
+	if (enable_inbin)
 		cmdargs.inbin = 1; //
 	else
 		cmdargs.inbin = 0; //
 	//
-	if (enable_norm == 1)
+	if (enable_norm)
 		cmdargs.norm = 1; //
 	else
 		cmdargs.norm = 0; //
@@ -417,7 +416,7 @@ void acceleration_fdas(int range,
 					exit(1);
 					#endif	
 					
-					if (enable_output_fdas_list == 1)
+					if (enable_output_fdas_list)
 					{
 						if(list_size>0)
 							fdas_write_list(&gpuarrays, &cmdargs, &params, h_MSD, dm_low[i], dm_count, dm_step[i], list_size);
@@ -425,7 +424,7 @@ void acceleration_fdas(int range,
 					cudaFree(d_MSD);
 					cudaFree(gmem_fdas_peak_pos);
 				}
-				if (enable_output_ffdot_plan == 1)
+				if (enable_output_ffdot_plan)
 				{
 					fdas_write_ffdot(&gpuarrays, &cmdargs, &params, dm_low[i], dm_count, dm_step[i]);
 				}

@@ -36,6 +36,7 @@
 
 #include "device_analysis.hpp"
 #include "device_periods.hpp"
+#include "device_acceleration_fdas.hpp"
 #include "aa_pipeline_runner.hpp"
 
 namespace astroaccelerate {
@@ -52,6 +53,11 @@ namespace astroaccelerate {
 			     const aa_analysis_strategy &analysis_strategy,
 			     const aa_periodicity_strategy &periodicity_strategy,
 			     const aa_fdas_strategy &fdas_strategy,
+			     const bool &fdas_enable_custom_fft,
+			     const bool &fdas_enable_inbin,
+			     const bool &fdas_enable_norm,
+			     const bool &fdas_enable_output_ffdot_plan,
+			     const bool &fdas_enable_output_list,
 			     unsigned short const*const input_buffer) {
       
     }
@@ -130,6 +136,13 @@ namespace astroaccelerate {
     std::vector<float> dm_high;
     std::vector<float> dm_step;
     std::vector<int>   inBin;
+
+    // fdas acceleration search settings
+    bool m_fdas_enable_custom_fft;
+    bool m_fdas_enable_inbin;
+    bool m_fdas_enable_norm;
+    bool m_fdas_enable_output_ffdot_plan;
+    bool m_fdas_enable_output_list;
 
     bool memory_allocated;
     bool memory_cleanup;
@@ -267,10 +280,28 @@ namespace astroaccelerate {
     }
 
     bool run_pipeline() {
+      //aa_permitted_pipelines_5 does not return intermediate data.
+      //If this is required, then optional parameters can be passed
+      //as arguments which would contain periodicity and acceleration output.
+      //Since it is the pipelines perogative to decide when periodicity and acceleration
+      //are run, the user is responsible for checking when these objects were actually
+      //modified by the pipeline.
+
+      //The user is expected to keep calling run_pipeline until it returns false.
+      //Returning true indicates there is more to process.
+      //Returning false indicates the pipeline is finished running.
+      
       printf("NOTICE: Pipeline start/resume run_pipeline_3.\n");
       if(t >= num_tchunks) {
-	return periodicity();
-	return false; // In this case, there are no more chunks to process.
+	if(!periodicity_did_run) {
+	  return periodicity();
+	}
+
+	if(!acceleration_did_run) {
+	  return acceleration();
+	}
+
+	return false; // In this case, there are no more chunks to process, and periodicity and acceleration both ran.
       }
       printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][t], t);
       
@@ -430,31 +461,32 @@ namespace astroaccelerate {
       if(acceleration_did_run) return false;
       aa_gpu_timer timer;
       timer.Start();
-      /*acceleration_fdas(range,
-                        nsamp,
+      const int *ndms = m_ddtr_strategy.ndms_data();
+      
+      acceleration_fdas(m_ddtr_strategy.range(),
+                        m_ddtr_strategy.metadata().nsamples(),
                         max_ndms,
                         inc,
-                        nboots,
-                        ntrial_bins,
-                        navdms,
-                        narrow,
-			wide,
-                        nsearch,
-			aggression,
-                        sigma_cutoff,
-                        output_buffer,
+                        m_fdas_strategy.num_boots(),
+                        m_fdas_strategy.num_trial_bins(),
+                        m_fdas_strategy.navdms(),
+                        m_fdas_strategy.narrow(),
+			m_fdas_strategy.wide(),
+			m_fdas_strategy.aggression(),
+                        m_fdas_strategy.sigma_cutoff(),
+                        m_output_buffer,
                         ndms,
-			inBin,
-                        dm_low,
-			dm_high,
-                        dm_step,
+			inBin.data(),
+                        dm_low.data(),
+			dm_high.data(),
+                        dm_step.data(),
 			tsamp_original,
-                        enable_fdas_custom_fft,
-			enable_fdas_inbin,
-                        enable_fdas_norm,
-                        sigma_constant,
-                        enable_output_ffdot_plan,
-                        enable_output_fdas_list);*/
+                        m_fdas_enable_custom_fft,
+			m_fdas_enable_inbin,
+                        m_fdas_enable_norm,
+                        m_analysis_strategy.sigma_constant(),
+                        m_fdas_enable_output_ffdot_plan,
+                        m_fdas_enable_output_list);
       
       timer.Stop();
       float time = timer.Elapsed()/1000;
@@ -473,11 +505,21 @@ namespace astroaccelerate {
 														  const aa_analysis_strategy &analysis_strategy,
 														  const aa_periodicity_strategy &periodicity_strategy,
 														  const aa_fdas_strategy &fdas_strategy,
+														  const bool &fdas_enable_custom_fft,
+														  const bool &fdas_enable_inbin,
+														  const bool &fdas_enable_norm,
+														  const bool &fdas_enable_output_ffdot_plan,
+														  const bool &fdas_enable_output_list,
 														  unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
 																			     m_analysis_strategy(analysis_strategy),
 																			     m_periodicity_strategy(periodicity_strategy),
 																			     m_fdas_strategy(fdas_strategy),
 																			     m_input_buffer(input_buffer),
+																			     m_fdas_enable_custom_fft(fdas_enable_custom_fft),
+																			     m_fdas_enable_inbin(fdas_enable_inbin),
+																			     m_fdas_enable_norm(fdas_enable_norm),
+																			     m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
+																			     m_fdas_enable_output_list(fdas_enable_output_list),
 																			     memory_allocated(false),
 																			     memory_cleanup(false),
 																			     periodicity_did_run(false),
@@ -494,11 +536,21 @@ namespace astroaccelerate {
 														 const aa_analysis_strategy &analysis_strategy,
 														 const aa_periodicity_strategy &periodicity_strategy,
 														 const aa_fdas_strategy &fdas_strategy,
+														 const bool &fdas_enable_custom_fft,
+														 const bool &fdas_enable_inbin,
+														 const bool &fdas_enable_norm,
+														 const bool &fdas_enable_output_ffdot_plan,
+														 const bool &fdas_enable_output_list,
 														 unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
 																			    m_analysis_strategy(analysis_strategy),
 																			    m_periodicity_strategy(periodicity_strategy),
 																			    m_fdas_strategy(fdas_strategy),
 																			    m_input_buffer(input_buffer),
+																			    m_fdas_enable_custom_fft(fdas_enable_custom_fft),
+																			    m_fdas_enable_inbin(fdas_enable_inbin),
+																			    m_fdas_enable_norm(fdas_enable_norm),
+																			    m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
+																			    m_fdas_enable_output_list(fdas_enable_output_list),
 																			    memory_allocated(false),
 																			    memory_cleanup(false),
 																			    periodicity_did_run(false),
@@ -514,11 +566,21 @@ namespace astroaccelerate {
 																const aa_analysis_strategy &analysis_strategy,
 																const aa_periodicity_strategy &periodicity_strategy,
 																const aa_fdas_strategy &fdas_strategy,
+																const bool &fdas_enable_custom_fft,
+																const bool &fdas_enable_inbin,
+																const bool &fdas_enable_norm,
+																const bool &fdas_enable_output_ffdot_plan,
+																const bool &fdas_enable_output_list,
 																unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
 																					   m_analysis_strategy(analysis_strategy),
 																					   m_periodicity_strategy(periodicity_strategy),
 																					   m_fdas_strategy(fdas_strategy),
 																					   m_input_buffer(input_buffer),
+																					   m_fdas_enable_custom_fft(fdas_enable_custom_fft),
+																					   m_fdas_enable_inbin(fdas_enable_inbin),
+																					   m_fdas_enable_norm(fdas_enable_norm),
+																					   m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
+																					   m_fdas_enable_output_list(fdas_enable_output_list),
 																					   memory_allocated(false),
 																					   memory_cleanup(false),
 																					   periodicity_did_run(false),
@@ -535,11 +597,21 @@ namespace astroaccelerate {
 															       const aa_analysis_strategy &analysis_strategy,
 															       const aa_periodicity_strategy &periodicity_strategy,
 															       const aa_fdas_strategy &fdas_strategy,
+															       const bool &fdas_enable_custom_fft,
+															       const bool &fdas_enable_inbin,
+															       const bool &fdas_enable_norm,
+															       const bool &fdas_enable_output_ffdot_plan,
+															       const bool &fdas_enable_output_list,
 															       unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
 																					  m_analysis_strategy(analysis_strategy),
 																					  m_periodicity_strategy(periodicity_strategy),
 																					  m_fdas_strategy(fdas_strategy),
 																					  m_input_buffer(input_buffer),
+																					  m_fdas_enable_custom_fft(fdas_enable_custom_fft),
+																					  m_fdas_enable_inbin(fdas_enable_inbin),
+																					  m_fdas_enable_norm(fdas_enable_norm),
+																					  m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
+																					  m_fdas_enable_output_list(fdas_enable_output_list),
 																					  memory_allocated(false),
 																					  memory_cleanup(false),
 																					  periodicity_did_run(false),

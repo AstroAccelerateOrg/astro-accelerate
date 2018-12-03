@@ -16,9 +16,6 @@ namespace astroaccelerate {
 			      analysis,
 			      periodicity,
 			      fdas,
-			      fdas_custom_fft,
-			      fdas_inbin,
-			      fdas_norm
     };
 
     enum class module_option : int {
@@ -31,7 +28,10 @@ namespace astroaccelerate {
 				    output_dmt,
 				    output_ffdot_plan,
 				    output_fdas_list,
-				    candidate_algorithm
+				    candidate_algorithm,
+				    fdas_custom_fft,
+				    fdas_inbin,
+				    fdas_norm
     };
 
     //Function to convert module types into strings so that the user can query the pipeline
@@ -51,15 +51,6 @@ namespace astroaccelerate {
 	break;
       case modules::periodicity:
 	return "periodicity";
-	break;
-      case modules::fdas_custom_fft:
-	return "fdas_custom_fft";
-	break;
-      case modules::fdas_inbin:
-	return "fdas_inbin";
-	break;
-      case modules::fdas_norm:
-	return "fdas_norm";
 	break;
       default:
 	return "ERROR: Module name not found";

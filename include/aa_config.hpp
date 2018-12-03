@@ -186,11 +186,11 @@ namespace astroaccelerate {
 	  if (strcmp(string, "baselinenoise") == 0)
 	    m_pipeline_details.insert(aa_compute::module_option::sps_baseline_noise);
 	  if (strcmp(string, "fdas_custom_fft") == 0)
-	    m_pipeline.insert(aa_compute::modules::fdas_custom_fft);
+	    m_pipeline_details.insert(aa_compute::module_option::fdas_custom_fft);
 	  if (strcmp(string, "fdas_inbin") == 0)
-	    m_pipeline.insert(aa_compute::modules::fdas_inbin);
+	    m_pipeline_details.insert(aa_compute::module_option::fdas_inbin);
 	  if (strcmp(string, "fdas_norm") == 0)
-	    m_pipeline.insert(aa_compute::modules::fdas_norm);
+	    m_pipeline_details.insert(aa_compute::module_option::fdas_norm);
 	  if (strcmp(string, "multi_file") == 0)
 	    flg.multi_file = 1;
 	  if (strcmp(string, "analysis_debug") == 0)

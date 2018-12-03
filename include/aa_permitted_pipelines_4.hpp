@@ -29,6 +29,7 @@
 #include "aa_zero_dm_outliers.hpp"
 #include "aa_corner_turn.hpp"
 #include "device_rfi.hpp"
+#include "device_acceleration_fdas.hpp"
 #include "aa_dedisperse.hpp"
 
 #include "aa_gpu_timer.hpp"
@@ -50,6 +51,11 @@ namespace astroaccelerate {
     aa_permitted_pipelines_4(const aa_ddtr_strategy &ddtr_strategy,
 			     const aa_analysis_strategy &analysis_strategy,
 			     const aa_fdas_strategy &fdas_strategy,
+			     const bool &fdas_enable_custom_fft,
+                             const bool &fdas_enable_inbin,
+                             const bool &fdas_enable_norm,
+                             const bool &fdas_enable_output_ffdot_plan,
+                             const bool &fdas_enable_output_list,
 			     unsigned short const*const input_buffer) {
       
     }
@@ -126,6 +132,13 @@ namespace astroaccelerate {
     std::vector<float> dm_high;
     std::vector<float> dm_step;
     std::vector<int>   inBin;
+
+    // fdas acceleration search settings
+    bool m_fdas_enable_custom_fft;
+    bool m_fdas_enable_inbin;
+    bool m_fdas_enable_norm;
+    bool m_fdas_enable_output_ffdot_plan;
+    bool m_fdas_enable_output_list;
 
     bool memory_allocated;
     bool memory_cleanup;
@@ -390,31 +403,31 @@ namespace astroaccelerate {
       if(acceleration_did_run) return false;
       aa_gpu_timer timer;
       timer.Start();
-      /*acceleration_fdas(range,
-			nsamp,
-			max_ndms,
+      const int *ndms = m_ddtr_strategy.ndms_data();
+      acceleration_fdas(m_ddtr_strategy.range(),
+	                m_ddtr_strategy.metadata().nsamples(),
+                        max_ndms,
 			inc,
-			nboots,
-			ntrial_bins,
-			navdms,
-			narrow,
-			wide,
-			nsearch,
-			aggression,
-			sigma_cutoff,
-			output_buffer,
-			ndms,
-			inBin,
-			dm_low,
-			dm_high,
-			dm_step,
-			tsamp_original,
-			enable_fdas_custom_fft,
-			enable_fdas_inbin,
-			enable_fdas_norm,
-			sigma_constant,
-			enable_output_ffdot_plan,
-			enable_output_fdas_list);*/
+                        m_fdas_strategy.num_boots(),
+                        m_fdas_strategy.num_trial_bins(),
+                        m_fdas_strategy.navdms(),
+                        m_fdas_strategy.narrow(),
+                        m_fdas_strategy.wide(),
+			m_fdas_strategy.aggression(),
+                        m_fdas_strategy.sigma_cutoff(),
+                        m_output_buffer,
+                        ndms,
+                        inBin.data(),
+			dm_low.data(),
+                        dm_high.data(),
+                        dm_step.data(),
+                        tsamp_original,
+                        m_fdas_enable_custom_fft,
+                        m_fdas_enable_inbin,
+                        m_fdas_enable_norm,
+                        m_analysis_strategy.sigma_constant(),
+                        m_fdas_enable_output_ffdot_plan,
+                        m_fdas_enable_output_list);
       
       timer.Stop();
       float time = timer.Elapsed()/1000;
@@ -433,10 +446,20 @@ namespace astroaccelerate {
   template<> inline aa_permitted_pipelines_4<aa_compute::module_option::zero_dm, false>::aa_permitted_pipelines_4(const aa_ddtr_strategy &ddtr_strategy,
 														  const aa_analysis_strategy &analysis_strategy,
 														  const aa_fdas_strategy &fdas_strategy,
+														  const bool &fdas_enable_custom_fft,
+														  const bool &fdas_enable_inbin,
+														  const bool &fdas_enable_norm,
+														  const bool &fdas_enable_output_ffdot_plan,
+														  const bool &fdas_enable_output_list,
 														  unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
 																			     m_analysis_strategy(analysis_strategy),
 																			     m_fdas_strategy(fdas_strategy),
 																			     m_input_buffer(input_buffer),
+																			     m_fdas_enable_custom_fft(fdas_enable_custom_fft),
+																			     m_fdas_enable_inbin(fdas_enable_inbin),
+																			     m_fdas_enable_norm(fdas_enable_norm),
+																			     m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
+																			     m_fdas_enable_output_list(fdas_enable_output_list),
 																			     memory_allocated(false),
 																			     memory_cleanup(false),
 																			     acceleration_did_run(false),
@@ -451,10 +474,20 @@ namespace astroaccelerate {
   template<> inline aa_permitted_pipelines_4<aa_compute::module_option::zero_dm, true>::aa_permitted_pipelines_4(const aa_ddtr_strategy &ddtr_strategy,
 														 const aa_analysis_strategy &analysis_strategy,
 														 const aa_fdas_strategy &fdas_strategy,
+														 const bool &fdas_enable_custom_fft,
+														 const bool &fdas_enable_inbin,
+														 const bool &fdas_enable_norm,
+														 const bool &fdas_enable_output_ffdot_plan,
+														 const bool &fdas_enable_output_list,
 														 unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
 																			    m_analysis_strategy(analysis_strategy),
 																			    m_fdas_strategy(fdas_strategy),
 																			    m_input_buffer(input_buffer),
+																			    m_fdas_enable_custom_fft(fdas_enable_custom_fft),
+                                                                                                                                                            m_fdas_enable_inbin(fdas_enable_inbin),
+                                                                                                                                                            m_fdas_enable_norm(fdas_enable_norm),
+                                                                                                                                                            m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
+                                                                                                                                                            m_fdas_enable_output_list(fdas_enable_output_list),
 																			    memory_allocated(false),
 																			    memory_cleanup(false),
 																			    acceleration_did_run(false),
@@ -468,10 +501,20 @@ namespace astroaccelerate {
   template<> inline aa_permitted_pipelines_4<aa_compute::module_option::zero_dm_with_outliers, false>::aa_permitted_pipelines_4(const aa_ddtr_strategy &ddtr_strategy,
 																const aa_analysis_strategy &analysis_strategy,
 																const aa_fdas_strategy &fdas_strategy,
+																const bool &fdas_enable_custom_fft,
+																const bool &fdas_enable_inbin,
+																const bool &fdas_enable_norm,
+																const bool &fdas_enable_output_ffdot_plan,
+																const bool &fdas_enable_output_list,
 																unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
 																					   m_analysis_strategy(analysis_strategy),
 																					   m_fdas_strategy(fdas_strategy),
 																					   m_input_buffer(input_buffer),
+																					   m_fdas_enable_custom_fft(fdas_enable_custom_fft),
+																					   m_fdas_enable_inbin(fdas_enable_inbin),
+																					   m_fdas_enable_norm(fdas_enable_norm),
+																					   m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
+																					   m_fdas_enable_output_list(fdas_enable_output_list),
 																					   memory_allocated(false),
 																					   memory_cleanup(false),
 																					   acceleration_did_run(false),
@@ -486,10 +529,20 @@ namespace astroaccelerate {
   template<> inline aa_permitted_pipelines_4<aa_compute::module_option::zero_dm_with_outliers, true>::aa_permitted_pipelines_4(const aa_ddtr_strategy &ddtr_strategy,
 															       const aa_analysis_strategy &analysis_strategy,
 															       const aa_fdas_strategy &fdas_strategy,
+															       const bool &fdas_enable_custom_fft,
+															       const bool &fdas_enable_inbin,
+															       const bool &fdas_enable_norm,
+															       const bool &fdas_enable_output_ffdot_plan,
+															       const bool &fdas_enable_output_list,
 															       unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
 																					  m_analysis_strategy(analysis_strategy),
 																					  m_fdas_strategy(fdas_strategy),
 																					  m_input_buffer(input_buffer),
+																					  m_fdas_enable_custom_fft(fdas_enable_custom_fft),
+																					  m_fdas_enable_inbin(fdas_enable_inbin),
+																					  m_fdas_enable_norm(fdas_enable_norm),
+																					  m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
+																					  m_fdas_enable_output_list(fdas_enable_output_list),
 																					  memory_allocated(false),
 																					  memory_cleanup(false),
 																					  acceleration_did_run(false),
