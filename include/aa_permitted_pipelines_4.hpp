@@ -75,9 +75,13 @@ namespace astroaccelerate {
 	return set_data();
       }
 
+      if(memory_allocated) {
+	return true;
+      }
+      
       return false;
     }
-
+    
     bool next() {
       if(memory_allocated) {
 	return run_pipeline();
@@ -210,6 +214,7 @@ namespace astroaccelerate {
     }
     
     bool set_data() {
+      std::cout << "Inside set_data" << std::endl;
       num_tchunks = m_ddtr_strategy.num_tchunks();
       size_t t_processed_size = m_ddtr_strategy.t_processed().size();
 
@@ -263,6 +268,7 @@ namespace astroaccelerate {
 	dm_step[i]  = m_ddtr_strategy.dm(i).step;
 	inBin[i]    = m_ddtr_strategy.dm(i).inBin;
       }
+      memory_allocated = true;
       return true;
     }
 
@@ -401,6 +407,7 @@ namespace astroaccelerate {
       // Input needed for fdas is output_buffer.
       // Assumption: GPU memory is free and available.
       if(acceleration_did_run) return false;
+      cleanup();
       aa_gpu_timer timer;
       timer.Start();
       const int *ndms = m_ddtr_strategy.ndms_data();

@@ -77,6 +77,10 @@ namespace astroaccelerate {
 	return set_data();
       }
 
+      if(memory_allocated) {
+	return true;
+      }
+
       return false;
     }
 
@@ -268,6 +272,7 @@ namespace astroaccelerate {
 	dm_step[i]  = m_ddtr_strategy.dm(i).step;
 	inBin[i]    = m_ddtr_strategy.dm(i).inBin;
       }
+      memory_allocated = true;
       return true;
     }
 

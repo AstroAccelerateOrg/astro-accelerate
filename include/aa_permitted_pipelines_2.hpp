@@ -57,6 +57,10 @@ namespace astroaccelerate {
 	return set_data();
       }
 
+      if(memory_allocated) {
+	return true;
+      }
+
       return false;
     }
 
