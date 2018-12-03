@@ -2,38 +2,38 @@
 
 namespace astroaccelerate {
 
-aa_sigproc_input::aa_sigproc_input(const std::string &path) : header_is_read(false), file_path(path) {
-  isopen = false;
-}
+  aa_sigproc_input::aa_sigproc_input(const std::string &path) : header_is_read(false), data_is_read(false), file_path(path) {
+    isopen = false;
+  }
 
-aa_sigproc_input::~aa_sigproc_input() {
+  aa_sigproc_input::~aa_sigproc_input() {
     if(isopen) {
-        close();
+      close();
     }
-}
+  }
 
-bool aa_sigproc_input::open() {
+  bool aa_sigproc_input::open() {
     fp = fopen(file_path.c_str(), "rb");
     if(fp == NULL) {
       return false;
     }
     isopen = true;
     return true;
-}
+  }
 
-bool aa_sigproc_input::close() {
+  bool aa_sigproc_input::close() {
     if(isopen) {
-        if(fclose(fp) == -1) {
-            return false;
-        }
-        else {
-            isopen = false;
-        }
+      if(fclose(fp) == -1) {
+	return false;
+      }
+      else {
+	isopen = false;
+      }
     }
     return true;
-}
+  }
 
-aa_filterbank_metadata aa_sigproc_input::read_metadata() {
+  aa_filterbank_metadata aa_sigproc_input::read_metadata() {
     if(!isopen) {
       if(!open()) {
 	aa_filterbank_metadata empty;
@@ -45,18 +45,18 @@ aa_filterbank_metadata aa_sigproc_input::read_metadata() {
     get_file_data(metadata);
     header_is_read = true;
     return metadata;
-}
+  }
 
-bool aa_sigproc_input::read_telescope() {
-    if(!isopen || !header_is_read) {
-        return false;
+  bool aa_sigproc_input::read_telescope() {
+    if(!isopen || !header_is_read || data_is_read) {
+      return false;
     }
     
     get_recorded_data(m_input_buffer);
     return true;
-}
+  }
 
-bool aa_sigproc_input::get_file_data(aa_filterbank_metadata &metadata) {
+  bool aa_sigproc_input::get_file_data(aa_filterbank_metadata &metadata) {
     double az_start = 0;
     double za_start = 0;
     double src_raj = 0;
@@ -85,160 +85,160 @@ bool aa_sigproc_input::get_file_data(aa_filterbank_metadata &metadata) {
     int nbytes = sizeof(int);
     
     while (1) {
-        strcpy(string, "ERROR");
-        if (fread(&nchar, sizeof(int), 1, fp) != 1) {
-            fprintf(stderr, "\nError while reading file\n");
-            return false;
-        }
-        if (feof(fp)) {
-            return false;
-        }
+      strcpy(string, "ERROR");
+      if (fread(&nchar, sizeof(int), 1, fp) != 1) {
+	fprintf(stderr, "\nError while reading file\n");
+	return false;
+      }
+      if (feof(fp)) {
+	return false;
+      }
         
-        if (nchar > 1 && nchar < 80) {
-            if (fread(string, nchar, 1, fp) != 1) {
-                fprintf(stderr, "\nError while reading file\n");
-                return false;
-            }
+      if (nchar > 1 && nchar < 80) {
+	if (fread(string, nchar, 1, fp) != 1) {
+	  fprintf(stderr, "\nError while reading file\n");
+	  return false;
+	}
             
-            string[nchar] = '\0';
-            // For debugging only
-            //printf("From .fil header:\t%d\t%s\n", nchar, string);
-            nbytes += nchar;
+	string[nchar] = '\0';
+	// For debugging only
+	//printf("From .fil header:\t%d\t%s\n", nchar, string);
+	nbytes += nchar;
             
-            if (strcmp(string, "HEADER_END") == 0) {
-                break;
-            }
+	if (strcmp(string, "HEADER_END") == 0) {
+	  break;
+	}
             
-            if(strcmp(string, "telescope_id") == 0) {
-                if (fread(&telescope_id, sizeof(telescope_id), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if(strcmp(string, "machine_id") == 0) {
-                if (fread(&machine_id, sizeof(machine_id), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if(strcmp(string, "data_type") == 0) {
-                if (fread(&data_type, sizeof(data_type), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if(strcmp(string, "barycentric") == 0) {
-                printf("barycentric\n");
-                if (fread(&barycentric, sizeof(barycentric), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if(strcmp(string, "pulsarcentric") == 0) {
-                if (fread(&pulsarcentric, sizeof(pulsarcentric), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if(strcmp(string, "az_start") == 0) {
-                if (fread(&az_start, sizeof(az_start), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if(strcmp(string, "za_start") == 0) {
-                if (fread(&za_start, sizeof(za_start), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if(strcmp(string, "src_raj") == 0) {
-                if (fread(&src_raj, sizeof(src_raj), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if(strcmp(string, "src_dej") == 0) {
-                if (fread(&src_dej, sizeof(src_dej), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if (strcmp(string, "tstart") == 0) {
-                if (fread(&tstart, sizeof(tstart), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if (strcmp(string, "tsamp") == 0) {
-                if (fread(&tsamp, sizeof(tsamp), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if (strcmp(string, "nbits") == 0) {
-                if (fread(&nbits, sizeof(nbits), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if (strcmp(string, "nsamples") == 0) {
-                if (fread(&nsamples, sizeof(nsamples), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if (strcmp(string, "fch1") == 0) {
-                if (fread(&fch1, sizeof(fch1), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if (strcmp(string, "foff") == 0) {
-                if (fread(&foff, sizeof(foff), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if (strcmp(string, "fchannel") == 0) {
-                if (fread(&fchannel, sizeof(fchannel), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if (strcmp(string, "nchans") == 0) {
-                if (fread(&nchans, sizeof(nchans), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if (strcmp(string, "nifs") == 0) {
-                if (fread(&nifs, sizeof(nifs), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if (strcmp(string, "refdm") == 0) {
-                if (fread(&refdm, sizeof(refdm), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-            else if (strcmp(string, "period") == 0) {
-                if (fread(&period, sizeof(period), 1, fp) != 1) {
-                    fprintf(stderr, "\nError while reading file\n");
-                    return false;
-                }
-            }
-        }
+	if(strcmp(string, "telescope_id") == 0) {
+	  if (fread(&telescope_id, sizeof(telescope_id), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if(strcmp(string, "machine_id") == 0) {
+	  if (fread(&machine_id, sizeof(machine_id), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if(strcmp(string, "data_type") == 0) {
+	  if (fread(&data_type, sizeof(data_type), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if(strcmp(string, "barycentric") == 0) {
+	  printf("barycentric\n");
+	  if (fread(&barycentric, sizeof(barycentric), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if(strcmp(string, "pulsarcentric") == 0) {
+	  if (fread(&pulsarcentric, sizeof(pulsarcentric), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if(strcmp(string, "az_start") == 0) {
+	  if (fread(&az_start, sizeof(az_start), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if(strcmp(string, "za_start") == 0) {
+	  if (fread(&za_start, sizeof(za_start), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if(strcmp(string, "src_raj") == 0) {
+	  if (fread(&src_raj, sizeof(src_raj), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if(strcmp(string, "src_dej") == 0) {
+	  if (fread(&src_dej, sizeof(src_dej), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if (strcmp(string, "tstart") == 0) {
+	  if (fread(&tstart, sizeof(tstart), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if (strcmp(string, "tsamp") == 0) {
+	  if (fread(&tsamp, sizeof(tsamp), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if (strcmp(string, "nbits") == 0) {
+	  if (fread(&nbits, sizeof(nbits), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if (strcmp(string, "nsamples") == 0) {
+	  if (fread(&nsamples, sizeof(nsamples), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if (strcmp(string, "fch1") == 0) {
+	  if (fread(&fch1, sizeof(fch1), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if (strcmp(string, "foff") == 0) {
+	  if (fread(&foff, sizeof(foff), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if (strcmp(string, "fchannel") == 0) {
+	  if (fread(&fchannel, sizeof(fchannel), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if (strcmp(string, "nchans") == 0) {
+	  if (fread(&nchans, sizeof(nchans), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if (strcmp(string, "nifs") == 0) {
+	  if (fread(&nifs, sizeof(nifs), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if (strcmp(string, "refdm") == 0) {
+	  if (fread(&refdm, sizeof(refdm), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+	else if (strcmp(string, "period") == 0) {
+	  if (fread(&period, sizeof(period), 1, fp) != 1) {
+	    fprintf(stderr, "\nError while reading file\n");
+	    return false;
+	  }
+	}
+      }
     }
     
     free(string);
     
     // Check that we are working with one IF channel
     if (nifs != 1) {
-        printf("ERROR: Astro-Accelerate can only work with one IF channel.\n");
-        return false;
+      printf("ERROR: Astro-Accelerate can only work with one IF channel.\n");
+      return false;
     }
     
     fpos_t file_loc;
@@ -252,32 +252,32 @@ bool aa_sigproc_input::get_file_data(aa_filterbank_metadata &metadata) {
       printf("\nERROR!! Failed to seek to the end of data file\n");
       exit(1);
     }
-	unsigned long int exp_total_data = ftell(fp);
-	exp_total_data = exp_total_data - data_start;
-	fseek(fp, data_start, SEEK_SET);
+    unsigned long int exp_total_data = ftell(fp);
+    exp_total_data = exp_total_data - data_start;
+    fseek(fp, data_start, SEEK_SET);
 
-	if (( nbits ) == 32) {
-		nsamp = exp_total_data/((nchans)*4);
-	}
-	else if (( nbits ) == 16) {
-		nsamp = exp_total_data/((nchans)*2);
-	}
-	else if (( nbits ) == 8) {
-		nsamp = exp_total_data/((nchans));
-	}
-	else if (( nbits ) == 4) {
-		nsamp = 2*exp_total_data/((nchans));
-	}
-	else if (( nbits ) == 2) {
-		nsamp = 4*exp_total_data/((nchans));
-	}
-	else if (( nbits ) == 1) {
-		nsamp = 8*exp_total_data/((nchans));
-	}
-	else {
-	  printf("ERROR: Currently this code only runs with 1, 2, 4, 8, and 16 bit data\n");
-	  return false;
-       	}
+    if (( nbits ) == 32) {
+      nsamp = exp_total_data/((nchans)*4);
+    }
+    else if (( nbits ) == 16) {
+      nsamp = exp_total_data/((nchans)*2);
+    }
+    else if (( nbits ) == 8) {
+      nsamp = exp_total_data/((nchans));
+    }
+    else if (( nbits ) == 4) {
+      nsamp = 2*exp_total_data/((nchans));
+    }
+    else if (( nbits ) == 2) {
+      nsamp = 4*exp_total_data/((nchans));
+    }
+    else if (( nbits ) == 1) {
+      nsamp = 8*exp_total_data/((nchans));
+    }
+    else {
+      printf("ERROR: Currently this code only runs with 1, 2, 4, 8, and 16 bit data\n");
+      return false;
+    }
     
     // Move the file pointer back to the end of the header
     fsetpos(fp, &file_loc);
@@ -311,10 +311,10 @@ bool aa_sigproc_input::get_file_data(aa_filterbank_metadata &metadata) {
     m_meta   = meta;
     
     return true;
-}
+  }
 
-template <typename T>
-bool aa_sigproc_input::get_recorded_data(std::vector<T> &input_buffer) {
+  template <typename T>
+  bool aa_sigproc_input::get_recorded_data(std::vector<T> &input_buffer) {
     const size_t inputsize = (size_t)m_meta.nsamples() * (size_t)m_meta.nchans();
     input_buffer.resize(inputsize);
     int c;
@@ -324,167 +324,168 @@ bool aa_sigproc_input::get_recorded_data(std::vector<T> &input_buffer) {
     const int nbits = m_meta.nbits();
     //{{{ Load in the raw data from the input file and transpose
     if (nbits == 32) {
-        // Allocate a tempory buffer to store a line of frequency data
-        float *temp_buffer = (float *) malloc(nchans * sizeof(float));
+      // Allocate a tempory buffer to store a line of frequency data
+      float *temp_buffer = (float *) malloc(nchans * sizeof(float));
         
-        // Allocate floats to hold the mimimum and maximum value in the input data
-        float max = -10000000000;
-        float min = 10000000000;
+      // Allocate floats to hold the mimimum and maximum value in the input data
+      float max = -10000000000;
+      float min = 10000000000;
         
-        // Allocate a variable to hold the file pointer position
-        fpos_t file_loc;
+      // Allocate a variable to hold the file pointer position
+      fpos_t file_loc;
         
-        // Set the file pointer position
-        fgetpos(fp, &file_loc);
+      // Set the file pointer position
+      fgetpos(fp, &file_loc);
         
-        // Find the minimum and maximum values in the input file.
-        while (!feof(fp)) {
-            if (fread(temp_buffer, sizeof(float), nchans, fp) != (size_t)nchans)
-                break;
-            for (c = 0; c < nchans; c++) {
-                if(temp_buffer[c] > max) max = temp_buffer[c];
-                if(temp_buffer[c] < min) min = temp_buffer[c];
-            }
-        }
+      // Find the minimum and maximum values in the input file.
+      while (!feof(fp)) {
+	if (fread(temp_buffer, sizeof(float), nchans, fp) != (size_t)nchans)
+	  break;
+	for (c = 0; c < nchans; c++) {
+	  if(temp_buffer[c] > max) max = temp_buffer[c];
+	  if(temp_buffer[c] < min) min = temp_buffer[c];
+	}
+      }
         
-        // Calculate the bin size in a distribution of unsigned shorts for the input data.
-        float bin = (max - min) / 65535.0f;
+      // Calculate the bin size in a distribution of unsigned shorts for the input data.
+      float bin = (max - min) / 65535.0f;
         
-        printf("\n Conversion Parameters: %f\t%f\t%f", min, max, bin);
+      printf("\n Conversion Parameters: %f\t%f\t%f", min, max, bin);
         
-        // Move the file pointer back to the end of the header
-        fsetpos(fp, &file_loc);
+      // Move the file pointer back to the end of the header
+      fsetpos(fp, &file_loc);
         
-        // Read in the data, scale to an unsigned short range, transpose it and store it in the input buffer
-        total_data = 0;
-        while (!feof(fp)) {
-            if(total_data % (int)(m_meta.nsamples()*0.1) == 0) printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
-            if (fread(temp_buffer, sizeof(float), nchans, fp) != (size_t)nchans)
-                break;
-            for (c = 0; c < nchans; c++) {
-                ( input_buffer )[c + total_data * ( nchans )] = (unsigned short) ((temp_buffer[c]-min)/bin);
-            }
-            total_data++;
-        }
-        free(temp_buffer);
+      // Read in the data, scale to an unsigned short range, transpose it and store it in the input buffer
+      total_data = 0;
+      while (!feof(fp)) {
+	if(total_data % (int)(m_meta.nsamples()*0.1) == 0) printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
+	if (fread(temp_buffer, sizeof(float), nchans, fp) != (size_t)nchans)
+	  break;
+	for (c = 0; c < nchans; c++) {
+	  ( input_buffer )[c + total_data * ( nchans )] = (unsigned short) ((temp_buffer[c]-min)/bin);
+	}
+	total_data++;
+      }
+      free(temp_buffer);
     }
     else if (nbits == 16) {
-        // Allocate a tempory buffer to store a line of frequency data
-        unsigned short *temp_buffer = (unsigned short *) malloc(nchans * sizeof(unsigned short));
+      // Allocate a tempory buffer to store a line of frequency data
+      unsigned short *temp_buffer = (unsigned short *) malloc(nchans * sizeof(unsigned short));
         
-        // Read in the data, transpose it and store it in the input buffer
-        total_data = 0;
-        while (!feof(fp)) {
-            if(total_data % (int)(m_meta.nsamples()*0.1) == 0) printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
-            if (fread(temp_buffer, sizeof(unsigned short), nchans, fp) != (size_t)nchans)
-                break;
-            for (c = 0; c < nchans; c++) {
-                ( input_buffer )[c + total_data * ( nchans )] = (unsigned short) temp_buffer[c];
-            }
-            total_data++;
-        }
-        free(temp_buffer);
+      // Read in the data, transpose it and store it in the input buffer
+      total_data = 0;
+      while (!feof(fp)) {
+	if(total_data % (int)(m_meta.nsamples()*0.1) == 0) printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
+	if (fread(temp_buffer, sizeof(unsigned short), nchans, fp) != (size_t)nchans)
+	  break;
+	for (c = 0; c < nchans; c++) {
+	  ( input_buffer )[c + total_data * ( nchans )] = (unsigned short) temp_buffer[c];
+	}
+	total_data++;
+      }
+      free(temp_buffer);
     }
     else if (nbits == 8) {
         
-        // Allocate a tempory buffer to store a line of frequency data
-        unsigned char *temp_buffer = (unsigned char *) malloc(nchans * sizeof(unsigned char));
+      // Allocate a tempory buffer to store a line of frequency data
+      unsigned char *temp_buffer = (unsigned char *) malloc(nchans * sizeof(unsigned char));
         
-        // Read in the data, transpose it and store it in the input buffer
-        total_data = 0;
-        while (!feof(fp)) {
-            if(total_data % (int)(m_meta.nsamples()*0.1) == 0) printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
-            if (fread(temp_buffer, sizeof(unsigned char), nchans, fp) != (size_t)nchans) {
-                break;
-            }
-            for (c = 0; c < nchans; c++) {
-                ( input_buffer )[c + total_data * ( nchans )] = (unsigned short) temp_buffer[c];
-            }
-            total_data++;
-        }
-        free(temp_buffer);
+      // Read in the data, transpose it and store it in the input buffer
+      total_data = 0;
+      while (!feof(fp)) {
+	if(total_data % (int)(m_meta.nsamples()*0.1) == 0) printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
+	if (fread(temp_buffer, sizeof(unsigned char), nchans, fp) != (size_t)nchans) {
+	  break;
+	}
+	for (c = 0; c < nchans; c++) {
+	  ( input_buffer )[c + total_data * ( nchans )] = (unsigned short) temp_buffer[c];
+	}
+	total_data++;
+      }
+      free(temp_buffer);
     }
     else if (nbits == 4) {
-        // Allocate a temporary buffer to store a line of frequency data
-        // each byte stores 2 frequency data
-        int nb_bytes = nchans/2;
-        unsigned char *temp_buffer = (unsigned char *) malloc(nb_bytes * sizeof(unsigned char));
-        // Read in the data, transpose it and store it in the input buffer
-        total_data = 0;
-        // 00001111
-        char mask = 0x0f;
-        while (!feof(fp)) {
-            if(total_data % (int)(m_meta.nsamples()*0.1) == 0) printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
-            if (fread(temp_buffer, sizeof(unsigned char), nb_bytes, fp) != (size_t)nb_bytes)
-                break;
-            for (c = 0; c < nb_bytes; c++) {
-                // (n >> a) & ( (1 << a) - 1) -> right shift by 'a' bits, then keep the last 'b' bits
-                // Here, we right shift 4 bits and keep the last 4 bits
-                ( input_buffer )[ (c*2) + total_data * ( nchans )]     = (unsigned short)( (temp_buffer[c] >> 4) & mask );
-                // n & ( (1 << a ) - 1)
-                // Here we keep the last 4 bits
-                ( input_buffer )[ (c*2) + 1 + total_data * ( nchans )] = (unsigned short)( temp_buffer[c] & mask );
-            }
-            total_data++;
-        }
-        free(temp_buffer);
+      // Allocate a temporary buffer to store a line of frequency data
+      // each byte stores 2 frequency data
+      int nb_bytes = nchans/2;
+      unsigned char *temp_buffer = (unsigned char *) malloc(nb_bytes * sizeof(unsigned char));
+      // Read in the data, transpose it and store it in the input buffer
+      total_data = 0;
+      // 00001111
+      char mask = 0x0f;
+      while (!feof(fp)) {
+	if(total_data % (int)(m_meta.nsamples()*0.1) == 0) printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
+	if (fread(temp_buffer, sizeof(unsigned char), nb_bytes, fp) != (size_t)nb_bytes)
+	  break;
+	for (c = 0; c < nb_bytes; c++) {
+	  // (n >> a) & ( (1 << a) - 1) -> right shift by 'a' bits, then keep the last 'b' bits
+	  // Here, we right shift 4 bits and keep the last 4 bits
+	  ( input_buffer )[ (c*2) + total_data * ( nchans )]     = (unsigned short)( (temp_buffer[c] >> 4) & mask );
+	  // n & ( (1 << a ) - 1)
+	  // Here we keep the last 4 bits
+	  ( input_buffer )[ (c*2) + 1 + total_data * ( nchans )] = (unsigned short)( temp_buffer[c] & mask );
+	}
+	total_data++;
+      }
+      free(temp_buffer);
     }
     else if (nbits == 2) {
-        // Allocate a temporary buffer to store a line of frequency data
-        // each byte stores 4 frequency data
-        int nb_bytes = nchans/4;
-        unsigned char *temp_buffer = (unsigned char *) malloc(nb_bytes * sizeof(unsigned char));
-        // Read in the data, transpose it and store it in the input buffer
-        total_data = 0;
-        // 00001111
-        char mask = 0x03;
-        while (!feof(fp)) {
-            if(total_data % (int)(m_meta.nsamples()*0.1) == 0) printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
-            if (fread(temp_buffer, sizeof(unsigned char), nb_bytes, fp) != (size_t)nb_bytes)
-                break;
-            for (c = 0; c < nb_bytes; c++) {
-                ( input_buffer )[ (c*4) + total_data * ( nchans )]     = (unsigned short)( (temp_buffer[c] >> 6) & mask );
-                ( input_buffer )[ (c*4) + 1 + total_data * ( nchans )] = (unsigned short)( (temp_buffer[c] >> 4) & mask );
-                ( input_buffer )[ (c*4) + 2 + total_data * ( nchans )] = (unsigned short)( (temp_buffer[c] >> 2) & mask );
-                ( input_buffer )[ (c*4) + 3 + total_data * ( nchans )] = (unsigned short)( temp_buffer[c] & mask );
-            }
-            total_data++;
-        }
-        free(temp_buffer);
+      // Allocate a temporary buffer to store a line of frequency data
+      // each byte stores 4 frequency data
+      int nb_bytes = nchans/4;
+      unsigned char *temp_buffer = (unsigned char *) malloc(nb_bytes * sizeof(unsigned char));
+      // Read in the data, transpose it and store it in the input buffer
+      total_data = 0;
+      // 00001111
+      char mask = 0x03;
+      while (!feof(fp)) {
+	if(total_data % (int)(m_meta.nsamples()*0.1) == 0) printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
+	if (fread(temp_buffer, sizeof(unsigned char), nb_bytes, fp) != (size_t)nb_bytes)
+	  break;
+	for (c = 0; c < nb_bytes; c++) {
+	  ( input_buffer )[ (c*4) + total_data * ( nchans )]     = (unsigned short)( (temp_buffer[c] >> 6) & mask );
+	  ( input_buffer )[ (c*4) + 1 + total_data * ( nchans )] = (unsigned short)( (temp_buffer[c] >> 4) & mask );
+	  ( input_buffer )[ (c*4) + 2 + total_data * ( nchans )] = (unsigned short)( (temp_buffer[c] >> 2) & mask );
+	  ( input_buffer )[ (c*4) + 3 + total_data * ( nchans )] = (unsigned short)( temp_buffer[c] & mask );
+	}
+	total_data++;
+      }
+      free(temp_buffer);
     }
     else if (nbits == 1) {
-        // each byte stores 8 frequency data
-        int nb_bytes = nchans/8;
+      // each byte stores 8 frequency data
+      int nb_bytes = nchans/8;
         
-        // Allocate a temporary buffer to store a line of frequency data
-        unsigned char *temp_buffer = (unsigned char *) malloc(nb_bytes * sizeof(unsigned char));
+      // Allocate a temporary buffer to store a line of frequency data
+      unsigned char *temp_buffer = (unsigned char *) malloc(nb_bytes * sizeof(unsigned char));
         
-        // Read in the data, transpose it and store it in the input buffer
-        total_data = 0;
+      // Read in the data, transpose it and store it in the input buffer
+      total_data = 0;
         
-        while (!feof(fp)) {
-            if(total_data % (int)(m_meta.nsamples()*0.1) == 0) printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
-            if (fread(temp_buffer, sizeof(unsigned char), nb_bytes, fp) != (size_t)nb_bytes)
-                break;
+      while (!feof(fp)) {
+	if(total_data % (int)(m_meta.nsamples()*0.1) == 0) printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
+	if (fread(temp_buffer, sizeof(unsigned char), nb_bytes, fp) != (size_t)nb_bytes)
+	  break;
             
-            for (c = 0; c < nb_bytes; c++) {
-                for(int i=0; i<8; i++) {
-                    unsigned char mask =  1 << i;
-                    unsigned char masked_char = temp_buffer[c] & mask;
-                    unsigned char bit = masked_char >> i;
-                    ( input_buffer )[ (c*8) + i + total_data * ( nchans )] = (unsigned short)bit;
-                }
-            }
-            total_data++;
-        }
-        free(temp_buffer);
+	for (c = 0; c < nb_bytes; c++) {
+	  for(int i=0; i<8; i++) {
+	    unsigned char mask =  1 << i;
+	    unsigned char masked_char = temp_buffer[c] & mask;
+	    unsigned char bit = masked_char >> i;
+	    ( input_buffer )[ (c*8) + i + total_data * ( nchans )] = (unsigned short)bit;
+	  }
+	}
+	total_data++;
+      }
+      free(temp_buffer);
     }
     else {
-        printf("ERROR: Invalid number of bits in input data.\n");
-        return false;
+      printf("ERROR: Invalid number of bits in input data.\n");
+      return false;
     }
-    
+
+    data_is_read = true;
     return true;
-}
+  }
 
 } //namespace astroaccelerate
