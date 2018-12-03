@@ -113,6 +113,18 @@ int main(int argc, char *argv[]) {
     
     pipeline_manager.bind(periodicity_plan);
   }
+
+  if(pipeline.find(aa_compute::modules::fdas) != pipeline.end()) {
+    aa_fdas_plan fdas_plan(user_flags.sigma_cutoff,
+			   user_flags.nboots,
+			   user_flags.ntrial_bins,
+			   user_flags.navdms,
+			   user_flags.narrow,
+			   user_flags.wide,
+			   user_flags.nsearch,
+			   user_flags.aggression);
+    pipeline_manager.bind(fdas_plan);
+  }
   
   for(size_t i = 0; i < ddtr_plan.range(); i++) {
     std::cout << ddtr_plan.user_dm(i).low << " "

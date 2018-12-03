@@ -34,7 +34,7 @@ namespace astroaccelerate {
 						      m_num_trial_bins(fdas_plan.num_trial_bins()),
 						      m_navdms(fdas_plan.navdms()),
 						      m_nsearch(fdas_plan.nsearch()),
-						      m_ready(false) {
+						      m_ready(true) {
       
     }
 
