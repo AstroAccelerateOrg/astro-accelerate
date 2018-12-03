@@ -9,11 +9,13 @@
 #ifndef ASTRO_ACCELERATE_PERMITTED_PIPELINES_0_HPP
 #define ASTRO_ACCELERATE_PERMITTED_PIPELINES_0_HPP
 
-#include <stdio.h>
+#include "aa_pipeline_runner.hpp"
 
 namespace astroaccelerate {
-  class aa_permitted_pipelines_0 {
-    void run_pipeline_0();
+  class aa_permitted_pipelines_0 : public aa_pipeline_runner {
+    void run_pipeline_0() {
+      
+    }
   };
 }
 

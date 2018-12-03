@@ -16,6 +16,7 @@
 #include <cuda_runtime.h>
 
 #include "aa_strategy.hpp"
+#include "aa_analysis_plan.hpp"
 #include "params.hpp"
 #include "device_MSD_plane_profile.hpp"
 #include "device_BC_plan.hpp"

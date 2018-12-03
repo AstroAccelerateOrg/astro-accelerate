@@ -49,19 +49,29 @@ namespace astroaccelerate {
     }
     
     ~aa_permitted_pipelines_3() {
-      if(!memory_cleanup) {
+      //Only call cleanup if memory had been allocated during setup,
+      //and if the memory was not already cleaned up usingthe cleanup method.
+      if(memory_allocated && !memory_cleanup) {
 	cleanup();
-      }
+      }      
     }
 
     aa_permitted_pipelines_3(const aa_permitted_pipelines_3 &) = delete;
 
     bool setup() {
-      return set_data();
+      if(!memory_allocated) {
+	return set_data();
+      }
+
+      return false;
     }
 
     bool next() {
-      return run_pipeline();
+      if(memory_allocated) {
+	return run_pipeline();
+      }
+
+      return false;
     }
     
     bool cleanup() {
@@ -109,6 +119,7 @@ namespace astroaccelerate {
     std::vector<float> dm_step;
     std::vector<int>   inBin;
 
+    bool memory_allocated;
     bool memory_cleanup;
     bool periodicity_did_run;
     
@@ -408,6 +419,7 @@ namespace astroaccelerate {
 																			     m_analysis_strategy(analysis_strategy),
 																			     m_periodicity_strategy(periodicity_strategy),
 																			     m_input_buffer(input_buffer),
+																			     memory_allocated(false),
 																			     memory_cleanup(false),
 																			     periodicity_did_run(false),
 																			     t(0),
@@ -425,6 +437,7 @@ namespace astroaccelerate {
 																			    m_analysis_strategy(analysis_strategy),
 																			    m_periodicity_strategy(periodicity_strategy),
 																			    m_input_buffer(input_buffer),
+																			    memory_allocated(false),
 																			    memory_cleanup(false),
 																			    periodicity_did_run(false),
 																			    t(0),
@@ -441,6 +454,7 @@ namespace astroaccelerate {
 																					   m_analysis_strategy(analysis_strategy),
 																					   m_periodicity_strategy(periodicity_strategy),
 																					   m_input_buffer(input_buffer),
+																					   memory_allocated(false),
 																					   memory_cleanup(false),
 																					   periodicity_did_run(false),
 																					   t(0),
@@ -458,6 +472,7 @@ namespace astroaccelerate {
 																					  m_analysis_strategy(analysis_strategy),
 																					  m_periodicity_strategy(periodicity_strategy),
 																					  m_input_buffer(input_buffer),
+																					  memory_allocated(false),
 																					  memory_cleanup(false),
 																					  periodicity_did_run(false),
 																					  t(0),

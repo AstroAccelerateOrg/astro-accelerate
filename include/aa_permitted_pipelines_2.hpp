@@ -32,6 +32,7 @@
 
 #include "device_analysis.hpp"
 #include "aa_pipeline_runner.hpp"
+#include <iostream>
 
 namespace astroaccelerate {
   template<aa_compute::module_option zero_dm_type, bool enable_old_rfi>
@@ -39,12 +40,12 @@ namespace astroaccelerate {
   public:
     aa_permitted_pipelines_2(const aa_ddtr_strategy &ddtr_strategy,
 			     const aa_analysis_strategy &analysis_strategy,
-			     unsigned short const*const input_buffer) {
-      
-    }
+			     unsigned short const*const input_buffer);
     
     ~aa_permitted_pipelines_2() {
-      if(!memory_cleanup) {
+      //Only call cleanup if memory had been allocated during setup,
+      //and if the memory was not already cleaned up usingthe cleanup method.
+      if(memory_allocated && !memory_cleanup) {
 	cleanup();
       }
     }
@@ -52,11 +53,19 @@ namespace astroaccelerate {
     aa_permitted_pipelines_2(const aa_permitted_pipelines_2 &) = delete;
 
     bool setup() {
-      return set_data();
+      if(!memory_allocated) {
+	return set_data();
+      }
+
+      return false;
     }
 
     bool next() {
-      return run_pipeline();
+      if(memory_allocated) {
+	return run_pipeline();
+      }
+
+      return false;
     }
     
     bool cleanup() {
@@ -101,7 +110,7 @@ namespace astroaccelerate {
     std::vector<float> dm_high;
     std::vector<float> dm_step;
     std::vector<int>   inBin;
-
+    bool memory_allocated;
     bool memory_cleanup;
     
     //Loop counter variables
@@ -189,6 +198,7 @@ namespace astroaccelerate {
 	dm_step[i]  = m_ddtr_strategy.dm(i).step;
 	inBin[i]    = m_ddtr_strategy.dm(i).inBin;
       }
+      memory_allocated = true;
       return true;
     }
 
@@ -326,6 +336,7 @@ namespace astroaccelerate {
 														  unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
 																			     m_analysis_strategy(analysis_strategy),
 																			     m_input_buffer(input_buffer),
+																			     memory_allocated(false),
 																			     memory_cleanup(false),
 																			     t(0),
 																			     m_d_MSD_workarea(NULL),
@@ -340,6 +351,7 @@ namespace astroaccelerate {
 														 unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
 																			    m_analysis_strategy(analysis_strategy),
 																			    m_input_buffer(input_buffer),
+																			    memory_allocated(false),
 																			    memory_cleanup(false),
 																			    t(0),
 																			    m_d_MSD_workarea(NULL),
@@ -353,6 +365,7 @@ namespace astroaccelerate {
 																unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
 																					   m_analysis_strategy(analysis_strategy),
 																					   m_input_buffer(input_buffer),
+																					   memory_allocated(false),
 																					   memory_cleanup(false),
 																					   t(0),
 																					   m_d_MSD_workarea(NULL),
@@ -367,6 +380,7 @@ namespace astroaccelerate {
 															       unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
 																					  m_analysis_strategy(analysis_strategy),
 																					  m_input_buffer(input_buffer),
+																					  memory_allocated(false),
 																					  memory_cleanup(false),
 																					  t(0),
 																					  m_d_MSD_workarea(NULL),

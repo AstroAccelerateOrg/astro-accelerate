@@ -40,8 +40,19 @@ namespace astroaccelerate {
   template<typename T, typename U>
   class aa_pipeline {
   public:
-    aa_pipeline(const aa_compute::pipeline &requested_pipeline, const aa_filterbank_metadata &filterbank_metadata, T const*const input_data, const aa_device_info::aa_card_info &card_info) : m_card_info(card_info), m_filterbank_metadata(filterbank_metadata), bound_with_raw_ptr(true), input_data_bound(true), data_on_device(false), pipeline_ready(false), ptr_data_in(input_data) {
-        
+    aa_pipeline(const aa_compute::pipeline &requested_pipeline,
+		const aa_compute::pipeline_detail &pipeline_details,
+		const aa_filterbank_metadata &filterbank_metadata,
+		T const*const input_data,
+		const aa_device_info::aa_card_info &card_info) : m_pipeline_details(pipeline_details),
+								 m_card_info(card_info),
+								 m_filterbank_metadata(filterbank_metadata),
+								 bound_with_raw_ptr(true),
+								 input_data_bound(true),
+								 data_on_device(false),
+								 pipeline_ready(false),
+								 ptr_data_in(input_data) {
+      
       //Add requested pipeline modules
       for(auto i : requested_pipeline) {
 	required_plans.insert(std::pair<aa_compute::modules, bool>(i, true));
@@ -56,13 +67,13 @@ namespace astroaccelerate {
       if(data_on_device) {
 	//There is still data on the device and the user has forgotten about it.
 	//The device memory should be freed.
-	std::cout << "ERROR: Data still on device." << std::endl;
+	std::cout << "ERROR:  Data still on device." << std::endl;
       }
         
       if(!bound_with_raw_ptr && input_data_bound) {
 	//There is still (host) input data bound to the pipeline and the user has forgotten about it.
 	//This (host) memory should be freed.
-	std::cout << "ERROR: Host data still bound to pipeline." << std::endl;
+	std::cout << "ERROR:  Host data still bound to pipeline." << std::endl;
       }
     }
     
@@ -327,10 +338,24 @@ namespace astroaccelerate {
 	  return false;
 	}
       }
-        
-      //Do any last checks on the plans as a whole
+
+      constexpr aa_compute::module_option zero_dm               = aa_compute::module_option::zero_dm;
+      constexpr aa_compute::module_option zero_dm_with_outliers = aa_compute::module_option::zero_dm_with_outliers;
+
+      if(m_pipeline_details.find(zero_dm) == m_pipeline_details.end() &&
+	 m_pipeline_details.find(zero_dm_with_outliers) == m_pipeline_details.end()) {
+	std::cout << "ERROR:  Neither zero_dm nor zero_dm_with_outliers were selected." << std::endl;
+	return false;
+      }
+      
+      if(m_pipeline_details.find(zero_dm) != m_pipeline_details.end() &&
+	 m_pipeline_details.find(zero_dm_with_outliers) != m_pipeline_details.end()) {
+	std::cout << "ERROR:  Both zero_dm and zero_dm_with_outliers cannot simultaneously be selected." << std::endl;
+	return false;
+      }
+
+      
       pipeline_ready = true;
-        
       return true;
     }
     
@@ -347,6 +372,7 @@ namespace astroaccelerate {
 	}
 
 
+	      
 	/**
 	 * The following code requires some explanation, especially for developers unfamiliar with modern C++.
 	 * The purpose of the following block of code is to be a runtime dispatch. What this does is look up
@@ -370,47 +396,136 @@ namespace astroaccelerate {
 	 * both when specifying the type of the std::unique_ptr, and when the type is "new"'d.
 	 *
 	 * Lastly, because the type is being constructed, the parameters for the constructor must also be provided.
-	 * 
+	 *
 	 */
-
-	//Use constexpr to create less syntactically verbose naming convention of zero_dm and zero_dm_with_outliers.
+	
 	constexpr aa_compute::module_option zero_dm               = aa_compute::module_option::zero_dm;
 	constexpr aa_compute::module_option zero_dm_with_outliers = aa_compute::module_option::zero_dm_with_outliers;
-
-	//Create a std::unique_ptr of the base class type
-	std::unique_ptr<aa_pipeline_runner> runner;
-
+	constexpr aa_compute::module_option old_rfi               = aa_compute::module_option::old_rfi;
+	constexpr bool use_old_rfi = true;
+	constexpr bool use_new_rfi = false;
+	std::unique_ptr<aa_pipeline_runner> m_runner;
 	//Check which pipeline the user has requested (given by m_requested_pipeline) against the possible permitted pipelines.
 	//Then, assign a new object of that type to the base class pointer.
+	bool is_pipeline_set_to_runner = false;
 	if(m_requested_pipeline == aa_permitted_pipelines::pipeline1) {
-	  runner = std::unique_ptr<aa_permitted_pipelines_1<zero_dm,               true>> (new aa_permitted_pipelines_1<zero_dm,               true> (m_ddtr_strategy, ptr_data_in));
-	  //runner = std::unique_ptr<aa_permitted_pipelines_1<zero_dm,               false>>(new aa_permitted_pipelines_1<zero_dm,               false>(m_ddtr_strategy, ptr_data_in));
-	  //runner = std::unique_ptr<aa_permitted_pipelines_1<zero_dm_with_outliers, true>> (new aa_permitted_pipelines_1<zero_dm_with_outliers, true> (m_ddtr_strategy, ptr_data_in));
-	  //runner = std::unique_ptr<aa_permitted_pipelines_1<zero_dm_with_outliers, false>>(new aa_permitted_pipelines_1<zero_dm_with_outliers, false>(m_ddtr_strategy, ptr_data_in));
+	  if(m_pipeline_details.find(zero_dm) != m_pipeline_details.end()) {
+	    if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	      //details contain zero_dm and old_rfi
+	      m_runner = std::unique_ptr<aa_permitted_pipelines_1<zero_dm,               use_old_rfi>>(new aa_permitted_pipelines_1<zero_dm,               use_old_rfi>(m_ddtr_strategy, ptr_data_in));
+	      is_pipeline_set_to_runner = true;
+	      std::cout << "NOTICE: Selected Pipeline 1 with zero_dm, and old_rfi" << std::endl;
+	    }
+	    else {
+	      //details contain zero_dm and do not contain old_rfi, so old_rfi is false
+	      m_runner = std::unique_ptr<aa_permitted_pipelines_1<zero_dm,               use_new_rfi>>(new aa_permitted_pipelines_1<zero_dm,               use_new_rfi>(m_ddtr_strategy, ptr_data_in));
+	      is_pipeline_set_to_runner	= true;
+	      std::cout << "NOTICE: Selected Pipeline 1 with zero_dm, and new_rfi" << std::endl;
+	    }
+	  }
+	  else if(m_pipeline_details.find(zero_dm_with_outliers) != m_pipeline_details.end()) {
+	    //details contain zero_dm_with_outliers
+	    if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	      //details contain zero_dm_with_outliers and old_rfi
+	      m_runner = std::unique_ptr<aa_permitted_pipelines_1<zero_dm_with_outliers, use_old_rfi>>(new aa_permitted_pipelines_1<zero_dm_with_outliers, use_old_rfi>(m_ddtr_strategy, ptr_data_in));
+	      is_pipeline_set_to_runner	= true;
+	      std::cout << "NOTICE: Selected Pipeline 1 with zero_dm_with_outliers, and old_rfi" << std::endl;
+	    }
+	    else {
+	      //details contain zero_dm_with_outliers and do not contain older_rfi, so old_rfi is false
+	      m_runner = std::unique_ptr<aa_permitted_pipelines_1<zero_dm_with_outliers, use_new_rfi>>(new aa_permitted_pipelines_1<zero_dm_with_outliers, use_new_rfi>(m_ddtr_strategy, ptr_data_in));
+	      is_pipeline_set_to_runner	= true;
+	      std::cout << "NOTICE: Selected Pipeline 1 with zero_dm_with_outliers, and new_rfi" << std::endl;
+	    }
+	  }
+	  else {
+	    std::cout << "NOTICE: Neither zero_dm nor zero_dm_with_outliers were specified in the options list." << std::endl;
+	  }	
 	}
 	else if(m_requested_pipeline == aa_permitted_pipelines::pipeline2) {
-	  runner = std::unique_ptr<aa_permitted_pipelines_2<zero_dm,               true>> (new aa_permitted_pipelines_2<zero_dm,               true> (m_ddtr_strategy, m_analysis_strategy, ptr_data_in));
-	  //runner = std::unique_ptr<aa_permitted_pipelines_2<zero_dm,               false>>(new aa_permitted_pipelines_2<zero_dm,               false>(m_ddtr_strategy, m_analysis_strategy, ptr_data_in));
-	  //runner = std::unique_ptr<aa_permitted_pipelines_2<zero_dm_with_outliers, true>> (new aa_permitted_pipelines_2<zero_dm_with_outliers, true> (m_ddtr_strategy, m_analysis_strategy, ptr_data_in));
-	  //runner = std::unique_ptr<aa_permitted_pipelines_2<zero_dm_with_outliers, false>>(new aa_permitted_pipelines_2<zero_dm_with_outliers, false>(m_ddtr_strategy, m_analysis_strategy, ptr_data_in));
+	  if(m_pipeline_details.find(zero_dm) != m_pipeline_details.end()) {
+	    if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	      //details contain zero_dm and old_rfi
+	      m_runner = std::unique_ptr<aa_permitted_pipelines_2<zero_dm,               use_old_rfi>>(new aa_permitted_pipelines_2<zero_dm,               use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, ptr_data_in));
+	      is_pipeline_set_to_runner	= true;
+	      std::cout << "NOTICE: Selected Pipeline 2 with zero_dm, and old_rfi" << std::endl;
+	    }
+	    else {
+	      //details contain zero_dm and do not contain old_rfi, so old_rfi is false
+	      m_runner = std::unique_ptr<aa_permitted_pipelines_2<zero_dm,               use_new_rfi>>(new aa_permitted_pipelines_2<zero_dm,               use_new_rfi>(m_ddtr_strategy, m_analysis_strategy, ptr_data_in));
+	      is_pipeline_set_to_runner	= true;
+	      std::cout << "NOTICE: Selected Pipeline 2 with zero_dm, and new_rfi" << std::endl;
+	    }
+	  }
+	  else if(m_pipeline_details.find(zero_dm_with_outliers) != m_pipeline_details.end()) {
+	    //details contain zero_dm_with_outliers
+	    if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	      //details contain zero_dm_with_outliers and old_rfi
+	      m_runner = std::unique_ptr<aa_permitted_pipelines_2<zero_dm_with_outliers, use_old_rfi>>(new aa_permitted_pipelines_2<zero_dm_with_outliers, use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, ptr_data_in));
+	      is_pipeline_set_to_runner	= true;
+	      std::cout << "NOTICE: Selected Pipeline 2 with zero_dm_with_outliers, and old_rfi" << std::endl;
+	    }
+	    else {
+	      //details contain zero_dm_with_outliers and do not contain older_rfi, so old_rfi is false
+	      m_runner = std::unique_ptr<aa_permitted_pipelines_2<zero_dm_with_outliers, use_new_rfi>>(new aa_permitted_pipelines_2<zero_dm_with_outliers, use_new_rfi>(m_ddtr_strategy, m_analysis_strategy, ptr_data_in));
+	      is_pipeline_set_to_runner	= true;
+	      std::cout << "NOTICE: Selected Pipeline 2 with zero_dm_with_outliers, and new_rfi" << std::endl;
+	    }
+	  }
+	  else {
+	    std::cout << "NOTICE: Neither zero_dm nor zero_dm_with_outliers were specified in the options list." << std::endl;
+	  } 
 	}
 	else if(m_requested_pipeline == aa_permitted_pipelines::pipeline3) {
-	  runner = std::unique_ptr<aa_permitted_pipelines_3<zero_dm,               true>> (new aa_permitted_pipelines_3<zero_dm,               true> (m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
-	  //runner = std::unique_ptr<aa_permitted_pipelines_3<zero_dm,               false>>(new aa_permitted_pipelines_3<zero_dm,               false>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
-	  //runner = std::unique_ptr<aa_permitted_pipelines_3<zero_dm_with_outliers, true>> (new aa_permitted_pipelines_3<zero_dm_with_outliers, true> (m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
-	  //runner = std::unique_ptr<aa_permitted_pipelines_3<zero_dm_with_outliers, false>>(new aa_permitted_pipelines_3<zero_dm_with_outliers, false>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
+	  if(m_pipeline_details.find(zero_dm) != m_pipeline_details.end()) {
+	    if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	      //details contain zero_dm and old_rfi
+	      m_runner = std::unique_ptr<aa_permitted_pipelines_3<zero_dm,               use_old_rfi>>(new aa_permitted_pipelines_3<zero_dm,               use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
+	      is_pipeline_set_to_runner	= true;
+	      std::cout << "NOTICE: Selected Pipeline 3 with zero_dm, and old_rfi" << std::endl;
+	    }
+	    else {
+	      //details contain zero_dm and do not contain old_rfi, so old_rfi is false
+	      m_runner = std::unique_ptr<aa_permitted_pipelines_3<zero_dm,               use_new_rfi>>(new aa_permitted_pipelines_3<zero_dm,               use_new_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
+	      is_pipeline_set_to_runner	= true;
+	      std::cout << "NOTICE: Selected Pipeline 3 with zero_dm, and new_rfi" << std::endl;
+	    }
+	  }
+	  else if(m_pipeline_details.find(zero_dm_with_outliers) != m_pipeline_details.end()) {
+	    //details contain zero_dm_with_outliers
+	    if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	      //details contain zero_dm_with_outliers and old_rfi
+	      m_runner = std::unique_ptr<aa_permitted_pipelines_3<zero_dm_with_outliers, use_old_rfi>>(new aa_permitted_pipelines_3<zero_dm_with_outliers, use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
+	      is_pipeline_set_to_runner	= true;
+	      std::cout << "NOTICE: Selected Pipeline 3 with zero_dm_with_outliers, and old_rfi" << std::endl;
+	    }
+	    else {
+	      //details contain zero_dm_with_outliers and do not contain older_rfi, so old_rfi is false
+	      m_runner = std::unique_ptr<aa_permitted_pipelines_3<zero_dm_with_outliers, use_new_rfi>>(new aa_permitted_pipelines_3<zero_dm_with_outliers, use_new_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
+	      is_pipeline_set_to_runner	= true;
+	      std::cout << "NOTICE: Selected Pipeline 3 with zero_dm_with_outliers, and new_rfi" << std::endl;
+	    }
+	  }
+	  else {
+	    std::cout << "NOTICE: Neither zero_dm nor zero_dm_with_outliers were specified in the options list." << std::endl;
+	  }	
 	}
 	else {
 	  //Pipeline 0
 	}
-
+	
+	//Do any last checks on the plans as a whole
+	if(is_pipeline_set_to_runner) {
+	  pipeline_ready = true;
+	}
+	
 	// Run the pipeline
-	if(runner->setup()) {
-	  while(runner->next()) {
+	if(pipeline_ready && m_runner->setup()) {
+	  while(m_runner->next()) {
 	    std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
 	  }
 	}
-            
+	  
 	return true;
       }
       else {
@@ -432,6 +547,7 @@ namespace astroaccelerate {
     std::map<aa_compute::modules, bool> supplied_plans; //Plans supplied by the user
     std::vector<aa_strategy*>   m_all_strategy;
     aa_compute::pipeline        m_requested_pipeline;
+    const aa_compute::pipeline_detail &m_pipeline_details;
     aa_device_info::aa_card_info m_card_info;
     
     aa_filterbank_metadata      m_filterbank_metadata;

@@ -63,6 +63,7 @@ int main(int argc, char *argv[]) {
   aa_config configuration(pipeline);   // Set the pipeline and other run settings that would come from an input_file
   float *output_data = NULL;
   aa_pipeline<unsigned short, float> pipeline_manager(pipeline,
+						      pipeline_details,
 						      filterbank_metadata,
 						      filterbank_datafile.input_buffer().data(),
 						      selected_card_info);
