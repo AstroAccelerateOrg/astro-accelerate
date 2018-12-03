@@ -15,7 +15,7 @@ namespace astroaccelerate {
 			      dedispersion,
 			      analysis,
 			      periodicity,
-			      acceleration,
+			      fdas,
 			      fdas_custom_fft,
 			      fdas_inbin,
 			      fdas_norm
@@ -46,8 +46,8 @@ namespace astroaccelerate {
       case modules::analysis:
 	return "analysis";
 	break;
-      case modules::acceleration:
-	return "acceleration";
+      case modules::fdas:
+	return "fdas";
 	break;
       case modules::periodicity:
 	return "periodicity";

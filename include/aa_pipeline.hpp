@@ -26,6 +26,8 @@
 #include "aa_permitted_pipelines_1.hpp"
 #include "aa_permitted_pipelines_2.hpp"
 #include "aa_permitted_pipelines_3.hpp"
+#include "aa_permitted_pipelines_4.hpp"
+#include "aa_permitted_pipelines_5.hpp"
 
 namespace astroaccelerate {
 
@@ -179,6 +181,31 @@ namespace astroaccelerate {
       return true;
     }
     
+    bool bind(aa_fdas_plan plan) {
+      pipeline_ready = false;
+      //Does the pipeline actually need this plan?
+      if(required_plans.find(aa_compute::modules::fdas) != required_plans.end()) {
+        m_fdas_plan = plan;
+        aa_fdas_strategy fdas_strategy(m_fdas_plan);
+        if(fdas_strategy.ready()) {
+          m_fdas_strategy = std::move(fdas_strategy);
+          m_all_strategy.push_back(&m_fdas_strategy);
+        }
+        else {
+          return false;
+        }
+	
+        //If the plan is valid then the supplied_plan becomes true 
+        supplied_plans.at(aa_compute::modules::fdas) = true;
+      }
+      else {
+        //The plan is not required, ignore.
+        return false;
+      }
+      
+      return true;
+    }
+    
     aa_ddtr_strategy ddtr_strategy() {
       //Does the pipeline actually need this strategy?
       if(required_plans.find(aa_compute::modules::dedispersion) != required_plans.end()) {
@@ -279,6 +306,34 @@ namespace astroaccelerate {
 	aa_periodicity_strategy empty_strategy;
 	return empty_strategy;
 	
+      }
+    }
+
+    aa_fdas_strategy fdas_strategy() {
+      //Does the pipeline actually need this strategy?
+      if(required_plans.find(aa_compute::modules::fdas) != required_plans.end()) {
+        //It does need this strategy.
+        //Is it already computed?
+        if(m_fdas_strategy.ready()) { //Return since it was already computed.                                                                                                                                                          
+          return m_fdas_strategy;
+        }
+        else {
+          //fdas_strategy was not yet computed, do it now.
+          aa_fdas_strategy fdas_strategy(m_fdas_plan);
+          if(periodicity_strategy.ready()) {
+            m_fdas_strategy = std::move(fdas_strategy);
+            m_all_strategy.push_back(&m_fdas_strategy);
+          }
+          else { //Tried to calculate fdas strategy, but failed.
+            aa_fdas_strategy empty_strategy;
+            return empty_strategy;
+          }
+        }
+      }
+      else {
+        //The pipeline does not need this strategy
+        aa_fdas_strategy empty_strategy;
+        return empty_strategy;
       }
     }
     
@@ -510,6 +565,74 @@ namespace astroaccelerate {
 	    std::cout << "NOTICE: Neither zero_dm nor zero_dm_with_outliers were specified in the options list." << std::endl;
 	  }	
 	}
+	else if(m_requested_pipeline == aa_permitted_pipelines::pipeline4) {
+          if(m_pipeline_details.find(zero_dm) != m_pipeline_details.end()) {
+            if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+              //details contain zero_dm and old_rfi
+              m_runner = std::unique_ptr<aa_permitted_pipelines_4<zero_dm,               use_old_rfi>>(new aa_permitted_pipelines_4<zero_dm,               use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, m_fdas_strategy, ptr_data_in));
+              is_pipeline_set_to_runner = true;
+              std::cout << "NOTICE: Selected Pipeline 4 with zero_dm, and old_rfi" << std::endl;
+            }
+            else {
+              //details contain zero_dm and do not contain old_rfi, so old_rfi is false
+              m_runner = std::unique_ptr<aa_permitted_pipelines_4<zero_dm,               use_new_rfi>>(new aa_permitted_pipelines_4<zero_dm,               use_new_rfi>(m_ddtr_strategy, m_analysis_strategy, m_fdas_strategy, ptr_data_in));
+              is_pipeline_set_to_runner = true;
+              std::cout << "NOTICE: Selected Pipeline 4 with zero_dm, and new_rfi" << std::endl;
+            }
+          }
+          else if(m_pipeline_details.find(zero_dm_with_outliers) != m_pipeline_details.end()) {
+            //details contain zero_dm_with_outliers
+            if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+              //details contain zero_dm_with_outliers and old_rfi
+              m_runner = std::unique_ptr<aa_permitted_pipelines_4<zero_dm_with_outliers, use_old_rfi>>(new aa_permitted_pipelines_4<zero_dm_with_outliers, use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, m_fdas_strategy, ptr_data_in));
+              is_pipeline_set_to_runner = true;
+              std::cout << "NOTICE: Selected Pipeline 4 with zero_dm_with_outliers, and old_rfi" << std::endl;
+            }
+            else {
+              //details contain zero_dm_with_outliers and do not contain older_rfi, so old_rfi is false
+              m_runner = std::unique_ptr<aa_permitted_pipelines_4<zero_dm_with_outliers, use_new_rfi>>(new aa_permitted_pipelines_4<zero_dm_with_outliers, use_new_rfi>(m_ddtr_strategy, m_analysis_strategy, m_fdas_strategy, ptr_data_in));
+              is_pipeline_set_to_runner = true;
+              std::cout << "NOTICE: Selected Pipeline 4 with zero_dm_with_outliers, and new_rfi" << std::endl;
+            }
+          }
+          else {
+            std::cout << "NOTICE: Neither zero_dm nor zero_dm_with_outliers were specified in the options list." << std::endl;
+          }
+	}
+	else if(m_requested_pipeline == aa_permitted_pipelines::pipeline5) {
+          if(m_pipeline_details.find(zero_dm) != m_pipeline_details.end()) {
+            if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+              //details contain zero_dm and old_rfi
+              m_runner = std::unique_ptr<aa_permitted_pipelines_5<zero_dm,               use_old_rfi>>(new aa_permitted_pipelines_5<zero_dm,               use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, m_fdas_strategy, ptr_data_in));
+              is_pipeline_set_to_runner = true;
+              std::cout << "NOTICE: Selected Pipeline 5 with zero_dm, and old_rfi" << std::endl;
+            }
+            else {
+              //details contain zero_dm and do not contain old_rfi, so old_rfi is false
+	      m_runner = std::unique_ptr<aa_permitted_pipelines_5<zero_dm,               use_new_rfi>>(new aa_permitted_pipelines_5<zero_dm,               use_new_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, m_fdas_strategy, ptr_data_in));
+              is_pipeline_set_to_runner = true;
+              std::cout << "NOTICE: Selected Pipeline 5 with zero_dm, and new_rfi" << std::endl;
+            }
+          }
+          else if(m_pipeline_details.find(zero_dm_with_outliers) != m_pipeline_details.end()) {
+            //details contain zero_dm_with_outliers
+            if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+              //details contain zero_dm_with_outliers and old_rfi
+              m_runner = std::unique_ptr<aa_permitted_pipelines_5<zero_dm_with_outliers, use_old_rfi>>(new aa_permitted_pipelines_5<zero_dm_with_outliers, use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, m_fdas_strategy, ptr_data_in));
+              is_pipeline_set_to_runner = true;
+              std::cout << "NOTICE: Selected Pipeline 5 with zero_dm_with_outliers, and old_rfi" << std::endl;
+            }
+            else {
+              //details contain zero_dm_with_outliers and do not contain older_rfi, so old_rfi is false
+              m_runner = std::unique_ptr<aa_permitted_pipelines_5<zero_dm_with_outliers, use_new_rfi>>(new aa_permitted_pipelines_5<zero_dm_with_outliers, use_new_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, m_fdas_strategy, ptr_data_in));
+              is_pipeline_set_to_runner = true;
+              std::cout << "NOTICE: Selected Pipeline 5 with zero_dm_with_outliers, and new_rfi" << std::endl;
+            }
+          }
+          else {
+            std::cout << "NOTICE: Neither zero_dm nor zero_dm_with_outliers were specified in the options list." << std::endl;
+          }
+	}
 	else {
 	  //Pipeline 0
 	}
@@ -560,6 +683,9 @@ namespace astroaccelerate {
     
     aa_periodicity_plan         m_periodicity_plan;
     aa_periodicity_strategy     m_periodicity_strategy;
+
+    aa_fdas_plan                m_fdas_plan;
+    aa_fdas_strategy            m_fdas_strategy;
     
     bool bound_with_raw_ptr;
     bool input_data_bound;

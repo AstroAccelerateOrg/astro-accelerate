@@ -46,6 +46,15 @@ namespace astroaccelerate {
       else if(pipeline == pipeline2) {
 	return true;
       }
+      else if(pipeline == pipeline3) {
+	return true;
+      }
+      else if(pipeline == pipeline4) {
+	return true;
+      }
+      else if(pipeline == pipeline5) {
+	return true;
+      }
       else {
 	return false;
       }

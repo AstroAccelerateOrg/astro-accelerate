@@ -166,7 +166,7 @@ namespace astroaccelerate {
 	  if (strcmp(string, "periodicity") == 0)
 	    m_pipeline.insert(aa_compute::modules::periodicity);
 	  if (strcmp(string, "acceleration") == 0)
-	    m_pipeline.insert(aa_compute::modules::acceleration);
+	    m_pipeline.insert(aa_compute::modules::fdas);
 	  if (strcmp(string, "output_ffdot_plan") == 0)
 	    m_pipeline_details.insert(aa_compute::module_option::output_ffdot_plan);
 	  if (strcmp(string, "output_fdas_list") == 0)
