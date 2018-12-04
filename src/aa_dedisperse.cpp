@@ -50,7 +50,6 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 	    {
 	      printf("\nERROR: smem line length is too short.\nRun the auto tuner again!\n");
 	      failsafe = 1;
-	      //exit(0);
 	    }
 	}
       else
@@ -91,7 +90,6 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 	    {
 	      printf("\nERROR: smem line length is too short.\nRun the auto tuner again!\n");
 	      failsafe = 1;
-	      //exit(0);
 	    }
 
 	}

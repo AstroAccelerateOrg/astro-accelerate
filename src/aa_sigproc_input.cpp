@@ -250,7 +250,7 @@ namespace astroaccelerate {
     unsigned long int data_start = ftell(fp);
     if (fseek(fp, 0, SEEK_END) != 0) {
       printf("\nERROR!! Failed to seek to the end of data file\n");
-      exit(1);
+      return false;
     }
     unsigned long int exp_total_data = ftell(fp);
     exp_total_data = exp_total_data - data_start;

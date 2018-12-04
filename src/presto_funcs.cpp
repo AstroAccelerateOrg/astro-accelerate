@@ -208,7 +208,6 @@ cufftComplex *presto_gen_z_response( double z, int numkern, int numbetween)
    for ( j=0; j<numkern; j++){
      if(isnan(response[j].x)||isnan(response[j].y)){
        printf("\nnan detected in template in point %d: %f\t%f\n", j, response[j].x, response[j].y);
-       //      exit(1);
      }
    }
 

@@ -10,7 +10,7 @@ void host_info(struct sysinfo *host_info)
 {
         if ( sysinfo(host_info)== -1){
                 printf("\n!!!Error on host system info!!!\n");
-                exit(0);
+                return;
         }
 }
 
@@ -22,7 +22,7 @@ int GetRamInKB(size_t *host_memory)
     FILE *meminfo = fopen("/proc/meminfo", "r");
     if(meminfo == NULL){
 	printf("\n!!!Error on host system info!!!\n");
-        exit(0);
+        return -1;
     }
 
     char line[256];
@@ -44,7 +44,7 @@ int GetRamInKB(size_t *host_memory)
 void host_mem_error(unsigned int inputsize, unsigned int host_memory, const char *type)
 {
 	printf("\n\nCan't allocate %s memory of size: %u MiB. Host available memory only: %u MiB.\n",type, inputsize, host_memory);
-	exit(0);
+	return;
 }
 
 } //namespace astroaccelerate

@@ -15,7 +15,7 @@ void write_output(int i, int t_processed, int ndms, float *output_buffer, float 
 	 sprintf(filename, "binary-dm_%.2f-%.2f.dat", dm_low[i], dm_high[i]);
 	 if ((fp_out=fopen(filename, "wb")) == NULL) {
 	 fprintf(stderr, "Error opening output file!\n");
-	 exit(0);
+	 return;
 	 }
 
 	 fwrite(output_buffer, sizeof(float), gpu_outputsize, fp_out);
@@ -24,7 +24,7 @@ void write_output(int i, int t_processed, int ndms, float *output_buffer, float 
 	if (( fp_out = fopen(filename, "w") ) == NULL)
 	{
 		fprintf(stderr, "Error opening output file!\n");
-		exit(0);
+		return;
 	}
 
 	for (int k = 0; k < ndms; k++)

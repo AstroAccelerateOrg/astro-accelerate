@@ -36,7 +36,7 @@ void help()
 	printf("\n\t\t\t\t\t\t GPU is the default and will use the GPU shared memory. This is our fastest algorithm");
 	printf("\n\t\t\t\t\t\t GPU-CACHE will excecute on the gpu and use the gpu cache. This is much faster than CPU but about 3x slower than GPU.");
 	printf("\n");
-	exit(0);
+	return;
 }
 
 } //namespace astroaccelerate
