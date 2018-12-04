@@ -88,6 +88,10 @@ namespace astroaccelerate {
 		     m_MSD_data_info, m_MSD_profile_size_in_bytes, m_h_MSD_DIT_width);
       }
     }
+
+    std::string name() const {
+      return "analysis_strategy";
+    }
     
     float sigma_cutoff() const {
       return m_sigma_cutoff;

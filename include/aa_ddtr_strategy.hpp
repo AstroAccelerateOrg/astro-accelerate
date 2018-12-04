@@ -36,6 +36,10 @@ namespace astroaccelerate {
     ~aa_ddtr_strategy() {
 
     }
+
+    std::string name() const {
+      return "ddtr_strategy";
+    }
     
     bool setup();
     

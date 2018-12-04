@@ -33,11 +33,22 @@ namespace astroaccelerate {
 						      m_num_boots(fdas_plan.num_boots()),
 						      m_num_trial_bins(fdas_plan.num_trial_bins()),
 						      m_navdms(fdas_plan.navdms()),
-						      m_nsearch(fdas_plan.nsearch()),
-						      m_ready(true) {
-      
+						      m_ready(false) {
+
+      if((m_sigma_cutoff > 0)
+	 && (m_narrow > 0)
+	 && (m_wide > 0)
+	 && (m_aggression > 0)
+	 && (m_num_boots > 0)
+	 && (m_num_trial_bins > 0)
+	 && (m_navdms > 0))
+	m_ready = true;
     }
 
+    std::string name() const {
+      return "fdas_strategy";
+    }
+    
     float sigma_cutoff() const {
       return m_sigma_cutoff;
     }
@@ -66,10 +77,6 @@ namespace astroaccelerate {
       return m_navdms;
     }
 
-    int	nsearch() const	{
-      return m_nsearch;
-    }
-
     bool setup() {
       return false;
     }
@@ -85,7 +92,6 @@ namespace astroaccelerate {
     int	  m_num_boots;
     int	  m_num_trial_bins;
     int	  m_navdms;
-    int	  m_nsearch;
 
     bool m_ready;
   };

@@ -105,6 +105,7 @@ namespace astroaccelerate {
 	  free(t_processed[i]);
 	}
 	free(t_processed);
+	memory_cleanup = true;
       }
       return true;
     }
@@ -500,7 +501,7 @@ namespace astroaccelerate {
       printf("\nPerformed Acceleration Location: %lf (GPU estimate)", time);
       printf("\nAmount of telescope time processed: %f", tstart_local);
       printf("\nNumber of samples processed: %ld", inc);
-      printf("\nReal-time speedup factor: %lf", ( tstart_local ) / ( time ));
+      printf("\nReal-time speedup factor: %lf\n", ( tstart_local ) / ( time ));
       acceleration_did_run = true;
       return true;
     }

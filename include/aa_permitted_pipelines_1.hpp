@@ -77,6 +77,7 @@ namespace astroaccelerate {
 	  free(t_processed[i]);
 	}
 	free(t_processed);
+	memory_cleanup = true;
       }
       return true;
     }

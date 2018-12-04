@@ -102,6 +102,7 @@ namespace astroaccelerate {
 	  free(t_processed[i]);
 	}
 	free(t_processed);
+	memory_cleanup = true;
       }
       return true;
     }
@@ -283,7 +284,10 @@ namespace astroaccelerate {
     bool run_pipeline() {
       printf("NOTICE: Pipeline start/resume run_pipeline_3.\n");
       if(t >= num_tchunks) {
-	return acceleration();
+	if(!acceleration_did_run) {
+	  return acceleration();
+	}
+	
 	return false; // In this case, there are no more chunks to process.
       }
       printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][t], t);
@@ -443,7 +447,7 @@ namespace astroaccelerate {
       printf("\nPerformed Acceleration Location: %lf (GPU estimate)", time);
       printf("\nAmount of telescope time processed: %f", tstart_local);
       printf("\nNumber of samples processed: %ld", inc);
-      printf("\nReal-time speedup factor: %lf", ( tstart_local ) / ( time ));
+      printf("\nReal-time speedup factor: %lf\n", ( tstart_local ) / ( time ));
       acceleration_did_run = true;
       return true;
     }

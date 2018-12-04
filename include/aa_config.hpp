@@ -60,7 +60,7 @@ namespace astroaccelerate {
     }
   
     //This specialisation of the setup method happens only if reading from an input_file
-    const aa_compute::pipeline setup(aa_ddtr_plan &ddtr_plan, aa_config_flags user_flags, aa_compute::pipeline_detail &pipeline_details, std::string &file_path) {
+    const aa_compute::pipeline setup(aa_ddtr_plan &ddtr_plan, aa_config_flags &user_flags, aa_compute::pipeline_detail &pipeline_details, std::string &file_path) {
       if(configure_from_file) {
 	if(get_user_input()) {
 	  if(aa_permitted_pipelines::is_permitted(m_pipeline)) {

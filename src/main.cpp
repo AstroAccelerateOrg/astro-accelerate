@@ -100,7 +100,8 @@ int main(int argc, char *argv[]) {
     }
   }
   
-  if(pipeline.find(aa_compute::modules::periodicity) != pipeline.end()) { 
+  if(pipeline.find(aa_compute::modules::periodicity) != pipeline.end()) {
+    //If these settings come from the input_file, then move them into aa_config to be read from the file.
     const float OR_sigma_multiplier = 1.0;              //Is this setting in the input_file? Is it the same one as for analysis?
     const bool periodicity_candidate_algorithm = false; //Is this setting in the input_file? Is it the same one as for analysis?
     const bool enable_outlier_rejection = false;        //Is this setting in the input_file? Is it the same one as for analysis?

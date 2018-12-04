@@ -13,9 +13,10 @@
 
 class aa_strategy {
 public:
-    virtual bool setup() = 0;
+  virtual bool        setup()       = 0;
+  virtual std::string name()  const = 0;
 private:
-
+  
 };
 
 #endif /* ASTRO_ACCELERATE_STRATEGY_HPP */

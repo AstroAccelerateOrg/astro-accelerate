@@ -385,11 +385,13 @@ namespace astroaccelerate {
       pipeline_ready = false;
         
       if(!data_on_device) {
+	std::cout << "ERROR:  Data is not on device or properly bound to API." << std::endl;
 	return false;
       }
         
       for(auto const& i : supplied_plans) {
 	if(i.second == false) {
+	  std::cout << "ERROR:  " << aa_compute::module_name(i.first) << " plan is not ok." << std::endl;
 	  return false;
 	}
       }
@@ -423,6 +425,7 @@ namespace astroaccelerate {
 	  }
 	  else {
 	    //Setup failed.
+	    std::cout << "ERROR:  " << strategy->name() << " setup failed." << std::endl;
 	  }
 	}
 

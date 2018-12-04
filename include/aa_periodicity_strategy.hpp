@@ -37,7 +37,12 @@ namespace astroaccelerate {
 							       m_ready(false) {
       if((m_nHarmonics > 0) && (m_OR_sigma_multiplier > 0) && (m_export_powers > 0)) {
 	m_ready = true;
-      }      
+	std::cout << "Periodicity strategy was ok" << std::endl;
+      }
+    }
+
+    std::string name() const {
+      return "periodicity_strategy";
     }
     
     float sigma_cutoff() const {
