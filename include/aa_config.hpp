@@ -146,7 +146,7 @@ namespace astroaccelerate {
 	while (!feof(fp_in)) {
 	  if ( fscanf(fp_in, "%s %f %f %f %d %d\n", string, &temp_low, &temp_high, &temp_step, &temp_in_bin, &temp_out_bin) == 0 ) {
 	    fprintf(stderr, "failed to read input\n");
-	    exit(0);
+	    return false;
 	  }
 	  if (strcmp(string, "range") == 0) {
 	    m_ddtr_plan.add_dm(temp_low, temp_high, temp_step, temp_in_bin, temp_out_bin);
