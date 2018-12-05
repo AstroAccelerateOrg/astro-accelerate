@@ -11,7 +11,7 @@
 #include "aa_compute.hpp"
 #include "aa_sigproc_input.hpp"
 #include "aa_pipeline_wrapper_functions.hpp"
-
+#include "params.hpp"
 #include "aa_device_info.hpp"
 
 using namespace astroaccelerate;
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
     std::cout << "ERROR: Could not find any devices." << std::endl;
   }
   
-  aa_device_info::CARD_ID selected_card = 0;
+  aa_device_info::CARD_ID selected_card = CARD;
   aa_device_info::aa_card_info selected_card_info;
   if(device_info.init_card(selected_card, selected_card_info)) {
     std::cout << "NOTICE: init_card complete." << std::endl;
