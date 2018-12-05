@@ -669,6 +669,9 @@ namespace astroaccelerate {
 	if(is_pipeline_set_to_runner) {
 	  pipeline_ready = true;
 	}
+
+	std::cout << "---PIPELINE DIAGNOSTIC INFORMATION---" << std::endl;
+	aa_device_info::print_card_info(m_card_info);
 	
 	// Run the pipeline
 	if(pipeline_ready && m_runner->setup()) {
