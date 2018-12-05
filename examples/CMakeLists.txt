@@ -18,3 +18,7 @@ target_link_libraries(examples_periodicity astroaccelerate)
 # Examples filterbank processing
 add_executable(examples_filterbank_dedispersion src/filterbank_dedispersion.cpp)
 target_link_libraries(examples_filterbank_dedispersion astroaccelerate)
+
+# Examples fake signal
+add_executable(examples_fake_signal src/fake_signal.cpp)
+target_link_libraries(examples_fake_signal astroaccelerate)
