@@ -38,6 +38,8 @@
 #include "device_periods.hpp"
 #include "aa_pipeline_runner.hpp"
 
+#include "aa_gpu_timer.hpp"
+
 namespace astroaccelerate {
 
   /**
@@ -151,6 +153,7 @@ namespace astroaccelerate {
     
     //Loop counter variables
     int t;
+    aa_gpu_timer       m_timer;
     
     float  *m_d_MSD_workarea         = NULL;
     float  *m_d_MSD_interpolated     = NULL;
@@ -288,7 +291,18 @@ namespace astroaccelerate {
 	  return acceleration();
 	}
 	
+	m_timer.Stop();
+        float time = m_timer.Elapsed() / 1000;
+        printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
+        printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)", time);
+        printf("\nAmount of telescope time processed: %f", tstart_local);
+        printf("\nNumber of samples processed: %ld", inc);
+        printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
+	
 	return false; // In this case, there are no more chunks to process.
+      }
+      else if(t == 0) {
+	m_timer.Start();
       }
       printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][t], t);
       

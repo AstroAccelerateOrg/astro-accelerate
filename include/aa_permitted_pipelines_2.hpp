@@ -32,6 +32,9 @@
 
 #include "device_analysis.hpp"
 #include "aa_pipeline_runner.hpp"
+
+#include "aa_gpu_timer.hpp"
+
 #include <iostream>
 
 namespace astroaccelerate {
@@ -120,6 +123,7 @@ namespace astroaccelerate {
     
     //Loop counter variables
     int t;
+    aa_gpu_timer       m_timer;
     
     float  *m_d_MSD_workarea         = NULL;
     float  *m_d_MSD_interpolated     = NULL;
@@ -217,7 +221,20 @@ namespace astroaccelerate {
 
     bool run_pipeline() {
       printf("NOTICE: Pipeline start/resume run_pipeline_2.\n");
-      if(t >= num_tchunks) return false; // In this case, there are no more chunks to process.
+      if(t >= num_tchunks) {
+	m_timer.Stop();
+        float time = m_timer.Elapsed() / 1000;
+        printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
+        printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)", time);
+        printf("\nAmount of telescope time processed: %f", tstart_local);
+        printf("\nNumber of samples processed: %ld", inc);
+        printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
+	return false; // In this case, there are no more chunks to process.	
+      }
+      else if(t == 0) {
+	m_timer.Start();
+      }
+      
       printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][t], t);
 
       const int *ndms = m_ddtr_strategy.ndms_data();

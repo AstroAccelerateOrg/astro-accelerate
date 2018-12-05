@@ -30,6 +30,8 @@
 
 #include "aa_pipeline_runner.hpp"
 
+#include "aa_gpu_timer.hpp"
+
 namespace astroaccelerate {
   template<aa_compute::module_option zero_dm_type, bool enable_old_rfi>
   class aa_permitted_pipelines_1 : public aa_pipeline_runner {
@@ -115,6 +117,7 @@ namespace astroaccelerate {
     
     //Loop counter variables
     int t;
+    aa_gpu_timer       m_timer;
 
     void allocate_memory_gpu(const int &maxshift, const int &max_ndms, const int &nchans, int **const t_processed, unsigned short **const d_input, float **const d_output) {
 
@@ -195,7 +198,19 @@ namespace astroaccelerate {
 
     bool run_pipeline(std::vector<float> &output_buffer, const bool dump_ddtr_output, int &chunk_idx, std::vector<int> &range_samples) {
       printf("NOTICE: Pipeline start/resume run_pipeline_1.\n");
-      if(t >= num_tchunks) return false;//In this case, there are no more chunks to process.
+      if(t >= num_tchunks) {
+	m_timer.Stop();
+	float time = m_timer.Elapsed() / 1000;
+	printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");       
+	printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)", time);
+	printf("\nAmount of telescope time processed: %f", tstart_local);
+	printf("\nNumber of samples processed: %ld", inc);
+	printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
+	return false;//In this case, there are no more chunks to process.
+      }
+      else if(t == 0) {
+	m_timer.Start();
+      }
       printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][t], t);
 
       const int *ndms = m_ddtr_strategy.ndms_data();
