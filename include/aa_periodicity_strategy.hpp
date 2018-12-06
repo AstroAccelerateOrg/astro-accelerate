@@ -86,6 +86,17 @@ namespace astroaccelerate {
       printf("Periodicity - enable_outlier_rejection %d\n", m_enable_outlier_rejection);
       return true;
     }
+
+    static bool print_info(const aa_periodicity_strategy &strategy) {
+      std::cout << "PERIODICITY STRATEGY INFORMATION:" << std::endl;
+      std::cout << "periodicity sigma_cutoff:\t\t" << strategy.sigma_cutoff() << std::endl;
+      std::cout << "periodicity OR_sigma_multiplier:\t" << strategy.OR_sigma_multiplier() << std::endl;
+      std::cout << "periodicity nHarmonics:\t\t\t" << strategy.nHarmonics() << std::endl;
+      std::cout << "periodicity export_powers:\t\t" << strategy.export_powers() << std::endl;
+      std::cout << "periodicity candidate_algorithm:\t" << (strategy.candidate_algorithm() ? "true" : "false") << std::endl;
+      std::cout << "periodicity enable_outlier_rejection:\t" << (strategy.enable_outlier_rejection() ? "true" : "false") << std::endl;
+      return true;
+    }
     
   private:
     float m_sigma_cutoff;
