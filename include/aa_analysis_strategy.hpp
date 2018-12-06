@@ -144,6 +144,19 @@ namespace astroaccelerate {
     bool setup() {
       return m_ready;
     }
+
+    static bool print_info(const aa_analysis_strategy &strategy) {
+      std::cout << "ANALYSIS STRATEGY INFORMATION:" << std::endl;
+      std::cout << "analysis sigma_cutoff:\t\t\t" << strategy.sigma_cutoff() <<std::endl;
+      std::cout << "analysis sigma_constant:\t\t" << strategy.sigma_constant() << std::endl;
+      std::cout << "analysis max_boxcar_width_in_sec:\t" << strategy.max_boxcar_width_in_sec() << std::endl;
+      std::cout << "analysis MSD_data_info:\t\t\t" << strategy.MSD_data_info() << std::endl;
+      std::cout << "analysis MSD_profile_size_in_bytes:\t" << strategy.MSD_profile_size_in_bytes() << std::endl;
+      std::cout << "analysis h_MSD_DIT_width:\t\t" << strategy.h_MSD_DIT_width() << std::endl;
+      std::cout << "analysis candidate_algorithm:\t\t" << (strategy.candidate_algorithm() ? "on" : "off") << std::endl;
+      std::cout << "analysis sps_baseline_noise:\t\t" << (strategy.enable_sps_baseline_noise() ? "true" : "false") << std::endl;
+      return true;
+    }
     
   private:
     aa_filterbank_metadata m_metadata;
