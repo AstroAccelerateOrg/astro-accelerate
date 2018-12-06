@@ -297,7 +297,7 @@ namespace astroaccelerate {
         printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)", time);
         printf("\nAmount of telescope time processed: %f", tstart_local);
         printf("\nNumber of samples processed: %ld", inc);
-        printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
+        printf("\nReal-time speedup factor: %lf\n", ( tstart_local ) / time);
 	
 	return false; // In this case, there are no more chunks to process.
       }
