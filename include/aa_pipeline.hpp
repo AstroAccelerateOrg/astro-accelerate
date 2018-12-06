@@ -672,9 +672,22 @@ namespace astroaccelerate {
 
 	std::cout << "---PIPELINE DIAGNOSTIC INFORMATION---" << std::endl;
 	aa_device_info::print_card_info(m_card_info);
-	aa_ddtr_strategy::print_info(m_ddtr_strategy);
-	aa_analysis_strategy::print_info(m_analysis_strategy);
-	aa_periodicity_strategy::print_info(m_periodicity_strategy);
+
+	if(required_plans.find(aa_compute::modules::dedispersion) != required_plans.end()) {
+	  aa_ddtr_strategy::print_info(m_ddtr_strategy);
+	}
+
+	if(required_plans.find(aa_compute::modules::analysis) != required_plans.end()) {
+	  aa_analysis_strategy::print_info(m_analysis_strategy);
+	}
+
+	if(required_plans.find(aa_compute::modules::periodicity) != required_plans.end()) {
+	  aa_periodicity_strategy::print_info(m_periodicity_strategy);
+	}
+
+	if(required_plans.find(aa_compute::modules::fdas) != required_plans.end()) {
+	  aa_fdas_strategy::print_info(m_fdas_strategy);
+	}
 	
 	// Run the pipeline
 	if(pipeline_ready && m_runner->setup()) {
