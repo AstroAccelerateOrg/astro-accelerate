@@ -374,6 +374,9 @@ namespace astroaccelerate {
 	h_peak_list_SNR = (float*) malloc(max_peak_size*sizeof(float));
 	h_peak_list_BW  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
 	peak_pos=0;
+	const bool dump_to_disk	= false;
+        const bool dump_to_user	= true;
+	analysis_output output;
 	analysis_GPU(h_peak_list_DM,
 		     h_peak_list_TS,
 		     h_peak_list_SNR,
@@ -400,7 +403,10 @@ namespace astroaccelerate {
 		     m_d_MSD_output_taps,
 		     m_d_MSD_interpolated,
 		     m_analysis_strategy.MSD_data_info(),
-		     m_analysis_strategy.enable_sps_baseline_noise());
+		     m_analysis_strategy.enable_sps_baseline_noise(),
+		     dump_to_disk,
+		     dump_to_user,
+		     output);
 	
 	free(h_peak_list_DM);
 	free(h_peak_list_TS);

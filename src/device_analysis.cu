@@ -16,6 +16,8 @@
 
 #include "aa_gpu_timer.hpp"
 
+#include "device_analysis.hpp"
+
 //TODO:
 // Make BC_plan for arbitrary long pulses, by reusing last element in the plane
 
@@ -116,7 +118,7 @@ namespace astroaccelerate {
   }
 
 
-  void analysis_GPU(unsigned int *h_peak_list_DM, unsigned int *h_peak_list_TS, float *h_peak_list_SNR, unsigned int *h_peak_list_BW, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int *maxshift, int max_ndms, int const*const ndms, float cutoff, float OR_sigma_multiplier, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, int candidate_algorithm, float *d_MSD_workarea, unsigned short *d_output_taps, float *d_MSD_interpolated, unsigned long int maxTimeSamples, int enable_sps_baselinenoise){
+  void analysis_GPU(unsigned int *h_peak_list_DM, unsigned int *h_peak_list_TS, float *h_peak_list_SNR, unsigned int *h_peak_list_BW, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int *maxshift, int max_ndms, int const*const ndms, float cutoff, float OR_sigma_multiplier, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, int candidate_algorithm, float *d_MSD_workarea, unsigned short *d_output_taps, float *d_MSD_interpolated, unsigned long int maxTimeSamples, int enable_sps_baselinenoise, const bool dump_to_disk, const bool dump_to_user, analysis_output &output){
     //--------> Task
     int max_boxcar_width = (int) (max_boxcar_width_in_sec/tsamp);
     int max_width_performed=0;
@@ -314,24 +316,40 @@ namespace astroaccelerate {
 		
       if(candidate_algorithm==1){
 	if((*peak_pos)>0){
-	  sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart, dm_low[i], dm_high[i]);
-	  if (( fp_out = fopen(filename, "wb") ) == NULL)	{
-	    fprintf(stderr, "Error opening output file!\n");
-	    exit(0);
+	  if(dump_to_disk) {
+	    sprintf(filename, "analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart, dm_low[i], dm_high[i]);
+	    if (( fp_out = fopen(filename, "wb") ) == NULL)	{
+	      fprintf(stderr, "Error opening output file!\n");
+	      exit(0);
+	    }
+	    fwrite(h_peak_list, (*peak_pos)*sizeof(float), 4, fp_out);
+	    fclose(fp_out);
 	  }
-	  fwrite(h_peak_list, (*peak_pos)*sizeof(float), 4, fp_out);
-	  fclose(fp_out);
+
+	  if(dump_to_user) {
+	    output.dm_low  = dm_low [i];
+	    output.dm_high = dm_high[i];
+	    output.data.insert(output.data.end(), &h_peak_list[0], &h_peak_list[4 * (*peak_pos)]);
+	  }
 	}
       }
       else {
 	if((*peak_pos)>0){
-	  sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart, dm_low[i], dm_high[i]);
-	  if (( fp_out = fopen(filename, "wb") ) == NULL)	{
-	    fprintf(stderr, "Error opening output file!\n");
-	    exit(0);
+	  if(dump_to_disk) {
+	    sprintf(filename, "peak_analysed-t_%.2f-dm_%.2f-%.2f.dat", tstart, dm_low[i], dm_high[i]);
+	    if (( fp_out = fopen(filename, "wb") ) == NULL)	{
+	      fprintf(stderr, "Error opening output file!\n");
+	      exit(0);
+	    }
+	    fwrite(h_peak_list, (*peak_pos)*sizeof(float), 4, fp_out);
+	    fclose(fp_out);
 	  }
-	  fwrite(h_peak_list, (*peak_pos)*sizeof(float), 4, fp_out);
-	  fclose(fp_out);
+
+	  if(dump_to_user) {
+	    output.dm_low  = dm_low [i];
+	    output.dm_high = dm_high[i];
+	    output.data.insert(output.data.end(), &h_peak_list[0], &h_peak_list[4 * (*peak_pos)]);
+	  }
 	}
       }
       delete[] h_peak_list;

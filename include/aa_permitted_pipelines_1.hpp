@@ -60,6 +60,17 @@ namespace astroaccelerate {
       
       return false;
     }
+
+    bool next() {
+      std::vector<float> output_buffer;
+      int chunk_idx = 0;
+      std::vector<int> range_samples;
+      if(memory_allocated) {
+        return run_pipeline(output_buffer, false, chunk_idx, range_samples);
+      }
+
+      return false;
+    }
     
     bool next(std::vector<float> &output_buffer, int &chunk_idx, std::vector<int> &range_samples) {
       if(memory_allocated) {

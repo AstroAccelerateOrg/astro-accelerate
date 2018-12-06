@@ -68,8 +68,19 @@ namespace astroaccelerate {
     }
 
     bool next() {
+      bool dump_to_disk = true;
+      bool dump_to_user = false;
+      analysis_output output;
       if(memory_allocated) {
-	return run_pipeline();
+        return run_pipeline(dump_to_disk, dump_to_user, output);
+      }
+
+      return false;
+    }
+
+    bool next(const bool dump_to_disk, const bool dump_to_user, analysis_output &output) {
+      if(memory_allocated) {
+	return run_pipeline(dump_to_disk, dump_to_user, output);
       }
 
       return false;
@@ -219,7 +230,7 @@ namespace astroaccelerate {
       cudaMemcpy(host_pointer, device_pointer, size, cudaMemcpyDeviceToHost);
     }
 
-    bool run_pipeline() {
+    bool run_pipeline(const bool dump_to_disk, const bool dump_to_user, analysis_output &output) {
       printf("NOTICE: Pipeline start/resume run_pipeline_2.\n");
       if(t >= num_tchunks) {
 	m_timer.Stop();
@@ -305,6 +316,7 @@ namespace astroaccelerate {
 	h_peak_list_SNR = (float*) malloc(max_peak_size*sizeof(float));
 	h_peak_list_BW  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
 	peak_pos=0;
+
 	analysis_GPU(h_peak_list_DM,
 		     h_peak_list_TS,
 		     h_peak_list_SNR,
@@ -331,7 +343,10 @@ namespace astroaccelerate {
 		     m_d_MSD_output_taps,
 		     m_d_MSD_interpolated,
 		     m_analysis_strategy.MSD_data_info(),
-		     m_analysis_strategy.enable_sps_baseline_noise());
+		     m_analysis_strategy.enable_sps_baseline_noise(),
+		     dump_to_disk,
+		     dump_to_user,
+		     output);
 	
 	free(h_peak_list_DM);
 	free(h_peak_list_TS);
