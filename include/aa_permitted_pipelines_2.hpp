@@ -55,7 +55,7 @@ namespace astroaccelerate {
 
     aa_permitted_pipelines_2(const aa_permitted_pipelines_2 &) = delete;
 
-    bool setup() {
+    bool setup() override {
       if(!memory_allocated) {
 	return set_data();
       }
@@ -67,7 +67,7 @@ namespace astroaccelerate {
       return false;
     }
 
-    bool next() {
+    bool next() override {
       bool dump_to_disk = true;
       bool dump_to_user = false;
       analysis_output output;

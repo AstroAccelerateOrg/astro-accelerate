@@ -74,7 +74,7 @@ namespace astroaccelerate {
 
     aa_permitted_pipelines_5(const aa_permitted_pipelines_5 &) = delete;
 
-    bool setup() {
+    bool setup() override {
       if(!memory_allocated) {
 	return set_data();
       }
@@ -86,7 +86,7 @@ namespace astroaccelerate {
       return false;
     }
 
-    bool next() {
+    bool next() override {
       if(memory_allocated) {
 	return run_pipeline();
       }
