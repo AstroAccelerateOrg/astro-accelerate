@@ -425,6 +425,36 @@ namespace astroaccelerate {
 																					  m_d_MSD_output_taps(NULL) {
     
   }
+
+  template<> inline aa_permitted_pipelines_2<aa_compute::module_option::empty, true>::aa_permitted_pipelines_2(const aa_ddtr_strategy &ddtr_strategy,
+													       const aa_analysis_strategy &analysis_strategy,
+													       unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																			  m_analysis_strategy(analysis_strategy),
+																			  m_input_buffer(input_buffer),
+																			  memory_allocated(false),
+																			  memory_cleanup(false),
+																			  t(0),
+																			  m_d_MSD_workarea(NULL),
+																			  m_d_MSD_interpolated(NULL),
+																			  m_d_MSD_output_taps(NULL) {
+    
+  }
+
+  template<> inline aa_permitted_pipelines_2<aa_compute::module_option::empty, false>::aa_permitted_pipelines_2(const aa_ddtr_strategy &ddtr_strategy,
+														const aa_analysis_strategy &analysis_strategy,
+														unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																			   m_analysis_strategy(analysis_strategy),
+																			   m_input_buffer(input_buffer),
+																			   memory_allocated(false),
+																			   memory_cleanup(false),
+																			   t(0),
+																			   m_d_MSD_workarea(NULL),
+																			   m_d_MSD_interpolated(NULL),
+																			   m_d_MSD_output_taps(NULL) {
+    
+  }
+
+  
   
 } //namespace astroaccelerate
   

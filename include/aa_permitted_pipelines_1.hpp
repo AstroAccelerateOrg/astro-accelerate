@@ -343,6 +343,24 @@ namespace astroaccelerate {
 																					     t(0) {
     
   }
+
+  template<> inline aa_permitted_pipelines_1<aa_compute::module_option::empty, true>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
+													       unsigned short const*const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
+																			     m_input_buffer(input_buffer),
+																			     memory_allocated(false),
+																			     memory_cleanup(false),
+																			     t(0) {
+    
+  }
+
+  template<> inline aa_permitted_pipelines_1<aa_compute::module_option::empty, false>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
+														unsigned short const*const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
+																			      m_input_buffer(input_buffer),
+																			      memory_allocated(false),
+																			      memory_cleanup(false),
+																			      t(0) {
+    
+  }
   
 }//namespace astroaccelerate
 
