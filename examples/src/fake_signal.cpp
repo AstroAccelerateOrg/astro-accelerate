@@ -11,9 +11,44 @@
 #include "aa_filterbank_metadata.hpp"
 #include "aa_permitted_pipelines_1.hpp"
 #include "aa_device_info.hpp"
+#include "aa_permitted_pipelines_2.hpp"
+#include "aa_analysis_plan.hpp"
+#include "aa_analysis_strategy.hpp"
 #include "params.hpp"
 
+#define MAX_VALUE 255
+
 using namespace astroaccelerate;
+
+void fake_generate_data(unsigned short *output, float *scale_factor, int *shifts_index, int width, int signal_start, int signal_max_pos, int nchans){
+  for(int i = 0; i < width; i++){
+//	std::cout << scale_factor[i] << std::endl;
+	int time_pos = (i - signal_max_pos + signal_start)*nchans;
+	for(int j = 0; j < nchans; j++){
+		output[time_pos + j + nchans*shifts_index[i]] = (MAX_VALUE*scale_factor[i]);
+//		std::cout << output[time_pos + j + nchans*shifts_index[i]] << " ";
+	}
+  }
+}
+
+void inverse_gaussian(float* output, int length, float sigma, int *max_pos){
+        float wid = 2*sigma*pow(3*log(30),0.5);
+        float step = wid*sigma/(length);
+        float maximum =0.0f;
+        for(int i = 0; i < length; i++){
+                float x = (i+1)*step;
+                output[i] = pow(1.0*sigma/(2*3.141592*pow(x,3)),0.5)*exp((-sigma*pow(x - 1.0,2))/(2*pow(1.0,2)*x));
+                if (maximum <= output[i]) {
+                        maximum = output[i];
+                        *max_pos = i;
+                }
+        }
+        // normalization part
+        for (int i = 0; i < length; i++){
+                output[i] = output[i]/maximum;
+        }
+
+}
 
 int main() {
   aa_ddtr_plan ddtr_plan;
@@ -25,19 +60,26 @@ int main() {
   const double total_bandwidth = 300.0f;
   const double tsamp = 6.4E-5;
   const double nbits = 8;
-  const double nsamples = 3.0/tsamp; // 3s of data in current tsamp
+  unsigned int nsamples = 3.0/tsamp; // 3s of data in current tsamp at minimum; must be more than signal_start + maxshift
   const double fch1 = 1550;
-  const double nchans = 4096;
-  const double foff = total_bandwidth/nchans;
+  int nchans = 4096;
+  const double foff = -total_bandwidth/nchans;
+  std::cout << "Nsample " << nsamples << std::endl;
 
   // params needed by the fake signal function
-  const double dm_position = 90.1; // at what dm put the signal
-  const int func_length = 15; // width of the signal in terms of # of samples
-  const int signal_start = 1.5/tsamp; // position of the signal in time
-  const int signal_max_pos = 0; // position of the peak; usefull for gaussian and inverse gaussian signal
+  const double dm_position = 90.0; // at what dm put the signal
+  const int func_width = 15; // width of the signal in terms of # of samples
+  int signal_start = 1.5/tsamp; // position of the signal in time
+  int signal_max_pos = 0; // position of the peak; usefull for gaussian and inverse gaussian signal
+  float* scale_factor;
+  scale_factor = (float *)malloc(func_width*sizeof(float));
+  
+  inverse_gaussian(scale_factor,func_width, 0.5, &signal_max_pos); // generate the scaling factors for the signal with sigma 0.5, also getting position of the max scale
+
+//  for (int n = 0; n < func_width; n++)
+//	std::cout << "Vector " << scale_factor[n] << std::endl;
   
   aa_filterbank_metadata metadata(tstart, tsamp, nbits, nsamples, fch1, foff, nchans);
-
 
   aa_device_info device_info;
   if(device_info.check_for_devices()) {
@@ -47,7 +89,7 @@ int main() {
     std::cout << "ERROR: Could not find any devices." << std::endl;
   }
 
-  aa_device_info::CARD_ID selected_card = CARD;
+  aa_device_info::CARD_ID selected_card = 1;
   aa_device_info::aa_card_info selected_card_info;
   if(device_info.init_card(selected_card, selected_card_info)) {
     std::cout << "NOTICE: init_card complete." << std::endl;
@@ -56,11 +98,10 @@ int main() {
     std::cout << "ERROR: init_card incomplete." << std::endl;
   }
 
-  aa_device_info::aa_card_info m_card_info;
-  aa_device_info::print_card_info(m_card_info);
+  aa_device_info::print_card_info(selected_card_info);
   
-  const size_t free_memory = 2147483648; // Free memory on the GPU in bytes
-  bool enable_analysis = false;       // The strategy will be optimised to run just dedispersion
+  const size_t free_memory = selected_card_info.free_memory; // Free memory on the GPU in bytes
+  bool enable_analysis = true; 
   aa_ddtr_strategy strategy(ddtr_plan, metadata, free_memory, enable_analysis);
 
   if(!(strategy.ready())) {
@@ -70,14 +111,44 @@ int main() {
 
   std::vector<float> dm_shifts;
   dm_shifts = strategy.dmshifts();
+  int* shifts_index;
+  shifts_index = (int*)malloc(sizeof(int)*nchans);
+  for (int i = 0; i < nchans; i++){
+	shifts_index[i] = floor(dm_shifts[i]*dm_position/tsamp);
+  }
+
+  std::cout << "dmshift: " << shifts_index[2047] << std::endl;
+  std::cout << "max_shift: " << strategy.maxshift() << std::endl;
 
 //  std::vector<unsigned short> input_data(nsamples*nchans);
-//
-//  for(auto &i : input_data) {
-//    i = 0.0;
-//  }
-//  
-//  aa_permitted_pipelines_1<aa_compute::module_option::zero_dm, false> runner(strategy, input_data.data());
+  unsigned short* input_data;
+  input_data = (unsigned short *)malloc(sizeof(unsigned short)*nsamples*nchans);
+  fake_generate_data(input_data, scale_factor, shifts_index, func_width, signal_start, signal_max_pos, nchans);
+
+//  for (int i = 0; i < nchans*nsamples; i++)
+//      if (input_data[i] != 0) std::cout << i << " " << input_data[i] << " ";
+
+  const float sigma_cutoff = 6.0;
+  const float sigma_constant = 4.0;
+  const float max_boxcar_width_in_sec = 0.05;
+  const aa_analysis_plan::selectable_candidate_algorithm algo = aa_analysis_plan::selectable_candidate_algorithm::off;
+
+  aa_analysis_plan analysis_plan(strategy, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, algo, false);
+  aa_analysis_strategy analysis_strategy(analysis_plan);
+
+  if(!(analysis_strategy.ready())) {
+    std::cout << "ERROR: analysis_strategy not ready." << std::endl;
+    return 0;
+  }
+
+  aa_permitted_pipelines_2<aa_compute::module_option::zero_dm, false> runner(strategy, analysis_strategy, input_data);
+  if(runner.setup()) {
+    while(runner.next()) {
+      std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
+    }
+  }
+
+//  aa_permitted_pipelines_1<aa_compute::module_option::zero_dm, false> runner(strategy, input_data);
 //  if(runner.setup()) {
 //    std::vector<float> out;
 //    int chunk_idx = 0;
@@ -89,7 +160,10 @@ int main() {
 //      std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
 //    }
 //  }
-  
+
+  free(scale_factor);
+  free(shifts_index);
+  free(input_data);
   std::cout << "NOTICE: Finished." << std::endl;
   return 0;
 }
