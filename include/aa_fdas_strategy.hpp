@@ -84,6 +84,18 @@ namespace astroaccelerate {
     bool ready() const {
       return m_ready;
     }
+
+    static bool print_info(const aa_fdas_strategy &strategy) {
+      std::cout << "FDAS STRATEGY INFORMATION" << std::endl;
+      std::cout << "fdas sigma_cutoff:\t\t\t" << strategy.sigma_cutoff() << std::endl;
+      std::cout << "fdas narrow:\t\t\t\t" << strategy.narrow() << std::endl;
+      std::cout << "fdas wide:\t\t\t\t" << strategy.wide() << std::endl;
+      std::cout << "fdas aggression:\t\t\t" << strategy.aggression() << std::endl;
+      std::cout << "fdas num_boots:\t\t\t\t" << strategy.num_boots() << std::endl;
+      std::cout << "fdas num_trial_bins:\t\t\t" << strategy.num_trial_bins() << std::endl;
+      std::cout << "fdas navdms:\t\t\t\t" << strategy.navdms() << std::endl;
+      return true;
+    }
   private:
     float m_sigma_cutoff;
     float m_narrow;

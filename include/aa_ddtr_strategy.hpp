@@ -62,6 +62,10 @@ namespace astroaccelerate {
     size_t range() const {
       return str_dm.size();
     }
+
+    size_t ndms_size() const {
+      return m_ndms.size();
+    }
     
     int ndms(const size_t &i) const {
       return m_ndms.at(i);
@@ -89,6 +93,37 @@ namespace astroaccelerate {
 
     bool configured_for_analysis() const {
       return m_configured_for_analysis;
+    }
+
+    static bool print_info(const aa_ddtr_strategy &strategy) {
+      std::cout << "DDTR STRATEGY INFORMATION:" << std::endl;
+      std::cout << "ddtr+analysis:\t\t" << (strategy.configured_for_analysis() ? "true" : "false") << std::endl;
+      std::cout << "ddtr dm ranges:\t\t" << strategy.range() << std::endl;
+      for(size_t i = 0; i < strategy.range(); i++) {
+	const aa_ddtr_plan::dm tmp = strategy.dm(i);
+	std::cout << "     dm (low,high,step,inBin,outBin) "
+		  << tmp.low << "," << tmp.high << "," << tmp.step << ","
+		  << tmp.inBin << "," << tmp.outBin << std::endl;
+      }
+
+      std::cout << "ddtr max_ndms:\t\t" << strategy.max_ndms() << std::endl;
+      std::cout << "ddtr ndms elements:" << std::endl;
+      for(size_t i = 0; i < strategy.ndms_size(); i++) {
+	std::cout << "     ndms[" << i << "]:\t\t" << strategy.ndms(i) << std::endl;
+      }
+      
+      std::cout << "ddtr maxshift:\t\t" << strategy.maxshift() << std::endl;
+      std::cout << "ddtr num_tchunks:\t" << strategy.num_tchunks() << std::endl;
+      std::cout << "ddtr max_ndms:\t\t" << strategy.max_ndms() << std::endl;
+      std::cout << "t_processed size:\t" << strategy.t_processed().size() << std::endl;
+      std::cout << "t_processed elements:" << std::endl;
+      for(size_t i = 0; i < strategy.t_processed().size(); i++) {
+	for(size_t j = 0; j < strategy.t_processed().at(i).size(); j++) {
+	  std::cout << "     t_processed[" << i << "][" << j << "]:\t" << strategy.t_processed()[i][j] << std::endl;
+	}
+      }
+
+      return true;
     }
     
   private:

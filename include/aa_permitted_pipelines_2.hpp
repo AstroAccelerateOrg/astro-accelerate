@@ -55,7 +55,7 @@ namespace astroaccelerate {
 
     aa_permitted_pipelines_2(const aa_permitted_pipelines_2 &) = delete;
 
-    bool setup() {
+    bool setup() override {
       if(!memory_allocated) {
 	return set_data();
       }
@@ -67,9 +67,20 @@ namespace astroaccelerate {
       return false;
     }
 
-    bool next() {
+    bool next() override {
+      bool dump_to_disk = true;
+      bool dump_to_user = false;
+      analysis_output output;
       if(memory_allocated) {
-	return run_pipeline();
+        return run_pipeline(dump_to_disk, dump_to_user, output);
+      }
+
+      return false;
+    }
+
+    bool next(const bool dump_to_disk, const bool dump_to_user, analysis_output &output) {
+      if(memory_allocated) {
+	return run_pipeline(dump_to_disk, dump_to_user, output);
       }
 
       return false;
@@ -219,7 +230,7 @@ namespace astroaccelerate {
       cudaMemcpy(host_pointer, device_pointer, size, cudaMemcpyDeviceToHost);
     }
 
-    bool run_pipeline() {
+    bool run_pipeline(const bool dump_to_disk, const bool dump_to_user, analysis_output &output) {
       printf("NOTICE: Pipeline start/resume run_pipeline_2.\n");
       if(t >= num_tchunks) {
 	m_timer.Stop();
@@ -228,7 +239,7 @@ namespace astroaccelerate {
         printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)", time);
         printf("\nAmount of telescope time processed: %f", tstart_local);
         printf("\nNumber of samples processed: %ld", inc);
-        printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
+        printf("\nReal-time speedup factor: %lf\n", ( tstart_local ) / time);
 	return false; // In this case, there are no more chunks to process.	
       }
       else if(t == 0) {
@@ -305,6 +316,7 @@ namespace astroaccelerate {
 	h_peak_list_SNR = (float*) malloc(max_peak_size*sizeof(float));
 	h_peak_list_BW  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
 	peak_pos=0;
+
 	analysis_GPU(h_peak_list_DM,
 		     h_peak_list_TS,
 		     h_peak_list_SNR,
@@ -331,7 +343,10 @@ namespace astroaccelerate {
 		     m_d_MSD_output_taps,
 		     m_d_MSD_interpolated,
 		     m_analysis_strategy.MSD_data_info(),
-		     m_analysis_strategy.enable_sps_baseline_noise());
+		     m_analysis_strategy.enable_sps_baseline_noise(),
+		     dump_to_disk,
+		     dump_to_user,
+		     output);
 	
 	free(h_peak_list_DM);
 	free(h_peak_list_TS);
@@ -410,6 +425,36 @@ namespace astroaccelerate {
 																					  m_d_MSD_output_taps(NULL) {
     
   }
+
+  template<> inline aa_permitted_pipelines_2<aa_compute::module_option::empty, true>::aa_permitted_pipelines_2(const aa_ddtr_strategy &ddtr_strategy,
+													       const aa_analysis_strategy &analysis_strategy,
+													       unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																			  m_analysis_strategy(analysis_strategy),
+																			  m_input_buffer(input_buffer),
+																			  memory_allocated(false),
+																			  memory_cleanup(false),
+																			  t(0),
+																			  m_d_MSD_workarea(NULL),
+																			  m_d_MSD_interpolated(NULL),
+																			  m_d_MSD_output_taps(NULL) {
+    
+  }
+
+  template<> inline aa_permitted_pipelines_2<aa_compute::module_option::empty, false>::aa_permitted_pipelines_2(const aa_ddtr_strategy &ddtr_strategy,
+														const aa_analysis_strategy &analysis_strategy,
+														unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																			   m_analysis_strategy(analysis_strategy),
+																			   m_input_buffer(input_buffer),
+																			   memory_allocated(false),
+																			   memory_cleanup(false),
+																			   t(0),
+																			   m_d_MSD_workarea(NULL),
+																			   m_d_MSD_interpolated(NULL),
+																			   m_d_MSD_output_taps(NULL) {
+    
+  }
+
+  
   
 } //namespace astroaccelerate
   

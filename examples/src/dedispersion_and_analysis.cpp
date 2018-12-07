@@ -62,8 +62,13 @@ int main() {
   }
   
   aa_permitted_pipelines_2<aa_compute::module_option::zero_dm, false> runner(ddtr_strategy, analysis_strategy, input_data.data());
+
+  bool dump_to_disk = false;
+  bool dump_to_user = true;
+  analysis_output output;
+  
   if(runner.setup()) {
-    while(runner.next()) {
+    while(runner.next(dump_to_disk, dump_to_user, output)) {
       std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
     }
   }

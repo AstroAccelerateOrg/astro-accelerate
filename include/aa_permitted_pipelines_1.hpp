@@ -49,7 +49,7 @@ namespace astroaccelerate {
 
     aa_permitted_pipelines_1(const aa_permitted_pipelines_1 &) = delete;
 
-    bool setup() {
+    bool setup() override {
       if(!memory_allocated) {
 	return set_data();
       }
@@ -58,6 +58,17 @@ namespace astroaccelerate {
 	return true;
       }
       
+      return false;
+    }
+
+    bool next() override {
+      std::vector<float> output_buffer;
+      int chunk_idx = 0;
+      std::vector<int> range_samples;
+      if(memory_allocated) {
+        return run_pipeline(output_buffer, false, chunk_idx, range_samples);
+      }
+
       return false;
     }
     
@@ -205,7 +216,7 @@ namespace astroaccelerate {
 	printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)", time);
 	printf("\nAmount of telescope time processed: %f", tstart_local);
 	printf("\nNumber of samples processed: %ld", inc);
-	printf("\nReal-time speedup factor: %lf", ( tstart_local ) / time);
+	printf("\nReal-time speedup factor: %lf\n", ( tstart_local ) / time);
 	return false;//In this case, there are no more chunks to process.
       }
       else if(t == 0) {
@@ -330,6 +341,24 @@ namespace astroaccelerate {
 																					     memory_allocated(false),
 																					     memory_cleanup(false),
 																					     t(0) {
+    
+  }
+
+  template<> inline aa_permitted_pipelines_1<aa_compute::module_option::empty, true>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
+													       unsigned short const*const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
+																			     m_input_buffer(input_buffer),
+																			     memory_allocated(false),
+																			     memory_cleanup(false),
+																			     t(0) {
+    
+  }
+
+  template<> inline aa_permitted_pipelines_1<aa_compute::module_option::empty, false>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
+														unsigned short const*const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
+																			      m_input_buffer(input_buffer),
+																			      memory_allocated(false),
+																			      memory_cleanup(false),
+																			      t(0) {
     
   }
   
