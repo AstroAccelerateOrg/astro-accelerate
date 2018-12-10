@@ -19,7 +19,7 @@ namespace astroaccelerate {
       std::cout << "ERROR:  The selected operation is not supported on this pipeline." << std::endl;
       return false;
     }
-    virtual bool next(std::vector<float> &, int &, std::vector<int> &) {
+    virtual bool next(std::vector<std::vector<float>> &, int &, std::vector<int> &) {
       // If a derived class does not implement this method, this method is used.
       std::cout << "ERROR:  The selected operation is not supported on this pipeline." << std::endl;
       return false;
