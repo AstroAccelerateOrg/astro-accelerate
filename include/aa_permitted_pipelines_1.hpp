@@ -15,6 +15,8 @@
 #include <helper_cuda.h>
 
 #include <stdio.h>
+#include <fstream>
+#include <string>
 #include "aa_compute.hpp"
 #include "aa_ddtr_strategy.hpp"
 #include "aa_ddtr_plan.hpp"
@@ -75,6 +77,17 @@ namespace astroaccelerate {
     bool next(std::vector<float> &output_buffer, int &chunk_idx, std::vector<int> &range_samples) {
       if(memory_allocated) {
 	return run_pipeline(output_buffer, true, chunk_idx, range_samples);
+      }
+
+      return false;
+    }
+
+    bool next(const bool &dump_to_disk) {
+      if(memory_allocated) {
+	std::vector<float> output_buffer;
+	int chunk_idx = 0;
+	std::vector<int> range_samples;
+	return run_pipeline(output_buffer, true, chunk_idx, range_samples, dump_to_disk);
       }
 
       return false;
@@ -207,7 +220,7 @@ namespace astroaccelerate {
       cudaMemcpy(host_pointer + host_offset, device_pointer + device_offset, size, cudaMemcpyDeviceToHost);
     }
 
-    bool run_pipeline(std::vector<float> &output_buffer, const bool dump_ddtr_output, int &chunk_idx, std::vector<int> &range_samples) {
+    bool run_pipeline(std::vector<float> &output_buffer, const bool dump_ddtr_output, int &chunk_idx, std::vector<int> &range_samples, const bool &dump_to_disk = false) {
       printf("NOTICE: Pipeline start/resume run_pipeline_1.\n");
       if(t >= num_tchunks) {
 	m_timer.Stop();
@@ -290,6 +303,20 @@ namespace astroaccelerate {
 	  output_buffer.resize(total_samps);
 	  for (int k = 0; k < ndms[dm_range]; k++) {
 	    save_data_offset(d_output, k * t_processed[dm_range][t], output_buffer.data(), inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
+	  }
+
+	  if(dump_to_disk) {
+	    //Create or open a new file here, append to end of file (file should be called DD_data.dat).
+	    //Close file after writing since we do not know when the user will stop calling the next() function.
+	    std::string out_name = "DD_data_chunk_" + std::to_string(t)+".dat"; 
+	    std::ofstream out;
+	    out.open(out_name.c_str(), std::ios::out | std::ios::app);
+	    if(out.is_open()) {
+	      for (int k = 0; k < ndms[dm_range]; k++) {
+		out << output_buffer[k];
+	      }
+	    }
+	    out.close();
 	  }
 	}
 	checkCudaErrors(cudaGetLastError());

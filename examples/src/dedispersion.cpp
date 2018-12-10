@@ -59,6 +59,15 @@ int main() {
     while(runner.next(out, chunk_idx, range_samples)) {
       std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
     }
+    
+    /* Alternative way of running dedispersion and dumping
+     * the output to disk.
+     * Enable the following lines and remove the above while loop to try it out.
+     */
+    //bool dump_to_disk = true;
+    //while(runner.next(dump_to_disk)) {
+    //std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
+    //}
   }
   
   std::cout << "NOTICE: Finished." << std::endl;
