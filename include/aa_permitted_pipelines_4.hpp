@@ -93,7 +93,7 @@ namespace astroaccelerate {
     }
     
     bool cleanup() {
-      if(!memory_cleanup) {
+      if(memory_allocated && !memory_cleanup) {
 	cudaFree(d_input);
 	cudaFree(d_output);
 	cudaFree(m_d_MSD_workarea);
@@ -104,6 +104,7 @@ namespace astroaccelerate {
 	  free(t_processed[i]);
 	}
 	free(t_processed);
+
 	memory_cleanup = true;
       }
       return true;
@@ -469,6 +470,15 @@ namespace astroaccelerate {
       printf("\nNumber of samples processed: %ld", inc);
       printf("\nReal-time speedup factor: %lf\n", ( tstart_local ) / ( time ));
       acceleration_did_run = true;
+
+      for(size_t i = 0; i < range; i++) {
+	for(int j = 0; j < ndms[i]; j++) {
+	  free(m_output_buffer[i][j]);
+	}
+	free(m_output_buffer[i]);
+      }
+      free(m_output_buffer);
+      
       return true;
     }
     
