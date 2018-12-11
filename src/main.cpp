@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 						      filterbank_metadata,
 						      filterbank_datafile.input_buffer().data(),
 						      selected_card_info);
-  
+
   if(pipeline_manager.bind(ddtr_plan)) {
     std::cout << "NOTICE: ddtr_plan bound successfully." << std::endl;
   }

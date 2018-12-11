@@ -78,7 +78,7 @@ namespace astroaccelerate {
     }
 
     bool setup() {
-      return false;
+      return ready();
     }
 
     bool ready() const {

@@ -64,19 +64,19 @@ namespace astroaccelerate {
     }
 
     bool next() override {
-      std::vector<float> output_buffer;
+      std::vector<std::vector<std::vector<float>>> output_buffer;
       int chunk_idx = 0;
-      std::vector<int> range_samples;
       if(memory_allocated) {
-        return run_pipeline(output_buffer, false, chunk_idx, range_samples);
+        return run_pipeline(output_buffer, false, chunk_idx);
       }
 
       return false;
     }
     
-    bool next(std::vector<float> &output_buffer, int &chunk_idx, std::vector<int> &range_samples) {
+    bool next(std::vector<std::vector<std::vector<float>>> &output_buffer, int &chunk_idx) {
       if(memory_allocated) {
-	return run_pipeline(output_buffer, true, chunk_idx, range_samples);
+	output_buffer.resize(range);
+	return run_pipeline(output_buffer, true, chunk_idx);
       }
 
       return false;
@@ -84,17 +84,16 @@ namespace astroaccelerate {
 
     bool next(const bool &dump_to_disk) {
       if(memory_allocated) {
-	std::vector<float> output_buffer;
+	std::vector<std::vector<std::vector<float>>> output_buffer(range);
 	int chunk_idx = 0;
-	std::vector<int> range_samples;
-	return run_pipeline(output_buffer, true, chunk_idx, range_samples, dump_to_disk);
+	return run_pipeline(output_buffer, true, chunk_idx, dump_to_disk);
       }
 
       return false;
     }
     
     bool cleanup() {
-      if(!memory_cleanup) {
+      if(memory_allocated && !memory_cleanup) {
 	cudaFree(d_input);
 	cudaFree(d_output);
 
@@ -148,8 +147,10 @@ namespace astroaccelerate {
       int time_samps = t_processed[0][0] + maxshift;
       printf("\n\n\n%d\n\n\n", time_samps);
       size_t gpu_inputsize = (size_t) time_samps * (size_t) nchans * sizeof(unsigned short);
-
-      checkCudaErrors( cudaMalloc((void **) d_input, gpu_inputsize) );
+      cudaError_t cuda_return = cudaMalloc((void **) d_input, gpu_inputsize);
+      if(cuda_return != cudaSuccess) {
+	std::cout << "ERROR:  cudaMalloc failed." << std::endl;
+      }
 
       size_t gpu_outputsize = 0;
       if (nchans < max_ndms) {
@@ -159,9 +160,14 @@ namespace astroaccelerate {
 	gpu_outputsize = (size_t)time_samps * (size_t)nchans * sizeof(float);
       }
 
-      checkCudaErrors( cudaMalloc((void **) d_output, gpu_outputsize) );
-      cudaMemset(*d_output, 0, gpu_outputsize);
-
+      cuda_return = cudaMalloc((void **) d_output, gpu_outputsize);
+      if(cuda_return != cudaSuccess) {
+	std::cout << "ERROR:  cudaMalloc failed." << std::endl;
+      }
+      cuda_return = cudaMemset(*d_output, 0, gpu_outputsize);
+      if(cuda_return != cudaSuccess) {
+	std::cout << "ERROR:  cudaMemset failed." << std::endl;
+      }
     }
 
     bool set_data() {
@@ -216,11 +222,11 @@ namespace astroaccelerate {
       return true;
     }
 
-    inline void save_data_offset(float *device_pointer, int device_offset, float *host_pointer, int host_offset, size_t size) {
+    inline void save_data_offset(float *host_pointer, int host_offset, float *device_pointer, int device_offset, size_t size) {
       cudaMemcpy(host_pointer + host_offset, device_pointer + device_offset, size, cudaMemcpyDeviceToHost);
     }
 
-    bool run_pipeline(std::vector<float> &output_buffer, const bool dump_ddtr_output, int &chunk_idx, std::vector<int> &range_samples, const bool &dump_to_disk = false) {
+    bool run_pipeline(std::vector<std::vector<std::vector<float>>> &output_buffer, const bool dump_ddtr_output, int &chunk_idx, const bool &dump_to_disk = false) {
       printf("NOTICE: Pipeline start/resume run_pipeline_1.\n");
       if(t >= num_tchunks) {
 	m_timer.Stop();
@@ -242,7 +248,7 @@ namespace astroaccelerate {
       checkCudaErrors(cudaGetLastError());
       load_data(-1, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
       checkCudaErrors(cudaGetLastError());
-
+      
       if(zero_dm_type == aa_compute::module_option::zero_dm) {
 	zero_dm(d_input, nchans, t_processed[0][t]+maxshift, nbits);
       }
@@ -281,7 +287,7 @@ namespace astroaccelerate {
 
 	checkCudaErrors(cudaGetLastError());
 
-
+	
 	if (inBin[dm_range] > oldBin) {
 	  bin_gpu(d_input, d_output, nchans, t_processed[dm_range - 1][t] + maxshift * inBin[dm_range]);
 	  ( tsamp ) = ( tsamp ) * 2.0f;
@@ -293,16 +299,12 @@ namespace astroaccelerate {
 
 	if(dump_ddtr_output) {
 	  //Resize vector to contain the output array
-	  size_t total_samps = 0;
 	  chunk_idx = t;
-	  range_samples.resize(num_tchunks);
-	  for (int k = 0; k < num_tchunks; k++) {
-	    total_samps += t_processed[dm_range][k];
-	    range_samples.at(k) = t_processed[dm_range][k];
-	  }
-	  output_buffer.resize(total_samps);
+	  
+	  output_buffer.at(dm_range).resize(ndms[dm_range]); //There are ndms[dm_range] number of dm at this dm_range
 	  for (int k = 0; k < ndms[dm_range]; k++) {
-	    save_data_offset(d_output, k * t_processed[dm_range][t], output_buffer.data(), inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
+	    output_buffer.at(dm_range).at(k).resize(t_processed[dm_range][t]); //For the given dm_range, there are t_processed[dm_range][t] samples for each dm 
+	    save_data_offset(output_buffer[dm_range][k].data(), 0, d_output, k * t_processed[dm_range][t], sizeof(float) * t_processed[dm_range][t]);
 	  }
 
 	  if(dump_to_disk) {
@@ -312,11 +314,16 @@ namespace astroaccelerate {
 	    std::ofstream out;
 	    out.open(out_name.c_str(), std::ios::out | std::ios::app);
 	    if(out.is_open()) {
-	      for (int k = 0; k < ndms[dm_range]; k++) {
-		out << output_buffer[k];
+	      //Write to disk
+	      for(size_t k = 0 ; k < output_buffer.size(); k++) {
+		for(size_t j = 0; j < output_buffer.at(k).size(); j++) {
+		  for(size_t i = 0; i < output_buffer.at(k).at(j).size(); i++) {
+		    out << output_buffer.at(k).at(j).at(i);
+		  }
+		}
 	      }
+	      out.close();
 	    }
-	    out.close();
 	  }
 	}
 	checkCudaErrors(cudaGetLastError());

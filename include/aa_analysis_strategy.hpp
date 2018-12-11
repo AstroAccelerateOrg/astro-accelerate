@@ -142,7 +142,7 @@ namespace astroaccelerate {
     }
 
     bool setup() {
-      return m_ready;
+      return ready();
     }
 
     static bool print_info(const aa_analysis_strategy &strategy) {

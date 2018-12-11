@@ -50,13 +50,12 @@ int main() {
   
   aa_permitted_pipelines_1<aa_compute::module_option::zero_dm, false> runner(strategy, input_data.data());
   if(runner.setup()) {
-    std::vector<float> out;
+    std::vector<std::vector<std::vector<float>>> out;
     int chunk_idx = 0;
-    std::vector<int> range_samples;
     // The user should consume the output vector data
     // upon each iteration of .next(out), since
     // the vector memory is re-allocated for the next chunk.
-    while(runner.next(out, chunk_idx, range_samples)) {
+    while(runner.next(out, chunk_idx)) {
       std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
     }
     

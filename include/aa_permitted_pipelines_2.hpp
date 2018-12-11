@@ -87,7 +87,7 @@ namespace astroaccelerate {
     }
     
     bool cleanup() {
-      if(!memory_cleanup) {
+      if(memory_allocated && !memory_cleanup) {
 	cudaFree(d_input);
 	cudaFree(d_output);
 
