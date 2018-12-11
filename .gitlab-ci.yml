@@ -48,7 +48,7 @@ document:
   tags:
     - astraios
   script:
-    - zip docs.zip build/doc/
+    - zip -r docs.zip build/doc/
   artifacts:
     paths:
       - docs.zip
