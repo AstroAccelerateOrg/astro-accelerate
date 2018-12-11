@@ -4,6 +4,7 @@ stages:
   - build
   - test
   - run
+  - document
   
 build:
   stage: build
@@ -41,3 +42,14 @@ run:
     - ./astro-accelerate ../input_files/BenMeerKAT.txt
   dependencies:
     - build
+
+document:
+  stage: document
+  tags:
+    - astraios
+  script:
+    - zip docs.zip build/doc/
+  artifacts:
+    paths:
+      - docs.zip
+    expire_in: 1 day
