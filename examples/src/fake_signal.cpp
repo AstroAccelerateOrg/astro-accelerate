@@ -101,7 +101,7 @@ int main() {
   aa_device_info::print_card_info(selected_card_info);
   
   const size_t free_memory = selected_card_info.free_memory; // Free memory on the GPU in bytes
-  bool enable_analysis = true; 
+  bool enable_analysis = false; 
   aa_ddtr_strategy strategy(ddtr_plan, metadata, free_memory, enable_analysis);
 
   if(!(strategy.ready())) {
@@ -117,10 +117,9 @@ int main() {
 	shifts_index[i] = floor(dm_shifts[i]*dm_position/tsamp);
   }
 
-  std::cout << "dmshift: " << shifts_index[2047] << std::endl;
-  std::cout << "max_shift: " << strategy.maxshift() << std::endl;
+//  std::cout << "dmshift: " << shifts_index[2047] << std::endl;
+//  std::cout << "max_shift: " << strategy.maxshift() << std::endl;
 
-//  std::vector<unsigned short> input_data(nsamples*nchans);
   unsigned short* input_data;
   input_data = (unsigned short *)malloc(sizeof(unsigned short)*nsamples*nchans);
   fake_generate_data(input_data, scale_factor, shifts_index, func_width, signal_start, signal_max_pos, nchans);
@@ -128,42 +127,44 @@ int main() {
 //  for (int i = 0; i < nchans*nsamples; i++)
 //      if (input_data[i] != 0) std::cout << i << " " << input_data[i] << " ";
 
-  const float sigma_cutoff = 6.0;
-  const float sigma_constant = 4.0;
-  const float max_boxcar_width_in_sec = 0.05;
-  const aa_analysis_plan::selectable_candidate_algorithm algo = aa_analysis_plan::selectable_candidate_algorithm::off;
-
-  aa_analysis_plan analysis_plan(strategy, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, algo, false);
-  aa_analysis_strategy analysis_strategy(analysis_plan);
-
-  if(!(analysis_strategy.ready())) {
-    std::cout << "ERROR: analysis_strategy not ready." << std::endl;
-    return 0;
+  FILE *fp_out;
+  if (( fp_out = fopen("DD_data.dat", "wb") ) == NULL) {
+    fprintf(stderr, "Error opening output file!\n");
+    exit(0);
   }
-
-  aa_permitted_pipelines_2<aa_compute::module_option::zero_dm, false> runner(strategy, analysis_strategy, input_data);
+  	
+  aa_permitted_pipelines_1<aa_compute::module_option::empty, false> runner(strategy, input_data);
   if(runner.setup()) {
-    while(runner.next()) {
+    std::vector<float> out;
+    int chunk_idx = 0;
+    std::vector<int> range_samples;
+    // The user should consume the output vector data
+    // upon each iteration of .next(out), since
+    // the vector memory is re-allocated for the next chunk.
+    while(runner.next(out, chunk_idx, range_samples)) {
       std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
     }
-  }
 
-//  aa_permitted_pipelines_1<aa_compute::module_option::zero_dm, false> runner(strategy, input_data);
-//  if(runner.setup()) {
-//    std::vector<float> out;
-//    int chunk_idx = 0;
-//    std::vector<int> range_samples;
-//    // The user should consume the output vector data
-//    // upon each iteration of .next(out), since
-//    // the vector memory is re-allocated for the next chunk.
-//    while(runner.next(out, chunk_idx, range_samples)) {
-//      std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
+	std::cout << "Size of out " << out.size() << std::endl;
+    for(int i = 0; i < out.size(); i++)
+	fprintf(fp_out, "%.8lf\n", out.at(i));
+	
+//      if (out.at(i) != 0) std::cout << "output " << i << " " << out.at(i) << std::endl;
+
+    /* Alternative way of running dedispersion and dumping
+     * the output to disk.
+     * Enable the following lines and remove the above while loop to try it out.
+     */
+//    bool dump_to_disk = true;
+//    while(runner.next(dump_to_disk)) {
+//    std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
 //    }
-//  }
+  }
 
   free(scale_factor);
   free(shifts_index);
   free(input_data);
+  fclose(fp_out);
   std::cout << "NOTICE: Finished." << std::endl;
   return 0;
 }
