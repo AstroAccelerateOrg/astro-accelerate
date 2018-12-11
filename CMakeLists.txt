@@ -11,8 +11,20 @@ if(NOT ASTRO_ACCELERATE_BUILD_DATE_UTC)
 set(ASTRO_ACCELERATE_BUILD_DATE_UTC "EMPTY")
 endif()
 
-# Find Git and Git info
+# Setup Doxygen
+cmake_policy(SET CMP0012 NEW)
+option(ENABLE_DOCS "Enable docs" OFF)
+if(${ENABLE_DOCS})
+	message("-- INFO: DOCS enabled.")
+	set(doc_all_target "ALL")
+	if(NOT DOC_INSTALL_DIR)
+	       set (DOC_INSTALL_DIR ${MODULES_INSTALL_DIR}/doc)
+	       message("-- INFO: DOC_INSTALL_DIR ${DOC_INSTALL_DIR}")
+	endif(NOT DOC_INSTALL_DIR)
+	include(cmake/doxygen.cmake)
+endif()
 
+# Find Git and Git info
 find_package(Git)
 if(GIT_FOUND)
   message("-- INFO: Git found: ${GIT_EXECUTABLE}")
@@ -153,7 +165,6 @@ target_link_libraries(${PROJECT_NAME} astroaccelerate)
 install(TARGETS astroaccelerate DESTINATION bin)
 
 # Add tests/ directory
-cmake_policy(SET CMP0012 NEW)
 option(ENABLE_TESTS "Enable tests" OFF)
 if(${ENABLE_TESTS})
 	message(STATUS "INFO: ENABLE_TESTS ON")
