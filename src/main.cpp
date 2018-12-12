@@ -1,10 +1,16 @@
-//
-//  main.cpp
-//  aapipeline
-//
-//  Created by Cees Carels on Monday 22/10/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
+/*! \mainpage AstroAccelerate
+ *
+ * \section intro_sec Introduction
+ *
+ * AstroAccelerate is a many core accelerated software package for processing time domain radio-astronomy data.
+ *
+ * \section install_sec Usage Guide
+ * Please refer to the README.md included in the repository for instructions.
+ *
+ * \section contact_sec Contact
+ * Please see contact details in the repository.
+ * 
+ */
 
 #include "aa_config.hpp"
 #include "aa_pipeline.hpp"
