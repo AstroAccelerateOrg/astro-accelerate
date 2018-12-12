@@ -6,6 +6,7 @@
 
 namespace astroaccelerate {
 
+  /** \brief Computes a simple harmonic sum for periodicity. */
 void periodicity_simple_harmonic_summing_old(float *d_input, float *d_output_SNR, ushort *d_output_harmonics, float *d_MSD, int nTimesamples, int nSpectra, int nHarmonics){
 	//---------> Task specific
 	int nBlocks_x, nBlocks_y;

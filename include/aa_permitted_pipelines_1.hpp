@@ -222,7 +222,7 @@ namespace astroaccelerate {
       return true;
     }
 
-    inline void save_data_offset(float *host_pointer, int host_offset, float *device_pointer, int device_offset, size_t size) {
+    inline void save_data_offset(float *const host_pointer, const int host_offset, float *const device_pointer, const int device_offset, const size_t size) {
       cudaMemcpy(host_pointer + host_offset, device_pointer + device_offset, size, cudaMemcpyDeviceToHost);
     }
 
@@ -304,7 +304,7 @@ namespace astroaccelerate {
 	  output_buffer.at(dm_range).resize(ndms[dm_range]); //There are ndms[dm_range] number of dm at this dm_range
 	  for (int k = 0; k < ndms[dm_range]; k++) {
 	    output_buffer.at(dm_range).at(k).resize(t_processed[dm_range][t]); //For the given dm_range, there are t_processed[dm_range][t] samples for each dm 
-	    save_data_offset(output_buffer[dm_range][k].data(), 0, d_output, k * t_processed[dm_range][t], sizeof(float) * t_processed[dm_range][t]);
+	    save_data_offset(output_buffer[dm_range][k].data(), inc/inBin[dm_range], d_output, k * t_processed[dm_range][t], sizeof(float) * t_processed[dm_range][t]);
 	  }
 
 	  if(dump_to_disk) {
@@ -318,7 +318,7 @@ namespace astroaccelerate {
 	      for(size_t k = 0 ; k < output_buffer.size(); k++) {
 		for(size_t j = 0; j < output_buffer.at(k).size(); j++) {
 		  for(size_t i = 0; i < output_buffer.at(k).at(j).size(); i++) {
-		    out << output_buffer.at(k).at(j).at(i);
+		    //out << output_buffer.at(k).at(j).at(i);
 		  }
 		}
 	      }
