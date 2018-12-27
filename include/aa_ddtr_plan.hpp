@@ -80,7 +80,7 @@ public:
   }
     
 private:
-  std::vector<dm> m_user_dm; //**< Storage for all supplied dm properties. */
+  std::vector<dm> m_user_dm; /**< Storage for all supplied dm properties. */
   
 };
 
