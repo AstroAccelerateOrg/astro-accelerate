@@ -24,9 +24,17 @@
 #include "aa_device_memory_manager.hpp"
 
 namespace astroaccelerate {
-  
+
+  /** \class aa_analysis_strategy aa_analysis_strategy.hpp "include/aa_analysis_strategy.hpp"
+   * \brief Class to configure an analysis strategy.
+   * \details An analysis strategy is required for running any pipeline that will run the analysis module aa_compute::module::analysis.
+   * \details It is expected behaviour that the configuration values of the strategy may be different than those of the corresponding plan.
+   * \author Cees Carels.
+   * \date 23 October 2018.
+   */  
   class aa_analysis_strategy : public aa_strategy {
   public:
+    /** \brief Trivial constructor for aa_analysis_strategy. */
     aa_analysis_strategy() : m_sigma_cutoff(0),
 			     m_sigma_constant(0),
 			     m_max_boxcar_width_in_sec(0),
@@ -39,6 +47,13 @@ namespace astroaccelerate {
       
     }
     
+    /** \brief Constructor for aa_analysis_strategy. All parameters must be provided once on construction.
+     * \details This constructor is intended to be used when analysis is to be run in isolation, i.e. without running AstroAccelerate's implementation of ddtr.
+     * \details In this case, a separate aa_filterbank_metadata must be supplied.
+     * \TODO This functionality is not yet implemented so this constructor still sets m_ready(false) in the initialiser list.
+     * \warning This functionality is not yet implemented.
+     * \details If the user intends to run the AstroAccelerate implementation of ddtr, then they should use the other non-trivial constructor.
+     */
     aa_analysis_strategy(const aa_analysis_plan &analysis_plan, const aa_filterbank_metadata &metadata) : m_metadata(metadata),
 													  m_sigma_cutoff(analysis_plan.sigma_cutoff()),
 													  m_sigma_constant(analysis_plan.sigma_constant()),
@@ -49,21 +64,12 @@ namespace astroaccelerate {
 													  m_candidate_algorithm(analysis_plan.candidate_algorithm()),
 													  m_enable_sps_baseline_noise(analysis_plan.enable_sps_baseline_noise()),
 													  m_ready(false) {
-      /**
-       * Constructor for aa_analysis_strategy.
-       * This constructor is intended to be used when analysis is to be run in isolation,
-       * that is without having run the AstroAccelerate implementation of ddtr.
-       * In this case, a separate aa_filterbank_metadata must be supplied.
-       * NOTICE: This functionality is not yet implemented.
-       * 
-       * If the user intends to run the AstroAccelerate implementation of ddtr, then they should use
-       * the constructor that accepts an aa_ddtr_strategy object, as defined below:
-       * aa_analysis_strategy::aa_analysis_strategy(const aa_analysis_plan &plan, const aa_ddtr_strategy &ddtr_strategy)
-       *
-       */
-      
     }
 
+    /** \brief Constructor for aa_analysis_strategy.
+     * \details This constructor is intended to be used when ddtr has also been used.
+     * \details Since it uses the aa_filterbank_metadata from ddtr_strategy, the state of aa_analysis_strategy stays consistent with that of aa_ddtr_strategy.
+     */
     aa_analysis_strategy(const aa_analysis_plan &analysis_plan) : m_metadata(analysis_plan.ddtr_strategy().metadata()),
 								  m_sigma_cutoff(analysis_plan.sigma_cutoff()),
 								  m_sigma_constant(analysis_plan.sigma_constant()),
@@ -74,12 +80,6 @@ namespace astroaccelerate {
 								  m_candidate_algorithm(analysis_plan.candidate_algorithm()),
 								  m_enable_sps_baseline_noise(analysis_plan.enable_sps_baseline_noise()),
 								  m_ready(false) {
-      /**
-       * Constructor for aa_analysis_strategy.
-       * This constructor is intended to be used when ddtr has also been used.
-       * Since it uses the aa_filterbank_metadata from ddtr_strategy, the state aa_analysis_strategy
-       * stays consistent with that of aa_ddtr_strategy.
-       */
       if(analysis_plan.ddtr_strategy().configured_for_analysis()) {
 	stratagy_MSD(analysis_plan.ddtr_strategy().max_ndms(),
 		     analysis_plan.max_boxcar_width_in_sec(),
@@ -89,34 +89,42 @@ namespace astroaccelerate {
       }
     }
 
+    /** \returns the name of this strategy type. */
     std::string name() const {
       return "analysis_strategy";
     }
     
+    /** \returns the sigma_cutoff determined by the strategy. */
     float sigma_cutoff() const {
       return m_sigma_cutoff;
     }
     
+    /** \returns the sigma_constant determined by the strategy. */
     float sigma_constant() const {
       return m_sigma_constant;
     }
 
+    /** \returns the max_boxcar_width_in_sec determined by the strategy. */
     float max_boxcar_width_in_sec() const {
       return m_max_boxcar_width_in_sec;
     }
     
+    /** \returns the MSD_data_info determined by the strategy. */ 
     unsigned long int MSD_data_info() const {
       return m_MSD_data_info;
     }
     
+    /** \returns the MSD_profile_size_in_bytes determined by the strategy. */
     size_t MSD_profile_size_in_bytes() const {
       return m_MSD_profile_size_in_bytes;
     }
     
+    /** \returns the h_MSD_DIT_width determined by the strategy. */
     int h_MSD_DIT_width() const {
       return m_h_MSD_DIT_width;
     }
 
+    /** \returns an integer to indicate whether the candidate algorithm will be enabled or disabled. 0 for off, and 1 for on. */
     int candidate_algorithm() const {
       switch(m_candidate_algorithm) {
       case aa_analysis_plan::selectable_candidate_algorithm::off:
@@ -133,18 +141,25 @@ namespace astroaccelerate {
       return 0;
     }
 
+    /** \returns an integer to indicate whether the sps baseline noise reduction algorithm will be enabled or disabled. 0 for off (false), 1 for on (true). */
     int enable_sps_baseline_noise() const {
       return (m_enable_sps_baseline_noise) ? 1 : 0;
     }
 
+    /** \returns The boolean ready state of the strategy, which confirms whether the strategy is valid.
     bool ready() const {
       return m_ready;
     }
 
+    /** \brief Provides a facility to perform any last setup.
+    * \details Currently only the ready-state is needed. 
+    * \returns A boolean to indicate whether the setup was successful.
+    */
     bool setup() {
       return ready();
     }
-
+    
+    /** \brief A static member function that prints out the values of the member variables of an instance of aa_analysis_strategy. */
     static bool print_info(const aa_analysis_strategy &strategy) {
       std::cout << "ANALYSIS STRATEGY INFORMATION:" << std::endl;
       std::cout << "analysis sigma_cutoff:\t\t\t" << strategy.sigma_cutoff() <<std::endl;
@@ -159,16 +174,16 @@ namespace astroaccelerate {
     }
     
   private:
-    aa_filterbank_metadata m_metadata;
-    float             m_sigma_cutoff;
-    float             m_sigma_constant;
-    float             m_max_boxcar_width_in_sec;
-    unsigned long int m_MSD_data_info;
-    size_t            m_MSD_profile_size_in_bytes;
-    int               m_h_MSD_DIT_width;
-    aa_analysis_plan::selectable_candidate_algorithm m_candidate_algorithm;
-    bool              m_enable_sps_baseline_noise;
-    bool              m_ready;
+    aa_filterbank_metadata m_metadata; /**< The filterbank metadata for an instance of aa_analysis_strategy. */
+    float             m_sigma_cutoff; /**< The sigma_cutoff initially set by aa_analysis_plan, and modified as needed by an instance of aa_analysis_strategy. */
+    float             m_sigma_constant; /**< The sigma_constant initially set by the aa_analysis_plan, and modified as needed by an instance of aa_analysis_strategy. */
+    float             m_max_boxcar_width_in_sec; /**< Strategy determined m_max_boxcar_width_in_sec. */
+    unsigned long int m_MSD_data_info; /**< Strategy determined MSD_data_info. */
+    size_t            m_MSD_profile_size_in_bytes; /**< Strategy determined MSD_profile_size_in_bytes. */
+    int               m_h_MSD_DIT_width; /**< Strategy determined h_MSD_DIT_width. */
+    aa_analysis_plan::selectable_candidate_algorithm m_candidate_algorithm; /**< Flag for selecting candidate algorithm (currently on/off). */
+    bool              m_enable_sps_baseline_noise; /**< Flag for enabling/disabling sps_baseline_noise reduction algorithm. */
+    bool              m_ready; /**< Ready state for an instance of aa_analysis_strategy. */
     
     void Create_list_of_boxcar_widths2(std::vector<int> *boxcar_widths, std::vector<int> *BC_widths){
       int DIT_value, DIT_factor, width;
