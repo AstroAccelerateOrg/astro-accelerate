@@ -1,13 +1,5 @@
-//
-//  aa_device_init.hpp
-//  aapipeline
-//
-//  Created by Cees Carels on Thursday 01/11/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
-#ifndef ASTRO_ACCELERATE_DEVICE_INFO_HPP
-#define ASTRO_ACCELERATE_DEVICE_INFO_HPP
+#ifndef ASTRO_ACCELERATE_AA_DEVICE_INFO_HPP
+#define ASTRO_ACCELERATE_AA_DEVICE_INFO_HPP
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -20,9 +12,20 @@
 #include "version.h"
 #endif
 
+/** \class aa_device_info aa_device_info.hpp "include/aa_device_info.hpp" 
+ * \brief Obtain information about available GPUs and select the GPU to use for data processing.
+ * \author Cees Carels.
+ * \date 1 November 2018.
+ * \todo Make this class a singleton.
+ */
+
 class aa_device_info {
 public:
   typedef int CARD_ID;
+
+  /** \struct aa_card_info
+   * \brief Struct to contain CUDA card information.
+   */
   struct aa_card_info {
     int compute_capability_major;
     int compute_capability_minor;
@@ -39,10 +42,19 @@ public:
     std::string name;
   };
 
+  /** \brief Checks for GPUs on the machine.
+   * \details This is an overloaded function without parameters.
+   * \details All card information is contained inside the member variable m_card_info.
+   * \returns A boolean to indicate whether this operation was successful.
+   */
   bool check_for_devices() {
     return check_for_devices(m_card_info);
   }
     
+  /** \brief Checks for GPUs on the machine.
+   * \details Provides the information back to the user via the card_info parameters.
+   * \returns A boolean to indicate whether this operation was successful.
+   */
   bool check_for_devices(std::vector<aa_card_info> &card_info) {
     m_card_info.clear(); //Clear the vector, so that in case check_for_devices is called multiple times, it does not push_back multiple entries
     int deviceCount = 0;
@@ -102,6 +114,7 @@ public:
     return true;
   }
     
+  /** \returns A boolean to indicate whether selecting the card was successful. */
   bool init_card(const CARD_ID &id, aa_card_info &card_info) {
     if(!is_init) {
       return false;
@@ -139,6 +152,7 @@ public:
     return true;
   }
     
+  /** \returns The currently available free memory on the currently selected GPU. */
   size_t gpu_memory() const {
     if(is_init) {
       return m_card_info.at(selected_card_idx).free_memory;
@@ -147,6 +161,7 @@ public:
     return 0;
   }
 
+  /** \brief Static method for printing member data for an instance of aa_card_info. */
   static bool print_card_info(const aa_card_info &card) {
     std::cout << "CARD INFORMATION:" << std::endl;
     std::cout << "Name:\t\t\t" << card.name << std::endl;
@@ -166,9 +181,9 @@ public:
   }
   
 private:
-  bool is_init;
-  std::vector<aa_card_info> m_card_info;
-  size_t selected_card_idx;  //Index into card_info for the current selected card.
+  bool is_init; /**< Flag to indicate whether cards on the machine have been checked/initialised. */
+  std::vector<aa_card_info> m_card_info; /** Stores all card information for all cards on the machine. */
+  size_t selected_card_idx;  /**< Index into m_card_info for the current selected card. */
 };
 
-#endif /* ASTRO_ACCELERATE_DEVICE_INFO_HPP */
+#endif /* ASTRO_ACCELERATE_AA_DEVICE_INFO_HPP */

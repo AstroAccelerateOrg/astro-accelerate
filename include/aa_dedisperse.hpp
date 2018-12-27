@@ -1,11 +1,3 @@
-//
-//  aa_dedisperse.hpp
-//  aapipeline
-//
-//  Created by Cees Carels on Monday 05/11/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
 #ifndef ASTRO_ACCELERATE_DEDISPERSE_HPP
 #define ASTRO_ACCELERATE_DEDISPERSE_HPP
 
