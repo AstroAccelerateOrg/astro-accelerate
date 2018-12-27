@@ -14,7 +14,7 @@
 
 class aa_ddtr_plan {
 public:
-  /** Constructor for aa_ddtr_plan. */
+  /** \brief Constructor for aa_ddtr_plan. */
   aa_ddtr_plan() {
       
   }

@@ -16,54 +16,92 @@
 
 namespace astroaccelerate {
 
+  /** \struct aa_CLI
+   * \brief A struct to contain a std::vector of command line argument strings.
+   */
   struct aa_CLI {
     std::vector<std::string> input;
   };
 
+  /** \struct aa_config_flags 
+   * \brief A struct to contain all configurations from an input file.
+   */
   struct aa_config_flags {
-    float narrow;
-    float wide;
-    float aggression;
-    float nsearch;
-    float power;
-    float sigma_cutoff;
-    float sigma_constant;
-    float max_boxcar_width_in_sec;
-    float periodicity_sigma_cutoff; //Should this be int or float?
+    float narrow;                   /**< Narrow setting. */
+    float wide;                     /**< Wide setting. */
+    float aggression;               /**< Aggression setting. */
+    float nsearch;                  /**< Number of searches. */
+    float power;                    /**< Power setting. */
+    float sigma_cutoff;             /**< Sigma cutoff setting. */
+    float sigma_constant;           /**< Sigma constant setting. */
+    float max_boxcar_width_in_sec;  /**< Boxcar width in seconds setting. */
+    float periodicity_sigma_cutoff; /**< Periodicity sigma cutoff setting. Should this be int or float? */
   
-    int multi_file;
-    int output_dmt;
-    int nboots;
-    int ntrial_bins;
-    int navdms;
-    int range;
-    int candidate_algorithm;
-    int nb_selected_dm;
-    int failsafe;
-    int periodicity_nHarmonics;
+    int multi_file;                 /**< Multi file setting. This looks like it is deprecated. */
+    int output_dmt;                 /**< Enables or disables ddtr output to disk. */
+    int nboots;                     /**< nboots setting. */
+    int ntrial_bins;                /**< Number of bins for a dm trial. */
+    int navdms;                     /**< navdms setting. */
+    int range;                      /**< Range setting incremented to be the total number of user selected dm ranges. */
+    int candidate_algorithm;        /**< Enables or disables use of candidate algorithm for analysis. */
+    int nb_selected_dm;             /**< Incremented to be the total number of user selected dm ranges. Looks like a legacy duplicate of range. */
+    int failsafe;                   /**< Flag to select the failsafe algorithm for dedispersion. */
+    int periodicity_nHarmonics;     /**< Number of harmonics setting for periodicity. */
   
-    std::vector<aa_compute::debug> user_debug;
+    std::vector<aa_compute::debug> user_debug; /**< std::vector of debug flags. */
   };
 
+  /**
+   * \class aa_config aa_config.hpp "include/aa_config.hpp"
+   * \brief Class to set up configuration flags.
+   * \brief The configuration can be defined by a library user.
+   * \brief Or, it can be configured from an input file.
+   * \details A configuration is required in order to construct a pipeline object.
+   * \details The pipeline object is described in aa_pipeline.
+   * \author Cees Carels.
+   * \date 5 November 2018.
+   */
+  
   class aa_config {
   public:
+    /** \brief Constructor for aa_config to configure from an input file for the standalone executable.
+     * \brief The aa_CLI parameter cli_input is used to supply all command line interface arguments.
+     * \detail This must at least contain the full path to an input file.
+     * \detail If using AstroAccelerate as a library user, then use the other constructor of the aa_config class.
+     */
     aa_config(const aa_CLI &cli_input) : configure_from_file(true), user_cli(cli_input) {
-        
+      
     }
     
+    /** \brief Constructor for aa_config to configure via a user requested aa_compute::pipeline object.
+     * \detail The aa_compute::pipeline object contains the user requested pipeline modules to be run.
+     * \detail Use this constructor when using AstroAccelerate as a library user.
+     */
     aa_config(aa_compute::pipeline &user_pipeline) : configure_from_file(false), m_pipeline(user_pipeline) {
         
     }
 
+    /** \brief Overloaded function that simplifies the setup method.
+     * \detail A library user can check the validity of a pipeline by creating a new aa_config object as a library user, and calling this method.
+     * \detail Alternatively, the library user can choose not to use aa_config at all.
+     * \detail This method cannot be used in conjunction with reading an input file for the stnadalone.
+     * \returns A pipeline object that is either valid or empty if it is not valid.
+     */
     const aa_compute::pipeline setup() {
       return setup(m_ddtr_plan, flg, m_pipeline_details, fpath);
     }
   
-    //This specialisation of the setup method happens only if reading from an input_file
+    /** \brief Sets up the pipeline flags and ddtr_plan.
+     * \detail This method is useful mainly for the standalone code, since library users can configure the supplied parameters themselves.
+     * \detail If a library user wishes to use an input file for configuration, then they use this setup method.
+     * \detail The method checks whether the aa_config was constructed from an input file or not, and if so it sets the provided plan and flags.
+     * \detail If the aa_config object was constructed without an input file path, then this module only checks whether the supplied pipeline is valid.
+     * \returns A pipeline object that is either valid or empty if it is not valid. 
+     */
     const aa_compute::pipeline setup(aa_ddtr_plan &ddtr_plan, aa_config_flags &user_flags, aa_compute::pipeline_detail &pipeline_details, std::string &file_path) {
       if(configure_from_file) {
-	if(get_user_input()) {
-	  if(aa_permitted_pipelines::is_permitted(m_pipeline)) {
+	if(get_user_input()) { //Read user input from text input file and set flag object.
+	  if(aa_permitted_pipelines::is_permitted(m_pipeline)) { //get_user_input has configured m_pipeline, so now its validity can be checked.
 	    ddtr_plan = m_ddtr_plan;
 	    file_path = fpath;
 	    user_flags = flg;
@@ -96,14 +134,18 @@ namespace astroaccelerate {
     }
     
   protected:
-    bool configure_from_file;
-    std::string fpath;
-    aa_config_flags flg;  // configuration flags
-    aa_compute::pipeline        m_pipeline;
-    aa_compute::pipeline_detail m_pipeline_details;
-    aa_CLI user_cli;
-    aa_ddtr_plan m_ddtr_plan;
+    bool configure_from_file; //Boolean flag to indicate on construction whether an input file will be used for configuration.
+    std::string fpath; //Path to the input data file.
+    aa_config_flags flg;  //Configuration flags
+    aa_compute::pipeline        m_pipeline; //The pipeline object that is configured by an instance of this class using an input file. 
+    aa_compute::pipeline_detail m_pipeline_details; //The pipeline settings configured by an instance of this class using an input file.
+    aa_CLI user_cli; //The user supplied Command Line Interface settings.
+    aa_ddtr_plan m_ddtr_plan; //The ddtr_plan that is configured by an instance of this class using an input file.
     
+    /** \brief Reads an input text file.
+     * \detail Parses the string content of the file, sets the user flags, pipeline modules, and pipeline details.
+     * \warning This function always adds aa_compute::modules::dedispersion to the m_pipeline because the stnadalone always performs dedispersion.
+     */
     bool get_user_input() {
       const size_t argc = user_cli.input.size();
         
