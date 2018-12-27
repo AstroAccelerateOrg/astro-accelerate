@@ -5,7 +5,7 @@
 #include <vector>
 
 /**
- * \class aa_ddtr_plan aa_ddtr_plan.h "include/aa_ddtr_plan.h"
+ * \class aa_ddtr_plan aa_ddtr_plan.hpp "include/aa_ddtr_plan.hpp"
  * \brief Class to set a ddtr plan.
  * \details A ddtr plan is required in order to create a ddtr strategy.
  * \author Cees Carels.
