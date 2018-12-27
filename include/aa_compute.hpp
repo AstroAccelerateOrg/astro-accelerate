@@ -5,36 +5,45 @@
 #include <string>
 namespace astroaccelerate {
   namespace aa_compute {
+    /** \enum debug
+     * \brief Contains debug flags.
+     */
     enum class debug : int {
 			    debug = 0,
 			    analysis
     };
-        
+    
+    /** \enum modules
+     * \brief Contains the selectable modules.
+     */
     enum class modules : int {
-			      empty = 0,
-			      dedispersion,
-			      analysis,
-			      periodicity,
-			      fdas,
+      empty = 0,
+	dedispersion,
+	analysis,
+	periodicity,
+	fdas,
     };
 
+    /** \enum module_options
+     * \brief Contains options for modules.
+     */
     enum class module_option : int {
-				    empty = 0,
-				    zero_dm,
-				    zero_dm_with_outliers,
-				    rfi,
-				    old_rfi,
-				    sps_baseline_noise,
-				    output_dmt,
-				    output_ffdot_plan,
-				    output_fdas_list,
-				    candidate_algorithm,
-				    fdas_custom_fft,
-				    fdas_inbin,
-				    fdas_norm
+      empty = 0, //< The trivial module.
+	zero_dm,
+	zero_dm_with_outliers,
+	rfi,
+	old_rfi,
+	sps_baseline_noise,
+	output_dmt, //< Switches on output of ddtr to disk.
+	output_ffdot_plan, //< Switches on output of ffdot_plan to disk.
+	output_fdas_list, //< Switches on output of fdas_list to disk.
+	candidate_algorithm, //< Enables/disables the candidate_algorithm
+	fdas_custom_fft, //< Switches on output of custom_fft.
+	fdas_inbin, //< Switches on inbin for fdas.
+	fdas_norm //< Switches on norm for fdas.
     };
 
-    //Function to convert module types into strings so that the user can query the pipeline
+    /** \brief Function to convert module types into strings so that the user can query the pipeline. */
     inline const std::string module_name(const aa_compute::modules &module) {
       switch (module) {
       case modules::empty:
@@ -58,8 +67,8 @@ namespace astroaccelerate {
       }
     }
     
-    typedef std::set<aa_compute::modules> pipeline;
-    typedef std::set<aa_compute::module_option> pipeline_detail;
+    typedef std::set<aa_compute::modules> pipeline; /**< A pipeline is a collection of modules. */
+    typedef std::set<aa_compute::module_option> pipeline_detail; /**< All pipeline options are contained in the pipeline_detail. */
     
   }//namespace aa_compute
 }//namespace astroaccelerate
