@@ -1,11 +1,3 @@
-//
-//  aa_device_load_data.hpp
-//  aapipeline
-//
-//  Created by Cees Carels on Friday 02/11/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
 #ifndef ASTRO_ACCELERATE_DEVICE_LOAD_DATA_HPP
 #define ASTRO_ACCELERATE_DEVICE_LOAD_DATA_HPP
 
