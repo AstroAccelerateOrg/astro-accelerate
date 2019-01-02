@@ -66,25 +66,25 @@ namespace astroaccelerate {
   public:
     /** \brief Constructor for aa_config to configure from an input file for the standalone executable.
      * \brief The aa_CLI parameter cli_input is used to supply all command line interface arguments.
-     * \detail This must at least contain the full path to an input file.
-     * \detail If using AstroAccelerate as a library user, then use the other constructor of the aa_config class.
+     * \details This must at least contain the full path to an input file.
+     * \details If using AstroAccelerate as a library user, then use the other constructor of the aa_config class.
      */
     aa_config(const aa_CLI &cli_input) : configure_from_file(true), user_cli(cli_input) {
       
     }
     
     /** \brief Constructor for aa_config to configure via a user requested aa_compute::pipeline object.
-     * \detail The aa_compute::pipeline object contains the user requested pipeline modules to be run.
-     * \detail Use this constructor when using AstroAccelerate as a library user.
+     * \details The aa_compute::pipeline object contains the user requested pipeline modules to be run.
+     * \details Use this constructor when using AstroAccelerate as a library user.
      */
     aa_config(aa_compute::pipeline &user_pipeline) : configure_from_file(false), m_pipeline(user_pipeline) {
         
     }
 
     /** \brief Overloaded function that simplifies the setup method.
-     * \detail A library user can check the validity of a pipeline by creating a new aa_config object as a library user, and calling this method.
-     * \detail Alternatively, the library user can choose not to use aa_config at all.
-     * \detail This method cannot be used in conjunction with reading an input file for the stnadalone.
+     * \details A library user can check the validity of a pipeline by creating a new aa_config object as a library user, and calling this method.
+     * \details Alternatively, the library user can choose not to use aa_config at all.
+     * \details This method cannot be used in conjunction with reading an input file for the stnadalone.
      * \returns A pipeline object that is either valid or empty if it is not valid.
      */
     const aa_compute::pipeline setup() {
@@ -92,10 +92,10 @@ namespace astroaccelerate {
     }
   
     /** \brief Sets up the pipeline flags and ddtr_plan.
-     * \detail This method is useful mainly for the standalone code, since library users can configure the supplied parameters themselves.
-     * \detail If a library user wishes to use an input file for configuration, then they use this setup method.
-     * \detail The method checks whether the aa_config was constructed from an input file or not, and if so it sets the provided plan and flags.
-     * \detail If the aa_config object was constructed without an input file path, then this module only checks whether the supplied pipeline is valid.
+     * \details This method is useful mainly for the standalone code, since library users can configure the supplied parameters themselves.
+     * \details If a library user wishes to use an input file for configuration, then they use this setup method.
+     * \details The method checks whether the aa_config was constructed from an input file or not, and if so it sets the provided plan and flags.
+     * \details If the aa_config object was constructed without an input file path, then this module only checks whether the supplied pipeline is valid.
      * \returns A pipeline object that is either valid or empty if it is not valid. 
      */
     const aa_compute::pipeline setup(aa_ddtr_plan &ddtr_plan, aa_config_flags &user_flags, aa_compute::pipeline_detail &pipeline_details, std::string &file_path) {
@@ -143,7 +143,7 @@ namespace astroaccelerate {
     aa_ddtr_plan m_ddtr_plan; //The ddtr_plan that is configured by an instance of this class using an input file.
     
     /** \brief Reads an input text file.
-     * \detail Parses the string content of the file, sets the user flags, pipeline modules, and pipeline details.
+     * \details Parses the string content of the file, sets the user flags, pipeline modules, and pipeline details.
      * \warning This function always adds aa_compute::modules::dedispersion to the m_pipeline because the stnadalone always performs dedispersion.
      */
     bool get_user_input() {

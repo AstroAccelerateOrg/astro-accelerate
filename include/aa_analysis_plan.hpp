@@ -8,7 +8,7 @@
 namespace astroaccelerate {
   /** \class aa_analysis_plan aa_analysis_plan.hpp "include/aa_analysis_plan.hpp"
    * \brief Class to set an aa_analysis_plan.
-   * \detail An analysis plan is required in order to create an analsyis strategy.   
+   * \details An analysis plan is required in order to create an analsyis strategy.   
    * \author Cees Carels.
    * \date 23 October 2018.
    */
@@ -21,14 +21,14 @@ namespace astroaccelerate {
     };
     
     /** \brief Trivial constructor for aa_analysis_plan.
-     * \detail A trivial is used to return trivial plans which can only create strategies which cannot be ready.
+     * \details A trivial is used to return trivial plans which can only create strategies which cannot be ready.
      */
     aa_analysis_plan() {
       
     }
     
     /** \brief Constructor for aa_analysis_plan.
-     * \detail All parameters must be provided on construction and can only be set on construction.
+     * \details All parameters must be provided on construction and can only be set on construction.
      */
     aa_analysis_plan(const aa_ddtr_strategy &ddtr_strategy,
 		     const float &sigma_cutoff,
