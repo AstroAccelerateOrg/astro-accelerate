@@ -44,7 +44,7 @@ namespace astroaccelerate {
       return empty;
     }
   protected:
-    bool isopen; /**! Flag to indicate whether the input source is open. */
+    bool isopen; /** Flag to indicate whether the input source is open. */
   };
 
 } //namespace astroaccelerate

@@ -56,19 +56,19 @@ namespace astroaccelerate {
     
     
   private:
-    bool get_file_data(aa_filterbank_metadata &metadata); /**! Reads the metadata from the filterbank input file. */
+    bool get_file_data(aa_filterbank_metadata &metadata); /** Reads the metadata from the filterbank input file. */
     
     std::vector<unsigned short> m_input_buffer; /** Stores the data in the sigproc file. */
     
     template <typename T>
     bool get_recorded_data(std::vector<T> &input_buffer);
-    bool header_is_read; /**! Flag to indicate whether the input file header (metadata) has been read. */
-    bool data_is_read; /**! Flag to indicate whether the input file data has been read. */
+    bool header_is_read; /** Flag to indicate whether the input file header (metadata) has been read. */
+    bool data_is_read; /** Flag to indicate whether the input file data has been read. */
     
-    aa_filterbank_metadata m_meta; /**! Stores the metadata associated with the input file. */
+    aa_filterbank_metadata m_meta; /** Stores the metadata associated with the input file. */
     
-    std::string file_path; /**! Stores the file path to the input file. */
-    FILE *fp; /**! File pointer to the input file. */
+    std::string file_path; /** Stores the file path to the input file. */
+    FILE *fp; /** File pointer to the input file. */
     
   };
 

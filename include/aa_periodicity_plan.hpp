@@ -72,12 +72,12 @@ namespace astroaccelerate {
     }
     
   private:
-    float m_sigma_cutoff; /**! User selected sigma_cutoff. */
-    float m_OR_sigma_multiplier; /**! User selected OR_sigma_multiplier. */
-    int   m_nHarmonics; /**! User selected nHarmonics. */
-    int   m_export_powers; /**! User selected export_powers. */
-    bool  m_candidate_algorithm; /**! User selected flag to enable or disable the use of the candidate_algorithm. */
-    bool  m_enable_outlier_rejection; /**! User selected flag to enable or disable outlier rejection. */
+    float m_sigma_cutoff; /** User selected sigma_cutoff. */
+    float m_OR_sigma_multiplier; /** User selected OR_sigma_multiplier. */
+    int   m_nHarmonics; /** User selected nHarmonics. */
+    int   m_export_powers; /** User selected export_powers. */
+    bool  m_candidate_algorithm; /** User selected flag to enable or disable the use of the candidate_algorithm. */
+    bool  m_enable_outlier_rejection; /** User selected flag to enable or disable outlier rejection. */
   };
 }
 

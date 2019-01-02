@@ -124,14 +124,14 @@ namespace astroaccelerate {
     }
     
   private:
-    float m_sigma_cutoff; /**! Strategy determined sigma_cutoff. */
-    float m_OR_sigma_multiplier; /**! Strategy determined OR_sigma_multiplier. */
-    int   m_nHarmonics; /**! Strategy determined nHarmonics. */
-    int   m_export_powers; /**! Strategy determined export_powers. */
-    bool  m_candidate_algorithm; /**! Strategy determined candidate algorithm flag. */
-    bool  m_enable_outlier_rejection; /**! Strategy determined outlier rejection flag. */
+    float m_sigma_cutoff; /** Strategy determined sigma_cutoff. */
+    float m_OR_sigma_multiplier; /** Strategy determined OR_sigma_multiplier. */
+    int   m_nHarmonics; /** Strategy determined nHarmonics. */
+    int   m_export_powers; /** Strategy determined export_powers. */
+    bool  m_candidate_algorithm; /** Strategy determined candidate algorithm flag. */
+    bool  m_enable_outlier_rejection; /** Strategy determined outlier rejection flag. */
 
-    bool m_ready; /**! Ready state of the instance. */
+    bool m_ready; /** Ready state of the instance. */
   };
 
 } //namespace astroaccelerate

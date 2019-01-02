@@ -14,8 +14,8 @@ namespace astroaccelerate {
    */
   class aa_strategy {
   public:
-    virtual bool        setup()       = 0; /**! \brief Setup the strategy. \returns A boolean flag to indicate whether the operation was successful. */
-    virtual std::string name()  const = 0; /**! \returns The name of the module. */
+    virtual bool        setup()       = 0; /** \brief Setup the strategy. \returns A boolean flag to indicate whether the operation was successful. */
+    virtual std::string name()  const = 0; /** \returns The name of the module. */
   private:
   
   };
