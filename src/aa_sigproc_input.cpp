@@ -2,16 +2,22 @@
 
 namespace astroaccelerate {
 
+  /** \brief Constructor for aa_sigproc_input. */
   aa_sigproc_input::aa_sigproc_input(const std::string &path) : header_is_read(false), data_is_read(false), file_path(path) {
     isopen = false;
   }
 
+  /** \brief Destructor for aa_sigproc_input. */
   aa_sigproc_input::~aa_sigproc_input() {
     if(isopen) {
       close();
     }
   }
 
+  /**
+   * \brief Method to open the sigproc input file.
+   * \returns A boolean flag to indicate whether the operation was successful (true) or not (false).
+   */
   bool aa_sigproc_input::open() {
     fp = fopen(file_path.c_str(), "rb");
     if(fp == NULL) {
@@ -21,6 +27,10 @@ namespace astroaccelerate {
     return true;
   }
 
+  /**
+   * \brief Closes the input file.
+   * \returns A boolean flag to indicate whether the operation was successful (true) or not (false).
+   */
   bool aa_sigproc_input::close() {
     if(isopen) {
       if(fclose(fp) == -1) {
@@ -33,6 +43,10 @@ namespace astroaccelerate {
     return true;
   }
 
+  /**
+   * \brief Method to read the metadata from the sigproc input file.
+   * \returns An aa_filterbank_metadata object containing the metadata read from the sigproc input file. If the data could not be read, a trivial instance is returned.
+   */
   aa_filterbank_metadata aa_sigproc_input::read_metadata() {
     if(!isopen) {
       if(!open()) {
@@ -47,6 +61,12 @@ namespace astroaccelerate {
     return metadata;
   }
 
+  /**
+   * \brief If the file is open, and the header has been read, and the data has not yet been read, then read the input data from the input file.
+   * \details Reading the telescope input data can only be performed once, after which this method will always return false.
+   * \returns A boolean flag to indicate whether the operation was successful (true) or not (false).
+   * \warning The method will return true only once, that is the first time the data are read from the input successfully. At this point the input_buffer should be checked for data. 
+   */
   bool aa_sigproc_input::read_telescope() {
     if(!isopen || !header_is_read || data_is_read) {
       return false;
@@ -56,6 +76,10 @@ namespace astroaccelerate {
     return true;
   }
 
+  /**
+   * \brief Method to read the input data from the sigproc input file.
+   * \returns A boolean flag to indicate whether the operation was successful (true) or not (false).
+   */
   bool aa_sigproc_input::get_file_data(aa_filterbank_metadata &metadata) {
     double az_start = 0;
     double za_start = 0;

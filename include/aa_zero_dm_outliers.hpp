@@ -1,13 +1,5 @@
-//
-//  aa_zero_dm_outliers.hpp
-//  aapipeline
-//
-//  Created by Cees Carels on Monday 05/11/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
-#ifndef ASTRO_ACCELERATE_ZERO_DM_OUTLIERS_HPP
-#define ASTRO_ACCELERATE_ZERO_DM_OUTLIERS_HPP
+#ifndef ASTRO_ACCELERATE_AA_ZERO_DM_OUTLIERS_HPP
+#define ASTRO_ACCELERATE_AA_ZERO_DM_OUTLIERS_HPP
 
 #include <stdio.h>
 #include <time.h>
@@ -18,8 +10,12 @@
 
 namespace astroaccelerate {
 
-void zero_dm_outliers(unsigned short *const d_input, const int nchans, const int nsamp);
+  /**
+   * \brief Function that performs zero_dm with outlier rejection.
+   * \details The user should not have to use this function directly.
+   */
+  void zero_dm_outliers(unsigned short *const d_input, const int nchans, const int nsamp);
 
 } //namespace astroaccelerate
   
-#endif /* ASTRO_ACCELERATE_ZERO_DM_OUTLIERS_HPP */
+#endif /* ASTRO_ACCELERATE_AA_ZERO_DM_OUTLIERS_HPP */

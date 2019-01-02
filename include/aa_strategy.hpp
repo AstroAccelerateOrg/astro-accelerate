@@ -1,22 +1,25 @@
-//
-//  aa_strategy.hpp
-//  aapipeline
-//
-//  Created by Cees Carels on Thursday 01/11/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
-#ifndef ASTRO_ACCELERATE_STRATEGY_HPP
-#define ASTRO_ACCELERATE_STRATEGY_HPP
+#ifndef ASTRO_ACCELERATE_AA_STRATEGY_HPP
+#define ASTRO_ACCELERATE_AA_STRATEGY_HPP
 
 #include <stdio.h>
 
-class aa_strategy {
-public:
-  virtual bool        setup()       = 0;
-  virtual std::string name()  const = 0;
-private:
-  
-};
+namespace astroaccelerate {
 
-#endif /* ASTRO_ACCELERATE_STRATEGY_HPP */
+  /** 
+   * \class aa_strategy aa_strategy.hpp "include/aa_strategy.hpp"
+   * \brief Abstract base class for all strategy classes.
+   * \details All strategy classes must adhere to this interface so that the API can setup and ready all modules.
+   * \author Cees Carels.
+   * \date 1 November 2018.
+   */
+  class aa_strategy {
+  public:
+    virtual bool        setup()       = 0; /**! \brief Setup the strategy. \returns A boolean flag to indicate whether the operation was successful. */
+    virtual std::string name()  const = 0; /**! \returns The name of the module. */
+  private:
+  
+  };
+
+} //namespace astroaccelerate
+
+#endif /* ASTRO_ACCELERATE_AA_STRATEGY_HPP */

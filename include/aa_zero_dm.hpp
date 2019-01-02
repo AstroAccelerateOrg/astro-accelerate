@@ -1,13 +1,5 @@
-//
-//  aa_zero_dm.hpp
-//  aapipeline
-//
-//  Created by Cees Carels on Monday 05/11/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
-#ifndef ASTRO_ACCELERATE_ZERO_DM_HPP
-#define ASTRO_ACCELERATE_ZERO_DM_HPP
+#ifndef ASTRO_ACCELERATE_AA_ZERO_DM_HPP
+#define ASTRO_ACCELERATE_AA_ZERO_DM_HPP
 
 #include <time.h>
 #include <math.h>
@@ -22,8 +14,12 @@
 
 namespace astroaccelerate {
 
-void zero_dm(unsigned short *const d_input, const int nchans, const int nsamp, const int nbits);
+  /**
+   * \brief Function that performs zero_dm (without performing outlier rejection).
+   * \details The user should not have to interact directly with this function.
+   */
+  void zero_dm(unsigned short *const d_input, const int nchans, const int nsamp, const int nbits);
 
 } //namespace astroaccelerate
   
-#endif /* ASTRO_ACCELERATE_ZERO_DM_HPP */
+#endif /* ASTRO_ACCELERATE_AA_ZERO_DM_HPP */
