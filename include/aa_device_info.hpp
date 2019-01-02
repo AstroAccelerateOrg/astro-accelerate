@@ -8,6 +8,9 @@
 #include <vector>
 #include <string>
 
+/**
+ * If the build system (CMake) defines version.h, then include it.
+ */
 #ifdef ASTRO_ACCELERATE_VERSION_H_DEFINED
 #include "version.h"
 #endif

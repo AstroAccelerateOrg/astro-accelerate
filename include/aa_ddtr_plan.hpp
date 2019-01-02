@@ -1,5 +1,5 @@
-#ifndef ASTRO_ACCELERATE_DDTR_PLAN_HPP
-#define ASTRO_ACCELERATE_DDTR_PLAN_HPP
+#ifndef ASTRO_ACCELERATE_AA_DDTR_PLAN_HPP
+#define ASTRO_ACCELERATE_AA_DDTR_PLAN_HPP
 
 #include <stdio.h>
 #include <vector>
@@ -84,4 +84,4 @@ private:
   
 };
 
-#endif /* ASTRO_ACCELERATE_DDTR_PLAN_HPP */
+#endif /* ASTRO_ACCELERATE_AA_DDTR_PLAN_HPP */

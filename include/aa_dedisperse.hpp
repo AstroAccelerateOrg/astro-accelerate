@@ -1,5 +1,5 @@
-#ifndef ASTRO_ACCELERATE_DEDISPERSE_HPP
-#define ASTRO_ACCELERATE_DEDISPERSE_HPP
+#ifndef ASTRO_ACCELERATE_AA_DEDISPERSE_HPP
+#define ASTRO_ACCELERATE_AA_DEDISPERSE_HPP
 
 #include <stdio.h>
 #include <math.h>
@@ -13,8 +13,12 @@
 
 namespace astroaccelerate {
 
-void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned short *d_input, float *d_output, int nchans, float *tsamp, float *dm_low, float *dm_step, int const*const ndms, int nbits, int failsafe);
+  /**
+   * Function that performs the dedispersion on the GPU.
+   * Users should not need to interact with this function directly.
+   */
+  void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned short *d_input, float *d_output, int nchans, float *tsamp, float *dm_low, float *dm_step, int const*const ndms, int nbits, int failsafe);
 
 } //namespace astroaccelerate
   
-#endif /* ASTRO_ACCELERATE_DEDISPERSE_HPP */
+#endif /* ASTRO_ACCELERATE_AA_DEDISPERSE_HPP */

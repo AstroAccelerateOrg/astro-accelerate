@@ -1,11 +1,3 @@
-//
-//  aa_fdas_strategy.hpp
-//  aapipeline
-//
-//  Created by Cees Carels on Monday 03/12/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
 #ifndef ASTRO_ACCELERATE_AA_FDAS_STRATEGY_HPP
 #define ASTRO_ACCELERATE_AA_FDAS_STRATEGY_HPP
 
@@ -17,15 +9,22 @@
 namespace astroaccelerate {
 
   /**
-   * Class for aa_fdas_strategy, used to configure the fourier domain accelerated search (fdas).
+   * \class aa_fdas_strategy aa_fdas_strategy.hpp "include/aa_fdas_strategy.hpp" 
+   * \brief Class that receives an aa_fdas_plan object, and produces an aa_fdas_strategy object.
+   * \details The strategy is calculated based on the plan.
+   * \details An fdas strategy is required for any pipeline running the fdas module..
+   * \author Cees Carels.
+   * \date 3 December 2018.
    */
 
   class aa_fdas_strategy : public aa_strategy {
   public:
+    /** Trivial constructor for aa_fdas_strategy. */
     aa_fdas_strategy() : m_sigma_cutoff(0.0), m_ready(false) {
       
     }
     
+    /** Constructor aa_fdas_strategy that initialises al member variables. */
     aa_fdas_strategy(const aa_fdas_plan &fdas_plan) : m_sigma_cutoff(fdas_plan.sigma_cutoff()),
 						      m_narrow(fdas_plan.narrow()),
 						      m_wide(fdas_plan.wide()),
@@ -35,6 +34,7 @@ namespace astroaccelerate {
 						      m_navdms(fdas_plan.navdms()),
 						      m_ready(false) {
 
+      /** Parse input. Invalid input means the ready state will not be set to true. */
       if((m_sigma_cutoff > 0)
 	 && (m_narrow > 0)
 	 && (m_wide > 0)
@@ -45,46 +45,63 @@ namespace astroaccelerate {
 	m_ready = true;
     }
 
+    /** \returns The name of this mdoule. */
     std::string name() const {
       return "fdas_strategy";
     }
     
+    /** \returns The strategy determined sigma_cutoff. */
     float sigma_cutoff() const {
       return m_sigma_cutoff;
     }
 
+    /** \returns The strategy determined narrow setting. */
     float narrow() const {
       return m_narrow;
     }
 
+    /** \returns The strategy determined wide setting. */
     float wide() const {
       return m_wide;
     }
 
+    /** \returns The strategy determined aggression setting. */
     float aggression() const {
       return m_aggression;
     }
 
+    /** \returns The strategy determined num_boots setting. */
     int num_boots() const {
       return m_num_boots;
     }
 
+    /** \returns The strategy determined num_trial_bins setting. */
     int num_trial_bins() const {
       return m_num_trial_bins;
     }
 
+    /** \returns The strategy determined navdms setting. */
     int navdms() const {
       return m_navdms;
     }
 
+    /** \brief Performs any setup still needed for the strategy.
+     * \returns A boolean indicating whether the setup was successful.
+     */
     bool setup() {
       return ready();
     }
 
+    /**
+     * \returns The ready state of the instance of the fdas_strategy. */
+    */
     bool ready() const {
       return m_ready;
     }
 
+    /** Static member function that prints member variables for a provided aa_fdas_strategy instance.
+     * \returns A boolean to indicate whether the printing was successful.
+     */
     static bool print_info(const aa_fdas_strategy &strategy) {
       std::cout << "FDAS STRATEGY INFORMATION" << std::endl;
       std::cout << "fdas sigma_cutoff:\t\t\t" << strategy.sigma_cutoff() << std::endl;
@@ -97,15 +114,15 @@ namespace astroaccelerate {
       return true;
     }
   private:
-    float m_sigma_cutoff;
-    float m_narrow;
-    float m_wide;
-    float m_aggression;
-    int	  m_num_boots;
-    int	  m_num_trial_bins;
-    int	  m_navdms;
+    float m_sigma_cutoff; /**< The strategy determined sigma_cutoff setting. */
+    float m_narrow; /**< The strategy determined narrow setting. */
+    float m_wide; /**< The strategy determined wide setting. */
+    float m_aggression; /**< The strategy determined aggression setting. */
+    int	  m_num_boots; /** The strategy determined num_boots setting. */
+    int	  m_num_trial_bins; /** The strategy determined num_trial_bins setting. */
+    int	  m_navdms; /** The strategy determined navdms setting. */
 
-    bool m_ready;
+    bool m_ready; /** The ready state of the instance of the fdas_strategy. */
   };
 
 } // namespace astroaccelerate

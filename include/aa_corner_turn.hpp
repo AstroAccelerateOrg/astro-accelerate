@@ -13,9 +13,14 @@
 
 namespace astroaccelerate {
 
-void corner_turn(unsigned short *const d_input, float *const d_output, const int nchans, const int nsamp);
-int corner_turn(float *const d_input, float *const d_output, const int primary_size, const int secondary_size);
-int corner_turn_SM(float *const d_input, float *const d_output, const int primary_size, const int secondary_size);
+  /**
+   * Functions that perform the corner turn.
+   * Users should not need to interact with these functions directly.
+   */
+
+  void corner_turn(unsigned short *const d_input, float *const d_output, const int nchans, const int nsamp);
+  int corner_turn(float *const d_input, float *const d_output, const int primary_size, const int secondary_size);
+  int corner_turn_SM(float *const d_input, float *const d_output, const int primary_size, const int secondary_size);
 
 } //namespace astroaccelerate
   
