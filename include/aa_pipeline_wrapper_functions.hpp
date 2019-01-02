@@ -17,10 +17,22 @@
 
 namespace astroaccelerate {
 
+  /**
+   * \brief The following functions provide C-style wrapper functions to commonly run pipelines. They all call a boilerplate code that executes the pipeline using the API functionality.
+   * \author Cees Carels.
+   * \date 24 October 2018.
+   */
+
+  /** \brief Function that only performs dedispersion, and uses a raw pointer to input data.*/
   void dedisperse_telescope_data(const aa_filterbank_metadata &filterbank_data, const aa_compute::pipeline_detail &pipeline_details, std::vector<aa_ddtr_plan::dm> dm_ranges, unsigned short const*const input_data, float *&output_data);
+  
+  /** \brief Function that only performs dedispersion, and uses a std::vector to input data. */
   void dedisperse_telescope_data(const aa_filterbank_metadata &filterbank_data, const aa_compute::pipeline_detail &pipeline_details, std::vector<aa_ddtr_plan::dm> dm_ranges, const std::vector<unsigned short> &input_data, float *&output_data);
 
+  /** \brief Function that performs dedispersion and analysis, and uses a raw pointer to input data. */
   void dedisperse_analyse_telescope_data(const aa_filterbank_metadata &filterbank_data, const aa_compute::pipeline_detail &pipeline_details, std::vector<aa_ddtr_plan::dm> dm_ranges, unsigned short const*const input_data, float *&output_data);
+
+  /** \brief Function that performs dedispersion and analysis, and uses a std::vector to input data. */
   void dedisperse_analyse_telescope_data(const aa_filterbank_metadata &filterbank_data, const aa_compute::pipeline_detail &pipeline_details, std::vector<aa_ddtr_plan::dm> dm_ranges, const std::vector<unsigned short> &input_data, float *&output_data);
 
   
