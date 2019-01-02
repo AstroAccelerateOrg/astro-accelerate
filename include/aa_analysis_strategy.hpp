@@ -139,14 +139,14 @@ namespace astroaccelerate {
     }
 
     /** \returns The boolean ready state of the strategy, which confirms whether the strategy is valid.
-    bool ready() const {
-      return m_ready;
-    }
+	bool ready() const {
+	return m_ready;
+	}
 
-    /** \brief Provides a facility to perform any last setup.
-    * \details Currently only the ready-state is needed. 
-    * \returns A boolean to indicate whether the setup was successful.
-    */
+	/** \brief Provides a facility to perform any last setup.
+	* \details Currently only the ready-state is needed. 
+	* \returns A boolean to indicate whether the setup was successful.
+	*/
     bool setup() {
       return ready();
     }

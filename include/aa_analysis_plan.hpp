@@ -17,8 +17,8 @@ namespace astroaccelerate {
 
     enum class selectable_candidate_algorithm : int {
       off = 0,
-      on			  
-    };
+	on			  
+	};
     
     /** \brief Trivial constructor for aa_analysis_plan.
      * \details A trivial is used to return trivial plans which can only create strategies which cannot be ready.
