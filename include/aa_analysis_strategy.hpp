@@ -42,7 +42,7 @@ namespace astroaccelerate {
     /** \brief Constructor for aa_analysis_strategy. All parameters must be provided once on construction.
      * \details This constructor is intended to be used when analysis is to be run in isolation, i.e. without running AstroAccelerate's implementation of ddtr.
      * \details In this case, a separate aa_filterbank_metadata must be supplied.
-     * \TODO This functionality is not yet implemented so this constructor still sets m_ready(false) in the initialiser list.
+     * \todo This functionality is not yet implemented so this constructor still sets m_ready(false) in the initialiser list.
      * \warning This functionality is not yet implemented.
      * \details If the user intends to run the AstroAccelerate implementation of ddtr, then they should use the other non-trivial constructor.
      */

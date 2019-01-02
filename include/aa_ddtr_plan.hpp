@@ -65,7 +65,7 @@ public:
 
   /**
    * \brief Get the supplied dm range at index i.
-   * \detail Using add_dm, the supplied dm ranges can be accessed.
+   * \details Using add_dm, the supplied dm ranges can be accessed.
    * \return The dm object at index i.
    * \warning Attemping to access out of bounds will return a dm object with all values set to 0.
    */

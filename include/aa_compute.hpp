@@ -24,7 +24,7 @@ namespace astroaccelerate {
 	fdas,
 	};
 
-    /** \enum module_options
+    /** \enum module_option
      * \brief Contains options for modules.
      */
     enum class module_option : int {

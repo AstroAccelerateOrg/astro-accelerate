@@ -6,7 +6,7 @@
 namespace astroaccelerate {
 
   /**
-   * \class aa_periodicity_plan aa_periodicity_plan.hpp "include/aa_periodicity_plan."
+   * \class aa_periodicity_plan aa_periodicity_plan.hpp "include/aa_periodicity_plan.hpp"
    * \brief Class to set a periodicity plan.
    * \details A periodicity plan is required to create a periodicity strategy.
    * \author Cees Carels.
