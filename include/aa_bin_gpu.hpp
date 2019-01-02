@@ -1,5 +1,5 @@
-#ifndef ASTRO_ACCELERATE_BIN_GPU_HPP
-#define ASTRO_ACCELERATE_BIN_GPU_HPP
+#ifndef ASTRO_ACCELERATE_AA_BIN_GPU_HPP
+#define ASTRO_ACCELERATE_AA_BIN_GPU_HPP
 
 #include <stdio.h>
 #include <vector_types.h>
@@ -10,9 +10,13 @@
 
 namespace astroaccelerate {
 
-void bin_gpu(unsigned short *const d_input, float *const d_output, const int nchans, const int nsamp);
-int GPU_DiT_v2_wrapper(float *d_input, float *d_output, int nDMs, int nTimesamples);
+  /**
+   * Functions to perform binning.
+   */
+
+  void bin_gpu(unsigned short *const d_input, float *const d_output, const int nchans, const int nsamp);
+  int GPU_DiT_v2_wrapper(float *d_input, float *d_output, int nDMs, int nTimesamples);
 
 } //namespace astroaccelerate
   
-#endif /* ASTRO_ACCELERATE_BIN_GPU_HPP */
+#endif /* ASTRO_ACCELERATE_AA_BIN_GPU_HPP */

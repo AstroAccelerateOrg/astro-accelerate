@@ -1,33 +1,33 @@
-//
-//  aa_ddtr_strategy.cpp
-//  aapipeline
-//
-//  Created by Cees Carels on Tuesday 23/10/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
 #include "aa_ddtr_strategy.hpp"
 
 #include "aa_device_memory_manager.hpp"
 
 namespace astroaccelerate {
-
+  /**
+   * Trivial constructor for aa_ddtr_strategy which will result in a strategy that cannot be ready. 
+   */
   aa_ddtr_strategy::aa_ddtr_strategy() : m_ready(false), m_strategy_already_calculated(false), m_configured_for_analysis(false), is_setup(false), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_t_processed_dim1_size(0) {
     
-}
+  }
 
+  /**
+   * Constructor for aa_ddtr_strategy that computes the strategy upon construction, and sets the ready state of the instance of the class.
+   */
   aa_ddtr_strategy::aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis) : m_ready(false), m_strategy_already_calculated(false), m_configured_for_analysis(enable_analysis), is_setup(false), m_metadata(metadata), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_t_processed_dim1_size(0) {
     strategy(plan, free_memory, enable_analysis);
-}
+  }
 
+  /**
+   * Implementation of the function that computes the strategy.
+   */
   bool aa_ddtr_strategy::strategy(const aa_ddtr_plan &plan, const size_t &free_memory, const bool &enable_analysis) {
     /**
      * This method relies on defining points when nsamps is a multiple of
      * nchans - bin on the diagonal or a fraction of it.
      */
     if(m_strategy_already_calculated) {
-         std::cout << "NOTICE: Strategy already calculated." << std::endl;
-         return true;
+      std::cout << "NOTICE: Strategy already calculated." << std::endl;
+      return true;
     }
 
     std::cout << "NOTICE: Calculating strategy." << std::endl;
@@ -41,8 +41,8 @@ namespace astroaccelerate {
     const float tsamp = m_metadata.tsamp();
     
     if(!plan.range()) {
-        //No user requested dm settings have been added, this is an invalid aa_ddtr_plan.
-        return false;
+      //No user requested dm settings have been added, this is an invalid aa_ddtr_plan.
+      return false;
     }
     
     //Plan requested DM settings
@@ -61,25 +61,25 @@ namespace astroaccelerate {
     //Calculate maxshift, the number of dms for this bin and the highest value of dm to be calculated in this bin
     
     if (power != 2.0) {
-        // Calculate time independent dm shifts
-        for (int c = 0; c < nchans; c++) {
-            m_dmshifts[c] = 4148.741601f * ( ( 1.0 / pow(( fch1 + ( foff * c ) ), power) ) - ( 1.0 / pow(fch1, power) ) );
-        }
+      // Calculate time independent dm shifts
+      for (int c = 0; c < nchans; c++) {
+	m_dmshifts[c] = 4148.741601f * ( ( 1.0 / pow(( fch1 + ( foff * c ) ), power) ) - ( 1.0 / pow(fch1, power) ) );
+      }
     }
     else {
-        // Calculate time independent dm shifts
-        for (int c = 0; c < nchans; c++) {
-            m_dmshifts[c] = (float) ( 4148.741601f * ( ( 1.0 / pow((double) ( fch1 + ( foff * c ) ), power) ) - ( 1.0 / pow((double) fch1, power) ) ) );
-        }
+      // Calculate time independent dm shifts
+      for (int c = 0; c < nchans; c++) {
+	m_dmshifts[c] = (float) ( 4148.741601f * ( ( 1.0 / pow((double) ( fch1 + ( foff * c ) ), power) ) - ( 1.0 / pow((double) fch1, power) ) ) );
+      }
     }
     
     for(int i = 0; i < (int)range; i++)    {
-        float n;
-        modff(      ( ( (int) ( (  plan.user_dm(i).high - plan.user_dm(i).low ) / plan.user_dm(i).step ) + SDIVINDM ) / SDIVINDM )     , &n); // This calculates number of SDIVINDM blocks per DM range
-        m_ndms[i] = (int) ( (int) n * SDIVINDM ); // This is number of DM trial per DM range
-        if (m_max_ndms < m_ndms[i])
-            m_max_ndms = m_ndms[i]; // looking for maximum number of DM trials for memory allocation
-        m_total_ndms = m_total_ndms + m_ndms[i];
+      float n;
+      modff(      ( ( (int) ( (  plan.user_dm(i).high - plan.user_dm(i).low ) / plan.user_dm(i).step ) + SDIVINDM ) / SDIVINDM )     , &n); // This calculates number of SDIVINDM blocks per DM range
+      m_ndms[i] = (int) ( (int) n * SDIVINDM ); // This is number of DM trial per DM range
+      if (m_max_ndms < m_ndms[i])
+	m_max_ndms = m_ndms[i]; // looking for maximum number of DM trials for memory allocation
+      m_total_ndms = m_total_ndms + m_ndms[i];
     }
     printf("\nNOTICE: Maximum number of dm trials in any of the range steps:\t%d.", m_max_ndms);
     
@@ -87,29 +87,29 @@ namespace astroaccelerate {
     str_dm[0].high = str_dm[0].low + ( m_ndms[0] * ( plan.user_dm(0).step ) );   // Redefines DM plan to suit GPU
     str_dm[0].step = plan.user_dm(0).step;                      //
     for (size_t i = 1; i < range; i++)    {
-        str_dm[i].low = str_dm[i-1].high;
-        str_dm[i].high = str_dm[i].low + m_ndms[i] * plan.user_dm(i).step;
-        str_dm[i].step = plan.user_dm(i).step;
+      str_dm[i].low = str_dm[i-1].high;
+      str_dm[i].high = str_dm[i].low + m_ndms[i] * plan.user_dm(i).step;
+      str_dm[i].step = plan.user_dm(i).step;
         
-        if (plan.user_dm(i-1).inBin > 1) {
-            m_maxshift = (int) ceil(( ( str_dm[i-1].low + str_dm[i-1].step * m_ndms[i - 1] ) * m_dmshifts[nchans - 1] ) / ( tsamp ));
-            m_maxshift = (int) ceil((float) ( m_maxshift + ( (float) ( SDIVINT*2*SNUMREG ) ) ) / (float) plan.user_dm(i-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
-            m_maxshift = ( m_maxshift ) * ( SDIVINT*2*SNUMREG ) * plan.user_dm(i-1).inBin;
-            if (( m_maxshift ) > m_maxshift_high)
-                m_maxshift_high = ( m_maxshift );
-        }
+      if (plan.user_dm(i-1).inBin > 1) {
+	m_maxshift = (int) ceil(( ( str_dm[i-1].low + str_dm[i-1].step * m_ndms[i - 1] ) * m_dmshifts[nchans - 1] ) / ( tsamp ));
+	m_maxshift = (int) ceil((float) ( m_maxshift + ( (float) ( SDIVINT*2*SNUMREG ) ) ) / (float) plan.user_dm(i-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
+	m_maxshift = ( m_maxshift ) * ( SDIVINT*2*SNUMREG ) * plan.user_dm(i-1).inBin;
+	if (( m_maxshift ) > m_maxshift_high)
+	  m_maxshift_high = ( m_maxshift );
+      }
     }
     
     if (plan.user_dm(range-1).inBin > 1) {
-        m_maxshift = (int) ceil(( ( str_dm[range-1].low + str_dm[range-1].step * m_ndms[range - 1] ) * m_dmshifts[nchans - 1] ) / ( tsamp ));
-        m_maxshift = (int) ceil((float) ( m_maxshift + ( (float) ( SDIVINT*2*SNUMREG ) ) ) / (float) plan.user_dm(range-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
-        m_maxshift = m_maxshift * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
-        if (( m_maxshift ) > m_maxshift_high)
-            m_maxshift_high = ( m_maxshift );
+      m_maxshift = (int) ceil(( ( str_dm[range-1].low + str_dm[range-1].step * m_ndms[range - 1] ) * m_dmshifts[nchans - 1] ) / ( tsamp ));
+      m_maxshift = (int) ceil((float) ( m_maxshift + ( (float) ( SDIVINT*2*SNUMREG ) ) ) / (float) plan.user_dm(range-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
+      m_maxshift = m_maxshift * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+      if (( m_maxshift ) > m_maxshift_high)
+	m_maxshift_high = ( m_maxshift );
     }
     
     if (m_maxshift_high == 0)    {
-        m_maxshift_high = (int) ceil(( ( str_dm[range-1].low + str_dm[range-1].step * ( m_ndms[range - 1] ) ) * m_dmshifts[nchans - 1] ) / tsamp);
+      m_maxshift_high = (int) ceil(( ( str_dm[range-1].low + str_dm[range-1].step * ( m_ndms[range - 1] ) ) * m_dmshifts[nchans - 1] ) / tsamp);
     }
     m_max_dm = ceil(str_dm[range-1].high);
     
@@ -118,14 +118,14 @@ namespace astroaccelerate {
     printf("\nNOTICE: Maximum dispersive delay:\t%.2f (s).", m_maxshift * tsamp);
     
     if (m_maxshift >= nsamp)    {
-        printf("\n\nERROR: Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial.\n\n");
-        return false;
+      printf("\n\nERROR: Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial.\n\n");
+      return false;
     }
     
     printf("\nNOTICE: Diagonal DM:\t%f.", ( tsamp * nchans * 0.0001205 * powf(( fch1 + ( foff * ( nchans / 2 ) ) ), 3.0) ) / ( -foff * nchans ));
     if (m_maxshift >= nsamp)    {
-        printf("ERROR: Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial.");
-        return false;
+      printf("ERROR: Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial.");
+      return false;
     }
     
     /* Four cases:
@@ -297,20 +297,19 @@ namespace astroaccelerate {
     //Strategy does not change inBin, outBin.
     //Re-assign original inBin, outBin to the strategy.
     for(size_t i = 0; i < str_dm.size(); i++) {
-        str_dm.at(i).inBin = plan.user_dm(i).inBin;
-        str_dm.at(i).outBin = plan.user_dm(i).outBin;
+      str_dm.at(i).inBin = plan.user_dm(i).inBin;
+      str_dm.at(i).outBin = plan.user_dm(i).outBin;
     }
     
     m_ready = true;
     m_strategy_already_calculated = true;
     return true;
-}
+  }
 
-bool aa_ddtr_strategy::setup() {
-    /**
-     * Performs memory allocations and other setup before dedispersion can be run.
-     */
-    
+  /**
+   * Returns the ready state of the instance of the class.
+   */
+  bool aa_ddtr_strategy::setup() {
     is_setup = true;
     if(is_setup && ready()) {
       return true;
@@ -318,6 +317,6 @@ bool aa_ddtr_strategy::setup() {
     else {
       return false;
     }
-}
+  }
 
 } //namespace astroaccelerate

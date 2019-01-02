@@ -9,9 +9,9 @@ namespace astroaccelerate {
      * \brief Contains debug flags.
      */
     enum class debug : int {
-			    debug = 0,
-			    analysis
-    };
+      debug = 0,
+	analysis
+	};
     
     /** \enum modules
      * \brief Contains the selectable modules.
@@ -22,7 +22,7 @@ namespace astroaccelerate {
 	analysis,
 	periodicity,
 	fdas,
-    };
+	};
 
     /** \enum module_options
      * \brief Contains options for modules.
@@ -41,7 +41,7 @@ namespace astroaccelerate {
 	fdas_custom_fft, //< Switches on output of custom_fft.
 	fdas_inbin, //< Switches on inbin for fdas.
 	fdas_norm //< Switches on norm for fdas.
-    };
+	};
 
     /** \brief Function to convert module types into strings so that the user can query the pipeline. */
     inline const std::string module_name(const aa_compute::modules &module) {
@@ -70,8 +70,8 @@ namespace astroaccelerate {
     typedef std::set<aa_compute::modules> pipeline; /**< A pipeline is a collection of modules. */
     typedef std::set<aa_compute::module_option> pipeline_detail; /**< All pipeline options are contained in the pipeline_detail. */
     
-  }//namespace aa_compute
-}//namespace astroaccelerate
+  } //namespace aa_compute
+} //namespace astroaccelerate
 
 
 #endif // ASTRO_ACCELERATE_AA_COMPUTE_HPP
