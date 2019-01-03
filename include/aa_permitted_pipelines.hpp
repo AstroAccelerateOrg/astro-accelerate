@@ -1,11 +1,3 @@
-//
-//  aa_permitted_pipelines.hpp
-//  aapipeline
-//
-//  Created by Cees Carels on Monday 22/10/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
 #ifndef ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_HPP
 #define ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_HPP
 
@@ -17,8 +9,11 @@
 namespace astroaccelerate {
 
   /**
-   * This class is used to check whether a pipeline is valid and permitted.
-   * This class can also be used to obtain a valid pipeline.
+   * \class aa_permitted_pipelines aa_permitted_pipelines.hpp "include/aa_permitted_pipelines.hpp"
+   * \brief Class that is used to check whether a pipeline is valid and permitted.
+   * \details This class can also be used to obtain a valid pipeline.
+   * \author Cees Carels.
+   * \date 22 October 2018.
    */
 
   class aa_permitted_pipelines {
@@ -31,12 +26,12 @@ namespace astroaccelerate {
     static const aa_compute::pipeline pipeline3;
     static const aa_compute::pipeline pipeline4;
     static const aa_compute::pipeline pipeline5;
-    
+
+    /**
+     * \brief Pass a pipeline object and the function validates the modules it contains.
+     * \returns A boolean to indicate whether the pipeline is permitted (true) or not (false).
+     */
     static bool is_permitted(const aa_compute::pipeline &pipeline) {
-      /**
-       * Check if pipeline exists and is valid.
-       */
-        
       if(pipeline == pipeline0) {
 	return true;
       }
