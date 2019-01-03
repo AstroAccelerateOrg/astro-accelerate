@@ -3,8 +3,9 @@
 
 namespace astroaccelerate {
 
-void call_kernel_zero_dm_kernel(const dim3 &block_size, const dim3 &grid_size, const int &sharedMemory_size,
-				unsigned short *const d_input, const int &nchans, const int &nsamp, const float &normalization_factor);
+  /** \brief Kernel wrapper function for zero_dm_kernel kernel function. */
+  void call_kernel_zero_dm_kernel(const dim3 &block_size, const dim3 &grid_size, const int &sharedMemory_size,
+				  unsigned short *const d_input, const int &nchans, const int &nsamp, const float &normalization_factor);
 
 } // namespace astroaccelerate
   

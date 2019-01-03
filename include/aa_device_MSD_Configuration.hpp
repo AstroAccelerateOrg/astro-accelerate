@@ -7,6 +7,13 @@
 
 namespace astroaccelerate {
 
+  /**
+   * \class MSD_Configuration aa_device_MSD_Configuration.hpp "include/aa_device_MSD_Configuration.hpp"
+   * \brief Class that AstroAccelerate uses to manage the Mean Standard Deviation (MSD) configuration.
+   * \brief Users should not use this class directly.
+   * \author -
+   * \date -
+   */
 class MSD_Configuration {
 public:
   ushort2 nBlocks;

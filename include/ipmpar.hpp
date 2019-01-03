@@ -3,7 +3,7 @@
 
 namespace astroaccelerate {
 
-int ipmpar(int *i);
+  int ipmpar(int *i);
 
 } // namespace astroaccelerate
 

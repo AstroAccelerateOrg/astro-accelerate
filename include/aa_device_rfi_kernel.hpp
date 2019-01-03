@@ -3,9 +3,10 @@
 
 namespace astroaccelerate {
 
-void call_kernel_rfi_gpu_kernel(const dim3 &grid_size, const dim3 &block_size,
-				unsigned short *const d_input,
-				const int &nchans, const int &nsamp);
+  /** \brief Kernel wrapper function for call to rfi_gpu_kernel kernel function. */
+  void call_kernel_rfi_gpu_kernel(const dim3 &grid_size, const dim3 &block_size,
+				  unsigned short *const d_input,
+				  const int &nchans, const int &nsamp);
 
 } // namespace astroaccelerate
   

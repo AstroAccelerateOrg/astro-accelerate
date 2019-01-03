@@ -126,7 +126,7 @@ public:
     
     for(size_t i = 0; i < m_card_info.size(); i++) {
       if(m_card_info.at(i).card_number == id) {
-	#ifdef ASTRO_ACCELERATE_VERSION_H_DEFINED
+#ifdef ASTRO_ACCELERATE_VERSION_H_DEFINED
 	std::string device_compute_capability = std::to_string(m_card_info.at(i).compute_capability_major) + std::to_string(m_card_info.at(i).compute_capability_minor);
 	if(ASTRO_ACCELERATE_CUDA_SM_VERSION > device_compute_capability) {
 	  std::cout << "ERROR: Compiled for compute capability " << ASTRO_ACCELERATE_CUDA_SM_VERSION << "." << std::endl;
@@ -137,10 +137,10 @@ public:
 	  std::cout << "NOTICE: Application binary compiled for compute capability " << ASTRO_ACCELERATE_CUDA_SM_VERSION << "." << std::endl;
 	  std::cout << "        The requested device has capability " << device_compute_capability << "." << std::endl;
 	}
-        #else
+#else
 	std::cout << "NOTICE: Because #include \"version.h\" is not created by this build system, the compute capability of the device cannot be determined." << std::endl;
 	std::cout << "        Please consider compiling using the CMakeLists file provided in the repository." << std::endl;
-	#endif
+#endif
 	selected_card_idx = i;
 	cudaSetDevice(i);
 	size_t free     = 0;

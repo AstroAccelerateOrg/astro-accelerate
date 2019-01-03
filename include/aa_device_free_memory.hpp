@@ -3,7 +3,8 @@
 
 namespace astroaccelerate {
 
-extern void free_device_memory(float *device_pointer);
+  /** \brief Function that gets the free device memory from a device pointer. */
+  extern void free_device_memory(float *device_pointer);
 
 } // namespace astroaccelerate
   
