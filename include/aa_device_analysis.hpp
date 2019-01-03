@@ -3,14 +3,17 @@
 
 namespace astroaccelerate {
 
+
+  /**
+   * \struct analysis_output
+   * \brief Struct that contains the pulses found by the analysis module.
+   * \details The std::vector<float> contains 4 elements per processed dm range:
+   * \details 1. Time in seconds since beginning of fil file. [seconds].
+   * \details 2. Dispersion measure [parsec / cm^3].
+   * \details 3. Signal/Noise ratio [dimensionless].
+   * \details 4. Pulse width in number of samples [dimensionless].
+   */
   struct analysis_output {
-    /**
-     * The std::vector<float> contains 4 elements per processed dm range:
-     * 1. Time in seconds since beginning of fil file. [seconds].
-     * 2. Dispersion measure [parsec / cm^3].
-     * 3. Signal/Noise ratio [dimensionless].
-     * 4. Pulse width in number of samples [dimensionless].
-     */
     std::vector<float> data;
     float              dm_low;
     float              dm_high;

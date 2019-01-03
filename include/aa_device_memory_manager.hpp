@@ -11,7 +11,7 @@ namespace astroaccelerate {
 
   /**
    * \class aa_device_memory_manager aa_device_memory_manager.hpp "include/aa_device_memory_manager.hpp"
-   * \brief Class that trakcs the amount of memory that modules have requested.
+   * \brief Class that tracks the amount of memory that modules have requested.
    * \details Modules can notify the manager that they will request memory, but this is not enforced.
    * \details This class exists to enable the user to configure plan and strategy objects without requiring that they allocate memory to hold large input/output data.
    * \details Therefore, it is the pipeline object that performs memory allocations for input/output data.

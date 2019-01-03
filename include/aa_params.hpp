@@ -4,8 +4,8 @@
 namespace astroaccelerate {
 
   /**
-   * Key parameters used by the codebase at compiletime. 
-   * Modifying this file requires a recompilation of the codebase.
+   * \brief Key parameters used by the codebase at compiletime. 
+   * \details Modifying this file requires a recompilation of the codebase.
    */
 
   //P100 8,14,12,40

@@ -5,7 +5,10 @@
 
 namespace astroaccelerate {
 
-  /** \brief Wrapper around CUDA events which implements a timer functionality. */
+  /**
+   * \struct aa_gpu_timer
+   * \brief Wrapper around CUDA events which implements a timer functionality.
+   */
   struct aa_gpu_timer {
     cudaEvent_t start;
     cudaEvent_t stop;

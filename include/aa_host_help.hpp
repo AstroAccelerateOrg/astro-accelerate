@@ -4,13 +4,13 @@
 namespace astroaccelerate {
 
 #ifdef __cplusplus
-extern "C" {
+  extern "C" {
 #endif
 
-void help();
+    void help();
 
 #ifdef __cplusplus
-}
+  }
 #endif
 
 } // namespace astroaccelerate

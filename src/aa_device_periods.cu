@@ -40,7 +40,7 @@ namespace astroaccelerate {
 
 
   /**
-   * \class aa_device_periods aa_device_periods.cu "src/aa_device_periods.cu"
+   * \class Dedispersion_Range aa_device_periods.cu "src/aa_device_periods.cu"
    * \brief Class for AstroAccelerate to manage adding dedispersion measure ranges for processing periodicity.
    * \brief The user should not interact with this class for configuring dedispersion ranges. Instead, the user should use aa_ddtr_plan and aa_ddtr_strategy.
    * \author -

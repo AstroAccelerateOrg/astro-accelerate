@@ -2,8 +2,8 @@
 #define ASTRO_ACCELERATE_AA_MEDIAN_HPP
 
 namespace astroaccelerate {
-
-float median(float arr[], int n);
+  /** \returns The median of the array calculate up to element n. */
+  float median(float arr[], int n);
 
 } // namespace astroaccelerate
   

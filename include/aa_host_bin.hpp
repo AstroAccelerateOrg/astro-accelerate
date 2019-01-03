@@ -3,7 +3,8 @@
 
 namespace astroaccelerate {
 
-void bin(size_t binsize, float *bin_buffer,size_t inputsize, float *input_buffer, int nchans, int nsamps);
+  /** \brief Performs binning on the host. */
+  void bin(size_t binsize, float *bin_buffer,size_t inputsize, float *input_buffer, int nchans, int nsamps);
 
 } // namespace astroaccelerate
   

@@ -3,7 +3,8 @@
 
 namespace astroaccelerate {
 
-void write_output(int i, int t_processed, int ndms, float *output_buffer, float *dm_low, float *dm_high);
+  /** \brief This function writes the transformed space (dm,t) out to file in binary format. */
+  void write_output(int i, int t_processed, int ndms, float *output_buffer, float *dm_low, float *dm_high);
 
 } // namespace astroaccelerate
   
