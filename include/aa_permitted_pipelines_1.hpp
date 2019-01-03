@@ -84,7 +84,7 @@ namespace astroaccelerate {
 	    }
 	    
 	    const int *ndms = m_ddtr_strategy.ndms_data();
-	    if(output_buffer[i].size() != ndms[i]) {
+	    if(output_buffer[i].size() != (unsigned long)ndms[i]) {
 	      output_buffer.at(i).resize(ndms[i]);
 	    }
 	    
