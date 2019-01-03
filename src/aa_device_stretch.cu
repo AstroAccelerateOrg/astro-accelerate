@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "params.hpp"
+#include "aa_params.hpp"
 #include "aa_device_stretch_kernel.hpp"
 #include <helper_cuda.h>
 

@@ -7,7 +7,7 @@
 /* Fast computation of the median of an array. */
 /* Note:  It messes up the order!              */
 
-#include "aa_presto_funcs.hpp"
+#include "presto_funcs.hpp"
 
 namespace astroaccelerate {
 

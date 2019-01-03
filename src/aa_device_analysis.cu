@@ -6,7 +6,7 @@
 #include <vector>
 #include <stdio.h>
 #include <stdlib.h>
-#include "params.hpp"
+#include "aa_params.hpp"
 
 #include "aa_device_BC_plan.hpp"
 #include "aa_device_peak_find.hpp"

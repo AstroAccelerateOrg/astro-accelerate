@@ -158,7 +158,7 @@ set_target_properties(astroaccelerate PROPERTIES BUILD_SHARED_LIBS ON)
 
 
 # Standalone executable to link against CUDA library
-file(GLOB_RECURSE SOURCE_FILES "src/main.cpp")
+file(GLOB_RECURSE SOURCE_FILES "src/aa_main.cpp")
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} astroaccelerate)
 

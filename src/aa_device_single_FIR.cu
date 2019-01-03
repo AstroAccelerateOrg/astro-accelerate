@@ -1,6 +1,6 @@
 //Added by Karel Adamek
 
-#include "params.hpp"
+#include "aa_params.hpp"
 #include "aa_device_single_FIR_kernel.hpp"
 
 namespace astroaccelerate {

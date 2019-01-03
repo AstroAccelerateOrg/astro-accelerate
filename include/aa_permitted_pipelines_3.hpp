@@ -34,7 +34,7 @@
 #include "aa_gpu_timer.hpp"
 
 #include "aa_device_analysis.hpp"
-#include "device_periods.hpp"
+#include "aa_device_periods.hpp"
 #include "aa_pipeline_runner.hpp"
 
 #include "aa_gpu_timer.hpp"
