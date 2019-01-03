@@ -1,15 +1,14 @@
-/**
- * \brief This Quickselect routine is based on the algorithm described in "Numerical recipies in C", Second Edition, Cambridge University Press, 1992, Section 8.5, ISBN 0-521-43108-5
- * \brief Fast computation of the median of an array.
- * \warning It messes up the order!
- */
-
 #include "presto_funcs.hpp"
 
 namespace astroaccelerate {
 
 #define ELEM_SWAP(a,b) { register float t=(a);(a)=(b);(b)=t; }
 
+  /**
+   * \brief This Quickselect routine is based on the algorithm described in "Numerical recipies in C", Second Edition, Cambridge University Press, 1992, Section 8.5, ISBN 0-521-43108-5.
+   * \brief Fast computation of the median of an array.
+   * \warning It messes up the order!
+   */
   float median(float arr[], int n)
   {
     int low, high;

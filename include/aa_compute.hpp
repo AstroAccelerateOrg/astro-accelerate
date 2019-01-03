@@ -3,8 +3,19 @@
 
 #include <set>
 #include <string>
+
+/**
+ * \namespace astroaccelerate
+ * \brief A project-wide namespace astroaccelerate is used to separate the implementation of the library from library users.
+ */
 namespace astroaccelerate {
+  
+  /**
+   * \namespace astroaccelerate::aa_compute 
+   * \brief \brief The namespace that contains module names and the concept of a pipeline consisting of modules.
+   */
   namespace aa_compute {
+
     /** \enum debug
      * \brief Contains debug flags.
      */
