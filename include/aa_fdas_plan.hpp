@@ -76,9 +76,7 @@ namespace astroaccelerate {
       return m_navdms;
     }
 
-    /**
-     * \returns User selected nsearch parameter. */
-     */
+    /** \returns User selected nsearch parameter. */
     int nsearch() const {
       return m_nsearch;
     }

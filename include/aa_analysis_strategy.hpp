@@ -39,7 +39,8 @@ namespace astroaccelerate {
       
     }
     
-    /** \brief Constructor for aa_analysis_strategy. All parameters must be provided once on construction.
+    /**
+     * \brief Constructor for aa_analysis_strategy. All parameters must be provided once on construction.
      * \details This constructor is intended to be used when analysis is to be run in isolation, i.e. without running AstroAccelerate's implementation of ddtr.
      * \details In this case, a separate aa_filterbank_metadata must be supplied.
      * \todo This functionality is not yet implemented so this constructor still sets m_ready(false) in the initialiser list.
@@ -58,7 +59,8 @@ namespace astroaccelerate {
 													  m_ready(false) {
     }
 
-    /** \brief Constructor for aa_analysis_strategy.
+    /**
+     * \brief Constructor for aa_analysis_strategy.
      * \details This constructor is intended to be used when ddtr has also been used.
      * \details Since it uses the aa_filterbank_metadata from ddtr_strategy, the state of aa_analysis_strategy stays consistent with that of aa_ddtr_strategy.
      */
@@ -138,15 +140,15 @@ namespace astroaccelerate {
       return (m_enable_sps_baseline_noise) ? 1 : 0;
     }
 
-    /** \returns The boolean ready state of the strategy, which confirms whether the strategy is valid.
-	bool ready() const {
-	return m_ready;
-	}
-
-	/** \brief Provides a facility to perform any last setup.
-	* \details Currently only the ready-state is needed. 
-	* \returns A boolean to indicate whether the setup was successful.
-	*/
+    /** \returns The boolean ready state of the strategy, which confirms whether the strategy is valid. */
+    bool ready() const {
+      return m_ready;
+    }
+	
+    /** \brief Provides a facility to perform any last setup.
+     * \details Currently only the ready-state is needed. 
+     * \returns A boolean to indicate whether the setup was successful.
+     */
     bool setup() {
       return ready();
     }

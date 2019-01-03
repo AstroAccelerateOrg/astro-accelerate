@@ -75,10 +75,28 @@ namespace astroaccelerate {
     
     bool next(std::vector<std::vector<std::vector<float>>> &output_buffer, int &chunk_idx) {
       if(memory_allocated) {
-	output_buffer.resize(range);
+	if(output_buffer.size() != range) {
+	  output_buffer.resize(range);
+	  size_t total_samps = 0;
+	  for(size_t i = 0; i < range; i++) {
+	    for(auto k = 0; k < num_tchunks; k++) {
+	      total_samps += t_processed[i][k];
+	    }
+	    
+	    const int *ndms = m_ddtr_strategy.ndms_data();
+	    if(output_buffer[i].size() != ndms[i]) {
+	      output_buffer.at(i).resize(ndms[i]);
+	    }
+	    
+	    for(int j = 0; j < ndms[i]; j++) {
+	      output_buffer.at(i).at(j).resize(total_samps);
+	    }
+	  }
+	  std::cout << "Allocation done" << std::endl;
+	}
 	return run_pipeline(output_buffer, true, chunk_idx);
       }
-
+      
       return false;
     }
 
@@ -218,6 +236,7 @@ namespace astroaccelerate {
 	dm_step[i]  = m_ddtr_strategy.dm(i).step;
 	inBin[i]    = m_ddtr_strategy.dm(i).inBin;
       }
+      
       memory_allocated = true;
       return true;
     }
@@ -301,10 +320,9 @@ namespace astroaccelerate {
 	  //Resize vector to contain the output array
 	  chunk_idx = t;
 	  
-	  output_buffer.at(dm_range).resize(ndms[dm_range]); //There are ndms[dm_range] number of dm at this dm_range
 	  for (int k = 0; k < ndms[dm_range]; k++) {
-	    output_buffer.at(dm_range).at(k).resize(t_processed[dm_range][t]); //For the given dm_range, there are t_processed[dm_range][t] samples for each dm 
-	    save_data_offset(output_buffer[dm_range][k].data(), inc/inBin[dm_range], d_output, k * t_processed[dm_range][t], sizeof(float) * t_processed[dm_range][t]);
+	    //output_buffer.at(dm_range).at(k).resize(t_processed[dm_range][t]); //For the given dm_range, there are t_processed[dm_range][t] samples for each dm 
+	    //save_data_offset(output_buffer[dm_range][k].data(), inc/inBin[dm_range], d_output, k * t_processed[dm_range][t], sizeof(float) * t_processed[dm_range][t]);
 	  }
 
 	  if(dump_to_disk) {

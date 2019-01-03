@@ -92,14 +92,13 @@ namespace astroaccelerate {
       return ready();
     }
 
-    /**
-     * \returns The ready state of the instance of the fdas_strategy. */
-    */
+    /** \returns The ready state of the instance of the fdas_strategy. */
     bool ready() const {
       return m_ready;
     }
 
-    /** Static member function that prints member variables for a provided aa_fdas_strategy instance.
+    /**
+     * \brief Static member function that prints member variables for a provided aa_fdas_strategy instance.
      * \returns A boolean to indicate whether the printing was successful.
      */
     static bool print_info(const aa_fdas_strategy &strategy) {
