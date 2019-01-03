@@ -18,8 +18,9 @@
 
 #include "aa_device_analysis.hpp"
 
-//TODO:
-// Make BC_plan for arbitrary long pulses, by reusing last element in the plane
+// \todo Make BC_plan for arbitrary long pulses, by reusing last element in the plane.
+// \todo cudaMalloc((void**) &gmem_peak_pos, 1*sizeof(int)); has no corresponding cudaFree.
+// \todo cudaMemset((void*) gmem_peak_pos, 0, sizeof(int));  has no corresponding cudaFree.
 
 namespace astroaccelerate {
 
