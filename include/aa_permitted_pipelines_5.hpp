@@ -34,8 +34,6 @@
 
 namespace astroaccelerate {
 
-  The class is templated over the zero_dm_type (aa_compute::module_option::zero_dm or aa_compute::module_option::zero_dm_with_outliers)
-
   /**
    * \class aa_permitted_pipelines_5 aa_permitted_pipelines_5.hpp "include/aa_permitted_pipelines_5.hpp"
    * \brief Templated class to run dedispersion and analysis and periodicity and acceleration.
