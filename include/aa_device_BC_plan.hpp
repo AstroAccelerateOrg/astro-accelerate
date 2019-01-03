@@ -1,10 +1,10 @@
-#ifndef ASTRO_ACCELERATE_DEVICE_BC_PLAN_HPP
-#define ASTRO_ACCELERATE_DEVICE_BC_PLAN_HPP
+#ifndef ASTRO_ACCELERATE_AA_DEVICE_BC_PLAN_HPP
+#define ASTRO_ACCELERATE_AA_DEVICE_BC_PLAN_HPP
 
 namespace astroaccelerate {
 
   /**
-   * \struct PulseDetection_plan device_BC_plan.hpp "include/device_BC_plan.hpp"
+   * \struct PulseDetection_plan aa_device_BC_plan.hpp "include/aa_device_BC_plan.hpp"
    * \brief Data structure for holding pulse detection plan for Box Car (BC) plan.
    * \details The user should not need to interact with this structure directly.
    */
@@ -23,4 +23,4 @@ namespace astroaccelerate {
   };
 } //namespace astroaccelerate
 
-#endif
+#endif /* ASTRO_ACCELERATE_AA_DEVICE_BC_PLAN_HPP */

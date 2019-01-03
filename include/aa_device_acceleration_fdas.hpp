@@ -1,5 +1,5 @@
-#ifndef ASTRO_ACCELERATE_DEVICE_ACCELERATION_FDAS_HPP
-#define ASTRO_ACCELERATE_DEVICE_ACCELERATION_FDAS_HPP
+#ifndef ASTRO_ACCELERATE_AA_DEVICE_ACCELERATION_FDAS_HPP
+#define ASTRO_ACCELERATE_AA_DEVICE_ACCELERATION_FDAS_HPP
 
 namespace astroaccelerate {
 
@@ -29,4 +29,4 @@ void acceleration_fdas(int range,
 		       const bool enable_output_fdas_list);
 
 } //namespace astroaccelerate
-#endif
+#endif /* ASTRO_ACCELERATE_AA_DEVICE_ACCELERATION_FDAS_HPP */

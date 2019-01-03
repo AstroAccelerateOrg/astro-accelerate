@@ -2,8 +2,7 @@
 #define ASTRO_ACCELERATE_DEVICE_THRESHOLD_HPP
 
 #include <vector>
-#include "device_BC_plan.hpp"
-
+#include "aa_device_BC_plan.hpp"
 
 namespace astroaccelerate {
 

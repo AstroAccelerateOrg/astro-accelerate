@@ -1,5 +1,5 @@
-#ifndef ASTRO_ACCELERATE_DEVICE_ANALYSIS_HPP
-#define ASTRO_ACCELERATE_DEVICE_ANALYSIS_HPP
+#ifndef ASTRO_ACCELERATE_AA_DEVICE_ANALYSIS_HPP
+#define ASTRO_ACCELERATE_AA_DEVICE_ANALYSIS_HPP
 
 namespace astroaccelerate {
 
@@ -20,7 +20,7 @@ namespace astroaccelerate {
 
 } //namespace astroaccelerate
   
-#endif
+#endif /* ASTRO_ACCELERATE_AA_DEVICE_ANALYSIS_HPP */
 
 
 

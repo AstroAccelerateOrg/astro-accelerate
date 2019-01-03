@@ -9,7 +9,7 @@
 
 #include "params.hpp"
 #include "device_peak_find_kernel.hpp"
-#include "device_BC_plan.hpp"
+#include "aa_device_BC_plan.hpp"
 
 namespace astroaccelerate {
 

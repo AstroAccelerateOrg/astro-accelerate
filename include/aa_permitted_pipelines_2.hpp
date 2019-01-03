@@ -30,7 +30,7 @@
 #include "device_rfi.hpp"
 #include "aa_dedisperse.hpp"
 
-#include "device_analysis.hpp"
+#include "aa_device_analysis.hpp"
 #include "aa_pipeline_runner.hpp"
 
 #include "aa_gpu_timer.hpp"

@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include "params.hpp"
 
-#include "device_BC_plan.hpp"
+#include "aa_device_BC_plan.hpp"
 #include "device_peak_find.hpp"
 #include "device_MSD_plane_profile.hpp"
 #include "device_SPS_long.hpp"
@@ -16,7 +16,7 @@
 
 #include "aa_gpu_timer.hpp"
 
-#include "device_analysis.hpp"
+#include "aa_device_analysis.hpp"
 
 //TODO:
 // Make BC_plan for arbitrary long pulses, by reusing last element in the plane
