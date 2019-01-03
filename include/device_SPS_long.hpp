@@ -7,9 +7,8 @@
 
 #include <helper_cuda.h>
 
-#include "device_BC_plan.hpp"
 #include "params.hpp"
-#include "device_BC_plan.hpp"
+#include "aa_device_BC_plan.hpp"
 #include "device_SPS_long_kernel.hpp"
 
 namespace astroaccelerate {
