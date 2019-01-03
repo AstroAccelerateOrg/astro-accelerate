@@ -28,7 +28,7 @@ void debug(int test, clock_t start_time, int range, int *outBin, int enable_debu
 		for(i=0; i<range; i++) {
 			printf("\n%f\t%f\t%f\t%d", user_dm_low[i], user_dm_high[i], user_dm_step[i], outBin[i]);
 		}
-		printf("\nGot user input:\t\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
+		printf("\nRead user input from file, which took:\t\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
 		fflush(stdout);
 	} else if(test == 2) {
 		printf("\nInitialised GPU:\t\t%.16g(s)\n", (double)(now - start_time) / CLOCKS_PER_SEC);
