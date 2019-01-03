@@ -35,7 +35,7 @@
 #include "aa_gpu_timer.hpp"
 
 #include "aa_device_analysis.hpp"
-#include "device_periods.hpp"
+#include "aa_device_periods.hpp"
 #include "aa_device_acceleration_fdas.hpp"
 #include "aa_pipeline_runner.hpp"
 
@@ -719,6 +719,6 @@ namespace astroaccelerate {
     
   }
   
-} //namespace astroaccelerate
+} // namespace astroaccelerate
   
-#endif /* ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_5_HPP */
+#endif // ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_5_HPP

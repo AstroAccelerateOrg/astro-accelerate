@@ -36,6 +36,6 @@ namespace astroaccelerate {
   void dedisperse_analyse_telescope_data(const aa_filterbank_metadata &filterbank_data, const aa_compute::pipeline_detail &pipeline_details, std::vector<aa_ddtr_plan::dm> dm_ranges, const std::vector<unsigned short> &input_data, float *&output_data);
 
   
-} //namespace astroaccelerate
+} // namespace astroaccelerate
 
-#endif /* ASTRO_ACCELERATE_AA_PIPELINE_WRAPPER_FUNCTIONS_HPP */
+#endif // ASTRO_ACCELERATE_AA_PIPELINE_WRAPPER_FUNCTIONS_HPP

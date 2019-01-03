@@ -414,6 +414,6 @@ namespace astroaccelerate {
     
   }
   
-}//namespace astroaccelerate
+} // namespace astroaccelerate
 
-#endif /* ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_1_HPP */
+#endif // ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_1_HPP

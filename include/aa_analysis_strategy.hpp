@@ -1,5 +1,5 @@
-#ifndef aa_analysis_strategy_hpp
-#define aa_analysis_strategy_hpp
+#ifndef ASTRO_ACCELERATE_AA_ANALYSIS_STRATEGY_HPP
+#define ASTRO_ACCELERATE_AA_ANALYSIS_STRATEGY_HPP
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,8 +9,8 @@
 
 #include "aa_strategy.hpp"
 #include "aa_analysis_plan.hpp"
-#include "params.hpp"
-#include "device_MSD_plane_profile.hpp"
+#include "aa_params.hpp"
+#include "aa_device_MSD_plane_profile.hpp"
 #include "aa_device_BC_plan.hpp"
 
 #include "aa_device_memory_manager.hpp"
@@ -240,6 +240,6 @@ namespace astroaccelerate {
     }
   };
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
 
-#endif /* aa_analysis_strategy_hpp */
+#endif // ASTRO_ACCELERATE_AA_ANALYSIS_STRATEGY_HPP

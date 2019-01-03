@@ -28,5 +28,5 @@ void acceleration_fdas(int range,
 		       const bool enable_output_ffdot_plan,
 		       const bool enable_output_fdas_list);
 
-} //namespace astroaccelerate
-#endif /* ASTRO_ACCELERATE_AA_DEVICE_ACCELERATION_FDAS_HPP */
+} // namespace astroaccelerate
+#endif // ASTRO_ACCELERATE_AA_DEVICE_ACCELERATION_FDAS_HPP

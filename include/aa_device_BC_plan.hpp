@@ -21,6 +21,6 @@ namespace astroaccelerate {
     int unprocessed_samples;
     int total_ut;
   };
-} //namespace astroaccelerate
+} // namespace astroaccelerate
 
-#endif /* ASTRO_ACCELERATE_AA_DEVICE_BC_PLAN_HPP */
+#endif // ASTRO_ACCELERATE_AA_DEVICE_BC_PLAN_HPP

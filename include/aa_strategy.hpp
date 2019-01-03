@@ -20,6 +20,6 @@ namespace astroaccelerate {
   
   };
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
 
-#endif /* ASTRO_ACCELERATE_AA_STRATEGY_HPP */
+#endif // ASTRO_ACCELERATE_AA_STRATEGY_HPP

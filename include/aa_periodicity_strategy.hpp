@@ -1,11 +1,3 @@
-//
-//  aa_periodicity_strategy.hpp
-//  aapipeline
-//
-//  Created by Cees Carels on Tuesday 23/10/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
 #ifndef ASTRO_ACCELERATE_AA_PERIODICITY_STRATEGY_HPP
 #define ASTRO_ACCELERATE_AA_PERIODICITY_STRATEGY_HPP
 
@@ -134,6 +126,6 @@ namespace astroaccelerate {
     bool m_ready; /** Ready state of the instance. */
   };
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
 
-#endif /* ASTRO_ACCELERATE_AA_PERIODICITY_STRATEGY_HPP */
+#endif // ASTRO_ACCELERATE_AA_PERIODICITY_STRATEGY_HPP

@@ -11,7 +11,7 @@
 #include "aa_ddtr_plan.hpp"
 #include "aa_compute.hpp"
 #include "aa_permitted_pipelines.hpp"
-#include "host_help.hpp"
+#include "aa_host_help.hpp"
 
 
 namespace astroaccelerate {
@@ -374,6 +374,6 @@ namespace astroaccelerate {
     }
   };
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
   
 #endif // ASTRO_ACCELERATE_AA_CONFIG_HPP

@@ -141,6 +141,6 @@ namespace astroaccelerate {
   
   };
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
 
 #endif // ASTRO_ACCELERATE_AA_DEVICE_MEMORY_MANAGER_HPP

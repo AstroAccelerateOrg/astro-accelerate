@@ -6,7 +6,7 @@
 #include <vector_types.h>
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "device_zero_dm_outliers_kernel.hpp"
+#include "aa_device_zero_dm_outliers_kernel.hpp"
 
 namespace astroaccelerate {
 
@@ -16,6 +16,6 @@ namespace astroaccelerate {
    */
   void zero_dm_outliers(unsigned short *const d_input, const int nchans, const int nsamp);
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
   
-#endif /* ASTRO_ACCELERATE_AA_ZERO_DM_OUTLIERS_HPP */
+#endif // ASTRO_ACCELERATE_AA_ZERO_DM_OUTLIERS_HPP

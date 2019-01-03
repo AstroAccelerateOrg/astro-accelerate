@@ -24,6 +24,6 @@ private:
   
 };
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
 
 #endif // ASTRO_ACCELERATE_AA_PRESTO_INPUT_HPP

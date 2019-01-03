@@ -135,6 +135,6 @@ double candidate_sigma(double power, int numsum, double numtrials);
 /* Return the natural log probability corresponding to a chi^2 value */
 /* of chi2 given dof degrees of freedom. */
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
   
 #endif /* PRESTO_H */

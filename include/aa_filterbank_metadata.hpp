@@ -334,6 +334,6 @@ namespace astroaccelerate {
     std::string m_source_name;
   };
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
   
 #endif // ASTRO_ACCELERATE_AA_FILTERBANK_METADATA_HPP

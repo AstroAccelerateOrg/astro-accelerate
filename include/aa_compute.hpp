@@ -70,8 +70,8 @@ namespace astroaccelerate {
     typedef std::set<aa_compute::modules> pipeline; /**< A pipeline is a collection of modules. */
     typedef std::set<aa_compute::module_option> pipeline_detail; /**< All pipeline options are contained in the pipeline_detail. */
     
-  } //namespace aa_compute
-} //namespace astroaccelerate
+  } // namespace aa_compute
+} // namespace astroaccelerate
 
 
 #endif // ASTRO_ACCELERATE_AA_COMPUTE_HPP

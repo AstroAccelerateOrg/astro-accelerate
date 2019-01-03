@@ -9,8 +9,8 @@
 #include <cuda_runtime.h>
 #include <vector_types.h>
 
-#include "params.hpp"
-#include "device_zero_dm_kernel.hpp"
+#include "aa_params.hpp"
+#include "aa_device_zero_dm_kernel.hpp"
 
 namespace astroaccelerate {
 
@@ -20,6 +20,6 @@ namespace astroaccelerate {
    */
   void zero_dm(unsigned short *const d_input, const int nchans, const int nsamp, const int nbits);
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
   
-#endif /* ASTRO_ACCELERATE_AA_ZERO_DM_HPP */
+#endif // ASTRO_ACCELERATE_AA_ZERO_DM_HPP

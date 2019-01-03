@@ -9,10 +9,10 @@
 #include <string>
 
 /**
- * If the build system (CMake) defines version.h, then include it.
+ * If the build system (CMake) defines aa_version.hpp, then include it.
  */
 #ifdef ASTRO_ACCELERATE_VERSION_H_DEFINED
-#include "version.h"
+#include "aa_version.hpp"
 #endif
 
 /** \class aa_device_info aa_device_info.hpp "include/aa_device_info.hpp" 
@@ -20,6 +20,7 @@
  * \author Cees Carels.
  * \date 1 November 2018.
  * \todo Make this class a singleton.
+ * \todo Add this class to namespace astroaccelerate
  */
 
 class aa_device_info {
@@ -189,4 +190,4 @@ private:
   size_t selected_card_idx;  /**< Index into m_card_info for the current selected card. */
 };
 
-#endif /* ASTRO_ACCELERATE_AA_DEVICE_INFO_HPP */
+#endif // ASTRO_ACCELERATE_AA_DEVICE_INFO_HPP

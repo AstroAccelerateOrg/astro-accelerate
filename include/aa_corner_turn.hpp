@@ -5,8 +5,8 @@
 #include <time.h>
 #include <vector_types.h>
 
-#include "params.hpp"
-#include "device_corner_turn_kernel.hpp"
+#include "aa_params.hpp"
+#include "aa_device_corner_turn_kernel.hpp"
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -22,6 +22,6 @@ namespace astroaccelerate {
   int corner_turn(float *const d_input, float *const d_output, const int primary_size, const int secondary_size);
   int corner_turn_SM(float *const d_input, float *const d_output, const int primary_size, const int secondary_size);
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
   
-#endif /* ASTRO_ACCELERATE_CORNER_TURN_HPP */
+#endif // ASTRO_ACCELERATE_CORNER_TURN_HPP

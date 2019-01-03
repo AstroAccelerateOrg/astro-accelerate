@@ -2,7 +2,7 @@
 #define ASTRO_ACCELERATE_PRESTO_FUNCS_HPP
 
 #include "fresnl.hpp"
-#include "median.hpp"
+#include "aa_median.hpp"
 #include <cufft.h>
 
 namespace astroaccelerate {
@@ -15,6 +15,6 @@ void presto_place_complex_kernel(cufftComplex * kernel, int numkernel,
 void presto_dered_sig(cufftComplex * fft, int numamps);
 void presto_norm(cufftComplex * fft, int numamps);
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
   
-#endif
+#endif // ASTRO_ACCELERATE_PRESTO_FUNCS_HPP

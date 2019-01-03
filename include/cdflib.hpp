@@ -91,4 +91,4 @@ namespace astroaccelerate {
 
 } //namespace astroaccelerate
   
-#endif
+#endif // ASTRO_ACCELERATE_CDFLIB_HPP

@@ -1,8 +1,8 @@
 #include "aa_device_load_data.hpp"
-#include "device_dedispersion_kernel.hpp"
-#include "device_SPS_inplace_kernel.hpp"
+#include "aa_device_dedispersion_kernel.hpp"
+#include "aa_device_SPS_inplace_kernel.hpp"
 
-#include "params.hpp"
+#include "aa_params.hpp"
 
 #include <helper_cuda.h>
 

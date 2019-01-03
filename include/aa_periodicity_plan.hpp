@@ -79,6 +79,6 @@ namespace astroaccelerate {
     bool  m_candidate_algorithm; /** User selected flag to enable or disable the use of the candidate_algorithm. */
     bool  m_enable_outlier_rejection; /** User selected flag to enable or disable outlier rejection. */
   };
-}
+} // namespace astroaccelerate
 
-#endif /* ASTRO_ACCELERATE_AA_PERIODICITY_PLAN_HPP */
+#endif // ASTRO_ACCELERATE_AA_PERIODICITY_PLAN_HPP

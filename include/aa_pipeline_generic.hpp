@@ -6,8 +6,8 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#ifndef ASTRO_ACCELERATE_PIPELINE_GENERIC_HPP
-#define ASTRO_ACCELERATE_PIPELINE_GENERIC_HPP
+#ifndef ASTRO_ACCELERATE_AA_PIPELINE_GENERIC_HPP
+#define ASTRO_ACCELERATE_AA_PIPELINE_GENERIC_HPP
 
 #include <iostream>
 
@@ -179,6 +179,6 @@ namespace astroaccelerate {
       std::cout << "NOTICE: Data could not be unbound." << std::endl;
     }
   }  
-} //namespace astroaccelerate
+} // namespace astroaccelerate
 
-#endif /* ASTRO_ACCELERATE_PIPELINE_GENERIC_HPP */
+#endif // ASTRO_ACCELERATE_AA_PIPELINE_GENERIC_HPP

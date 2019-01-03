@@ -132,7 +132,7 @@ foreach(ARCH ${CUDA_ARCH})
 endforeach()
 
 # Configure file
-configure_file("${PROJECT_SOURCE_DIR}/cmake/version.h.in" "${PROJECT_SOURCE_DIR}/include/version.h")
+configure_file("${PROJECT_SOURCE_DIR}/cmake/version.h.in" "${PROJECT_SOURCE_DIR}/include/aa_version.hpp")
 add_definitions("-DASTRO_ACCELERATE_VERSION_H_DEFINED=1")
 
 # Status information

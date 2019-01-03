@@ -6,8 +6,8 @@
 //  Copyright © 2018 Astro-Accelerate. All rights reserved.
 //
 
-#ifndef ASTRO_ACCELERATE_PERMITTED_PIPELINES_HPP
-#define ASTRO_ACCELERATE_PERMITTED_PIPELINES_HPP
+#ifndef ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_HPP
+#define ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_HPP
 
 #include "aa_compute.hpp"
 #include "aa_permitted_pipelines.hpp"
@@ -64,6 +64,6 @@ namespace astroaccelerate {
     
   };
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
 
-#endif /* ASTRO_ACCELERATE_PERMITTED_PIPELINES_HPP */
+#endif // ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_HPP

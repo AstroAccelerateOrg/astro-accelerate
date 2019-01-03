@@ -523,4 +523,4 @@ inline char *sdkFindFilePath(const char *filename, const char *executable_path)
     return 0;
 }
 
-#endif
+#endif // STRING_HELPER_H

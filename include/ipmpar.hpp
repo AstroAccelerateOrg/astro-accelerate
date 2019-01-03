@@ -5,6 +5,6 @@ namespace astroaccelerate {
 
 int ipmpar(int *i);
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
 
-#endif
+#endif // ASTRO_ACCELERATE_IPMPAR_HPP

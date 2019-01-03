@@ -36,6 +36,6 @@ namespace astroaccelerate {
     }
   };
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
 
-#endif  /* ASTRO_ACCELERATE_AA_GPU_TIMER_HPP */
+#endif  // ASTRO_ACCELERATE_AA_GPU_TIMER_HPP

@@ -83,6 +83,6 @@ namespace astroaccelerate {
     bool                m_enable_sps_baseline_noise; /**< The user defined boolean setting to enable/disable the sps_baseline_noise reduction algorithm. */
   };
   
-} //namespace astroaccelerate
+} // namespace astroaccelerate
 
-#endif /* ASTRO_ACCELERATE_AA_ANALYSIS_PLAN_HPP */
+#endif // ASTRO_ACCELERATE_AA_ANALYSIS_PLAN_HPP

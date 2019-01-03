@@ -9,7 +9,7 @@
 
 #include "aa_strategy.hpp"
 
-#include "params.hpp"
+#include "aa_params.hpp"
 #include "aa_ddtr_plan.hpp"
 #include "aa_filterbank_metadata.hpp"
 
@@ -169,6 +169,6 @@ namespace astroaccelerate {
     float ***output_buffer; /**< \brief 3D array that contains the output. \deprecated Has been moved to permitted_pipeline classes. Remove from source and header files.*/
   };
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
 
-#endif /* ASTRO_ACCELERATE_AA_DDTR_STRATEGY */
+#endif // ASTRO_ACCELERATE_AA_DDTR_STRATEGY_HPP

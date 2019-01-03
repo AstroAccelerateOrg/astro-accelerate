@@ -28,7 +28,7 @@
 #include "aa_zero_dm.hpp"
 #include "aa_zero_dm_outliers.hpp"
 #include "aa_corner_turn.hpp"
-#include "device_rfi.hpp"
+#include "aa_device_rfi.hpp"
 #include "aa_dedisperse.hpp"
 
 #include "aa_gpu_timer.hpp"
@@ -555,6 +555,6 @@ namespace astroaccelerate {
     
   }
   
-} //namespace astroaccelerate
+} // namespace astroaccelerate
   
-#endif /* ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_3_HPP */
+#endif // ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_3_HPP

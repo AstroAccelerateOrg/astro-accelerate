@@ -85,5 +85,5 @@ namespace astroaccelerate {
     std::vector<dm> m_user_dm; /**< Storage for all supplied dm properties. */
   
   };
-} //namespace astroaccelerate
-#endif /* ASTRO_ACCELERATE_AA_DDTR_PLAN_HPP */
+} // namespace astroaccelerate
+#endif // ASTRO_ACCELERATE_AA_DDTR_PLAN_HPP

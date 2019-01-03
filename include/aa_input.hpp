@@ -47,6 +47,6 @@ namespace astroaccelerate {
     bool isopen; /** Flag to indicate whether the input source is open. */
   };
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
 
 #endif // ASTRO_ACCELERATE_AA_INPUT_HPP

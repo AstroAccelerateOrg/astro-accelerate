@@ -8,8 +8,8 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#include "params.hpp"
-#include "device_dedispersion_kernel.hpp"
+#include "aa_params.hpp"
+#include "aa_device_dedispersion_kernel.hpp"
 
 namespace astroaccelerate {
 
@@ -19,6 +19,6 @@ namespace astroaccelerate {
    */
   void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned short *d_input, float *d_output, int nchans, float *tsamp, float *dm_low, float *dm_step, int const*const ndms, int nbits, int failsafe);
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
   
-#endif /* ASTRO_ACCELERATE_AA_DEDISPERSE_HPP */
+#endif // ASTRO_ACCELERATE_AA_DEDISPERSE_HPP

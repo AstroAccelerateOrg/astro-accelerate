@@ -72,6 +72,6 @@ namespace astroaccelerate {
     
   };
 
-} //namespace astroaccelerate
+} // namespace astroaccelerate
 
 #endif // ASTRO_ACCELERATE_AA_SIGPROC_INPUT_HPP
