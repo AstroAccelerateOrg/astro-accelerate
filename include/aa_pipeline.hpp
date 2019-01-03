@@ -1,11 +1,3 @@
-//
-//  aa_pipeline.hpp
-//  aapipeline
-//
-//  Created by Cees Carels on Tuesday 23/10/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
 #ifndef ASTRO_ACCELERATE_AA_PIPELINE_HPP
 #define ASTRO_ACCELERATE_AA_PIPELINE_HPP
 
@@ -32,16 +24,25 @@
 namespace astroaccelerate {
 
   /**
-   * This class manages pipelines and their constituent modules, plans, and strategies,
-   * as well as delegating the movement of host memory into and out of the pipeline,
-   * and the movement of device memory into and out of the device.
-   *
-   * Still to do: Add a way to transfer ownership of the data between aa_pipeline objects.
+   * \class aa_pipeline aa_pipeline.hpp "include/aa_pipeline.hpp"
+   * \brief Class to manage pipelines and their constituent modules, plans, and strategies.
+   * \brief This class also delegates the movement of host memory into and out of the pipeline, 
+   * \brief This class also manages the movement of device memory into and out of the device.
+   * \details The class is templated over the input and output data type.
+   * \details The class receives plan objects and calculates strategies.
+   * \details The user may obtain the strategies.
+   * \details The pipeline will not run unless all plans and strategies are successfully calculates for the pipeline that the user provided at construction.
+   * \todo If any plan is offered to a bind method after a bind has already happened, then all flags indicating readiness must be invalidated.
+   * \todo Nice to have but not needed: Add a way to transfer ownership of the data between aa_pipeline objects.
+   * \author Cees Carels.
+   * \date: 23 October 2018.
    */
 
   template<typename T, typename U>
   class aa_pipeline {
   public:
+
+    /** \brief Constructor for aa_pipeline that takes key parameters required on construction. */
     aa_pipeline(const aa_compute::pipeline &requested_pipeline,
 		const aa_compute::pipeline_detail &pipeline_details,
 		const aa_filterbank_metadata &filterbank_metadata,
@@ -64,6 +65,7 @@ namespace astroaccelerate {
       m_requested_pipeline = requested_pipeline;
     }
     
+    /** \brief Destructor for aa_pipeline, performs cleanup as needed. */
     ~aa_pipeline() {
       pipeline_ready = false;
       if(data_on_device) {
@@ -79,8 +81,10 @@ namespace astroaccelerate {
       }
     }
     
-    //TODO: If any plan is offered to a bind method after a bind has already happened,
-    //then all flags indicating readiness must be invalidated.
+    /**
+     * \brief Bind an aa_ddtr_plan to the aa_pipeline instance.
+     * \returns A boolean flag to indicate whether the operation was successful (true) or not (false).
+     */
     bool bind(aa_ddtr_plan plan) {
       pipeline_ready = false;
         
@@ -122,6 +126,12 @@ namespace astroaccelerate {
       return true;
     }
     
+
+    /**
+     * \brief Bind an aa_analysis_plan to the aa_pipeline instance.
+     * \details If your pipeline includes analysis, then you must bind a valid aa_analysis_plan.
+     * \returns A boolean flag to indicate whether the operation was successful (true) or not (false).
+     */
     bool bind(aa_analysis_plan plan) {
       pipeline_ready = false;
       
@@ -154,7 +164,12 @@ namespace astroaccelerate {
         
       return true;
     }
-    
+
+    /**
+     * \brief Bind an aa_periodicity_plan to the aa_pipeline instance.
+     * \details If your pipeline includes periodicity, then you must bind a valid aa_periodicity_plan.
+     * \returns A boolean flag to indicate whether the operation was successful (true) or not (false).
+     */
     bool bind(aa_periodicity_plan plan) {
       pipeline_ready = false;
         
@@ -181,6 +196,11 @@ namespace astroaccelerate {
       return true;
     }
     
+    /**
+     * \brief Bind an aa_fdas_plan to the aa_pipeline instance.
+     * \details If your pipeline includes fdas, then you must bind a valid aa_fdas_plan.
+     * \returns A boolean flag to indicate whether the operation was successful (true) or not (false).
+     */
     bool bind(aa_fdas_plan plan) {
       pipeline_ready = false;
       //Does the pipeline actually need this plan?
@@ -206,6 +226,7 @@ namespace astroaccelerate {
       return true;
     }
     
+    /** \returns The aa_ddtr_strategy instance bound to the pipeline instance, or a trivial instance if a valid aa_ddtr_strategy does not yet exist. */
     aa_ddtr_strategy ddtr_strategy() {
       //Does the pipeline actually need this strategy?
       if(required_plans.find(aa_compute::modules::dedispersion) != required_plans.end()) {
@@ -252,6 +273,7 @@ namespace astroaccelerate {
       }
     }
 
+    /** \returns The aa_analysis_strategy instance bound to the pipeline instance, or a trivial instance if a valid aa_analysis_strategy does not yet exist. */
     aa_analysis_strategy analysis_strategy() {
       //Does the pipeline actually need this strategy? 
       if(required_plans.find(aa_compute::modules::analysis) != required_plans.end()) {
@@ -280,6 +302,7 @@ namespace astroaccelerate {
       }
     }
 
+    /** \returns The aa_periodicity_strategy instance bound to the pipeline instance, or a trivial instance if a valid aa_periodicity_strategy does not yet exist. */
     aa_periodicity_strategy periodicity_strategy() {
       //Does the pipeline actually need this strategy?
       if(required_plans.find(aa_compute::modules::periodicity) != required_plans.end()) {
@@ -309,6 +332,7 @@ namespace astroaccelerate {
       }
     }
 
+    /** \returns The aa_fdas_strategy instance bound to the pipeline instance, or a trivial instance if a valid aa_fdas_strategy does not yet exist. */
     aa_fdas_strategy fdas_strategy() {
       //Does the pipeline actually need this strategy?
       if(required_plans.find(aa_compute::modules::fdas) != required_plans.end()) {
@@ -337,6 +361,7 @@ namespace astroaccelerate {
       }
     }
     
+    /** \deprecated This functionality is delegated to the permitted_pipelines implementations. */
     bool transfer_data_to_device() {
       pipeline_ready = false;
       if(input_data_bound) {
@@ -346,6 +371,7 @@ namespace astroaccelerate {
       return true;
     }
     
+    /** \deprecated This functionality is delegated to the permitted_pipelines implementations. */
     bool transfer_data_to_host(std::vector<U> &data) {
       if(data_on_device) {
 	data = std::move(data_out);
@@ -357,6 +383,7 @@ namespace astroaccelerate {
       return false;
     }
     
+    /** \deprecated This functionality is delegated to the permitted_pipelines implementations. */
     bool transfer_data_to_host(U *&data) {
       if(data_on_device) {
 	data = ptr_data_out;
@@ -368,6 +395,7 @@ namespace astroaccelerate {
       return false;
     }
     
+    /** \deprecated This functionality is delegated to the permitted_pipelines implementations. */
     bool unbind_data() {
       /**
        * If the data is managed, then either it was either moved out via the transfer,
@@ -381,6 +409,11 @@ namespace astroaccelerate {
       return true;
     }
     
+    /**
+     * \brief Check whether all modules and strategies are ready for the pipeline to be able to execute.
+     * \returns A boolean to indicate whether the pipeline is ready (true) or not (false).
+     * \details If false, the user should check whether all plans have been bound and whether all strategies resulting from those plans are valid.
+     */
     bool ready() {
       pipeline_ready = false;
         
@@ -745,6 +778,7 @@ namespace astroaccelerate {
     }
     
 
+    /** \brief Runs the pipeline end-to-end. */
     bool run() {
       /**
        * This method to be overloaded with all possible combinations of
@@ -763,12 +797,10 @@ namespace astroaccelerate {
       }
     }
 
-    /*bool run() {
-      if(pipeline_ready && m_runner->setup()) {
-	return m_runner->next();
-      }
-      }*/
-    
+    /**
+     * \brief Function pass input/output data from one aa_pipeline instance to another.
+     * \warning Not yet implemented.
+     */
     bool handoff(aa_pipeline &next_pipeline) {
       /**
        * Handoff control over the data to the next pipeline.
@@ -779,37 +811,37 @@ namespace astroaccelerate {
     }
     
   private:
-    std::map<aa_compute::modules, bool> required_plans; //Plans required to configure the pipeline
-    std::map<aa_compute::modules, bool> supplied_plans; //Plans supplied by the user
-    std::vector<aa_strategy*>   m_all_strategy;
-    aa_compute::pipeline        m_requested_pipeline;
-    const aa_compute::pipeline_detail &m_pipeline_details;
-    aa_device_info::aa_card_info m_card_info;
-    std::unique_ptr<aa_pipeline_runner> m_runner;
+    std::map<aa_compute::modules, bool> required_plans; /** Plans required to configure the pipeline. */
+    std::map<aa_compute::modules, bool> supplied_plans; /** Plans supplied by the user. */
+    std::vector<aa_strategy*>   m_all_strategy; /** Base class pointers to all strategies bound to the pipeline. */
+    aa_compute::pipeline        m_requested_pipeline; /** The user requested pipeline that was bound to the aa_pipeline instance on construction. */
+    const aa_compute::pipeline_detail &m_pipeline_details; /** The user requested pipeline details containing module options for the aa_pipeline instance. */
+    aa_device_info::aa_card_info m_card_info; /** The user provided GPU card information for the aa_pipeline instance. */
+    std::unique_ptr<aa_pipeline_runner> m_runner; /** A std::unique_ptr that will point to the correct class instantation of the selected aa_permitted_pipelines_ when the pipeline must be made ready to run. */
     
-    aa_filterbank_metadata      m_filterbank_metadata;
+    aa_filterbank_metadata      m_filterbank_metadata; /** The filterbank file metadata that the user provided for the aa_pipeline instance on construction. */
     
-    aa_ddtr_plan                m_ddtr_plan;
-    aa_ddtr_strategy            m_ddtr_strategy;
+    aa_ddtr_plan                m_ddtr_plan; /** The instance of this type that is currently bound to the aa_pipeline instance. */
+    aa_ddtr_strategy            m_ddtr_strategy; /** The instance of this type that is currently bound to the aa_pipeline instance. */
     
-    aa_analysis_plan            m_analysis_plan;
-    aa_analysis_strategy        m_analysis_strategy;
+    aa_analysis_plan            m_analysis_plan; /** The instance of this type that is currently bound to the aa_pipeline instance. */
+    aa_analysis_strategy        m_analysis_strategy; /** The instance of this type that is currently bound to the aa_pipeline instance. */
     
-    aa_periodicity_plan         m_periodicity_plan;
-    aa_periodicity_strategy     m_periodicity_strategy;
+    aa_periodicity_plan         m_periodicity_plan; /** The instance of this type that is currently bound to the aa_pipeline instance. */
+    aa_periodicity_strategy     m_periodicity_strategy; /** The instance of this type that is currently bound to the aa_pipeline instance. */
 
-    aa_fdas_plan                m_fdas_plan;
-    aa_fdas_strategy            m_fdas_strategy;
+    aa_fdas_plan                m_fdas_plan; /** The instance of this type that is currently bound to the aa_pipeline instance. */
+    aa_fdas_strategy            m_fdas_strategy; /** The instance of this type that is currently bound to the aa_pipeline instance. */
     
-    bool bound_with_raw_ptr;
-    bool input_data_bound;
-    bool data_on_device;
-    bool pipeline_ready;
+    bool bound_with_raw_ptr; /** Flag to indicate whether the input data is bound via a raw pointer (true) or not (false). */
+    bool input_data_bound; /** Flag to indicate whether the input data is bound already (true) or not (false). */
+    bool data_on_device; /** \deprecated Flag to indicate whether the input data is on the device (true) or not (false). */
+    bool pipeline_ready; /** Flag to indicate whether the pipeline is ready to execute (true) or not (false).  */
     
-    std::vector<T>              data_in;
-    std::vector<U>              data_out;
-    T const*const               ptr_data_in;
-    U*                          ptr_data_out;
+    std::vector<T>              data_in; /** Input data buffer. */
+    std::vector<U>              data_out; /** Output data buffer. */
+    T const*const               ptr_data_in; /** Input data pointer if bound_with_raw_ptr is true. */
+    U*                          ptr_data_out; /** Input data pointer if bound_with_raw_ptr is true. */
   };
 
 } // namespace astroaccelerate

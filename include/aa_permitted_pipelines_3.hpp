@@ -1,14 +1,5 @@
-//
-//  aa_permitted_pipelines_3.hpp
-//  aapipeline
-//
-//  Created by Cees Carels on Wednesday 28/11/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
 #ifndef ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_3_HPP
 #define ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_3_HPP
-
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -40,6 +31,15 @@
 #include "aa_gpu_timer.hpp"
 
 namespace astroaccelerate {
+
+  /**
+   * \class aa_permitted_pipelines_3 aa_permitted_pipelines_3.hpp "include/aa_permitted_pipelines_3.hpp"
+   * \brief Templated class to run dedispersion and analysis and periodicity.
+   * \details The class is templated over the zero_dm_type (aa_compute::module_option::zero_dm or aa_compute::module_option::zero_dm_with_outliers).
+   * \author Cees Carels.
+   * \date 28 November 2018.
+   */
+
   template<aa_compute::module_option zero_dm_type, bool enable_old_rfi>
   class aa_permitted_pipelines_3 : public aa_pipeline_runner {
   public:

@@ -1,14 +1,5 @@
-//
-//  aa_permitted_pipelines_4.hpp
-//  aapipeline
-//
-//  Created by Cees Carels on Monday 03/12/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
 #ifndef ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_4_HPP
 #define ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_4_HPP
-
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -43,8 +34,11 @@
 namespace astroaccelerate {
 
   /**
-   * This template class performs the functions aa_permitted_pipelines_4, which is
-   * dedispersion, analysis, acceleration.
+   * \class aa_permitted_pipelines_4 aa_permitted_pipelines_4.hpp "include/aa_permitted_pipelines_4.hpp"
+   * \brief Templated class to run dedispersion and analysis and acceleration.
+   * \details The class is templated over the zero_dm_type (aa_compute::module_option::zero_dm or aa_compute::module_option::zero_dm_with_outliers).
+   * \author Cees Carels.
+   * \date 3 December 2018.
    */
   
   template<aa_compute::module_option zero_dm_type, bool enable_old_rfi>

@@ -1,11 +1,3 @@
-//
-//  aa_pipeline_generic.hpp
-//  aapipeline
-//
-//  Created by Cees Carels on Wednesday 24/10/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
 #ifndef ASTRO_ACCELERATE_AA_PIPELINE_GENERIC_HPP
 #define ASTRO_ACCELERATE_AA_PIPELINE_GENERIC_HPP
 
@@ -17,7 +9,15 @@
 #include "aa_pipeline.hpp"
 
 namespace astroaccelerate {
-  
+
+  /**
+   * \brief Templated function that takes a pipeline and pipeline details, and uses the API to process the corresponding pipeline.
+   * \details No pipeline will run if the input parameters are invalid.
+   * \details This function serves as boilerplate code that provides a wrapper around the API.
+   * \detilas This function serves as an example code for library users to integrate AstroAccelerate into their own applications.
+   * \author Cees Carels.
+   * \date 24 October 2018.
+   */  
   template <typename T, typename U>
   void aa_pipeline_generic(const std::vector<aa_compute::modules> &selected_modules,
 			   const aa_compute::pipeline_detail &pipeline_details,

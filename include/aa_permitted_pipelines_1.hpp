@@ -1,14 +1,5 @@
-//
-//  aa_permitted_pipelines_1.hpp
-//  aapipeline
-//
-//  Created by Cees Carels on Friday 02/11/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
 #ifndef ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_1_HPP
 #define ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_1_HPP
-
 
 #include <cuda.h>
 #include <cuda_runtime.h>
