@@ -9,7 +9,8 @@
 namespace astroaccelerate {
 
   /**
-   * If the file extension of this file is *.cpp, then the code will compile but there will be a runtime CUDA error when copying to device memory.
+   * \brief Function to load data from host memory into GPU memory.
+   * \warning If the file extension of this file is *.cpp, then the code will compile but there will be a runtime CUDA error when copying to device memory.
    */
   
   void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short const*const host_pointer, int t_processed, int maxshift, int nchans, float *dmshifts) {

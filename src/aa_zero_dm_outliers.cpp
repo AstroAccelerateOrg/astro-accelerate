@@ -1,16 +1,9 @@
-//
-//  aa_zero_dm_outliers.cpp
-//  aapipeline
-//
-//  Created by Cees Carels on Monday 05/11/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
 #include "aa_zero_dm_outliers.hpp"
 
 namespace astroaccelerate {
 
-void zero_dm_outliers(unsigned short *const d_input, const int nchans, const int nsamp) {
+  /** \brief Performs zero_dm with outlier rejection. */
+  void zero_dm_outliers(unsigned short *const d_input, const int nchans, const int nsamp) {
     
     int divisions_in_t  = 224;
     int num_blocks_t    = nsamp/divisions_in_t;
@@ -43,9 +36,5 @@ void zero_dm_outliers(unsigned short *const d_input, const int nchans, const int
     end_t = clock();
     double time = (double)(end_t-start_t) / CLOCKS_PER_SEC;
     printf("\nPerformed ZDM: %lf (GPU estimate)", time);
-    
-    //}}}
-    
-}
-
+  }
 } //namespace astroaccelerate

@@ -2,8 +2,7 @@
 
 //#define MSD_DEBUG
 
-// TODO:
-// Remove MSD_legacy
+// \todo Remove MSD_legacy
 
 namespace astroaccelerate {
 
