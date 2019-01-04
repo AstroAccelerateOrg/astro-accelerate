@@ -34,6 +34,7 @@ namespace astroaccelerate {
    * \details The pipeline will not run unless all plans and strategies are successfully calculates for the pipeline that the user provided at construction.
    * \todo If any plan is offered to a bind method after a bind has already happened, then all flags indicating readiness must be invalidated.
    * \todo Nice to have but not needed: Add a way to transfer ownership of the data between aa_pipeline objects.
+   * \todo Multiple bind calls which result in valid strategy objects should result in removal of the existing strategy so that only one strategy of each type exists.
    * \author Cees Carels.
    * \date: 23 October 2018.
    */
