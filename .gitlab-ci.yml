@@ -20,7 +20,7 @@ build:
   artifacts:
     paths:
       - build/
-      - include/version.h
+      - include/aa_version.hpp
     expire_in: 1 day
 
 test:
