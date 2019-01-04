@@ -1,12 +1,12 @@
 #include <iostream>
 #include <sstream>
 
-#include "aa_device_memory_manager.hpp"
+#include "aa_device_info.hpp"
 
 using namespace astroaccelerate;
 
 int main(int argc, char* argv[]) {
-  aa_device_memory_manager mem;
+  aa_device_info* device_info = aa_device_info::instance();
 
   if(!argc) {
     std::cout << "Fail." << std::endl;
@@ -19,10 +19,10 @@ int main(int argc, char* argv[]) {
   size_t tmp = 0;
   s1 >> tmp;
   const size_t test_request = tmp;
-  mem.request(test_request);
-  std::cout << mem.requested() << std::endl;
+  device_info->request(test_request);
+  std::cout << device_info->requested() << std::endl;
 
-  if(mem.requested() != test_request) {
+  if(device_info->requested() != test_request) {
     std::cout << "Fail." << std::endl;
     return 0;
   }

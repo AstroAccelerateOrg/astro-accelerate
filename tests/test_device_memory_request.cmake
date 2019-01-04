@@ -1,4 +1,4 @@
-set(TEST_NAME test_device_memory_manager)
+set(TEST_NAME test_device_memory_request)
 message(STATUS "INFO: Add ${TEST_NAME}")
 
 add_executable(${TEST_NAME} "${CMAKE_CURRENT_LIST_DIR}/${TEST_NAME}")
@@ -12,7 +12,6 @@ target_sources(${TEST_NAME}
                PUBLIC
                "include/aa_ddtr_strategy.hpp"
 	       "include/aa_device_info.hpp"
-	       "include/aa_device_memory_manager.hpp"
 )
 target_link_libraries(${TEST_NAME} PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUFFT_LIBRARIES} ${CUDA_curand_LIBRARY} astroaccelerate)
 add_test(NAME ${TEST_NAME} COMMAND tests/${TEST_NAME} 8589934592)

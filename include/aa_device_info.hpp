@@ -167,7 +167,7 @@ namespace astroaccelerate {
       return true;
     }
     
-    /** \returns The currently available free memory on the currently selected GPU. */
+    /** \returns The currently available free memory on the currently selected GPU as reported by the CUDA driver. */
     size_t gpu_memory() const {
       if(is_init) {
 	return m_card_info.at(selected_card_idx).free_memory;
@@ -186,6 +186,16 @@ namespace astroaccelerate {
      */
     bool request(const size_t mem) {
       if(!is_init) {
+	std::cout << "NOTICE: No card has yet been selected. Defaulting to card with ID 0 and proceeding." << std::endl;
+	if(!check_for_devices()) {
+	  std::cout << "ERROR:  Could not check devices." << std::endl; 
+	  return false;
+	}
+      }
+      if(m_card_info.at(selected_card_idx).user_requested_memory_for_allocation + mem >= gpu_memory()) {
+	std::cout << "ERROR:  Device reports that the additional requested memory (" << mem << "), "
+		  << "in addition to the already requested memory (" << requested() << "), would exceed the total free memory on the device (" << gpu_memory() << ")."
+		  << std::endl;
 	return false;
       }
       m_card_info.at(selected_card_idx).user_requested_memory_for_allocation += mem;
@@ -193,8 +203,13 @@ namespace astroaccelerate {
     }
 
     /** \returns The amount of memory requested on the currently selected, or 0 if cards have not been checked. */
-    size_t requested() const {
+    size_t requested() {
       if(!is_init) {
+	std::cout << "NOTICE: No card has yet been selected. Defaulting to card with ID 0 and proceeding." << std::endl;
+	if(!check_for_devices()) {
+          std::cout << "ERROR:  Could not check devices." << std::endl;
+          return false;
+        }
 	return 0;
       }
       return m_card_info.at(selected_card_idx).user_requested_memory_for_allocation;
