@@ -1,4 +1,4 @@
-# **User Manual**
+# User Manual
 ## **Hardware and software support status**
 
 AstroAccelerate supported GPU status
