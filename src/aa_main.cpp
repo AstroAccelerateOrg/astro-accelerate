@@ -49,8 +49,8 @@ int main(int argc, char *argv[]) {
   }
   
   //Select card
-  aa_device_info device_info;
-  if(device_info.check_for_devices()) {
+  aa_device_info* device_info = aa_device_info::instance();
+  if(device_info->check_for_devices()) {
     std::cout << "NOTICE: Checked for devices." << std::endl;
   }
   else {
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
   
   aa_device_info::CARD_ID selected_card = CARD;
   aa_device_info::aa_card_info selected_card_info;
-  if(device_info.init_card(selected_card, selected_card_info)) {
+  if(device_info->init_card(selected_card, selected_card_info)) {
     std::cout << "NOTICE: init_card complete." << std::endl;
   }
   else {
