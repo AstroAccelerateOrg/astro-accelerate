@@ -14,7 +14,7 @@ namespace astroaccelerate {
    * \brief Templated function that takes a pipeline and pipeline details, and uses the API to process the corresponding pipeline.
    * \details No pipeline will run if the input parameters are invalid.
    * \details This function serves as boilerplate code that provides a wrapper around the API.
-   * \detilas This function serves as an example code for library users to integrate AstroAccelerate into their own applications.
+   * \details This function serves as an example code for library users to integrate AstroAccelerate into their own applications.
    * \author Cees Carels.
    * \date 24 October 2018.
    */  
