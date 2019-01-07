@@ -103,10 +103,51 @@ The inputs and outputs of the each of the modules are tabulated below.
 ### **Obtaining the output**
 The default for output is to save to disk. If interacting directly with the pipeline, the user may call any one of the overloaded `run` methods on the pipeline (using flags to indicate whether the output will be `dump`ed to disk and/or to the user at runtime), providing a `std::vector` to obtain dedispersed output from the `dedispersion` module, and an `aa_analysis_output` struct for the analysis single pulse search (SPS) output from the `analysis` module.
 
-## ** Using the built-in logging capabilities**
-Users and developers alike may wish to use the logging capabilities provided by the aa_log class to log their activities.
-AstroAccelerate uses it internally to provide output to the screen by default.
-Alternatively, the output may be saved to a file on the disk instead - if a library user wishes to do so.
+## ** Using the built-in logging facility**
+Users and developers alike may wish to use the logging facility provided by the `aa_log` class in order to log their activities to the `console` or to save it to a `file` on disk.
 
-To use the logging capability:
-instructions here...
+AstroAccelerate uses the logging class internally to provide output to the screen by default.
+
+The logging facility provides several levels of logs. Please use it as described below.
+
+| Level           | Name                 | Use                                          |
+|-----------------|----------------------|----------------------------------------------|
+| Developer debug | log_level::dev_debug | Developer debugging information              |
+| User debug      | log_level::debug     | User debugging information                   |
+| Notice          | log_level::notice    | Informational notices                        |
+| Warning         | log_level::warning   | Behaviour that does not terminate execution. |
+| Error           | log_level::error     | Behaviour that terminates execution.         |
+
+By default, the executable is compiled to include only `log_level::notice` messages or higher, so only `notice`, `warning`, and `error` are recorded. This behaviour can be changed at compilation time by providing a flag when running `cmake`, the possibilities are as follows
+
+* `-DMINIMUM_LOG_LEVEL=dev_debug`
+* `-DMINIMUM_LOG_LEVEL=debug`
+* `-DMINIMUM_LOG_LEVEL=notice`
+* `-DMINIMUM_LOG_LEVEL=warning`
+* `-DMINIMUM_LOG_LEVEL=error`
+
+All logs of any kind can also be completely silenced by providing CMake the `-DENABLE_LOGS=FALSE` flag.
+
+To use it in your code, include the logging class in your code
+
+```
+#include "aa_log.hpp"
+```
+
+Here are several examples of how to log a message
+
+```
+LOG(log_level::debug, "A user debug message");
+LOG(log_level::notice, "A notice message");
+LOG(log_level::warning, "A warning message");
+LOG(log_level::error, "An error message");
+```
+
+By default, all messages are printed to the console. To save them to the disk instead, write:
+
+```
+FILE* pFile = fopen("/full/path/to/destination/logfile.log", "a");
+FILElog::stream() = pFile;
+```
+
+All subsequent logs will then only be written to disk.
