@@ -82,6 +82,8 @@ Please adhere to the following where possible. Exceptions to coding conventions 
 ### Naming Conventions
 * Methods and functions shall be all lower case, with word seperation with an underscore character e.g. `do_something()`.
 * Variable names shall be all lower case.
+* File names shall follow this naming convention: aa_<optional: device/host>_<mandatory: name>.<mandatory: cpp/hpp/cu/cuh>.
+* Header guards shall follow this naming convention: ASTRO_ACCELERATE_<full_file_name_with_extension>.
 
 ### Use of Indentation
 * Use 2 spaces instead of tab.
