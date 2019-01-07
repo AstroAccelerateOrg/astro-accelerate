@@ -20,7 +20,7 @@ namespace astroaccelerate {
    */  
   template <typename T, typename U>
   void aa_pipeline_generic(const std::vector<aa_compute::modules> &selected_modules,
-			   const aa_compute::pipeline_detail &pipeline_details,
+			   const aa_compute::pipeline_option &pipeline_details,
 			   const aa_filterbank_metadata &filterbank_data,
 			   std::vector<aa_ddtr_plan::dm> dm_ranges,
 			   T const*const input_data, U *&output_data,

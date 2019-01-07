@@ -23,7 +23,7 @@
 using namespace astroaccelerate;
 
 int main(int argc, char *argv[]) {
-  aa_CLI cli;
+  aa_command_line_arguments cli;
   for(int i = 0; i < argc; i++) {
     cli.input.push_back(argv[i]);
   }
@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
   aa_ddtr_plan ddtr_plan;
   std::string file_path;
   aa_config_flags user_flags = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_compute::debug>()};
-  aa_compute::pipeline_detail pipeline_details;
+  aa_compute::pipeline_option pipeline_details;
   aa_compute::pipeline pipeline = cli_configuration.setup(ddtr_plan, user_flags, pipeline_details, file_path);
 
   std::cout << "File path " << file_path << std::endl;

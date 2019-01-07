@@ -43,7 +43,7 @@ namespace astroaccelerate {
 
     /** \brief Constructor for aa_pipeline that takes key parameters required on construction. */
     aa_pipeline(const aa_compute::pipeline &requested_pipeline,
-		const aa_compute::pipeline_detail &pipeline_details,
+		const aa_compute::pipeline_option &pipeline_details,
 		const aa_filterbank_metadata &filterbank_metadata,
 		T const*const input_data,
 		const aa_device_info::aa_card_info &card_info) : m_pipeline_details(pipeline_details),
@@ -835,7 +835,7 @@ namespace astroaccelerate {
     std::map<aa_compute::modules, bool> supplied_plans; /** Plans supplied by the user. */
     std::vector<aa_strategy*>   m_all_strategy; /** Base class pointers to all strategies bound to the pipeline. */
     aa_compute::pipeline        m_requested_pipeline; /** The user requested pipeline that was bound to the aa_pipeline instance on construction. */
-    const aa_compute::pipeline_detail &m_pipeline_details; /** The user requested pipeline details containing module options for the aa_pipeline instance. */
+    const aa_compute::pipeline_option &m_pipeline_details; /** The user requested pipeline details containing module options for the aa_pipeline instance. */
     aa_device_info::aa_card_info m_card_info; /** The user provided GPU card information for the aa_pipeline instance. */
     std::unique_ptr<aa_pipeline_runner> m_runner; /** A std::unique_ptr that will point to the correct class instantation of the selected aa_permitted_pipelines_ when the pipeline must be made ready to run. */
     

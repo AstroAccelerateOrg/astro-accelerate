@@ -3,20 +3,20 @@
 namespace astroaccelerate {
 
   /** \brief Function that only performs dedispersion, and uses a raw pointer to input data.*/
-  void dedisperse_telescope_data(const aa_filterbank_metadata &filterbank_data, const aa_compute::pipeline_detail &pipeline_details, std::vector<aa_ddtr_plan::dm> dm_ranges, unsigned short const*const input_data, float *&output_data) {
+  void dedisperse_telescope_data(const aa_filterbank_metadata &filterbank_data, const aa_compute::pipeline_option &pipeline_details, std::vector<aa_ddtr_plan::dm> dm_ranges, unsigned short const*const input_data, float *&output_data) {
     std::vector<aa_compute::modules> selected_modules = {aa_compute::modules::dedispersion};
     aa_pipeline_generic(selected_modules, pipeline_details, filterbank_data, dm_ranges, input_data, output_data);
   }
 
   /** \brief Function that only performs dedispersion, and uses a std::vector to input data. */
-  void dedisperse_telescope_data(const aa_filterbank_metadata &filterbank_data, const aa_compute::pipeline_detail &pipeline_details, std::vector<aa_ddtr_plan::dm> dm_ranges, const std::vector<unsigned short> &input_data, float *&output_data) {
+  void dedisperse_telescope_data(const aa_filterbank_metadata &filterbank_data, const aa_compute::pipeline_option &pipeline_details, std::vector<aa_ddtr_plan::dm> dm_ranges, const std::vector<unsigned short> &input_data, float *&output_data) {
     // This overloaded function uses a std::vector<unsigned short> and calls the function version using a raw pointer to the data.
     dedisperse_telescope_data(filterbank_data, pipeline_details, dm_ranges, input_data.data(), output_data);
   }
 
   /** \brief Function that performs dedispersion and analysis, and uses a raw pointer to input data. */
   void dedisperse_analyse_telescope_data(const aa_filterbank_metadata &filterbank_data,
-					 const aa_compute::pipeline_detail &pipeline_details,
+					 const aa_compute::pipeline_option &pipeline_details,
 					 std::vector<aa_ddtr_plan::dm> dm_ranges,
 					 unsigned short const*const input_data,
 					 float *&output_data,
@@ -31,7 +31,7 @@ namespace astroaccelerate {
 
   /** \brief Function that performs dedispersion and analysis, and uses a std::vector to input data. */
   void dedisperse_analyse_telescope_data(const aa_filterbank_metadata &filterbank_data,
-					 const aa_compute::pipeline_detail &pipeline_details,
+					 const aa_compute::pipeline_option &pipeline_details,
 					 std::vector<aa_ddtr_plan::dm> dm_ranges,
 					 const std::vector<unsigned short> &input_data,
 					 float *&output_data,

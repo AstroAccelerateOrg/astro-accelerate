@@ -16,10 +16,10 @@
 
 namespace astroaccelerate {
 
-  /** \struct aa_CLI
+  /** \struct aa_command_line_arguments
    * \brief A struct to contain a std::vector of command line argument strings.
    */
-  struct aa_CLI {
+  struct aa_command_line_arguments {
     std::vector<std::string> input;
   };
 
@@ -65,11 +65,11 @@ namespace astroaccelerate {
   class aa_config {
   public:
     /** \brief Constructor for aa_config to configure from an input file for the standalone executable.
-     * \brief The aa_CLI parameter cli_input is used to supply all command line interface arguments.
+     * \brief The aa_command_line_arguments parameter cli_input is used to supply all command line interface arguments.
      * \details This must at least contain the full path to an input file.
      * \details If using AstroAccelerate as a library user, then use the other constructor of the aa_config class.
      */
-    aa_config(const aa_CLI &cli_input) : configure_from_file(true), user_cli(cli_input) {
+    aa_config(const aa_command_line_arguments &cli_input) : configure_from_file(true), user_cli(cli_input) {
       
     }
     
@@ -98,7 +98,7 @@ namespace astroaccelerate {
      * \details If the aa_config object was constructed without an input file path, then this module only checks whether the supplied pipeline is valid.
      * \returns A pipeline object that is either valid or empty if it is not valid. 
      */
-    const aa_compute::pipeline setup(aa_ddtr_plan &ddtr_plan, aa_config_flags &user_flags, aa_compute::pipeline_detail &pipeline_details, std::string &file_path) {
+    const aa_compute::pipeline setup(aa_ddtr_plan &ddtr_plan, aa_config_flags &user_flags, aa_compute::pipeline_option &pipeline_details, std::string &file_path) {
       if(configure_from_file) {
 	if(get_user_input()) { //Read user input from text input file and set flag object.
 	  if(aa_permitted_pipelines::is_permitted(m_pipeline)) { //get_user_input has configured m_pipeline, so now its validity can be checked.
@@ -138,8 +138,8 @@ namespace astroaccelerate {
     std::string fpath; //Path to the input data file.
     aa_config_flags flg;  //Configuration flags
     aa_compute::pipeline        m_pipeline; //The pipeline object that is configured by an instance of this class using an input file. 
-    aa_compute::pipeline_detail m_pipeline_details; //The pipeline settings configured by an instance of this class using an input file.
-    aa_CLI user_cli; //The user supplied Command Line Interface settings.
+    aa_compute::pipeline_option m_pipeline_details; //The pipeline settings configured by an instance of this class using an input file.
+    aa_command_line_arguments user_cli; //The user supplied command line argument settings.
     aa_ddtr_plan m_ddtr_plan; //The ddtr_plan that is configured by an instance of this class using an input file.
     
     /** \brief Reads an input text file.
