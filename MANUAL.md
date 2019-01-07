@@ -103,7 +103,7 @@ The inputs and outputs of the each of the modules are tabulated below.
 ### **Obtaining the output**
 The default for output is to save to disk. If interacting directly with the pipeline, the user may call any one of the overloaded `run` methods on the pipeline (using flags to indicate whether the output will be `dump`ed to disk and/or to the user at runtime), providing a `std::vector` to obtain dedispersed output from the `dedispersion` module, and an `aa_analysis_output` struct for the analysis single pulse search (SPS) output from the `analysis` module.
 
-## ** Using the built-in logging facility**
+## **Using the built-in logging facility**
 Users and developers alike may wish to use the logging facility provided by the `aa_log` class in order to log their activities to the `console` or to save it to a `file` on disk.
 
 AstroAccelerate uses the logging class internally to provide output to the screen by default.
