@@ -6,8 +6,14 @@
 #include <chrono>
 
 namespace astroaccelerate {
-
-#ifndef LOG_ENABLE
+  
+#ifdef ASTRO_ACCELERATE_LOGGING_FACILITY_ENABLE
+#if ASTRO_ACCELERATE_LOGGING_FACILITY_ENABLE == 0
+  #define LOG_ENABLE 0
+#else
+  #define LOG_ENABLE 1
+#endif
+#else
 #define LOG_ENABLE 1
 #endif
   

@@ -126,7 +126,7 @@ By default, the executable is compiled to include only `log_level::notice` messa
 * `-DMINIMUM_LOG_LEVEL=warning`
 * `-DMINIMUM_LOG_LEVEL=error`
 
-All logs of any kind can also be completely silenced by providing CMake the `-DENABLE_LOGS=FALSE` flag.
+All logs of any kind can also be completely silenced by providing CMake the `-DLOGGING_FACILITY=OFF` flag (default is ON).
 
 To use it in your code, include the logging class in your code
 

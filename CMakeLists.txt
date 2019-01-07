@@ -131,6 +131,16 @@ foreach(ARCH ${CUDA_ARCH})
 	endif()
 endforeach()
 
+option(LOGGING_FACILITY "Enable logging facility" ON)
+if(${LOGGING_FACILITY})
+        message("-- INFO: LOGGING_FACILITY ON")
+	add_definitions("-DASTRO_ACCELERATE_LOGGING_FACILITY_ENABLE=1")
+else()
+	message("-- INFO: LOGGING_FACILITY OFF")
+	add_definitions("-DASTRO_ACCELERATE_LOGGING_FACILITY_ENABLE=0")
+endif()
+
+
 # Configure file
 configure_file("${PROJECT_SOURCE_DIR}/cmake/version.h.in" "${PROJECT_SOURCE_DIR}/include/aa_version.hpp")
 add_definitions("-DASTRO_ACCELERATE_VERSION_H_DEFINED=1")
