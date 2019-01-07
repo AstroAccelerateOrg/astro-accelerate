@@ -118,17 +118,9 @@ The logging facility provides several levels of logs. Please use it as described
 | Warning         | log_level::warning   | Behaviour that does not terminate execution. |
 | Error           | log_level::error     | Behaviour that terminates execution.         |
 
-By default, the executable is compiled to include only `log_level::notice` messages or higher, so only `notice`, `warning`, and `error` are recorded. This behaviour can be changed at compilation time by providing a flag when running `cmake`, the possibilities are as follows
+By default, the executable is compiled to include only `log_level::notice` messages or higher, so only `notice`, `warning`, and `error` are recorded. This behaviour can be changed at compilation by manually changing the `LOG_THRESHOLD` setting in `aa_log.hpp` to one of the named `log_level`s defined in the table above (default is `log_level::notice`). All logs of any kind can also be completely silenced at the build stage by providing CMake the `-DLOGGING_FACILITY=OFF` flag (default is ON).
 
-* `-DMINIMUM_LOG_LEVEL=dev_debug`
-* `-DMINIMUM_LOG_LEVEL=debug`
-* `-DMINIMUM_LOG_LEVEL=notice`
-* `-DMINIMUM_LOG_LEVEL=warning`
-* `-DMINIMUM_LOG_LEVEL=error`
-
-All logs of any kind can also be completely silenced by providing CMake the `-DLOGGING_FACILITY=OFF` flag (default is ON).
-
-To use it in your code, include the logging class in your code
+To use logging in your code, include the logging class in your code
 
 ```
 #include "aa_log.hpp"

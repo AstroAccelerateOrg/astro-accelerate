@@ -140,7 +140,6 @@ else()
 	add_definitions("-DASTRO_ACCELERATE_LOGGING_FACILITY_ENABLE=0")
 endif()
 
-
 # Configure file
 configure_file("${PROJECT_SOURCE_DIR}/cmake/version.h.in" "${PROJECT_SOURCE_DIR}/include/aa_version.hpp")
 add_definitions("-DASTRO_ACCELERATE_VERSION_H_DEFINED=1")
