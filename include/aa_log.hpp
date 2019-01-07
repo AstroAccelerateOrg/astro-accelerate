@@ -39,14 +39,16 @@ namespace astroaccelerate {
 #define LOG_THRESHOLD log_level::notice
 #endif
 
-#define DEBUG_TEXT   "DEBUG   "
-#define NOTICE_TEXT  "NOTICE  "
-#define WARNING_TEXT "WARNING "
-#define ERROR_TEXT   "ERROR   "
+#define DEV_DEBUG_TEXT "DEBUG   "
+#define DEBUG_TEXT     "DEBUG   "
+#define NOTICE_TEXT    "NOTICE  "
+#define WARNING_TEXT   "WARNING "
+#define ERROR_TEXT     "ERROR   "
   
   /** \brief Preprocessor macro that delegates and configures at compile time how parameters of how the log message is logged. */
 #define LOG(level, msg) if(!LOG_ENABLE) ;				\
   else if (level < LOG_THRESHOLD || !FILElog::stream()) ;		\
+  else if(level == log_level::dev_debug) FILElog().write(DEV_DEBUG_TEXT, msg); \
   else if(level == log_level::debug) FILElog().write(DEBUG_TEXT, msg);	\
   else if(level == log_level::notice) FILElog().write(NOTICE_TEXT, msg); \
   else if(level == log_level::warning) FILElog().write(WARNING_TEXT, msg); \
