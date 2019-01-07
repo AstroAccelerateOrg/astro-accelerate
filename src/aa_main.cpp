@@ -20,7 +20,7 @@
 #include "aa_params.hpp"
 #include "aa_device_info.hpp"
 
-#include "aa_logging.hpp"
+#include "aa_log.hpp"
 
 using namespace astroaccelerate;
 
