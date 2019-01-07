@@ -195,7 +195,7 @@ namespace astroaccelerate {
       }
       if(m_card_info.at(selected_card_idx).user_requested_memory_for_allocation + mem >= gpu_memory()) {
 	std::cout << "ERROR:  Device reports that the additional requested memory (" << mem << "), "
-		  << "in addition to the already requested memory (" << requested() << "), would exceed the total free memory on the device (" << gpu_memory() << ")."
+		  << "in addition to the already requested memory (" << requested() << "), would exceed the total free memory on the device (" << (unsigned long long)gpu_memory() << ")."
 		  << std::endl;
 	return false;
       }

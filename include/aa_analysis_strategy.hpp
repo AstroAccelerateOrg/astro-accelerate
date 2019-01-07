@@ -231,15 +231,15 @@ namespace astroaccelerate {
       // Inform aa_device_memory_manager of the memory that will be required
       // This memory required is given by the allocate_memory_MSD function
       if(!mem->request(maxtimesamples*5.5*sizeof(float))) {
-	std::cout << "ERROR:  Could not request memory. " << maxtimesamples*5.5*sizeof(float) << std::endl;
+	std::cout << "ERROR:  Could not request memory. " << (unsigned long long)(maxtimesamples*5.5*sizeof(float)) << std::endl;
 	return;
       }
       if(!mem->request(sizeof(ushort)*2*maxtimesamples)) {
-	std::cout << "ERROR:  Could not request memory. " << sizeof(ushort)*2*maxtimesamples << std::endl;
+	std::cout << "ERROR:  Could not request memory. " << (unsigned long long)(sizeof(ushort)*2*maxtimesamples) << std::endl;
 	return;
       }
       if(!mem->request(sizeof(float)*MSD_profile_size_in_bytes)) {
-	std::cout << "ERROR:  Could not request memory. " << sizeof(float)*MSD_profile_size_in_bytes << std::endl;
+	std::cout << "ERROR:  Could not request memory. " << (unsigned long long)(sizeof(float)*MSD_profile_size_in_bytes) << std::endl;
 	return;
       }
       

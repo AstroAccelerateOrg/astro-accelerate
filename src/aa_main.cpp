@@ -20,6 +20,8 @@
 #include "aa_params.hpp"
 #include "aa_device_info.hpp"
 
+#include "aa_logging.hpp"
+
 using namespace astroaccelerate;
 
 int main(int argc, char *argv[]) {
@@ -102,7 +104,7 @@ int main(int argc, char *argv[]) {
       std::cout << "NOTICE: analysis_plan bound successfully." << std::endl;
     }
     else {
-      std::cout << "ERROR: Could not bind analysis_plan." << std::endl;
+      std::cout << "ERROR:  Could not bind analysis_plan." << std::endl;
     }
   }
   
