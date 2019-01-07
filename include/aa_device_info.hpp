@@ -23,13 +23,6 @@ namespace astroaccelerate {
    * \brief Obtain information about available GPUs and select the GPU to use for data processing.
    * \author Cees Carels.
    * \date 1 November 2018.
-   * \todo Nice to have: Adding a wrapper around cudaMalloc and cudaFree would allow this class to manage all memory.
-     Then, to request memory, a handle is provided at the "request()" call. Then the user can actually allocate using the
-     handle, whereupon the previously "request"ed memory for that handle is subtracted from the
-     user_requested_memory_for_allocation for that card.
-     Thus, memory has three stages request, allocate, de-allocate. The handling must always be separate for each card.
-     Additionally, a request_and_allocate method should be added for cases when the allocation does not need to be delayed.
-     This way, memory allocation can mimic the behaviour of cudaMalloc / cudaFree.
    */
 
   class aa_device_info {
