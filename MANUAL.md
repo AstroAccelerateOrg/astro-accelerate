@@ -151,3 +151,5 @@ FILElog::stream() = pFile;
 ```
 
 All subsequent logs will then only be written to disk.
+
+All logs will print the system date and time, the log level, and the log message.
