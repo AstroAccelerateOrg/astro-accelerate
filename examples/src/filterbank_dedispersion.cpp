@@ -38,9 +38,9 @@ int main() {
   dm_ranges.push_back(range7);
   dm_ranges.push_back(range8);
 
-  const aa_compute::pipeline_option pipeline_details = {aa_compute::module_option::zero_dm};
+  const aa_compute::pipeline_option pipeline_options = {aa_compute::module_option::zero_dm};
   
-  dedisperse_telescope_data(filterbank_metadata, pipeline_details, dm_ranges, filterbank_datafile.input_buffer(), my_output_data);
+  dedisperse_telescope_data(filterbank_metadata, pipeline_options, dm_ranges, filterbank_datafile.input_buffer(), my_output_data);
   std::cout << "NOTICE: Finished." << std::endl;
   return 0;
 }

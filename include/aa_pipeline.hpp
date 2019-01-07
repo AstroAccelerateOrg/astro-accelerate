@@ -43,10 +43,10 @@ namespace astroaccelerate {
 
     /** \brief Constructor for aa_pipeline that takes key parameters required on construction. */
     aa_pipeline(const aa_compute::pipeline &requested_pipeline,
-		const aa_compute::pipeline_option &pipeline_details,
+		const aa_compute::pipeline_option &pipeline_options,
 		const aa_filterbank_metadata &filterbank_metadata,
 		T const*const input_data,
-		const aa_device_info::aa_card_info &card_info) : m_pipeline_details(pipeline_details),
+		const aa_device_info::aa_card_info &card_info) : m_pipeline_options(pipeline_options),
 								 m_card_info(card_info),
 								 m_filterbank_metadata(filterbank_metadata),
 								 bound_with_raw_ptr(true),
@@ -474,13 +474,13 @@ namespace astroaccelerate {
       constexpr aa_compute::module_option zero_dm               = aa_compute::module_option::zero_dm;
       constexpr aa_compute::module_option zero_dm_with_outliers = aa_compute::module_option::zero_dm_with_outliers;
 
-      if(m_pipeline_details.find(zero_dm) == m_pipeline_details.end() &&
-	 m_pipeline_details.find(zero_dm_with_outliers) == m_pipeline_details.end()) {
+      if(m_pipeline_options.find(zero_dm) == m_pipeline_options.end() &&
+	 m_pipeline_options.find(zero_dm_with_outliers) == m_pipeline_options.end()) {
 	std::cout << "NOTICE: Neither zero_dm nor zero_dm_with_outliers were selected. Selection OFF." << std::endl;
       }
       
-      if(m_pipeline_details.find(zero_dm) != m_pipeline_details.end() &&
-	 m_pipeline_details.find(zero_dm_with_outliers) != m_pipeline_details.end()) {
+      if(m_pipeline_options.find(zero_dm) != m_pipeline_options.end() &&
+	 m_pipeline_options.find(zero_dm_with_outliers) != m_pipeline_options.end()) {
 	std::cout << "ERROR:  Both zero_dm and zero_dm_with_outliers cannot simultaneously be selected." << std::endl;
 	return false;
       }
@@ -492,23 +492,23 @@ namespace astroaccelerate {
       bool fdas_enable_output_ffdot_plan = false;
       bool fdas_enable_output_list       = false;
 
-      if(m_pipeline_details.find(aa_compute::module_option::fdas_custom_fft) != m_pipeline_details.end()) {
+      if(m_pipeline_options.find(aa_compute::module_option::fdas_custom_fft) != m_pipeline_options.end()) {
 	fdas_enable_custom_fft = true;
       }
 	
-      if(m_pipeline_details.find(aa_compute::module_option::fdas_inbin) != m_pipeline_details.end()) {
+      if(m_pipeline_options.find(aa_compute::module_option::fdas_inbin) != m_pipeline_options.end()) {
 	fdas_enable_inbin = true;
       }
 
-      if(m_pipeline_details.find(aa_compute::module_option::fdas_norm) != m_pipeline_details.end()) {
+      if(m_pipeline_options.find(aa_compute::module_option::fdas_norm) != m_pipeline_options.end()) {
 	fdas_enable_norm = true;
       }
 	
-      if(m_pipeline_details.find(aa_compute::module_option::output_ffdot_plan) != m_pipeline_details.end()) {
+      if(m_pipeline_options.find(aa_compute::module_option::output_ffdot_plan) != m_pipeline_options.end()) {
 	fdas_enable_output_ffdot_plan = true;
       }
 	
-      if(m_pipeline_details.find(aa_compute::module_option::output_fdas_list) != m_pipeline_details.end()) {
+      if(m_pipeline_options.find(aa_compute::module_option::output_fdas_list) != m_pipeline_options.end()) {
 	fdas_enable_output_list = true;
       }
 	
@@ -546,8 +546,8 @@ namespace astroaccelerate {
       //Then, assign a new object of that type to the base class pointer.
       bool is_pipeline_set_to_runner = false;
       if(m_requested_pipeline == aa_permitted_pipelines::pipeline1) {
-	if(m_pipeline_details.find(zero_dm) != m_pipeline_details.end()) {
-	  if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	if(m_pipeline_options.find(zero_dm) != m_pipeline_options.end()) {
+	  if(m_pipeline_options.find(old_rfi) != m_pipeline_options.end()) {
 	    //details contain zero_dm and old_rfi
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_1<zero_dm,               use_old_rfi>>(new aa_permitted_pipelines_1<zero_dm,               use_old_rfi>(m_ddtr_strategy, ptr_data_in));
 	    is_pipeline_set_to_runner = true;
@@ -560,9 +560,9 @@ namespace astroaccelerate {
 	    std::cout << "NOTICE: Selected Pipeline 1 with zero_dm, and new_rfi" << std::endl;
 	  }
 	}
-	else if(m_pipeline_details.find(zero_dm_with_outliers) != m_pipeline_details.end()) {
+	else if(m_pipeline_options.find(zero_dm_with_outliers) != m_pipeline_options.end()) {
 	  //details contain zero_dm_with_outliers
-	  if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	  if(m_pipeline_options.find(old_rfi) != m_pipeline_options.end()) {
 	    //details contain zero_dm_with_outliers and old_rfi
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_1<zero_dm_with_outliers, use_old_rfi>>(new aa_permitted_pipelines_1<zero_dm_with_outliers, use_old_rfi>(m_ddtr_strategy, ptr_data_in));
 	    is_pipeline_set_to_runner	= true;
@@ -577,7 +577,7 @@ namespace astroaccelerate {
 	}
 	else {
 	  std::cout << "NOTICE: Neither zero_dm nor zero_dm_with_outliers were specified in the options list. Selection OFF." << std::endl;
-	  if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	  if(m_pipeline_options.find(old_rfi) != m_pipeline_options.end()) {
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_1<off, use_old_rfi>>(new aa_permitted_pipelines_1<off, use_old_rfi>(m_ddtr_strategy, ptr_data_in));
 	    is_pipeline_set_to_runner	= true;
 	    std::cout << "NOTICE: Selected Pipeline 1 without zero_dm, and old_rfi" << std::endl;
@@ -590,8 +590,8 @@ namespace astroaccelerate {
 	}	
       }
       else if(m_requested_pipeline == aa_permitted_pipelines::pipeline2) {
-	if(m_pipeline_details.find(zero_dm) != m_pipeline_details.end()) {
-	  if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	if(m_pipeline_options.find(zero_dm) != m_pipeline_options.end()) {
+	  if(m_pipeline_options.find(old_rfi) != m_pipeline_options.end()) {
 	    //details contain zero_dm and old_rfi
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_2<zero_dm,               use_old_rfi>>(new aa_permitted_pipelines_2<zero_dm,               use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, ptr_data_in));
 	    is_pipeline_set_to_runner	= true;
@@ -604,9 +604,9 @@ namespace astroaccelerate {
 	    std::cout << "NOTICE: Selected Pipeline 2 with zero_dm, and new_rfi" << std::endl;
 	  }
 	}
-	else if(m_pipeline_details.find(zero_dm_with_outliers) != m_pipeline_details.end()) {
+	else if(m_pipeline_options.find(zero_dm_with_outliers) != m_pipeline_options.end()) {
 	  //details contain zero_dm_with_outliers
-	  if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	  if(m_pipeline_options.find(old_rfi) != m_pipeline_options.end()) {
 	    //details contain zero_dm_with_outliers and old_rfi
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_2<zero_dm_with_outliers, use_old_rfi>>(new aa_permitted_pipelines_2<zero_dm_with_outliers, use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, ptr_data_in));
 	    is_pipeline_set_to_runner	= true;
@@ -621,7 +621,7 @@ namespace astroaccelerate {
 	}
 	else {
 	  std::cout << "NOTICE: Neither zero_dm nor zero_dm_with_outliers were specified in the options list. Selection OFF." << std::endl;
-	  if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	  if(m_pipeline_options.find(old_rfi) != m_pipeline_options.end()) {
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_2<off, use_old_rfi>>(new aa_permitted_pipelines_2<off, use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, ptr_data_in));
 	    is_pipeline_set_to_runner	= true;
 	    std::cout << "NOTICE: Selected Pipeline 2 without zero_dm, and old_rfi" << std::endl;
@@ -634,8 +634,8 @@ namespace astroaccelerate {
 	}
       }
       else if(m_requested_pipeline == aa_permitted_pipelines::pipeline3) {
-	if(m_pipeline_details.find(zero_dm) != m_pipeline_details.end()) {
-	  if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	if(m_pipeline_options.find(zero_dm) != m_pipeline_options.end()) {
+	  if(m_pipeline_options.find(old_rfi) != m_pipeline_options.end()) {
 	    //details contain zero_dm and old_rfi
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_3<zero_dm,               use_old_rfi>>(new aa_permitted_pipelines_3<zero_dm,               use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
 	    is_pipeline_set_to_runner	= true;
@@ -648,9 +648,9 @@ namespace astroaccelerate {
 	    std::cout << "NOTICE: Selected Pipeline 3 with zero_dm, and new_rfi" << std::endl;
 	  }
 	}
-	else if(m_pipeline_details.find(zero_dm_with_outliers) != m_pipeline_details.end()) {
+	else if(m_pipeline_options.find(zero_dm_with_outliers) != m_pipeline_options.end()) {
 	  //details contain zero_dm_with_outliers
-	  if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	  if(m_pipeline_options.find(old_rfi) != m_pipeline_options.end()) {
 	    //details contain zero_dm_with_outliers and old_rfi
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_3<zero_dm_with_outliers, use_old_rfi>>(new aa_permitted_pipelines_3<zero_dm_with_outliers, use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
 	    is_pipeline_set_to_runner	= true;
@@ -665,7 +665,7 @@ namespace astroaccelerate {
 	}
 	else {
 	  std::cout << "NOTICE: Neither zero_dm nor zero_dm_with_outliers were specified in the options list. Selection OFF." << std::endl;
-	  if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	  if(m_pipeline_options.find(old_rfi) != m_pipeline_options.end()) {
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_3<off, use_new_rfi>>(new aa_permitted_pipelines_3<off, use_new_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
 	    is_pipeline_set_to_runner	= true;
 	    std::cout << "NOTICE: Selected Pipeline 3 without zero_dm, and new_rfi" << std::endl;
@@ -678,8 +678,8 @@ namespace astroaccelerate {
 	}
       }
       else if(m_requested_pipeline == aa_permitted_pipelines::pipeline4) {
-	if(m_pipeline_details.find(zero_dm) != m_pipeline_details.end()) {
-	  if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	if(m_pipeline_options.find(zero_dm) != m_pipeline_options.end()) {
+	  if(m_pipeline_options.find(old_rfi) != m_pipeline_options.end()) {
 	    //details contain zero_dm and old_rfi
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_4<zero_dm,               use_old_rfi>>(new aa_permitted_pipelines_4<zero_dm,               use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, m_fdas_strategy, fdas_enable_custom_fft, fdas_enable_inbin, fdas_enable_norm, fdas_enable_output_ffdot_plan, fdas_enable_output_list, ptr_data_in));
 	    is_pipeline_set_to_runner = true;
@@ -692,9 +692,9 @@ namespace astroaccelerate {
 	    std::cout << "NOTICE: Selected Pipeline 4 with zero_dm, and new_rfi" << std::endl;
 	  }
 	}
-	else if(m_pipeline_details.find(zero_dm_with_outliers) != m_pipeline_details.end()) {
+	else if(m_pipeline_options.find(zero_dm_with_outliers) != m_pipeline_options.end()) {
 	  //details contain zero_dm_with_outliers
-	  if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	  if(m_pipeline_options.find(old_rfi) != m_pipeline_options.end()) {
 	    //details contain zero_dm_with_outliers and old_rfi
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_4<zero_dm_with_outliers, use_old_rfi>>(new aa_permitted_pipelines_4<zero_dm_with_outliers, use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, m_fdas_strategy, fdas_enable_custom_fft, fdas_enable_inbin, fdas_enable_norm, fdas_enable_output_ffdot_plan, fdas_enable_output_list, ptr_data_in));
 	    is_pipeline_set_to_runner = true;
@@ -709,7 +709,7 @@ namespace astroaccelerate {
 	}
 	else {
 	  std::cout << "NOTICE: Neither zero_dm nor zero_dm_with_outliers were specified in the options list. Selection OFF." << std::endl;
-	  if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	  if(m_pipeline_options.find(old_rfi) != m_pipeline_options.end()) {
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_4<off, use_old_rfi>>(new aa_permitted_pipelines_4<off, use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, m_fdas_strategy, fdas_enable_custom_fft, fdas_enable_inbin, fdas_enable_norm, fdas_enable_output_ffdot_plan, fdas_enable_output_list, ptr_data_in));
 	    is_pipeline_set_to_runner = true;
 	    std::cout << "NOTICE: Selected Pipeline 4 without zero_dm, and old_rfi" << std::endl;
@@ -722,8 +722,8 @@ namespace astroaccelerate {
 	}
       }
       else if(m_requested_pipeline == aa_permitted_pipelines::pipeline5) {
-	if(m_pipeline_details.find(zero_dm) != m_pipeline_details.end()) {
-	  if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	if(m_pipeline_options.find(zero_dm) != m_pipeline_options.end()) {
+	  if(m_pipeline_options.find(old_rfi) != m_pipeline_options.end()) {
 	    //details contain zero_dm and old_rfi
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_5<zero_dm,               use_old_rfi>>(new aa_permitted_pipelines_5<zero_dm,               use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, m_fdas_strategy, fdas_enable_custom_fft, fdas_enable_inbin, fdas_enable_norm, fdas_enable_output_ffdot_plan, fdas_enable_output_list, ptr_data_in));
 	    is_pipeline_set_to_runner = true;
@@ -736,9 +736,9 @@ namespace astroaccelerate {
 	    std::cout << "NOTICE: Selected Pipeline 5 with zero_dm, and new_rfi" << std::endl;
 	  }
 	}
-	else if(m_pipeline_details.find(zero_dm_with_outliers) != m_pipeline_details.end()) {
+	else if(m_pipeline_options.find(zero_dm_with_outliers) != m_pipeline_options.end()) {
 	  //details contain zero_dm_with_outliers
-	  if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	  if(m_pipeline_options.find(old_rfi) != m_pipeline_options.end()) {
 	    //details contain zero_dm_with_outliers and old_rfi
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_5<zero_dm_with_outliers, use_old_rfi>>(new aa_permitted_pipelines_5<zero_dm_with_outliers, use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, m_fdas_strategy, fdas_enable_custom_fft, fdas_enable_inbin, fdas_enable_norm, fdas_enable_output_ffdot_plan, fdas_enable_output_list, ptr_data_in));
 	    is_pipeline_set_to_runner = true;
@@ -753,7 +753,7 @@ namespace astroaccelerate {
 	}
 	else {
 	  std::cout << "NOTICE: Neither zero_dm nor zero_dm_with_outliers were specified in the options list. Selection OFF." << std::endl;
-	  if(m_pipeline_details.find(old_rfi) != m_pipeline_details.end()) {
+	  if(m_pipeline_options.find(old_rfi) != m_pipeline_options.end()) {
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_5<off, use_old_rfi>>(new aa_permitted_pipelines_5<off, use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, m_fdas_strategy, fdas_enable_custom_fft, fdas_enable_inbin, fdas_enable_norm, fdas_enable_output_ffdot_plan, fdas_enable_output_list, ptr_data_in));
 	    is_pipeline_set_to_runner = true;
 	    std::cout << "NOTICE: Selected Pipeline 5 without zero_dm, and old_rfi" << std::endl;
@@ -835,7 +835,7 @@ namespace astroaccelerate {
     std::map<aa_compute::modules, bool> supplied_plans; /** Plans supplied by the user. */
     std::vector<aa_strategy*>   m_all_strategy; /** Base class pointers to all strategies bound to the pipeline. */
     aa_compute::pipeline        m_requested_pipeline; /** The user requested pipeline that was bound to the aa_pipeline instance on construction. */
-    const aa_compute::pipeline_option &m_pipeline_details; /** The user requested pipeline details containing module options for the aa_pipeline instance. */
+    const aa_compute::pipeline_option &m_pipeline_options; /** The user requested pipeline details containing module options for the aa_pipeline instance. */
     aa_device_info::aa_card_info m_card_info; /** The user provided GPU card information for the aa_pipeline instance. */
     std::unique_ptr<aa_pipeline_runner> m_runner; /** A std::unique_ptr that will point to the correct class instantation of the selected aa_permitted_pipelines_ when the pipeline must be made ready to run. */
     

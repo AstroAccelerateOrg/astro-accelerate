@@ -88,7 +88,7 @@ namespace astroaccelerate {
      * \returns A pipeline object that is either valid or empty if it is not valid.
      */
     const aa_compute::pipeline setup() {
-      return setup(m_ddtr_plan, flg, m_pipeline_details, fpath);
+      return setup(m_ddtr_plan, flg, m_pipeline_options, fpath);
     }
   
     /** \brief Sets up the pipeline flags and ddtr_plan.
@@ -98,14 +98,14 @@ namespace astroaccelerate {
      * \details If the aa_config object was constructed without an input file path, then this module only checks whether the supplied pipeline is valid.
      * \returns A pipeline object that is either valid or empty if it is not valid. 
      */
-    const aa_compute::pipeline setup(aa_ddtr_plan &ddtr_plan, aa_config_flags &user_flags, aa_compute::pipeline_option &pipeline_details, std::string &file_path) {
+    const aa_compute::pipeline setup(aa_ddtr_plan &ddtr_plan, aa_config_flags &user_flags, aa_compute::pipeline_option &pipeline_options, std::string &file_path) {
       if(configure_from_file) {
 	if(get_user_input()) { //Read user input from text input file and set flag object.
 	  if(aa_permitted_pipelines::is_permitted(m_pipeline)) { //get_user_input has configured m_pipeline, so now its validity can be checked.
 	    ddtr_plan = m_ddtr_plan;
 	    file_path = fpath;
 	    user_flags = flg;
-	    pipeline_details = m_pipeline_details;
+	    pipeline_options = m_pipeline_options;
 	    return m_pipeline;
 	  }
 	  else {
@@ -138,7 +138,7 @@ namespace astroaccelerate {
     std::string fpath; //Path to the input data file.
     aa_config_flags flg;  //Configuration flags
     aa_compute::pipeline        m_pipeline; //The pipeline object that is configured by an instance of this class using an input file. 
-    aa_compute::pipeline_option m_pipeline_details; //The pipeline settings configured by an instance of this class using an input file.
+    aa_compute::pipeline_option m_pipeline_options; //The pipeline settings configured by an instance of this class using an input file.
     aa_command_line_arguments user_cli; //The user supplied command line argument settings.
     aa_ddtr_plan m_ddtr_plan; //The ddtr_plan that is configured by an instance of this class using an input file.
     
@@ -210,29 +210,29 @@ namespace astroaccelerate {
 	  if (strcmp(string, "acceleration") == 0)
 	    m_pipeline.insert(aa_compute::modules::fdas);
 	  if (strcmp(string, "output_ffdot_plan") == 0)
-	    m_pipeline_details.insert(aa_compute::module_option::output_ffdot_plan);
+	    m_pipeline_options.insert(aa_compute::module_option::output_ffdot_plan);
 	  if (strcmp(string, "output_fdas_list") == 0)
-	    m_pipeline_details.insert(aa_compute::module_option::output_fdas_list);
+	    m_pipeline_options.insert(aa_compute::module_option::output_fdas_list);
 	  if (strcmp(string, "output_dmt") == 0)
-	    m_pipeline_details.insert(aa_compute::module_option::output_dmt);
+	    m_pipeline_options.insert(aa_compute::module_option::output_dmt);
 	  if (strcmp(string, "zero_dm") == 0)
-	    m_pipeline_details.insert(aa_compute::module_option::zero_dm);
+	    m_pipeline_options.insert(aa_compute::module_option::zero_dm);
 	  if (strcmp(string, "zero_dm_with_outliers") == 0)
-	    m_pipeline_details.insert(aa_compute::module_option::zero_dm_with_outliers);
+	    m_pipeline_options.insert(aa_compute::module_option::zero_dm_with_outliers);
 	  if (strcmp(string, "rfi") == 0)
-	    m_pipeline_details.insert(aa_compute::module_option::rfi);
+	    m_pipeline_options.insert(aa_compute::module_option::rfi);
 	  if (strcmp(string, "oldrfi") == 0)
-	    m_pipeline_details.insert(aa_compute::module_option::old_rfi);
+	    m_pipeline_options.insert(aa_compute::module_option::old_rfi);
 	  if (strcmp(string, "threshold") == 0)
-	    m_pipeline_details.insert(aa_compute::module_option::candidate_algorithm);
+	    m_pipeline_options.insert(aa_compute::module_option::candidate_algorithm);
 	  if (strcmp(string, "baselinenoise") == 0)
-	    m_pipeline_details.insert(aa_compute::module_option::sps_baseline_noise);
+	    m_pipeline_options.insert(aa_compute::module_option::sps_baseline_noise);
 	  if (strcmp(string, "fdas_custom_fft") == 0)
-	    m_pipeline_details.insert(aa_compute::module_option::fdas_custom_fft);
+	    m_pipeline_options.insert(aa_compute::module_option::fdas_custom_fft);
 	  if (strcmp(string, "fdas_inbin") == 0)
-	    m_pipeline_details.insert(aa_compute::module_option::fdas_inbin);
+	    m_pipeline_options.insert(aa_compute::module_option::fdas_inbin);
 	  if (strcmp(string, "fdas_norm") == 0)
-	    m_pipeline_details.insert(aa_compute::module_option::fdas_norm);
+	    m_pipeline_options.insert(aa_compute::module_option::fdas_norm);
 	  if (strcmp(string, "multi_file") == 0)
 	    flg.multi_file = 1;
 	  if (strcmp(string, "analysis_debug") == 0)

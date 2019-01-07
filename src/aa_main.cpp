@@ -32,8 +32,8 @@ int main(int argc, char *argv[]) {
   aa_ddtr_plan ddtr_plan;
   std::string file_path;
   aa_config_flags user_flags = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_compute::debug>()};
-  aa_compute::pipeline_option pipeline_details;
-  aa_compute::pipeline pipeline = cli_configuration.setup(ddtr_plan, user_flags, pipeline_details, file_path);
+  aa_compute::pipeline_option pipeline_options;
+  aa_compute::pipeline pipeline = cli_configuration.setup(ddtr_plan, user_flags, pipeline_options, file_path);
 
   std::cout << "File path " << file_path << std::endl;
   for(auto const i : pipeline) {
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
   aa_config configuration(pipeline);   // Set the pipeline and other run settings that would come from an input_file
   float *output_data = NULL;
   aa_pipeline<unsigned short, float> pipeline_manager(pipeline,
-						      pipeline_details,
+						      pipeline_options,
 						      filterbank_metadata,
 						      filterbank_datafile.input_buffer().data(),
 						      selected_card_info);
@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
   }
 
   bool sps_baseline_noise = false;
-  if(pipeline_details.find(aa_compute::module_option::sps_baseline_noise) != pipeline_details.end()) {
+  if(pipeline_options.find(aa_compute::module_option::sps_baseline_noise) != pipeline_options.end()) {
     sps_baseline_noise = true;
   }
 

@@ -20,7 +20,7 @@ namespace astroaccelerate {
    */  
   template <typename T, typename U>
   void aa_pipeline_generic(const std::vector<aa_compute::modules> &selected_modules,
-			   const aa_compute::pipeline_option &pipeline_details,
+			   const aa_compute::pipeline_option &pipeline_options,
 			   const aa_filterbank_metadata &filterbank_data,
 			   std::vector<aa_ddtr_plan::dm> dm_ranges,
 			   T const*const input_data, U *&output_data,
@@ -77,7 +77,7 @@ namespace astroaccelerate {
     
     // Supply the requested pipeline and telescope data to a pipeline manager, which will check which modules are required to be configured.
     // If a module is not required, then even if it is supplied, it will be ignored.
-    aa_pipeline<T, U> pipeline_manager(the_pipeline, pipeline_details, filterbank_data, input_data, selected_card_info);
+    aa_pipeline<T, U> pipeline_manager(the_pipeline, pipeline_options, filterbank_data, input_data, selected_card_info);
     
     // Bind the Plan to the manager
     aa_ddtr_plan ddtr_plan;
