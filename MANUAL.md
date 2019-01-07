@@ -2,6 +2,7 @@
 ## **Hardware and software support status**
 
 AstroAccelerate supported GPU status
+
 | Compute Architecture | Architecture Name | Supported (Y/N) |
 |----------------------|-------------------|-----------------|
 | 2.0                  | Fermi             | N               |
@@ -19,6 +20,7 @@ AstroAccelerate supported GPU status
 | 7.0                  | Volta             | Y               |
 
 AstroAccelerate supported CUDA&reg; SDK status
+
 | SDK Version | Supported (Y/N) |
 |-------------|-----------------|
 | 8.0         | Y               |
@@ -90,6 +92,7 @@ Boolean return values for functions return `true` for `success` or `ready`, wher
 
 ## **Module inputs and outputs**
 The inputs and outputs of the each of the modules are tabulated below.
+
 | Module       | Description                                                      | Configuration objects                         | **plan** input / **strategy** input                                                                                                                                                          | Module output                                                                                                                   |
 |--------------|------------------------------------------------------------------|-----------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
 | dedispersion | Performs dedispersion of the input data.                         | aa_ddtr_plan / aa_ddtr_strategy               | **plan**: dedispersion measure low, high, step, inBin, outBin.   **strategy**: aa_ddtr_plan, aa_filterbank_metadata, amount of gpu memory, flag to indicate if analysis will be used or not. | dedispersed time chunk data (`std::vector<unsigned short>`)                                                                       |
