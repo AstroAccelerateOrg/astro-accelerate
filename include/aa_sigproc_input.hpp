@@ -41,7 +41,7 @@ namespace astroaccelerate {
     aa_filterbank_metadata read_metadata();
 
     /** \brief Method to read only the input data from the input file. */
-    bool read_telescope();
+    bool read_signal();
 
     /** \returns The input data from the telescope. */
     const std::vector<unsigned short>& input_buffer() const {
@@ -50,7 +50,7 @@ namespace astroaccelerate {
 
     /** \brief Method to check if the input data from the input file has already been read.
      * \returns A boolean flag to indicate if the data has been read (true) or not (false). */
-    bool did_read_telescope() const {
+    bool did_read_signal() const {
       return data_is_read;
     }
     

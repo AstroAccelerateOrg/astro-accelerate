@@ -13,7 +13,7 @@ int main() {
   aa_sigproc_input       filterbank_datafile("/mnt/data/AstroAccelerate/filterbank/BenMeerKAT.fil");
   aa_filterbank_metadata filterbank_metadata = filterbank_datafile.read_metadata();
 
-  if(!filterbank_datafile.read_telescope()) {
+  if(!filterbank_datafile.read_signal()) {
     std::cout << "ERROR: Could not read telescope data." << std::endl;
     return 0;
   }

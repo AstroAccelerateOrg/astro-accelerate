@@ -67,7 +67,7 @@ namespace astroaccelerate {
    * \returns A boolean flag to indicate whether the operation was successful (true) or not (false).
    * \warning The method will return true only once, that is the first time the data are read from the input successfully. At this point the input_buffer should be checked for data. 
    */
-  bool aa_sigproc_input::read_telescope() {
+  bool aa_sigproc_input::read_signal() {
     if(!isopen || !header_is_read || data_is_read) {
       return false;
     }
