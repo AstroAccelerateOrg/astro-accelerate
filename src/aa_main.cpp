@@ -37,35 +37,35 @@ int main(int argc, char *argv[]) {
   aa_compute::pipeline_option pipeline_options;
   aa_compute::pipeline pipeline = cli_configuration.setup(ddtr_plan, user_flags, pipeline_options, file_path);
 
-  std::cout << "File path " << file_path << std::endl;
+  LOG(log_level::notice, "File path "+file_path);
   for(auto const i : pipeline) {
-    std::cout << module_name(i) << std::endl;
+    LOG(log_level::notice, module_name(i));
   }
   
   aa_sigproc_input       filterbank_datafile(file_path.c_str());
   aa_filterbank_metadata filterbank_metadata = filterbank_datafile.read_metadata();
 
   if(!filterbank_datafile.read_signal()) {
-    std::cout << "ERROR: Could not read telescope data." << std::endl;
+    LOG(log_level::error, "Could not read telescope data.");
     return 0;
   }
   
   //Select card
   aa_device_info* device_info = aa_device_info::instance();
   if(device_info->check_for_devices()) {
-    std::cout << "NOTICE: Checked for devices." << std::endl;
+    LOG(log_level::notice, "Checked for devices.");
   }
   else {
-    std::cout << "ERROR: Could not find any devices." << std::endl;
+    LOG(log_level::error, "Could not find any devices.");
   }
   
   aa_device_info::CARD_ID selected_card = CARD;
   aa_device_info::aa_card_info selected_card_info;
   if(device_info->init_card(selected_card, selected_card_info)) {
-    std::cout << "NOTICE: init_card complete." << std::endl;
+    LOG(log_level::notice, "init_card complete.");
   }
   else {
-    std::cout << "ERROR: init_card incomplete." << std::endl;
+    LOG(log_level::error, "init_card incomplete.")
   }
   
   aa_config configuration(pipeline);   // Set the pipeline and other run settings that would come from an input_file
@@ -77,10 +77,10 @@ int main(int argc, char *argv[]) {
 					       selected_card_info);
   
   if(pipeline_manager.bind(ddtr_plan)) {
-    std::cout << "NOTICE: ddtr_plan bound successfully." << std::endl;
+    LOG(log_level::notice, "ddtr_plan bound successfully.");
   }
   else {
-    std::cout << "ERROR: Could not bind ddtr_plan." << std::endl;
+    LOG(log_level::error, "Could not bind ddtr_plan.");
   }
   
   aa_analysis_plan::selectable_candidate_algorithm candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::off;
@@ -101,10 +101,10 @@ int main(int argc, char *argv[]) {
 				   candidate_algorithm,
 				   sps_baseline_noise);
     if(pipeline_manager.bind(analysis_plan)) {
-      std::cout << "NOTICE: analysis_plan bound successfully." << std::endl;
+      LOG(log_level::notice, "analysis_plan bound successfully.");
     }
     else {
-      std::cout << "ERROR:  Could not bind analysis_plan." << std::endl;
+      LOG(log_level::error, "Could not bind analysis_plan.");
     }
   }
   
@@ -146,20 +146,20 @@ int main(int argc, char *argv[]) {
   // Validate if all Plans and Strategies are valid and ready to run
   // Optional: Add throw catch to force user to check their settings
   if(pipeline_manager.ready()) {
-    std::cout << "NOTICE: Pipeline is ready." << std::endl;
+    LOG(log_level::notice, "Pipeline is ready.");
   }
   else {
-    std::cout << "NOTICE: Pipeline is not ready." << std::endl;
+    LOG(log_level::notice, "Pipeline is not ready.");
   }
   
   // Run the pipeline
   if(pipeline_manager.run()) {
-    std::cout << "NOTICE: The pipeline finished successfully." << std::endl;
+    LOG(log_level::notice, "The pipeline finished successfully.");
   }
   else {
-    std::cout << "NOTICE: The pipeline could not start or had errors." << std::endl;
+    LOG(log_level::error, "The pipeline could not start or had errors.");
   }
-
-  std::cout << "NOTICE: Finished." << std::endl;
+  
+  LOG(log_level::notice, "Finished.");
   return 0;
 }

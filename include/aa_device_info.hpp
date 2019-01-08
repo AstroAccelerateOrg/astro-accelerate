@@ -9,6 +9,8 @@
 #include <string>
 #include <iostream>
 
+#include "aa_log.hpp"
+
 /**
  * If the build system (CMake) defines aa_version.hpp, then include it.
  */
@@ -76,17 +78,16 @@ namespace astroaccelerate {
       cudaError_t error_id = cudaGetDeviceCount(&deviceCount);
         
       if(error_id != cudaSuccess) {
-	printf("cudaGetDeviceCount returned %d\n-> %s\n", (int) error_id, cudaGetErrorString(error_id));
-	printf("Result = FAIL\n");
+	LOG(log_level::dev_debug, "cudaGetDeviceCount returned" + std::to_string(error_id) + "->" + cudaGetErrorString(error_id));
 	return false;
       }
         
       // This function call returns 0 if there are no CUDA capable devices.
       if(deviceCount == 0) {
-	printf("There are no available device(s) that support CUDA\n");
+	LOG(log_level::notice, "There are no available device(s) that support CUDA");
       }
       else {
-	printf("Detected %d CUDA Capable device(s)\n", deviceCount);
+	LOG(log_level::notice, "Detected" +std::to_string(deviceCount) + "CUDA Capable device(s)");
       }
         
       for(int i = 0; i < deviceCount; i++) {
@@ -119,7 +120,7 @@ namespace astroaccelerate {
 	cudaMemGetInfo(&free, &total);
 	tmp.free_memory = free;
 	tmp.total_memory = total;
-	std::cout << "Device info " << i << " free " << free << std::endl;
+	LOG(log_level::notice, "Device info " + std::to_string(i) + " free " + std::to_string(free));
 	tmp.user_requested_memory_for_allocation = 0;
 	m_card_info.push_back(std::move(tmp));
       }
@@ -133,9 +134,9 @@ namespace astroaccelerate {
     /** \returns A boolean to indicate whether selecting the card was successful. */
     bool init_card(const CARD_ID &id, aa_card_info &card_info) {
       if(!is_init) {
-	std::cout << "NOTICE: No card has yet been selected. Defaulting to card with ID 0 and proceeding." << std::endl;
+	LOG(log_level::notice, "No card has yet been selected. Defaulting to card with ID 0 and proceeding.");
         if(!check_for_devices()) {
-          std::cout << "ERROR:  Could not check devices." << std::endl;
+          LOG(log_level::error, "Could not check devices.");
           return false;
         }
       }
@@ -144,18 +145,17 @@ namespace astroaccelerate {
 	if(m_card_info.at(i).card_number == id) {
 #ifdef ASTRO_ACCELERATE_VERSION_H_DEFINED
 	  std::string device_compute_capability = std::to_string(m_card_info.at(i).compute_capability_major) + std::to_string(m_card_info.at(i).compute_capability_minor);
-	  if(ASTRO_ACCELERATE_CUDA_SM_VERSION > device_compute_capability) {
-	    std::cout << "ERROR: Compiled for compute capability " << ASTRO_ACCELERATE_CUDA_SM_VERSION << "." << std::endl;
-	    std::cout << "The requested device has capability " << device_compute_capability << "." << std::endl;
+	  if(std::to_string(ASTRO_ACCELERATE_CUDA_SM_VERSION) > device_compute_capability) {
+	    LOG(log_level::error, "Compiled for compute capability " + std::to_string(ASTRO_ACCELERATE_CUDA_SM_VERSION) + ".\n" + "The requested device has capability " + device_compute_capability + ".");
 	    return false;
 	  }
 	  else {
-	    std::cout << "NOTICE: Application binary compiled for compute capability " << ASTRO_ACCELERATE_CUDA_SM_VERSION << "." << std::endl;
-	    std::cout << "        The requested device has capability " << device_compute_capability << "." << std::endl;
+	    LOG(log_level::notice, "Application binary compiled for compute capability "+std::to_string(ASTRO_ACCELERATE_CUDA_SM_VERSION)+".");
+	    LOG(log_level::notice, "The requested device has capability "+device_compute_capability+".");
 	  }
 #else
-	  std::cout << "NOTICE: Because #include \"version.h\" is not created by this build system, the compute capability of the device cannot be determined." << std::endl;
-	  std::cout << "        Please consider compiling using the CMakeLists file provided in the repository." << std::endl;
+	  LOG(log_level::notice, "Because #include \"version.h\" is not created by this build system, the compute capability of the device cannot be determined.");
+	  LOG(log_level::notice, "Please consider compiling using the CMakeLists file provided in the repository.");
 #endif
 	  selected_card_idx = i;
 	  cudaSetDevice(i);
@@ -191,16 +191,15 @@ namespace astroaccelerate {
      */
     bool request(const size_t mem) {
       if(!is_init) {
-	std::cout << "NOTICE: No card has yet been selected. Defaulting to card with ID 0 and proceeding." << std::endl;
+	LOG(log_level::notice, "No card has yet been selected. Defaulting to card with ID 0 and proceeding.");
 	if(!check_for_devices()) {
-	  std::cout << "ERROR:  Could not check devices." << std::endl; 
+	  LOG(log_level::error, "Could not check devices.");
 	  return false;
 	}
       }
       if(m_card_info.at(selected_card_idx).user_requested_memory_for_allocation + mem >= gpu_memory()) {
-	std::cout << "ERROR:  Device reports that the additional requested memory (" << mem << "), "
-		  << "in addition to the already requested memory (" << requested() << "), would exceed the total free memory on the device (" << (unsigned long long)gpu_memory() << ")."
-		  << std::endl;
+	LOG(log_level::error,
+	    "Device reports that the additional requested memory ("+std::to_string(mem)+")"+"in addition to the already requested memory ("+std::to_string(requested())+"), would exceed the total free memory on the device ("+std::to_string((unsigned long long)gpu_memory())+").");
 	return false;
       }
       m_card_info.at(selected_card_idx).user_requested_memory_for_allocation += mem;
@@ -210,9 +209,9 @@ namespace astroaccelerate {
     /** \returns The amount of memory requested on the currently selected, or 0 if cards have not been checked. */
     size_t requested() {
       if(!is_init) {
-	std::cout << "NOTICE: No card has yet been selected. Defaulting to card with ID 0 and proceeding." << std::endl;
+	LOG(log_level::notice, "No card has yet been selected. Defaulting to card with ID 0 and proceeding.");
 	if(!check_for_devices()) {
-          std::cout << "ERROR:  Could not check devices." << std::endl;
+          LOG(log_level::error, "Could not check devices.");
           return false;
         }
 	return 0;

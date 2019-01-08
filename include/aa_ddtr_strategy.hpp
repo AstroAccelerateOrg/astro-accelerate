@@ -13,6 +13,8 @@
 #include "aa_ddtr_plan.hpp"
 #include "aa_filterbank_metadata.hpp"
 
+#include "aa_log.hpp"
+
 namespace astroaccelerate {
 
   /**
@@ -115,9 +117,9 @@ namespace astroaccelerate {
 
     /** \brief Static member function that prints member data for an aa_ddtr_strategy object. */
     static bool print_info(const aa_ddtr_strategy &strategy) {
-      std::cout << "DDTR STRATEGY INFORMATION:" << std::endl;
-      std::cout << "ddtr+analysis:\t\t" << (strategy.configured_for_analysis() ? "true" : "false") << std::endl;
-      std::cout << "ddtr dm ranges:\t\t" << strategy.range() << std::endl;
+      LOG(log_level::dev_debug, "DDTR STRATEGY INFORMATION:");
+      LOG(log_level::dev_debug, "ddtr+analysis:\t\t" +  (strategy.configured_for_analysis() ? std::string("true") : std::string("false")));
+      LOG(log_level::dev_debug, "ddtr dm ranges:\t\t" + std::to_string(strategy.range()));
       for(size_t i = 0; i < strategy.range(); i++) {
 	const aa_ddtr_plan::dm tmp = strategy.dm(i);
 	std::cout << "     dm (low,high,step,inBin,outBin) "
