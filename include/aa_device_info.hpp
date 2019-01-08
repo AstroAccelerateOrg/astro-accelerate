@@ -247,13 +247,13 @@ namespace astroaccelerate {
     
   private:
     aa_device_info() : selected_card_idx(0) {
-      std::cout << "CTR" << std::endl;
+
     }
 
      
     /** \brief The destructor is public so static references returned by the instance() method are deleted. */
     ~aa_device_info() {
-      std::cout	<< "DTR" << std::endl;
+
     }
     
     static bool is_init; /**< Flag to indicate whether cards on the machine have been checked/initialised. */
