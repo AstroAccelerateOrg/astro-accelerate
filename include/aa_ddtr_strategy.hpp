@@ -122,25 +122,26 @@ namespace astroaccelerate {
       LOG(log_level::dev_debug, "ddtr dm ranges:\t\t" + std::to_string(strategy.range()));
       for(size_t i = 0; i < strategy.range(); i++) {
 	const aa_ddtr_plan::dm tmp = strategy.dm(i);
-	std::cout << "     dm (low,high,step,inBin,outBin) "
-		  << tmp.low << "," << tmp.high << "," << tmp.step << ","
-		  << tmp.inBin << "," << tmp.outBin << std::endl;
+	LOG(log_level::dev_debug, "     dm (low,high,step,inBin,outBin) " +
+	    std::to_string(tmp.low) + "," + std::to_string(tmp.high) + "," + std::to_string(tmp.step)
+	    + "," + std::to_string(tmp.inBin) + "," + std::to_string(tmp.outBin)
+	    );
       }
 
-      std::cout << "ddtr max_ndms:\t\t" << strategy.max_ndms() << std::endl;
-      std::cout << "ddtr ndms elements:" << std::endl;
+      LOG(log_level::dev_debug, "ddtr max_ndms:\t\t" + std::to_string(strategy.max_ndms()));
+      LOG(log_level::dev_debug, "ddtr ndms elements:");
       for(size_t i = 0; i < strategy.ndms_size(); i++) {
-	std::cout << "     ndms[" << i << "]:\t\t" << strategy.ndms(i) << std::endl;
+	LOG(log_level::dev_debug, "     ndms[" + std::to_string(i) + "]:\t\t" + std::to_string(strategy.ndms(i)));
       }
       
-      std::cout << "ddtr maxshift:\t\t" << strategy.maxshift() << std::endl;
-      std::cout << "ddtr num_tchunks:\t" << strategy.num_tchunks() << std::endl;
-      std::cout << "ddtr max_ndms:\t\t" << strategy.max_ndms() << std::endl;
-      std::cout << "t_processed size:\t" << strategy.t_processed().size() << std::endl;
-      std::cout << "t_processed elements:" << std::endl;
+      LOG(log_level::dev_debug, "ddtr maxshift:\t\t" + std::to_string(strategy.maxshift()));
+      LOG(log_level::dev_debug, "ddtr num_tchunks:\t" + std::to_string(strategy.num_tchunks()));
+      LOG(log_level::dev_debug, "ddtr max_ndms:\t\t" + std::to_string(strategy.max_ndms()));
+      LOG(log_level::dev_debug, "t_processed size:\t" + std::to_string(strategy.t_processed().size()));
+      LOG(log_level::dev_debug, "t_processed elements:");
       for(size_t i = 0; i < strategy.t_processed().size(); i++) {
 	for(size_t j = 0; j < strategy.t_processed().at(i).size(); j++) {
-	  std::cout << "     t_processed[" << i << "][" << j << "]:\t" << strategy.t_processed()[i][j] << std::endl;
+	  LOG(log_level::dev_debug, "     t_processed[" + std::to_string(i) +"][" + std::to_string(j) + "]:\t" + std::to_string(strategy.t_processed()[i][j]));
 	}
       }
 

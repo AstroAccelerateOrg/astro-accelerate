@@ -57,19 +57,19 @@ namespace astroaccelerate {
     //Select card
     aa_device_info* device_info = aa_device_info::instance();
     if(device_info->check_for_devices()) {
-      std::cout << "NOTICE: Checked for devices." << std::endl;
+      LOG(log_level::notice, "Checked for devices.");
     }
     else {
-      std::cout << "ERROR: Could not find any devices." << std::endl;
+      LOG(log_level::error, "Could not find any devices.");
     }
     
     aa_device_info::CARD_ID selected_card = 0;
     aa_device_info::aa_card_info selected_card_info;
     if(device_info->init_card(selected_card, selected_card_info)) {
-      std::cout << "NOTICE: init_card complete." << std::endl;
+      LOG(log_level::notice, "init_card complete.");
     }
     else {
-      std::cout << "ERROR: init_card incomplete." << std::endl;
+      LOG(log_level::error, "init_card incomplete.");
     }
         
     aa_config configuration(the_pipeline);   // Set the pipeline and other run settings that would come from an input_file
@@ -84,10 +84,10 @@ namespace astroaccelerate {
     ddtr_plan.add_dm(dm_ranges);
 
     if(pipeline_manager.bind(ddtr_plan)) {
-      std::cout << "NOTICE: ddtr_plan bound successfully." << std::endl;
+      LOG(log_level::notice, "ddtr_plan bound successfully.");
     }
     else {
-      std::cout << "ERROR: Could not bind ddtr_plan." << std::endl;
+      LOG(log_level::error, "Could not bind ddtr_plan.");
     }
 
     // When aa_ddtr_plan was bound to aa_pipeline, aa_pipeline already
@@ -142,18 +142,18 @@ namespace astroaccelerate {
     // Validate if all Plans and Strategies are valid and ready to run
     // Optional: Add throw catch to force user to check their settings
     if(pipeline_manager.ready()) {
-      std::cout << "NOTICE: Pipeline is ready." << std::endl;
+      LOG(log_level::notice, "Pipeline is ready.");
     }
     else {
-      std::cout << "NOTICE: Pipeline is not ready." << std::endl;
+      LOG(log_level::notice, "Pipeline is not ready.");
     }
     
     // Run the pipeline
     if(pipeline_manager.run()) {
-      std::cout << "NOTICE: The pipeline finished successfully." << std::endl;
+      LOG(log_level::notice, "The pipeline finished successfully.");
     }
     else {
-      std::cout << "NOTICE: The pipeline could not start or had errors." << std::endl;
+      LOG(log_level::notice, "The pipeline could not start or had errors.");
     }
   }  
 } // namespace astroaccelerate
