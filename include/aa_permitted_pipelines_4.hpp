@@ -280,7 +280,7 @@ namespace astroaccelerate {
     }
 
     bool run_pipeline() {
-      printf("NOTICE: Pipeline start/resume run_pipeline_3.\n");
+      printf("NOTICE: Pipeline start/resume run_pipeline_4.\n");
       if(t >= num_tchunks) {
 	if(!acceleration_did_run) {
 	  return acceleration();

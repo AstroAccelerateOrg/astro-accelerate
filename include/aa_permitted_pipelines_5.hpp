@@ -295,7 +295,7 @@ namespace astroaccelerate {
 	//Returning true indicates there is more to process.
 	//Returning false indicates the pipeline is finished running.
       
-	printf("NOTICE: Pipeline start/resume run_pipeline_3.\n");
+	printf("NOTICE: Pipeline start/resume run_pipeline_5.\n");
 	if(t >= num_tchunks) {
 	  if(!periodicity_did_run) {
 	    return periodicity();
