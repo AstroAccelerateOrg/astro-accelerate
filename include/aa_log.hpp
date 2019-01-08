@@ -13,10 +13,10 @@ namespace astroaccelerate {
    * \detail If 1 then LOG_ENABLE is set to 1 and logging is enabled up the LOG_THRESHOLD (defined further down).
    */  
 #ifdef ASTRO_ACCELERATE_LOGGING_FACILITY_ENABLE
-#if ASTRO_ACCELERATE_LOGGING_FACILITY_ENABLE == 0
-#define LOG_ENABLE 0 /** \brief Disable logging. */
+#if ASTRO_ACCELERATE_LOGGING_FACILITY_ENABLE
+#define LOG_ENABLE 1 /** \brief Enable logging. */
 #else
-#define LOG_ENABLE 1 /** \brief Disable logging. */
+#define LOG_ENABLE 0 /** \brief Disable logging. */
 #endif
 #else 
 #define LOG_ENABLE 1 /** \brief If ASTRO_ACCELERATE_LOGGING_FACILITY_ENABLE was not defined (e.g. because the build system uses make and not cmake), then enable logging by default. */
@@ -46,7 +46,7 @@ namespace astroaccelerate {
 #define ERROR_TEXT     "ERROR   "
   
   /** \brief Preprocessor macro that delegates and configures at compile time how parameters of how the log message is logged. */
-#define LOG(level, msg) if(!LOG_ENABLE) ;				\
+#define LOG(level, msg) if(LOG_ENABLE == 0) ;				\
   else if (level < LOG_THRESHOLD || !FILElog::stream()) ;		\
   else if(level == log_level::dev_debug) FILElog().write(DEV_DEBUG_TEXT, msg); \
   else if(level == log_level::debug) FILElog().write(DEBUG_TEXT, msg);	\

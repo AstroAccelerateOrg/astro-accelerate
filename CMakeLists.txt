@@ -134,10 +134,10 @@ endforeach()
 option(LOGGING_FACILITY "Enable logging facility" ON)
 if(${LOGGING_FACILITY})
         message("-- INFO: LOGGING_FACILITY ON")
-	add_definitions("-DASTRO_ACCELERATE_LOGGING_FACILITY_ENABLE=1")
+	add_definitions(-DASTRO_ACCELERATE_LOGGING_FACILITY_ENABLE=1)
 else()
 	message("-- INFO: LOGGING_FACILITY OFF")
-	add_definitions("-DASTRO_ACCELERATE_LOGGING_FACILITY_ENABLE=0")
+	add_definitions(-DASTRO_ACCELERATE_LOGGING_FACILITY_ENABLE=0)
 endif()
 
 # Configure file
