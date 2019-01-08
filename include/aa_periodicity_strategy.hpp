@@ -41,7 +41,6 @@ namespace astroaccelerate {
       /** Parse user input, if the user input is not valid, then the ready state will not become true. */
       if((m_nHarmonics > 0) && (m_OR_sigma_multiplier > 0) && (m_export_powers > 0)) {
 	m_ready = true;
-	std::cout << "Periodicity strategy was ok" << std::endl;
       }
     }
 
