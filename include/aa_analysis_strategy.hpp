@@ -201,8 +201,8 @@ namespace astroaccelerate {
       // Calculate the total number of values
       vals = ((size_t) nDMs)*((size_t) nTimesamples);
 
-      aa_device_info* mem = aa_device_info::instance();
-      size_t free_mem = mem->gpu_memory() - mem->requested();
+      aa_device_info& mem = aa_device_info::instance();
+      size_t free_mem = mem.gpu_memory() - mem.requested();
       printf("\n----------------------- MSD info ---------------------------\n");
       printf("  Memory required by boxcar filters:%0.3f MB\n",(4.5*vals*sizeof(float) + 2*vals*sizeof(ushort))/(1024.0*1024) );
       printf("  Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
@@ -230,15 +230,15 @@ namespace astroaccelerate {
 
       // Inform aa_device_memory_manager of the memory that will be required
       // This memory required is given by the allocate_memory_MSD function
-      if(!mem->request(maxtimesamples*5.5*sizeof(float))) {
+      if(!mem.request(maxtimesamples*5.5*sizeof(float))) {
 	std::cout << "ERROR:  Could not request memory. " << (unsigned long long)(maxtimesamples*5.5*sizeof(float)) << std::endl;
 	return;
       }
-      if(!mem->request(sizeof(ushort)*2*maxtimesamples)) {
+      if(!mem.request(sizeof(ushort)*2*maxtimesamples)) {
 	std::cout << "ERROR:  Could not request memory. " << (unsigned long long)(sizeof(ushort)*2*maxtimesamples) << std::endl;
 	return;
       }
-      if(!mem->request(sizeof(float)*MSD_profile_size_in_bytes)) {
+      if(!mem.request(sizeof(float)*MSD_profile_size_in_bytes)) {
 	std::cout << "ERROR:  Could not request memory. " << (unsigned long long)(sizeof(float)*MSD_profile_size_in_bytes) << std::endl;
 	return;
       }

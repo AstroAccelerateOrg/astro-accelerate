@@ -283,18 +283,18 @@ namespace astroaccelerate {
 
     // The memory that will be allocated on the GPU in function allocate_memory_gpu is given by gpu_inputsize + gpu_outputsize
     // gpu_inputsize
-    aa_device_info* device_info = aa_device_info::instance();
+    aa_device_info& device_info = aa_device_info::instance();
     int time_samps = m_t_processed[0][0] + m_maxshift;
-    device_info->request((size_t) time_samps * (size_t)nchans * sizeof(unsigned short));
+    device_info.request((size_t) time_samps * (size_t)nchans * sizeof(unsigned short));
     // gpu_outputsize depends on nchans
     if (nchans < m_max_ndms) {
-      if(!device_info->request((size_t)time_samps * (size_t)m_max_ndms * sizeof(float))) {
+      if(!device_info.request((size_t)time_samps * (size_t)m_max_ndms * sizeof(float))) {
 	std::cout << "ERROR:  Could not request memory." << std::endl;
 	return false;
       }
     }
     else {
-      if(!device_info->request((size_t)time_samps * (size_t)nchans * sizeof(float))) {
+      if(!device_info.request((size_t)time_samps * (size_t)nchans * sizeof(float))) {
 	std::cout << "ERROR:  Could not request memory." << std::endl;
 	return false;
       }

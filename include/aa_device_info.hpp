@@ -29,6 +29,12 @@ namespace astroaccelerate {
 
   class aa_device_info {
   public:
+
+    aa_device_info(const aa_device_info&) = delete; /** \brief Delete copy and move constructors. */
+    aa_device_info(aa_device_info&&) = delete; /** \brief Delete copy and move constructors. */
+    aa_device_info& operator=(const aa_device_info&) = delete; /** \brief Delete copy and move constructors. */
+    aa_device_info& operator=(aa_device_info&&) = delete; /** \brief Delete copy and move constructors. */
+
     typedef int CARD_ID;
 
     /**
@@ -52,10 +58,8 @@ namespace astroaccelerate {
       std::string name;
     };
 
-    static aa_device_info* instance() {
-      if(!m_instance) {
-	m_instance = new aa_device_info;
-      }
+    static aa_device_info& instance() {
+      static aa_device_info m_instance;
       return m_instance;
     }
 
@@ -135,6 +139,7 @@ namespace astroaccelerate {
     bool init_card(const CARD_ID &id, aa_card_info &card_info) {
       if(!is_init) {
 	LOG(log_level::notice, "No card has yet been selected. Defaulting to card with ID 0 and proceeding.");
+	selected_card_idx = 0;
         if(!check_for_devices()) {
           LOG(log_level::error, "Could not check devices.");
           return false;
@@ -192,6 +197,7 @@ namespace astroaccelerate {
     bool request(const size_t mem) {
       if(!is_init) {
 	LOG(log_level::notice, "No card has yet been selected. Defaulting to card with ID 0 and proceeding.");
+	selected_card_idx = 0;
 	if(!check_for_devices()) {
 	  LOG(log_level::error, "Could not check devices.");
 	  return false;
@@ -210,6 +216,7 @@ namespace astroaccelerate {
     size_t requested() {
       if(!is_init) {
 	LOG(log_level::notice, "No card has yet been selected. Defaulting to card with ID 0 and proceeding.");
+	selected_card_idx = 0;
 	if(!check_for_devices()) {
           LOG(log_level::error, "Could not check devices.");
           return false;
@@ -237,14 +244,18 @@ namespace astroaccelerate {
       std::cout << "Free memory:\t\t" << card.free_memory << std::endl;
       return true;
     }
-  
+    
   private:
-    /** \brief The only constructor is private so that only the singleton instance pointer can be used to access the class. */
     aa_device_info() : selected_card_idx(0) {
-      
+      std::cout << "CTR" << std::endl;
+    }
+
+     
+    /** \brief The destructor is public so static references returned by the instance() method are deleted. */
+    ~aa_device_info() {
+      std::cout	<< "DTR" << std::endl;
     }
     
-    static aa_device_info* m_instance;
     static bool is_init; /**< Flag to indicate whether cards on the machine have been checked/initialised. */
     static std::vector<aa_card_info> m_card_info; /** Stores all card information for all cards on the machine. */
     CARD_ID selected_card_idx;  /**< Index into m_card_info for the current selected card. */

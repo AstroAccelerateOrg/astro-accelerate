@@ -55,8 +55,8 @@ namespace astroaccelerate {
     }
     
     //Select card
-    aa_device_info* device_info = aa_device_info::instance();
-    if(device_info->check_for_devices()) {
+    aa_device_info& device_info = aa_device_info::instance();
+    if(device_info.check_for_devices()) {
       LOG(log_level::notice, "Checked for devices.");
     }
     else {
@@ -65,7 +65,7 @@ namespace astroaccelerate {
     
     aa_device_info::CARD_ID selected_card = 0;
     aa_device_info::aa_card_info selected_card_info;
-    if(device_info->init_card(selected_card, selected_card_info)) {
+    if(device_info.init_card(selected_card, selected_card_info)) {
       LOG(log_level::notice, "init_card complete.");
     }
     else {
