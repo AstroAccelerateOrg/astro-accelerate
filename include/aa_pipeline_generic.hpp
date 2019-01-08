@@ -18,12 +18,12 @@ namespace astroaccelerate {
    * \author Cees Carels.
    * \date 24 October 2018.
    */  
-  template <typename T, typename U>
+  template <typename T>
   void aa_pipeline_generic(const std::vector<aa_compute::modules> &selected_modules,
 			   const aa_compute::pipeline_option &pipeline_options,
 			   const aa_filterbank_metadata &filterbank_data,
 			   std::vector<aa_ddtr_plan::dm> dm_ranges,
-			   T const*const input_data, U *&output_data,
+			   T const*const input_data,
 			   const float &analysis_sigma_cutoff = 0.0,
 			   const float &analysis_sigma_constant = 0.0,
 			   const float &analysis_max_boxcar_width_in_sec = 0.0,
@@ -77,7 +77,7 @@ namespace astroaccelerate {
     
     // Supply the requested pipeline and telescope data to a pipeline manager, which will check which modules are required to be configured.
     // If a module is not required, then even if it is supplied, it will be ignored.
-    aa_pipeline<T, U> pipeline_manager(the_pipeline, pipeline_options, filterbank_data, input_data, selected_card_info);
+    aa_pipeline<T> pipeline_manager(the_pipeline, pipeline_options, filterbank_data, input_data, selected_card_info);
     
     // Bind the Plan to the manager
     aa_ddtr_plan ddtr_plan;
@@ -139,14 +139,6 @@ namespace astroaccelerate {
     // Bind further plans as necessary
     // ...
     
-    if(pipeline_manager.transfer_data_to_device()) {
-      std::cout << "NOTICE: The data was transferred to the device successfully." << std::endl;
-    }
-    else {
-      std::cout << "ERROR: The data could not be transferred to the device." << std::endl;
-    }
-    
-    
     // Validate if all Plans and Strategies are valid and ready to run
     // Optional: Add throw catch to force user to check their settings
     if(pipeline_manager.ready()) {
@@ -162,21 +154,6 @@ namespace astroaccelerate {
     }
     else {
       std::cout << "NOTICE: The pipeline could not start or had errors." << std::endl;
-    }
-    
-    // Bring data back from device to host
-    if(pipeline_manager.transfer_data_to_host(output_data)) {
-      std::cout << "NOTICE: Data was transferred back to host successfully." << std::endl;
-    }
-    else {
-      std::cout << "NOTICE: Data was not transferred back to host." << std::endl;
-    }
-    
-    if(pipeline_manager.unbind_data()) {
-      std::cout << "NOTICE: Data was unbound successfully." << std::endl;
-    }
-    else {
-      std::cout << "NOTICE: Data could not be unbound." << std::endl;
     }
   }  
 } // namespace astroaccelerate

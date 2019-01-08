@@ -37,7 +37,7 @@ namespace astroaccelerate {
    * \date: 23 October 2018.
    */
 
-  template<typename T, typename U>
+  template<typename T>
   class aa_pipeline {
   public:
 
@@ -51,7 +51,6 @@ namespace astroaccelerate {
 								 m_filterbank_metadata(filterbank_metadata),
 								 bound_with_raw_ptr(true),
 								 input_data_bound(true),
-								 data_on_device(false),
 								 pipeline_ready(false),
 								 ptr_data_in(input_data) {
       
@@ -67,13 +66,8 @@ namespace astroaccelerate {
     /** \brief Destructor for aa_pipeline, performs cleanup as needed. */
     ~aa_pipeline() {
       pipeline_ready = false;
-      if(data_on_device) {
-	//There is still data on the device and the user has forgotten about it.
-	//The device memory should be freed.
-	std::cout << "ERROR:  Data still on device." << std::endl;
-      }
         
-      if(!bound_with_raw_ptr && input_data_bound) {
+      if(input_data_bound) {
 	//There is still (host) input data bound to the pipeline and the user has forgotten about it.
 	//This (host) memory should be freed.
 	std::cout << "ERROR:  Host data still bound to pipeline." << std::endl;
@@ -381,54 +375,6 @@ namespace astroaccelerate {
       }
     }
     
-    /** \deprecated This functionality is delegated to the permitted_pipelines implementations. */
-    bool transfer_data_to_device() {
-      pipeline_ready = false;
-      if(input_data_bound) {
-	data_on_device = true;
-      }
-        
-      return true;
-    }
-    
-    /** \deprecated This functionality is delegated to the permitted_pipelines implementations. */
-    bool transfer_data_to_host(std::vector<U> &data) {
-      if(data_on_device) {
-	data = std::move(data_out);
-	data_on_device = false;
-	pipeline_ready = false;
-	return true;
-      }
-        
-      return false;
-    }
-    
-    /** \deprecated This functionality is delegated to the permitted_pipelines implementations. */
-    bool transfer_data_to_host(U *&data) {
-      if(data_on_device) {
-	data = ptr_data_out;
-	data_on_device = false;
-	pipeline_ready = false;
-	return true;
-      }
-        
-      return false;
-    }
-    
-    /** \deprecated This functionality is delegated to the permitted_pipelines implementations. */
-    bool unbind_data() {
-      /**
-       * If the data is managed, then either it was either moved out via the transfer,
-       * or it will be freed at de-allocation if the user forgot to transfer.
-       *
-       * If the data is unmanaged, then the data unbind call does not apply.
-       * If the data came via a raw pointer, then the unbind call does not apply.
-       *
-       */
-      pipeline_ready = false;
-      return true;
-    }
-    
     /**
      * \brief Check whether all modules and strategies are ready for the pipeline to be able to execute.
      * \returns A boolean to indicate whether the pipeline is ready (true) or not (false).
@@ -437,11 +383,6 @@ namespace astroaccelerate {
     bool ready() {
       pipeline_ready = false;
         
-      if(!data_on_device) {
-	std::cout << "ERROR:  Data is not on device or properly bound to API." << std::endl;
-	return false;
-      }
-
       // Check if all plans are supplied.
       // If not, then one or more strategies will not be ready.
       // If so, return false.
@@ -855,15 +796,11 @@ namespace astroaccelerate {
     
     bool bound_with_raw_ptr; /** Flag to indicate whether the input data is bound via a raw pointer (true) or not (false). */
     bool input_data_bound; /** Flag to indicate whether the input data is bound already (true) or not (false). */
-    bool data_on_device; /** \deprecated Flag to indicate whether the input data is on the device (true) or not (false). */
     bool pipeline_ready; /** Flag to indicate whether the pipeline is ready to execute (true) or not (false).  */
     
     std::vector<T>              data_in; /** Input data buffer. */
-    std::vector<U>              data_out; /** Output data buffer. */
     T const*const               ptr_data_in; /** Input data pointer if bound_with_raw_ptr is true. */
-    U*                          ptr_data_out; /** Input data pointer if bound_with_raw_ptr is true. */
   };
-
 } // namespace astroaccelerate
   
 #endif // ASTRO_ACCELERATE_AA_PIPELINE_HPP

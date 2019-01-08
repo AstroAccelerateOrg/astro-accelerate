@@ -69,13 +69,13 @@ int main(int argc, char *argv[]) {
   }
   
   aa_config configuration(pipeline);   // Set the pipeline and other run settings that would come from an input_file
-  float *output_data = NULL;
-  aa_pipeline<unsigned short, float> pipeline_manager(pipeline,
-						      pipeline_options,
-						      filterbank_metadata,
-						      filterbank_datafile.input_buffer().data(),
-						      selected_card_info);
-
+  
+  aa_pipeline<unsigned short> pipeline_manager(pipeline,
+					       pipeline_options,
+					       filterbank_metadata,
+					       filterbank_datafile.input_buffer().data(),
+					       selected_card_info);
+  
   if(pipeline_manager.bind(ddtr_plan)) {
     std::cout << "NOTICE: ddtr_plan bound successfully." << std::endl;
   }
@@ -143,13 +143,6 @@ int main(int argc, char *argv[]) {
 	      << ddtr_plan.user_dm(i).outBin << std::endl;
   }
 
-  if(pipeline_manager.transfer_data_to_device()) {
-    std::cout << "NOTICE: The data was transferred to the device successfully." << std::endl;
-  }
-  else {
-    std::cout << "ERROR: The data could not be transferred to the device." << std::endl;
-  }
-  
   // Validate if all Plans and Strategies are valid and ready to run
   // Optional: Add throw catch to force user to check their settings
   if(pipeline_manager.ready()) {
@@ -167,21 +160,6 @@ int main(int argc, char *argv[]) {
     std::cout << "NOTICE: The pipeline could not start or had errors." << std::endl;
   }
 
-  // Bring data back from device to host                                                      
-  if(pipeline_manager.transfer_data_to_host(output_data)) {
-    std::cout << "NOTICE: Data was transferred back to host successfully." << std::endl;
-  }
-  else {
-    std::cout << "NOTICE: Data was not transferred back to host." << std::endl;
-  }
-  
-  if(pipeline_manager.unbind_data()) {
-    std::cout << "NOTICE: Data was unbound successfully." << std::endl;
-  }
-  else {
-    std::cout << "NOTICE: Data could not be unbound." << std::endl;
-  }
-  
   std::cout << "NOTICE: Finished." << std::endl;
   return 0;
 }

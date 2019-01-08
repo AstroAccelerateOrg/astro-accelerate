@@ -17,7 +17,6 @@ int main() {
     std::cout << "ERROR: Could not read telescope data." << std::endl;
     return 0;
   }
-  float *my_output_data = NULL;
   
   std::vector<aa_ddtr_plan::dm> dm_ranges;
   aa_ddtr_plan::dm range1 = {0, 150, 0.1, 1, 1};
@@ -40,7 +39,7 @@ int main() {
 
   const aa_compute::pipeline_option pipeline_options = {aa_compute::module_option::zero_dm};
   
-  dedisperse_telescope_data(filterbank_metadata, pipeline_options, dm_ranges, filterbank_datafile.input_buffer(), my_output_data);
+  dedisperse_telescope_data(filterbank_metadata, pipeline_options, dm_ranges, filterbank_datafile.input_buffer());
   std::cout << "NOTICE: Finished." << std::endl;
   return 0;
 }
