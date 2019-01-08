@@ -133,7 +133,11 @@ namespace astroaccelerate {
     /** \returns A boolean to indicate whether selecting the card was successful. */
     bool init_card(const CARD_ID &id, aa_card_info &card_info) {
       if(!is_init) {
-	return false;
+	std::cout << "NOTICE: No card has yet been selected. Defaulting to card with ID 0 and proceeding." << std::endl;
+        if(!check_for_devices()) {
+          std::cout << "ERROR:  Could not check devices." << std::endl;
+          return false;
+        }
       }
     
       for(size_t i = 0; i < m_card_info.size(); i++) {
