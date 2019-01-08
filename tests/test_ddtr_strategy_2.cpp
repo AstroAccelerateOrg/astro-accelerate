@@ -14,6 +14,7 @@ int main() {
   }
   else {
     std::cout << "ERROR: init_card incomplete." << std::endl;
+    return 0;
   }
   
   aa_ddtr_plan ddtr_plan;
