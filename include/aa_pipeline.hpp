@@ -50,7 +50,6 @@ namespace astroaccelerate {
 								 m_card_info(card_info),
 								 m_filterbank_metadata(filterbank_metadata),
 								 bound_with_raw_ptr(true),
-								 input_data_bound(true),
 								 pipeline_ready(false),
 								 ptr_data_in(input_data) {
       
@@ -66,12 +65,6 @@ namespace astroaccelerate {
     /** \brief Destructor for aa_pipeline, performs cleanup as needed. */
     ~aa_pipeline() {
       pipeline_ready = false;
-        
-      if(input_data_bound) {
-	//There is still (host) input data bound to the pipeline and the user has forgotten about it.
-	//This (host) memory should be freed.
-	std::cout << "ERROR:  Host data still bound to pipeline." << std::endl;
-      }
     }
     
     /**
@@ -795,7 +788,6 @@ namespace astroaccelerate {
     aa_fdas_strategy            m_fdas_strategy; /** The instance of this type that is currently bound to the aa_pipeline instance. */
     
     bool bound_with_raw_ptr; /** Flag to indicate whether the input data is bound via a raw pointer (true) or not (false). */
-    bool input_data_bound; /** Flag to indicate whether the input data is bound already (true) or not (false). */
     bool pipeline_ready; /** Flag to indicate whether the pipeline is ready to execute (true) or not (false).  */
     
     std::vector<T>              data_in; /** Input data buffer. */
