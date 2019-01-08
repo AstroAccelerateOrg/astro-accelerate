@@ -25,12 +25,12 @@ int main() {
   double src_raj = 0;
   double src_dej = 0;
   double tstart = 0;
-  double tsamp = 0;
+  double tsamp = 500;
   double refdm = 0;
   double period = 0;
-  double fch1 = 0;
-  double foff = 0;
-  double fchannel = 0;
+  double fch1 = 1;
+  double foff = 1;
+  double fchannel = 1;
 
   int telescope_id = 0;
   int machine_id = 0;
