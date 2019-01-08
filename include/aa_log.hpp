@@ -9,8 +9,8 @@ namespace astroaccelerate {
 
   /**
    * \brief Preprocessor definition defined by CMake to check whether any CMake overrides should apply.
-   * \detail If 0 then LOG_ENABLE is set to 0 and all logs are disabled.
-   * \detail If 1 then LOG_ENABLE is set to 1 and logging is enabled up the LOG_THRESHOLD (defined further down).
+   * \details If 0 then LOG_ENABLE is set to 0 and all logs are disabled.
+   * \details If 1 then LOG_ENABLE is set to 1 and logging is enabled up the LOG_THRESHOLD (defined further down).
    */  
 #ifdef ASTRO_ACCELERATE_LOGGING_FACILITY_ENABLE
 #if ASTRO_ACCELERATE_LOGGING_FACILITY_ENABLE
