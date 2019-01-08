@@ -87,7 +87,7 @@ namespace astroaccelerate {
 	LOG(log_level::notice, "There are no available device(s) that support CUDA");
       }
       else {
-	LOG(log_level::notice, "Detected" +std::to_string(deviceCount) + "CUDA Capable device(s)");
+	LOG(log_level::notice, "Detected " +std::to_string(deviceCount) + " CUDA Capable device(s)");
       }
         
       for(int i = 0; i < deviceCount; i++) {
