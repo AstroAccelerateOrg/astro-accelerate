@@ -202,7 +202,7 @@ namespace astroaccelerate {
       vals = ((size_t) nDMs)*((size_t) nTimesamples);
 
       aa_device_info* mem = aa_device_info::instance();
-      size_t free_mem = mem->requested();
+      size_t free_mem = mem->gpu_memory() - mem->requested();
       printf("\n----------------------- MSD info ---------------------------\n");
       printf("  Memory required by boxcar filters:%0.3f MB\n",(4.5*vals*sizeof(float) + 2*vals*sizeof(ushort))/(1024.0*1024) );
       printf("  Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
