@@ -21,7 +21,6 @@ int main(int argc, char* argv[]) {
   const size_t test_request = tmp;
   device_info->request(test_request);
   std::cout << device_info->requested() << std::endl;
-
   if(device_info->requested() != test_request) {
     std::cout << "Fail." << std::endl;
     return 0;

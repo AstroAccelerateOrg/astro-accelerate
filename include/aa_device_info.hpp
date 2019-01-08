@@ -242,8 +242,8 @@ namespace astroaccelerate {
     }
     
     static aa_device_info* m_instance;
-    bool is_init; /**< Flag to indicate whether cards on the machine have been checked/initialised. */
-    std::vector<aa_card_info> m_card_info; /** Stores all card information for all cards on the machine. */
+    static bool is_init; /**< Flag to indicate whether cards on the machine have been checked/initialised. */
+    static std::vector<aa_card_info> m_card_info; /** Stores all card information for all cards on the machine. */
     CARD_ID selected_card_idx;  /**< Index into m_card_info for the current selected card. */
   };
 
