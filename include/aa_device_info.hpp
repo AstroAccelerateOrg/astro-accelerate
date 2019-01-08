@@ -199,7 +199,7 @@ namespace astroaccelerate {
       }
       if(m_card_info.at(selected_card_idx).user_requested_memory_for_allocation + mem >= gpu_memory()) {
 	LOG(log_level::error,
-	    "Device reports that the additional requested memory ("+std::to_string(mem)+")"+"in addition to the already requested memory ("+std::to_string(requested())+"), would exceed the total free memory on the device ("+std::to_string((unsigned long long)gpu_memory())+").");
+	    "Device reports that the additional requested memory ("+std::to_string(mem)+")"+", in addition to the already requested memory ("+std::to_string(requested())+"), would exceed the total free memory on the device ("+std::to_string((unsigned long long)gpu_memory())+").");
 	return false;
       }
       m_card_info.at(selected_card_idx).user_requested_memory_for_allocation += mem;

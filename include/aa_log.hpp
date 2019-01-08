@@ -36,7 +36,7 @@ namespace astroaccelerate {
 
   /** \brief Defines the LOG_THRESHOLD minimum level for logs to be logged at all. */
 #ifndef LOG_THRESHOLD
-#define LOG_THRESHOLD log_level::notice
+#define LOG_THRESHOLD log_level::dev_debug
 #endif
 
 #define DEV_DEBUG_TEXT "DEBUG   "
