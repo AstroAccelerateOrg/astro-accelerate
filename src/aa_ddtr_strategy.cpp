@@ -113,8 +113,8 @@ namespace astroaccelerate {
     m_max_dm = ceil(str_dm[range-1].high);
     
     m_maxshift = ( m_maxshift_high + ( SNUMREG * 2 * SDIVINT ) );
-    printf("\nNOTICE: Range:\t%lu, MAXSHIFT:\t%d, Scrunch value:\t%d.", range - 1, m_maxshift, plan.user_dm(range-1).inBin);
-    printf("\nNOTICE: Maximum dispersive delay:\t%.2f (s).", m_maxshift * tsamp);
+    LOG(log_level::dev_debug, "Range:\t"+std::to_string(range-1) + "MAXSHIFT:\t" + std::to_string(m_maxshift) + "Scrunch value:\t" + std::to_string(plan.user_dm(range-1).inBin));
+    LOG(log_level::dev_debug, "Maximum dispersive delay:\t "+std::to_string(m_maxshift * tsamp)+ "(s).");
 
     if (m_maxshift >= nsamp)    {
       LOG(log_level::error, "Your maximum DM trial exceeds the number of samples you have. Reduce your maximum DM trial.");
@@ -149,8 +149,7 @@ namespace astroaccelerate {
       
       // Check that we dont have an out of range maxshift:
       if ((unsigned int)( m_maxshift ) > max_tsamps)    {
-	printf("\nERROR: The selected GPU does not have enough memory for this number of dispersion trials.");
-	printf("\nReduce maximum dm or increase the size of dm step.");
+	LOG(log_level::error, "The selected GPU does not have enough memory for this number of dispersion trials. Reduce maximum dm or increase the size of dm step.");
 	return false;
       }
       
@@ -166,7 +165,7 @@ namespace astroaccelerate {
 	  m_t_processed[i][0] = m_t_processed[i][0] * ( SDIVINT*2*SNUMREG );
 	}
 	( m_num_tchunks ) = 1;
-	printf("\nIn 1\n");
+	LOG(log_level::dev_debug, "In 1");
       }
       else {
 	// We have case 3)
@@ -201,8 +200,8 @@ namespace astroaccelerate {
 	  m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks] * ( SDIVINT*2*SNUMREG );
 	}
 	( m_num_tchunks ) = num_blocks + 1;
-	printf("\nIn 3\n");
-	printf("\nnum_blocks:\t%d", num_blocks);
+	LOG(log_level::dev_debug, "In 3");
+	LOG(log_level::dev_debug, "num_blocks:\t" + std::to_string(num_blocks));
       }
     }
     else {
@@ -216,8 +215,7 @@ namespace astroaccelerate {
       
       // Check that we dont have an out of range maxshift:
       if (( m_maxshift ) > (int)max_tsamps) {
-	printf("\nERROR: The selected GPU does not have enough memory for this number of dispersion trials.");
-	printf("\nReduce maximum dm or increase the size of dm step.");
+	LOG(log_level::error, "The selected GPU does not have enough memory for this number of dispersion trials. Reduce maximum dm or increase the size of dm step.");
 	return false;
       }
       
@@ -233,7 +231,7 @@ namespace astroaccelerate {
 	  m_t_processed[i][0] = m_t_processed[i][0] * ( SDIVINT*2*SNUMREG );
 	}
 	( m_num_tchunks ) = 1;
-	printf("\nIn 2\n");
+	LOG(log_level::dev_debug, "In 2");
       }
       else {
 	// We have case 4)
@@ -269,7 +267,7 @@ namespace astroaccelerate {
 	  m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks] * ( SDIVINT*2*SNUMREG );
 	}
 	( m_num_tchunks ) = num_blocks + 1;
-	printf("\nIn 4\n");
+	LOG(log_level::dev_debug, "In 4");
       }
     }
     printf("\nNOTICE: Maxshift memory needed:\t%lu MB.", nchans * ( m_maxshift ) * sizeof(unsigned short) / 1024 / 1024);
