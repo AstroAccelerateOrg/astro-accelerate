@@ -80,7 +80,7 @@ namespace astroaccelerate {
 	m_max_ndms = m_ndms[i]; // looking for maximum number of DM trials for memory allocation
       m_total_ndms = m_total_ndms + m_ndms[i];
     }
-    LOG(log_level::notice, "Maximum number of dm trials in any of the range steps:" + std::to_string(m_max_ndms));
+    LOG(log_level::dev_debug, "Maximum number of dm trials in any of the range steps: " + std::to_string(m_max_ndms));
     
     str_dm[0].low = plan.user_dm(0).low;                        //
     str_dm[0].high = str_dm[0].low + ( m_ndms[0] * ( plan.user_dm(0).step ) );   // Redefines DM plan to suit GPU
@@ -113,7 +113,7 @@ namespace astroaccelerate {
     m_max_dm = ceil(str_dm[range-1].high);
     
     m_maxshift = ( m_maxshift_high + ( SNUMREG * 2 * SDIVINT ) );
-    LOG(log_level::dev_debug, "Range:\t"+std::to_string(range-1) + "MAXSHIFT:\t" + std::to_string(m_maxshift) + "Scrunch value:\t" + std::to_string(plan.user_dm(range-1).inBin));
+    LOG(log_level::dev_debug, "Range:\t"+std::to_string(range-1) + " MAXSHIFT:\t" + std::to_string(m_maxshift) + " Scrunch value:\t" + std::to_string(plan.user_dm(range-1).inBin));
     LOG(log_level::dev_debug, "Maximum dispersive delay:\t "+std::to_string(m_maxshift * tsamp)+ "(s).");
 
     if (m_maxshift >= nsamp)    {
