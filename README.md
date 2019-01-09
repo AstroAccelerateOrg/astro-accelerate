@@ -314,9 +314,7 @@ The user can read `.fil` files or provide a `std::vector<unsigned short>` or a r
 __User-side__
 * Select modules (*__dedispersion__*, *__rfi__*, *__zero_dm__*, *__threshold__*,…).
 * Provide settings for the modules (*__plan__*, *__strategy__*).
-* Provide the data (*__bind__* and *__transfer__*).
 * Run the pipeline (*__run__*).
-* Retrieve the data (*__transfer__*).
 
 __Library-Side__
 * Astro accelerate decides on the *__strategy__* and the module ordering.
