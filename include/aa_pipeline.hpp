@@ -85,15 +85,14 @@ namespace astroaccelerate {
       if(required_plans.find(aa_compute::modules::dedispersion) != required_plans.end()) {
 	m_ddtr_plan = plan;
             
-	//If the plan is valid then the supplied_plan becomes true
-	supplied_plans.at(aa_compute::modules::dedispersion) = true;
-            
 	//ddtr_strategy needs to know if analysis will be required
 	if(required_plans.find(aa_compute::modules::analysis) != required_plans.end()) {
 	  aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_card_info.free_memory, true);
 	  if(ddtr_strategy.ready()) {
 	    m_ddtr_strategy = std::move(ddtr_strategy);
 	    m_all_strategy.push_back(&m_ddtr_strategy);
+	    //If the plan is valid then the supplied_plan becomes true
+	    supplied_plans.at(aa_compute::modules::dedispersion) = true;
 	  }
 	  else {
 	    return false;
@@ -104,6 +103,8 @@ namespace astroaccelerate {
 	  if(ddtr_strategy.ready()) {
 	    m_ddtr_strategy = std::move(ddtr_strategy);
 	    m_all_strategy.push_back(&m_ddtr_strategy);
+	    //If the plan is valid then the supplied_plan becomes true
+	    supplied_plans.at(aa_compute::modules::dedispersion) = true;
 	  }
 	  else {
 	    return false;

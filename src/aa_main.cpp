@@ -85,6 +85,7 @@ int main(int argc, char *argv[]) {
   }
   else {
     LOG(log_level::error, "Could not bind ddtr_plan.");
+    //    return 0;
   }
   
   aa_analysis_plan::selectable_candidate_algorithm candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::off;

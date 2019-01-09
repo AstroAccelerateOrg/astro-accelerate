@@ -31,7 +31,7 @@ namespace astroaccelerate {
     }
 
     std::cout << "NOTICE: Calculating strategy." << std::endl;
-    const float power         = 2.0;  //This variable is set to 2.0 in host_main_function, and used only here (unless it is modified in get_user_input when the input_file.txt is read).
+    const float power         = 1.0;  // \todo This is a bug. The power is not a hardcoded number. The default value is 2.0, but the number should be read from the input_file.
     
     //Part of the filterbank metadata
     const int nchans  = m_metadata.nchans();
@@ -59,7 +59,6 @@ namespace astroaccelerate {
     const double SPDT_fraction = 3.0/4.0; // 1.0 for MSD plane profile validation
     
     //Calculate maxshift, the number of dms for this bin and the highest value of dm to be calculated in this bin
-    
     if (power != 2.0) {
       // Calculate time independent dm shifts
       for (int c = 0; c < nchans; c++) {
@@ -116,7 +115,7 @@ namespace astroaccelerate {
     m_maxshift = ( m_maxshift_high + ( SNUMREG * 2 * SDIVINT ) );
     printf("\nNOTICE: Range:\t%lu, MAXSHIFT:\t%d, Scrunch value:\t%d.", range - 1, m_maxshift, plan.user_dm(range-1).inBin);
     printf("\nNOTICE: Maximum dispersive delay:\t%.2f (s).", m_maxshift * tsamp);
-    
+
     if (m_maxshift >= nsamp)    {
       printf("\n\nERROR: Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial.\n\n");
       return false;
