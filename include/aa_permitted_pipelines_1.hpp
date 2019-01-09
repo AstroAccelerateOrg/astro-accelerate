@@ -52,6 +52,7 @@ namespace astroaccelerate {
 
     aa_permitted_pipelines_1(const aa_permitted_pipelines_1 &) = delete;
 
+    /** \brief Method to setup and allocate memory for the pipeline containers. */
     bool setup() override {
       if(!memory_allocated) {
 	return set_data();
@@ -64,6 +65,7 @@ namespace astroaccelerate {
       return false;
     }
 
+    /** \brief Override base class next() method to process next time chunk. */
     bool next() override {
       std::vector<std::vector<std::vector<float>>> output_buffer;
       int chunk_idx = 0;
@@ -73,7 +75,8 @@ namespace astroaccelerate {
 
       return false;
     }
-    
+
+    /** \brief Process next time chunk with index chunk_idx, and set the time chunk dedispersed data in output_buffer. */
     bool next(std::vector<std::vector<std::vector<float>>> &output_buffer, int &chunk_idx) {
       if(memory_allocated) {
 	if(output_buffer.size() != range) {
@@ -101,6 +104,7 @@ namespace astroaccelerate {
       return false;
     }
 
+    /** \brief Process the next time chunk and dump the output to disk. */
     bool next(const bool &dump_to_disk) {
       if(memory_allocated) {
 	std::vector<std::vector<std::vector<float>>> output_buffer(range);
@@ -110,7 +114,8 @@ namespace astroaccelerate {
 
       return false;
     }
-    
+
+    /** \brief De-allocate memory for this pipeline instance. */
     bool cleanup() {
       if(memory_allocated && !memory_cleanup) {
 	cudaFree(d_input);
@@ -161,6 +166,7 @@ namespace astroaccelerate {
     int t;
     aa_gpu_timer       m_timer;
 
+    /** \brief Allocate the GPU memory needed for dedispersion. */
     void allocate_memory_gpu(const int &maxshift, const int &max_ndms, const int &nchans, int **const t_processed, unsigned short **const d_input, float **const d_output) {
 
       int time_samps = t_processed[0][0] + maxshift;
@@ -189,6 +195,7 @@ namespace astroaccelerate {
       }
     }
 
+    /** \brief Method that allocates all memory for this pipeline. */
     bool set_data() {
       num_tchunks = m_ddtr_strategy.num_tchunks();
       size_t t_processed_size = m_ddtr_strategy.t_processed().size();
@@ -242,10 +249,15 @@ namespace astroaccelerate {
       return true;
     }
 
+    /** \brief Transfer data from the device to the host. */
     inline void save_data_offset(float *const host_pointer, const int host_offset, float *const device_pointer, const int device_offset, const size_t size) {
       cudaMemcpy(host_pointer + host_offset, device_pointer + device_offset, size, cudaMemcpyDeviceToHost);
     }
 
+    /**
+     * \brief Run the pipeline by processing the next time chunk of data.
+     * \details Process any flags for dumping output or providing it back to the user.
+     */
     bool run_pipeline(std::vector<std::vector<std::vector<float>>> &output_buffer, const bool dump_ddtr_output, int &chunk_idx, const bool &dump_to_disk = false) {
       LOG(log_level::notice, "NOTICE: Pipeline start/resume run_pipeline_1.");
       if(t >= num_tchunks) {
