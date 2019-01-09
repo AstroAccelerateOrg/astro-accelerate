@@ -77,7 +77,7 @@ namespace astroaccelerate {
       pipeline_ready = false;
 
       //If a plan has already been supplied, return false and do nothing with the new plan
-      if(supplied_plans.at(aa_compute::modules::dedispersion)) {
+      if(supplied_plans.find(aa_compute::modules::dedispersion) == supplied_plans.end()) {
 	return false;
       }
         
@@ -129,7 +129,7 @@ namespace astroaccelerate {
       pipeline_ready = false;
       
       //If a plan has already been supplied, return false and do nothing with the new plan
-      if(supplied_plans.at(aa_compute::modules::analysis)) {
+      if(supplied_plans.find(aa_compute::modules::analysis) == supplied_plans.end()) {
 	return false;
       }
 
@@ -172,7 +172,7 @@ namespace astroaccelerate {
       pipeline_ready = false;
         
       //If a plan has already been supplied, return false and do nothing with the new plan
-      if(supplied_plans.at(aa_compute::modules::periodicity)) {
+      if(supplied_plans.find(aa_compute::modules::periodicity) == supplied_plans.end()) {
 	return false;
       }
 
@@ -208,7 +208,7 @@ namespace astroaccelerate {
       pipeline_ready = false;
       
       //If a plan has already been supplied, return false and do nothing with the new plan
-      if(supplied_plans.at(aa_compute::modules::fdas)) {
+      if(supplied_plans.find(aa_compute::modules::fdas) == supplied_plans.end()) {
 	return false;
       }
 
