@@ -5,10 +5,14 @@
  * AstroAccelerate is a many core accelerated software package for processing time domain radio-astronomy data.
  *
  * \section install_sec Usage Guide
- * Please refer to the README.md included in the repository for instructions.
+ * Please refer to the README.md included in the repository for instructions on how to use the standalone version of AstroAccelerate.
+ *
+ * Please refer to the MANUAL.md included in the repoistory for instructions on how to use the AstroAccelerate API in your own code.
+ * 
+ * Please refer to the Developers Guide in CONTRIBUTING.md for instructions on how to develop and contribute to the repository.
  *
  * \section contact_sec Contact
- * Please see contact details in the repository.
+ * Please see contact details in the repository and in COLLABORATORS.md.
  * 
  */
 
