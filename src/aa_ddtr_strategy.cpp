@@ -26,11 +26,11 @@ namespace astroaccelerate {
      * nchans - bin on the diagonal or a fraction of it.
      */
     if(m_strategy_already_calculated) {
-      std::cout << "NOTICE: Strategy already calculated." << std::endl;
+      LOG(log_level::notice, "Strategy already calculated.");
       return true;
     }
 
-    std::cout << "NOTICE: Calculating strategy." << std::endl;
+    LOG(log_level::notice, "Calculating strategy.");
     const float power         = 1.0;  // \todo This is a bug. The power is not a hardcoded number. The default value is 2.0, but the number should be read from the input_file.
     
     //Part of the filterbank metadata
@@ -80,7 +80,7 @@ namespace astroaccelerate {
 	m_max_ndms = m_ndms[i]; // looking for maximum number of DM trials for memory allocation
       m_total_ndms = m_total_ndms + m_ndms[i];
     }
-    printf("\nNOTICE: Maximum number of dm trials in any of the range steps:\t%d.", m_max_ndms);
+    LOG(log_level::notice, "Maximum number of dm trials in any of the range steps:" + std::to_string(m_max_ndms));
     
     str_dm[0].low = plan.user_dm(0).low;                        //
     str_dm[0].high = str_dm[0].low + ( m_ndms[0] * ( plan.user_dm(0).step ) );   // Redefines DM plan to suit GPU
@@ -117,13 +117,13 @@ namespace astroaccelerate {
     printf("\nNOTICE: Maximum dispersive delay:\t%.2f (s).", m_maxshift * tsamp);
 
     if (m_maxshift >= nsamp)    {
-      printf("\n\nERROR: Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial.\n\n");
+      LOG(log_level::error, "Your maximum DM trial exceeds the number of samples you have. Reduce your maximum DM trial.");
       return false;
     }
     
-    printf("\nNOTICE: Diagonal DM:\t%f.", ( tsamp * nchans * 0.0001205 * powf(( fch1 + ( foff * ( nchans / 2 ) ) ), 3.0) ) / ( -foff * nchans ));
+    LOG(log_level::dev_debug, "Diagonal DM:\t" + std::to_string(( tsamp * nchans * 0.0001205 * powf(( fch1 + ( foff * ( nchans / 2 ) ) ), 3.0) ) / ( -foff * nchans )));
     if (m_maxshift >= nsamp)    {
-      printf("ERROR: Your maximum DM trial exceeds the number of samples you have.\nReduce your maximum DM trial.");
+      LOG(log_level::error, "Your maximum DM trial exceeds the number of samples you have. Reduce your maximum DM trial.");
       return false;
     }
     
