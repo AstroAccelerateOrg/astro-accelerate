@@ -257,6 +257,7 @@ namespace astroaccelerate {
     /**
      * \brief Run the pipeline by processing the next time chunk of data.
      * \details Process any flags for dumping output or providing it back to the user.
+     * \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
      */
     bool run_pipeline(std::vector<std::vector<std::vector<float>>> &output_buffer, const bool dump_ddtr_output, int &chunk_idx, const bool &dump_to_disk = false) {
       LOG(log_level::notice, "NOTICE: Pipeline start/resume run_pipeline_1.");

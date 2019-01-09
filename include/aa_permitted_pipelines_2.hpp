@@ -55,6 +55,7 @@ namespace astroaccelerate {
 
     aa_permitted_pipelines_2(const aa_permitted_pipelines_2 &) = delete;
 
+    /** \brief Method to setup and allocate memory for the pipeline containers. */
     bool setup() override {
       if(!memory_allocated) {
 	return set_data();
@@ -67,6 +68,7 @@ namespace astroaccelerate {
       return false;
     }
 
+    /** \brief Override base class next() method to process next time chunk. */
     bool next() override {
       bool dump_to_disk = true;
       bool dump_to_user = false;
@@ -78,6 +80,7 @@ namespace astroaccelerate {
       return false;
     }
 
+    /** \brief Process next time chunk with index chunk_idx, and set the time chunk dedispersed data in output_buffer. */
     bool next(const bool dump_to_disk, const bool dump_to_user, analysis_output &output) {
       if(memory_allocated) {
 	return run_pipeline(dump_to_disk, dump_to_user, output);
@@ -86,6 +89,7 @@ namespace astroaccelerate {
       return false;
     }
     
+    /** \brief De-allocate memory for this pipeline instance. */
     bool cleanup() {
       if(memory_allocated && !memory_cleanup) {
 	cudaFree(d_input);
@@ -140,6 +144,7 @@ namespace astroaccelerate {
     float  *m_d_MSD_interpolated     = NULL;
     ushort *m_d_MSD_output_taps      = NULL;
     
+    /** \brief Allocate the GPU memory needed for dedispersion. */
     void allocate_memory_gpu(const int &maxshift, const int &max_ndms, const int &nchans, int **const t_processed, unsigned short **const d_input, float **const d_output) {
 
       int time_samps = t_processed[0][0] + maxshift;
@@ -160,6 +165,9 @@ namespace astroaccelerate {
       cudaMemset(*d_output, 0, gpu_outputsize);
     }
     
+    /**
+     * \brief Allocate memory for MSD.
+     */
     void allocate_memory_MSD(float **const d_MSD_workarea, unsigned short **d_MSD_output_taps, float **const d_MSD_interpolated,
 			     const unsigned long int &MSD_maxtimesamples, const size_t &MSD_profile_size) {
       checkCudaErrors(cudaMalloc((void **) d_MSD_workarea,        MSD_maxtimesamples*5.5*sizeof(float)));
@@ -167,6 +175,7 @@ namespace astroaccelerate {
       checkCudaErrors(cudaMalloc((void **) d_MSD_interpolated,    sizeof(float)*MSD_profile_size));
     }
 
+    /** \brief Method that allocates all memory for this pipeline. */
     bool set_data() {
       num_tchunks = m_ddtr_strategy.num_tchunks();
       size_t t_processed_size = m_ddtr_strategy.t_processed().size();
@@ -222,14 +231,21 @@ namespace astroaccelerate {
       return true;
     }
 
+    /** \brief Transfer data from the device to the host. */
     inline void save_data_offset(float *device_pointer, int device_offset, float *host_pointer, int host_offset, size_t size) {
       cudaMemcpy(host_pointer + host_offset, device_pointer + device_offset, size, cudaMemcpyDeviceToHost);
     }
 
+    /** \brief Transfer data from the device to the host. */
     inline void save_data(float *const device_pointer, float *const host_pointer, const size_t &size) {
       cudaMemcpy(host_pointer, device_pointer, size, cudaMemcpyDeviceToHost);
     }
 
+    /**
+     * \brief Run the pipeline by processing the next time chunk of data.
+     * \details Process any flags for dumping output or providing it back to the user.
+     * \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
+     */
     bool run_pipeline(const bool dump_to_disk, const bool dump_to_user, analysis_output &output) {
       printf("NOTICE: Pipeline start/resume run_pipeline_2.\n");
       if(t >= num_tchunks) {
