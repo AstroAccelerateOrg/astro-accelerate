@@ -33,7 +33,6 @@ The list of collaborators may be updated from time to time.
 * Jan Novotny
 
 # NVIDIA
-* Mike Clark
 * Kate Clark
 * Tim Lanfear
 
