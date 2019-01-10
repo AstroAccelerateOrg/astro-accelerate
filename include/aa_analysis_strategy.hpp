@@ -153,15 +153,15 @@ namespace astroaccelerate {
     
     /** \brief A static member function that prints out the values of the member variables of an instance of aa_analysis_strategy. */
     static bool print_info(const aa_analysis_strategy &strategy) {
-      std::cout << "ANALYSIS STRATEGY INFORMATION:" << std::endl;
-      std::cout << "analysis sigma_cutoff:\t\t\t" << strategy.sigma_cutoff() <<std::endl;
-      std::cout << "analysis sigma_constant:\t\t" << strategy.sigma_constant() << std::endl;
-      std::cout << "analysis max_boxcar_width_in_sec:\t" << strategy.max_boxcar_width_in_sec() << std::endl;
-      std::cout << "analysis MSD_data_info:\t\t\t" << strategy.MSD_data_info() << std::endl;
-      std::cout << "analysis MSD_profile_size_in_bytes:\t" << strategy.MSD_profile_size_in_bytes() << std::endl;
-      std::cout << "analysis h_MSD_DIT_width:\t\t" << strategy.h_MSD_DIT_width() << std::endl;
-      std::cout << "analysis candidate_algorithm:\t\t" << (strategy.candidate_algorithm() ? "on" : "off") << std::endl;
-      std::cout << "analysis sps_baseline_noise:\t\t" << (strategy.enable_sps_baseline_noise() ? "true" : "false") << std::endl;
+      LOG(log_level::dev_debug, "ANALYSIS STRATEGY INFORMATION:");
+      LOG(log_level::dev_debug, "analysis sigma_cutoff:\t\t\t" + std::to_string(strategy.sigma_cutoff()));
+      LOG(log_level::dev_debug, "analysis sigma_constant:\t\t" + std::to_string(strategy.sigma_constant()));
+      LOG(log_level::dev_debug, "analysis max_boxcar_width_in_sec:\t" + std::to_string(strategy.max_boxcar_width_in_sec()));
+      LOG(log_level::dev_debug, "analysis MSD_data_info:\t\t\t" + std::to_string(strategy.MSD_data_info()));
+      LOG(log_level::dev_debug, "analysis MSD_profile_size_in_bytes:\t" + std::to_string(strategy.MSD_profile_size_in_bytes()));
+      LOG(log_level::dev_debug, "analysis h_MSD_DIT_width:\t\t" + std::to_string(strategy.h_MSD_DIT_width()));
+      LOG(log_level::dev_debug, "analysis candidate_algorithm:\t\t" + strategy.candidate_algorithm() ? std::string("on") : std::string("off"));
+      LOG(log_level::dev_debug, "analysis sps_baseline_noise:\t\t" + strategy.enable_sps_baseline_noise() ? std::string("true") : std::string("false"));
       return true;
     }
     

@@ -228,20 +228,18 @@ namespace astroaccelerate {
 
     /** \brief Static method for printing member data for an instance of aa_card_info. */
     static bool print_card_info(const aa_card_info &card) {
-      std::cout << "CARD INFORMATION:" << std::endl;
-      std::cout << "Name:\t\t\t" << card.name << std::endl;
-      std::cout << "Compute capability:\t"
-		<< card.compute_capability_major << "."
-		<< card.compute_capability_minor << std::endl;
-      std::cout << "Clock rate:\t\t" << card.clock_rate << std::endl;
-      std::cout << "Memory clock rate:\t" << card.memory_clock_rate << std::endl;
-      std::cout << "Memory bus width:\t" << card.memory_bus_width << std::endl;
-      std::cout << "ID # on this machine:\t" << card.card_number << std::endl;
-      std::cout << "Driver version:\t\t" << card.driver_version << std::endl;
-      std::cout << "l2_cache_size:\t\t" << card.l2_cache_size << std::endl;
-      std::cout << "Global memory:\t\t" << card.global_memory << std::endl;
-      std::cout << "Total memory:\t\t" << card.total_memory << std::endl;
-      std::cout << "Free memory:\t\t" << card.free_memory << std::endl;
+      LOG(log_level::dev_debug, "CARD INFORMATION:");
+      LOG(log_level::dev_debug, "Name:\t\t\t"+card.name);
+      LOG(log_level::dev_debug, "Compute capability:\t" + std::to_string(card.compute_capability_major) + "." + std::to_string(card.compute_capability_minor));
+      LOG(log_level::dev_debug, "Clock rate:\t\t" + std::to_string(card.clock_rate));
+      LOG(log_level::dev_debug, "Memory clock rate:\t" + std::to_string(card.memory_clock_rate));
+      LOG(log_level::dev_debug, "Memory bus width:\t" + std::to_string(card.memory_bus_width));
+      LOG(log_level::dev_debug, "ID # on this machine:\t" + std::to_string(card.card_number));
+      LOG(log_level::dev_debug, "Driver version:\t\t" + std::to_string(card.driver_version));
+      LOG(log_level::dev_debug, "l2_cache_size:\t\t" + std::to_string(card.l2_cache_size));
+      LOG(log_level::dev_debug, "Global memory:\t\t" + std::to_string(card.global_memory));
+      LOG(log_level::dev_debug, "Total memory:\t\t" + std::to_string(card.total_memory));
+      LOG(log_level::dev_debug, "Free memory:\t\t" + std::to_string(card.free_memory));
       return true;
     }
     

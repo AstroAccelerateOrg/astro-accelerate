@@ -223,8 +223,10 @@ namespace astroaccelerate {
 	    m_pipeline_options.insert(aa_compute::module_option::rfi);
 	  if (strcmp(string, "oldrfi") == 0)
 	    m_pipeline_options.insert(aa_compute::module_option::old_rfi);
-	  if (strcmp(string, "threshold") == 0)
+	  if (strcmp(string, "threshold") == 0) {
 	    m_pipeline_options.insert(aa_compute::module_option::candidate_algorithm);
+	    flg.candidate_algorithm = 1;
+	  }
 	  if (strcmp(string, "baselinenoise") == 0)
 	    m_pipeline_options.insert(aa_compute::module_option::sps_baseline_noise);
 	  if (strcmp(string, "fdas_custom_fft") == 0)
