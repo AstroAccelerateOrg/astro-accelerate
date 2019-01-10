@@ -42,6 +42,10 @@ namespace astroaccelerate {
       if((m_nHarmonics > 0) && (m_OR_sigma_multiplier > 0) && (m_export_powers > 0)) {
 	m_ready = true;
       }
+      else {
+	std::cout << "STRATEGY VARIABLES IMPROPER." << std::endl;
+	print_info(*this);
+      }
     }
 
     /** \returns The name of the module. */
