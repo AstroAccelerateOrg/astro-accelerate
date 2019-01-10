@@ -69,16 +69,16 @@ namespace astroaccelerate {
      * \details This must at least contain the full path to an input file.
      * \details If using AstroAccelerate as a library user, then use the other constructor of the aa_config class.
      */
-    aa_config(const aa_command_line_arguments &cli_input) : configure_from_file(true), user_cli(cli_input) {
-      
+    aa_config(const aa_command_line_arguments &cli_input) : configure_from_file(true), user_cli(cli_input), flg({0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_compute::debug>()}) {
+      flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
     }
     
     /** \brief Constructor for aa_config to configure via a user requested aa_compute::pipeline object.
      * \details The aa_compute::pipeline object contains the user requested pipeline modules to be run.
      * \details Use this constructor when using AstroAccelerate as a library user.
      */
-    aa_config(aa_compute::pipeline &user_pipeline) : configure_from_file(false), m_pipeline(user_pipeline) {
-        
+    aa_config(aa_compute::pipeline &user_pipeline) : configure_from_file(false), m_pipeline(user_pipeline), flg({0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_compute::debug>()}) {
+      flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
     }
 
     /** \brief Overloaded function that simplifies the setup method.
@@ -136,10 +136,10 @@ namespace astroaccelerate {
   protected:
     bool configure_from_file; //Boolean flag to indicate on construction whether an input file will be used for configuration.
     std::string fpath; //Path to the input data file.
-    aa_config_flags flg;  //Configuration flags
     aa_compute::pipeline        m_pipeline; //The pipeline object that is configured by an instance of this class using an input file. 
     aa_compute::pipeline_option m_pipeline_options; //The pipeline settings configured by an instance of this class using an input file.
     aa_command_line_arguments user_cli; //The user supplied command line argument settings.
+    aa_config_flags flg;  //Configuration flags 
     aa_ddtr_plan m_ddtr_plan; //The ddtr_plan that is configured by an instance of this class using an input file.
     
     /** \brief Reads an input text file.
