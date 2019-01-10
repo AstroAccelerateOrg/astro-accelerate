@@ -149,6 +149,7 @@ namespace astroaccelerate {
 	  LOG(log_level::dev_debug, "     t_processed[" + std::to_string(i) +"][" + std::to_string(j) + "]:\t" + std::to_string(strategy.t_processed()[i][j]));
 	}
       }
+      LOG(log_level::dev_debug, "power:\t\t\t" + std::to_string(strategy.power()));
 
       return true;
     }
