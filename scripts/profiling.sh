@@ -42,6 +42,7 @@ do
 		pwd
 		cat ${template_params} > ./params.txt
 		rm ${include}/aa_params.hpp
+		echo " " >> ./params.txt
 		echo "#define UNROLLS $unroll" >> ./params.txt
 		echo "#define SNUMREG $acc" >> ./params.txt
 		echo "#define SDIVINT $divint" >> ./params.txt
@@ -53,8 +54,8 @@ do
 		
 		make clean
 		
-		regcount=$(make -j 16 2>&1 | grep -A2 shared_dedisperse_kernel | tail -1 | awk -F" " '{print $5}')
-		
+		#regcount=$(make -j 16 2>&1 | grep -A2 shared_dedisperse_kernel | tail -1 | awk -F" " '{print $5}')
+		make
 		cp ${include}/aa_params.hpp profile_results/u"$unroll"_a"$acc"_t"$divint"_dm"$divindm"_r"$regcount".h
 		
 		${astroaccelerate_sh_script} $inFile > profile_results/u"$unroll"_a"$acc"_t"$divint"_dm"$divindm"_r"$regcount".dat

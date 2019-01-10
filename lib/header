@@ -83,3 +83,5 @@ namespace astroaccelerate {
 // The namespace and header guard are not enclosed.
 // The profiling script is responsible for adding a closing brace for the namespace,
 // and an #endif stement to enclose the header guard.
+// This file must end in a new empty line so that the first definition that the profile
+// script adds is not on the line of this comment.
