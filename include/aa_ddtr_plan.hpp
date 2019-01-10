@@ -16,8 +16,8 @@ namespace astroaccelerate {
 
   class aa_ddtr_plan {
   public:
-    /** \brief Constructor for aa_ddtr_plan. */
-    aa_ddtr_plan() {
+    /** \brief Constructor for aa_ddtr_plan. m_power must be default initialised to 2.0. */
+    aa_ddtr_plan() : m_power(2.0) {
       
     }
   
@@ -80,9 +80,23 @@ namespace astroaccelerate {
 	return empty_dm;
       }
     }
+
+    /**
+     * \brief Set the ddtr power, which is needed to calculate the aa_ddtr_strategy instance needed for dedispersion.
+     */
+    bool set_power(const float &power) {
+      m_power = power;
+      return true;
+    }
+
+    /** \returns The user set power. */
+    float power() const {
+      return m_power;
+    }
     
   private:
     std::vector<dm> m_user_dm; /**< Storage for all supplied dm properties. */
+    float m_power;
   
   };
 } // namespace astroaccelerate

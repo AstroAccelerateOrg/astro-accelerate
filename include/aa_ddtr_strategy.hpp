@@ -99,6 +99,11 @@ namespace astroaccelerate {
     int num_tchunks() const {
       return m_num_tchunks;
     }
+
+    /** \returns The strategy configured power. */
+    float power() const {
+      return m_power;
+    }
     
     /** \returns The boolean ready state of the strategy instance (true for ready, false for not ready). */
     bool ready() const {
@@ -167,8 +172,8 @@ namespace astroaccelerate {
     int m_maxshift_high;  /**< Is used for assignment and assigning in this method. */
     
     int m_max_ndms;       /**< This variable is set to 0 in main.cpp and never used until here. */
+    float m_power;        /**< Strategy determined power from the user set aa_ddtr_plan instance of power. */
     std::vector<std::vector<int>> m_t_processed; /**< Is allocated in this class, and used elsewhere in the pipeline. */
-    size_t m_t_processed_dim1_size; /**< \deprecated No longer used. Remove from source file and header file. */
     float ***output_buffer; /**< \brief 3D array that contains the output. \deprecated Has been moved to permitted_pipeline classes. Remove from source and header files.*/
   };
 

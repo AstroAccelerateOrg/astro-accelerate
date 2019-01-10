@@ -6,14 +6,14 @@ namespace astroaccelerate {
   /**
    * Trivial constructor for aa_ddtr_strategy which will result in a strategy that cannot be ready. 
    */
-  aa_ddtr_strategy::aa_ddtr_strategy() : m_ready(false), m_strategy_already_calculated(false), m_configured_for_analysis(false), is_setup(false), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_t_processed_dim1_size(0) {
+  aa_ddtr_strategy::aa_ddtr_strategy() : m_ready(false), m_strategy_already_calculated(false), m_configured_for_analysis(false), is_setup(false), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_power(0.0) {
     
   }
 
   /**
    * Constructor for aa_ddtr_strategy that computes the strategy upon construction, and sets the ready state of the instance of the class.
    */
-  aa_ddtr_strategy::aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis) : m_ready(false), m_strategy_already_calculated(false), m_configured_for_analysis(enable_analysis), is_setup(false), m_metadata(metadata), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_t_processed_dim1_size(0) {
+  aa_ddtr_strategy::aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis) : m_ready(false), m_strategy_already_calculated(false), m_configured_for_analysis(enable_analysis), is_setup(false), m_metadata(metadata), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_power(plan.power()) {
     strategy(plan, free_memory, enable_analysis);
   }
 
@@ -31,7 +31,7 @@ namespace astroaccelerate {
     }
 
     LOG(log_level::notice, "Calculating strategy.");
-    const float power         = 1.0;  // \todo This is a bug. The power is not a hardcoded number. The default value is 2.0, but the number should be read from the input_file.
+    const float power         = plan.power();  // \todo This is a bug. The power is not a hardcoded number. The default value is 2.0, but the number should be read from the input_file.
     
     //Part of the filterbank metadata
     const int nchans  = m_metadata.nchans();
