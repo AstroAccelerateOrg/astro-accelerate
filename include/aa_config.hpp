@@ -332,6 +332,7 @@ namespace astroaccelerate {
 		  fprintf(stderr, "failed to read input\n");
 		  return false;
 		}
+	      m_ddtr_plan.set_power(flg.power);
 	    }
 	  if (strcmp(string, "file") == 0) {
 	    // This command expands "~" to "home/username/"

@@ -80,7 +80,6 @@ int main(int argc, char *argv[]) {
 					       filterbank_datafile.input_buffer().data(),
 					       selected_card_info);
 
-  ddtr_plan.set_power(user_flags.power);
   if(pipeline_manager.bind(ddtr_plan)) {
     LOG(log_level::notice, "ddtr_plan bound successfully.");
   }
