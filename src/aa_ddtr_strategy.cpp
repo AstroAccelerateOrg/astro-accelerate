@@ -31,7 +31,6 @@ namespace astroaccelerate {
     }
 
     LOG(log_level::notice, "Calculating strategy.");
-    const float power         = plan.power();  // \todo This is a bug. The power is not a hardcoded number. The default value is 2.0, but the number should be read from the input_file.
     
     //Part of the filterbank metadata
     const int nchans  = m_metadata.nchans();
@@ -57,18 +56,17 @@ namespace astroaccelerate {
     const size_t gpu_memory = free_memory;
     
     const double SPDT_fraction = 3.0/4.0; // 1.0 for MSD plane profile validation
-    
     //Calculate maxshift, the number of dms for this bin and the highest value of dm to be calculated in this bin
-    if (power != 2.0) {
+    if (m_power != 2.0) {
       // Calculate time independent dm shifts
       for (int c = 0; c < nchans; c++) {
-	m_dmshifts[c] = 4148.741601f * ( ( 1.0 / pow(( fch1 + ( foff * c ) ), power) ) - ( 1.0 / pow(fch1, power) ) );
+	m_dmshifts[c] = 4148.741601f * ( ( 1.0 / pow(( fch1 + ( foff * c ) ), m_power) ) - ( 1.0 / pow(fch1, m_power) ) );
       }
     }
     else {
       // Calculate time independent dm shifts
       for (int c = 0; c < nchans; c++) {
-	m_dmshifts[c] = (float) ( 4148.741601f * ( ( 1.0 / pow((double) ( fch1 + ( foff * c ) ), power) ) - ( 1.0 / pow((double) fch1, power) ) ) );
+	m_dmshifts[c] = (float) ( 4148.741601f * ( ( 1.0 / pow((double) ( fch1 + ( foff * c ) ), m_power) ) - ( 1.0 / pow((double) fch1, m_power) ) ) );
       }
     }
     
