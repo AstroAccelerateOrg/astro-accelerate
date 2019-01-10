@@ -71,6 +71,7 @@ namespace astroaccelerate {
      */
     aa_config(const aa_command_line_arguments &cli_input) : configure_from_file(true), user_cli(cli_input), flg({0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_compute::debug>()}) {
       flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
+      flg.periodicity_nHarmonics = 32;
     }
     
     /** \brief Constructor for aa_config to configure via a user requested aa_compute::pipeline object.
@@ -79,6 +80,7 @@ namespace astroaccelerate {
      */
     aa_config(aa_compute::pipeline &user_pipeline) : configure_from_file(false), m_pipeline(user_pipeline), flg({0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_compute::debug>()}) {
       flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
+      flg.periodicity_nHarmonics = 32;
     }
 
     /** \brief Overloaded function that simplifies the setup method.
