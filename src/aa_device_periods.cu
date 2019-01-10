@@ -833,7 +833,8 @@ namespace astroaccelerate {
     //---------> Harmonic summing
     timer.Start();
 
-    if(per_param.nHarmonics() > 1) {
+    /** \todo Re-enable the if statement after debugging. */
+    //if(per_param.nHarmonics() > 1) {
       
 #ifdef OLD_PERIODICITY
       periodicity_simple_harmonic_summing_old(d_frequency_power_CT, d_power_SNR, gmem->d_power_harmonics, gmem->d_MSD, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.nHarmonics());
@@ -842,7 +843,7 @@ namespace astroaccelerate {
       periodicity_simple_harmonic_summing(d_frequency_power_CT, d_power_SNR, gmem->d_power_harmonics, gmem->d_MSD, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.nHarmonics());
       periodicity_simple_harmonic_summing(d_frequency_interbin_CT, d_interbin_SNR, gmem->d_interbin_harmonics, gmem->d_MSD, t_nTimesamples, t_nDMs_per_batch, per_param.nHarmonics());
 #endif
-    }
+      //}
     timer.Stop();
     printf("         -> harmonic summing took %f ms\n", timer.Elapsed());
     (*compute_time) = (*compute_time) + timer.Elapsed();
