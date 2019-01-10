@@ -1,24 +1,34 @@
+################################################################################
+# astro-accelerate.sh
+#
+# Description: A shell script that runs astro-accelerate
+# Usage:       Please run the script from the same directory as the executable.
+# Notice:      N/A.
+################################################################################
+
 #!/usr/bin/env bash
 
-job_name=$(basename "$1" .txt)
-
-# find out where this script is running from
-scripts_dir=$(dirname "$0");
-cd $scripts_dir;
-scripts_dir=$PWD
-
-# define where to place output and find out executables
-project_top=$(dirname "$scripts_dir")
-output_dir="$project_top/output"
-job_dir=$output_dir/$job_name
-build_dir=$project_top
-
+echo "=== Running astro-accelerate.sh script ==="
+# Parse the parameter that contains the path to the input_file
 input_file=$(readlink -f $1)
 
-mkdir -p $job_dir
+# Name of the input_file, without a path and without file extension
+job_name=$(basename "$1" .txt)
 
-cd $job_dir
+# The current directory is assumed to contain the executable
+executable_directory=$(pwd)
 
+# Job output will be stored within a subfolder of the executable_directory
+output_dir=${executable_directory}/output/${job_name}
+
+# Create the job directory
+mkdir -p ${output_dir}
+
+# The executable output defaults to the current directory
+# So, switch to the output directory
+cd ${output_dir}
+
+# Remove existing output files, if they exist
 rm -f analysed* 
 rm -f acc*
 rm -f global*
@@ -27,13 +37,37 @@ rm -f harmonic*
 rm -f candidate*
 rm -f peak*
 
-time $build_dir/astro-accelerate $input_file
+# Run and time the executable
+echo "The executable path is " ${executable_directory}
+echo "The input_file path is " ${input_file}
+echo "The job name is " ${job_name}
+echo "The output directory path is " ${output_dir}
+time ${executable_directory}/astro-accelerate ${input_file}
 
-cat analysed* > global_analysed_frb.dat
-cat fourier-* > global_periods.dat
-cat fourier_inter* > global_interbin.dat
-cat harmo* > global_harmonics.dat
-cat candidate* > global_candidates.dat
-cat peak* > global_peaks.dat
+# Test if output file exists, and combine into a single file
+# If not found, do nothing, and write the return code of ls to /dev/null
+if ls analysed* 1> /dev/null 2>&1; then
+    cat analysed* > global_analysed_frb.dat
+fi
 
-echo "Written output to $job_dir"
+if ls fourier-* 1> /dev/null 2>&1; then
+    cat fourier-* > global_periods.dat
+fi
+
+if ls fourier_inter* 1> /dev/null 2>&1; then
+    cat fourier_inter* > global_interbin.dat
+fi
+
+if ls harmo* 1> /dev/null 2>&1; then
+    cat harmo* > global_harmonics.dat
+fi
+
+if ls candidate* 1> /dev/null 2>&1; then
+    cat candidate* > global_candidates.dat
+fi
+
+if ls peak* 1> /dev/null 2>&1; then
+    cat peak* > global_peaks.dat
+fi
+
+echo "Finished. Output is located in "${output_dir}
