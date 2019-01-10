@@ -47,7 +47,8 @@ do
 		echo "#define SDIVINT $divint" >> ./params.txt
 		echo "#define SDIVINDM $divindm" >> ./params.txt
 		echo "#define SFDIVINDM $divindm.0f" >> ./params.txt
-		
+		echo "} // namespace astroaccelerate" >> ./params.txt
+		echo "#endif // ASTRO_ACCELERATE_AA_PARAMS_HPP" >> ./params.txt
 		mv params.txt ${include}/aa_params.hpp
 		
 		make clean
