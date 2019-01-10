@@ -5,6 +5,7 @@
 
 #include "aa_strategy.hpp"
 #include "aa_periodicity_plan.hpp"
+#include "aa_log.hpp"
 
 namespace astroaccelerate {
 
@@ -108,13 +109,13 @@ namespace astroaccelerate {
 
     /** Static member function that prints member variables for a provided aa_periodicity_strategy. */
     static bool print_info(const aa_periodicity_strategy &strategy) {
-      std::cout << "PERIODICITY STRATEGY INFORMATION:" << std::endl;
-      std::cout << "periodicity sigma_cutoff:\t\t" << strategy.sigma_cutoff() << std::endl;
-      std::cout << "periodicity OR_sigma_multiplier:\t" << strategy.OR_sigma_multiplier() << std::endl;
-      std::cout << "periodicity nHarmonics:\t\t\t" << strategy.nHarmonics() << std::endl;
-      std::cout << "periodicity export_powers:\t\t" << strategy.export_powers() << std::endl;
-      std::cout << "periodicity candidate_algorithm:\t" << (strategy.candidate_algorithm() ? "true" : "false") << std::endl;
-      std::cout << "periodicity enable_outlier_rejection:\t" << (strategy.enable_outlier_rejection() ? "true" : "false") << std::endl;
+      LOG(log_level::dev_debug, "PERIODICITY STRATEGY INFORMATION:");
+      LOG(log_level::dev_debug, "periodicity sigma_cutoff:\t\t" + std::to_string(strategy.sigma_cutoff()));
+      LOG(log_level::dev_debug, "periodicity OR_sigma_multiplier:\t" + std::to_string(strategy.OR_sigma_multiplier()));
+      LOG(log_level::dev_debug, "periodicity nHarmonics:\t\t\t" + std::to_string(strategy.nHarmonics()));
+      LOG(log_level::dev_debug, "periodicity export_powers:\t\t" + std::to_string(strategy.export_powers()));
+      LOG(log_level::dev_debug, "periodicity candidate_algorithm:\t" + (strategy.candidate_algorithm() ? std::string("true") : std::string("false")));
+      LOG(log_level::dev_debug, "periodicity enable_outlier_rejection:\t" + (strategy.enable_outlier_rejection() ? std::string("true") : std::string("false")));
       return true;
     }
     

@@ -102,14 +102,14 @@ namespace astroaccelerate {
      * \returns A boolean to indicate whether the printing was successful.
      */
     static bool print_info(const aa_fdas_strategy &strategy) {
-      std::cout << "FDAS STRATEGY INFORMATION" << std::endl;
-      std::cout << "fdas sigma_cutoff:\t\t\t" << strategy.sigma_cutoff() << std::endl;
-      std::cout << "fdas narrow:\t\t\t\t" << strategy.narrow() << std::endl;
-      std::cout << "fdas wide:\t\t\t\t" << strategy.wide() << std::endl;
-      std::cout << "fdas aggression:\t\t\t" << strategy.aggression() << std::endl;
-      std::cout << "fdas num_boots:\t\t\t\t" << strategy.num_boots() << std::endl;
-      std::cout << "fdas num_trial_bins:\t\t\t" << strategy.num_trial_bins() << std::endl;
-      std::cout << "fdas navdms:\t\t\t\t" << strategy.navdms() << std::endl;
+      LOG(log_level::dev_debug, "FDAS STRATEGY INFORMATION");
+      LOG(log_level::dev_debug, "fdas sigma_cutoff:\t\t\t" + std::to_string(strategy.sigma_cutoff()));
+      LOG(log_level::dev_debug, "fdas narrow:\t\t\t\t" + std::to_string(strategy.narrow()));
+      LOG(log_level::dev_debug, "fdas wide:\t\t\t\t" + std::to_string(strategy.wide()));
+      LOG(log_level::dev_debug, "fdas aggression:\t\t\t" + std::to_string(strategy.aggression()));
+      LOG(log_level::dev_debug, "fdas num_boots:\t\t\t\t" + std::to_string(strategy.num_boots()));
+      LOG(log_level::dev_debug, "fdas num_trial_bins:\t\t\t" + std::to_string(strategy.num_trial_bins()));
+      LOG(log_level::dev_debug, "fdas navdms:\t\t\t\t" + std::to_string(strategy.navdms()));
       return true;
     }
   private:
