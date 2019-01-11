@@ -335,8 +335,7 @@ namespace astroaccelerate {
 	  chunk_idx = t;
 	  
 	  for (int k = 0; k < ndms[dm_range]; k++) {
-	    //output_buffer.at(dm_range).at(k).resize(t_processed[dm_range][t]); //For the given dm_range, there are t_processed[dm_range][t] samples for each dm 
-	    //save_data_offset(output_buffer[dm_range][k].data(), inc/inBin[dm_range], d_output, k * t_processed[dm_range][t], sizeof(float) * t_processed[dm_range][t]);
+	    save_data_offset(d_output, k * t_processed[dm_range][t], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
 	  }
 
 	  if(dump_to_disk) {
