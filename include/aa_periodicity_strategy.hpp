@@ -111,10 +111,10 @@ namespace astroaccelerate {
     static bool print_info(const aa_periodicity_strategy &strategy) {
       LOG(log_level::dev_debug, "PERIODICITY STRATEGY INFORMATION:");
       LOG(log_level::dev_debug, "periodicity sigma_cutoff:\t\t" + std::to_string(strategy.sigma_cutoff()));
-      LOG(log_level::dev_debug, "periodicity OR_sigma_multiplier:\t" + std::to_string(strategy.OR_sigma_multiplier()));
+      LOG(log_level::dev_debug, "periodicity OR_sigma_multiplier:\t\t" + std::to_string(strategy.OR_sigma_multiplier()));
       LOG(log_level::dev_debug, "periodicity nHarmonics:\t\t\t" + std::to_string(strategy.nHarmonics()));
       LOG(log_level::dev_debug, "periodicity export_powers:\t\t" + std::to_string(strategy.export_powers()));
-      LOG(log_level::dev_debug, "periodicity candidate_algorithm:\t" + (strategy.candidate_algorithm() ? std::string("true") : std::string("false")));
+      LOG(log_level::dev_debug, "periodicity candidate_algorithm:\t\t" + (strategy.candidate_algorithm() ? std::string("true") : std::string("false")));
       LOG(log_level::dev_debug, "periodicity enable_outlier_rejection:\t" + (strategy.enable_outlier_rejection() ? std::string("true") : std::string("false")));
       return true;
     }

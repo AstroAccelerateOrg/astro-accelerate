@@ -72,7 +72,7 @@ namespace astroaccelerate {
     bool next() override {
       bool dump_to_disk = true;
       bool dump_to_user = false;
-      analysis_output output;
+      std::vector<analysis_output> output;
       if(memory_allocated) {
         return run_pipeline(dump_to_disk, dump_to_user, output);
       }
@@ -81,7 +81,7 @@ namespace astroaccelerate {
     }
 
     /** \brief Process next time chunk with index chunk_idx, and set the time chunk dedispersed data in output_buffer. */
-    bool next(const bool dump_to_disk, const bool dump_to_user, analysis_output &output) {
+    bool next(const bool dump_to_disk, const bool dump_to_user, std::vector<analysis_output> &output) {
       if(memory_allocated) {
 	return run_pipeline(dump_to_disk, dump_to_user, output);
       }
@@ -246,7 +246,7 @@ namespace astroaccelerate {
      * \details Process any flags for dumping output or providing it back to the user.
      * \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
      */
-    bool run_pipeline(const bool dump_to_disk, const bool dump_to_user, analysis_output &output) {
+    bool run_pipeline(const bool dump_to_disk, const bool dump_to_user, std::vector<analysis_output> &user_output) {
       printf("NOTICE: Pipeline start/resume run_pipeline_2.\n");
       if(t >= num_tchunks) {
 	m_timer.Stop();
@@ -294,6 +294,13 @@ namespace astroaccelerate {
       checkCudaErrors(cudaGetLastError());
 
       int oldBin = 1;
+
+      // The user output vector that the user provides on the next call to the pipeline may be completely empty.
+      // Therefore, the user_output vector must be resized to the number of dm_ranges.
+      if(dump_to_user) {
+	user_output.resize(range);
+      }
+      
       for(size_t dm_range = 0; dm_range < range; dm_range++) {
 	printf("\n\nNOTICE: %f\t%f\t%f\t%d\n", m_ddtr_strategy.dm(dm_range).low, m_ddtr_strategy.dm(dm_range).high, m_ddtr_strategy.dm(dm_range).step, m_ddtr_strategy.ndms(dm_range));
 	printf("\nAmount of telescope time processed: %f\n", tstart_local);
@@ -332,7 +339,8 @@ namespace astroaccelerate {
 	h_peak_list_SNR = (float*) malloc(max_peak_size*sizeof(float));
 	h_peak_list_BW  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
 	peak_pos=0;
-
+	
+	analysis_output analysis_output_for_this_dm = {std::vector<float>(), 0, 0}; // Initialise all values to 0.
 	analysis_GPU(h_peak_list_DM,
 		     h_peak_list_TS,
 		     h_peak_list_SNR,
@@ -362,8 +370,12 @@ namespace astroaccelerate {
 		     m_analysis_strategy.enable_sps_baseline_noise(),
 		     dump_to_disk,
 		     dump_to_user,
-		     output);
-	
+		     analysis_output_for_this_dm);
+
+	if(dump_to_user) {
+	  user_output[dm_range] = analysis_output_for_this_dm;
+	}
+
 	free(h_peak_list_DM);
 	free(h_peak_list_TS);
 	free(h_peak_list_SNR);

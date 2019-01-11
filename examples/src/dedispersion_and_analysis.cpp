@@ -67,7 +67,7 @@ int main() {
 
   bool dump_to_disk = false;
   bool dump_to_user = true;
-  analysis_output output;
+  std::vector<analysis_output> output;
   
   if(runner.setup()) {
     while(runner.next(dump_to_disk, dump_to_user, output)) {
