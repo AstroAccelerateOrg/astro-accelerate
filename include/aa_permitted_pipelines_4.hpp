@@ -371,6 +371,10 @@ namespace astroaccelerate {
 
 	checkCudaErrors(cudaGetLastError());
 
+	for (int k = 0; k < ndms[dm_range]; k++) {
+          save_data_offset(d_output, k * t_processed[dm_range][t], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
+        }
+	
 	//Add analysis
 	unsigned int *h_peak_list_DM;
 	unsigned int *h_peak_list_TS;

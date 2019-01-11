@@ -105,6 +105,7 @@ namespace astroaccelerate {
       return true;
     }
   private:
+    float              ***m_output_buffer;
     int                **t_processed;
     aa_ddtr_strategy   m_ddtr_strategy;
     aa_analysis_strategy m_analysis_strategy;
@@ -326,6 +327,10 @@ namespace astroaccelerate {
 
 	checkCudaErrors(cudaGetLastError());
 
+	for (int k = 0; k < ndms[dm_range]; k++) {
+          save_data_offset(d_output, k * t_processed[dm_range][t], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
+        }
+	
 	//Add analysis
 	unsigned int *h_peak_list_DM;
 	unsigned int *h_peak_list_TS;
