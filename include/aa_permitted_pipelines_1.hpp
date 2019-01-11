@@ -131,6 +131,7 @@ namespace astroaccelerate {
       return true;
     }
   private:
+    float              ***m_output_buffer;
     int                **t_processed;
     aa_ddtr_strategy   m_ddtr_strategy;
     unsigned short     const*const m_input_buffer;
