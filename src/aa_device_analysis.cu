@@ -335,7 +335,12 @@ namespace astroaccelerate {
 	  if(dump_to_user) {
 	    output.dm_low  = dm_low [i];
 	    output.dm_high = dm_high[i];
-	    output.data.insert(output.data.end(), &h_peak_list[0], &h_peak_list[4 * (*peak_pos)]);
+	    std::vector<analysis_pulse> pulses;
+	    for(size_t count = 0; i < i_peak_pos; i++) {
+	      analysis_pulse tmp = {h_peak_list[4*count], h_peak_list[4*count + 1], h_peak_list[4*count + 2], h_peak_list[4*count + 3]};
+	      pulses.push_back(std::move(tmp));
+	    }
+	    output.pulses = std::move(pulses);
 	  }
 	}
       }
@@ -354,7 +359,12 @@ namespace astroaccelerate {
 	  if(dump_to_user) {
 	    output.dm_low  = dm_low [i];
 	    output.dm_high = dm_high[i];
-	    output.data.insert(output.data.end(), &h_peak_list[0], &h_peak_list[4 * (*peak_pos)]);
+	    std::vector<analysis_pulse> pulses;
+            for(size_t count = 0; i < i_peak_pos; i++) {
+              analysis_pulse tmp = {h_peak_list[4*count], h_peak_list[4*count + 1], h_peak_list[4*count + 2], h_peak_list[4*count + 3]};
+              pulses.push_back(std::move(tmp));
+            }
+            output.pulses = std::move(pulses);
 	  }
 	}
       }

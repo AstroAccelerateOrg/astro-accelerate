@@ -3,20 +3,30 @@
 
 namespace astroaccelerate {
 
+  /**
+   * \struct analysis_pulse
+   * \details The data contains vector data referring to each peak found:
+   * \details 1. Time in seconds since beginning of fil file. [seconds].
+   * \details 2. Dispersion measure [parsec / cm^3].
+   * \details 3. Signal/Noise ratio [dimensionless].
+   * \details 4. Pulse width in number of samples [dimensionless]. 
+   */
+  struct analysis_pulse {
+    float dispersion_measure;
+    float time;
+    float snr;
+    float pulse_width;
+  };
 
   /**
    * \struct analysis_output
    * \brief Struct that contains the pulses found by the analysis module.
-   * \details The std::vector<float> contains 4 elements per processed dm range:
-   * \details 1. Time in seconds since beginning of fil file. [seconds].
-   * \details 2. Dispersion measure [parsec / cm^3].
-   * \details 3. Signal/Noise ratio [dimensionless].
-   * \details 4. Pulse width in number of samples [dimensionless].
+   * \details The pulses vector contains data referring to each pulse / peak found.
    */
   struct analysis_output {
-    std::vector<float> data;
-    float              dm_low;
-    float              dm_high;
+    std::vector<analysis_pulse> pulses;
+    float dm_low;
+    float dm_high;
   };
 
   /** \brief Function that performs analysis module on the GPU. */  

@@ -340,7 +340,7 @@ namespace astroaccelerate {
 	h_peak_list_BW  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
 	peak_pos=0;
 	
-	analysis_output analysis_output_for_this_dm = {std::vector<float>(), 0, 0}; // Initialise all values to 0.
+	analysis_output analysis_output_for_this_dm = {std::vector<analysis_pulse>(), 0, 0}; // Initialise all values to 0.
 	analysis_GPU(h_peak_list_DM,
 		     h_peak_list_TS,
 		     h_peak_list_SNR,
