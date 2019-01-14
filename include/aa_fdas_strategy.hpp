@@ -41,8 +41,9 @@ namespace astroaccelerate {
 	 && (m_aggression > 0)
 	 && (m_num_boots > 0)
 	 && (m_num_trial_bins > 0)
-	 && (m_navdms > 0))
+	 && (m_navdms > 0)) {
 	m_ready = true;
+      }
     }
 
     /** \returns The name of this mdoule. */
