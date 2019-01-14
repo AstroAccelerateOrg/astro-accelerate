@@ -261,7 +261,7 @@ Astro-Accelerate assumes its input is ready and compatible. To obtain compatible
 
 1. Run astro-accelerate using the format
 
-    ./astro-accelerate --settingname settingvalue
+        ./astro-accelerate /path/to/input_file.txt
 
 By default, the output of astro-accelerate will be located in the same directory in which astro-accelerate was executed.
 Configuration files may be used to further specify, set, and change options.
