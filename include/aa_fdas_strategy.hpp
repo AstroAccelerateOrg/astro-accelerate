@@ -107,7 +107,7 @@ namespace astroaccelerate {
       LOG(log_level::dev_debug, "fdas sigma_cutoff:\t\t\t" + std::to_string(strategy.sigma_cutoff()));
       LOG(log_level::dev_debug, "fdas narrow:\t\t\t\t" + std::to_string(strategy.narrow()));
       LOG(log_level::dev_debug, "fdas wide:\t\t\t\t" + std::to_string(strategy.wide()));
-      LOG(log_level::dev_debug, "fdas aggression:\t\t\t" + std::to_string(strategy.aggression()));
+      LOG(log_level::dev_debug, "fdas aggression:\t\t\t\t" + std::to_string(strategy.aggression()));
       LOG(log_level::dev_debug, "fdas num_boots:\t\t\t\t" + std::to_string(strategy.num_boots()));
       LOG(log_level::dev_debug, "fdas num_trial_bins:\t\t\t" + std::to_string(strategy.num_trial_bins()));
       LOG(log_level::dev_debug, "fdas navdms:\t\t\t\t" + std::to_string(strategy.navdms()));
