@@ -100,6 +100,16 @@ namespace astroaccelerate {
 	  free(t_processed[i]);
 	}
 	free(t_processed);
+
+	const int *ndms = m_ddtr_strategy.ndms_data();
+	for(size_t i = 0; i < range; i++) {
+	  for(int j = 0; j < ndms[i]; j++) {
+	    free(m_output_buffer[i][j]);
+	  }
+	  free(m_output_buffer[i]);
+	}
+	free(m_output_buffer);
+	
 	memory_cleanup = true;
       }
       return true;
@@ -176,6 +186,37 @@ namespace astroaccelerate {
       checkCudaErrors(cudaMalloc((void **) d_MSD_interpolated,    sizeof(float)*MSD_profile_size));
     }
 
+    /**
+     * \brief Allocate a 3D array that is an output buffer that stores dedispersed array data.
+     * \details This array is used by periodicity.
+     */
+    void allocate_memory_cpu_output() {
+      size_t estimate_outputbuffer_size = 0;
+      size_t outputsize = 0;
+      const size_t range = m_ddtr_strategy.range();
+      const int *ndms = m_ddtr_strategy.ndms_data();
+
+      for(size_t i = 0; i < range; i++) {
+        for(int j = 0; j < m_ddtr_strategy.num_tchunks(); j++) {
+          estimate_outputbuffer_size += (size_t)(t_processed[i][j]*sizeof(float)*ndms[i]);
+        }
+      }
+
+      outputsize = 0;
+      m_output_buffer = (float ***) malloc(range * sizeof(float **));
+      for(size_t i = 0; i < range; i++) {
+        int total_samps = 0;
+        for(int k = 0; k < num_tchunks; k++) {
+          total_samps += t_processed[i][k];
+        }
+        m_output_buffer[i] = (float **) malloc(ndms[i] * sizeof(float *));
+        for (int j = 0; j < ndms[i]; j++) {
+          m_output_buffer[i][j] = (float *) malloc(( total_samps ) * sizeof(float));
+        }
+        outputsize += ( total_samps ) * ndms[i] * sizeof(float);
+      }
+    }
+
     /** \brief Method that allocates all memory for this pipeline. */
     bool set_data() {
       num_tchunks = m_ddtr_strategy.num_tchunks();
@@ -218,6 +259,10 @@ namespace astroaccelerate {
       allocate_memory_MSD(&m_d_MSD_workarea, &m_d_MSD_output_taps, &m_d_MSD_interpolated, m_analysis_strategy.MSD_data_info(), m_analysis_strategy.MSD_profile_size_in_bytes());
       //Put the dm low, high, step struct contents into separate arrays again.
       //This is needed so that the kernel wrapper functions don't need to be modified.
+      
+      //Allocate memory for CPU output for output buffer
+      allocate_memory_cpu_output();
+      
       dm_low.resize(m_ddtr_strategy.range());
       dm_high.resize(m_ddtr_strategy.range());
       dm_step.resize(m_ddtr_strategy.range());
