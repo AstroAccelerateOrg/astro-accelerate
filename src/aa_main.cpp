@@ -141,11 +141,11 @@ int main(int argc, char *argv[]) {
   }
   
   for(size_t i = 0; i < ddtr_plan.range(); i++) {
-    std::cout << ddtr_plan.user_dm(i).low << " "
-	      << ddtr_plan.user_dm(i).high << " "
-	      << ddtr_plan.user_dm(i).step << " "
-	      << ddtr_plan.user_dm(i).inBin << " "
-	      << ddtr_plan.user_dm(i).outBin << std::endl;
+    LOG(log_level::dev_debug, std::to_string(ddtr_plan.user_dm(i).low)
+	+ " " + std::to_string(ddtr_plan.user_dm(i).high)
+	+ " " + std::to_string(ddtr_plan.user_dm(i).step)
+	+ " " + std::to_string(ddtr_plan.user_dm(i).inBin)
+	+ " " + std::to_string(ddtr_plan.user_dm(i).outBin));
   }
 
   // Validate if all Plans and Strategies are valid and ready to run
