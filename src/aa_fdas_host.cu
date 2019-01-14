@@ -1,4 +1,5 @@
 #include "aa_fdas_host.hpp"
+#include <iostream>
 
 namespace astroaccelerate {
 
@@ -56,7 +57,7 @@ namespace astroaccelerate {
     //initialise array
     checkCudaErrors(cudaMemset(arrays->d_ffdot_pwr, 0, arrays->mem_ffdot));
 
-    printf("ffdot x size: %zu",arrays->mem_ffdot/sizeof(float)/NKERN);
+    printf("ffdot x size: %lu",(unsigned long)arrays->mem_ffdot/sizeof(float)/(unsigned long)NKERN);
     if(cmdargs->basic==1){
       checkCudaErrors(cudaMalloc(&arrays->d_ffdot_cpx, arrays->mem_ffdot_cpx));
     }

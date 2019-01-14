@@ -18,6 +18,8 @@
 #include "presto_funcs.hpp"
 #include "presto.hpp"
 
+#include <iostream>
+
 namespace astroaccelerate {
 
   /**
@@ -126,7 +128,7 @@ namespace astroaccelerate {
     params.nblocks = params.rfftlen / params.sigblock;
     params.siglen = params.nblocks * params.sigblock;
     params.extlen = params.nblocks * KERNLEN; //signal array extended to array of separate N=KERNLEN segments
-    params.ffdotlen = params.siglen * NKERN; // total size of ffdot complex plane in fourier bins
+    params.ffdotlen = (unsigned int)params.siglen * (unsigned int)NKERN; // total size of ffdot complex plane in fourier bins
     params.ffdotlen_cpx = params.extlen * NKERN; // total size of ffdot powers plane in fourier bins
     params.max_list_length = params.ffdotlen/4;
 	
