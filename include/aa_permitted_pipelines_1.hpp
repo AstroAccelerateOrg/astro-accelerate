@@ -27,6 +27,8 @@
 
 #include "aa_log.hpp"
 
+//#define EXPORT_DD_DATA
+
 namespace astroaccelerate {
 
   /** 
@@ -270,6 +272,21 @@ namespace astroaccelerate {
 	LOG(log_level::dev_debug, "Amount of telescope time processed: " + std::to_string(tstart_local));
 	LOG(log_level::dev_debug, "Number of samples processed: " + std::to_string(inc));
 	LOG(log_level::dev_debug, "Real-time speedup factor: " + std::to_string(( tstart_local ) / time));
+
+#ifdef EXPORT_DD_DATA
+	size_t DMs_per_file = Calculate_sd_per_file_from_file_size(1000, inc, 1);
+	int *ranges_to_export = new int[range];
+	for(size_t f = 0; f < range; f++) {
+	  ranges_to_export[f] = 1;
+	}
+	LOG(log_level::dev_debug, "Exporting dedispersion data...");
+	LOG(log_level::dev_debug, "  DM per file: " + std::to_string(DMs_per_file));
+	
+	const int *ndms = m_ddtr_strategy.ndms_data();
+	Export_DD_data((int)range, m_output_buffer, (size_t)inc, ndms, inBin.data(), "DD_data", ranges_to_export, (int)DMs_per_file);
+	delete ranges_to_export;
+#endif
+	
 	return false;//In this case, there are no more chunks to process.
       }
       else if(t == 0) {
