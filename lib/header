@@ -51,7 +51,7 @@ namespace astroaccelerate {
 #define ACCEL_STEP (float)(2.0) //1 //default acceleration step
 #define ACCEL_STEP_R (float)(1.0f/ACCEL_STEP)
 #define ZMAX 96
-#define NKERN 2*ZMAX/(ACCEL_STEP)+1
+#define NKERN (2*ZMAX/(ACCEL_STEP)+1)
 //#define ZLO  -(int)((ZMAX/ACCEL_STEP) )
 #define TBSIZEX 32
 #define TBSIZEY 1
