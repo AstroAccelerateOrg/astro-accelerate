@@ -321,6 +321,14 @@ namespace astroaccelerate {
 		  return false;
 		}
 	    }
+	  if (strcmp(string, "ntrial_bins") == 0)
+            {
+              if ( fscanf(fp_in, "%d", &flg.ntrial_bins) == 0 )
+                {
+                  fprintf(stderr, "failed to read input\n");
+                  return false;
+                }
+            }
 	  if (strcmp(string, "aggression") == 0)
 	    {
 	      if ( fscanf(fp_in, "%f", &flg.aggression) == 0 )
