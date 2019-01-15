@@ -921,7 +921,7 @@ namespace astroaccelerate {
     printf("\n");
     printf("------------ STARTING PERIODICITY SEARCH ------------\n\n");
     // Creating periodicity parameters object (temporary, it should be moved elsewhere)
-    aa_periodicity_plan per_param_plan(sigma_cutoff, OR_sigma_multiplier, nHarmonics, 0, candidate_algorithm, enable_outlier_rejection);
+    aa_periodicity_plan per_param_plan(sigma_cutoff, OR_sigma_multiplier, nHarmonics, 0, candidate_algorithm, enable_outlier_rejection); // \warning The periodicity plan uses a hardcoded number (this also used to be the case for the (now deprecated) Periodicity_parameters class.
     aa_periodicity_strategy per_param(per_param_plan);
     per_param.print_parameters();	
 	

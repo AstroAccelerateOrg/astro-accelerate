@@ -75,8 +75,20 @@ namespace astroaccelerate {
 
     /** \brief Override base class next() method to process next time chunk. */
     bool next() override {
+      bool dump_to_disk = true;
+      bool dump_to_user = false;
+      std::vector<analysis_output> output;
       if(memory_allocated) {
-	return run_pipeline();
+	return run_pipeline(dump_to_disk, dump_to_user, output);
+      }
+
+      return false;
+    }
+
+    /** \brief Process next time chunk with index chunk_idx, and set the time chunk dedispersed data in output_buffer. */
+    bool next(const bool dump_to_disk, const bool dump_to_user, std::vector<analysis_output> &output) {
+      if(memory_allocated) {
+	return run_pipeline(dump_to_disk, dump_to_user, output);
       }
 
       return false;
@@ -281,7 +293,7 @@ namespace astroaccelerate {
      * \details Process any flags for dumping output or providing it back to the user.
      * \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
      */
-    bool run_pipeline() {
+    bool run_pipeline(const bool dump_to_disk, const bool dump_to_user, std::vector<analysis_output> &user_output) {
       printf("NOTICE: Pipeline start/resume run_pipeline_3.\n");
       if(t >= num_tchunks) {
 	return periodicity();
@@ -371,9 +383,8 @@ namespace astroaccelerate {
 	h_peak_list_SNR = (float*) malloc(max_peak_size*sizeof(float));
 	h_peak_list_BW  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
 	peak_pos=0;
-	const bool dump_to_disk	= false;
-        const bool dump_to_user	= true;
-	analysis_output output;
+	
+	analysis_output analysis_output_for_this_dm = {std::vector<analysis_pulse>(), 0, 0}; // Initialise all values to 0.
 	analysis_GPU(h_peak_list_DM,
 		     h_peak_list_TS,
 		     h_peak_list_SNR,
@@ -403,7 +414,11 @@ namespace astroaccelerate {
 		     m_analysis_strategy.enable_sps_baseline_noise(),
 		     dump_to_disk,
 		     dump_to_user,
-		     output);
+		     analysis_output_for_this_dm);
+
+	if(dump_to_user) {
+	  user_output[dm_range] = analysis_output_for_this_dm;
+	}
 	
 	free(h_peak_list_DM);
 	free(h_peak_list_TS);
