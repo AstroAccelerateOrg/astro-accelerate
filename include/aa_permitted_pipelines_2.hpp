@@ -190,7 +190,6 @@ namespace astroaccelerate {
 
     /**
      * \brief Allocate a 3D array that is an output buffer that stores dedispersed array data.
-     * \details This array is used by periodicity.
      */
     void allocate_memory_cpu_output() {
       size_t estimate_outputbuffer_size = 0;

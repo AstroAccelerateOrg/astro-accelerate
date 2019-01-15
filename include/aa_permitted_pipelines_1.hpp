@@ -76,12 +76,26 @@ namespace astroaccelerate {
       return false;
     }
 
-    /** \brief Process the next time chunk and dump the output to disk. */
-    bool next(const bool &dump_to_disk) {
+    /** \brief Process the next time chunk and copy the data back to the host. */
+    bool next(const bool &dump_to_host) {
       if(memory_allocated) {
-	return run_pipeline(true);
+	return run_pipeline(dump_to_host);
       }
 
+      return false;
+    }
+
+    /**
+     * \brief Return the pointer to the complete dedispersed output data.
+     * \details The array data is only useful once the pipeline has finished running.
+     * \details Users should finish running the pipeline so that all dedispersion output is available.
+     * \details Alternatively, the user may access the data one time chunk at a time, but the next time chunk will not have been computed yet.
+     * \details The structure of the ddtr output buffer data is indexed by: time_chunk index, dm_range index, dm.
+     */
+    float*** output_buffer() {
+      if(memory_allocated) {
+	return m_output_buffer;
+      }
       return false;
     }
 
@@ -96,6 +110,16 @@ namespace astroaccelerate {
 	  free(t_processed[i]);
 	}
 	free(t_processed);
+	
+	const int *ndms = m_ddtr_strategy.ndms_data();
+        for(size_t i = 0; i < range; i++) {
+          for(int j = 0; j < ndms[i]; j++) {
+            free(m_output_buffer[i][j]);
+          }
+          free(m_output_buffer[i]);
+        }
+        free(m_output_buffer);
+	
 	memory_cleanup = true;
       }
       return true;
@@ -166,6 +190,29 @@ namespace astroaccelerate {
       }
     }
 
+    /**
+     * \brief Allocate a 3D array that is an output buffer that stores dedispersed array data.
+     */
+    void allocate_memory_cpu_output() {
+      size_t outputsize = 0;
+      const size_t range = m_ddtr_strategy.range();
+      const int *ndms = m_ddtr_strategy.ndms_data();
+
+      outputsize = 0;
+      m_output_buffer = (float ***) malloc(range * sizeof(float **));
+      for(size_t i = 0; i < range; i++) {
+        int total_samps = 0;
+        for(int k = 0; k < num_tchunks; k++) {
+          total_samps += t_processed[i][k];
+        }
+        m_output_buffer[i] = (float **) malloc(ndms[i] * sizeof(float *));
+        for (int j = 0; j < ndms[i]; j++) {
+          m_output_buffer[i][j] = (float *) malloc(( total_samps ) * sizeof(float));
+        }
+        outputsize += ( total_samps ) * ndms[i] * sizeof(float);
+      }
+    }
+
     /** \brief Method that allocates all memory for this pipeline. */
     bool set_data() {
       num_tchunks = m_ddtr_strategy.num_tchunks();
@@ -205,6 +252,10 @@ namespace astroaccelerate {
       allocate_memory_gpu(maxshift, max_ndms, nchans, t_processed, &d_input, &d_output);
       //Put the dm low, high, step struct contents into separate arrays again.
       //This is needed so that the kernel wrapper functions don't need to be modified.
+
+      //Allocate memory for CPU output for output buffer
+      allocate_memory_cpu_output();
+      
       dm_low.resize(m_ddtr_strategy.range());
       dm_high.resize(m_ddtr_strategy.range());
       dm_step.resize(m_ddtr_strategy.range());
@@ -219,9 +270,9 @@ namespace astroaccelerate {
       memory_allocated = true;
       return true;
     }
-
+    
     /** \brief Transfer data from the device to the host. */
-    inline void save_data_offset(float *const host_pointer, const int host_offset, float *const device_pointer, const int device_offset, const size_t size) {
+    inline void save_data_offset(float *device_pointer, int device_offset, float *host_pointer, int host_offset, size_t size) {
       cudaMemcpy(host_pointer + host_offset, device_pointer + device_offset, size, cudaMemcpyDeviceToHost);
     }
 
@@ -230,7 +281,7 @@ namespace astroaccelerate {
      * \details Process any flags for dumping output or providing it back to the user.
      * \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
      */
-    bool run_pipeline(const bool dump_to_disk) {
+    bool run_pipeline(const bool dump_to_host) {
       LOG(log_level::notice, "NOTICE: Pipeline start/resume run_pipeline_1.");
       if(t >= num_tchunks) {
 	m_timer.Stop();
@@ -316,7 +367,7 @@ namespace astroaccelerate {
 
 	dedisperse(dm_range, t_processed[dm_range][t], inBin.data(), dmshifts, d_input, d_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
 
-	if(dump_to_disk) {
+	if(dump_to_host) {
 	  for (int k = 0; k < ndms[dm_range]; k++) {
 	    save_data_offset(d_output, k * t_processed[dm_range][t], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
 	  }

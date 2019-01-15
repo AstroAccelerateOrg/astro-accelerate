@@ -50,22 +50,9 @@ int main() {
   
   aa_permitted_pipelines_1<aa_compute::module_option::zero_dm, false> runner(strategy, input_data.data());
   if(runner.setup()) {
-    std::vector<std::vector<std::vector<float>>> out;
-    // The user should consume the output vector data
-    // upon each iteration of .next(out), since
-    // the vector memory is re-allocated for the next chunk.
-    while(runner.next()) {
+    while(runner.next(true)) {
       std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
     }
-    
-    /* Alternative way of running dedispersion and dumping
-     * the output to disk.
-     * Enable the following lines and remove the above while loop to try it out.
-     */
-    //bool dump_to_disk = true;
-    //while(runner.next(dump_to_disk)) {
-    //std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
-    //}
   }
   
   std::cout << "NOTICE: Finished." << std::endl;
