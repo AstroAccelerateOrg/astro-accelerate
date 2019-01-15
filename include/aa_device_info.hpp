@@ -226,6 +226,20 @@ namespace astroaccelerate {
       return m_card_info.at(selected_card_idx).user_requested_memory_for_allocation;
     }
 
+    /** \brief Reset all requested memory to 0 for a given card ID. */
+    bool reset_requested_memory_on_card(const CARD_ID &id) {
+      if(!is_init) {
+	return false;
+      }
+      
+      if((unsigned long)id < m_card_info.size()) {
+	m_card_info.at(selected_card_idx).user_requested_memory_for_allocation = 0;
+	return true;
+      }
+      
+      return false;
+    }
+
     /** \brief Static method for printing member data for an instance of aa_card_info. */
     static bool print_card_info(const aa_card_info &card) {
       LOG(log_level::dev_debug, "CARD INFORMATION:");

@@ -15,6 +15,7 @@
 #include "aa_periodicity_strategy.hpp"
 #include "aa_filterbank_metadata.hpp"
 #include "aa_device_info.hpp"
+#include "aa_permitted_pipelines.hpp"
 #include "aa_permitted_pipelines_1.hpp"
 #include "aa_permitted_pipelines_2.hpp"
 #include "aa_permitted_pipelines_3.hpp"
@@ -34,6 +35,10 @@ namespace astroaccelerate {
    * \details The class receives plan objects and calculates strategies.
    * \details The user may obtain the strategies.
    * \details The pipeline will not run unless all plans and strategies are successfully calculates for the pipeline that the user provided at construction.
+   * \details The pipeline strategy objects will request memory from the GPU that they will use when the pipeline is run.
+   * \details The construction of a new aa_pipeline object will reset all previously requested memory on the device (which may or may not have been allocated). \
+     Therefore, the next pipeline should be constructed after the previous one has been fully configured.
+   * \warning Configuring multiple pipeline objects and strategy objects at the same time means the pipeline will not see the correct amount of memory on the GPU.
    * \todo Nice to have but not needed: Add a way to transfer ownership of the data between aa_pipeline objects.
    * \author Cees Carels.
    * \date: 23 October 2018.
@@ -54,6 +59,13 @@ namespace astroaccelerate {
 								 bound_with_raw_ptr(true),
 								 pipeline_ready(false),
 								 ptr_data_in(input_data) {
+      //Reset all previously requested memory on the card, so that strategy objects see the whole card available for allocation.
+      if(aa_device_info::instance().reset_requested_memory_on_card(card_info.card_number)) {
+	LOG(log_level::notice, "The pipeline has reset all previously requested memory on card " + std::to_string(card_info.card_number) + ".");
+      }
+      else {
+	LOG(log_level::warning, "The pipeline could not reset all previously requested memory on card " + std::to_string(card_info.card_number) + ", which may result in sub-optimal memory strategies." + ".");
+      }
       
       //Add requested pipeline modules
       for(auto i : requested_pipeline) {
@@ -62,11 +74,18 @@ namespace astroaccelerate {
       }
       m_all_strategy.reserve(requested_pipeline.size());
       m_requested_pipeline = requested_pipeline;
+
+      ++number_of_pipeline_instances;
+      if(number_of_pipeline_instances > 1) {
+	LOG(log_level::notice, "There is more than one aa_pipeline instance, make sure you constructed the next instance after the first instance is fully configured.");
+	LOG(log_level::notice, "Otherwise, the new pipeline instance will not see the correct amount of GPU memory available.");
+      }
     }
     
     /** \brief Destructor for aa_pipeline, performs cleanup as needed. */
     ~aa_pipeline() {
       pipeline_ready = false;
+      --number_of_pipeline_instances;
     }
     
     /**
@@ -793,7 +812,10 @@ namespace astroaccelerate {
     
     std::vector<T>              data_in; /** Input data buffer. */
     T const*const               ptr_data_in; /** Input data pointer if bound_with_raw_ptr is true. */
+    static int                  number_of_pipeline_instances;
   };
+
+  template<typename T> int aa_pipeline<T>::number_of_pipeline_instances = 0;
 } // namespace astroaccelerate
   
 #endif // ASTRO_ACCELERATE_AA_PIPELINE_HPP
