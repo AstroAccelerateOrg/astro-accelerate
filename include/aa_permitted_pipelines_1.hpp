@@ -69,49 +69,17 @@ namespace astroaccelerate {
 
     /** \brief Override base class next() method to process next time chunk. */
     bool next() override {
-      std::vector<std::vector<std::vector<float>>> output_buffer;
-      int chunk_idx = 0;
       if(memory_allocated) {
-        return run_pipeline(output_buffer, false, chunk_idx);
+        return run_pipeline(false);
       }
 
-      return false;
-    }
-
-    /** \brief Process next time chunk with index chunk_idx, and set the time chunk dedispersed data in output_buffer. */
-    bool next(std::vector<std::vector<std::vector<float>>> &output_buffer, int &chunk_idx) {
-      if(memory_allocated) {
-	if(output_buffer.size() != range) {
-	  output_buffer.resize(range);
-	  size_t total_samps = 0;
-	  for(size_t i = 0; i < range; i++) {
-	    for(auto k = 0; k < num_tchunks; k++) {
-	      total_samps += t_processed[i][k];
-	    }
-	    
-	    const int *ndms = m_ddtr_strategy.ndms_data();
-	    if(output_buffer[i].size() != (unsigned long)ndms[i]) {
-	      output_buffer.at(i).resize(ndms[i]);
-	    }
-	    
-	    for(int j = 0; j < ndms[i]; j++) {
-	      output_buffer.at(i).at(j).resize(total_samps);
-	    }
-	  }
-	  LOG(log_level::dev_debug, "Allocation done");
-	}
-	return run_pipeline(output_buffer, true, chunk_idx);
-      }
-      
       return false;
     }
 
     /** \brief Process the next time chunk and dump the output to disk. */
     bool next(const bool &dump_to_disk) {
       if(memory_allocated) {
-	std::vector<std::vector<std::vector<float>>> output_buffer(range);
-	int chunk_idx = 0;
-	return run_pipeline(output_buffer, true, chunk_idx, dump_to_disk);
+	return run_pipeline(true);
       }
 
       return false;
@@ -262,7 +230,7 @@ namespace astroaccelerate {
      * \details Process any flags for dumping output or providing it back to the user.
      * \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
      */
-    bool run_pipeline(std::vector<std::vector<std::vector<float>>> &output_buffer, const bool dump_ddtr_output, int &chunk_idx, const bool &dump_to_disk = false) {
+    bool run_pipeline(const bool dump_to_disk) {
       LOG(log_level::notice, "NOTICE: Pipeline start/resume run_pipeline_1.");
       if(t >= num_tchunks) {
 	m_timer.Stop();
@@ -348,31 +316,9 @@ namespace astroaccelerate {
 
 	dedisperse(dm_range, t_processed[dm_range][t], inBin.data(), dmshifts, d_input, d_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
 
-	if(dump_ddtr_output) {
-	  //Resize vector to contain the output array
-	  chunk_idx = t;
-	  
+	if(dump_to_disk) {
 	  for (int k = 0; k < ndms[dm_range]; k++) {
 	    save_data_offset(d_output, k * t_processed[dm_range][t], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
-	  }
-
-	  if(dump_to_disk) {
-	    //Create or open a new file here, append to end of file (file should be called DD_data.dat).
-	    //Close file after writing since we do not know when the user will stop calling the next() function.
-	    std::string out_name = "DD_data_chunk_" + std::to_string(t)+".dat"; 
-	    std::ofstream out;
-	    out.open(out_name.c_str(), std::ios::out | std::ios::app);
-	    if(out.is_open()) {
-	      //Write to disk
-	      for(size_t k = 0 ; k < output_buffer.size(); k++) {
-		for(size_t j = 0; j < output_buffer.at(k).size(); j++) {
-		  for(size_t i = 0; i < output_buffer.at(k).at(j).size(); i++) {
-		    //out << output_buffer.at(k).at(j).at(i);
-		  }
-		}
-	      }
-	      out.close();
-	    }
 	  }
 	}
 	checkCudaErrors(cudaGetLastError());
