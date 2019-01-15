@@ -40,11 +40,11 @@ namespace astroaccelerate {
 							       m_enable_outlier_rejection(plan.enable_outlier_rejection()),
 							       m_ready(false) {
       /** Parse user input, if the user input is not valid, then the ready state will not become true. */
-      if((m_nHarmonics > 0) && (m_OR_sigma_multiplier > 0) && (m_export_powers > 0)) {
+      if((m_nHarmonics > 0) && (m_OR_sigma_multiplier > 0) && (m_export_powers >= 0)) {
 	m_ready = true;
       }
       else {
-	std::cout << "STRATEGY VARIABLES IMPROPER." << std::endl;
+	LOG(log_level::warning, "Invalid periodicity strategy parameters. Check the aa_periodicity_plan input parameters.");
 	print_info(*this);
       }
     }
