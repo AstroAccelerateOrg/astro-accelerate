@@ -18,7 +18,7 @@ namespace astroaccelerate {
 
   /** \class aa_analysis_strategy aa_analysis_strategy.hpp "include/aa_analysis_strategy.hpp"
    * \brief Class to configure an analysis strategy.
-   * \details An analysis strategy is required for running any pipeline that will run the analysis module aa_compute::module::analysis.
+   * \details An analysis strategy is required for running any pipeline that will run the analysis component aa_pipeline::component::analysis.
    * \details It is expected behaviour that the configuration values of the strategy may be different than those of the corresponding plan.
    * \author Cees Carels.
    * \date 23 October 2018.
@@ -42,7 +42,7 @@ namespace astroaccelerate {
      * \brief Constructor for aa_analysis_strategy. All parameters must be provided once on construction.
      * \details This constructor is intended to be used when analysis is to be run in isolation, i.e. without running AstroAccelerate's implementation of ddtr.
      * \details In this case, a separate aa_filterbank_metadata must be supplied.
-     * \warning At the moment the analysis module does not support this mode, so this constructor still sets m_ready(false) in the initialiser list.
+     * \warning At the moment the analysis component does not support this mode, so this constructor still sets m_ready(false) in the initialiser list.
      * \details If the user intends to run the AstroAccelerate implementation of ddtr, then they should use the other non-trivial constructor.
      */
     aa_analysis_strategy(const aa_analysis_plan &analysis_plan, const aa_filterbank_metadata &metadata) : m_metadata(metadata),

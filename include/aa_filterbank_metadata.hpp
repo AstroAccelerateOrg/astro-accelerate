@@ -9,7 +9,7 @@ namespace astroaccelerate {
    * \class aa_filterbank_metadata aa_filterbank_metadata.hpp "include/aa_filterbank_metadata.hpp"
    * \brief Contains SIGPROC metadata.
    * \brief For data descriptions, please see SIGPROC interface control document.
-   * \details Filterbank metadata must be provided for any permitted pipeline to run any module.
+   * \details Filterbank metadata must be provided for any permitted pipeline to run any component.
    * \details Data description from "SIGPROC-v3.7 (Pulsar) Signal Processing Programs".
    * \details Source: http://sigproc.sourceforge.net/sigproc.pdf.
    * \author Cees Carels.

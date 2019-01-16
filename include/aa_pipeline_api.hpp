@@ -6,7 +6,7 @@
 #include <memory>
 #include <map>
 
-#include "aa_compute.hpp"
+#include "aa_pipeline.hpp"
 #include "aa_ddtr_plan.hpp"
 #include "aa_ddtr_strategy.hpp"
 #include "aa_analysis_plan.hpp"
@@ -28,7 +28,7 @@ namespace astroaccelerate {
 
   /**
    * \class aa_pipeline_api aa_pipeline_api.hpp "include/aa_pipeline_api.hpp"
-   * \brief Class to manage pipelines and their constituent modules, plans, and strategies.
+   * \brief Class to manage pipelines and their constituent components, plans, and strategies.
    * \brief This class also delegates the movement of host memory into and out of the pipeline, 
    * \brief This class also manages the movement of device memory into and out of the device.
    * \details The class is templated over the input and output data type.
@@ -49,8 +49,8 @@ namespace astroaccelerate {
   public:
 
     /** \brief Constructor for aa_pipeline_api that takes key parameters required on construction. */
-    aa_pipeline_api(const aa_compute::pipeline &requested_pipeline,
-		    const aa_compute::pipeline_option &pipeline_options,
+    aa_pipeline_api(const aa_pipeline::pipeline &requested_pipeline,
+		    const aa_pipeline::pipeline_option &pipeline_options,
 		    const aa_filterbank_metadata &filterbank_metadata,
 		    T const*const input_data,
 		    const aa_device_info::aa_card_info &card_info) : m_pipeline_options(pipeline_options),
@@ -67,10 +67,10 @@ namespace astroaccelerate {
 	LOG(log_level::warning, "The pipeline could not reset all previously requested memory on card " + std::to_string(card_info.card_number) + ", which may result in sub-optimal memory strategies." + ".");
       }
       
-      //Add requested pipeline modules
+      //Add requested pipeline components
       for(auto i : requested_pipeline) {
-	required_plans.insert(std::pair<aa_compute::modules, bool>(i, true));
-	supplied_plans.insert(std::pair<aa_compute::modules, bool>(i, false));
+	required_plans.insert(std::pair<aa_pipeline::component, bool>(i, true));
+	supplied_plans.insert(std::pair<aa_pipeline::component, bool>(i, false));
       }
       m_all_strategy.reserve(requested_pipeline.size());
       m_requested_pipeline = requested_pipeline;
@@ -96,22 +96,22 @@ namespace astroaccelerate {
       pipeline_ready = false;
 
       //If a plan has already been supplied, return false and do nothing with the new plan
-      if(supplied_plans.find(aa_compute::modules::dedispersion) == supplied_plans.end()) {
+      if(supplied_plans.find(aa_pipeline::component::dedispersion) == supplied_plans.end()) {
 	return false;
       }
         
       //Does the pipeline actually need this plan?
-      if(required_plans.find(aa_compute::modules::dedispersion) != required_plans.end()) {
+      if(required_plans.find(aa_pipeline::component::dedispersion) != required_plans.end()) {
 	m_ddtr_plan = plan;
             
 	//ddtr_strategy needs to know if analysis will be required
-	if(required_plans.find(aa_compute::modules::analysis) != required_plans.end()) {
+	if(required_plans.find(aa_pipeline::component::analysis) != required_plans.end()) {
 	  aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_card_info.free_memory, true);
 	  if(ddtr_strategy.ready()) {
 	    m_ddtr_strategy = std::move(ddtr_strategy);
 	    m_all_strategy.push_back(&m_ddtr_strategy);
 	    //If the plan is valid then the supplied_plan becomes true
-	    supplied_plans.at(aa_compute::modules::dedispersion) = true;
+	    supplied_plans.at(aa_pipeline::component::dedispersion) = true;
 	  }
 	  else {
 	    return false;
@@ -123,7 +123,7 @@ namespace astroaccelerate {
 	    m_ddtr_strategy = std::move(ddtr_strategy);
 	    m_all_strategy.push_back(&m_ddtr_strategy);
 	    //If the plan is valid then the supplied_plan becomes true
-	    supplied_plans.at(aa_compute::modules::dedispersion) = true;
+	    supplied_plans.at(aa_pipeline::component::dedispersion) = true;
 	  }
 	  else {
 	    return false;
@@ -148,12 +148,12 @@ namespace astroaccelerate {
       pipeline_ready = false;
       
       //If a plan has already been supplied, return false and do nothing with the new plan
-      if(supplied_plans.find(aa_compute::modules::analysis) == supplied_plans.end()) {
+      if(supplied_plans.find(aa_pipeline::component::analysis) == supplied_plans.end()) {
 	return false;
       }
 
       //Does the pipeline actually need this plan?
-      if(required_plans.find(aa_compute::modules::analysis) != required_plans.end()) {
+      if(required_plans.find(aa_pipeline::component::analysis) != required_plans.end()) {
 	//Is the ddtr_strategy provided by this analysis_plan ready?
 	if(!plan.ddtr_strategy().ready()) {
 	  //This ddtr_strategy is not ready, so ignore this analysis_plan.
@@ -172,7 +172,7 @@ namespace astroaccelerate {
 	}
 	
 	//If the plan is valid then the supplied_plan becomes true
-	supplied_plans.at(aa_compute::modules::analysis) = true;
+	supplied_plans.at(aa_pipeline::component::analysis) = true;
       }
       else {
 	//The plan is not required, ignore.
@@ -191,12 +191,12 @@ namespace astroaccelerate {
       pipeline_ready = false;
         
       //If a plan has already been supplied, return false and do nothing with the new plan
-      if(supplied_plans.find(aa_compute::modules::periodicity) == supplied_plans.end()) {
+      if(supplied_plans.find(aa_pipeline::component::periodicity) == supplied_plans.end()) {
 	return false;
       }
 
       //Does the pipeline actually need this plan?
-      if(required_plans.find(aa_compute::modules::periodicity) != required_plans.end()) {
+      if(required_plans.find(aa_pipeline::component::periodicity) != required_plans.end()) {
 	m_periodicity_plan = plan;
 	aa_periodicity_strategy periodicity_strategy(m_periodicity_plan);
 	if(periodicity_strategy.ready()) {
@@ -208,7 +208,7 @@ namespace astroaccelerate {
 	}
 	  
 	//If the plan is valid then the supplied_plan becomes true
-	supplied_plans.at(aa_compute::modules::periodicity) = true;
+	supplied_plans.at(aa_pipeline::component::periodicity) = true;
       }
       else {
 	//The plan is not required, ignore.
@@ -227,12 +227,12 @@ namespace astroaccelerate {
       pipeline_ready = false;
       
       //If a plan has already been supplied, return false and do nothing with the new plan
-      if(supplied_plans.find(aa_compute::modules::fdas) == supplied_plans.end()) {
+      if(supplied_plans.find(aa_pipeline::component::fdas) == supplied_plans.end()) {
 	return false;
       }
 
       //Does the pipeline actually need this plan?
-      if(required_plans.find(aa_compute::modules::fdas) != required_plans.end()) {
+      if(required_plans.find(aa_pipeline::component::fdas) != required_plans.end()) {
         m_fdas_plan = plan;
         aa_fdas_strategy fdas_strategy(m_fdas_plan);
         if(fdas_strategy.ready()) {
@@ -244,7 +244,7 @@ namespace astroaccelerate {
         }
 	
         //If the plan is valid then the supplied_plan becomes true 
-        supplied_plans.at(aa_compute::modules::fdas) = true;
+        supplied_plans.at(aa_pipeline::component::fdas) = true;
       }
       else {
         //The plan is not required, ignore.
@@ -257,7 +257,7 @@ namespace astroaccelerate {
     /** \returns The aa_ddtr_strategy instance bound to the pipeline instance, or a trivial instance if a valid aa_ddtr_strategy does not yet exist. */
     aa_ddtr_strategy ddtr_strategy() {
       //Does the pipeline actually need this strategy?
-      if(required_plans.find(aa_compute::modules::dedispersion) != required_plans.end()) {
+      if(required_plans.find(aa_pipeline::component::dedispersion) != required_plans.end()) {
 	//It does need this strategy.
 	//Is it already computed?
 	if(m_ddtr_strategy.ready()) {
@@ -267,7 +267,7 @@ namespace astroaccelerate {
 	else {
 	  //ddtr_strategy was not yet computed, do it now.
 	  //ddtr_strategy needs to know if analysis will be required
-	  if(required_plans.find(aa_compute::modules::analysis) != required_plans.end()) { //analysis will be required
+	  if(required_plans.find(aa_pipeline::component::analysis) != required_plans.end()) { //analysis will be required
 	    aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_card_info.free_memory, true);
 	    if(ddtr_strategy.ready()) {
 	      m_ddtr_strategy = std::move(ddtr_strategy);
@@ -303,7 +303,7 @@ namespace astroaccelerate {
     /** \returns The aa_analysis_strategy instance bound to the pipeline instance, or a trivial instance if a valid aa_analysis_strategy does not yet exist. */
     aa_analysis_strategy analysis_strategy() {
       //Does the pipeline actually need this strategy? 
-      if(required_plans.find(aa_compute::modules::analysis) != required_plans.end()) {
+      if(required_plans.find(aa_pipeline::component::analysis) != required_plans.end()) {
         //It does need this strategy.                                                                                                                                                                                        
         //Is it already computed?
         if(m_analysis_strategy.ready()) { //Return since it was already computed.
@@ -332,7 +332,7 @@ namespace astroaccelerate {
     /** \returns The aa_periodicity_strategy instance bound to the pipeline instance, or a trivial instance if a valid aa_periodicity_strategy does not yet exist. */
     aa_periodicity_strategy periodicity_strategy() {
       //Does the pipeline actually need this strategy?
-      if(required_plans.find(aa_compute::modules::periodicity) != required_plans.end()) {
+      if(required_plans.find(aa_pipeline::component::periodicity) != required_plans.end()) {
 	//It does need this strategy.
 	//Is it already computed?
 	if(m_periodicity_strategy.ready()) { //Return since it was already computed.
@@ -362,7 +362,7 @@ namespace astroaccelerate {
     /** \returns The aa_fdas_strategy instance bound to the pipeline instance, or a trivial instance if a valid aa_fdas_strategy does not yet exist. */
     aa_fdas_strategy fdas_strategy() {
       //Does the pipeline actually need this strategy?
-      if(required_plans.find(aa_compute::modules::fdas) != required_plans.end()) {
+      if(required_plans.find(aa_pipeline::component::fdas) != required_plans.end()) {
         //It does need this strategy.
         //Is it already computed?
         if(m_fdas_strategy.ready()) { //Return since it was already computed.                                                                                                                                                          
@@ -389,7 +389,7 @@ namespace astroaccelerate {
     }
     
     /**
-     * \brief Check whether all modules and strategies are ready for the pipeline to be able to execute.
+     * \brief Check whether all components and strategies are ready for the pipeline to be able to execute.
      * \returns A boolean to indicate whether the pipeline is ready (true) or not (false).
      * \details If false, the user should check whether all plans have been bound and whether all strategies resulting from those plans are valid.
      */
@@ -401,7 +401,7 @@ namespace astroaccelerate {
       // If so, return false.
       for(auto const& i : supplied_plans) {
 	if(i.second == false) {
-	  LOG(log_level::error, aa_compute::module_name(i.first) + " plan is not ok.");
+	  LOG(log_level::error, aa_pipeline::component_name(i.first) + " plan is not ok.");
 	  return false;
 	}
       }
@@ -425,8 +425,8 @@ namespace astroaccelerate {
       }
 
       // Start configuring the pipeline that will be run.
-      constexpr aa_compute::module_option zero_dm               = aa_compute::module_option::zero_dm;
-      constexpr aa_compute::module_option zero_dm_with_outliers = aa_compute::module_option::zero_dm_with_outliers;
+      constexpr aa_pipeline::component_option zero_dm               = aa_pipeline::component_option::zero_dm;
+      constexpr aa_pipeline::component_option zero_dm_with_outliers = aa_pipeline::component_option::zero_dm_with_outliers;
 
       if(m_pipeline_options.find(zero_dm) == m_pipeline_options.end() &&
 	 m_pipeline_options.find(zero_dm_with_outliers) == m_pipeline_options.end()) {
@@ -446,23 +446,23 @@ namespace astroaccelerate {
       bool fdas_enable_output_ffdot_plan = false;
       bool fdas_enable_output_list       = false;
 
-      if(m_pipeline_options.find(aa_compute::module_option::fdas_custom_fft) != m_pipeline_options.end()) {
+      if(m_pipeline_options.find(aa_pipeline::component_option::fdas_custom_fft) != m_pipeline_options.end()) {
 	fdas_enable_custom_fft = true;
       }
 	
-      if(m_pipeline_options.find(aa_compute::module_option::fdas_inbin) != m_pipeline_options.end()) {
+      if(m_pipeline_options.find(aa_pipeline::component_option::fdas_inbin) != m_pipeline_options.end()) {
 	fdas_enable_inbin = true;
       }
 
-      if(m_pipeline_options.find(aa_compute::module_option::fdas_norm) != m_pipeline_options.end()) {
+      if(m_pipeline_options.find(aa_pipeline::component_option::fdas_norm) != m_pipeline_options.end()) {
 	fdas_enable_norm = true;
       }
 	
-      if(m_pipeline_options.find(aa_compute::module_option::output_ffdot_plan) != m_pipeline_options.end()) {
+      if(m_pipeline_options.find(aa_pipeline::component_option::output_ffdot_plan) != m_pipeline_options.end()) {
 	fdas_enable_output_ffdot_plan = true;
       }
 	
-      if(m_pipeline_options.find(aa_compute::module_option::output_fdas_list) != m_pipeline_options.end()) {
+      if(m_pipeline_options.find(aa_pipeline::component_option::output_fdas_list) != m_pipeline_options.end()) {
 	fdas_enable_output_list = true;
       }
 	
@@ -472,10 +472,10 @@ namespace astroaccelerate {
        * which version of the pipeline function matches what the user requested.
        *
        * All pipelines are contained inside classes of the form aa_permitted_pipelines_x, where x is a number.
-       * These pipeline classes are templated over two parameters, a module_option relating to which zero_dm
+       * These pipeline classes are templated over two parameters, a component_option relating to which zero_dm
        * version will be used, and another to indicate which candidate algorithm will be used.
-       * The zero_dm option is contained inside aa_compute::module_option::zero_dm
-       * and aa_compute::module_option::zero_dm_with_outliers.
+       * The zero_dm option is contained inside aa_pipeline::component_option::zero_dm
+       * and aa_pipeline::component_option::zero_dm_with_outliers.
        * To make the code less verbose, constexpr are used to make create "abbreviations" for this syntax.
        *
        * All aa_permitted_pipeline_x classes are derived from a base class aa_pipeline_runner.
@@ -492,8 +492,8 @@ namespace astroaccelerate {
        *
        */
 
-      constexpr aa_compute::module_option off                   = aa_compute::module_option::empty;
-      constexpr aa_compute::module_option old_rfi               = aa_compute::module_option::old_rfi;
+      constexpr aa_pipeline::component_option off                   = aa_pipeline::component_option::empty;
+      constexpr aa_pipeline::component_option old_rfi               = aa_pipeline::component_option::old_rfi;
       constexpr bool use_old_rfi = true;
       constexpr bool use_new_rfi = false;
       //Check which pipeline the user has requested (given by m_requested_pipeline) against the possible permitted pipelines.
@@ -731,19 +731,19 @@ namespace astroaccelerate {
       LOG(log_level::notice, "---PIPELINE DIAGNOSTIC INFORMATION---");
       aa_device_info::print_card_info(m_card_info);
 
-      if(required_plans.find(aa_compute::modules::dedispersion) != required_plans.end()) {
+      if(required_plans.find(aa_pipeline::component::dedispersion) != required_plans.end()) {
 	aa_ddtr_strategy::print_info(m_ddtr_strategy);
       }
 
-      if(required_plans.find(aa_compute::modules::analysis) != required_plans.end()) {
+      if(required_plans.find(aa_pipeline::component::analysis) != required_plans.end()) {
 	aa_analysis_strategy::print_info(m_analysis_strategy);
       }
 
-      if(required_plans.find(aa_compute::modules::periodicity) != required_plans.end()) {
+      if(required_plans.find(aa_pipeline::component::periodicity) != required_plans.end()) {
 	aa_periodicity_strategy::print_info(m_periodicity_strategy);
       }
 
-      if(required_plans.find(aa_compute::modules::fdas) != required_plans.end()) {
+      if(required_plans.find(aa_pipeline::component::fdas) != required_plans.end()) {
 	aa_fdas_strategy::print_info(m_fdas_strategy);
       }
       
@@ -785,11 +785,11 @@ namespace astroaccelerate {
     }
     
   private:
-    std::map<aa_compute::modules, bool> required_plans; /** Plans required to configure the pipeline. */
-    std::map<aa_compute::modules, bool> supplied_plans; /** Plans supplied by the user. */
+    std::map<aa_pipeline::component, bool> required_plans; /** Plans required to configure the pipeline. */
+    std::map<aa_pipeline::component, bool> supplied_plans; /** Plans supplied by the user. */
     std::vector<aa_strategy*>   m_all_strategy; /** Base class pointers to all strategies bound to the pipeline. */
-    aa_compute::pipeline        m_requested_pipeline; /** The user requested pipeline that was bound to the aa_pipeline_api instance on construction. */
-    const aa_compute::pipeline_option &m_pipeline_options; /** The user requested pipeline details containing module options for the aa_pipeline_api instance. */
+    aa_pipeline::pipeline        m_requested_pipeline; /** The user requested pipeline that was bound to the aa_pipeline_api instance on construction. */
+    const aa_pipeline::pipeline_option &m_pipeline_options; /** The user requested pipeline details containing component options for the aa_pipeline_api instance. */
     aa_device_info::aa_card_info m_card_info; /** The user provided GPU card information for the aa_pipeline_api instance. */
     std::unique_ptr<aa_pipeline_runner> m_runner; /** A std::unique_ptr that will point to the correct class instantation of the selected aa_permitted_pipelines_ when the pipeline must be made ready to run. */
     

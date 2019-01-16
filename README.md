@@ -17,7 +17,7 @@ Software Inputs and Outputs
 The software input is a sample data file.
 To process the data file, astro-accelerate makes use of a configuration file.
 Please see the section `Creating An Input Configuration File` for instructions on how to create a configuration file to process an input data file.
-The software output is dependent on the choice of analysis module that is run.
+The software output is dependent on the choice of analysis component that is run.
 
 Checking the Configuration of the Graphics Processing Unit (GPU) and Support for CUDA
 
@@ -303,7 +303,7 @@ Using Astro-Accelerate as a library
 ===
 Astro-accelerate can be compiled and linked against as a library. A good demonstration of the user interface is provided in `main.cpp`. For more advanced use cases, a good example boilerplate code is provided in `aa_pipeline_generic.cpp`.
 
-The user interface is centred around the user requesting a series of modules that the library will compute as a pipeline. The ordering of the pipeline modules is determined by the library, however the user may create a series of pipelines to create their own custom ordering.
+The user interface is centred around the user requesting a series of components that the library will compute as a pipeline. The ordering of the pipeline components is determined by the library, however the user may create a series of pipelines to create their own custom ordering.
 
 Return types are provided as a `boolean` to indicate whether a method was successful or not. When a method in the pipeline configuration process returns `false`, the pipeline will not run, and the user should revisit their settings.
 
@@ -312,15 +312,15 @@ When a method returns an object, then if the library cannot create a valid objec
 The user can read `.fil` files or provide a `std::vector<unsigned short>` or a raw pointer of type `unsigned short`, but must in either case provide a valid `aa_filterbank_metadata` object that matches a filterbank data file (sigproc format).
 
 __User-side__
-* Select modules (*__dedispersion__*, *__rfi__*, *__zero_dm__*, *__threshold__*,…).
-* Provide settings for the modules (*__plan__*, *__strategy__*).
+* Select components (*__dedispersion__*, *__rfi__*, *__zero_dm__*, *__threshold__*,…).
+* Provide settings for the components (*__plan__*, *__strategy__*).
 * Run the pipeline (*__run__*).
 
 __Library-Side__
-* Astro accelerate decides on the *__strategy__* and the module ordering.
+* Astro accelerate decides on the *__strategy__* and the component ordering.
 * Data remain inside the pipeline until the end of the pipeline.
 * Validate the user settings beforehand.
-* All modules adhere to the same programming idiom (*__plan__*, *__validate__*, *__strategy__*, *__validate__*, *__run__*).
+* All components adhere to the same programming idiom (*__plan__*, *__validate__*, *__strategy__*, *__validate__*, *__run__*).
 
 Contact and Support
 ===

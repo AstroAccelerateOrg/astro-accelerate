@@ -21,10 +21,10 @@ namespace astroaccelerate {
    * \class aa_ddtr_strategy aa_ddtr_strategy.hpp "include/aa_ddtr_strategy.hpp"
    * \brief Class that receives an aa_ddtr_plan object, and produces an aa_ddtr_strategy object.
    * \details The strategy is calculated based on the plan.
-   * \details A ddtr strategy is required for any pipeline running the dedispersion module.
+   * \details A ddtr strategy is required for any pipeline running the dedispersion component.
    * \details The code that does this was formerly known as "stratagy" in "host_stratagy.cu".
    * \details Further implementation details are provided in aa_ddtr_strategy.cpp.
-   * \warning Upon construction, the user must specify whether aa_compute::modules::analysis will be run in the pipeline.
+   * \warning Upon construction, the user must specify whether aa_pipeline::component::analysis will be run in the pipeline.
    * \warning Incorrectly setting enable_analysis upon construction may lead to inefficient memory usage, or undefined behaviour.
    * \author Cees Carels.
    * \date 23 October 2018.
@@ -115,7 +115,7 @@ namespace astroaccelerate {
       return m_metadata;
     }
 
-    /** \returns A boolean indicating whether the ddtr strategy instance was configured to run aa_compute::modules::analysis. */
+    /** \returns A boolean indicating whether the ddtr strategy instance was configured to run aa_pipeline::component::analysis. */
     bool configured_for_analysis() const {
       return m_configured_for_analysis;
     }
@@ -159,7 +159,7 @@ namespace astroaccelerate {
     bool m_ready; /**< The ready state of the ddtr strategy. */
     bool m_strategy_already_calculated; /**< A flag to indicate whether the strategy for the instance has already been allocated. */
 
-    bool m_configured_for_analysis; /**< A flag to indicate whether the strategy will be configured to run aa_compute::modules::analysis. */
+    bool m_configured_for_analysis; /**< A flag to indicate whether the strategy will be configured to run aa_pipeline::component::analysis. */
     bool is_setup;  /**< A flag to indicate whether the setup method has been called. */
 
     aa_filterbank_metadata m_metadata;

@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "aa_sigproc_input.hpp"
-#include "aa_compute.hpp"
+#include "aa_pipeline.hpp"
 #include "aa_config.hpp"
 #include "aa_pipeline_api.hpp"
 
@@ -19,8 +19,8 @@ namespace astroaccelerate {
    * \date 24 October 2018.
    */  
   template <typename T>
-  void aa_pipeline_generic(const std::vector<aa_compute::modules> &selected_modules,
-			   const aa_compute::pipeline_option &pipeline_options,
+  void aa_pipeline_generic(const std::vector<aa_pipeline::component> &selected_components,
+			   const aa_pipeline::pipeline_option &pipeline_options,
 			   const aa_filterbank_metadata &filterbank_data,
 			   std::vector<aa_ddtr_plan::dm> dm_ranges,
 			   T const*const input_data,
@@ -36,22 +36,22 @@ namespace astroaccelerate {
 			   const bool  &periodicity_candidate_algorithm = false,
 			   const bool  &periodicity_enable_outlier_rejection = false) {
     /**
-     * Boilerplate code for executing a pipeline of modules.
+     * Boilerplate code for executing a pipeline of components.
      * 
-     * Default parameters for aa_compute::analysis are set.
+     * Default parameters for aa_pipeline::analysis are set.
      * Although this function will configure an aa_analysis_plan in all cases,
-     * if std::vector<aa_compute::modules> &selected_modules does not contain
-     * aa_compute::modules::analysis, then aa_pipeline_api will ignore aa_analysis_plan
+     * if std::vector<aa_pipeline::component> &selected_components does not contain
+     * aa_pipeline::component::analysis, then aa_pipeline_api will ignore aa_analysis_plan
      * when this function attempts to bind aa_analysis_plan.
      */
     
     // Configure astro-accelerate as a library user
-    aa_compute::pipeline the_pipeline;
+    aa_pipeline::pipeline the_pipeline;
     //the_pipeline = aa_permitted_pipelines::pipeline1;   // EITHER: Use a pre-configured pipeline
     
-    //OR insert modules manually
-    for(size_t i = 0; i < selected_modules.size(); i++) {
-      the_pipeline.insert(selected_modules.at(i));
+    //OR insert component manually
+    for(size_t i = 0; i < selected_components.size(); i++) {
+      the_pipeline.insert(selected_components.at(i));
     }
     
     //Select card
@@ -75,8 +75,8 @@ namespace astroaccelerate {
     aa_config configuration(the_pipeline);   // Set the pipeline and other run settings that would come from an input_file
     the_pipeline = configuration.setup();    // The configuration validates whether the pipeline is valid and returns either a valid pipeline or a trivial pipeline
     
-    // Supply the requested pipeline and telescope data to a pipeline manager, which will check which modules are required to be configured.
-    // If a module is not required, then even if it is supplied, it will be ignored.
+    // Supply the requested pipeline and telescope data to a pipeline manager, which will check which components are required to be configured.
+    // If a component is not required, then even if it is supplied, it will be ignored.
     aa_pipeline_api<T> pipeline_manager(the_pipeline, pipeline_options, filterbank_data, input_data, selected_card_info);
     
     // Bind the Plan to the manager
@@ -91,7 +91,7 @@ namespace astroaccelerate {
     }
 
     // When aa_ddtr_plan was bound to aa_pipeline_api, aa_pipeline_api already
-    // knew whether aa_compute::modules::analysis was supplied.
+    // knew whether aa_pipeline::component::analysis was supplied.
     // Therefore, aa_ddtr_strategy was computed depending on
     // whether analysis would be requested.
     // As such, the aa_ddtr_strategy that will be passed to this method

@@ -12,7 +12,7 @@ namespace astroaccelerate {
   /**
    * \class aa_periodicity_strategy aa_periodicity_strategy.hpp "include/aa_periodicity_strategy.hpp"
    * \brief Class that receives an aa_periodicity_plan object, and produces an aa_periodicity_strategy object.
-   * \details A periodicity strategy is required for any pipeline running the periodicity module.
+   * \details A periodicity strategy is required for any pipeline running the periodicity component.
    * \author Cees Carels.
    * \date 23 October 2018.
    */

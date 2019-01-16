@@ -607,8 +607,8 @@ namespace astroaccelerate {
       int nDecimations = ((int) floorf(log2f((float)P_plan->nHarmonics))) + 2;
       size_t additional_data_size = P_plan->max_total_MSD_blocks*MSD_RESULTS_SIZE*sizeof(float) + nDecimations*2*MSD_RESULTS_SIZE*sizeof(float) + P_plan->nHarmonics*2*sizeof(float) + 2*sizeof(int);
       memory_allocated = memory_allocated + additional_data_size;
-      printf("   Memory available for the module: %0.3f MB (%zu bytes)\n", (float) memory_available/(1024.0*1024.0), memory_available);
-      printf("   Memory allocated by the module: %0.3f MB (%zu bytes)\n", (float) memory_allocated/(1024.0*1024.0), memory_allocated);
+      printf("   Memory available for the component: %0.3f MB (%zu bytes)\n", (float) memory_available/(1024.0*1024.0), memory_available);
+      printf("   Memory allocated by the component: %0.3f MB (%zu bytes)\n", (float) memory_allocated/(1024.0*1024.0), memory_allocated);
 
       if(t_max_nTimesamples!=(size_t)P_plan->max_nTimesamples) printf("Interesting!\n");
 		

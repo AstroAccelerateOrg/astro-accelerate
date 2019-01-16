@@ -7,7 +7,7 @@
 
 namespace astroaccelerate {
 
-//This device constant is needed by the SPS (and SPS long) module and the SNR module
+//This device constant is needed by the SPS (and SPS long) component and the SNR component
 //It is also needed by device_load_data.cu and by device_single_pulse_search_kernel.cu
 __device__ __constant__ float c_sqrt_taps[PD_MAXTAPS + 1];
 

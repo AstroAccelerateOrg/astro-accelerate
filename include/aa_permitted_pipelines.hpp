@@ -1,7 +1,7 @@
 #ifndef ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_HPP
 #define ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_HPP
 
-#include "aa_compute.hpp"
+#include "aa_pipeline.hpp"
 #include "aa_permitted_pipelines.hpp"
 #include "aa_permitted_pipelines_0.hpp"
 #include "aa_permitted_pipelines_1.hpp"
@@ -20,18 +20,18 @@ namespace astroaccelerate {
   public:
     
     //Example valid pipelines
-    static const aa_compute::pipeline pipeline0;
-    static const aa_compute::pipeline pipeline1;
-    static const aa_compute::pipeline pipeline2;
-    static const aa_compute::pipeline pipeline3;
-    static const aa_compute::pipeline pipeline4;
-    static const aa_compute::pipeline pipeline5;
+    static const aa_pipeline::pipeline pipeline0;
+    static const aa_pipeline::pipeline pipeline1;
+    static const aa_pipeline::pipeline pipeline2;
+    static const aa_pipeline::pipeline pipeline3;
+    static const aa_pipeline::pipeline pipeline4;
+    static const aa_pipeline::pipeline pipeline5;
 
     /**
-     * \brief Pass a pipeline object and the function validates the modules it contains.
+     * \brief Pass a pipeline object and the function validates the components it contains.
      * \returns A boolean to indicate whether the pipeline is permitted (true) or not (false).
      */
-    static bool is_permitted(const aa_compute::pipeline &pipeline) {
+    static bool is_permitted(const aa_pipeline::pipeline &pipeline) {
       if(pipeline == pipeline0) {
 	return true;
       }

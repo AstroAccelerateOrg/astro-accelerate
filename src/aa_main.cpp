@@ -18,7 +18,7 @@
 
 #include "aa_config.hpp"
 #include "aa_pipeline_api.hpp"
-#include "aa_compute.hpp"
+#include "aa_pipeline.hpp"
 #include "aa_sigproc_input.hpp"
 #include "aa_pipeline_wrapper_functions.hpp"
 #include "aa_params.hpp"
@@ -37,13 +37,13 @@ int main(int argc, char *argv[]) {
 
   aa_ddtr_plan ddtr_plan;
   std::string file_path;
-  aa_config_flags user_flags = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_compute::debug>()};
-  aa_compute::pipeline_option pipeline_options;
-  aa_compute::pipeline pipeline = cli_configuration.setup(ddtr_plan, user_flags, pipeline_options, file_path);
+  aa_config_flags user_flags = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_pipeline::debug>()};
+  aa_pipeline::pipeline_option pipeline_options;
+  aa_pipeline::pipeline pipeline = cli_configuration.setup(ddtr_plan, user_flags, pipeline_options, file_path);
 
   LOG(log_level::notice, "File path "+file_path);
   for(auto const i : pipeline) {
-    LOG(log_level::notice, module_name(i));
+    LOG(log_level::notice, component_name(i));
   }
   
   aa_sigproc_input       filterbank_datafile(file_path.c_str());
@@ -94,11 +94,11 @@ int main(int argc, char *argv[]) {
   }
 
   bool sps_baseline_noise = false;
-  if(pipeline_options.find(aa_compute::module_option::sps_baseline_noise) != pipeline_options.end()) {
+  if(pipeline_options.find(aa_pipeline::component_option::sps_baseline_noise) != pipeline_options.end()) {
     sps_baseline_noise = true;
   }
 
-  if(pipeline.find(aa_compute::modules::analysis) != pipeline.end()) {
+  if(pipeline.find(aa_pipeline::component::analysis) != pipeline.end()) {
     aa_analysis_plan analysis_plan(pipeline_manager.ddtr_strategy(),
 				   user_flags.sigma_cutoff,
 				   user_flags.sigma_constant,
@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
     }
   }
   
-  if(pipeline.find(aa_compute::modules::periodicity) != pipeline.end()) {
+  if(pipeline.find(aa_pipeline::component::periodicity) != pipeline.end()) {
     //If these settings come from the input_file, then move them into aa_config to be read from the file.
     const float OR_sigma_multiplier = 1.0;              //Is this setting in the input_file? Is it the same one as for analysis?
     const bool periodicity_candidate_algorithm = false; //Is this setting in the input_file? Is it the same one as for analysis?
@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
     pipeline_manager.bind(periodicity_plan);
   }
 
-  if(pipeline.find(aa_compute::modules::fdas) != pipeline.end()) {
+  if(pipeline.find(aa_pipeline::component::fdas) != pipeline.end()) {
     aa_fdas_plan fdas_plan(user_flags.sigma_cutoff,
 			   user_flags.nboots,
 			   user_flags.ntrial_bins,

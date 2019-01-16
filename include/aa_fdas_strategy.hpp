@@ -12,7 +12,7 @@ namespace astroaccelerate {
    * \class aa_fdas_strategy aa_fdas_strategy.hpp "include/aa_fdas_strategy.hpp" 
    * \brief Class that receives an aa_fdas_plan object, and produces an aa_fdas_strategy object.
    * \details The strategy is calculated based on the plan.
-   * \details An fdas strategy is required for any pipeline running the fdas module..
+   * \details An fdas strategy is required for any pipeline running the fdas component.
    * \author Cees Carels.
    * \date 3 December 2018.
    */

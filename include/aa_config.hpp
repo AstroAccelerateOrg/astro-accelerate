@@ -9,7 +9,7 @@
 #include <algorithm>
 
 #include "aa_ddtr_plan.hpp"
-#include "aa_compute.hpp"
+#include "aa_pipeline.hpp"
 #include "aa_permitted_pipelines.hpp"
 #include "aa_host_help.hpp"
 
@@ -48,7 +48,7 @@ namespace astroaccelerate {
     int failsafe;                   /**< Flag to select the failsafe algorithm for dedispersion. */
     int periodicity_nHarmonics;     /**< Number of harmonics setting for periodicity. */
   
-    std::vector<aa_compute::debug> user_debug; /**< std::vector of debug flags. */
+    std::vector<aa_pipeline::debug> user_debug; /**< std::vector of debug flags. */
   };
 
   /**
@@ -69,16 +69,16 @@ namespace astroaccelerate {
      * \details This must at least contain the full path to an input file.
      * \details If using AstroAccelerate as a library user, then use the other constructor of the aa_config class.
      */
-    aa_config(const aa_command_line_arguments &cli_input) : configure_from_file(true), user_cli(cli_input), flg({0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_compute::debug>()}) {
+    aa_config(const aa_command_line_arguments &cli_input) : configure_from_file(true), user_cli(cli_input), flg({0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_pipeline::debug>()}) {
       flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
       flg.periodicity_nHarmonics = 32;
     }
     
-    /** \brief Constructor for aa_config to configure via a user requested aa_compute::pipeline object.
-     * \details The aa_compute::pipeline object contains the user requested pipeline modules to be run.
+    /** \brief Constructor for aa_config to configure via a user requested aa_pipeline::pipeline object.
+     * \details The aa_pipeline::pipeline object contains the user requested pipeline component to be run.
      * \details Use this constructor when using AstroAccelerate as a library user.
      */
-    aa_config(aa_compute::pipeline &user_pipeline) : configure_from_file(false), m_pipeline(user_pipeline), flg({0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_compute::debug>()}) {
+    aa_config(aa_pipeline::pipeline &user_pipeline) : configure_from_file(false), m_pipeline(user_pipeline), flg({0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_pipeline::debug>()}) {
       flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
       flg.periodicity_nHarmonics = 32;
     }
@@ -89,7 +89,7 @@ namespace astroaccelerate {
      * \details This method cannot be used in conjunction with reading an input file for the stnadalone.
      * \returns A pipeline object that is either valid or empty if it is not valid.
      */
-    const aa_compute::pipeline setup() {
+    const aa_pipeline::pipeline setup() {
       return setup(m_ddtr_plan, flg, m_pipeline_options, fpath);
     }
   
@@ -100,7 +100,7 @@ namespace astroaccelerate {
      * \details If the aa_config object was constructed without an input file path, then this module only checks whether the supplied pipeline is valid.
      * \returns A pipeline object that is either valid or empty if it is not valid. 
      */
-    const aa_compute::pipeline setup(aa_ddtr_plan &ddtr_plan, aa_config_flags &user_flags, aa_compute::pipeline_option &pipeline_options, std::string &file_path) {
+    const aa_pipeline::pipeline setup(aa_ddtr_plan &ddtr_plan, aa_config_flags &user_flags, aa_pipeline::pipeline_option &pipeline_options, std::string &file_path) {
       if(configure_from_file) {
 	if(get_user_input()) { //Read user input from text input file and set flag object.
 	  if(aa_permitted_pipelines::is_permitted(m_pipeline)) { //get_user_input has configured m_pipeline, so now its validity can be checked.
@@ -112,13 +112,13 @@ namespace astroaccelerate {
 	  }
 	  else {
 	    //User input was read successfully, but pipeline is not permitted
-	    const aa_compute::pipeline empty = {aa_compute::modules::empty};
+	    const aa_pipeline::pipeline empty = {aa_pipeline::component::empty};
 	    return empty;
 	  }
 	}
 	else {
 	  //Problem reading input file
-	  const aa_compute::pipeline empty = {aa_compute::modules::empty};
+	  const aa_pipeline::pipeline empty = {aa_pipeline::component::empty};
 	  return empty;
 	}
       }
@@ -129,7 +129,7 @@ namespace astroaccelerate {
 	}
 	else {
 	  //The pre-supplied pipeline is not valid
-	  const aa_compute::pipeline empty = {aa_compute::modules::empty};
+	  const aa_pipeline::pipeline empty = {aa_pipeline::component::empty};
 	  return empty;
 	}
       }
@@ -138,15 +138,15 @@ namespace astroaccelerate {
   protected:
     bool configure_from_file; //Boolean flag to indicate on construction whether an input file will be used for configuration.
     std::string fpath; //Path to the input data file.
-    aa_compute::pipeline        m_pipeline; //The pipeline object that is configured by an instance of this class using an input file. 
-    aa_compute::pipeline_option m_pipeline_options; //The pipeline settings configured by an instance of this class using an input file.
+    aa_pipeline::pipeline        m_pipeline; //The pipeline object that is configured by an instance of this class using an input file. 
+    aa_pipeline::pipeline_option m_pipeline_options; //The pipeline settings configured by an instance of this class using an input file.
     aa_command_line_arguments user_cli; //The user supplied command line argument settings.
     aa_config_flags flg;  //Configuration flags 
     aa_ddtr_plan m_ddtr_plan; //The ddtr_plan that is configured by an instance of this class using an input file.
     
     /** \brief Reads an input text file.
-     * \details Parses the string content of the file, sets the user flags, pipeline modules, and pipeline details.
-     * \warning This function always adds aa_compute::modules::dedispersion to the m_pipeline because the stnadalone always performs dedispersion.
+     * \details Parses the string content of the file, sets the user flags, pipeline components, and pipeline details.
+     * \warning This function always adds aa_pipeline::component::dedispersion to the m_pipeline because the stnadalone always performs dedispersion.
      */
     bool get_user_input() {
       const size_t argc = user_cli.input.size();
@@ -197,50 +197,50 @@ namespace astroaccelerate {
 	  }
 	}
 	rewind(fp_in);
-	m_pipeline.insert(aa_compute::modules::dedispersion);//Always add dedispersion to the pipeline
+	m_pipeline.insert(aa_pipeline::component::dedispersion);//Always add dedispersion to the pipeline
 	while (!feof(fp_in)) {
 	  if ( fscanf(fp_in, "%s", string) == 0) {
 	    fprintf(stderr, "failed to read input\n");
 	    return false;
 	  }
 	  if (strcmp(string, "debug") == 0)
-	    flg.user_debug.push_back(aa_compute::debug::debug);
+	    flg.user_debug.push_back(aa_pipeline::debug::debug);
 	  if (strcmp(string, "analysis") == 0)
-	    m_pipeline.insert(aa_compute::modules::analysis);
+	    m_pipeline.insert(aa_pipeline::component::analysis);
 	  if (strcmp(string, "periodicity") == 0)
-	    m_pipeline.insert(aa_compute::modules::periodicity);
+	    m_pipeline.insert(aa_pipeline::component::periodicity);
 	  if (strcmp(string, "acceleration") == 0)
-	    m_pipeline.insert(aa_compute::modules::fdas);
+	    m_pipeline.insert(aa_pipeline::component::fdas);
 	  if (strcmp(string, "output_ffdot_plan") == 0)
-	    m_pipeline_options.insert(aa_compute::module_option::output_ffdot_plan);
+	    m_pipeline_options.insert(aa_pipeline::component_option::output_ffdot_plan);
 	  if (strcmp(string, "output_fdas_list") == 0)
-	    m_pipeline_options.insert(aa_compute::module_option::output_fdas_list);
+	    m_pipeline_options.insert(aa_pipeline::component_option::output_fdas_list);
 	  if (strcmp(string, "output_dmt") == 0)
-	    m_pipeline_options.insert(aa_compute::module_option::output_dmt);
+	    m_pipeline_options.insert(aa_pipeline::component_option::output_dmt);
 	  if (strcmp(string, "zero_dm") == 0)
-	    m_pipeline_options.insert(aa_compute::module_option::zero_dm);
+	    m_pipeline_options.insert(aa_pipeline::component_option::zero_dm);
 	  if (strcmp(string, "zero_dm_with_outliers") == 0)
-	    m_pipeline_options.insert(aa_compute::module_option::zero_dm_with_outliers);
+	    m_pipeline_options.insert(aa_pipeline::component_option::zero_dm_with_outliers);
 	  if (strcmp(string, "rfi") == 0)
-	    m_pipeline_options.insert(aa_compute::module_option::rfi);
+	    m_pipeline_options.insert(aa_pipeline::component_option::rfi);
 	  if (strcmp(string, "oldrfi") == 0)
-	    m_pipeline_options.insert(aa_compute::module_option::old_rfi);
+	    m_pipeline_options.insert(aa_pipeline::component_option::old_rfi);
 	  if (strcmp(string, "threshold") == 0) {
-	    m_pipeline_options.insert(aa_compute::module_option::candidate_algorithm);
+	    m_pipeline_options.insert(aa_pipeline::component_option::candidate_algorithm);
 	    flg.candidate_algorithm = 1;
 	  }
 	  if (strcmp(string, "baselinenoise") == 0)
-	    m_pipeline_options.insert(aa_compute::module_option::sps_baseline_noise);
+	    m_pipeline_options.insert(aa_pipeline::component_option::sps_baseline_noise);
 	  if (strcmp(string, "fdas_custom_fft") == 0)
-	    m_pipeline_options.insert(aa_compute::module_option::fdas_custom_fft);
+	    m_pipeline_options.insert(aa_pipeline::component_option::fdas_custom_fft);
 	  if (strcmp(string, "fdas_inbin") == 0)
-	    m_pipeline_options.insert(aa_compute::module_option::fdas_inbin);
+	    m_pipeline_options.insert(aa_pipeline::component_option::fdas_inbin);
 	  if (strcmp(string, "fdas_norm") == 0)
-	    m_pipeline_options.insert(aa_compute::module_option::fdas_norm);
+	    m_pipeline_options.insert(aa_pipeline::component_option::fdas_norm);
 	  if (strcmp(string, "multi_file") == 0)
 	    flg.multi_file = 1;
 	  if (strcmp(string, "analysis_debug") == 0)
-	    flg.user_debug.push_back(aa_compute::debug::analysis);
+	    flg.user_debug.push_back(aa_pipeline::debug::analysis);
 	  if (strcmp(string, "failsafe") == 0)
 	    flg.failsafe = 1;
 	  if (strcmp(string, "max_boxcar_width_in_sec") == 0)
