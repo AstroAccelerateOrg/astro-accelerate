@@ -17,7 +17,7 @@
  */
 
 #include "aa_config.hpp"
-#include "aa_pipeline.hpp"
+#include "aa_pipeline_api.hpp"
 #include "aa_compute.hpp"
 #include "aa_sigproc_input.hpp"
 #include "aa_pipeline_wrapper_functions.hpp"
@@ -74,12 +74,12 @@ int main(int argc, char *argv[]) {
   
   aa_config configuration(pipeline);   // Set the pipeline and other run settings that would come from an input_file
   
-  aa_pipeline<unsigned short> pipeline_manager(pipeline,
-					       pipeline_options,
-					       filterbank_metadata,
-					       filterbank_datafile.input_buffer().data(),
-					       selected_card_info);
-
+  aa_pipeline_api<unsigned short> pipeline_manager(pipeline,
+						   pipeline_options,
+						   filterbank_metadata,
+						   filterbank_datafile.input_buffer().data(),
+						   selected_card_info);
+  
   if(pipeline_manager.bind(ddtr_plan)) {
     LOG(log_level::notice, "ddtr_plan bound successfully.");
   }

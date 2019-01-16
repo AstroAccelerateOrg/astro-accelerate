@@ -1,5 +1,5 @@
-#ifndef ASTRO_ACCELERATE_AA_PIPELINE_HPP
-#define ASTRO_ACCELERATE_AA_PIPELINE_HPP
+#ifndef ASTRO_ACCELERATE_AA_PIPELINE_API_HPP
+#define ASTRO_ACCELERATE_AA_PIPELINE_API_HPP
 
 #include <iostream>
 #include <stdio.h>
@@ -27,7 +27,7 @@
 namespace astroaccelerate {
 
   /**
-   * \class aa_pipeline aa_pipeline.hpp "include/aa_pipeline.hpp"
+   * \class aa_pipeline_api aa_pipeline_api.hpp "include/aa_pipeline_api.hpp"
    * \brief Class to manage pipelines and their constituent modules, plans, and strategies.
    * \brief This class also delegates the movement of host memory into and out of the pipeline, 
    * \brief This class also manages the movement of device memory into and out of the device.
@@ -36,29 +36,29 @@ namespace astroaccelerate {
    * \details The user may obtain the strategies.
    * \details The pipeline will not run unless all plans and strategies are successfully calculates for the pipeline that the user provided at construction.
    * \details The pipeline strategy objects will request memory from the GPU that they will use when the pipeline is run.
-   * \details The construction of a new aa_pipeline object will reset all previously requested memory on the device (which may or may not have been allocated). \
+   * \details The construction of a new aa_pipeline_api object will reset all previously requested memory on the device (which may or may not have been allocated). \
      Therefore, the next pipeline should be constructed after the previous one has been fully configured.
    * \warning Configuring multiple pipeline objects and strategy objects at the same time means the pipeline will not see the correct amount of memory on the GPU.
-   * \todo Nice to have but not needed: Add a way to transfer ownership of the data between aa_pipeline objects.
+   * \todo Nice to have but not needed: Add a way to transfer ownership of the data between aa_pipeline_api objects.
    * \author Cees Carels.
    * \date: 23 October 2018.
    */
 
   template<typename T>
-  class aa_pipeline {
+  class aa_pipeline_api {
   public:
 
-    /** \brief Constructor for aa_pipeline that takes key parameters required on construction. */
-    aa_pipeline(const aa_compute::pipeline &requested_pipeline,
-		const aa_compute::pipeline_option &pipeline_options,
-		const aa_filterbank_metadata &filterbank_metadata,
-		T const*const input_data,
-		const aa_device_info::aa_card_info &card_info) : m_pipeline_options(pipeline_options),
-								 m_card_info(card_info),
-								 m_filterbank_metadata(filterbank_metadata),
-								 bound_with_raw_ptr(true),
-								 pipeline_ready(false),
-								 ptr_data_in(input_data) {
+    /** \brief Constructor for aa_pipeline_api that takes key parameters required on construction. */
+    aa_pipeline_api(const aa_compute::pipeline &requested_pipeline,
+		    const aa_compute::pipeline_option &pipeline_options,
+		    const aa_filterbank_metadata &filterbank_metadata,
+		    T const*const input_data,
+		    const aa_device_info::aa_card_info &card_info) : m_pipeline_options(pipeline_options),
+								     m_card_info(card_info),
+								     m_filterbank_metadata(filterbank_metadata),
+								     bound_with_raw_ptr(true),
+								     pipeline_ready(false),
+								     ptr_data_in(input_data) {
       //Reset all previously requested memory on the card, so that strategy objects see the whole card available for allocation.
       if(aa_device_info::instance().reset_requested_memory_on_card(card_info.card_number)) {
 	LOG(log_level::notice, "The pipeline has reset all previously requested memory on card " + std::to_string(card_info.card_number) + ".");
@@ -77,19 +77,19 @@ namespace astroaccelerate {
 
       ++number_of_pipeline_instances;
       if(number_of_pipeline_instances > 1) {
-	LOG(log_level::notice, "There is more than one aa_pipeline instance, make sure you constructed the next instance after the first instance is fully configured.");
+	LOG(log_level::notice, "There is more than one aa_pipeline_api instance, make sure you constructed the next instance after the first instance is fully configured.");
 	LOG(log_level::notice, "Otherwise, the new pipeline instance will not see the correct amount of GPU memory available.");
       }
     }
     
-    /** \brief Destructor for aa_pipeline, performs cleanup as needed. */
-    ~aa_pipeline() {
+    /** \brief Destructor for aa_pipeline_api, performs cleanup as needed. */
+    ~aa_pipeline_api() {
       pipeline_ready = false;
       --number_of_pipeline_instances;
     }
     
     /**
-     * \brief Bind an aa_ddtr_plan to the aa_pipeline instance.
+     * \brief Bind an aa_ddtr_plan to the aa_pipeline_api instance.
      * \returns A boolean flag to indicate whether the operation was successful (true) or not (false).
      */
     bool bind(aa_ddtr_plan plan) {
@@ -140,7 +140,7 @@ namespace astroaccelerate {
     
 
     /**
-     * \brief Bind an aa_analysis_plan to the aa_pipeline instance.
+     * \brief Bind an aa_analysis_plan to the aa_pipeline_api instance.
      * \details If your pipeline includes analysis, then you must bind a valid aa_analysis_plan.
      * \returns A boolean flag to indicate whether the operation was successful (true) or not (false).
      */
@@ -183,7 +183,7 @@ namespace astroaccelerate {
     }
 
     /**
-     * \brief Bind an aa_periodicity_plan to the aa_pipeline instance.
+     * \brief Bind an aa_periodicity_plan to the aa_pipeline_api instance.
      * \details If your pipeline includes periodicity, then you must bind a valid aa_periodicity_plan.
      * \returns A boolean flag to indicate whether the operation was successful (true) or not (false).
      */
@@ -219,7 +219,7 @@ namespace astroaccelerate {
     }
     
     /**
-     * \brief Bind an aa_fdas_plan to the aa_pipeline instance.
+     * \brief Bind an aa_fdas_plan to the aa_pipeline_api instance.
      * \details If your pipeline includes fdas, then you must bind a valid aa_fdas_plan.
      * \returns A boolean flag to indicate whether the operation was successful (true) or not (false).
      */
@@ -772,10 +772,10 @@ namespace astroaccelerate {
     }
 
     /**
-     * \brief Function pass input/output data from one aa_pipeline instance to another.
+     * \brief Function pass input/output data from one aa_pipeline_api instance to another.
      * \warning Not yet implemented.
      */
-    bool handoff(aa_pipeline &next_pipeline) {
+    bool handoff(aa_pipeline_api &next_pipeline) {
       /**
        * Handoff control over the data to the next pipeline.
        *
@@ -788,24 +788,24 @@ namespace astroaccelerate {
     std::map<aa_compute::modules, bool> required_plans; /** Plans required to configure the pipeline. */
     std::map<aa_compute::modules, bool> supplied_plans; /** Plans supplied by the user. */
     std::vector<aa_strategy*>   m_all_strategy; /** Base class pointers to all strategies bound to the pipeline. */
-    aa_compute::pipeline        m_requested_pipeline; /** The user requested pipeline that was bound to the aa_pipeline instance on construction. */
-    const aa_compute::pipeline_option &m_pipeline_options; /** The user requested pipeline details containing module options for the aa_pipeline instance. */
-    aa_device_info::aa_card_info m_card_info; /** The user provided GPU card information for the aa_pipeline instance. */
+    aa_compute::pipeline        m_requested_pipeline; /** The user requested pipeline that was bound to the aa_pipeline_api instance on construction. */
+    const aa_compute::pipeline_option &m_pipeline_options; /** The user requested pipeline details containing module options for the aa_pipeline_api instance. */
+    aa_device_info::aa_card_info m_card_info; /** The user provided GPU card information for the aa_pipeline_api instance. */
     std::unique_ptr<aa_pipeline_runner> m_runner; /** A std::unique_ptr that will point to the correct class instantation of the selected aa_permitted_pipelines_ when the pipeline must be made ready to run. */
     
-    aa_filterbank_metadata      m_filterbank_metadata; /** The filterbank file metadata that the user provided for the aa_pipeline instance on construction. */
+    aa_filterbank_metadata      m_filterbank_metadata; /** The filterbank file metadata that the user provided for the aa_pipeline_api instance on construction. */
     
-    aa_ddtr_plan                m_ddtr_plan; /** The instance of this type that is currently bound to the aa_pipeline instance. */
-    aa_ddtr_strategy            m_ddtr_strategy; /** The instance of this type that is currently bound to the aa_pipeline instance. */
+    aa_ddtr_plan                m_ddtr_plan; /** The instance of this type that is currently bound to the aa_pipeline_api instance. */
+    aa_ddtr_strategy            m_ddtr_strategy; /** The instance of this type that is currently bound to the aa_pipeline_api instance. */
     
-    aa_analysis_plan            m_analysis_plan; /** The instance of this type that is currently bound to the aa_pipeline instance. */
-    aa_analysis_strategy        m_analysis_strategy; /** The instance of this type that is currently bound to the aa_pipeline instance. */
+    aa_analysis_plan            m_analysis_plan; /** The instance of this type that is currently bound to the aa_pipeline_api instance. */
+    aa_analysis_strategy        m_analysis_strategy; /** The instance of this type that is currently bound to the aa_pipeline_api instance. */
     
-    aa_periodicity_plan         m_periodicity_plan; /** The instance of this type that is currently bound to the aa_pipeline instance. */
-    aa_periodicity_strategy     m_periodicity_strategy; /** The instance of this type that is currently bound to the aa_pipeline instance. */
+    aa_periodicity_plan         m_periodicity_plan; /** The instance of this type that is currently bound to the aa_pipeline_api instance. */
+    aa_periodicity_strategy     m_periodicity_strategy; /** The instance of this type that is currently bound to the aa_pipeline_api instance. */
 
-    aa_fdas_plan                m_fdas_plan; /** The instance of this type that is currently bound to the aa_pipeline instance. */
-    aa_fdas_strategy            m_fdas_strategy; /** The instance of this type that is currently bound to the aa_pipeline instance. */
+    aa_fdas_plan                m_fdas_plan; /** The instance of this type that is currently bound to the aa_pipeline_api instance. */
+    aa_fdas_strategy            m_fdas_strategy; /** The instance of this type that is currently bound to the aa_pipeline_api instance. */
     
     bool bound_with_raw_ptr; /** Flag to indicate whether the input data is bound via a raw pointer (true) or not (false). */
     bool pipeline_ready; /** Flag to indicate whether the pipeline is ready to execute (true) or not (false).  */
@@ -815,7 +815,7 @@ namespace astroaccelerate {
     static int                  number_of_pipeline_instances;
   };
 
-  template<typename T> int aa_pipeline<T>::number_of_pipeline_instances = 0;
+  template<typename T> int aa_pipeline_api<T>::number_of_pipeline_instances = 0;
 } // namespace astroaccelerate
   
-#endif // ASTRO_ACCELERATE_AA_PIPELINE_HPP
+#endif // ASTRO_ACCELERATE_AA_PIPELINE_API_HPP

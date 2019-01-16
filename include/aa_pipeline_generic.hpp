@@ -6,7 +6,7 @@
 #include "aa_sigproc_input.hpp"
 #include "aa_compute.hpp"
 #include "aa_config.hpp"
-#include "aa_pipeline.hpp"
+#include "aa_pipeline_api.hpp"
 
 namespace astroaccelerate {
 
@@ -41,7 +41,7 @@ namespace astroaccelerate {
      * Default parameters for aa_compute::analysis are set.
      * Although this function will configure an aa_analysis_plan in all cases,
      * if std::vector<aa_compute::modules> &selected_modules does not contain
-     * aa_compute::modules::analysis, then aa_pipeline will ignore aa_analysis_plan
+     * aa_compute::modules::analysis, then aa_pipeline_api will ignore aa_analysis_plan
      * when this function attempts to bind aa_analysis_plan.
      */
     
@@ -77,7 +77,7 @@ namespace astroaccelerate {
     
     // Supply the requested pipeline and telescope data to a pipeline manager, which will check which modules are required to be configured.
     // If a module is not required, then even if it is supplied, it will be ignored.
-    aa_pipeline<T> pipeline_manager(the_pipeline, pipeline_options, filterbank_data, input_data, selected_card_info);
+    aa_pipeline_api<T> pipeline_manager(the_pipeline, pipeline_options, filterbank_data, input_data, selected_card_info);
     
     // Bind the Plan to the manager
     aa_ddtr_plan ddtr_plan;
@@ -90,7 +90,7 @@ namespace astroaccelerate {
       LOG(log_level::error, "Could not bind ddtr_plan.");
     }
 
-    // When aa_ddtr_plan was bound to aa_pipeline, aa_pipeline already
+    // When aa_ddtr_plan was bound to aa_pipeline_api, aa_pipeline_api already
     // knew whether aa_compute::modules::analysis was supplied.
     // Therefore, aa_ddtr_strategy was computed depending on
     // whether analysis would be requested.

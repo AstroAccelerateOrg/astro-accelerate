@@ -162,7 +162,7 @@ When compiling and building via `CMake`, all example codes are built automatical
 # Developing new modules
 To indicate the availability of a new module to the user, add it to `enum class modules` in `include/aa_compute.hpp`, and likewise for `module_option`s.
 
-The module must allow configuration via a `plan`, a `strategy`, and be implemented in a `permitted_pipeline`. Finally, the module must be provisioned via `aa_config` (to read the new settings from an `input_file`) and `aa_pipeline` so that the `permitted_pipeline` can be run.
+The module must allow configuration via a `plan`, a `strategy`, and be implemented in a `permitted_pipeline`. Finally, the module must be provisioned via `aa_config` (to read the new settings from an `input_file`) and `aa_pipeline_api` so that the `permitted_pipeline` can be run.
 
 ## How to add a new plan
 Name the class, appending `_plan` to the file name. Provision the class with a trivial constructor that sets all values to 0 (or similar). Add another constructor that takes the necessary parameters. Ideally, the class only offers getter methods, so that all configuration is done at construction.
@@ -176,8 +176,8 @@ Provision the class with a trivial constructor that sets all values to 0 (or sim
 
 2. Once the `permitted_pipeline` exists, it must be added to the `permitted_pipelines` in `aa_permitted_pipelines.hpp`. Do this by adding a new `static const aa_compute::pipeline` declaration (which you implement in `aa_permitted_pipelines.cpp`), and add a statement that returns `true` for the `is_permitted` method.
 3. In the `aa_permitted_pipelines.cpp` source file, implement the new pipeline by listing the modules that it will run. If the module runs in combination with other modules, create additional pipelines for each combination.
-4. The `permitted_pipeline` must still be provisioned in `aa_pipeline.hpp`. This is done via a lookup in the `ready()` method. The pipeline instance must be created via a `std::unique_ptr` instance of the same type as the class name of the newly created `permitted_pipeline` class, and then it must be assigned to `m_runner` (which will run the pipeline by calling the pipeline's `run` method). The lookup itself is well-documented and contains plenty of examples showing how this is implemented for each `permitted_pipeline` with `if` and `else` statements.
-5. Add `bind` calls to the `aa_pipeline` class so that a `plan` object can be bound for this new module. Similarly, add a method to return the `strategy` object. The existing code shows how to implement this functionality. Ensure that the ready state of the pipeline is falsified whenever a new `bind` call occurs. Equally, when a valid strategy is 
+4. The `permitted_pipeline` must still be provisioned in `aa_pipeline_api.hpp`. This is done via a lookup in the `ready()` method. The pipeline instance must be created via a `std::unique_ptr` instance of the same type as the class name of the newly created `permitted_pipeline` class, and then it must be assigned to `m_runner` (which will run the pipeline by calling the pipeline's `run` method). The lookup itself is well-documented and contains plenty of examples showing how this is implemented for each `permitted_pipeline` with `if` and `else` statements.
+5. Add `bind` calls to the `aa_pipeline_api` class so that a `plan` object can be bound for this new module. Similarly, add a method to return the `strategy` object. The existing code shows how to implement this functionality. Ensure that the ready state of the pipeline is falsified whenever a new `bind` call occurs. Equally, when a valid strategy is 
 
 At this stage, a library user has everything they need to use the module in their own application code. However, it has not yet been provisioned for the standalone code. To do this, the new module must be configurable via an `input_file`, and any user flags that can be used to configure it must be offered via the `aa_config` class.
 
