@@ -470,7 +470,7 @@ namespace astroaccelerate {
                         m_fdas_enable_custom_fft,
                         m_fdas_enable_inbin,
                         m_fdas_enable_norm,
-                        m_analysis_strategy.sigma_constant(),
+                        m_fdas_strategy.sigma_constant(),
                         m_fdas_enable_output_ffdot_plan,
                         m_fdas_enable_output_list);
       

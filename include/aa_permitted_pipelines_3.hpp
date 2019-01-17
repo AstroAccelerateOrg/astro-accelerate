@@ -458,9 +458,9 @@ namespace astroaccelerate {
 		      dm_step.data(),
 		      tsamp_original,
 		      m_periodicity_strategy.nHarmonics(),
-		      m_analysis_strategy.candidate_algorithm(),
-		      m_analysis_strategy.enable_sps_baseline_noise(),
-		      m_analysis_strategy.sigma_constant());
+		      m_periodicity_strategy.candidate_algorithm(),
+		      m_periodicity_strategy.enable_sps_baseline_noise(),
+		      m_periodicity_strategy.sigma_constant());
       
       timer.Stop();
       float time = timer.Elapsed()/1000;
