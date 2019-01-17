@@ -104,6 +104,14 @@ namespace astroaccelerate {
     float power() const {
       return m_power;
     }
+
+    /**
+     * \returns an integer to indicate whether the msd baseline noise reduction algorithm will be enabled or disabled. 0 for off (false), 1 for on (true).
+     * \details At the moment, this setting has no effect.
+     */
+    int enable_msd_baseline_noise() const {
+      return (m_enable_msd_baseline_noise) ? 1 : 0;
+    }
     
     /** \returns The boolean ready state of the strategy instance (true for ready, false for not ready). */
     bool ready() const {
@@ -176,6 +184,7 @@ namespace astroaccelerate {
     float m_power;        /**< Strategy determined power from the user set aa_ddtr_plan instance of power. */
     std::vector<std::vector<int>> m_t_processed; /**< Is allocated in this class, and used elsewhere in the pipeline. */
     float ***output_buffer; /**< \brief 3D array that contains the output. \deprecated Has been moved to permitted_pipeline classes. Remove from source and header files.*/
+    bool m_enable_msd_baseline_noise; /** Flag that enables or disables the use of msd baseline noise. */
   };
 
 } // namespace astroaccelerate

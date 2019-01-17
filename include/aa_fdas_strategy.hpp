@@ -28,6 +28,7 @@ namespace astroaccelerate {
 			 m_num_boots(0),
 			 m_num_trial_bins(0),
 			 m_navdms(0),
+			 m_enable_msd_baseline_noise(false),
 			 m_ready(false) {
       
     }
@@ -41,6 +42,7 @@ namespace astroaccelerate {
 						      m_num_boots(fdas_plan.num_boots()),
 						      m_num_trial_bins(fdas_plan.num_trial_bins()),
 						      m_navdms(fdas_plan.navdms()),
+						      m_enable_msd_baseline_noise(fdas_plan.enable_msd_baseline_noise()),
 						      m_ready(false) {
 
       /** Parse input. Invalid input means the ready state will not be set to true. */
@@ -100,7 +102,15 @@ namespace astroaccelerate {
     int navdms() const {
       return m_navdms;
     }
-
+    
+    /**
+     * \returns an integer to indicate whether the msd baseline noise reduction algorithm will be enabled or disabled. 0 for off (false), 1 for on (true).
+     * \details At the moment, this setting has no effect.
+     **/
+    int enable_msd_baseline_noise() const {
+      return (m_enable_msd_baseline_noise) ? 1 : 0;
+    }
+    
     /** \brief Performs any setup still needed for the strategy.
      * \returns A boolean indicating whether the setup was successful.
      */
@@ -138,6 +148,7 @@ namespace astroaccelerate {
     int	  m_num_boots; /** The strategy determined num_boots setting. */
     int	  m_num_trial_bins; /** The strategy determined num_trial_bins setting. */
     int	  m_navdms; /** The strategy determined navdms setting. */
+    bool  m_enable_msd_baseline_noise; /** Flag for enabling/disabling msd_baseline_noise reduction algorithm. */
     
     bool m_ready; /** The ready state of the instance of the fdas_strategy. */
   };

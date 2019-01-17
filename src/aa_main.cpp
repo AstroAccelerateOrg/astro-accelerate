@@ -134,7 +134,8 @@ int main(int argc, char *argv[]) {
 			   user_flags.narrow,
 			   user_flags.wide,
 			   user_flags.nsearch,
-			   user_flags.aggression);
+			   user_flags.aggression,
+			   msd_baseline_noise);
     pipeline_manager.bind(fdas_plan);
   }
   

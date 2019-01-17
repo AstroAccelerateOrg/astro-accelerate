@@ -31,15 +31,17 @@ namespace astroaccelerate {
 		 const float &narrow,
 		 const float &wide,
 		 const int   &nsearch,
-		 const float &aggression) : m_sigma_cutoff(sigma_cutoff),
-					    m_sigma_constant(sigma_constant),
-					    m_narrow(narrow),
-					    m_wide(wide),
-					    m_aggression(aggression),
-					    m_num_boots(num_boots),
-					    m_num_trial_bins(num_trial_bins),
-					    m_navdms(navdms),
-					    m_nsearch(nsearch) {
+		 const float &aggression,
+		 const bool  &enable_msd_baseline_noise) : m_sigma_cutoff(sigma_cutoff),
+							   m_sigma_constant(sigma_constant),
+							   m_narrow(narrow),
+							   m_wide(wide),
+							   m_aggression(aggression),
+							   m_num_boots(num_boots),
+							   m_num_trial_bins(num_trial_bins),
+							   m_navdms(navdms),
+							   m_nsearch(nsearch),
+							   m_enable_msd_baseline_noise(enable_msd_baseline_noise) {
       
     }
 
@@ -88,6 +90,14 @@ namespace astroaccelerate {
       return m_nsearch;
     }
 
+    /**
+     * \returns A boolean indicating whether the msd_baseline_noise algorithm will be enabled, for an instance of aa_analysis_strategy.
+     * \details At the moment, this setting has no effect.
+     */
+    bool enable_msd_baseline_noise() const {
+      return m_enable_msd_baseline_noise;
+    }
+    
   private:
     float m_sigma_cutoff; /**< User selected sigma_cutoff. */
     float m_sigma_constant; /**< User selected sigma_constant. */
@@ -98,6 +108,7 @@ namespace astroaccelerate {
     int   m_num_trial_bins; /**< User selected num_trial_bins. */
     int   m_navdms; /**< User selected dms. */
     int   m_nsearch; /**< User selected nsearch parameter. */
+    bool  m_enable_msd_baseline_noise; /**< User selected flag for enabling / disabling msd_baseline_noise. */
   };
 
 } // namespace astroaccelerate

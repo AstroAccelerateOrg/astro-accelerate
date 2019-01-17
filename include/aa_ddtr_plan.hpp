@@ -17,7 +17,7 @@ namespace astroaccelerate {
   class aa_ddtr_plan {
   public:
     /** \brief Constructor for aa_ddtr_plan. m_power must be default initialised to 2.0. */
-    aa_ddtr_plan() : m_power(2.0) {
+    aa_ddtr_plan() : m_power(2.0), m_enable_msd_baseline_noise(false) {
       
     }
   
@@ -93,10 +93,28 @@ namespace astroaccelerate {
     float power() const {
       return m_power;
     }
+
+    /**
+     * \brief Set flag to enable or disable msd_baseline_noise reduction algorithm.
+     * \details At present, this flag has no effect.
+     */
+    bool set_enable_msd_baseline_noise(const bool flag) {
+      m_enable_msd_baseline_noise = flag;
+      return true;
+    }
+
+    /**
+     * \returns The flag that enables or disables msd_baseline_noise reduction.
+     * \details At the moment, this setting has no effect.
+     */
+    bool enable_msd_baseline_noise() const {
+      return m_enable_msd_baseline_noise;
+    }
     
   private:
     std::vector<dm> m_user_dm; /**< Storage for all supplied dm properties. */
     float m_power;
+    bool m_enable_msd_baseline_noise; /** Flag to enable or disable msd_baseline_noise reduction algorithm. */
   
   };
 } // namespace astroaccelerate
