@@ -432,7 +432,7 @@ namespace astroaccelerate {
 		     m_d_MSD_output_taps,
 		     m_d_MSD_interpolated,
 		     m_analysis_strategy.MSD_data_info(),
-		     m_analysis_strategy.enable_sps_baseline_noise(),
+		     m_analysis_strategy.enable_msd_baseline_noise(),
 		     dump_to_disk,
 		     dump_to_user,
 		     analysis_output_for_this_dm);

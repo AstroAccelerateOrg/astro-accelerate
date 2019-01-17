@@ -44,7 +44,7 @@ namespace astroaccelerate {
 				       zero_dm_with_outliers,
 				       rfi,
 				       old_rfi,
-				       sps_baseline_noise,
+				       msd_baseline_noise,
 				       output_dmt, //< Switches on output of ddtr to disk.
 				       output_ffdot_plan, //< Switches on output of ffdot_plan to disk.
 				       output_fdas_list, //< Switches on output of fdas_list to disk.

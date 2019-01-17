@@ -28,7 +28,7 @@ namespace astroaccelerate {
 			   const float &analysis_sigma_constant = 0.0,
 			   const float &analysis_max_boxcar_width_in_sec = 0.0,
 			   const bool  &analysis_enable_candidate_algorithm = false,
-			   const bool  &analysis_enable_sps_baseline_noise_algorithm = false,
+			   const bool  &analysis_enable_msd_baseline_noise_algorithm = false,
 			   const float &periodicity_sigma_cutoff = 0.0,
 			   const float &periodicity_sigma_constant = 0.0,
 			   const int   &periodicity_nHarmonics = 0.0,
@@ -125,7 +125,7 @@ namespace astroaccelerate {
 				   analysis_sigma_constant,
 				   analysis_max_boxcar_width_in_sec,
 				   selected_candidate_algorithm,
-				   analysis_enable_sps_baseline_noise_algorithm);
+				   analysis_enable_msd_baseline_noise_algorithm);
     pipeline_manager.bind(analysis_plan);
 
     aa_periodicity_plan periodicity_plan(periodicity_sigma_cutoff,

@@ -804,7 +804,7 @@ namespace astroaccelerate {
     }
 #else
     double total_time, dit_time, MSD_time;
-    MSD_plane_profile(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, d_MSD_workarea, true, (t_nTimesamples>>1), t_nDMs_per_batch, h_boxcar_widths, 0, 0, 0, per_param.sigma_constant(), per_param.enable_outlier_rejection(), perform_continuous, &total_time, &dit_time, &MSD_time);
+    MSD_plane_profile(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, d_MSD_workarea, true, (t_nTimesamples>>1), t_nDMs_per_batch, h_boxcar_widths, 0, 0, 0, per_param.sigma_constant(), per_param.enable_msd_baseline_noise(), perform_continuous, &total_time, &dit_time, &MSD_time);
     printf("    MSD time: Total: %f ms; DIT: %f ms; MSD: %f ms;\n", total_time, dit_time, MSD_time);
 #endif
 	
@@ -907,7 +907,7 @@ namespace astroaccelerate {
 
 
   /** \brief Function that performs a GPU periodicity search. */
-  void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float sigma_cutoff, float ***output_buffer, int const*const ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp, int nHarmonics, bool candidate_algorithm, bool enable_outlier_rejection, float OR_sigma_multiplier) {
+  void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float sigma_cutoff, float ***output_buffer, int const*const ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp, int nHarmonics, bool candidate_algorithm, bool enable_msd_baseline_noise, float OR_sigma_multiplier) {
     // processed = maximum number of time-samples through out all ranges
     // nTimesamples = number of time-samples in given range 'i'
     // TODO:
@@ -921,7 +921,7 @@ namespace astroaccelerate {
     printf("\n");
     printf("------------ STARTING PERIODICITY SEARCH ------------\n\n");
     // Creating periodicity parameters object (temporary, it should be moved elsewhere)
-    aa_periodicity_plan per_param_plan(sigma_cutoff, OR_sigma_multiplier, nHarmonics, 0, candidate_algorithm, enable_outlier_rejection); // \warning The periodicity plan uses a hardcoded number (this also used to be the case for the (now deprecated) Periodicity_parameters class.
+    aa_periodicity_plan per_param_plan(sigma_cutoff, OR_sigma_multiplier, nHarmonics, 0, candidate_algorithm, enable_msd_baseline_noise); // \warning The periodicity plan uses a hardcoded number (this also used to be the case for the (now deprecated) Periodicity_parameters class.
     aa_periodicity_strategy per_param(per_param_plan);
     per_param.print_parameters();	
 	

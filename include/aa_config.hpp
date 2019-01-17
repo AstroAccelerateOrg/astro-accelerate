@@ -8,6 +8,7 @@
 #include <wordexp.h>
 #include <algorithm>
 
+#include "aa_params.hpp"
 #include "aa_ddtr_plan.hpp"
 #include "aa_pipeline.hpp"
 #include "aa_permitted_pipelines.hpp"
@@ -47,6 +48,7 @@ namespace astroaccelerate {
     int nb_selected_dm;             /**< Incremented to be the total number of user selected dm ranges. Looks like a legacy duplicate of range. */
     int failsafe;                   /**< Flag to select the failsafe algorithm for dedispersion. */
     int periodicity_nHarmonics;     /**< Number of harmonics setting for periodicity. */
+    int selected_card_id;           /**< Selected card id on this machine. */
   
     std::vector<aa_pipeline::debug> user_debug; /**< std::vector of debug flags. */
   };
@@ -69,18 +71,20 @@ namespace astroaccelerate {
      * \details This must at least contain the full path to an input file.
      * \details If using AstroAccelerate as a library user, then use the other constructor of the aa_config class.
      */
-    aa_config(const aa_command_line_arguments &cli_input) : configure_from_file(true), user_cli(cli_input), flg({0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_pipeline::debug>()}) {
+    aa_config(const aa_command_line_arguments &cli_input) : configure_from_file(true), user_cli(cli_input), flg({0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_pipeline::debug>()}) {
       flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
       flg.periodicity_nHarmonics = 32;
+      flg.selected_card_id = CARD;
     }
     
     /** \brief Constructor for aa_config to configure via a user requested aa_pipeline::pipeline object.
      * \details The aa_pipeline::pipeline object contains the user requested pipeline component to be run.
      * \details Use this constructor when using AstroAccelerate as a library user.
      */
-    aa_config(aa_pipeline::pipeline &user_pipeline) : configure_from_file(false), m_pipeline(user_pipeline), flg({0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_pipeline::debug>()}) {
+    aa_config(aa_pipeline::pipeline &user_pipeline) : configure_from_file(false), m_pipeline(user_pipeline), flg({0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_pipeline::debug>()}) {
       flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
       flg.periodicity_nHarmonics = 32;
+      flg.selected_card_id = CARD;
     }
 
     /** \brief Overloaded function that simplifies the setup method.
@@ -230,7 +234,7 @@ namespace astroaccelerate {
 	    flg.candidate_algorithm = 1;
 	  }
 	  if (strcmp(string, "baselinenoise") == 0)
-	    m_pipeline_options.insert(aa_pipeline::component_option::sps_baseline_noise);
+	    m_pipeline_options.insert(aa_pipeline::component_option::msd_baseline_noise);
 	  if (strcmp(string, "fdas_custom_fft") == 0)
 	    m_pipeline_options.insert(aa_pipeline::component_option::fdas_custom_fft);
 	  if (strcmp(string, "fdas_inbin") == 0)
@@ -345,6 +349,14 @@ namespace astroaccelerate {
 		  return false;
 		}
 	      m_ddtr_plan.set_power(flg.power);
+	    }
+	  if(strcmp(string, "selected_card_id") == 0)
+	    {
+	      if(fscanf(fp_in, "%d", &flg.selected_card_id) == 0)
+		{
+		  fprintf(stderr, "failed to read input\n");
+		  return false;
+		}
 	    }
 	  if (strcmp(string, "file") == 0) {
 	    // This command expands "~" to "home/username/"

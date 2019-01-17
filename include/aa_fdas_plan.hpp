@@ -25,12 +25,12 @@ namespace astroaccelerate {
      */
     aa_fdas_plan(const float &sigma_cutoff,
 		 const float &sigma_constant,
-		 const int &num_boots,
-		 const int &num_trial_bins,
-		 const int &navdms,
+		 const int   &num_boots,
+		 const int   &num_trial_bins,
+		 const int   &navdms,
 		 const float &narrow,
 		 const float &wide,
-		 const int &nsearch,
+		 const int   &nsearch,
 		 const float &aggression) : m_sigma_cutoff(sigma_cutoff),
 					    m_sigma_constant(sigma_constant),
 					    m_narrow(narrow),
@@ -87,6 +87,7 @@ namespace astroaccelerate {
     int nsearch() const {
       return m_nsearch;
     }
+
   private:
     float m_sigma_cutoff; /**< User selected sigma_cutoff. */
     float m_sigma_constant; /**< User selected sigma_constant. */

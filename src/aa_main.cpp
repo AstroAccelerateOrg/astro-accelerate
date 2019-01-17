@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
 
   aa_ddtr_plan ddtr_plan;
   std::string file_path;
-  aa_config_flags user_flags = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_pipeline::debug>()};
+  aa_config_flags user_flags = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_pipeline::debug>()};
   aa_pipeline::pipeline_option pipeline_options;
   aa_pipeline::pipeline pipeline = cli_configuration.setup(ddtr_plan, user_flags, pipeline_options, file_path);
 
@@ -63,10 +63,10 @@ int main(int argc, char *argv[]) {
     LOG(log_level::error, "Could not find any devices.");
   }
   
-  aa_device_info::CARD_ID selected_card = CARD;
+  aa_device_info::CARD_ID selected_card = user_flags.selected_card_id;
   aa_device_info::aa_card_info selected_card_info;
   if(device_info.init_card(selected_card, selected_card_info)) {
-    LOG(log_level::notice, "init_card complete.");
+    LOG(log_level::notice, "init_card complete. Selected card " + std::to_string(selected_card) + ".");
   }
   else {
     LOG(log_level::error, "init_card incomplete.")
@@ -93,9 +93,9 @@ int main(int argc, char *argv[]) {
     candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::on;
   }
 
-  bool sps_baseline_noise = false;
-  if(pipeline_options.find(aa_pipeline::component_option::sps_baseline_noise) != pipeline_options.end()) {
-    sps_baseline_noise = true;
+  bool msd_baseline_noise = false;
+  if(pipeline_options.find(aa_pipeline::component_option::msd_baseline_noise) != pipeline_options.end()) {
+    msd_baseline_noise = true;
   }
 
   if(pipeline.find(aa_pipeline::component::analysis) != pipeline.end()) {
@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
 				   user_flags.sigma_constant,
 				   user_flags.max_boxcar_width_in_sec,
 				   candidate_algorithm,
-				   sps_baseline_noise);
+				   msd_baseline_noise);
     if(pipeline_manager.bind(analysis_plan)) {
       LOG(log_level::notice, "analysis_plan bound successfully.");
     }
@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
 					 user_flags.periodicity_nHarmonics,
 					 user_flags.power,
 					 user_flags.candidate_algorithm,
-					 sps_baseline_noise);
+					 msd_baseline_noise);
     
     pipeline_manager.bind(periodicity_plan);
   }

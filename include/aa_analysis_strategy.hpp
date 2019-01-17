@@ -33,7 +33,7 @@ namespace astroaccelerate {
 			     m_MSD_profile_size_in_bytes(0),
 			     m_h_MSD_DIT_width(0),
 			     m_candidate_algorithm(aa_analysis_plan::selectable_candidate_algorithm::off),
-			     m_enable_sps_baseline_noise(0),
+			     m_enable_msd_baseline_noise(0),
 			     m_ready(false) {
       
     }
@@ -53,7 +53,7 @@ namespace astroaccelerate {
 													  m_MSD_profile_size_in_bytes(0),
 													  m_h_MSD_DIT_width(0),
 													  m_candidate_algorithm(analysis_plan.candidate_algorithm()),
-													  m_enable_sps_baseline_noise(analysis_plan.enable_sps_baseline_noise()),
+													  m_enable_msd_baseline_noise(analysis_plan.enable_msd_baseline_noise()),
 													  m_ready(false) {
     }
 
@@ -70,7 +70,7 @@ namespace astroaccelerate {
 								  m_MSD_profile_size_in_bytes(0),
 								  m_h_MSD_DIT_width(0),
 								  m_candidate_algorithm(analysis_plan.candidate_algorithm()),
-								  m_enable_sps_baseline_noise(analysis_plan.enable_sps_baseline_noise()),
+								  m_enable_msd_baseline_noise(analysis_plan.enable_msd_baseline_noise()),
 								  m_ready(false) {
       if(analysis_plan.ddtr_strategy().configured_for_analysis()) {
 	stratagy_MSD(analysis_plan.ddtr_strategy().max_ndms(),
@@ -133,9 +133,9 @@ namespace astroaccelerate {
       return 0;
     }
 
-    /** \returns an integer to indicate whether the sps baseline noise reduction algorithm will be enabled or disabled. 0 for off (false), 1 for on (true). */
-    int enable_sps_baseline_noise() const {
-      return (m_enable_sps_baseline_noise) ? 1 : 0;
+    /** \returns an integer to indicate whether the msd baseline noise reduction algorithm will be enabled or disabled. 0 for off (false), 1 for on (true). */
+    int enable_msd_baseline_noise() const {
+      return (m_enable_msd_baseline_noise) ? 1 : 0;
     }
 
     /** \returns The boolean ready state of the strategy, which confirms whether the strategy is valid. */
@@ -161,7 +161,7 @@ namespace astroaccelerate {
       LOG(log_level::dev_debug, "analysis MSD_profile_size_in_bytes:\t" + std::to_string(strategy.MSD_profile_size_in_bytes()));
       LOG(log_level::dev_debug, "analysis h_MSD_DIT_width:\t\t" + std::to_string(strategy.h_MSD_DIT_width()));
       LOG(log_level::dev_debug, "analysis candidate_algorithm:\t\t" + (strategy.candidate_algorithm() ? std::string("on") : std::string("off")));
-      LOG(log_level::dev_debug, "analysis sps_baseline_noise:\t\t" + (strategy.enable_sps_baseline_noise() ? std::string("true") : std::string("false")));
+      LOG(log_level::dev_debug, "analysis msd_baseline_noise:\t\t" + (strategy.enable_msd_baseline_noise() ? std::string("true") : std::string("false")));
       return true;
     }
     
@@ -174,7 +174,7 @@ namespace astroaccelerate {
     size_t            m_MSD_profile_size_in_bytes; /**< Strategy determined MSD_profile_size_in_bytes. */
     int               m_h_MSD_DIT_width; /**< Strategy determined h_MSD_DIT_width. */
     aa_analysis_plan::selectable_candidate_algorithm m_candidate_algorithm; /**< Flag for selecting candidate algorithm (currently on/off). */
-    bool              m_enable_sps_baseline_noise; /**< Flag for enabling/disabling sps_baseline_noise reduction algorithm. */
+    bool              m_enable_msd_baseline_noise; /**< Flag for enabling/disabling msd_baseline_noise reduction algorithm. */
     bool              m_ready; /**< Ready state for an instance of aa_analysis_strategy. */
     
     void Create_list_of_boxcar_widths2(std::vector<int> *boxcar_widths, std::vector<int> *BC_widths){

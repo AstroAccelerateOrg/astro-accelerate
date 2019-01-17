@@ -23,9 +23,9 @@ namespace astroaccelerate {
 					 const float &sigma_constant,
 					 const float &max_boxcar_width_in_sec,
 					 const bool &enable_candidate_algorithm,
-					 const bool &enable_sps_baseline_noise_algorithm) {
+					 const bool &enable_msd_baseline_noise_algorithm) {
     std::vector<aa_pipeline::component> selected_components = {aa_pipeline::component::dedispersion, aa_pipeline::component::analysis};
-    aa_pipeline_generic(selected_components, pipeline_options, filterbank_data, dm_ranges, input_data, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, enable_candidate_algorithm, enable_sps_baseline_noise_algorithm);
+    aa_pipeline_generic(selected_components, pipeline_options, filterbank_data, dm_ranges, input_data, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, enable_candidate_algorithm, enable_msd_baseline_noise_algorithm);
   }
 
   /** \brief Function that performs dedispersion and analysis, and uses a std::vector to input data. */
@@ -37,9 +37,9 @@ namespace astroaccelerate {
 					 const float &sigma_constant,
 					 const float &max_boxcar_width_in_sec,
 					 const bool &enable_candidate_algorithm,
-					 const bool &enable_sps_baseline_noise_algorithm) {
+					 const bool &enable_msd_baseline_noise_algorithm) {
     // This overloaded function uses a std::vector<unsigned short> and calls the function version using a raw pointer to the data.
-    dedisperse_analyse_telescope_data(filterbank_data, pipeline_options, dm_ranges, input_data.data(), sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, enable_candidate_algorithm, enable_sps_baseline_noise_algorithm);
+    dedisperse_analyse_telescope_data(filterbank_data, pipeline_options, dm_ranges, input_data.data(), sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, enable_candidate_algorithm, enable_msd_baseline_noise_algorithm);
   }
 
 } //namespace astroaccelerate

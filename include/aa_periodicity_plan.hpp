@@ -22,7 +22,7 @@ namespace astroaccelerate {
 			    m_nHarmonics(0),
 			    m_export_powers(0),
 			    m_candidate_algorithm(false),
-			    m_enable_outlier_rejection(false) {
+			    m_enable_msd_baseline_noise(false) {
       
     }
     
@@ -32,12 +32,12 @@ namespace astroaccelerate {
 			const int   &nHarmonics,
 			const int   &export_powers,
 			const bool  &candidate_algorithm,
-			const bool  &enable_outlier_rejection) : m_sigma_cutoff(sigma_cutoff),
-								 m_sigma_constant(sigma_constant),
-								 m_nHarmonics(nHarmonics),
-								 m_export_powers(export_powers),
-								 m_candidate_algorithm(candidate_algorithm),
-								 m_enable_outlier_rejection(enable_outlier_rejection) {
+			const bool  &enable_msd_baseline_noise) : m_sigma_cutoff(sigma_cutoff),
+								  m_sigma_constant(sigma_constant),
+								  m_nHarmonics(nHarmonics),
+								  m_export_powers(export_powers),
+								  m_candidate_algorithm(candidate_algorithm),
+								  m_enable_msd_baseline_noise(enable_msd_baseline_noise) {
       
     }
     
@@ -66,9 +66,9 @@ namespace astroaccelerate {
       return m_candidate_algorithm;
     }
     
-    /** \returns A boolean flag to indicate whether the outlier rejection is selected. True indicates that it is, false indicates that it is not. */
-    bool enable_outlier_rejection() const {
-      return m_enable_outlier_rejection;
+    /** \returns A boolean indicating whether the msd_baseline_noise algorithm will be enabled, for an instance of aa_periodicity_strategy. */
+    bool enable_msd_baseline_noise() const {
+      return m_enable_msd_baseline_noise;
     }
     
   private:
@@ -77,7 +77,7 @@ namespace astroaccelerate {
     int   m_nHarmonics; /** User selected nHarmonics. */
     int   m_export_powers; /** User selected export_powers. */
     bool  m_candidate_algorithm; /** User selected flag to enable or disable the use of the candidate_algorithm. */
-    bool  m_enable_outlier_rejection; /** User selected flag to enable or disable outlier rejection. */
+    bool  m_enable_msd_baseline_noise; /** User selected flag to enable or disable msd baseline noise. */
   };
 } // namespace astroaccelerate
 

@@ -26,7 +26,7 @@ namespace astroaccelerate {
 				m_nHarmonics(0),
 				m_export_powers(0),
 				m_candidate_algorithm(false),
-				m_enable_outlier_rejection(false),
+				m_enable_msd_baseline_noise(false),
 				m_ready(false) {
       
     }
@@ -37,7 +37,7 @@ namespace astroaccelerate {
 							       m_nHarmonics(plan.nHarmonics()),
 							       m_export_powers(plan.export_powers()),
 							       m_candidate_algorithm(plan.candidate_algorithm()),
-							       m_enable_outlier_rejection(plan.enable_outlier_rejection()),
+							       m_enable_msd_baseline_noise(plan.enable_msd_baseline_noise()),
 							       m_ready(false) {
       /** Parse user input, if the user input is not valid, then the ready state will not become true. */
       if((m_nHarmonics > 0) && (m_sigma_constant > 0) && (m_export_powers >= 0)) {
@@ -79,11 +79,11 @@ namespace astroaccelerate {
       return m_candidate_algorithm;
     }
   
-    /** \returns The strategy determined outlier rejection flag. */
-    bool enable_outlier_rejection() const {
-      return m_enable_outlier_rejection;
+    /** \returns an integer to indicate whether the msd baseline noise reduction algorithm will be enabled or disabled. 0 for off (false), 1 for on (true). */
+    int enable_msd_baseline_noise() const {
+      return (m_enable_msd_baseline_noise) ? 1 : 0;
     }
-
+    
     /** \returns The ready state of the instance of the class. */
     bool ready() const {
       return m_ready;
@@ -103,7 +103,7 @@ namespace astroaccelerate {
       printf("Periodicity - nHarmonics %d\n", m_nHarmonics);
       printf("Periodicity - export_powers %d\n", m_export_powers);
       printf("Periodicity - candidate_algorithm %d\n", m_candidate_algorithm);
-      printf("Periodicity - enable_outlier_rejection %d\n", m_enable_outlier_rejection);
+      printf("Periodicity - enable_msd_baseline_noise %d\n", m_enable_msd_baseline_noise);
       return true;
     }
 
@@ -115,7 +115,7 @@ namespace astroaccelerate {
       LOG(log_level::dev_debug, "periodicity nHarmonics:\t\t\t" + std::to_string(strategy.nHarmonics()));
       LOG(log_level::dev_debug, "periodicity export_powers:\t\t" + std::to_string(strategy.export_powers()));
       LOG(log_level::dev_debug, "periodicity candidate_algorithm:\t\t" + (strategy.candidate_algorithm() ? std::string("true") : std::string("false")));
-      LOG(log_level::dev_debug, "periodicity enable_outlier_rejection:\t" + (strategy.enable_outlier_rejection() ? std::string("true") : std::string("false")));
+      LOG(log_level::dev_debug, "periodicity enable_msd_baseline_noise:\t" + (strategy.enable_msd_baseline_noise() ? std::string("true") : std::string("false")));
       return true;
     }
     
@@ -125,7 +125,7 @@ namespace astroaccelerate {
     int   m_nHarmonics; /** Strategy determined nHarmonics. */
     int   m_export_powers; /** Strategy determined export_powers. */
     bool  m_candidate_algorithm; /** Strategy determined candidate algorithm flag. */
-    bool  m_enable_outlier_rejection; /** Strategy determined outlier rejection flag. */
+    bool  m_enable_msd_baseline_noise; /** Strategy determined msd baseline noise flag. */
 
     bool m_ready; /** Ready state of the instance. */
   };

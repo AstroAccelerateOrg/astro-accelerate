@@ -20,7 +20,15 @@ namespace astroaccelerate {
   class aa_fdas_strategy : public aa_strategy {
   public:
     /** Trivial constructor for aa_fdas_strategy. */
-    aa_fdas_strategy() : m_sigma_cutoff(0.0), m_ready(false) {
+    aa_fdas_strategy() : m_sigma_cutoff(0.0),
+			 m_sigma_constant(0.0),
+			 m_narrow(0.0),
+			 m_wide(0.0),
+			 m_aggression(0.0),
+			 m_num_boots(0),
+			 m_num_trial_bins(0),
+			 m_navdms(0),
+			 m_ready(false) {
       
     }
     
@@ -130,7 +138,7 @@ namespace astroaccelerate {
     int	  m_num_boots; /** The strategy determined num_boots setting. */
     int	  m_num_trial_bins; /** The strategy determined num_trial_bins setting. */
     int	  m_navdms; /** The strategy determined navdms setting. */
-
+    
     bool m_ready; /** The ready state of the instance of the fdas_strategy. */
   };
 
