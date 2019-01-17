@@ -53,13 +53,11 @@ or that the [CUDA toolkit](https://developer.nvidia.com/cuda-zone) is not proper
 
 Selecting the Graphics Processing Unit (GPU) in the case of a system with more than one GPU
 ===
-If you have a multi-GPU system, you need to modify two files to use one specific card.
+If you have a multi-GPU system, you need can select the card by setting it in the input_file. The setting to add to the input_file is
 
-1. Edit `include/params.h`, so that the `CARD` variable is set to the right card number id:
-    #define CARD ... 
-2. Edit the Makefile and set the `GENCODE_FLAG` to the correct architecture. For example:
-    GENCODE_FLAGS := $(GENCODE_SM61)
-    Where `GENCODE_SM61` corresponds ot the Pascal architecture.
+   selected_card_id X
+
+where `X` is a non-negative integer number which corresponds to the ID number of the GPU on your machine.
 
 Software Pre-Requisites
 ===
