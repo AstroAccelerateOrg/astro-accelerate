@@ -127,6 +127,7 @@ int main(int argc, char *argv[]) {
 
   if(pipeline.find(aa_pipeline::component::fdas) != pipeline.end()) {
     aa_fdas_plan fdas_plan(user_flags.sigma_cutoff,
+			   user_flags.sigma_constant,
 			   user_flags.nboots,
 			   user_flags.ntrial_bins,
 			   user_flags.navdms,

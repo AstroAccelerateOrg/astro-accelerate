@@ -24,6 +24,7 @@ namespace astroaccelerate {
      * Constructor for aa_fdas_plan that initialises all member variables.
      */
     aa_fdas_plan(const float &sigma_cutoff,
+		 const float &sigma_constant,
 		 const int &num_boots,
 		 const int &num_trial_bins,
 		 const int &navdms,
@@ -31,6 +32,7 @@ namespace astroaccelerate {
 		 const float &wide,
 		 const int &nsearch,
 		 const float &aggression) : m_sigma_cutoff(sigma_cutoff),
+					    m_sigma_constant(sigma_constant),
 					    m_narrow(narrow),
 					    m_wide(wide),
 					    m_aggression(aggression),
@@ -44,6 +46,11 @@ namespace astroaccelerate {
     /** \returns User selected sigma_cutoff. */
     float sigma_cutoff() const {
       return m_sigma_cutoff;
+    }
+
+    /** \returns User selected sigma_constant. */
+    float sigma_constant() const {
+      return m_sigma_constant;
     }
 
     /** \returns User selected narrow setting. */
@@ -82,6 +89,7 @@ namespace astroaccelerate {
     }
   private:
     float m_sigma_cutoff; /**< User selected sigma_cutoff. */
+    float m_sigma_constant; /**< User selected sigma_constant. */
     float m_narrow; /**< User selected narrow setting. */
     float m_wide; /**< User selected wide setting. */
     float m_aggression; /**< User selected aggression setting. */
