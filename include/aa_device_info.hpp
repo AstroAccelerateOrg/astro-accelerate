@@ -180,6 +180,10 @@ namespace astroaccelerate {
     /** \returns The currently available free memory on the currently selected GPU as reported by the CUDA driver. */
     size_t gpu_memory() const {
       if(is_init) {
+	size_t free     = 0;
+	size_t total    = 0;
+	cudaMemGetInfo(&free, &total);
+	m_card_info.at(selected_card_idx).free_memory = free;
 	return m_card_info.at(selected_card_idx).free_memory;
       }
         
