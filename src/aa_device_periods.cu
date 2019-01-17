@@ -790,9 +790,9 @@ namespace astroaccelerate {
 #ifdef OLD_PERIODICITY
     if(per_param.enable_outlier_rejection()){
 #ifdef PS_REUSE_MSD_WITHIN_INBIN
-      MSD_outlier_rejection_grid(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, gmem->d_all_blocks, &batch->MSD_conf, per_param.OR_sigma_multiplier());
+      MSD_outlier_rejection_grid(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, gmem->d_all_blocks, &batch->MSD_conf, per_param.sigma_constant());
 #else
-      MSD_outlier_rejection(gmem->d_MSD, d_frequency_power, gmem->d_all_blocks, &batch->MSD_conf, per_param.OR_sigma_multiplier());
+      MSD_outlier_rejection(gmem->d_MSD, d_frequency_power, gmem->d_all_blocks, &batch->MSD_conf, per_param.sigma_constant());
 #endif
     }
     else {
@@ -804,7 +804,7 @@ namespace astroaccelerate {
     }
 #else
     double total_time, dit_time, MSD_time;
-    MSD_plane_profile(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, d_MSD_workarea, true, (t_nTimesamples>>1), t_nDMs_per_batch, h_boxcar_widths, 0, 0, 0, per_param.OR_sigma_multiplier(), per_param.enable_outlier_rejection(), perform_continuous, &total_time, &dit_time, &MSD_time);
+    MSD_plane_profile(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, d_MSD_workarea, true, (t_nTimesamples>>1), t_nDMs_per_batch, h_boxcar_widths, 0, 0, 0, per_param.sigma_constant(), per_param.enable_outlier_rejection(), perform_continuous, &total_time, &dit_time, &MSD_time);
     printf("    MSD time: Total: %f ms; DIT: %f ms; MSD: %f ms;\n", total_time, dit_time, MSD_time);
 #endif
 	

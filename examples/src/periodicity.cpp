@@ -65,13 +65,13 @@ int main() {
   }
   
   const float periodicity_sigma_cutoff = 0.0;
-  const float OR_sigma_multiplier = 0.0;
+  const float periodicity_sigma_constant = sigma_constant;
   const int   nHarmonics = 3;
   const int   export_powers = 0;
   const bool  candidate_algorithm = false;
   const bool  enable_outlier_rejection = false;
   
-  aa_periodicity_plan periodicity_plan(periodicity_sigma_cutoff, OR_sigma_multiplier, nHarmonics, export_powers, candidate_algorithm, enable_outlier_rejection);
+  aa_periodicity_plan periodicity_plan(periodicity_sigma_cutoff, periodicity_sigma_constant, nHarmonics, export_powers, candidate_algorithm, enable_outlier_rejection);
   aa_periodicity_strategy periodicity_strategy(periodicity_plan);
 
   if(!periodicity_strategy.ready()) {

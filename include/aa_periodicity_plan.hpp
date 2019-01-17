@@ -18,7 +18,7 @@ namespace astroaccelerate {
 
     /** \brief Trivial constructor for aa_periodicity_plan. */
     aa_periodicity_plan() : m_sigma_cutoff(0),
-			    m_OR_sigma_multiplier(0),
+			    m_sigma_constant(0),
 			    m_nHarmonics(0),
 			    m_export_powers(0),
 			    m_candidate_algorithm(false),
@@ -28,12 +28,12 @@ namespace astroaccelerate {
     
     /** \brief Constructor for aa_periodicity_plan that sets all member data on construction. */
     aa_periodicity_plan(const float &sigma_cutoff,
-			const float &OR_sigma_multiplier,
+			const float &sigma_constant,
 			const int   &nHarmonics,
 			const int   &export_powers,
 			const bool  &candidate_algorithm,
 			const bool  &enable_outlier_rejection) : m_sigma_cutoff(sigma_cutoff),
-								 m_OR_sigma_multiplier(OR_sigma_multiplier),
+								 m_sigma_constant(sigma_constant),
 								 m_nHarmonics(nHarmonics),
 								 m_export_powers(export_powers),
 								 m_candidate_algorithm(candidate_algorithm),
@@ -46,9 +46,9 @@ namespace astroaccelerate {
       return m_sigma_cutoff;
     }
 
-    /** \returns User selected OR_sigma_multiplier. */
-    float OR_sigma_multiplier() const {
-      return m_OR_sigma_multiplier;
+    /** \returns User selected sigma_constant. */
+    float sigma_constant() const {
+      return m_sigma_constant;
     }
 
     /** \returns User selected nHarmonics. */
@@ -73,7 +73,7 @@ namespace astroaccelerate {
     
   private:
     float m_sigma_cutoff; /** User selected sigma_cutoff. */
-    float m_OR_sigma_multiplier; /** User selected OR_sigma_multiplier. */
+    float m_sigma_constant; /** User selected sigma_constant. */
     int   m_nHarmonics; /** User selected nHarmonics. */
     int   m_export_powers; /** User selected export_powers. */
     bool  m_candidate_algorithm; /** User selected flag to enable or disable the use of the candidate_algorithm. */

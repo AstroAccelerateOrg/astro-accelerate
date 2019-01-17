@@ -115,9 +115,8 @@ int main(int argc, char *argv[]) {
   
   if(pipeline.find(aa_pipeline::component::periodicity) != pipeline.end()) {
     //If these settings come from the input_file, then move them into aa_config to be read from the file.
-    const float OR_sigma_multiplier = 1.0;              //Is this setting in the input_file? Is it the same one as for analysis? Rename to sigma_constant
     aa_periodicity_plan periodicity_plan(user_flags.sigma_cutoff,
-					 OR_sigma_multiplier,
+					 user_flags.sigma_constant,
 					 user_flags.periodicity_nHarmonics,
 					 user_flags.power,
 					 user_flags.candidate_algorithm,

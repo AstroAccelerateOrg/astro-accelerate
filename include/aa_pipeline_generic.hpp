@@ -30,7 +30,7 @@ namespace astroaccelerate {
 			   const bool  &analysis_enable_candidate_algorithm = false,
 			   const bool  &analysis_enable_sps_baseline_noise_algorithm = false,
 			   const float &periodicity_sigma_cutoff = 0.0,
-			   const float &periodicity_OR_sigma_multiplier = 0.0,
+			   const float &periodicity_sigma_constant = 0.0,
 			   const int   &periodicity_nHarmonics = 0.0,
 			   const int   &periodicity_export_powers = 0,
 			   const bool  &periodicity_candidate_algorithm = false,
@@ -129,7 +129,7 @@ namespace astroaccelerate {
     pipeline_manager.bind(analysis_plan);
 
     aa_periodicity_plan periodicity_plan(periodicity_sigma_cutoff,
-					 periodicity_OR_sigma_multiplier,
+					 periodicity_sigma_constant,
 					 periodicity_nHarmonics,
 					 periodicity_export_powers,
 					 periodicity_candidate_algorithm,
