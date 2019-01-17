@@ -79,6 +79,13 @@ int main(int argc, char *argv[]) {
 						   filterbank_metadata,
 						   filterbank_datafile.input_buffer().data(),
 						   selected_card_info);
+
+  bool msd_baseline_noise = false;
+  if(pipeline_options.find(aa_pipeline::component_option::msd_baseline_noise) != pipeline_options.end()) {
+    msd_baseline_noise = true;
+  }
+
+  ddtr_plan.set_enable_msd_baseline_noise(msd_baseline_noise);
   
   if(pipeline_manager.bind(ddtr_plan)) {
     LOG(log_level::notice, "ddtr_plan bound successfully.");
@@ -91,11 +98,6 @@ int main(int argc, char *argv[]) {
   aa_analysis_plan::selectable_candidate_algorithm candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::off;
   if(user_flags.candidate_algorithm) {
     candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::on;
-  }
-
-  bool msd_baseline_noise = false;
-  if(pipeline_options.find(aa_pipeline::component_option::msd_baseline_noise) != pipeline_options.end()) {
-    msd_baseline_noise = true;
   }
 
   if(pipeline.find(aa_pipeline::component::analysis) != pipeline.end()) {
