@@ -14,5 +14,5 @@ target_sources(${TEST_NAME}
 	       "include/aa_device_info.hpp"
 )
 target_link_libraries(${TEST_NAME} PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUFFT_LIBRARIES} ${CUDA_curand_LIBRARY} astroaccelerate)
-add_test(NAME ${TEST_NAME} COMMAND tests/${TEST_NAME} 8589934592)
+add_test(NAME ${TEST_NAME} COMMAND tests/${TEST_NAME} 6000000000)
 set_tests_properties(${TEST_NAME} PROPERTIES PASS_REGULAR_EXPRESSION "Runs")
