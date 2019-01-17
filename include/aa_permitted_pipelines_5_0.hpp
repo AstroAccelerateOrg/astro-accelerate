@@ -1,5 +1,5 @@
-#ifndef ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_5_HPP
-#define ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_5_HPP
+#ifndef ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_5_0_HPP
+#define ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_5_0_HPP
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -9,8 +9,8 @@
 #include "aa_pipeline.hpp"
 #include "aa_ddtr_strategy.hpp"
 #include "aa_ddtr_plan.hpp"
-#include "aa_analysis_plan.hpp"
-#include "aa_analysis_strategy.hpp"
+
+
 #include "aa_periodicity_strategy.hpp"
 #include "aa_fdas_strategy.hpp"
 
@@ -25,7 +25,7 @@
 
 #include "aa_gpu_timer.hpp"
 
-#include "aa_device_analysis.hpp"
+
 #include "aa_device_periods.hpp"
 #include "aa_device_acceleration_fdas.hpp"
 #include "aa_pipeline_runner.hpp"
@@ -35,30 +35,29 @@
 namespace astroaccelerate {
 
   /**
-   * \class aa_permitted_pipelines_5 aa_permitted_pipelines_5.hpp "include/aa_permitted_pipelines_5.hpp"
-   * \brief Templated class to run dedispersion and analysis and periodicity and acceleration.
+   * \class aa_permitted_pipelines_5_0 aa_permitted_pipelines_5_0.hpp "include/aa_permitted_pipelines_5_0.hpp"
+   * \brief Templated class to run dedispersion and periodicity and acceleration.
    * \details The class is templated over the zero_dm_type (aa_pipeline::component_option::zero_dm or aa_pipeline::component_option::zero_dm_with_outliers).
    * \author Cees Carels.
    * \date 3 December 2018.
    */
   
   template<aa_pipeline::component_option zero_dm_type, bool enable_old_rfi>
-  class aa_permitted_pipelines_5 : public aa_pipeline_runner {
+  class aa_permitted_pipelines_5_0 : public aa_pipeline_runner {
   public:
-    aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
-			     const aa_analysis_strategy &analysis_strategy,
-			     const aa_periodicity_strategy &periodicity_strategy,
-			     const aa_fdas_strategy &fdas_strategy,
-			     const bool &fdas_enable_custom_fft,
-			     const bool &fdas_enable_inbin,
-			     const bool &fdas_enable_norm,
-			     const bool &fdas_enable_output_ffdot_plan,
-			     const bool &fdas_enable_output_list,
-			     unsigned short const*const input_buffer) {
+    aa_permitted_pipelines_5_0(const aa_ddtr_strategy &ddtr_strategy,
+			       const aa_periodicity_strategy &periodicity_strategy,
+			       const aa_fdas_strategy &fdas_strategy,
+			       const bool &fdas_enable_custom_fft,
+			       const bool &fdas_enable_inbin,
+			       const bool &fdas_enable_norm,
+			       const bool &fdas_enable_output_ffdot_plan,
+			       const bool &fdas_enable_output_list,
+			       unsigned short const*const input_buffer) {
       
     }
     
-    ~aa_permitted_pipelines_5() {
+    ~aa_permitted_pipelines_5_0() {
       //Only call cleanup if memory had been allocated during setup,
       //and if the memory was not already cleaned up usingthe cleanup method.
       if(memory_allocated && !memory_cleanup) {
@@ -66,7 +65,7 @@ namespace astroaccelerate {
       }      
     }
 
-    aa_permitted_pipelines_5(const aa_permitted_pipelines_5 &) = delete;
+    aa_permitted_pipelines_5_0(const aa_permitted_pipelines_5_0 &) = delete;
     /** \brief Method to setup and allocate memory for the pipeline containers. */
     bool setup() override {
       if(!memory_allocated) {
@@ -94,9 +93,6 @@ namespace astroaccelerate {
       if(memory_allocated && !memory_cleanup) {
 	cudaFree(d_input);
 	cudaFree(d_output);
-	cudaFree(m_d_MSD_workarea);
-	cudaFree(m_d_MSD_output_taps);
-	cudaFree(m_d_MSD_interpolated);
 	
 	size_t t_processed_size = m_ddtr_strategy.t_processed().size();
 	for(size_t i = 0; i < t_processed_size; i++) {
@@ -112,7 +108,6 @@ namespace astroaccelerate {
     float              ***m_output_buffer;
     int                **t_processed;
     aa_ddtr_strategy        m_ddtr_strategy;
-    aa_analysis_strategy    m_analysis_strategy;
     aa_periodicity_strategy m_periodicity_strategy;
     aa_fdas_strategy        m_fdas_strategy;
     unsigned short     const*const m_input_buffer;
@@ -157,10 +152,6 @@ namespace astroaccelerate {
     int t;
     aa_gpu_timer       m_timer;
     
-    float  *m_d_MSD_workarea         = NULL;
-    float  *m_d_MSD_interpolated     = NULL;
-    ushort *m_d_MSD_output_taps      = NULL;
-    
     /** \brief Allocate the GPU memory needed for dedispersion. */
     void allocate_memory_gpu(const int &maxshift, const int &max_ndms, const int &nchans, int **const t_processed, unsigned short **const d_input, float **const d_output) {
 
@@ -182,17 +173,6 @@ namespace astroaccelerate {
       cudaMemset(*d_output, 0, gpu_outputsize);
     }
     
-        
-    /**
-     * \brief Allocate memory for MSD.
-     */
-    void allocate_memory_MSD(float **const d_MSD_workarea, unsigned short **const d_MSD_output_taps, float **const d_MSD_interpolated,
-			     const unsigned long int &MSD_maxtimesamples, const size_t &MSD_profile_size) {
-      checkCudaErrors(cudaMalloc((void **) d_MSD_workarea,        MSD_maxtimesamples*5.5*sizeof(float)));
-      checkCudaErrors(cudaMalloc((void **) &(*d_MSD_output_taps), sizeof(ushort)*2*MSD_maxtimesamples));
-      checkCudaErrors(cudaMalloc((void **) d_MSD_interpolated,    sizeof(float)*MSD_profile_size));
-    }
-
     /**
      * \brief Allocate a 3D array that is an output buffer that stores dedispersed array data.
      * \details This array is used by periodicity.
@@ -262,8 +242,6 @@ namespace astroaccelerate {
 
       //Allocate GPU memory for dedispersion
       allocate_memory_gpu(maxshift, max_ndms, nchans, t_processed, &d_input, &d_output);
-      //Allocate GPU memory for SPS (i.e. analysis)
-      allocate_memory_MSD(&m_d_MSD_workarea, &m_d_MSD_output_taps, &m_d_MSD_interpolated, m_analysis_strategy.MSD_data_info(), m_analysis_strategy.MSD_profile_size_in_bytes());
       //Allocate memory for CPU output for periodicity
       allocate_memory_cpu_output();
       
@@ -295,7 +273,6 @@ namespace astroaccelerate {
 
     /**
      * \brief Run the pipeline by processing the next time chunk of data.
-     * \details Process any flags for dumping output or providing it back to the user.
      * \details aa_permitted_pipelines_5 does not return intermediate data.
      * \details If this is required, then optional parameters can be passed as arguments which would contain periodicity and acceleration output.
      * \details Since it is the pipelines perogative to decide when periodicity and acceleration are run, the user is responsible for checking when these objects were actually modified by the pipeline.
@@ -305,7 +282,7 @@ namespace astroaccelerate {
      * \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
      */
     bool run_pipeline() {
-      printf("NOTICE: Pipeline start/resume run_pipeline_5.\n");
+      printf("NOTICE: Pipeline start/resume run_pipeline_5_0.\n");
       if(t >= num_tchunks) {
 	if(!periodicity_did_run) {
 	  return periodicity();
@@ -389,58 +366,6 @@ namespace astroaccelerate {
           save_data_offset(d_output, k * t_processed[dm_range][t], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
         }
 	
-	//Add analysis
-	unsigned int *h_peak_list_DM;
-	unsigned int *h_peak_list_TS;
-	float        *h_peak_list_SNR;
-	unsigned int *h_peak_list_BW;
-	size_t        max_peak_size;
-	size_t        peak_pos;
-	max_peak_size   = (size_t) ( ndms[dm_range]*t_processed[dm_range][t]/2 );
-	h_peak_list_DM  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
-	h_peak_list_TS  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
-	h_peak_list_SNR = (float*) malloc(max_peak_size*sizeof(float));
-	h_peak_list_BW  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
-	peak_pos=0;
-	const bool dump_to_disk	= false;
-	const bool dump_to_user	= true;
-	analysis_output output;
-	analysis_GPU(h_peak_list_DM,
-		     h_peak_list_TS,
-		     h_peak_list_SNR,
-		     h_peak_list_BW,
-		     &peak_pos,
-		     max_peak_size,
-		     dm_range,
-		     tstart_local,
-		     t_processed[dm_range][t],
-		     inBin[dm_range],
-		     &maxshift,
-		     max_ndms,
-		     ndms,
-		     m_analysis_strategy.sigma_cutoff(),
-		     m_analysis_strategy.sigma_constant(),
-		     m_analysis_strategy.max_boxcar_width_in_sec(),
-		     d_output,
-		     dm_low.data(),
-		     dm_high.data(),
-		     dm_step.data(),
-		     tsamp,
-		     m_analysis_strategy.candidate_algorithm(),
-		     m_d_MSD_workarea,
-		     m_d_MSD_output_taps,
-		     m_d_MSD_interpolated,
-		     m_analysis_strategy.MSD_data_info(),
-		     m_analysis_strategy.enable_msd_baseline_noise(),
-		     dump_to_disk,
-		     dump_to_user,
-		     output);
-	
-	free(h_peak_list_DM);
-	free(h_peak_list_TS);
-	free(h_peak_list_SNR);
-	free(h_peak_list_BW);
-	
 	oldBin = inBin[dm_range];
       }
       
@@ -451,7 +376,7 @@ namespace astroaccelerate {
       maxshift = maxshift_original;
 
       ++t;
-      printf("NOTICE: Pipeline ended run_pipeline_5 over chunk %d / %d.\n", t, num_tchunks);
+      printf("NOTICE: Pipeline ended run_pipeline_5_0 over chunk %d / %d.\n", t, num_tchunks);
       return true;
     }
 
@@ -545,188 +470,152 @@ namespace astroaccelerate {
     }
   };
 
-  template<> inline aa_permitted_pipelines_5<aa_pipeline::component_option::zero_dm, false>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
-														  const aa_analysis_strategy &analysis_strategy,
-														  const aa_periodicity_strategy &periodicity_strategy,
-														  const aa_fdas_strategy &fdas_strategy,
-														  const bool &fdas_enable_custom_fft,
-														  const bool &fdas_enable_inbin,
-														  const bool &fdas_enable_norm,
-														  const bool &fdas_enable_output_ffdot_plan,
-														  const bool &fdas_enable_output_list,
-														  unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																			     m_analysis_strategy(analysis_strategy),
-																			     m_periodicity_strategy(periodicity_strategy),
-																			     m_fdas_strategy(fdas_strategy),
-																			     m_input_buffer(input_buffer),
-																			     m_fdas_enable_custom_fft(fdas_enable_custom_fft),
-																			     m_fdas_enable_inbin(fdas_enable_inbin),
-																			     m_fdas_enable_norm(fdas_enable_norm),
-																			     m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
-																			     m_fdas_enable_output_list(fdas_enable_output_list),
-																			     memory_allocated(false),
-																			     memory_cleanup(false),
-																			     periodicity_did_run(false),
-																			     acceleration_did_run(false),
-																			     t(0),
-																			     m_d_MSD_workarea(NULL),
-																			     m_d_MSD_interpolated(NULL),
-																			     m_d_MSD_output_taps(NULL) {
-    
+  template<> inline aa_permitted_pipelines_5_0<aa_pipeline::component_option::zero_dm, false>::aa_permitted_pipelines_5_0(const aa_ddtr_strategy &ddtr_strategy,
+															  const aa_periodicity_strategy &periodicity_strategy,
+															  const aa_fdas_strategy &fdas_strategy,
+															  const bool &fdas_enable_custom_fft,
+															  const bool &fdas_enable_inbin,
+															  const bool &fdas_enable_norm,
+															  const bool &fdas_enable_output_ffdot_plan,
+															  const bool &fdas_enable_output_list,
+															  unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																				     m_periodicity_strategy(periodicity_strategy),
+																				     m_fdas_strategy(fdas_strategy),
+																				     m_input_buffer(input_buffer),
+																				     m_fdas_enable_custom_fft(fdas_enable_custom_fft),
+																				     m_fdas_enable_inbin(fdas_enable_inbin),
+																				     m_fdas_enable_norm(fdas_enable_norm),
+																				     m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
+																				     m_fdas_enable_output_list(fdas_enable_output_list),
+																				     memory_allocated(false),
+																				     memory_cleanup(false),
+																				     periodicity_did_run(false),
+																				     acceleration_did_run(false),
+																				     t(0) {
+  }
+  
+  template<> inline aa_permitted_pipelines_5_0<aa_pipeline::component_option::zero_dm, true>::aa_permitted_pipelines_5_0(const aa_ddtr_strategy &ddtr_strategy,
+															 const aa_periodicity_strategy &periodicity_strategy,
+															 const aa_fdas_strategy &fdas_strategy,
+															 const bool &fdas_enable_custom_fft,
+															 const bool &fdas_enable_inbin,
+															 const bool &fdas_enable_norm,
+															 const bool &fdas_enable_output_ffdot_plan,
+															 const bool &fdas_enable_output_list,
+															 unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																				    m_periodicity_strategy(periodicity_strategy),
+																				    m_fdas_strategy(fdas_strategy),
+																				    m_input_buffer(input_buffer),
+																				    m_fdas_enable_custom_fft(fdas_enable_custom_fft),
+																				    m_fdas_enable_inbin(fdas_enable_inbin),
+																				    m_fdas_enable_norm(fdas_enable_norm),
+																				    m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
+																				    m_fdas_enable_output_list(fdas_enable_output_list),
+																				    memory_allocated(false),
+																				    memory_cleanup(false),
+																				    periodicity_did_run(false),
+																				    acceleration_did_run(false),
+																				    t(0) {
     
   }
   
-  template<> inline aa_permitted_pipelines_5<aa_pipeline::component_option::zero_dm, true>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
-														 const aa_analysis_strategy &analysis_strategy,
-														 const aa_periodicity_strategy &periodicity_strategy,
-														 const aa_fdas_strategy &fdas_strategy,
-														 const bool &fdas_enable_custom_fft,
-														 const bool &fdas_enable_inbin,
-														 const bool &fdas_enable_norm,
-														 const bool &fdas_enable_output_ffdot_plan,
-														 const bool &fdas_enable_output_list,
-														 unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																			    m_analysis_strategy(analysis_strategy),
-																			    m_periodicity_strategy(periodicity_strategy),
-																			    m_fdas_strategy(fdas_strategy),
-																			    m_input_buffer(input_buffer),
-																			    m_fdas_enable_custom_fft(fdas_enable_custom_fft),
-																			    m_fdas_enable_inbin(fdas_enable_inbin),
-																			    m_fdas_enable_norm(fdas_enable_norm),
-																			    m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
-																			    m_fdas_enable_output_list(fdas_enable_output_list),
-																			    memory_allocated(false),
-																			    memory_cleanup(false),
-																			    periodicity_did_run(false),
-																			    acceleration_did_run(false),
-																			    t(0),
-																			    m_d_MSD_workarea(NULL),
-																			    m_d_MSD_interpolated(NULL),
-																			    m_d_MSD_output_taps(NULL) {
+  template<> inline aa_permitted_pipelines_5_0<aa_pipeline::component_option::zero_dm_with_outliers, false>::aa_permitted_pipelines_5_0(const aa_ddtr_strategy &ddtr_strategy,
+																	const aa_periodicity_strategy &periodicity_strategy,
+																	const aa_fdas_strategy &fdas_strategy,
+																	const bool &fdas_enable_custom_fft,
+																	const bool &fdas_enable_inbin,
+																	const bool &fdas_enable_norm,
+																	const bool &fdas_enable_output_ffdot_plan,
+																	const bool &fdas_enable_output_list,
+																	unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																						   m_periodicity_strategy(periodicity_strategy),
+																						   m_fdas_strategy(fdas_strategy),
+																						   m_input_buffer(input_buffer),
+																						   m_fdas_enable_custom_fft(fdas_enable_custom_fft),
+																						   m_fdas_enable_inbin(fdas_enable_inbin),
+																						   m_fdas_enable_norm(fdas_enable_norm),
+																						   m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
+																						   m_fdas_enable_output_list(fdas_enable_output_list),
+																						   memory_allocated(false),
+																						   memory_cleanup(false),
+																						   periodicity_did_run(false),
+																						   acceleration_did_run(false),
+																						   t(0) {
     
   }
   
-  template<> inline aa_permitted_pipelines_5<aa_pipeline::component_option::zero_dm_with_outliers, false>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
-																const aa_analysis_strategy &analysis_strategy,
-																const aa_periodicity_strategy &periodicity_strategy,
-																const aa_fdas_strategy &fdas_strategy,
-																const bool &fdas_enable_custom_fft,
-																const bool &fdas_enable_inbin,
-																const bool &fdas_enable_norm,
-																const bool &fdas_enable_output_ffdot_plan,
-																const bool &fdas_enable_output_list,
-																unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																					   m_analysis_strategy(analysis_strategy),
-																					   m_periodicity_strategy(periodicity_strategy),
-																					   m_fdas_strategy(fdas_strategy),
-																					   m_input_buffer(input_buffer),
-																					   m_fdas_enable_custom_fft(fdas_enable_custom_fft),
-																					   m_fdas_enable_inbin(fdas_enable_inbin),
-																					   m_fdas_enable_norm(fdas_enable_norm),
-																					   m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
-																					   m_fdas_enable_output_list(fdas_enable_output_list),
-																					   memory_allocated(false),
-																					   memory_cleanup(false),
-																					   periodicity_did_run(false),
-																					   acceleration_did_run(false),
-																					   t(0),
-																					   m_d_MSD_workarea(NULL),
-																					   m_d_MSD_interpolated(NULL),
-																					   m_d_MSD_output_taps(NULL) {
-    
-    
-  }
-  
-  template<> inline aa_permitted_pipelines_5<aa_pipeline::component_option::zero_dm_with_outliers, true>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
-															       const aa_analysis_strategy &analysis_strategy,
-															       const aa_periodicity_strategy &periodicity_strategy,
-															       const aa_fdas_strategy &fdas_strategy,
-															       const bool &fdas_enable_custom_fft,
-															       const bool &fdas_enable_inbin,
-															       const bool &fdas_enable_norm,
-															       const bool &fdas_enable_output_ffdot_plan,
-															       const bool &fdas_enable_output_list,
-															       unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																					  m_analysis_strategy(analysis_strategy),
-																					  m_periodicity_strategy(periodicity_strategy),
-																					  m_fdas_strategy(fdas_strategy),
-																					  m_input_buffer(input_buffer),
-																					  m_fdas_enable_custom_fft(fdas_enable_custom_fft),
-																					  m_fdas_enable_inbin(fdas_enable_inbin),
-																					  m_fdas_enable_norm(fdas_enable_norm),
-																					  m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
-																					  m_fdas_enable_output_list(fdas_enable_output_list),
-																					  memory_allocated(false),
-																					  memory_cleanup(false),
-																					  periodicity_did_run(false),
-																					  acceleration_did_run(false),
-																					  t(0),
-																					  m_d_MSD_workarea(NULL),
-																					  m_d_MSD_interpolated(NULL),
-																					  m_d_MSD_output_taps(NULL) {
-    
+  template<> inline aa_permitted_pipelines_5_0<aa_pipeline::component_option::zero_dm_with_outliers, true>::aa_permitted_pipelines_5_0(const aa_ddtr_strategy &ddtr_strategy,
+																       const aa_periodicity_strategy &periodicity_strategy,
+																       const aa_fdas_strategy &fdas_strategy,
+																       const bool &fdas_enable_custom_fft,
+																       const bool &fdas_enable_inbin,
+																       const bool &fdas_enable_norm,
+																       const bool &fdas_enable_output_ffdot_plan,
+																       const bool &fdas_enable_output_list,
+																       unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																						  m_periodicity_strategy(periodicity_strategy),
+																						  m_fdas_strategy(fdas_strategy),
+																						  m_input_buffer(input_buffer),
+																						  m_fdas_enable_custom_fft(fdas_enable_custom_fft),
+																						  m_fdas_enable_inbin(fdas_enable_inbin),
+																						  m_fdas_enable_norm(fdas_enable_norm),
+																						  m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
+																						  m_fdas_enable_output_list(fdas_enable_output_list),
+																						  memory_allocated(false),
+																						  memory_cleanup(false),
+																						  periodicity_did_run(false),
+																						  acceleration_did_run(false),
+																						  t(0) {
   }
 
-  template<> inline aa_permitted_pipelines_5<aa_pipeline::component_option::empty, true>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
-													       const aa_analysis_strategy &analysis_strategy,
-													       const aa_periodicity_strategy &periodicity_strategy,
-													       const aa_fdas_strategy &fdas_strategy,
-													       const bool &fdas_enable_custom_fft,
-													       const bool &fdas_enable_inbin,
-													       const bool &fdas_enable_norm,
-													       const bool &fdas_enable_output_ffdot_plan,
-													       const bool &fdas_enable_output_list,
-													       unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																			  m_analysis_strategy(analysis_strategy),
-																			  m_periodicity_strategy(periodicity_strategy),
-																			  m_fdas_strategy(fdas_strategy),
-																			  m_input_buffer(input_buffer),
-																			  m_fdas_enable_custom_fft(fdas_enable_custom_fft),
-																			  m_fdas_enable_inbin(fdas_enable_inbin),
-																			  m_fdas_enable_norm(fdas_enable_norm),
-																			  m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
-																			  m_fdas_enable_output_list(fdas_enable_output_list),
-																			  memory_allocated(false),
-																			  memory_cleanup(false),
-																			  periodicity_did_run(false),
-																			  acceleration_did_run(false),
-																			  t(0),
-																			  m_d_MSD_workarea(NULL),
-																			  m_d_MSD_interpolated(NULL),
-																			  m_d_MSD_output_taps(NULL) {
-    
+  template<> inline aa_permitted_pipelines_5_0<aa_pipeline::component_option::empty, true>::aa_permitted_pipelines_5_0(const aa_ddtr_strategy &ddtr_strategy,
+														       const aa_periodicity_strategy &periodicity_strategy,
+														       const aa_fdas_strategy &fdas_strategy,
+														       const bool &fdas_enable_custom_fft,
+														       const bool &fdas_enable_inbin,
+														       const bool &fdas_enable_norm,
+														       const bool &fdas_enable_output_ffdot_plan,
+														       const bool &fdas_enable_output_list,
+														       unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																				  m_periodicity_strategy(periodicity_strategy),
+																				  m_fdas_strategy(fdas_strategy),
+																				  m_input_buffer(input_buffer),
+																				  m_fdas_enable_custom_fft(fdas_enable_custom_fft),
+																				  m_fdas_enable_inbin(fdas_enable_inbin),
+																				  m_fdas_enable_norm(fdas_enable_norm),
+																				  m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
+																				  m_fdas_enable_output_list(fdas_enable_output_list),
+																				  memory_allocated(false),
+																				  memory_cleanup(false),
+																				  periodicity_did_run(false),
+																				  acceleration_did_run(false),
+																				  t(0) {
   }
 
-  template<> inline aa_permitted_pipelines_5<aa_pipeline::component_option::empty, false>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
-														const aa_analysis_strategy &analysis_strategy,
-														const aa_periodicity_strategy &periodicity_strategy,
-														const aa_fdas_strategy &fdas_strategy,
-														const bool &fdas_enable_custom_fft,
-														const bool &fdas_enable_inbin,
-														const bool &fdas_enable_norm,
-														const bool &fdas_enable_output_ffdot_plan,
-														const bool &fdas_enable_output_list,
-														unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
-																			   m_analysis_strategy(analysis_strategy),
-																			   m_periodicity_strategy(periodicity_strategy),
-																			   m_fdas_strategy(fdas_strategy),
-																			   m_input_buffer(input_buffer),
-																			   m_fdas_enable_custom_fft(fdas_enable_custom_fft),
-																			   m_fdas_enable_inbin(fdas_enable_inbin),
-																			   m_fdas_enable_norm(fdas_enable_norm),
-																			   m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
-																			   m_fdas_enable_output_list(fdas_enable_output_list),
-																			   memory_allocated(false),
-																			   memory_cleanup(false),
-																			   periodicity_did_run(false),
-																			   acceleration_did_run(false),
-																			   t(0),
-																			   m_d_MSD_workarea(NULL),
-																			   m_d_MSD_interpolated(NULL),
-																			   m_d_MSD_output_taps(NULL) {
-    
+  template<> inline aa_permitted_pipelines_5_0<aa_pipeline::component_option::empty, false>::aa_permitted_pipelines_5_0(const aa_ddtr_strategy &ddtr_strategy,
+															const aa_periodicity_strategy &periodicity_strategy,
+															const aa_fdas_strategy &fdas_strategy,
+															const bool &fdas_enable_custom_fft,
+															const bool &fdas_enable_inbin,
+															const bool &fdas_enable_norm,
+															const bool &fdas_enable_output_ffdot_plan,
+															const bool &fdas_enable_output_list,
+															unsigned short const*const input_buffer) : m_ddtr_strategy(ddtr_strategy),
+																				   m_periodicity_strategy(periodicity_strategy),
+																				   m_fdas_strategy(fdas_strategy),
+																				   m_input_buffer(input_buffer),
+																				   m_fdas_enable_custom_fft(fdas_enable_custom_fft),
+																				   m_fdas_enable_inbin(fdas_enable_inbin),
+																				   m_fdas_enable_norm(fdas_enable_norm),
+																				   m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
+																				   m_fdas_enable_output_list(fdas_enable_output_list),
+																				   memory_allocated(false),
+																				   memory_cleanup(false),
+																				   periodicity_did_run(false),
+																				   acceleration_did_run(false),
+																				   t(0) {
   }
   
 } // namespace astroaccelerate
   
-#endif // ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_5_HPP
+#endif // ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_5_0_HPP

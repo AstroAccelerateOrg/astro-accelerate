@@ -24,8 +24,11 @@ namespace astroaccelerate {
     static const aa_pipeline::pipeline pipeline1;
     static const aa_pipeline::pipeline pipeline2;
     static const aa_pipeline::pipeline pipeline3;
+    static const aa_pipeline::pipeline pipeline3_0;
     static const aa_pipeline::pipeline pipeline4;
+    static const aa_pipeline::pipeline pipeline4_0;
     static const aa_pipeline::pipeline pipeline5;
+    static const aa_pipeline::pipeline pipeline5_0;
 
     /**
      * \brief Pass a pipeline object and the function validates the components it contains.
@@ -44,10 +47,19 @@ namespace astroaccelerate {
       else if(pipeline == pipeline3) {
 	return true;
       }
+      else if(pipeline == pipeline3_0) {
+	return true;
+      }
       else if(pipeline == pipeline4) {
 	return true;
       }
+      else if(pipeline == pipeline4_0) {
+	return true;
+      }
       else if(pipeline == pipeline5) {
+	return true;
+      }
+      else if(pipeline == pipeline5_0) {
 	return true;
       }
       else {
