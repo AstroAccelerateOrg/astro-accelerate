@@ -13,6 +13,6 @@ Image Left:   No RFI mitigation.
 Image Center: Old RFI AstroAccelerate Algorithms.  
 Image Right:  New algorithms using a moving average (enabled with both "zero_dm_with_outliers" and "rfi" keywords).  
 
-[[/images/rfi_removal/out_ani.gif]]
+[[https://github.com/AstroAccelerateOrg/images/blob/master/wiki/rfi_removal/out_ani.gif]]
 
 <sup>1</sup> With great thanks to Mitch Mickaliger and Ben Stappers for finding test data for us to use.  

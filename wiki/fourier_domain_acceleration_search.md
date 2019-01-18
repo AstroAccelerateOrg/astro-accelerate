@@ -33,8 +33,8 @@ Output of this test has the same format as normal FDAS algorithm output. Again c
 
 ![](http://www.oerc.ox.ac.uk/sites/default/files/uploads/ProjectFiles/AstroAccelerate/acceleration_test_plane.png)
 
-[f1]: http://mathurl.com/ycwf4unr.png
-[f2]: http://mathurl.com/ycj6uanb.png
-[f3]: http://mathurl.com/y9dnfqg9.png
-[f4]: http://mathurl.com/y72wgf34.png
+[f1]: ![](http://mathurl.com/ycwf4unr.png)
+[f2]: ![](http://mathurl.com/ycj6uanb.png)
+[f3]: ![](http://mathurl.com/y9dnfqg9.png)
+[f4]: ![](http://mathurl.com/y72wgf34.png)
 

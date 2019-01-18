@@ -32,11 +32,11 @@ The effectiveness of using optimised kernel parameters was tested on the b2 band
 
 The optimal parameters found for each band are shown below:
 
-[[/images/dm_range_parameters/params.png]]
+[[https://github.com/AstroAccelerateOrg/images/blob/master/wiki/dm_range_parameters/params.png]]
 
 Optimised parameters for the B2 band. Black: Generic parameters, found by optimising over total speedup factor when all DM ranges are processed with the same parameters. Other: Optimised parameters for ranges 0-8.
 
-[[/images/dm_range_parameters/low_params.png]]
+[[https://github.com/AstroAccelerateOrg/images/blob/master/wiki/dm_range_parameters/low_params.png]]
 
 Optimised parameters for the low frequency band. Black: Generic parameters, found by optimising over total speedup factor when all DM ranges are processed with the same parameters. Other: Optimised parameters for ranges 0-3.
 
