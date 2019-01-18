@@ -13,11 +13,11 @@ The data in the files are re-scaled to an unsigned short (16 bit value between 0
 The following images show a comparison of two filterbank files created using sigproc fake. 
 The only difference is one is 32 bit, the other 16 bit.
 
-[[https://github.com/AstroAccelerateOrg/images/blob/master/wiki/32bit/one.png]]
-[[https://github.com/AstroAccelerateOrg/images/blob/master/wiki/32bit/two.png]]
-[[https://github.com/AstroAccelerateOrg/images/blob/master/wiki/32bit/three.png]]
-[[https://github.com/AstroAccelerateOrg/images/blob/master/wiki/32bit/four.png]]
-[[https://github.com/AstroAccelerateOrg/images/blob/master/wiki/32bit/five.png]]
+![](https://github.com/AstroAccelerateOrg/images/blob/master/wiki/32bit/one.png)
+![](https://github.com/AstroAccelerateOrg/images/blob/master/wiki/32bit/two.png)
+![](https://github.com/AstroAccelerateOrg/images/blob/master/wiki/32bit/three.png)
+![](https://github.com/AstroAccelerateOrg/images/blob/master/wiki/32bit/four.png)
+![](https://github.com/AstroAccelerateOrg/images/blob/master/wiki/32bit/five.png)
 
 It's likely that the 32 bit values have slightly higher SNR recovery (approximately 10%) because they are re-scaled to the full range of the unsigned short (0 - 65535) and the 16 bit interbank is not using the full range. But this hasn't been verified.
 For data that has true 32 bit fidelity we would expect a decrease in recovered SNR using this method as opposed to processing the data in its native 32 bits.
