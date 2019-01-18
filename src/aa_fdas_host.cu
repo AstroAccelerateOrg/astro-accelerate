@@ -13,7 +13,7 @@ namespace astroaccelerate {
     printf("\nAcceleration step in fourier bins (z): ACCEL_STEP %f\n", ACCEL_STEP);
     printf("\nAcceleration step in fourier bins (z) reciprocal: ACCEL_STEP_R %f\n", ACCEL_STEP_R);
     printf("\nMaximum acceleration in fourier bins (z): ZMAX %d\n", ZMAX);
-    printf("\nNumber of templates including zero acceleration: NKERN %f\n", NKERN);
+    printf("\nNumber of templates including zero acceleration: NKERN %d\n", NKERN);
     //  printf("\nLowest acceleration in fourier bins (z) (for harmonic sum): ZLO %d\n", ZLO);
     printf("\nThread block size in x direction for 2-D thread block convolution GPU kernels : TBSIZEX %d\n", TBSIZEX);
     printf("\nThread block size in Y direction for 2-D thread block convolution GPU kernels : TBSIZEY %d\n", TBSIZEY);

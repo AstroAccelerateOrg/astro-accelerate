@@ -137,7 +137,7 @@ namespace astroaccelerate {
 
     if (cmdargs.search)
       {
-	printf("\nnumber of convolution templates NKERN = %f, template length = %d, acceleration step in bins = %f, zmax = %d, template size power of 2 = %d, scale=%f \n",
+	printf("\nnumber of convolution templates NKERN = %d, template length = %d, acceleration step in bins = %f, zmax = %d, template size power of 2 = %d, scale=%f \n",
 	       NKERN, KERNLEN, ACCEL_STEP, ZMAX, NEXP, params.scale);
 
 	if (cmdargs.basic)
@@ -217,7 +217,7 @@ namespace astroaccelerate {
 	getLastCudaError("\nCuda Error\n");
 
 	// Calculate kernel templates on CPU and upload-fft on GPU
-	printf("\nCreating acceleration templates with KERNLEN=%d, NKERN = %f zmax=%d... ",	KERNLEN, NKERN, ZMAX);
+	printf("\nCreating acceleration templates with KERNLEN=%d, NKERN = %d zmax=%d... ",	KERNLEN, NKERN, ZMAX);
 
 	fdas_create_acc_kernels(gpuarrays.d_kernel, &cmdargs);
 	printf(" done.\n");
