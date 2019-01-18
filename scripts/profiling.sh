@@ -2,9 +2,7 @@
 # profiling.sh
 #
 # Description: A brute force optimiser for astro-accelerate.
-# Usage:       Please run the script from the top-level directory.
-# Usage:       The first parameter is the input file to optimise over.
-# Usage:       The second parameter is the path to the repository.
+# Usage:       The input parameter is the input file to optimise over.
 # Notice:      Please do not commit the optimiser output to the repository.
 ################################################################################
 
@@ -14,7 +12,7 @@
 inFile="$1"
 
 # Path to the top-level folder of the repository.
-repository_directory="$2"
+repository_directory=${ASTRO_ACCELERATE_REPOSITORY_PATH}
 echo "Repository directory is " ${repository_directory}
 
 # Project include folder

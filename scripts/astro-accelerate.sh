@@ -3,6 +3,7 @@
 #
 # Description: A shell script that runs astro-accelerate
 # Usage:       Please run the script from the same directory as the executable.
+# Usage:       The input is the name of the input_file to use.
 # Notice:      N/A.
 ################################################################################
 
@@ -16,7 +17,7 @@ input_file=$(readlink -f $1)
 job_name=$(basename "$1" .txt)
 
 # The current directory is assumed to contain the executable
-executable_directory=$(pwd)
+executable_directory=${ASTRO_ACCELERATE_EXECUTABLE_PATH}
 
 # Job output will be stored within a subfolder of the executable_directory
 output_dir=${executable_directory}/output/${job_name}
