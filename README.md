@@ -5,6 +5,8 @@ Introduction
 ===
 This documentation summarises the content of the Astro-Accelerate software.
 
+Please also refer to the [wiki pages](https://github.com/AstroAccelerateOrg/astro-accelerate/blob/master/wiki/home.md).
+
 Features
 ===
 Astro-Accelerate is used for real-time astronomy data processing. Its features include:
