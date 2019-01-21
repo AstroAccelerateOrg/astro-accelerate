@@ -389,3 +389,4 @@ namespace astroaccelerate {
   }
 
 } //namespace astroaccelerate
+

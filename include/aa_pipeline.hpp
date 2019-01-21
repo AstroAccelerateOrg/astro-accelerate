@@ -57,19 +57,19 @@ namespace astroaccelerate {
     /** \brief Function to convert component types into strings so that the user can query the pipeline. */
     inline const std::string component_name(const aa_pipeline::component &component) {
       switch (component) {
-      case component::empty:
+      case aa_pipeline::component::empty:
 	return "empty";
 	break;
-      case component::dedispersion:
+      case aa_pipeline::component::dedispersion:
 	return "dedispersion";
 	break;
-      case component::analysis:
+      case aa_pipeline::component::analysis:
 	return "analysis";
 	break;
-      case component::fdas:
+      case aa_pipeline::component::fdas:
 	return "fdas";
 	break;
-      case component::periodicity:
+      case aa_pipeline::component::periodicity:
 	return "periodicity";
 	break;
       default:
