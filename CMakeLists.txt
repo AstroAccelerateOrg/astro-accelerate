@@ -4,6 +4,9 @@ set(PROJECT_NAME astro-accelerate)
 set(PROJECT_VERSION 1.2.0)	# Tagged release version
 set(PROJECT_LIB_NAME ASTRO_ACCELERATE)
 
+# Explicitly set C++ standard
+set (CMAKE_CXX_STANDARD 11)
+
 # Set date and time of build
 string(TIMESTAMP ASTRO_ACCELERATE_BUILD_DATE_UTC "%d/%m/%Y" UTC)
 string(TIMESTAMP ASTRO_ACCELERATE_BUILD_TIME_UTC "%H:%M:%S" UTC)
