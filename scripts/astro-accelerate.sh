@@ -4,6 +4,7 @@
 # Description: A shell script that runs astro-accelerate
 # Usage:       Please run the script from the same directory as the executable.
 # Usage:       The input is the name of the input_file to use.
+# Usage:       The second input is the directory where the output should go.
 # Notice:      N/A.
 ################################################################################
 
@@ -19,8 +20,8 @@ job_name=$(basename "$1" .txt)
 # The current directory is assumed to contain the executable
 executable_directory=${ASTRO_ACCELERATE_EXECUTABLE_PATH}
 
-# Job output will be stored within a subfolder of the executable_directory
-output_dir=${executable_directory}/output/${job_name}
+# Job output will be stored within a subfolder of the specified directory
+output_dir=${2}/output/${job_name}
 
 # Create the job directory
 mkdir -p ${output_dir}
@@ -43,6 +44,11 @@ echo "The executable path is " ${executable_directory}
 echo "The input_file path is " ${input_file}
 echo "The job name is " ${job_name}
 echo "The output directory path is " ${output_dir}
+
+# Go to output_dir so that output is stored there
+cd ${output_dir}
+
+# Run the executable
 time ${executable_directory}/astro-accelerate ${input_file}
 
 # Test if output file exists, and combine into a single file

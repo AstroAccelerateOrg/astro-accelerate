@@ -3,13 +3,19 @@
 #
 # Description: A brute force optimiser for astro-accelerate.
 # Usage:       The input parameter is the input file to optimise over.
+# Usage:       The second input parameter is the output path.
 # Notice:      Please do not commit the optimiser output to the repository.
 ################################################################################
 
 #!/usr/bin/env bash
 
+echo "=== Running profiling.sh script ==="
 # Path to the input file that will be used to optimise over
-inFile="$1"
+inFile=${1}
+output_dir=${2}
+
+echo "inFile is " ${1}
+echo "output_dir is " ${2}
 
 # Path to the top-level folder of the repository.
 repository_directory=${ASTRO_ACCELERATE_REPOSITORY_PATH}
@@ -22,11 +28,11 @@ include=${repository_directory}/include
 template_params=${repository_directory}/lib/header
 
 # Path to script/astro-accelerate.sh script
-astroaccelerate_sh_script=${repository_directory}scripts/astro-accelerate.sh
+astroaccelerate_sh_script=${repository_directory}/scripts/astro-accelerate.sh
 
-rm -rf profile_results
+rm -rf ${ASTRO_ACCELERATE_PROFILING_OUTPUT_PATH}/profile_results
 
-mkdir profile_results
+mkdir ${ASTRO_ACCELERATE_PROFILING_OUTPUT_PATH}/profile_results
 
 for unroll in {4,8,16,32}
 do
@@ -49,14 +55,15 @@ do
 		echo "} // namespace astroaccelerate" >> ./params.txt
 		echo "#endif // ASTRO_ACCELERATE_AA_PARAMS_HPP" >> ./params.txt
 		mv params.txt ${include}/aa_params.hpp
-		
+
+		cd ${ASTRO_ACCELERATE_EXECUTABLE_PATH}
 		make clean
 		
 		#regcount=$(make -j 16 2>&1 | grep -A2 shared_dedisperse_kernel | tail -1 | awk -F" " '{print $5}')
 		make
-		cp ${include}/aa_params.hpp profile_results/u"$unroll"_a"$acc"_t"$divint"_dm"$divindm"_r"$regcount".h
+		cp ${include}/aa_params.hpp ${ASTRO_ACCELERATE_PROFILING_OUTPUT_PATH}/profile_results/u"$unroll"_a"$acc"_t"$divint"_dm"$divindm"_r"$regcount".h
 		
-		${astroaccelerate_sh_script} $inFile > profile_results/u"$unroll"_a"$acc"_t"$divint"_dm"$divindm"_r"$regcount".dat
+		${astroaccelerate_sh_script} $inFile ${output_dir} > ${ASTRO_ACCELERATE_PROFILING_OUTPUT_PATH}/profile_results/u"$unroll"_a"$acc"_t"$divint"_dm"$divindm"_r"$regcount".dat
 		
 		echo "unrolls: $unroll	acc: $acc    divint: $divint    divindm: $divindm    reg: $regcount"
 	    done
@@ -64,10 +71,11 @@ do
     done
 done
 
-optimum=$(grep "Real" profile_results/* | awk -F" " '{print $4" "$1}' | sort -n | tail -1 | awk -F" " '{print $2}' | awk -F"." '{print $1".h"}')
+optimum=$(grep "Real" ${ASTRO_ACCELERATE_PROFILING_OUTPUT_PATH}/profile_results/* | awk -F" " '{print $4" "$1}' | sort -n | tail -1 | awk -F" " '{print $2}' | awk -F"." '{print $1".h"}')
 
 cp $optimum ${include}/aa_params.hpp
 pwd
+cd ${ASTRO_ACCELERATE_EXECUTABLE_PATH}
 make clean
 regcount=$(make -j 16 2>&1 | grep -A2 shared_dedisperse_kernel | tail -1 | awk -F" " '{print $5}')
 cd scripts/
