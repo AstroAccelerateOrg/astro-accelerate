@@ -33,7 +33,7 @@ mkdir -p ${ASTRO_ACCELERATE_SCRIPTS_UNIT_TESTS_OUTPUT_PATH}/output/tests
 for i in $(ls $FIL_FILES_PATH/*.fil)
 do
     echo $i
-    cat ${ASTRO_ACCELERATE_REPOSITORY_PATH}/output/input_files/header > input.txt
+    cat ${ASTRO_ACCELERATE_REPOSITORY_PATH}/input_files/header > input.txt
     echo "file $i" >> input.txt
     j=$(basename $i)
     mv input.txt ${ASTRO_ACCELERATE_SCRIPTS_UNIT_TESTS_OUTPUT_PATH}/output/input_files/tests/$j.txt
