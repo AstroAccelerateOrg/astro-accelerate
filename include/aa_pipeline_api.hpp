@@ -623,14 +623,14 @@ namespace astroaccelerate {
 	else {
 	  LOG(log_level::notice, "Neither zero_dm nor zero_dm_with_outliers were specified in the options list. Selection OFF.");
 	  if(m_pipeline_options.find(old_rfi) != m_pipeline_options.end()) {
-	    m_runner = std::unique_ptr<aa_permitted_pipelines_3<off, use_new_rfi>>(new aa_permitted_pipelines_3<off, use_new_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
-	    is_pipeline_set_to_runner	= true;
-	    LOG(log_level::notice, "Selected Pipeline 3 without zero_dm, and new_rfi");
-	  }
-	  else {
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_3<off, use_old_rfi>>(new aa_permitted_pipelines_3<off, use_old_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
 	    is_pipeline_set_to_runner	= true;
 	    LOG(log_level::notice, "Selected Pipeline 3 without zero_dm, and old_rfi");
+	  }
+	  else {
+	    m_runner = std::unique_ptr<aa_permitted_pipelines_3<off, use_new_rfi>>(new aa_permitted_pipelines_3<off, use_new_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
+	    is_pipeline_set_to_runner	= true;
+	    LOG(log_level::notice, "Selected Pipeline 3 without zero_dm, and new_rfi");
 	  }
 	}
       }
