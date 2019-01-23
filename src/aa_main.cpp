@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
   if(pipeline.find(aa_pipeline::component::periodicity) != pipeline.end()) {
     //If these settings come from the input_file, then move them into aa_config to be read from the file.
     aa_periodicity_plan periodicity_plan(user_flags.sigma_cutoff,
-					 user_flags.periodicity_sigma_constant,
+					 user_flags.periodicity_sigma_cutoff,
 					 user_flags.periodicity_nHarmonics,
 					 user_flags.power,
 					 user_flags.candidate_algorithm,
