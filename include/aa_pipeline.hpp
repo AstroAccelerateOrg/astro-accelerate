@@ -42,7 +42,6 @@ namespace astroaccelerate {
 				       empty = 0, //< The trivial component.
 				       zero_dm,
 				       zero_dm_with_outliers,
-				       rfi,
 				       old_rfi,
 				       msd_baseline_noise,
 				       output_dmt, //< Switches on output of ddtr to disk.

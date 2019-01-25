@@ -25,6 +25,8 @@
 #include "aa_device_info.hpp"
 
 #include "aa_log.hpp"
+#include "aa_host_rfi.hpp"
+
 
 using namespace astroaccelerate;
 
@@ -37,7 +39,7 @@ int main(int argc, char *argv[]) {
 
   aa_ddtr_plan ddtr_plan;
   std::string file_path;
-  aa_config_flags user_flags = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_pipeline::debug>()};
+  aa_config_flags user_flags = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>()};
   aa_pipeline::pipeline_option pipeline_options;
   aa_pipeline::pipeline pipeline = cli_configuration.setup(ddtr_plan, user_flags, pipeline_options, file_path);
 
@@ -73,6 +75,12 @@ int main(int argc, char *argv[]) {
   }
   
   aa_config configuration(pipeline);   // Set the pipeline and other run settings that would come from an input_file
+
+  if(user_flags.rfi == 1) {
+    LOG(log_level::notice, "Performing host RFI reduction. This feature is experimental.");
+    rfi(filterbank_metadata.nsamples(), filterbank_metadata.nchans(), filterbank_datafile.input_buffer_modifiable());
+  }
+
   
   aa_pipeline_api<unsigned short> pipeline_manager(pipeline,
 						   pipeline_options,

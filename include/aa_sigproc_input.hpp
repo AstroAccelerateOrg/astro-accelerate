@@ -48,6 +48,11 @@ namespace astroaccelerate {
       return m_input_buffer;
     }
 
+    /** \returns A modifiable reference to the input data from the telescope. */
+    std::vector<unsigned short>& input_buffer_modifiable() {
+      return m_input_buffer;
+    }
+
     /** \brief Method to check if the input data from the input file has already been read.
      * \returns A boolean flag to indicate if the data has been read (true) or not (false). */
     bool did_read_signal() const {

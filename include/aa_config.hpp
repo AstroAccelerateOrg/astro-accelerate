@@ -37,7 +37,7 @@ namespace astroaccelerate {
     float sigma_constant;           /**< Sigma constant setting. */
     float max_boxcar_width_in_sec;  /**< Boxcar width in seconds setting. */
     float periodicity_sigma_cutoff; /**< Periodicity sigma cutoff setting. Should this be int or float? */
-  
+
     int multi_file;                 /**< Multi file setting. This looks like it is deprecated. */
     int output_dmt;                 /**< Enables or disables ddtr output to disk. */
     int nboots;                     /**< nboots setting. */
@@ -49,7 +49,7 @@ namespace astroaccelerate {
     int failsafe;                   /**< Flag to select the failsafe algorithm for dedispersion. */
     int periodicity_nHarmonics;     /**< Number of harmonics setting for periodicity. */
     int selected_card_id;           /**< Selected card id on this machine. */
-  
+    bool rfi;                       /**< Enable (true) or disable (false) host RFI reduction of the input data. */
     std::vector<aa_pipeline::debug> user_debug; /**< std::vector of debug flags. */
   };
 
@@ -71,7 +71,7 @@ namespace astroaccelerate {
      * \details This must at least contain the full path to an input file.
      * \details If using AstroAccelerate as a library user, then use the other constructor of the aa_config class.
      */
-    aa_config(const aa_command_line_arguments &cli_input) : configure_from_file(true), user_cli(cli_input), flg({0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_pipeline::debug>()}) {
+    aa_config(const aa_command_line_arguments &cli_input) : configure_from_file(true), user_cli(cli_input), flg({0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>()}) {
       flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
       flg.periodicity_nHarmonics = 32;
       flg.selected_card_id = CARD;
@@ -81,7 +81,7 @@ namespace astroaccelerate {
      * \details The aa_pipeline::pipeline object contains the user requested pipeline component to be run.
      * \details Use this constructor when using AstroAccelerate as a library user.
      */
-    aa_config(aa_pipeline::pipeline &user_pipeline) : configure_from_file(false), m_pipeline(user_pipeline), flg({0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, std::vector<aa_pipeline::debug>()}) {
+    aa_config(aa_pipeline::pipeline &user_pipeline) : configure_from_file(false), m_pipeline(user_pipeline), flg({0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>()}) {
       flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
       flg.periodicity_nHarmonics = 32;
       flg.selected_card_id = CARD;
@@ -226,7 +226,7 @@ namespace astroaccelerate {
 	  if (strcmp(string, "zero_dm_with_outliers") == 0)
 	    m_pipeline_options.insert(aa_pipeline::component_option::zero_dm_with_outliers);
 	  if (strcmp(string, "rfi") == 0)
-	    m_pipeline_options.insert(aa_pipeline::component_option::rfi);
+	    flg.rfi = true;
 	  if (strcmp(string, "oldrfi") == 0)
 	    m_pipeline_options.insert(aa_pipeline::component_option::old_rfi);
 	  if (strcmp(string, "threshold") == 0) {

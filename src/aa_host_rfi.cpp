@@ -7,7 +7,7 @@
 
 namespace astroaccelerate {
 
-  void rfi(int nsamp, int nchans, unsigned short **input_buffer) {
+  void rfi(int nsamp, int nchans, std::vector<unsigned short> &input_buffer) {
     int 	file_reducer 	= 1;
     float 	sigma_cut 	= 2.0f;
 	
@@ -15,7 +15,7 @@ namespace astroaccelerate {
 
     for(int c = 0; c < nchans; c++) {
       for(int t = 0; t < (nsamp); t++) {
-	stage[c * (size_t)nsamp + t] = (float) (*input_buffer)[c  + (size_t)nchans * t];
+	stage[c * (size_t)nsamp + t] = (float)input_buffer[c  + (size_t)nchans * t];
       }
     }
 
@@ -479,7 +479,7 @@ namespace astroaccelerate {
     for(int c = 0; c < nchans; c++) {
       for(int t = 0; t < (nsamp); t++) {
 	//(*input_buffer)[c  + (size_t)nchans * t] = (unsigned char) ((stage[c * (size_t)nsamp + t]*orig_var)+orig_mean);
-	(*input_buffer)[c  + (size_t)nchans * t] = (unsigned char) ((stage[c * (size_t)nsamp + t]*var_rescale)+mean_rescale);
+	input_buffer[c  + (size_t)nchans * t] = (unsigned char) ((stage[c * (size_t)nsamp + t]*var_rescale)+mean_rescale);
       }
     }
 
