@@ -124,7 +124,7 @@ namespace astroaccelerate {
 	cudaMemGetInfo(&free, &total);
 	tmp.free_memory = free;
 	tmp.total_memory = total;
-	LOG(log_level::notice, "Device info " + std::to_string(i) + " free " + std::to_string(free));
+	LOG(log_level::notice, "Device info " + std::to_string(i) + " free " + std::to_string(free) + " (" + tmp.name.c_str() + ")");
 	tmp.user_requested_memory_for_allocation = 0;
 	m_card_info.push_back(std::move(tmp));
       }
