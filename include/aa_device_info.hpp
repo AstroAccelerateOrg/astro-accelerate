@@ -97,7 +97,8 @@ namespace astroaccelerate {
       for(int i = 0; i < deviceCount; i++) {
 	aa_card_info tmp;
 	tmp.card_number = i;
-            
+	
+	cudaSetDevice(i);
 	cudaDeviceProp deviceProp;
 	cudaGetDeviceProperties(&deviceProp, i);
             
