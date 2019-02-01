@@ -1091,7 +1091,7 @@ namespace astroaccelerate {
   }
 
   void call_kernel_cuda_ffdotpow_concat_2d(const dim3 &blocks, const dim3 &threads, float2 *const d_ffdot_plane_cpx, float *const d_ffdot_plane, const int &sigblock, const int &kern_offset, const int &total_blocks, const int &sig_tot_convlen, const int &sig_totlen) {
-    cuda_ffdotpow_concat_2d_inbin<<<blocks, threads>>>(d_ffdot_plane_cpx, d_ffdot_plane, sigblock, kern_offset, total_blocks, sig_tot_convlen, sig_totlen);
+    cuda_ffdotpow_concat_2d<<<blocks, threads>>>(d_ffdot_plane_cpx, d_ffdot_plane, sigblock, kern_offset, total_blocks, sig_tot_convlen, sig_totlen);
   }
 
   __global__ void cuda_ffdotpow_concat_2d_inbin(float2* d_ffdot_plane_cpx, float* d_ffdot_plane, int sigblock, int kern_offset, int total_blocks, int sig_tot_convlen, int sig_totlen)
