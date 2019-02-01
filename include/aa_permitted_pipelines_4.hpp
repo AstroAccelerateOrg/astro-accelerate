@@ -387,7 +387,7 @@ namespace astroaccelerate {
 	h_peak_list_SNR = (float*) malloc(max_peak_size*sizeof(float));
 	h_peak_list_BW  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
 	peak_pos=0;
-	const bool dump_to_disk	= false;
+	const bool dump_to_disk	= true;
         const bool dump_to_user	= true;
 	analysis_output output;
 	analysis_GPU(h_peak_list_DM,
