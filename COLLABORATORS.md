@@ -1,5 +1,5 @@
-Collaborators
-=
+# Collaborators
+
 The list of collaborators may be updated from time to time.
 
 # University of Oxford

@@ -29,4 +29,4 @@ fdas_custom_fft
 debug
 -analysis_debug
 -failsafe
-file /mnt/data/filterbank/ska-mid-b2.fil
+file /mnt/data/AstroAccelerate/filterbank/ska-mid-b2.fil
