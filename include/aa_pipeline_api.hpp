@@ -43,6 +43,8 @@ namespace astroaccelerate {
      Therefore, the next pipeline should be constructed after the previous one has been fully configured.
    * \warning Configuring multiple pipeline objects and strategy objects at the same time means the pipeline will not see the correct amount of memory on the GPU.
    * \todo Nice to have but not needed: Add a way to transfer ownership of the data between aa_pipeline_api objects.
+   * \todo Add a method to obtain the aa_filterbank_metadata from this class.
+   * \todo Every permitted pipeline must accept an output_store to write into.
    * \author Cees Carels.
    * \date: 23 October 2018.
    */
@@ -69,7 +71,7 @@ namespace astroaccelerate {
       else {
 	LOG(log_level::warning, "The pipeline could not reset all previously requested memory on card " + std::to_string(card_info.card_number) + ", which may result in sub-optimal memory strategies." + ".");
       }
-      
+
       //Add requested pipeline components
       for(auto i : requested_pipeline) {
 	required_plans.insert(std::pair<aa_pipeline::component, bool>(i, true));
@@ -108,6 +110,7 @@ namespace astroaccelerate {
 	m_ddtr_plan = plan;
             
 	//ddtr_strategy needs to know if analysis will be required
+	/** \todo Check the actual free memory when passing into ddtr_strategy. */
 	if(required_plans.find(aa_pipeline::component::analysis) != required_plans.end()) {
 	  aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_card_info.free_memory, true);
 	  if(ddtr_strategy.ready()) {
@@ -905,6 +908,12 @@ namespace astroaccelerate {
 	return false;
       }
     }
+
+    /** \todo Pipelines should be able to write into an output store that can be retrieved at the end.
+     * The output store is a single struct object of std::vector<> of output objects.
+     * The output store object can be provided by this class.
+     * Then, this API class provides a method to extract each type from the output store.
+     **/
 
     /**
      * \brief Function pass input/output data from one aa_pipeline_api instance to another.

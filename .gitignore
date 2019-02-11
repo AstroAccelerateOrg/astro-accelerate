@@ -61,3 +61,8 @@ include/aa_version.hpp
 *.la
 *.a
 *.lib
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class

@@ -159,7 +159,7 @@ namespace astroaccelerate {
 						m_FREQUENCY_END(0),
 						m_rawdatafile(""),
 						m_source_name("") {
-
+      
     }
     
     /** Destructor for aa_filterbank_metadata */
@@ -333,7 +333,6 @@ namespace astroaccelerate {
     std::string m_rawdatafile;
     std::string m_source_name;
   };
-
 } // namespace astroaccelerate
   
 #endif // ASTRO_ACCELERATE_AA_FILTERBANK_METADATA_HPP
