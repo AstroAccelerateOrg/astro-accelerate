@@ -14,6 +14,8 @@
 #include "aa_analysis_plan.hpp"
 #include "aa_analysis_strategy.hpp"
 
+#include "aa_log.hpp"
+
 using namespace astroaccelerate;
 
 int main() {
@@ -38,7 +40,7 @@ int main() {
   aa_ddtr_strategy ddtr_strategy(ddtr_plan, metadata, free_memory, enable_analysis);
   
   if(!(ddtr_strategy.ready())) {
-    std::cout << "ERROR: ddtr_strategy not ready." << std::endl;
+    LOG(log_level::error, "ddtr_strategy not ready.");
     return 0;
   }
 
@@ -57,22 +59,22 @@ int main() {
   aa_analysis_strategy analysis_strategy(analysis_plan);
 
   if(!(analysis_strategy.ready())) {
-    std::cout << "ERROR: analysis_strategy not ready." << std::endl;
+    LOG(log_level::error, "analysis_strategy not ready.");
     return 0;
   }
   
-  aa_permitted_pipelines_2<aa_compute::module_option::zero_dm, false> runner(ddtr_strategy, analysis_strategy, input_data.data());
+  aa_permitted_pipelines_2<aa_pipeline::component_option::zero_dm, false> runner(ddtr_strategy, analysis_strategy, input_data.data());
 
   bool dump_to_disk = false;
   bool dump_to_user = true;
-  analysis_output output;
+  std::vector<analysis_output> output;
   
   if(runner.setup()) {
     while(runner.next(dump_to_disk, dump_to_user, output)) {
-      std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
+      LOG(log_level::notice, "Pipeline running over next chunk.");
     }
   }
   
-  std::cout << "NOTICE: Finished." << std::endl;
+  LOG(log_level::notice, "Finished.");
   return 0;
 }

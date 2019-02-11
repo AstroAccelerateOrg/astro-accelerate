@@ -4,6 +4,7 @@ stages:
   - build
   - test
   - run
+  - document
   
 build:
   stage: build
@@ -14,12 +15,12 @@ build:
     - mkdir build/
     - cd build/
     - source ../setup.sh
-    - cmake -DCUDA_ARCH="6.1" -DENABLE_TESTS=ON ../
+    - cmake -DCUDA_ARCH="6.1" -DENABLE_TESTS=ON -DENABLE_DOCS=ON ../
     - make -j2
   artifacts:
     paths:
       - build/
-      - include/version.h
+      - include/aa_version.hpp
     expire_in: 1 day
 
 test:
@@ -41,3 +42,14 @@ run:
     - ./astro-accelerate ../input_files/BenMeerKAT.txt
   dependencies:
     - build
+
+document:
+  stage: document
+  tags:
+    - astraios
+  script:
+    - zip -r docs.zip build/doc/
+  artifacts:
+    paths:
+      - docs.zip
+    expire_in: 1 day

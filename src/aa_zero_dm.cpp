@@ -1,16 +1,9 @@
-//
-//  aa_zero_dm.cpp
-//  aapipeline
-//
-//  Created by Cees Carels on Monday 05/11/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
 #include "aa_zero_dm.hpp"
 
 namespace astroaccelerate {
 
-void zero_dm(unsigned short *const d_input, const int nchans, const int nsamp, const int nbits) {
+  /** \brief Performs zero_dm. */
+  void zero_dm(unsigned short *const d_input, const int nchans, const int nsamp, const int nbits) {
     
     int threads_for_sum  = 256;
     int num_blocks_t    = nsamp;
@@ -34,6 +27,5 @@ void zero_dm(unsigned short *const d_input, const int nchans, const int nsamp, c
     end_t = clock();
     double time = (double)(end_t-start_t) / CLOCKS_PER_SEC;
     printf("\nPerformed ZDM: %lf (GPU estimate)", time);    
-}
-
+  }
 } //namespace astroaccelerate

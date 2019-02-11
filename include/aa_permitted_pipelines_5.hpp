@@ -1,21 +1,12 @@
-//
-//  aa_permitted_pipelines_5.hpp
-//  aapipeline
-//
-//  Created by Cees Carels on Monday 03/12/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
 #ifndef ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_5_HPP
 #define ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_5_HPP
-
 
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <helper_cuda.h>
 
 #include <stdio.h>
-#include "aa_compute.hpp"
+#include "aa_pipeline.hpp"
 #include "aa_ddtr_strategy.hpp"
 #include "aa_ddtr_plan.hpp"
 #include "aa_analysis_plan.hpp"
@@ -29,14 +20,14 @@
 #include "aa_zero_dm.hpp"
 #include "aa_zero_dm_outliers.hpp"
 #include "aa_corner_turn.hpp"
-#include "device_rfi.hpp"
+#include "aa_device_rfi.hpp"
 #include "aa_dedisperse.hpp"
 
 #include "aa_gpu_timer.hpp"
 
-#include "device_analysis.hpp"
-#include "device_periods.hpp"
-#include "device_acceleration_fdas.hpp"
+#include "aa_device_analysis.hpp"
+#include "aa_device_periods.hpp"
+#include "aa_device_acceleration_fdas.hpp"
 #include "aa_pipeline_runner.hpp"
 
 #include "aa_gpu_timer.hpp"
@@ -44,11 +35,14 @@
 namespace astroaccelerate {
 
   /**
-   * This template class performs the functions aa_permitted_pipelines_5, which is
-   * dedispersion, analysis, periodicity, acceleration.
+   * \class aa_permitted_pipelines_5 aa_permitted_pipelines_5.hpp "include/aa_permitted_pipelines_5.hpp"
+   * \brief Templated class to run dedispersion and analysis and periodicity and acceleration.
+   * \details The class is templated over the zero_dm_type (aa_pipeline::component_option::zero_dm or aa_pipeline::component_option::zero_dm_with_outliers).
+   * \author Cees Carels.
+   * \date 3 December 2018.
    */
   
-  template<aa_compute::module_option zero_dm_type, bool enable_old_rfi>
+  template<aa_pipeline::component_option zero_dm_type, bool enable_old_rfi>
   class aa_permitted_pipelines_5 : public aa_pipeline_runner {
   public:
     aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
@@ -73,7 +67,7 @@ namespace astroaccelerate {
     }
 
     aa_permitted_pipelines_5(const aa_permitted_pipelines_5 &) = delete;
-
+    /** \brief Method to setup and allocate memory for the pipeline containers. */
     bool setup() override {
       if(!memory_allocated) {
 	return set_data();
@@ -86,6 +80,7 @@ namespace astroaccelerate {
       return false;
     }
 
+    /** \brief Override base class next() method to process next time chunk. */
     bool next() override {
       if(memory_allocated) {
 	return run_pipeline();
@@ -94,6 +89,7 @@ namespace astroaccelerate {
       return false;
     }
     
+    /** \brief De-allocate memory for this pipeline instance. */
     bool cleanup() {
       if(memory_allocated && !memory_cleanup) {
 	cudaFree(d_input);
@@ -165,6 +161,7 @@ namespace astroaccelerate {
     float  *m_d_MSD_interpolated     = NULL;
     ushort *m_d_MSD_output_taps      = NULL;
     
+    /** \brief Allocate the GPU memory needed for dedispersion. */
     void allocate_memory_gpu(const int &maxshift, const int &max_ndms, const int &nchans, int **const t_processed, unsigned short **const d_input, float **const d_output) {
 
       int time_samps = t_processed[0][0] + maxshift;
@@ -185,6 +182,10 @@ namespace astroaccelerate {
       cudaMemset(*d_output, 0, gpu_outputsize);
     }
     
+        
+    /**
+     * \brief Allocate memory for MSD.
+     */
     void allocate_memory_MSD(float **const d_MSD_workarea, unsigned short **const d_MSD_output_taps, float **const d_MSD_interpolated,
 			     const unsigned long int &MSD_maxtimesamples, const size_t &MSD_profile_size) {
       checkCudaErrors(cudaMalloc((void **) d_MSD_workarea,        MSD_maxtimesamples*5.5*sizeof(float)));
@@ -192,37 +193,38 @@ namespace astroaccelerate {
       checkCudaErrors(cudaMalloc((void **) d_MSD_interpolated,    sizeof(float)*MSD_profile_size));
     }
 
+    /**
+     * \brief Allocate a 3D array that is an output buffer that stores dedispersed array data.
+     * \details This array is used by periodicity.
+     */
     void allocate_memory_cpu_output() {
-      /**
-       * Allocate a 3D array that is an output buffer that stores dedispersed array data.
-       * This array is used by periodicity.
-       */
       size_t estimate_outputbuffer_size = 0;
       size_t outputsize = 0;
       const size_t range = m_ddtr_strategy.range();
       const int *ndms = m_ddtr_strategy.ndms_data();
       
       for(size_t i = 0; i < range; i++) {
-        for(int j = 0; j < m_ddtr_strategy.num_tchunks(); j++) {
+	for(int j = 0; j < m_ddtr_strategy.num_tchunks(); j++) {
 	  estimate_outputbuffer_size += (size_t)(t_processed[i][j]*sizeof(float)*ndms[i]);
-        }
+	}
       }
       
       outputsize = 0;
       m_output_buffer = (float ***) malloc(range * sizeof(float **));
       for(size_t i = 0; i < range; i++) {
-        int total_samps = 0;
-        for(int k = 0; k < num_tchunks; k++) {
+	int total_samps = 0;
+	for(int k = 0; k < num_tchunks; k++) {
 	  total_samps += t_processed[i][k];
-        }
-        m_output_buffer[i] = (float **) malloc(ndms[i] * sizeof(float *));
-        for (int j = 0; j < ndms[i]; j++) {
+	}
+	m_output_buffer[i] = (float **) malloc(ndms[i] * sizeof(float *));
+	for (int j = 0; j < ndms[i]; j++) {
 	  m_output_buffer[i][j] = (float *) malloc(( total_samps ) * sizeof(float));
-        }
-        outputsize += ( total_samps ) * ndms[i] * sizeof(float);
+	}
+	outputsize += ( total_samps ) * ndms[i] * sizeof(float);
       }
     }
     
+    /** \brief Method that allocates all memory for this pipeline. */
     bool set_data() {
       num_tchunks = m_ddtr_strategy.num_tchunks();
       size_t t_processed_size = m_ddtr_strategy.t_processed().size();
@@ -281,27 +283,29 @@ namespace astroaccelerate {
       return true;
     }
 
+    /** \brief Transfer data from the device to the host. */
     inline void save_data_offset(float *device_pointer, int device_offset, float *host_pointer, int host_offset, size_t size) {
       cudaMemcpy(host_pointer + host_offset, device_pointer + device_offset, size, cudaMemcpyDeviceToHost);
     }
 
+    /** \brief Transfer data from the device to the host. */
     inline void save_data(float *const device_pointer, float *const host_pointer, const size_t &size) {
       cudaMemcpy(host_pointer, device_pointer, size, cudaMemcpyDeviceToHost);
     }
 
+    /**
+     * \brief Run the pipeline by processing the next time chunk of data.
+     * \details Process any flags for dumping output or providing it back to the user.
+     * \details aa_permitted_pipelines_5 does not return intermediate data.
+     * \details If this is required, then optional parameters can be passed as arguments which would contain periodicity and acceleration output.
+     * \details Since it is the pipelines perogative to decide when periodicity and acceleration are run, the user is responsible for checking when these objects were actually modified by the pipeline.
+     * \details The user is expected to keep calling run_pipeline until it returns false.
+     * \details Returning true indicates there is more to process.
+     * \details Returning false indicates the pipeline is finished running.
+     * \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
+     */
     bool run_pipeline() {
-      //aa_permitted_pipelines_5 does not return intermediate data.
-      //If this is required, then optional parameters can be passed
-      //as arguments which would contain periodicity and acceleration output.
-      //Since it is the pipelines perogative to decide when periodicity and acceleration
-      //are run, the user is responsible for checking when these objects were actually
-      //modified by the pipeline.
-
-      //The user is expected to keep calling run_pipeline until it returns false.
-      //Returning true indicates there is more to process.
-      //Returning false indicates the pipeline is finished running.
-      
-      printf("NOTICE: Pipeline start/resume run_pipeline_3.\n");
+      printf("NOTICE: Pipeline start/resume run_pipeline_5.\n");
       if(t >= num_tchunks) {
 	if(!periodicity_did_run) {
 	  return periodicity();
@@ -312,12 +316,12 @@ namespace astroaccelerate {
 	}
 	
 	m_timer.Stop();
-        float time = m_timer.Elapsed() / 1000;
-        printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
-        printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)", time);
-        printf("\nAmount of telescope time processed: %f", tstart_local);
-        printf("\nNumber of samples processed: %ld", inc);
-        printf("\nReal-time speedup factor: %lf\n", ( tstart_local ) / time);
+	float time = m_timer.Elapsed() / 1000;
+	printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
+	printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)", time);
+	printf("\nAmount of telescope time processed: %f", tstart_local);
+	printf("\nNumber of samples processed: %ld", inc);
+	printf("\nReal-time speedup factor: %lf\n", ( tstart_local ) / time);
 	
 	return false; // In this case, there are no more chunks to process, and periodicity and acceleration both ran.
       }
@@ -332,13 +336,13 @@ namespace astroaccelerate {
       load_data(-1, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
       checkCudaErrors(cudaGetLastError());
 
-      if(zero_dm_type == aa_compute::module_option::zero_dm) {
+      if(zero_dm_type == aa_pipeline::component_option::zero_dm) {
 	zero_dm(d_input, nchans, t_processed[0][t]+maxshift, nbits);
       }
 
       checkCudaErrors(cudaGetLastError());
 
-      if(zero_dm_type == aa_compute::module_option::zero_dm_with_outliers) {
+      if(zero_dm_type == aa_pipeline::component_option::zero_dm_with_outliers) {
 	zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
       }
 
@@ -381,6 +385,10 @@ namespace astroaccelerate {
 
 	checkCudaErrors(cudaGetLastError());
 
+	for (int k = 0; k < ndms[dm_range]; k++) {
+          save_data_offset(d_output, k * t_processed[dm_range][t], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
+        }
+	
 	//Add analysis
 	unsigned int *h_peak_list_DM;
 	unsigned int *h_peak_list_TS;
@@ -394,8 +402,8 @@ namespace astroaccelerate {
 	h_peak_list_SNR = (float*) malloc(max_peak_size*sizeof(float));
 	h_peak_list_BW  = (unsigned int*) malloc(max_peak_size*sizeof(unsigned int));
 	peak_pos=0;
-	const bool dump_to_disk	= false;
-        const bool dump_to_user	= true;
+	const bool dump_to_disk	= true;
+	const bool dump_to_user	= true;
 	analysis_output output;
 	analysis_GPU(h_peak_list_DM,
 		     h_peak_list_TS,
@@ -423,7 +431,7 @@ namespace astroaccelerate {
 		     m_d_MSD_output_taps,
 		     m_d_MSD_interpolated,
 		     m_analysis_strategy.MSD_data_info(),
-		     m_analysis_strategy.enable_sps_baseline_noise(),
+		     m_analysis_strategy.enable_msd_baseline_noise(),
 		     dump_to_disk,
 		     dump_to_user,
 		     output);
@@ -443,7 +451,7 @@ namespace astroaccelerate {
       maxshift = maxshift_original;
 
       ++t;
-      printf("NOTICE: Pipeline ended run_pipeline_3 over chunk %d / %d.\n", t, num_tchunks);
+      printf("NOTICE: Pipeline ended run_pipeline_5 over chunk %d / %d.\n", t, num_tchunks);
       return true;
     }
 
@@ -466,9 +474,9 @@ namespace astroaccelerate {
 		      dm_step.data(),
 		      tsamp_original,
 		      m_periodicity_strategy.nHarmonics(),
-		      m_analysis_strategy.candidate_algorithm(),
-		      m_analysis_strategy.enable_sps_baseline_noise(),
-		      m_analysis_strategy.sigma_constant());
+		      m_periodicity_strategy.candidate_algorithm(),
+		      m_periodicity_strategy.enable_msd_baseline_noise(),
+		      m_periodicity_strategy.sigma_constant());
       
       timer.Stop();
       float time = timer.Elapsed()/1000;
@@ -491,29 +499,29 @@ namespace astroaccelerate {
       const int *ndms = m_ddtr_strategy.ndms_data();
       
       acceleration_fdas(m_ddtr_strategy.range(),
-                        m_ddtr_strategy.metadata().nsamples(),
-                        max_ndms,
-                        inc,
-                        m_fdas_strategy.num_boots(),
-                        m_fdas_strategy.num_trial_bins(),
-                        m_fdas_strategy.navdms(),
-                        m_fdas_strategy.narrow(),
+			m_ddtr_strategy.metadata().nsamples(),
+			max_ndms,
+			inc,
+			m_fdas_strategy.num_boots(),
+			m_fdas_strategy.num_trial_bins(),
+			m_fdas_strategy.navdms(),
+			m_fdas_strategy.narrow(),
 			m_fdas_strategy.wide(),
 			m_fdas_strategy.aggression(),
-                        m_fdas_strategy.sigma_cutoff(),
-                        m_output_buffer,
-                        ndms,
+			m_fdas_strategy.sigma_cutoff(),
+			m_output_buffer,
+			ndms,
 			inBin.data(),
-                        dm_low.data(),
+			dm_low.data(),
 			dm_high.data(),
-                        dm_step.data(),
+			dm_step.data(),
 			tsamp_original,
-                        m_fdas_enable_custom_fft,
+			m_fdas_enable_custom_fft,
 			m_fdas_enable_inbin,
-                        m_fdas_enable_norm,
-                        m_analysis_strategy.sigma_constant(),
-                        m_fdas_enable_output_ffdot_plan,
-                        m_fdas_enable_output_list);
+			m_fdas_enable_norm,
+			m_fdas_strategy.sigma_constant(),
+			m_fdas_enable_output_ffdot_plan,
+			m_fdas_enable_output_list);
       
       timer.Stop();
       float time = timer.Elapsed()/1000;
@@ -537,7 +545,7 @@ namespace astroaccelerate {
     }
   };
 
-  template<> inline aa_permitted_pipelines_5<aa_compute::module_option::zero_dm, false>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
+  template<> inline aa_permitted_pipelines_5<aa_pipeline::component_option::zero_dm, false>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
 														  const aa_analysis_strategy &analysis_strategy,
 														  const aa_periodicity_strategy &periodicity_strategy,
 														  const aa_fdas_strategy &fdas_strategy,
@@ -568,7 +576,7 @@ namespace astroaccelerate {
     
   }
   
-  template<> inline aa_permitted_pipelines_5<aa_compute::module_option::zero_dm, true>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
+  template<> inline aa_permitted_pipelines_5<aa_pipeline::component_option::zero_dm, true>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
 														 const aa_analysis_strategy &analysis_strategy,
 														 const aa_periodicity_strategy &periodicity_strategy,
 														 const aa_fdas_strategy &fdas_strategy,
@@ -598,7 +606,7 @@ namespace astroaccelerate {
     
   }
   
-  template<> inline aa_permitted_pipelines_5<aa_compute::module_option::zero_dm_with_outliers, false>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
+  template<> inline aa_permitted_pipelines_5<aa_pipeline::component_option::zero_dm_with_outliers, false>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
 																const aa_analysis_strategy &analysis_strategy,
 																const aa_periodicity_strategy &periodicity_strategy,
 																const aa_fdas_strategy &fdas_strategy,
@@ -629,7 +637,7 @@ namespace astroaccelerate {
     
   }
   
-  template<> inline aa_permitted_pipelines_5<aa_compute::module_option::zero_dm_with_outliers, true>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
+  template<> inline aa_permitted_pipelines_5<aa_pipeline::component_option::zero_dm_with_outliers, true>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
 															       const aa_analysis_strategy &analysis_strategy,
 															       const aa_periodicity_strategy &periodicity_strategy,
 															       const aa_fdas_strategy &fdas_strategy,
@@ -659,7 +667,7 @@ namespace astroaccelerate {
     
   }
 
-  template<> inline aa_permitted_pipelines_5<aa_compute::module_option::empty, true>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
+  template<> inline aa_permitted_pipelines_5<aa_pipeline::component_option::empty, true>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
 													       const aa_analysis_strategy &analysis_strategy,
 													       const aa_periodicity_strategy &periodicity_strategy,
 													       const aa_fdas_strategy &fdas_strategy,
@@ -689,7 +697,7 @@ namespace astroaccelerate {
     
   }
 
-  template<> inline aa_permitted_pipelines_5<aa_compute::module_option::empty, false>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
+  template<> inline aa_permitted_pipelines_5<aa_pipeline::component_option::empty, false>::aa_permitted_pipelines_5(const aa_ddtr_strategy &ddtr_strategy,
 														const aa_analysis_strategy &analysis_strategy,
 														const aa_periodicity_strategy &periodicity_strategy,
 														const aa_fdas_strategy &fdas_strategy,
@@ -719,6 +727,6 @@ namespace astroaccelerate {
     
   }
   
-} //namespace astroaccelerate
+} // namespace astroaccelerate
   
-#endif /* ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_5_HPP */
+#endif // ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_5_HPP

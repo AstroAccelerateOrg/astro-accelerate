@@ -6,7 +6,7 @@ using namespace astroaccelerate;
 
 int main() {
   std::cout << "Running test_ddtr_strategy_1.cpp" << std::endl;
-  aa_device_info device_info;
+  aa_device_info& device_info = aa_device_info::instance();
   aa_device_info::CARD_ID selected_card = 0;
   aa_device_info::aa_card_info selected_card_info;
   if(device_info.init_card(selected_card, selected_card_info)) {
@@ -14,6 +14,7 @@ int main() {
   }
   else {
     std::cout << "ERROR: init_card incomplete." << std::endl;
+    return 0;
   }
   
   aa_ddtr_plan ddtr_plan;
@@ -24,12 +25,12 @@ int main() {
   double src_raj = 0;
   double src_dej = 0;
   double tstart = 0;
-  double tsamp = 0;
+  double tsamp = 500;
   double refdm = 0;
   double period = 0;
-  double fch1 = 0;
-  double foff = 0;
-  double fchannel = 0;
+  double fch1 = 1;
+  double foff = 1;
+  double fchannel = 1;
 
   int telescope_id = 0;
   int machine_id = 0;

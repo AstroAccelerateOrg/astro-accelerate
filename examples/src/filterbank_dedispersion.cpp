@@ -13,11 +13,10 @@ int main() {
   aa_sigproc_input       filterbank_datafile("/mnt/data/AstroAccelerate/filterbank/BenMeerKAT.fil");
   aa_filterbank_metadata filterbank_metadata = filterbank_datafile.read_metadata();
 
-  if(!filterbank_datafile.read_telescope()) {
+  if(!filterbank_datafile.read_signal()) {
     std::cout << "ERROR: Could not read telescope data." << std::endl;
     return 0;
   }
-  float *my_output_data = NULL;
   
   std::vector<aa_ddtr_plan::dm> dm_ranges;
   aa_ddtr_plan::dm range1 = {0, 150, 0.1, 1, 1};
@@ -38,9 +37,9 @@ int main() {
   dm_ranges.push_back(range7);
   dm_ranges.push_back(range8);
 
-  const aa_compute::pipeline_detail pipeline_details = {aa_compute::module_option::zero_dm};
+  const aa_pipeline::pipeline_option pipeline_options = {aa_pipeline::component_option::zero_dm};
   
-  dedisperse_telescope_data(filterbank_metadata, pipeline_details, dm_ranges, filterbank_datafile.input_buffer(), my_output_data);
+  dedisperse_telescope_data(filterbank_metadata, pipeline_options, dm_ranges, filterbank_datafile.input_buffer());
   std::cout << "NOTICE: Finished." << std::endl;
   return 0;
 }

@@ -1,14 +1,5 @@
-//
-//  aa_permitted_pipelines_1.hpp
-//  aapipeline
-//
-//  Created by Cees Carels on Friday 02/11/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
 #ifndef ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_1_HPP
 #define ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_1_HPP
-
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -17,7 +8,7 @@
 #include <stdio.h>
 #include <fstream>
 #include <string>
-#include "aa_compute.hpp"
+#include "aa_pipeline.hpp"
 #include "aa_ddtr_strategy.hpp"
 #include "aa_ddtr_plan.hpp"
 
@@ -27,15 +18,27 @@
 #include "aa_zero_dm.hpp"
 #include "aa_zero_dm_outliers.hpp"
 #include "aa_corner_turn.hpp"
-#include "device_rfi.hpp"
+#include "aa_device_rfi.hpp"
 #include "aa_dedisperse.hpp"
 
 #include "aa_pipeline_runner.hpp"
 
 #include "aa_gpu_timer.hpp"
 
+#include "aa_log.hpp"
+
+//#define EXPORT_DD_DATA
+
 namespace astroaccelerate {
-  template<aa_compute::module_option zero_dm_type, bool enable_old_rfi>
+
+  /** 
+   * \class aa_permitted_pipelines_1 aa_permitted_pipelines_1.hpp "include/aa_permitted_pipelines_1.hpp"
+   * \brief Templated class to run only dedispersion.
+   * \details The class is templated over the zero_dm_type (aa_pipeline::component_option::zero_dm or aa_pipeline::component_option::zero_dm_with_outliers).
+   * \author Cees Carels.
+   * \date 2 November 2018.
+   */
+  template<aa_pipeline::component_option zero_dm_type, bool enable_old_rfi>
   class aa_permitted_pipelines_1 : public aa_pipeline_runner {
   public:
     aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
@@ -51,6 +54,7 @@ namespace astroaccelerate {
 
     aa_permitted_pipelines_1(const aa_permitted_pipelines_1 &) = delete;
 
+    /** \brief Method to setup and allocate memory for the pipeline containers. */
     bool setup() override {
       if(!memory_allocated) {
 	return set_data();
@@ -63,35 +67,39 @@ namespace astroaccelerate {
       return false;
     }
 
+    /** \brief Override base class next() method to process next time chunk. */
     bool next() override {
-      std::vector<std::vector<std::vector<float>>> output_buffer;
-      int chunk_idx = 0;
       if(memory_allocated) {
-        return run_pipeline(output_buffer, false, chunk_idx);
-      }
-
-      return false;
-    }
-    
-    bool next(std::vector<std::vector<std::vector<float>>> &output_buffer, int &chunk_idx) {
-      if(memory_allocated) {
-	output_buffer.resize(range);
-	return run_pipeline(output_buffer, true, chunk_idx);
+        return run_pipeline(false);
       }
 
       return false;
     }
 
-    bool next(const bool &dump_to_disk) {
+    /** \brief Process the next time chunk and copy the data back to the host. */
+    bool next(const bool &dump_to_host) {
       if(memory_allocated) {
-	std::vector<std::vector<std::vector<float>>> output_buffer(range);
-	int chunk_idx = 0;
-	return run_pipeline(output_buffer, true, chunk_idx, dump_to_disk);
+	return run_pipeline(dump_to_host);
       }
 
       return false;
     }
-    
+
+    /**
+     * \brief Return the pointer to the complete dedispersed output data.
+     * \details The array data is only useful once the pipeline has finished running.
+     * \details Users should finish running the pipeline so that all dedispersion output is available.
+     * \details Alternatively, the user may access the data one time chunk at a time, but the next time chunk will not have been computed yet.
+     * \details The structure of the ddtr output buffer data is indexed by: time_chunk index, dm_range index, dm.
+     */
+    float*** output_buffer() {
+      if(memory_allocated) {
+	return m_output_buffer;
+      }
+      return false;
+    }
+
+    /** \brief De-allocate memory for this pipeline instance. */
     bool cleanup() {
       if(memory_allocated && !memory_cleanup) {
 	cudaFree(d_input);
@@ -102,11 +110,22 @@ namespace astroaccelerate {
 	  free(t_processed[i]);
 	}
 	free(t_processed);
+	
+	const int *ndms = m_ddtr_strategy.ndms_data();
+        for(size_t i = 0; i < range; i++) {
+          for(int j = 0; j < ndms[i]; j++) {
+            free(m_output_buffer[i][j]);
+          }
+          free(m_output_buffer[i]);
+        }
+        free(m_output_buffer);
+	
 	memory_cleanup = true;
       }
       return true;
     }
   private:
+    float              ***m_output_buffer;
     int                **t_processed;
     aa_ddtr_strategy   m_ddtr_strategy;
     unsigned short     const*const m_input_buffer;
@@ -142,6 +161,7 @@ namespace astroaccelerate {
     int t;
     aa_gpu_timer       m_timer;
 
+    /** \brief Allocate the GPU memory needed for dedispersion. */
     void allocate_memory_gpu(const int &maxshift, const int &max_ndms, const int &nchans, int **const t_processed, unsigned short **const d_input, float **const d_output) {
 
       int time_samps = t_processed[0][0] + maxshift;
@@ -149,7 +169,7 @@ namespace astroaccelerate {
       size_t gpu_inputsize = (size_t) time_samps * (size_t) nchans * sizeof(unsigned short);
       cudaError_t cuda_return = cudaMalloc((void **) d_input, gpu_inputsize);
       if(cuda_return != cudaSuccess) {
-	std::cout << "ERROR:  cudaMalloc failed." << std::endl;
+	LOG(log_level::error, "cudaMalloc failed.");
       }
 
       size_t gpu_outputsize = 0;
@@ -162,14 +182,38 @@ namespace astroaccelerate {
 
       cuda_return = cudaMalloc((void **) d_output, gpu_outputsize);
       if(cuda_return != cudaSuccess) {
-	std::cout << "ERROR:  cudaMalloc failed." << std::endl;
+	LOG(log_level::error, "cudaMalloc failed.");
       }
       cuda_return = cudaMemset(*d_output, 0, gpu_outputsize);
       if(cuda_return != cudaSuccess) {
-	std::cout << "ERROR:  cudaMemset failed." << std::endl;
+	LOG(log_level::error, "cudaMemset failed.");
       }
     }
 
+    /**
+     * \brief Allocate a 3D array that is an output buffer that stores dedispersed array data.
+     */
+    void allocate_memory_cpu_output() {
+      size_t outputsize = 0;
+      const size_t range = m_ddtr_strategy.range();
+      const int *ndms = m_ddtr_strategy.ndms_data();
+
+      outputsize = 0;
+      m_output_buffer = (float ***) malloc(range * sizeof(float **));
+      for(size_t i = 0; i < range; i++) {
+        int total_samps = 0;
+        for(int k = 0; k < num_tchunks; k++) {
+          total_samps += t_processed[i][k];
+        }
+        m_output_buffer[i] = (float **) malloc(ndms[i] * sizeof(float *));
+        for (int j = 0; j < ndms[i]; j++) {
+          m_output_buffer[i][j] = (float *) malloc(( total_samps ) * sizeof(float));
+        }
+        outputsize += ( total_samps ) * ndms[i] * sizeof(float);
+      }
+    }
+
+    /** \brief Method that allocates all memory for this pipeline. */
     bool set_data() {
       num_tchunks = m_ddtr_strategy.num_tchunks();
       size_t t_processed_size = m_ddtr_strategy.t_processed().size();
@@ -208,6 +252,10 @@ namespace astroaccelerate {
       allocate_memory_gpu(maxshift, max_ndms, nchans, t_processed, &d_input, &d_output);
       //Put the dm low, high, step struct contents into separate arrays again.
       //This is needed so that the kernel wrapper functions don't need to be modified.
+
+      //Allocate memory for CPU output for output buffer
+      allocate_memory_cpu_output();
+      
       dm_low.resize(m_ddtr_strategy.range());
       dm_high.resize(m_ddtr_strategy.range());
       dm_step.resize(m_ddtr_strategy.range());
@@ -218,24 +266,46 @@ namespace astroaccelerate {
 	dm_step[i]  = m_ddtr_strategy.dm(i).step;
 	inBin[i]    = m_ddtr_strategy.dm(i).inBin;
       }
+      
       memory_allocated = true;
       return true;
     }
-
-    inline void save_data_offset(float *host_pointer, int host_offset, float *device_pointer, int device_offset, size_t size) {
+    
+    /** \brief Transfer data from the device to the host. */
+    inline void save_data_offset(float *device_pointer, int device_offset, float *host_pointer, int host_offset, size_t size) {
       cudaMemcpy(host_pointer + host_offset, device_pointer + device_offset, size, cudaMemcpyDeviceToHost);
     }
 
-    bool run_pipeline(std::vector<std::vector<std::vector<float>>> &output_buffer, const bool dump_ddtr_output, int &chunk_idx, const bool &dump_to_disk = false) {
-      printf("NOTICE: Pipeline start/resume run_pipeline_1.\n");
+    /**
+     * \brief Run the pipeline by processing the next time chunk of data.
+     * \details Process any flags for dumping output or providing it back to the user.
+     * \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
+     */
+    bool run_pipeline(const bool dump_to_host) {
+      LOG(log_level::notice, "NOTICE: Pipeline start/resume run_pipeline_1.");
       if(t >= num_tchunks) {
 	m_timer.Stop();
 	float time = m_timer.Elapsed() / 1000;
-	printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");       
-	printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)", time);
-	printf("\nAmount of telescope time processed: %f", tstart_local);
-	printf("\nNumber of samples processed: %ld", inc);
-	printf("\nReal-time speedup factor: %lf\n", ( tstart_local ) / time);
+	LOG(log_level::dev_debug, "=== OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===");
+	LOG(log_level::dev_debug, "(Performed Brute-Force Dedispersion:" + std::to_string(time) + "(GPU estimate)");
+	LOG(log_level::dev_debug, "Amount of telescope time processed: " + std::to_string(tstart_local));
+	LOG(log_level::dev_debug, "Number of samples processed: " + std::to_string(inc));
+	LOG(log_level::dev_debug, "Real-time speedup factor: " + std::to_string(( tstart_local ) / time));
+
+#ifdef EXPORT_DD_DATA
+	size_t DMs_per_file = Calculate_sd_per_file_from_file_size(1000, inc, 1);
+	int *ranges_to_export = new int[range];
+	for(size_t f = 0; f < range; f++) {
+	  ranges_to_export[f] = 1;
+	}
+	LOG(log_level::dev_debug, "Exporting dedispersion data...");
+	LOG(log_level::dev_debug, "  DM per file: " + std::to_string(DMs_per_file));
+	
+	const int *ndms = m_ddtr_strategy.ndms_data();
+	Export_DD_data((int)range, m_output_buffer, (size_t)inc, ndms, inBin.data(), "DD_data", ranges_to_export, (int)DMs_per_file);
+	delete ranges_to_export;
+#endif
+	
 	return false;//In this case, there are no more chunks to process.
       }
       else if(t == 0) {
@@ -249,14 +319,14 @@ namespace astroaccelerate {
       load_data(-1, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
       checkCudaErrors(cudaGetLastError());
       
-      if(zero_dm_type == aa_compute::module_option::zero_dm) {
+      if(zero_dm_type == aa_pipeline::component_option::zero_dm) {
 	zero_dm(d_input, nchans, t_processed[0][t]+maxshift, nbits);
       }
 
       checkCudaErrors(cudaGetLastError());
 
 
-      if(zero_dm_type == aa_compute::module_option::zero_dm_with_outliers) {
+      if(zero_dm_type == aa_pipeline::component_option::zero_dm_with_outliers) {
 	zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
       }
 
@@ -297,33 +367,9 @@ namespace astroaccelerate {
 
 	dedisperse(dm_range, t_processed[dm_range][t], inBin.data(), dmshifts, d_input, d_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
 
-	if(dump_ddtr_output) {
-	  //Resize vector to contain the output array
-	  chunk_idx = t;
-	  
-	  output_buffer.at(dm_range).resize(ndms[dm_range]); //There are ndms[dm_range] number of dm at this dm_range
+	if(dump_to_host) {
 	  for (int k = 0; k < ndms[dm_range]; k++) {
-	    output_buffer.at(dm_range).at(k).resize(t_processed[dm_range][t]); //For the given dm_range, there are t_processed[dm_range][t] samples for each dm 
-	    save_data_offset(output_buffer[dm_range][k].data(), 0, d_output, k * t_processed[dm_range][t], sizeof(float) * t_processed[dm_range][t]);
-	  }
-
-	  if(dump_to_disk) {
-	    //Create or open a new file here, append to end of file (file should be called DD_data.dat).
-	    //Close file after writing since we do not know when the user will stop calling the next() function.
-	    std::string out_name = "DD_data_chunk_" + std::to_string(t)+".dat"; 
-	    std::ofstream out;
-	    out.open(out_name.c_str(), std::ios::out | std::ios::app);
-	    if(out.is_open()) {
-	      //Write to disk
-	      for(size_t k = 0 ; k < output_buffer.size(); k++) {
-		for(size_t j = 0; j < output_buffer.at(k).size(); j++) {
-		  for(size_t i = 0; i < output_buffer.at(k).at(j).size(); i++) {
-		    out << output_buffer.at(k).at(j).at(i);
-		  }
-		}
-	      }
-	      out.close();
-	    }
+	    save_data_offset(d_output, k * t_processed[dm_range][t], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
 	  }
 	}
 	checkCudaErrors(cudaGetLastError());
@@ -342,7 +388,7 @@ namespace astroaccelerate {
     }    
   };
 
-  template<> inline aa_permitted_pipelines_1<aa_compute::module_option::zero_dm, false>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
+  template<> inline aa_permitted_pipelines_1<aa_pipeline::component_option::zero_dm, false>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
 														  unsigned short const*const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
 																				m_input_buffer(input_buffer),
 																				memory_allocated(false),
@@ -351,7 +397,7 @@ namespace astroaccelerate {
     
   }
   
-  template<> inline aa_permitted_pipelines_1<aa_compute::module_option::zero_dm, true>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
+  template<> inline aa_permitted_pipelines_1<aa_pipeline::component_option::zero_dm, true>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
 														 unsigned short const*const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
 																			       m_input_buffer(input_buffer),
 																			       memory_allocated(false),
@@ -360,7 +406,7 @@ namespace astroaccelerate {
     
   }
   
-  template<> inline aa_permitted_pipelines_1<aa_compute::module_option::zero_dm_with_outliers, false>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
+  template<> inline aa_permitted_pipelines_1<aa_pipeline::component_option::zero_dm_with_outliers, false>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
 																unsigned short const*const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
 																					      m_input_buffer(input_buffer),
 																					      memory_allocated(false),
@@ -369,7 +415,7 @@ namespace astroaccelerate {
     
   }
   
-  template<> inline aa_permitted_pipelines_1<aa_compute::module_option::zero_dm_with_outliers, true>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
+  template<> inline aa_permitted_pipelines_1<aa_pipeline::component_option::zero_dm_with_outliers, true>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
 															       unsigned short const*const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
 																					     m_input_buffer(input_buffer),
 																					     memory_allocated(false),
@@ -378,7 +424,7 @@ namespace astroaccelerate {
     
   }
 
-  template<> inline aa_permitted_pipelines_1<aa_compute::module_option::empty, true>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
+  template<> inline aa_permitted_pipelines_1<aa_pipeline::component_option::empty, true>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
 													       unsigned short const*const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
 																			     m_input_buffer(input_buffer),
 																			     memory_allocated(false),
@@ -387,7 +433,7 @@ namespace astroaccelerate {
     
   }
 
-  template<> inline aa_permitted_pipelines_1<aa_compute::module_option::empty, false>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
+  template<> inline aa_permitted_pipelines_1<aa_pipeline::component_option::empty, false>::aa_permitted_pipelines_1(const aa_ddtr_strategy &ddtr_strategy,
 														unsigned short const*const input_buffer) :    m_ddtr_strategy(ddtr_strategy),
 																			      m_input_buffer(input_buffer),
 																			      memory_allocated(false),
@@ -396,6 +442,6 @@ namespace astroaccelerate {
     
   }
   
-}//namespace astroaccelerate
+} // namespace astroaccelerate
 
-#endif /* ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_1_HPP */
+#endif // ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_1_HPP

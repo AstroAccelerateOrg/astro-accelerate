@@ -1,11 +1,3 @@
-//
-//  aa_bin_gpu.cpp
-//  aapipeline
-//
-//  Created by Cees Carels on Monday 05/11/2018.
-//  Copyright © 2018 Astro-Accelerate. All rights reserved.
-//
-
 #include <cuda_runtime.h>
 
 #include "aa_bin_gpu.hpp"

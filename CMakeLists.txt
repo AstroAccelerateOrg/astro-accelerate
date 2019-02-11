@@ -11,8 +11,20 @@ if(NOT ASTRO_ACCELERATE_BUILD_DATE_UTC)
 set(ASTRO_ACCELERATE_BUILD_DATE_UTC "EMPTY")
 endif()
 
-# Find Git and Git info
+# Setup Doxygen
+cmake_policy(SET CMP0012 NEW)
+option(ENABLE_DOCS "Enable docs" OFF)
+if(${ENABLE_DOCS})
+	message("-- INFO: DOCS enabled.")
+	set(doc_all_target "ALL")
+	if(NOT DOC_INSTALL_DIR)
+	       set (DOC_INSTALL_DIR ${MODULES_INSTALL_DIR}/doc)
+	       message("-- INFO: DOC_INSTALL_DIR ${DOC_INSTALL_DIR}")
+	endif(NOT DOC_INSTALL_DIR)
+	include(cmake/doxygen.cmake)
+endif()
 
+# Find Git and Git info
 find_package(Git)
 if(GIT_FOUND)
   message("-- INFO: Git found: ${GIT_EXECUTABLE}")
@@ -38,7 +50,7 @@ set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS})
 
 list(APPEND CUDA_NVCC_FLAGS --ptxas-options= -Xptxas -dlcm=cg -use_fast_math)
 list(APPEND CUDA_NVCC_FLAGS -g;)
-list(APPEND CUDA_NVCC_FLAGS -Xptxas -O3;)
+list(APPEND CUDA_NVCC_FLAGS -Xptxas -O3 -std=c++11;)
 list(APPEND CUDA_NVCC_FLAGS -lineinfo;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-O3;)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-lm;)
@@ -119,8 +131,17 @@ foreach(ARCH ${CUDA_ARCH})
 	endif()
 endforeach()
 
+option(LOGGING_FACILITY "Enable logging facility" ON)
+if(${LOGGING_FACILITY})
+        message("-- INFO: LOGGING_FACILITY ON")
+	add_definitions(-DASTRO_ACCELERATE_LOGGING_FACILITY_ENABLE=1)
+else()
+	message("-- INFO: LOGGING_FACILITY OFF")
+	add_definitions(-DASTRO_ACCELERATE_LOGGING_FACILITY_ENABLE=0)
+endif()
+
 # Configure file
-configure_file("${PROJECT_SOURCE_DIR}/cmake/version.h.in" "${PROJECT_SOURCE_DIR}/include/version.h")
+configure_file("${PROJECT_SOURCE_DIR}/cmake/version.h.in" "${PROJECT_SOURCE_DIR}/include/aa_version.hpp")
 add_definitions("-DASTRO_ACCELERATE_VERSION_H_DEFINED=1")
 
 # Status information
@@ -146,14 +167,13 @@ set_target_properties(astroaccelerate PROPERTIES BUILD_SHARED_LIBS ON)
 
 
 # Standalone executable to link against CUDA library
-file(GLOB_RECURSE SOURCE_FILES "src/main.cpp")
+file(GLOB_RECURSE SOURCE_FILES "src/aa_main.cpp")
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
-target_link_libraries(${PROJECT_NAME} astroaccelerate)
+target_link_libraries(${PROJECT_NAME} PRIVATE astroaccelerate)
 
 install(TARGETS astroaccelerate DESTINATION bin)
 
 # Add tests/ directory
-cmake_policy(SET CMP0012 NEW)
 option(ENABLE_TESTS "Enable tests" OFF)
 if(${ENABLE_TESTS})
 	message(STATUS "INFO: ENABLE_TESTS ON")
