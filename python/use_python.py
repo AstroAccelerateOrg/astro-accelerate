@@ -5,7 +5,7 @@ if (sys.version_info < (3, 0)):
 from python_wrapper import *
 
 sigproc_input = aa_py_sigproc_input("/mnt/data/AstroAccelerate/filterbank/BenMeerKAT.fil")
-data = sigproc_input.read_metadata()
+metadata = sigproc_input.read_metadata()
 sigproc_input.read_signal()
 input_buffer = sigproc_input.input_buffer()
 
@@ -47,9 +47,28 @@ nsearch = 1
 aggression = 1
 fdas_plan = aa_py_fdas_plan(sigma_cutoff, sigma_constant, num_boots, num_trial_bins, navdms, narrow, wide, nsearch, aggression, enable_msd_baseline_noise)
 
+# Create aa_py_pipeline_api
+pipeline_components = aa_py_pipeline_components()
+pipeline_components.dedispersion = True
+pipeline_components.analysis = True
+pipeline_components.periodicity = False
+pipeline_components.fdas = False
 
-# Create an aa_py_pipeline
-pipeline = aa_py_pipeline(data, input_buffer, 0)
+pipeline_options = aa_py_pipeline_component_options()
+pipeline_options.zero_dm = True
+pipeline_options.zero_dm_with_outliers = False
+pipeline_options.old_rfi = False
+pipeline_options.msd_baseline_noise = enable_msd_baseline_noise
+pipeline_options.output_dmt = True
+pipeline_options.output_ffdot_plan = False
+pipeline_options.output_fdas_list = False
+pipeline_options.candidate_algorithm = False
+pipeline_options.fdas_custom_fft = False
+pipeline_options.fdas_inbin = False
+pipeline_options.fdas_norm = False
+
+card_number = 0
+pipeline = aa_py_pipeline(pipeline_components, pipeline_options, metadata, input_buffer, card_number)
 pipeline.bind_ddtr_plan(ddtr_plan) # Bind the ddtr_plan
 pipeline.bind_analysis_plan(analysis_plan)
 pipeline.bind_periodicity_plan(periodicity_plan)
@@ -61,5 +80,7 @@ pipeline.run()
     #ptr = pipeline.get_buffer()
     #print(ptr[1][1][2])
 
+del fdas_plan
+del periodicity_plan
 del analysis_plan
 del ddtr_plan

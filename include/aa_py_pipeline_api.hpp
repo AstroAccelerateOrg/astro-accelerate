@@ -7,7 +7,29 @@
 namespace astroaccelerate {
   namespace python {
     extern "C" {
-      aa_pipeline_api<unsigned short>* aa_py_pipeline_api(const aa_py_filterbank_metadata_struct metadata, unsigned short const*const input_data, const int card_number);
+
+      struct pipeline_components_struct {
+	bool dedispersion;
+	bool analysis;
+	bool periodicity;
+	bool fdas;
+      };
+
+      struct pipeline_component_option_struct {
+	bool zero_dm;
+	bool zero_dm_with_outliers;
+	bool old_rfi;
+	bool msd_baseline_noise;
+	bool output_dmt;
+	bool output_ffdot_plan;
+	bool output_fdas_list;
+	bool candidate_algorithm;
+	bool fdas_custom_fft;
+	bool fdas_inbin;
+	bool fdas_norm;
+      };
+      
+      aa_pipeline_api<unsigned short>* aa_py_pipeline_api(const pipeline_components_struct pipeline, const pipeline_component_option_struct options, const aa_py_filterbank_metadata_struct metadata, unsigned short const*const input_data, const int card_number);
       void aa_py_pipeline_api_delete(aa_pipeline_api<unsigned short> const*const obj);
       bool aa_py_pipeline_api_bind_ddtr_plan(aa_pipeline_api<unsigned short> *const obj, aa_ddtr_plan const*const plan);
 

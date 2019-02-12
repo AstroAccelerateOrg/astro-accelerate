@@ -397,6 +397,43 @@ class fdas_strategy_struct (ctypes.Structure):
         ("m_ready",                     ctypes.c_bool)
     ]
 
+
+##
+# \brief Structure to make pipeline object from pipeline components
+# \details Set flags to select a pipeline from the library.
+# \author Cees Carels.
+# \date 12 February 2019.
+#
+class aa_py_pipeline_components (ctypes.Structure):
+    _fields_ = [
+        ("dedispersion", ctypes.c_bool),
+        ("analysis",     ctypes.c_bool),
+        ("periodicity",  ctypes.c_bool),
+        ("fdas",         ctypes.c_bool)
+    ]
+
+
+##
+# \brief Structure to make pipeline component settings object from pipeline component options
+# \details Set flags to select a pipeline option from the library.
+# \author Cees Carels.
+# \date 12 February 2019.
+#
+class aa_py_pipeline_component_options (ctypes.Structure):
+    _fields_ = [
+        ("zero_dm",               ctypes.c_bool),
+        ("zero_dm_with_outliers", ctypes.c_bool),
+        ("old_rfi",               ctypes.c_bool),
+        ("msd_baseline_noise",    ctypes.c_bool),
+        ("output_dmt",            ctypes.c_bool),
+        ("output_ffdot_plan",     ctypes.c_bool),
+        ("output_fdas_list",      ctypes.c_bool),
+        ("candidate_algorithm",   ctypes.c_bool),
+        ("fdas_custom_fft",       ctypes.c_bool),
+        ("fdas_inbin",            ctypes.c_bool),
+        ("fdas_norm",             ctypes.c_bool)
+    ]    
+    
 ##
 # \brief Class for interacting with aa_pipeline_api objects from the library.
 # \details Please see include/aa_pipeline_api.hpp for library implementation.
@@ -404,10 +441,10 @@ class fdas_strategy_struct (ctypes.Structure):
 # \date 05 February 2019.
 #
 class aa_py_pipeline():
-    def __init__(self, metadata: filterbank_metadata_struct, input_data: ctypes.POINTER(ctypes.c_ushort), card_number: int):
-        lib.aa_py_pipeline_api.argtypes = [filterbank_metadata_struct, ctypes.POINTER(ctypes.c_ushort), ctypes.c_int]
+    def __init__(self, pipeline: aa_py_pipeline_components, pipeline_options: aa_py_pipeline_component_options, metadata: filterbank_metadata_struct, input_data: ctypes.POINTER(ctypes.c_ushort), card_number: int):
+        lib.aa_py_pipeline_api.argtypes = [aa_py_pipeline_components, aa_py_pipeline_component_options, filterbank_metadata_struct, ctypes.POINTER(ctypes.c_ushort), ctypes.c_int]
         lib.aa_py_pipeline_api.restype = ctypes.c_void_p
-        self.m_obj = lib.aa_py_pipeline_api(metadata, input_data, ctypes.c_int(card_number))
+        self.m_obj = lib.aa_py_pipeline_api(pipeline, pipeline_options, metadata, input_data, ctypes.c_int(card_number))
 
     def __exit__(self, exc_type, exc_value, traceback):
         print("Destructed aa_py_pipeline")
