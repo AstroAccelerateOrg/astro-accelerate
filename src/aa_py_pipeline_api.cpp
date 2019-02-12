@@ -30,8 +30,9 @@ namespace astroaccelerate {
 	
 	aa_pipeline::pipeline requested_pipeline = aa_permitted_pipelines::pipeline5;
 	aa_pipeline::pipeline_option pipeline_options;
-
-	return new aa_pipeline_api<unsigned short>(requested_pipeline, pipeline_options, metadata, input_data, selected_card_info);
+	
+	aa_pipeline_api<unsigned short>* ptr = new aa_pipeline_api<unsigned short>(requested_pipeline, pipeline_options, metadata, input_data, selected_card_info);
+	return ptr;
       }
       
       void aa_py_pipeline_api_delete(aa_pipeline_api<unsigned short> const*const obj) {
@@ -39,16 +40,39 @@ namespace astroaccelerate {
       }
 
       bool aa_py_pipeline_api_bind_ddtr_plan(aa_pipeline_api<unsigned short> *const obj, aa_ddtr_plan const*const plan) {
-	obj->bind(*plan);
-	return true;
+	return obj->bind(*plan);
       }
 
+      aa_ddtr_strategy* aa_py_pipeline_api_ddtr_strategy(aa_pipeline_api<unsigned short> *const obj) {
+	return new aa_ddtr_strategy(obj->ddtr_strategy());
+      }
+      
       bool aa_py_pipeline_api_bind_analysis_plan(aa_pipeline_api<unsigned short> *const obj, aa_analysis_plan const*const plan) {
-	obj->bind(*plan);
+	return obj->bind(*plan);
       }
 
+      aa_analysis_strategy* aa_py_pipeline_api_analysis_strategy(aa_pipeline_api<unsigned short> *const obj) {
+	return new aa_analysis_strategy(obj->analysis_strategy());
+      }
+
+      bool aa_py_pipeline_api_bind_periodicity_plan(aa_pipeline_api<unsigned short> *const obj, const float sigma_cutoff, const float sigma_constant, const int nHarmonics, const int export_powers, const bool candidate_algorithm, const bool enable_msd_baseline_noise) {
+	aa_periodicity_plan plan(sigma_cutoff, sigma_constant, nHarmonics, export_powers, candidate_algorithm, enable_msd_baseline_noise);
+	return obj->bind(plan);
+      }
+
+      bool aa_py_pipeline_api_bind_fdas_plan(aa_pipeline_api<unsigned short> *const obj, const float sigma_cutoff, const float sigma_constant, const int num_boots, const int num_trial_bins, const int navdms, const float narrow, const float wide, const int nsearch, const float aggression, const bool enable_msd_baseline_noise) {
+	aa_fdas_plan plan(sigma_cutoff, sigma_constant, num_boots, num_trial_bins, navdms, narrow, wide, nsearch, aggression, enable_msd_baseline_noise);
+	return obj->bind(plan);
+      }
+      
       bool aa_py_pipeline_api_run(aa_pipeline_api<unsigned short> *const obj) {
-	return obj->run();
+	std::cout << "run at " << obj << std::endl;
+	if(obj->ready()) {
+	  return obj->run();
+	}
+	else {
+	  return false;
+	}
       }
     }
   }

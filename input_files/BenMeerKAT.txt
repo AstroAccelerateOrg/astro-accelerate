@@ -10,18 +10,18 @@ analysis
 -acceleration
 -output_ffdot_plan
 -output_fdas_list
-periodicity
+-periodicity
 -output_dmt
-zero_dm
+-zero_dm
 -zero_dm_with_outliers
 -rfi
 -oldrfi
 -threshold
 -baselinenoise
-fdas_custom_fft
+-fdas_custom_fft
 -fdas_inbin
 -fdas_norm
-debug
+-debug
 -analysis_debug
 -failsafe
 file /mnt/data/AstroAccelerate/filterbank/BenMeerKAT.fil

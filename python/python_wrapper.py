@@ -1,3 +1,8 @@
+import sys
+if (sys.version_info < (3, 0)):
+    print("ERROR: Python version less than 3.0. Exiting...")
+    sys.exit()
+
 import ctypes
 import numpy as np
 
@@ -51,11 +56,12 @@ class aa_py_sigproc_input:
 
     def read_signal(self):
         lib.aa_py_sigproc_input_read_signal.argtypes = [ctypes.c_void_p]
-        lib.aa_py_sigproc_input_read_signal.restype = ctypes.POINTER(ctypes.c_ushort)
+        lib.aa_py_sigproc_input_read_signal.restype = ctypes.c_bool
         return lib.aa_py_sigproc_input_read_signal(self.m_obj)
-    def input_buffer():
-        print("input_buffer")
-        # Call into library to get input_buffer.
+    def input_buffer(self):
+        lib.aa_py_sigproc_input_input_buffer.argtypes = [ctypes.c_void_p]
+        lib.aa_py_sigproc_input_input_buffer.restype = ctypes.POINTER(ctypes.c_ushort)
+        return lib.aa_py_sigproc_input_input_buffer(self.m_obj)
 
 ##
 # \brief Python class for creating a filterbank_metadata object.
@@ -101,7 +107,7 @@ class aa_py_filterbank_metadata:
 # \date 05 February 2019.
 #
 class aa_py_dm:
-    def __init__(self, low: float, high: float, step: int, inBin: int, outBin: int):
+    def __init__(self, low: float, high: float, step: float, inBin: int, outBin: int):
         self.m_low    = low
         self.m_high   = high
         self.m_step   = step
@@ -136,12 +142,12 @@ class aa_py_ddtr_plan:
     def __init__(self, dm: np.array):
         lib.aa_py_ddtr_plan.argtypes = []
         lib.aa_py_ddtr_plan.restype = ctypes.c_void_p
-
+        self.m_obj = lib.aa_py_ddtr_plan()
+        
         lib.aa_py_ddtr_plan_add_dm.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_int, ctypes.c_int]
         lib.aa_py_ddtr_plan_add_dm.restype = ctypes.c_bool
-        self.m_set_power = 0.0
+        self.m_power = 0.0
         self.m_set_enable_msd_baseline_noise = False
-        self.m_obj = lib.aa_py_ddtr_plan()
         
         if(dm.size):
             if(type(dm[0]) is not aa_py_dm):
@@ -149,7 +155,7 @@ class aa_py_ddtr_plan:
             else:
                 self.m_dm = dm
                 for dm in self.m_dm:
-                    lib.aa_py_ddtr_plan_add_dm(self.m_obj, dm.low(), dm.high(), dm.step(), dm.inBin(), dm.outBin())
+                    lib.aa_py_ddtr_plan_add_dm(self.m_obj, ctypes.c_float(dm.low()), ctypes.c_float(dm.high()), ctypes.c_float(dm.step()), ctypes.c_int(dm.inBin()), ctypes.c_int(dm.outBin()))
         else:
             print("ERROR: The array is empty.")
 
@@ -167,8 +173,8 @@ class aa_py_ddtr_plan:
     def set_power(self, power: float):
         lib.aa_py_ddtr_plan_set_power.argtypes = [ctypes.c_void_p, ctypes.c_float]
         lib.aa_py_ddtr_plan_set_power.restype = ctypes.c_bool
-        self.m_set_power = power
-        return lib.aa_py_ddtr_plan_set_power(self.m_obj, self.m_set_power)
+        self.m_power = power
+        return lib.aa_py_ddtr_plan_set_power(self.m_obj, ctypes.c_float(self.m_power))
 
     def power(self):
         lib.aa_py_ddtr_plan_power.argtypes = [ctypes.c_void_p]
@@ -179,13 +185,13 @@ class aa_py_ddtr_plan:
     def set_enable_msd_baseline_noise(self, enable_msd_baseline_noise: bool):
         lib.aa_py_ddtr_plan_set_enable_msd_baseline.argtypes = [ctypes.c_void_p, ctypes.c_bool]
         lib.aa_py_ddtr_plan_set_enable_msd_baseline.restype = ctypes.c_bool
-        self.m_enable_msd_baseline_noise = enable_msd_baseline_noise
-        return lib.aa_py_ddtr_plan_set_enable_msd_baseline(self.m_obj, self.m_set_enable_msd_baseline_noise)
+        self.m_set_enable_msd_baseline_noise = enable_msd_baseline_noise
+        return lib.aa_py_ddtr_plan_set_enable_msd_baseline(self.m_obj, ctypes.c_bool(self.m_set_enable_msd_baseline_noise))
 
     def enable_msd_baseline_noise(self):
         lib.aa_py_ddtr_plan_enable_msd_baseline_noise.argtypes = [ctypes.c_void_p]
         lib.aa_py_ddtr_plan_enable_msd_baseline_noise.restype = ctypes.c_bool
-        self.m_enable_msd_baseline_noise = ctypes.c_float(lib.aa_py_ddtr_plan_enable_msd_baseline_noise).value
+        self.m_set_enable_msd_baseline_noise = ctypes.c_float(lib.aa_py_ddtr_plan_enable_msd_baseline_noise).value
         return self.m_enable_msd_baseline_noise
 
     def print_info(self):
@@ -195,8 +201,8 @@ class aa_py_ddtr_plan:
                 print("     aa_py_ddtr_plan range {}: low {}, high {}, step {}, inBin {}, outBin {}".format(i, self.m_dm[i].m_low, self.m_dm[i].m_high, self.m_dm[i].m_step, self.m_dm[i].m_inBin, self.m_dm[i].m_outBin))
         else:
             print("No dm ranges have been provided.")
-        print("     aa_py_ddtr_plan power {}".format(self.m_set_power))
-        print("     aa_py_ddtr_plan enable_msd_baseline_noise: {}".format(self.m_enable_msd_baseline_noise))
+        print("     aa_py_ddtr_plan power {}".format(self.m_power))
+        print("     aa_py_ddtr_plan enable_msd_baseline_noise: {}".format(self.m_set_enable_msd_baseline_noise))
 
 ##
 # \brief Class for configuring a ddtr_strategy.
@@ -282,7 +288,7 @@ class aa_py_periodicity_plan():
         self.m_nHarmonics = nHarmonics
         self.m_export_powers = export_powers
         self.m_candidate_algorithm = candidate_algorithm
-        self.m_enable_msd_baseline_noise = enable_baseline_noise
+        self.m_enable_msd_baseline_noise = enable_msd_baseline_noise
 
     def __exit__(self, exc_type, exc_value, traceback):
         print("Destructed aa_py_periodicity_plan")
@@ -326,7 +332,7 @@ class aa_py_periodicity_strategy():
 # \date 05 February 2019.
 #
 class aa_py_fdas_plan():
-    def __init__(self, sigma_cutoff, float, sigma_constant: float, num_boots: int, num_trial_bins: int, navdms: int, narrow: float, wide: float, nsearch: int, aggression: float, enable_msd_baseline_noise: bool):
+    def __init__(self, sigma_cutoff: float, sigma_constant: float, num_boots: int, num_trial_bins: int, navdms: int, narrow: float, wide: float, nsearch: int, aggression: float, enable_msd_baseline_noise: bool):
         self.m_sigma_cutoff = sigma_cutoff
         self.m_sigma_constant = sigma_constant
         self.m_num_boots = num_boots
@@ -338,6 +344,36 @@ class aa_py_fdas_plan():
         self.m_aggression = aggression
         self.m_enable_msd_baseline_noise = enable_msd_baseline_noise
 
+    def sigma_cutoff(self):
+        return self.m_sigma_cutoff
+
+    def sigma_constant(self):
+        return self.m_sigma_constant
+
+    def num_boots(self):
+        return self.m_num_boots
+
+    def num_trial_bins(self):
+        return self.m_num_trial_bins
+
+    def navdms(self):
+        return self.m_navdms
+
+    def narrow(self):
+        return self.m_narrow
+
+    def wide(self):
+        return self.m_wide
+
+    def nsearch(self):
+        return self.m_nsearch
+
+    def aggression(self):
+        return self.m_aggression
+
+    def enable_msd_baseline_noise(self):
+        return self.m_enable_msd_baseline_noise
+        
     def __exit__(self, exc_type, exc_value, traceback):
         print("Destructed aa_pu_fdas_plan")
 
@@ -373,32 +409,60 @@ class aa_py_pipeline():
     def __enter__(self):
         return self
         
-    def bind_ddtr_plan(self, plan):
+    def bind_ddtr_plan(self, plan: aa_py_ddtr_plan):
         lib.aa_py_pipeline_api_bind_ddtr_plan.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
         lib.aa_py_pipeline_api_bind_ddtr_plan.restype = ctypes.c_bool
-        lib.aa_py_pipeline_api_bind_ddtr_plan(self.m_obj, plan.pointer())
+        return lib.aa_py_pipeline_api_bind_ddtr_plan(self.m_obj, ctypes.c_void_p(plan.pointer()))
         # Call into library to bind plan
 
-    def bind_analysis_plan(self, plan):
-        lib.aa_py_pipeline_api_bind_analysis_plan.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
-        lib.aa_py_pipeline_api_bind_analysis_plan.restype = ctypes.c_bool
-        return lib.aa_py_pipeline_api_bind_analysis_plan(self.m_obj, plan.pointer())
-        
     def ddtr_strategy(self):
         lib.aa_py_pipeline_api_ddtr_strategy.argtypes = [ctypes.c_void_p]
         lib.aa_py_pipeline_api_ddtr_strategy.restype = ctypes.c_void_p
-        self.m_ddtr_strategy = lib.aa_py_pipeline_api_ddtr_strategy(self.m_obj)
+        return lib.aa_py_pipeline_api_ddtr_strategy(self.m_obj)
         print("ddtr_strategy")
         # Call into library to retrieve aa_ddtr_strategy and then set to aa_py_ddtr_strategy.
+
+    def bind_analysis_plan(self, plan: aa_py_analysis_plan):
+        lib.aa_py_pipeline_api_ddtr_strategy.argtypes = [ctypes.c_void_p]
+        lib.aa_py_pipeline_api_ddtr_strategy.restype = ctypes.c_void_p
+        self.m_ddtr_strategy = lib.aa_py_pipeline_api_ddtr_strategy(self.m_obj)
+        
+        lib.aa_py_analysis_plan.argtypes = [ctypes.c_void_p,
+                                            ctypes.c_float,
+                                            ctypes.c_float,
+                                            ctypes.c_float,
+                                            ctypes.c_bool,
+                                            ctypes.c_bool]
+        lib.aa_py_analysis_plan.restype = ctypes.c_void_p
+        self.m_analysis_plan_ptr = lib.aa_py_analysis_plan(self.m_ddtr_strategy,
+                                                           ctypes.c_float(plan.sigma_cutoff()),
+                                                           ctypes.c_float(plan.sigma_constant()),
+                                                           ctypes.c_float(plan.max_boxcar_width_in_sec()),
+                                                           ctypes.c_bool(plan.candidate_algorithm()),
+                                                           ctypes.c_bool(plan.enable_msd_baseline_noise()))
+
+        lib.aa_py_pipeline_api_bind_analysis_plan.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+        lib.aa_py_pipeline_api_bind_analysis_plan.restype = ctypes.c_bool
+        return lib.aa_py_pipeline_api_bind_analysis_plan(self.m_obj, self.m_analysis_plan_ptr)
 
     def analysis_strategy(self):
         print("analysis_strategy")
         # Call into library to retrieve aa_analysis_strategy and then set to aa_py_analysis_strategy.
-
+        
+    def bind_periodicity_plan(self, plan: aa_py_periodicity_plan):
+        lib.aa_py_pipeline_api_bind_periodicity_plan.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_int, ctypes.c_int, ctypes.c_bool, ctypes.c_bool]
+        lib.aa_py_pipeline_api_bind_periodicity_plan.restype = ctypes.c_bool
+        return lib.aa_py_pipeline_api_bind_periodicity_plan(self.m_obj, ctypes.c_float(plan.sigma_cutoff()), ctypes.c_float(plan.sigma_constant()), ctypes.c_int(plan.nHarmonics()), ctypes.c_int(plan.export_powers()), ctypes.c_bool(plan.candidate_algorithm()), ctypes.c_bool(plan.enable_msd_baseline_noise()))
+        
     def periodicity_strategy(self):
         print("periodicity_strategy")
         # Call into library to retrieve aa_periodicity_strategy and then set to aa_py_periodicity_strategy.
 
+    def bind_fdas_plan(self, plan: aa_py_fdas_plan):
+        lib.aa_py_pipeline_api_bind_fdas_plan.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_float, ctypes.c_float, ctypes.c_int, ctypes.c_float, ctypes.c_bool]
+        lib.aa_py_pipeline_api_bind_fdas_plan.restype = ctypes.c_bool
+        return lib.aa_py_pipeline_api_bind_fdas_plan(self.m_obj, ctypes.c_float(plan.sigma_cutoff()), ctypes.c_float(plan.sigma_constant()), ctypes.c_int(plan.num_boots()), ctypes.c_int(plan.num_trial_bins()), ctypes.c_int(plan.navdms()), ctypes.c_float(plan.narrow()), ctypes.c_float(plan.wide()), ctypes.c_int(plan.nsearch()), ctypes.c_float(plan.aggression()), ctypes.c_bool(plan.enable_msd_baseline_noise()))
+        
     def fdas_strategy(self):
         print("fdas_strategy")
         # Call into library to retrieve aa_fdas_strategy and then set to aa_py_fdas_strategy.
@@ -410,7 +474,9 @@ class aa_py_pipeline():
 
     ## \brief Runs the entire pipeline end-to-end. #
     def run(self):
-        print("run")
+        lib.aa_py_pipeline_api_run.argtypes = [ctypes.c_void_p]
+        lib.aa_py_pipeline_api_run.restype = ctypes.c_bool
+        return lib.aa_py_pipeline_api_run(self.m_obj)
         # Call into library to run pipeline.
 
     def analysis_output_store(self):

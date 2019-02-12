@@ -104,7 +104,7 @@ namespace astroaccelerate {
       if(supplied_plans.find(aa_pipeline::component::dedispersion) == supplied_plans.end()) {
 	return false;
       }
-        
+
       //Does the pipeline actually need this plan?
       if(required_plans.find(aa_pipeline::component::dedispersion) != required_plans.end()) {
 	m_ddtr_plan = plan;
@@ -333,6 +333,8 @@ namespace astroaccelerate {
 	aa_analysis_strategy empty_strategy;
 	return empty_strategy;
       }
+      aa_analysis_strategy empty_strategy;
+      return empty_strategy;
     }
 
     /** \returns The aa_periodicity_strategy instance bound to the pipeline instance, or a trivial instance if a valid aa_periodicity_strategy does not yet exist. */
@@ -905,6 +907,7 @@ namespace astroaccelerate {
 	return true;
       }
       else {
+	LOG(log_level::error, "Pipeline could not start/resume because either pipeline is not ready or runner is not setup.");
 	return false;
       }
     }
@@ -933,7 +936,7 @@ namespace astroaccelerate {
     std::map<aa_pipeline::component, bool> supplied_plans; /** Plans supplied by the user. */
     std::vector<aa_strategy*>   m_all_strategy; /** Base class pointers to all strategies bound to the pipeline. */
     aa_pipeline::pipeline        m_requested_pipeline; /** The user requested pipeline that was bound to the aa_pipeline_api instance on construction. */
-    const aa_pipeline::pipeline_option &m_pipeline_options; /** The user requested pipeline details containing component options for the aa_pipeline_api instance. */
+    const aa_pipeline::pipeline_option m_pipeline_options; /** The user requested pipeline details containing component options for the aa_pipeline_api instance. */
     aa_device_info::aa_card_info m_card_info; /** The user provided GPU card information for the aa_pipeline_api instance. */
     std::unique_ptr<aa_pipeline_runner> m_runner; /** A std::unique_ptr that will point to the correct class instantation of the selected aa_permitted_pipelines_ when the pipeline must be made ready to run. */
     

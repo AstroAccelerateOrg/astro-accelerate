@@ -24,6 +24,7 @@ output/
 *.old
 *.new
 *.ori
+*.dat
 
 out.txt
 include/aa_version.hpp

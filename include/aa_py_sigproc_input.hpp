@@ -12,6 +12,7 @@ namespace astroaccelerate {
       void aa_py_sigproc_input_del(aa_sigproc_input const*const obj);
       aa_py_filterbank_metadata_struct aa_py_sigproc_input_read_metadata(aa_sigproc_input *const obj);
       bool aa_py_sigproc_input_read_signal(aa_sigproc_input *const obj);
+      unsigned short const* aa_py_sigproc_input_input_buffer_modifiable(aa_sigproc_input const*const obj);
     } // extern "C"
   } // namespace python
 } // namespace astroaccelerate

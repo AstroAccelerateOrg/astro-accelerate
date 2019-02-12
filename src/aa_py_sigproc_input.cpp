@@ -28,6 +28,10 @@ namespace astroaccelerate {
       bool aa_py_sigproc_input_read_signal(aa_sigproc_input *const obj) {
 	return obj->read_signal();
       }
+
+      unsigned short const* aa_py_sigproc_input_input_buffer(aa_sigproc_input const*const obj) {
+	return obj->input_buffer().data();
+      }
     }
   }
 }
