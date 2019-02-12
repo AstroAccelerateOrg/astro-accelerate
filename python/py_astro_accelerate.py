@@ -6,7 +6,7 @@ if (sys.version_info < (3, 0)):
 import ctypes
 import numpy as np
 
-lib = ctypes.CDLL('/home/carels/astro-accelerate/build/libastroaccelerate.so')
+lib = ctypes.CDLL('/path/to/libastroaccelerate.so')
 
 # Define ctypes for float pointers
 FLOAT = ctypes.c_float
