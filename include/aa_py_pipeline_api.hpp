@@ -19,6 +19,8 @@ namespace astroaccelerate {
       bool aa_py_pipeline_api_bind_periodicity_plan(aa_pipeline_api<unsigned short> *const obj, const float sigma_cutoff, const float sigma_constant, const int nHarmonics, const int export_powers, const bool candidate_algorithm, const bool enable_msd_baseline_noise);
 
       bool aa_py_pipeline_api_bind_fdas_plan(aa_pipeline_api<unsigned short> *const obj, const float sigma_cutoff, const float sigma_constant, const int num_boots, const int num_trial_bins, const int navdms, const float narrow, const float wide, const int nsearch, const float aggression, const bool enable_msd_baseline_noise);
+
+      aa_fdas_strategy aa_py_pipeline_api_fdas_strategy(aa_pipeline_api<unsigned short> *const obj);
       
       bool aa_py_pipeline_api_run(aa_pipeline_api<unsigned short> *const obj);
     }

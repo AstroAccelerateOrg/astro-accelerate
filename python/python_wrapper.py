@@ -16,13 +16,13 @@ PPPFLOAT = ctypes.POINTER(PPFLOAT)
 
 class filterbank_metadata_struct (ctypes.Structure):
     _fields_ = [
-        ("m_tstart",ctypes.c_double),
-        ("m_tsamp",ctypes.c_double),
-        ("m_fch1", ctypes.c_double),
-        ("m_foff",ctypes.c_double),
-        ("m_nbits",ctypes.c_int),
+        ("m_tstart",  ctypes.c_double),
+        ("m_tsamp",   ctypes.c_double),
+        ("m_fch1",    ctypes.c_double),
+        ("m_foff",    ctypes.c_double),
+        ("m_nbits",   ctypes.c_int),
         ("m_nsamples",ctypes.c_int),
-        ("m_nchans",ctypes.c_int)
+        ("m_nchans",  ctypes.c_int)
     ]
 
 ##
@@ -378,18 +378,24 @@ class aa_py_fdas_plan():
         print("Destructed aa_pu_fdas_plan")
 
 ##
-# \brief Class for configuring an fdas_strategy
+# \brief Struct for configuring an fdas_strategy.
 # \details Please see include/aa_fdas_strategy.hpp for library implementation.
 # \author Cees Carels.
 # \date 05 February 2019.
 #
-class aa_py_fdas_strategy():
-    def __init__(self):
-        print("Constructed aa_py_fdas_strategy")
-        # Call into library to obtain aa_fdas_strategy.
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        print("Destructed aa_py_fdas_strategy")
+class fdas_strategy_struct (ctypes.Structure):
+    _fields_ = [
+        ("m_sigma_cutoff",              ctypes.c_float),
+        ("m_sigma_constant",            ctypes.c_float),
+        ("m_narrow",                    ctypes.c_float),
+        ("m_wide",                      ctypes.c_float),
+        ("m_aggression",                ctypes.c_float),
+        ("m_num_boots",                 ctypes.c_int),
+        ("m_num_trial_bins",            ctypes.c_int),
+        ("m_navdms",                    ctypes.c_int),
+        ("m_enable_msd_baseline_noise", ctypes.c_bool),
+        ("m_ready",                     ctypes.c_bool)
+    ]
 
 ##
 # \brief Class for interacting with aa_pipeline_api objects from the library.
@@ -464,13 +470,9 @@ class aa_py_pipeline():
         return lib.aa_py_pipeline_api_bind_fdas_plan(self.m_obj, ctypes.c_float(plan.sigma_cutoff()), ctypes.c_float(plan.sigma_constant()), ctypes.c_int(plan.num_boots()), ctypes.c_int(plan.num_trial_bins()), ctypes.c_int(plan.navdms()), ctypes.c_float(plan.narrow()), ctypes.c_float(plan.wide()), ctypes.c_int(plan.nsearch()), ctypes.c_float(plan.aggression()), ctypes.c_bool(plan.enable_msd_baseline_noise()))
         
     def fdas_strategy(self):
-        print("fdas_strategy")
-        # Call into library to retrieve aa_fdas_strategy and then set to aa_py_fdas_strategy.
-
-    ## \brief Runs the entire pipeline end-to-end, saving to disk. #
-    def run_save_to_disk(self):
-        print("run_save_to_disk")
-        # Call into library to run pipeline.
+        lib.aa_py_pipeline_api_fdas_strategy.argtypes = [ctypes.c_void_p]
+        lib.aa_py_pipeline_api_fdas_strategy.restype = fdas_strategy_struct
+        return lib.aa_py_pipeline_api_fdas_strategy(self.m_obj)
 
     ## \brief Runs the entire pipeline end-to-end. #
     def run(self):
@@ -478,18 +480,6 @@ class aa_py_pipeline():
         lib.aa_py_pipeline_api_run.restype = ctypes.c_bool
         return lib.aa_py_pipeline_api_run(self.m_obj)
         # Call into library to run pipeline.
-
-    def analysis_output_store(self):
-        print("analysis_output_store")
-        # Call into library to obtain all analysis output from the output_store.
-
-    def periodicity_output_store(self):
-        print("periodicity_output_store")
-        # Call into library to obtain all periodicity output from the output_store.
-
-    def fdas_output_store(self):
-        print("fdas_output_store")
-        # Call into library to obtain all fdas output from the output_store.
 
     ## \brief Returns a pointer to the dedispersed output_buffer in the library. #
     def get_buffer(self):

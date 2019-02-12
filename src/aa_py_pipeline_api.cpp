@@ -64,6 +64,10 @@ namespace astroaccelerate {
 	aa_fdas_plan plan(sigma_cutoff, sigma_constant, num_boots, num_trial_bins, navdms, narrow, wide, nsearch, aggression, enable_msd_baseline_noise);
 	return obj->bind(plan);
       }
+
+      aa_fdas_strategy aa_py_pipeline_api_fdas_strategy(aa_pipeline_api<unsigned short> *const obj) {
+	return obj->fdas_strategy();
+      }
       
       bool aa_py_pipeline_api_run(aa_pipeline_api<unsigned short> *const obj) {
 	std::cout << "run at " << obj << std::endl;

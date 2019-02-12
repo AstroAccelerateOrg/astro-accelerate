@@ -54,6 +54,7 @@ pipeline.bind_ddtr_plan(ddtr_plan) # Bind the ddtr_plan
 pipeline.bind_analysis_plan(analysis_plan)
 pipeline.bind_periodicity_plan(periodicity_plan)
 pipeline.bind_fdas_plan(fdas_plan)
+pipeline.fdas_strategy()
 pipeline.run()
     
     # Obtain the dedispersed output data buffer

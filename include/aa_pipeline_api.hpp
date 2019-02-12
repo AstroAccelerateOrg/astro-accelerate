@@ -379,7 +379,7 @@ namespace astroaccelerate {
         else {
           //fdas_strategy was not yet computed, do it now.
           aa_fdas_strategy fdas_strategy(m_fdas_plan);
-          if(periodicity_strategy.ready()) {
+          if(fdas_strategy.ready()) {
             m_fdas_strategy = std::move(fdas_strategy);
             m_all_strategy.push_back(&m_fdas_strategy);
           }
@@ -394,6 +394,8 @@ namespace astroaccelerate {
         aa_fdas_strategy empty_strategy;
         return empty_strategy;
       }
+      aa_fdas_strategy empty_strategy;
+      return empty_strategy;
     }
     
     /**
