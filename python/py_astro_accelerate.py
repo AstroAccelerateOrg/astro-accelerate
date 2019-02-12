@@ -14,6 +14,12 @@ PFLOAT = ctypes.POINTER(FLOAT)
 PPFLOAT = ctypes.POINTER(PFLOAT)
 PPPFLOAT = ctypes.POINTER(PPFLOAT)
 
+##
+# \brief Python class to hold filterbank_metadata.
+# \details Please see include/aa_filterbank_metadata.hpp for library implementation.
+# \author Cees Carels.
+# \date 05 February 2019.
+#
 class filterbank_metadata_struct (ctypes.Structure):
     _fields_ = [
         ("m_tstart",  ctypes.c_double),
@@ -69,7 +75,6 @@ class aa_py_sigproc_input:
 # \author Cees Carels.
 # \date 05 February 2019.
 #
-
 class aa_py_filterbank_metadata:
     def __init__(self, tstart: float, tsamp: float, nbits: int, nsamples: int, fch1: float, foff: float, nchans: int):
         self.m_tstart = tstart
@@ -230,7 +235,6 @@ class aa_py_analysis_plan():
         self.m_max_boxcar_width_in_sec = max_boxcar_width_in_sec
         self.m_candidate_algorithm = candidate_algorithm
         self.m_enable_msd_baseline_noise = enable_msd_baseline_noise
-        # Call into library using the existing aa_ddtr_strategy.
 
     def __exit__(self, exc_type, exc_value, traceback):
         print("Destructed aa_py_analysis_plan")
@@ -378,7 +382,7 @@ class aa_py_fdas_plan():
         print("Destructed aa_pu_fdas_plan")
 
 ##
-# \brief Struct for configuring an fdas_strategy.
+# \brief Class for configuring an fdas_strategy.
 # \details Please see include/aa_fdas_strategy.hpp for library implementation.
 # \author Cees Carels.
 # \date 05 February 2019.
@@ -463,7 +467,6 @@ class aa_py_pipeline():
         lib.aa_py_pipeline_api_ddtr_strategy.restype = ctypes.c_void_p
         return lib.aa_py_pipeline_api_ddtr_strategy(self.m_obj)
         print("ddtr_strategy")
-        # Call into library to retrieve aa_ddtr_strategy and then set to aa_py_ddtr_strategy.
 
     def bind_analysis_plan(self, plan: aa_py_analysis_plan):
         lib.aa_py_pipeline_api_ddtr_strategy.argtypes = [ctypes.c_void_p]
