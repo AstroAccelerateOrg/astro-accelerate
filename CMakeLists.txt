@@ -145,7 +145,7 @@ configure_file("${PROJECT_SOURCE_DIR}/cmake/version.h.in" "${PROJECT_SOURCE_DIR}
 add_definitions("-DASTRO_ACCELERATE_VERSION_H_DEFINED=1")
 
 # Python configure file
-configure_file("${PROJECT_SOURCE_DIR}/cmake/py_astro_accelerate.py.in" "py_astro_accelerate.py")
+configure_file("${PROJECT_SOURCE_DIR}/cmake/py_astro_accelerate.py.in" "${PROJECT_SOURCE_DIR}/python/py_astro_accelerate.py")
 
 
 # Status information

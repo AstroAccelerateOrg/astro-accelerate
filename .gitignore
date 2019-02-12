@@ -67,3 +67,4 @@ include/aa_version.hpp
 __pycache__/
 *.py[cod]
 *$py.class
+py_astro_accelerate.py
