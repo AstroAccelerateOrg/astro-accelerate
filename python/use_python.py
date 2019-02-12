@@ -1,9 +1,11 @@
+# Check Python version on this machine
 import sys
 if (sys.version_info < (3, 0)):
     print("ERROR: Python version less than 3.0. Exiting...")
     sys.exit()
-from python_wrapper import *
+from py_astro_accelerate import *
 
+# Open filterbank file for reading metadata and signal data
 sigproc_input = aa_py_sigproc_input("/mnt/data/AstroAccelerate/filterbank/BenMeerKAT.fil")
 metadata = sigproc_input.read_metadata()
 sigproc_input.read_signal()
@@ -47,13 +49,14 @@ nsearch = 1
 aggression = 1
 fdas_plan = aa_py_fdas_plan(sigma_cutoff, sigma_constant, num_boots, num_trial_bins, navdms, narrow, wide, nsearch, aggression, enable_msd_baseline_noise)
 
-# Create aa_py_pipeline_api
+# Set up pipeline components
 pipeline_components = aa_py_pipeline_components()
 pipeline_components.dedispersion = True
 pipeline_components.analysis = True
 pipeline_components.periodicity = False
 pipeline_components.fdas = False
 
+# Set up pipeline component options
 pipeline_options = aa_py_pipeline_component_options()
 pipeline_options.zero_dm = True
 pipeline_options.zero_dm_with_outliers = False
@@ -67,7 +70,10 @@ pipeline_options.fdas_custom_fft = False
 pipeline_options.fdas_inbin = False
 pipeline_options.fdas_norm = False
 
+# Select GPU card number on this machine
 card_number = 0
+
+# Create pipeline
 pipeline = aa_py_pipeline(pipeline_components, pipeline_options, metadata, input_buffer, card_number)
 pipeline.bind_ddtr_plan(ddtr_plan) # Bind the ddtr_plan
 pipeline.bind_analysis_plan(analysis_plan)
@@ -76,9 +82,9 @@ pipeline.bind_fdas_plan(fdas_plan)
 fdas_strategy = pipeline.fdas_strategy()
 pipeline.run()
     
-    # Obtain the dedispersed output data buffer
-    #ptr = pipeline.get_buffer()
-    #print(ptr[1][1][2])
+# Obtain the dedispersed output data buffer
+#ptr = pipeline.get_buffer()
+#print(ptr[1][1][2])
 
 del fdas_plan
 del periodicity_plan
