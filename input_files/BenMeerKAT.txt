@@ -3,6 +3,7 @@ range	370  740   0.652  2 2
 range	740  1480  1.266  4 4 
 -range	1480 2950  2.512  8 8
 -range	2950 5000  4.000  16 16
+periodicity_sigma_cutoff 6
 sigma_cutoff	6
 sigma_constant  4.0
 max_boxcar_width_in_sec 0.05
@@ -10,9 +11,9 @@ analysis
 -acceleration
 -output_ffdot_plan
 -output_fdas_list
--periodicity
+periodicity
 -output_dmt
--zero_dm
+zero_dm
 -zero_dm_with_outliers
 -rfi
 -oldrfi

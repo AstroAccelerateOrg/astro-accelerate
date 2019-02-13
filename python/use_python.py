@@ -35,7 +35,7 @@ analysis_plan = aa_py_analysis_plan(sigma_cutoff, sigma_constant, max_boxcar_wid
 analysis_plan.print_info()
 
 # Create periodicity plan
-nHarmonics = 1
+nHarmonics = 32
 export_powers = 2
 periodicity_plan = aa_py_periodicity_plan(sigma_cutoff, sigma_constant, nHarmonics, export_powers, candidate_algorithm, enable_msd_baseline_noise)
 
@@ -53,7 +53,7 @@ fdas_plan = aa_py_fdas_plan(sigma_cutoff, sigma_constant, num_boots, num_trial_b
 pipeline_components = aa_py_pipeline_components()
 pipeline_components.dedispersion = True
 pipeline_components.analysis = True
-pipeline_components.periodicity = False
+pipeline_components.periodicity = True
 pipeline_components.fdas = False
 
 # Set up pipeline component options
