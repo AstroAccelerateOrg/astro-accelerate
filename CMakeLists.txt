@@ -1,7 +1,7 @@
 # Check if cmake has the required version
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6.0 FATAL_ERROR)
 set(PROJECT_NAME astro-accelerate)
-set(PROJECT_VERSION 1.2.0)	# Tagged release version
+set(PROJECT_VERSION 1.3.1)	# Tagged release version
 set(PROJECT_LIB_NAME ASTRO_ACCELERATE)
 
 # Set date and time of build
@@ -143,6 +143,10 @@ endif()
 # Configure file
 configure_file("${PROJECT_SOURCE_DIR}/cmake/version.h.in" "${PROJECT_SOURCE_DIR}/include/aa_version.hpp")
 add_definitions("-DASTRO_ACCELERATE_VERSION_H_DEFINED=1")
+
+# Python configure file
+configure_file("${PROJECT_SOURCE_DIR}/cmake/py_astro_accelerate.py.in" "${PROJECT_SOURCE_DIR}/python/py_astro_accelerate.py")
+
 
 # Status information
 message(STATUS "Using: ${CMAKE_CXX_COMPILER} with compiler ID ${CMAKE_CXX_COMPILER_ID} and compiler version ${CXX_VERSION}")

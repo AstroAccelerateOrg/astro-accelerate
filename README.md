@@ -7,12 +7,33 @@ This documentation summarises the content of the Astro-Accelerate software.
 
 Please also refer to the [wiki pages](https://github.com/AstroAccelerateOrg/astro-accelerate/blob/master/wiki/home.md).
 
+Publications
+===
+If you use AstroAccelerate, please cite the code using the following DOI
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2556573.svg)](https://doi.org/10.5281/zenodo.2556573)
+
+Please cite the following journal article
+* https://ui.adsabs.harvard.edu/#abs/arXiv:1804.05335
+
+and the proceedings
+* https://arxiv.org/abs/1812.02647
+* https://arxiv.org/abs/1711.10855
+* https://arxiv.org/abs/1611.09704
+* https://arxiv.org/abs/1511.07343
+
 Features
 ===
 Astro-Accelerate is used for real-time astronomy data processing. Its features include:
 * Acceleration Searching
 * Zero DM
 * RFI Mitigation
+
+Python Interface
+===
+After following the steps below, consider using the Python interface.
+An example is provided in the `python/` folder.
+Configurating pipelines using the Python interface is otherwise identical to an input_file (described below).
 
 Software Inputs and Outputs
 ===
