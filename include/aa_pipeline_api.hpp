@@ -44,7 +44,6 @@ namespace astroaccelerate {
    * \warning Configuring multiple pipeline objects and strategy objects at the same time means the pipeline will not see the correct amount of memory on the GPU.
    * \todo Nice to have but not needed: Add a way to transfer ownership of the data between aa_pipeline_api objects.
    * \todo Add a method to obtain the aa_filterbank_metadata from this class.
-   * \todo Every permitted pipeline must accept an output_store to write into.
    * \author Cees Carels.
    * \date: 23 October 2018.
    */
@@ -913,12 +912,6 @@ namespace astroaccelerate {
 	return false;
       }
     }
-
-    /** \todo Pipelines should be able to write into an output store that can be retrieved at the end.
-     * The output store is a single struct object of std::vector<> of output objects.
-     * The output store object can be provided by this class.
-     * Then, this API class provides a method to extract each type from the output store.
-     **/
 
     /**
      * \brief Function pass input/output data from one aa_pipeline_api instance to another.
