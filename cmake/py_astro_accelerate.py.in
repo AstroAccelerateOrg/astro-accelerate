@@ -489,6 +489,11 @@ class aa_py_pipeline():
 
         lib.aa_py_pipeline_api_bind_analysis_plan.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
         lib.aa_py_pipeline_api_bind_analysis_plan.restype = ctypes.c_bool
+
+        # Now delete the memory
+        lib.aa_py_ddtr_strategy_delete.argtypes = [ctypes.c_void_p]
+        lib.aa_py_ddtr_strategy_delete(self.m_ddtr_strategy)
+        
         return lib.aa_py_pipeline_api_bind_analysis_plan(self.m_obj, self.m_analysis_plan_ptr)
 
     def analysis_strategy(self):
