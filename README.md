@@ -33,7 +33,7 @@ Python Interface
 ===
 After following the steps below, consider using the Python interface.
 An example is provided in the `python/` folder.
-Configurating pipeline using the Python interface is otherwise identical to an input_file (described below).
+Configurating pipelines using the Python interface is otherwise identical to an input_file (described below).
 
 Software Inputs and Outputs
 ===
