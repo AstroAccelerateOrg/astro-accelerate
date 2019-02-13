@@ -18,6 +18,7 @@ namespace astroaccelerate {
    * \details Data description from "SIGPROC-v3.7 (Pulsar) Signal Processing Programs"
    * \details Source: http://sigproc.sourceforge.net/sigproc.pdf
    * \author Cees Carels.
+   * \todo Add Python wrapper functions to construct object, and get the metadata and input data.
    * \date 5 November 2018.
    */
   class aa_sigproc_input : public aa_input {
@@ -27,7 +28,7 @@ namespace astroaccelerate {
     aa_sigproc_input(const std::string &path);
 
     /** \brief Destructor for aa_sigproc_input. */
-    ~aa_sigproc_input();
+    virtual ~aa_sigproc_input();
 
     /** \brief Method to open the input file. */
     bool open();

@@ -43,6 +43,7 @@ namespace astroaccelerate {
      Therefore, the next pipeline should be constructed after the previous one has been fully configured.
    * \warning Configuring multiple pipeline objects and strategy objects at the same time means the pipeline will not see the correct amount of memory on the GPU.
    * \todo Nice to have but not needed: Add a way to transfer ownership of the data between aa_pipeline_api objects.
+   * \todo Add a method to obtain the aa_filterbank_metadata from this class.
    * \author Cees Carels.
    * \date: 23 October 2018.
    */
@@ -69,7 +70,7 @@ namespace astroaccelerate {
       else {
 	LOG(log_level::warning, "The pipeline could not reset all previously requested memory on card " + std::to_string(card_info.card_number) + ", which may result in sub-optimal memory strategies." + ".");
       }
-      
+
       //Add requested pipeline components
       for(auto i : requested_pipeline) {
 	required_plans.insert(std::pair<aa_pipeline::component, bool>(i, true));
@@ -102,12 +103,13 @@ namespace astroaccelerate {
       if(supplied_plans.find(aa_pipeline::component::dedispersion) == supplied_plans.end()) {
 	return false;
       }
-        
+
       //Does the pipeline actually need this plan?
       if(required_plans.find(aa_pipeline::component::dedispersion) != required_plans.end()) {
 	m_ddtr_plan = plan;
             
 	//ddtr_strategy needs to know if analysis will be required
+	/** \todo Check the actual free memory when passing into ddtr_strategy. */
 	if(required_plans.find(aa_pipeline::component::analysis) != required_plans.end()) {
 	  aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_card_info.free_memory, true);
 	  if(ddtr_strategy.ready()) {
@@ -330,6 +332,8 @@ namespace astroaccelerate {
 	aa_analysis_strategy empty_strategy;
 	return empty_strategy;
       }
+      aa_analysis_strategy empty_strategy;
+      return empty_strategy;
     }
 
     /** \returns The aa_periodicity_strategy instance bound to the pipeline instance, or a trivial instance if a valid aa_periodicity_strategy does not yet exist. */
@@ -374,7 +378,7 @@ namespace astroaccelerate {
         else {
           //fdas_strategy was not yet computed, do it now.
           aa_fdas_strategy fdas_strategy(m_fdas_plan);
-          if(periodicity_strategy.ready()) {
+          if(fdas_strategy.ready()) {
             m_fdas_strategy = std::move(fdas_strategy);
             m_all_strategy.push_back(&m_fdas_strategy);
           }
@@ -389,6 +393,8 @@ namespace astroaccelerate {
         aa_fdas_strategy empty_strategy;
         return empty_strategy;
       }
+      aa_fdas_strategy empty_strategy;
+      return empty_strategy;
     }
     
     /**
@@ -398,6 +404,10 @@ namespace astroaccelerate {
      */
     bool ready() {
       pipeline_ready = false;
+      if(!aa_permitted_pipelines::is_permitted(m_requested_pipeline)) {
+	LOG(log_level::error, "The requested pipeline is not permitted and cannot be made ready.");
+	return false;
+      }
         
       // Check if all plans are supplied.
       // If not, then one or more strategies will not be ready.
@@ -902,6 +912,7 @@ namespace astroaccelerate {
 	return true;
       }
       else {
+	LOG(log_level::error, "Pipeline could not start/resume because either pipeline is not ready or runner is not setup.");
 	return false;
       }
     }
@@ -924,7 +935,7 @@ namespace astroaccelerate {
     std::map<aa_pipeline::component, bool> supplied_plans; /** Plans supplied by the user. */
     std::vector<aa_strategy*>   m_all_strategy; /** Base class pointers to all strategies bound to the pipeline. */
     aa_pipeline::pipeline        m_requested_pipeline; /** The user requested pipeline that was bound to the aa_pipeline_api instance on construction. */
-    const aa_pipeline::pipeline_option &m_pipeline_options; /** The user requested pipeline details containing component options for the aa_pipeline_api instance. */
+    const aa_pipeline::pipeline_option m_pipeline_options; /** The user requested pipeline details containing component options for the aa_pipeline_api instance. */
     aa_device_info::aa_card_info m_card_info; /** The user provided GPU card information for the aa_pipeline_api instance. */
     std::unique_ptr<aa_pipeline_runner> m_runner; /** A std::unique_ptr that will point to the correct class instantation of the selected aa_permitted_pipelines_ when the pipeline must be made ready to run. */
     

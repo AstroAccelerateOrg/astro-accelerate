@@ -38,7 +38,7 @@ namespace astroaccelerate {
     aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis);
 
     /** \brief Destructor for aa_ddtr_strategy. */
-    ~aa_ddtr_strategy() {
+    virtual ~aa_ddtr_strategy() {
 
     }
 
