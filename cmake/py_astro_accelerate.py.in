@@ -210,19 +210,6 @@ class aa_py_ddtr_plan:
         print("     aa_py_ddtr_plan enable_msd_baseline_noise: {}".format(self.m_set_enable_msd_baseline_noise))
 
 ##
-# \brief Class for configuring a ddtr_strategy.
-# \details Please see include/aa_ddtr_strategy.hpp for library implementation.
-# \details This class is used to provide a Python object from the library when the user binds an aa_py_ddtr_plan.
-# \author Cees Carels.
-# \date 05 February 2019.
-#
-class aa_py_ddtr_strategy():
-    def __init__(self, aa_py_ddtr_plan):
-        print("Constructed aa_py_ddtr_strategy")
-    def __exit__(self, exc_type, exc_value, traceback):
-        print("Destructed aa_py_ddtr_strategy")
-        
-##
 # \brief Class for configuring an analysis_plan.
 # \details Please see include/aa_analysis_plan.hpp for library implementation.
 # \author Cees Carels.
@@ -264,21 +251,7 @@ class aa_py_analysis_plan():
         print("     aa_py_analysis_plan max_boxcar_width_in_sec {}".format(self.m_max_boxcar_width_in_sec))
         print("     aa_py_analysis_plan candidate_algorithm {}".format(self.m_candidate_algorithm))
         print("     aa_py_analysis_plan enable_msd_baseline_noise {}".format(self.m_enable_msd_baseline_noise))
-              
-
-##
-# \brief Class for configuring an analysis_strategy
-# \details Please see include/aa_analysis_strategy.hpp for library implementation.
-# \author Cees Carels.
-# \date 05 February 2019.
-#
-class aa_py_analysis_strategy():
-    def __init__(self):
-        print("Constructed aa_py_analysis_strategy")
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        print("Destructed aa_py_analysis_strategy")
-
+        
 ##
 # \brief Class for configuring a periodicity_plan.
 # \details Please see include/aa_periodicity_plan.hpp for library implementation.
@@ -315,20 +288,6 @@ class aa_py_periodicity_plan():
     def enable_msd_baseline_noise(self):
         return self.m_enable_msd_baseline_noise
 
-##
-# \brief Class for configuring a periodicity_strategy
-# \details Please see include/aa_periodicity_strategy.hpp for library implementation.
-# \author Cees Carels.
-# \date 05 February 2019.
-#
-class aa_py_periodicity_strategy():
-    def __init__(self):
-        print("Constructed aa_py_periodicity_strategy")
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        print("Destructed aa_py_periodicity_strategy")
-
-        
 ##
 # \brief Class for configuring an fdas_plan.
 # \details Please see include/aa_fdas_plan.hpp for library implementation.

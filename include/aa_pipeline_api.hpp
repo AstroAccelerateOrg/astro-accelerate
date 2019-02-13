@@ -404,6 +404,10 @@ namespace astroaccelerate {
      */
     bool ready() {
       pipeline_ready = false;
+      if(!aa_permitted_pipelines::is_permitted(m_requested_pipeline)) {
+	LOG(log_level::error, "The requested pipeline is not permitted and cannot be made ready. ");
+	return false;
+      }
         
       // Check if all plans are supplied.
       // If not, then one or more strategies will not be ready.
