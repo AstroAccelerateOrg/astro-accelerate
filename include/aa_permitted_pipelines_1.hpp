@@ -70,16 +70,36 @@ namespace astroaccelerate {
     /** \brief Override base class next() method to process next time chunk. */
     bool next() override {
       if(memory_allocated) {
-        return run_pipeline(false);
+	aa_pipeline_runner::status tmp;
+        return run_pipeline(false, tmp);
       }
 
+      return false;
+    }
+
+    /** \brief Override base class next() method to process next time chunk. Also provide a status code. */
+    bool next(aa_pipeline_runner::status &status_code) override {
+      if(memory_allocated) {
+        return run_pipeline(false, status_code);
+      }
+      
       return false;
     }
 
     /** \brief Process the next time chunk and copy the data back to the host. */
     bool next(const bool &dump_to_host) {
       if(memory_allocated) {
-	return run_pipeline(dump_to_host);
+	aa_pipeline_runner::status tmp;
+	return run_pipeline(dump_to_host, tmp);
+      }
+
+      return false;
+    }
+
+    /** \brief Process the next time chunk and copy the data back to the host. Also provide a status code. */
+    bool next(const bool &dump_to_host, aa_pipeline_runner::status &status_code) {
+      if(memory_allocated) {
+	return run_pipeline(dump_to_host, status_code);
       }
 
       return false;
@@ -281,7 +301,7 @@ namespace astroaccelerate {
      * \details Process any flags for dumping output or providing it back to the user.
      * \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
      */
-    bool run_pipeline(const bool dump_to_host) {
+    bool run_pipeline(const bool dump_to_host, aa_pipeline_runner::status &status_code) {
       LOG(log_level::notice, "NOTICE: Pipeline start/resume run_pipeline_1.");
       if(t >= num_tchunks) {
 	m_timer.Stop();
@@ -305,7 +325,7 @@ namespace astroaccelerate {
 	Export_DD_data((int)range, m_output_buffer, (size_t)inc, ndms, inBin.data(), "DD_data", ranges_to_export, (int)DMs_per_file);
 	delete ranges_to_export;
 #endif
-	
+	status_code = aa_pipeline_runner::status::finished;
 	return false;//In this case, there are no more chunks to process.
       }
       else if(t == 0) {
@@ -384,6 +404,7 @@ namespace astroaccelerate {
 
       ++t;
       printf("NOTICE: Pipeline ended run_pipeline_1 over chunk %d / %d.\n", t, num_tchunks);
+      status_code = aa_pipeline_runner::status::has_more;
       return true;
     }    
   };

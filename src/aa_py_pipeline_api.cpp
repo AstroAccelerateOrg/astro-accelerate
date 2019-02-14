@@ -85,8 +85,9 @@ namespace astroaccelerate {
       }
       
       bool aa_py_pipeline_api_run(aa_pipeline_api<unsigned short> *const obj) {
+	aa_pipeline_runner::status status_code;
 	if(obj->ready()) {
-	  return obj->run();
+	  return obj->run(status_code);
 	}
 	else {
 	  return false;

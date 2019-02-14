@@ -916,6 +916,28 @@ namespace astroaccelerate {
 	return false;
       }
     }
+    
+    /** \brief Runs the pipeline end-to-end and provides a status code. */
+    bool run(aa_pipeline_runner::status &status_code) {
+      /**
+       * This method to be overloaded with all possible combinations of
+       * data that the user may wish to extract from any pipeline.
+       * Any methods that are not supported are compile-time errors because
+       * the base class must provide a method for it.
+       */
+      if(pipeline_ready && m_runner->setup()) {
+	while(m_runner->next(status_code)) {
+	  LOG(log_level::notice, "Pipeline running over next chunk.");
+	}
+	
+	return true;
+      }
+      else {
+	LOG(log_level::error, "Pipeline could not start/resume because either pipeline is not ready or runner is not setup.");
+	status_code = aa_pipeline_runner::status::finished;
+	return false;
+      }
+    }
 
     /**
      * \brief Function pass input/output data from one aa_pipeline_api instance to another.

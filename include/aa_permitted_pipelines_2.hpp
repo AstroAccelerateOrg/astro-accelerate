@@ -76,7 +76,20 @@ namespace astroaccelerate {
       bool dump_to_user = false;
       std::vector<analysis_output> output;
       if(memory_allocated) {
-        return run_pipeline(dump_to_disk, dump_to_user, output);
+	aa_pipeline_runner::status tmp;
+        return run_pipeline(dump_to_disk, dump_to_user, output, tmp);
+      }
+      
+      return false;
+    }
+
+    /** \brief Override base class next() method to process next time chunk. */
+    bool next(aa_pipeline_runner::status &status_code) override {
+      bool dump_to_disk = true;
+      bool dump_to_user = false;
+      std::vector<analysis_output> output;
+      if(memory_allocated) {
+        return run_pipeline(dump_to_disk, dump_to_user, output, status_code);
       }
 
       return false;
@@ -85,7 +98,17 @@ namespace astroaccelerate {
     /** \brief Process next time chunk with index chunk_idx, and set the time chunk dedispersed data in output_buffer. */
     bool next(const bool dump_to_disk, const bool dump_to_user, std::vector<analysis_output> &output) {
       if(memory_allocated) {
-	return run_pipeline(dump_to_disk, dump_to_user, output);
+	aa_pipeline_runner::status tmp;
+	return run_pipeline(dump_to_disk, dump_to_user, output, tmp);
+      }
+
+      return false;
+    }
+
+    /** \brief Process next time chunk with index chunk_idx, and set the time chunk dedispersed data in output_buffer. */
+    bool next(const bool dump_to_disk, const bool dump_to_user, std::vector<analysis_output> &output, aa_pipeline_runner::status &status_code) {
+      if(memory_allocated) {
+	return run_pipeline(dump_to_disk, dump_to_user, output, status_code);
       }
 
       return false;
@@ -293,7 +316,7 @@ namespace astroaccelerate {
      * \details Process any flags for dumping output or providing it back to the user.
      * \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
      */
-    bool run_pipeline(const bool dump_to_disk, const bool dump_to_user, std::vector<analysis_output> &user_output) {
+    bool run_pipeline(const bool dump_to_disk, const bool dump_to_user, std::vector<analysis_output> &user_output, aa_pipeline_runner::status &status_code) {
       printf("NOTICE: Pipeline start/resume run_pipeline_2.\n");
       if(t >= num_tchunks) {
 	m_timer.Stop();
@@ -317,6 +340,7 @@ namespace astroaccelerate {
 	Export_DD_data((int)range, m_output_buffer, (size_t)inc, ndms, inBin.data(), "DD_data", ranges_to_export, (int)DMs_per_file);
 	delete ranges_to_export;
 #endif
+	status_code = aa_pipeline_runner::status::finished;
 	return false; // In this case, there are no more chunks to process.	
       }
       else if(t == 0) {
@@ -459,6 +483,7 @@ namespace astroaccelerate {
 
       ++t;
       printf("NOTICE: Pipeline ended run_pipeline_2 over chunk %d / %d.\n", t, num_tchunks);
+      status_code = aa_pipeline_runner::status::has_more;
       return true;
     }    
   };
