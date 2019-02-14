@@ -8,7 +8,9 @@ from py_astro_accelerate import *
 # Open filterbank file for reading metadata and signal data
 sigproc_input = aa_py_sigproc_input("/mnt/data/AstroAccelerate/filterbank/BenMeerKAT.fil")
 metadata = sigproc_input.read_metadata()
-sigproc_input.read_signal()
+if not sigproc_input.read_signal():
+    print("ERROR: Invalid .fil file path. Exiting...")
+    sys.exit()
 input_buffer = sigproc_input.input_buffer()
 
 # ddtr_plan settings
