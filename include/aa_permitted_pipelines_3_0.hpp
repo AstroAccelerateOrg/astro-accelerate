@@ -74,12 +74,22 @@ namespace astroaccelerate {
     /** \brief Override base class next() method to process next time chunk. */
     bool next() override {
       if(memory_allocated) {
-	return run_pipeline();
+	aa_pipeline_runner::status tmp;
+	return run_pipeline(tmp);
       }
 
       return false;
     }
 
+    /** \brief Override base class next() method to process next time chunk. Also provides a status code. */
+    bool next(aa_pipeline_runner::status &status_code) override {
+      if(memory_allocated) {
+	return run_pipeline(status_code);
+      }
+      
+      return false;
+    }
+    
     /** \brief De-allocate memory for this pipeline instance. */
     bool cleanup() {
       if(memory_allocated && !memory_cleanup) {
@@ -130,6 +140,7 @@ namespace astroaccelerate {
     bool memory_allocated;
     bool memory_cleanup;
     bool periodicity_did_run;
+    bool did_notify_of_finishing_component;
     
     //Loop counter variables
     int t;
@@ -258,18 +269,30 @@ namespace astroaccelerate {
      * \brief Run the pipeline by processing the next time chunk of data.
      * \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
      */
-    bool run_pipeline() {
+    bool run_pipeline(aa_pipeline_runner::status &status_code) {
       printf("NOTICE: Pipeline start/resume run_pipeline_3_0.\n");
       if(t >= num_tchunks) {
-	return periodicity();
-	m_timer.Stop();
-        float time = m_timer.Elapsed() / 1000;
-        printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
-        printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)", time);
-        printf("\nAmount of telescope time processed: %f", tstart_local);
-        printf("\nNumber of samples processed: %ld", inc);
-        printf("\nReal-time speedup factor: %lf\n", ( tstart_local ) / time);
-	return false; // In this case, there are no more chunks to process.
+
+	//In order to return the status code before the next pipeline component starts,
+	//the function first returns true and sets the status code to "finished_component".
+	//The caller calls the pipeline again, and then the component starts.
+	if(!did_notify_of_finishing_component) {
+	  m_timer.Stop();
+	  float time = m_timer.Elapsed() / 1000;
+	  printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
+	  printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)", time);
+	  printf("\nAmount of telescope time processed: %f", tstart_local);
+	  printf("\nNumber of samples processed: %ld", inc);
+	  printf("\nReal-time speedup factor: %lf\n", ( tstart_local ) / time);
+	  status_code = aa_pipeline_runner::status::finished_component;
+	  did_notify_of_finishing_component = true;
+	  return true;
+	}
+
+	// The status code is set after completion of periodicity, this is why a separate boolean is declared and returned after setting the status code.
+	bool periodicity_return_value = periodicity();
+	status_code = aa_pipeline_runner::status::finished;
+	return periodicity_return_value;
       }
       else if(t == 0) {
 	m_timer.Start();
@@ -346,6 +369,7 @@ namespace astroaccelerate {
 
       ++t;
       printf("NOTICE: Pipeline ended run_pipeline_3_0 over chunk %d / %d.\n", t, num_tchunks);
+      status_code = aa_pipeline_runner::status::has_more;
       return true;
     }
 
@@ -402,6 +426,7 @@ namespace astroaccelerate {
 																				     memory_allocated(false),
 																				     memory_cleanup(false),
 																				     periodicity_did_run(false),
+																				     did_notify_of_finishing_component(false),
 																				     t(0) {
     
   }
@@ -414,6 +439,7 @@ namespace astroaccelerate {
 																				    memory_allocated(false),
 																				    memory_cleanup(false),
 																				    periodicity_did_run(false),
+																				    did_notify_of_finishing_component(false),
 																				    t(0) {
   }
   
@@ -425,6 +451,7 @@ namespace astroaccelerate {
 																						   memory_allocated(false),
 																						   memory_cleanup(false),
 																						   periodicity_did_run(false),
+																						   did_notify_of_finishing_component(false),
 																						   t(0) {
   }
   
@@ -436,6 +463,7 @@ namespace astroaccelerate {
 																						  memory_allocated(false),
 																						  memory_cleanup(false),
 																						  periodicity_did_run(false),
+																						  did_notify_of_finishing_component(false),
 																						  t(0) {    
   }
   
@@ -447,6 +475,7 @@ namespace astroaccelerate {
 																				  memory_allocated(false),
 																				  memory_cleanup(false),
 																				  periodicity_did_run(false),
+																				  did_notify_of_finishing_component(false),
 																				  t(0) {    
   }
 
@@ -458,6 +487,7 @@ namespace astroaccelerate {
 																				   memory_allocated(false),
 																				   memory_cleanup(false),
 																				   periodicity_did_run(false),
+																				   did_notify_of_finishing_component(false),
 																				   t(0) {
   }
   

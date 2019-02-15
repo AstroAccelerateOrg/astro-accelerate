@@ -5,6 +5,8 @@
 #include <vector>
 #include <fstream>
 
+#include "aa_log.hpp"
+
 namespace astroaccelerate {
 
   /**
@@ -13,9 +15,17 @@ namespace astroaccelerate {
    * \details In practice, this class is used for creating base class pointers for pointing to a permitted pipeline instance.
    * \author Cees Carels.
    * \date 30 November 2018.
-   */  
+   */
   class aa_pipeline_runner {
   public:
+
+    enum class status : int {
+			     error = -1,
+			     finished = 0,
+			     has_more = 1,
+			     finished_component = 2
+    };
+    
     /** \brief Virtual destructor for aa_pipeline_runner. */
     virtual ~aa_pipeline_runner() {
       
@@ -31,6 +41,17 @@ namespace astroaccelerate {
     virtual bool next() {
       // If a derived class does not implement this method, this method is used.
       std::cout << "ERROR:  The selected operation is not supported on this pipeline." << std::endl;
+      return false;
+    }
+
+    /**
+     * \brief Base class virutal methods for running a pipeline.
+     * \details In case a derived class does not implement a method, this method will be called.
+     * \details This implementation returns a status code.
+     */
+    virtual bool next(aa_pipeline_runner::status &status_code) {
+      LOG(log_level::error, "The selected operation is not supported on this pipeline.");
+      status_code = aa_pipeline_runner::status::finished;
       return false;
     }
 

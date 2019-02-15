@@ -477,14 +477,19 @@ class aa_py_pipeline():
         lib.aa_py_pipeline_api_fdas_strategy.argtypes = [ctypes.c_void_p]
         lib.aa_py_pipeline_api_fdas_strategy.restype = fdas_strategy_struct
         return lib.aa_py_pipeline_api_fdas_strategy(self.m_obj)
-
-    ## \brief Runs the entire pipeline end-to-end. #
+    
+    ## \brief Runs the pipeline step by step. Also provides a status code. #
     def run(self):
-        lib.aa_py_pipeline_api_run.argtypes = [ctypes.c_void_p]
+        lib.aa_py_pipeline_api_run.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_int)]
         lib.aa_py_pipeline_api_run.restype = ctypes.c_bool
-        return lib.aa_py_pipeline_api_run(self.m_obj)
-        # Call into library to run pipeline.
+        self.m_status_code_c_int = ctypes.c_int()
+        api_return_value = lib.aa_py_pipeline_api_run(self.m_obj, self.m_status_code_c_int)
+        return ctypes.c_bool(api_return_value).value
 
+    ## \brief Status code of the pipeline that is available after each callback. #
+    def status_code(self):
+        return self.m_status_code_c_int.value
+    
     ## \brief Returns a pointer to the dedispersed output_buffer in the library. #
     def get_buffer(self):
         #lib.my_class_get_buffer.argtypes = [ctypes.c_void_p]
