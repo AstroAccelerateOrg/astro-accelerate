@@ -44,7 +44,7 @@ namespace astroaccelerate {
 
       aa_fdas_strategy aa_py_pipeline_api_fdas_strategy(aa_pipeline_api<unsigned short> *const obj);
       
-      bool aa_py_pipeline_api_run(aa_pipeline_api<unsigned short> *const obj);
+      bool aa_py_pipeline_api_run(aa_pipeline_api<unsigned short> *const obj, int &status_code);
     }
   }
 }

@@ -82,7 +82,15 @@ pipeline.bind_analysis_plan(analysis_plan)
 pipeline.bind_periodicity_plan(periodicity_plan)
 pipeline.bind_fdas_plan(fdas_plan)
 fdas_strategy = pipeline.fdas_strategy()
-pipeline.run()
+while (pipeline.run()):
+    print("NOTICE: Python script running over next chunk")
+    if pipeline.status_code() == -1:
+        print("ERROR: Pipeline status code is {}. The pipeline encountered an error and cannot continue.".format(pipeline.status_code()))
+        break
+        
+if pipeline.status_code() == -1:
+    print("ERROR: Pipeline status code is {}. The pipeline encountered an error and cannot continue.".format(pipeline.status_code()))
+    
     
 # Obtain the dedispersed output data buffer
 #ptr = pipeline.get_buffer()

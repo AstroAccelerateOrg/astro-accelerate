@@ -20,6 +20,7 @@ namespace astroaccelerate {
   public:
 
     enum class status : int {
+			     error = -1,
 			     finished = 0,
 			     has_more = 1,
 			     finished_component = 2

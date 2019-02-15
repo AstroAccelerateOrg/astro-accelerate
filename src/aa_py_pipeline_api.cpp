@@ -84,12 +84,15 @@ namespace astroaccelerate {
 	return obj->fdas_strategy();
       }
       
-      bool aa_py_pipeline_api_run(aa_pipeline_api<unsigned short> *const obj) {
+      bool aa_py_pipeline_api_run(aa_pipeline_api<unsigned short> *const obj, int &status_code_int) {
 	aa_pipeline_runner::status status_code;
 	if(obj->ready()) {
-	  return obj->run(status_code);
+	  bool pipeline_return_value = obj->run(status_code);
+	  status_code_int = (int)status_code;
+	  return pipeline_return_value;
 	}
 	else {
+	  status_code_int = (int)aa_pipeline_runner::status::error;
 	  return false;
 	}
       }
