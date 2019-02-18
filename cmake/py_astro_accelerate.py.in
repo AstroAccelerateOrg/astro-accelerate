@@ -455,19 +455,11 @@ class aa_py_pipeline():
         
         return lib.aa_py_pipeline_api_bind_analysis_plan(self.m_obj, self.m_analysis_plan_ptr)
 
-    def analysis_strategy(self):
-        print("analysis_strategy")
-        # Call into library to retrieve aa_analysis_strategy and then set to aa_py_analysis_strategy.
-        
     def bind_periodicity_plan(self, plan: aa_py_periodicity_plan):
         lib.aa_py_pipeline_api_bind_periodicity_plan.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_int, ctypes.c_int, ctypes.c_bool, ctypes.c_bool]
         lib.aa_py_pipeline_api_bind_periodicity_plan.restype = ctypes.c_bool
         return lib.aa_py_pipeline_api_bind_periodicity_plan(self.m_obj, ctypes.c_float(plan.sigma_cutoff()), ctypes.c_float(plan.sigma_constant()), ctypes.c_int(plan.nHarmonics()), ctypes.c_int(plan.export_powers()), ctypes.c_bool(plan.candidate_algorithm()), ctypes.c_bool(plan.enable_msd_baseline_noise()))
         
-    def periodicity_strategy(self):
-        print("periodicity_strategy")
-        # Call into library to retrieve aa_periodicity_strategy and then set to aa_py_periodicity_strategy.
-
     def bind_fdas_plan(self, plan: aa_py_fdas_plan):
         lib.aa_py_pipeline_api_bind_fdas_plan.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_float, ctypes.c_float, ctypes.c_int, ctypes.c_float, ctypes.c_bool]
         lib.aa_py_pipeline_api_bind_fdas_plan.restype = ctypes.c_bool
@@ -497,7 +489,3 @@ class aa_py_pipeline():
         print("Getting buffer")
         print(self.obj)
         return lib.my_class_get_buffer(self.obj)
-
-    def get_filterbank_metadata():
-        print("get_filterbank_metadta")
-        # Call into library to obtain the filterbank_metadata.
