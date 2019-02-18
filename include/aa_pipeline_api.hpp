@@ -43,7 +43,6 @@ namespace astroaccelerate {
      Therefore, the next pipeline should be constructed after the previous one has been fully configured.
    * \warning Configuring multiple pipeline objects and strategy objects at the same time means the pipeline will not see the correct amount of memory on the GPU.
    * \todo Nice to have but not needed: Add a way to transfer ownership of the data between aa_pipeline_api objects.
-   * \todo Add a method to obtain the aa_filterbank_metadata from this class.
    * \author Cees Carels.
    * \date: 23 October 2018.
    */
@@ -395,6 +394,11 @@ namespace astroaccelerate {
       }
       aa_fdas_strategy empty_strategy;
       return empty_strategy;
+    }
+
+    /** \returns The aa_filterbank_metadata instance bound to the pipeline instance. */
+    aa_filterbank_metadata metadata() {
+      return m_filterbank_metadata;
     }
     
     /**
@@ -879,6 +883,8 @@ namespace astroaccelerate {
 
       LOG(log_level::notice, "---PIPELINE DIAGNOSTIC INFORMATION---");
       aa_device_info::print_card_info(m_card_info);
+
+      aa_filterbank_metadata::print_info(m_filterbank_metadata);
 
       if(required_plans.find(aa_pipeline::component::dedispersion) != required_plans.end()) {
 	aa_ddtr_strategy::print_info(m_ddtr_strategy);

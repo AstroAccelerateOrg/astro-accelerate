@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "aa_log.hpp"
+
 namespace astroaccelerate {
 
   /**
@@ -301,6 +303,36 @@ namespace astroaccelerate {
     /** \returns sky_frequency. */
     double sky_frequency(const int &channel_idx) const {
       return (m_fch1 + channel_idx * m_foff);
+    }
+
+    static bool print_info(const aa_filterbank_metadata &metadata) {
+      LOG(log_level::dev_debug, "FILTERBANK METADATA INFORMATION:");
+      LOG(log_level::dev_debug, "az_start:\t\t" + std::to_string(metadata.az_start()));
+      LOG(log_level::dev_debug, "za_start:\t\t" + std::to_string(metadata.za_start()));
+      LOG(log_level::dev_debug, "src_raj:\t\t\t" + std::to_string(metadata.src_raj()));
+      LOG(log_level::dev_debug, "src_dej:\t\t\t" + std::to_string(metadata.src_dej()));
+      LOG(log_level::dev_debug, "tstart:\t\t\t" + std::to_string(metadata.tstart()));
+      LOG(log_level::dev_debug, "tsamp:\t\t\t" + std::to_string(metadata.tsamp()));
+      LOG(log_level::dev_debug, "refdm:\t\t\t" + std::to_string(metadata.refdm()));
+      LOG(log_level::dev_debug, "period:\t\t\t" + std::to_string(metadata.period()));
+      LOG(log_level::dev_debug, "fch1:\t\t\t" + std::to_string(metadata.fch1()));
+      LOG(log_level::dev_debug, "foff:\t\t\t" + std::to_string(metadata.foff()));
+      LOG(log_level::dev_debug, "fchannel:\t\t" + std::to_string(metadata.fchannel()));
+      LOG(log_level::dev_debug, "telescope_id:\t\t" + std::to_string(metadata.telescope_id()));
+      LOG(log_level::dev_debug, "machine_id:\t\t" + std::to_string(metadata.machine_id()));
+      LOG(log_level::dev_debug, "data_type:\t\t" + std::to_string(metadata.data_type()));
+      LOG(log_level::dev_debug, "barycentric:\t\t" + std::to_string(metadata.barycentric()));
+      LOG(log_level::dev_debug, "pulsarcentric:\t\t" + std::to_string(metadata.pulsarcentric()));
+      LOG(log_level::dev_debug, "nbits:\t\t\t" + std::to_string(metadata.nbits()));
+      LOG(log_level::dev_debug, "nsamples:\t\t" + std::to_string(metadata.nsamples()));
+      LOG(log_level::dev_debug, "nchans:\t\t\t" + std::to_string(metadata.nchans()));
+      LOG(log_level::dev_debug, "nifs:\t\t\t" + std::to_string(metadata.nifs()));
+      LOG(log_level::dev_debug, "FREQUENCY_START:\t\t" + std::to_string(metadata.FREQUENCY_START()));
+      LOG(log_level::dev_debug, "FREQUENCY_END:\t\t" + std::to_string(metadata.FREQUENCY_END()));
+      LOG(log_level::dev_debug, "rawdatafile:\t\t" + metadata.rawdatafile());
+      LOG(log_level::dev_debug, "source_name:\t\t" + metadata.source_name());
+      LOG(log_level::dev_debug, "N:\t\t\t" + std::to_string(metadata.N()));
+      return true;
     }
     
   private:
