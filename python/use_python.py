@@ -90,11 +90,6 @@ while (pipeline.run()):
         
 if pipeline.status_code() == -1:
     print("ERROR: Pipeline status code is {}. The pipeline encountered an error and cannot continue.".format(pipeline.status_code()))
-    
-    
-# Obtain the dedispersed output data buffer
-#ptr = pipeline.get_buffer()
-#print(ptr[1][1][2])
 
 del fdas_plan
 del periodicity_plan
