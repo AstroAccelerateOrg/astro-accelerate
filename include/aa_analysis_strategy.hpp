@@ -72,7 +72,17 @@ namespace astroaccelerate {
 								  m_candidate_algorithm(analysis_plan.candidate_algorithm()),
 								  m_enable_msd_baseline_noise(analysis_plan.enable_msd_baseline_noise()),
 								  m_ready(false) {
-      if(analysis_plan.ddtr_strategy().configured_for_analysis()) {
+      
+      bool ready_to_configure = false;
+      if((m_sigma_cutoff > 0)
+	 &&
+	 (m_sigma_constant > 0)
+	 &&
+	 (m_max_boxcar_width_in_sec > 0)) {
+	ready_to_configure = true;
+      }
+      
+      if((ready_to_configure) && (analysis_plan.ddtr_strategy().configured_for_analysis())) {
 	stratagy_MSD(analysis_plan.ddtr_strategy().max_ndms(),
 		     analysis_plan.max_boxcar_width_in_sec(),
 		     analysis_plan.ddtr_strategy().metadata().tsamp(),

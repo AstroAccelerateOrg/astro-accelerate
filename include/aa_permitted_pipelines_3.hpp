@@ -79,7 +79,20 @@ namespace astroaccelerate {
       bool dump_to_user = false;
       std::vector<analysis_output> output;
       if(memory_allocated) {
-	return run_pipeline(dump_to_disk, dump_to_user, output);
+	aa_pipeline_runner::status tmp;
+	return run_pipeline(dump_to_disk, dump_to_user, output, tmp);
+      }
+
+      return false;
+    }
+
+    /** \brief Override base class next() method to process next time chunk. Also provides a status code. */
+    bool next(aa_pipeline_runner::status &status_code) override {
+      bool dump_to_disk = true;
+      bool dump_to_user = false;
+      std::vector<analysis_output> output;
+      if(memory_allocated) {
+	return run_pipeline(dump_to_disk, dump_to_user, output, status_code);
       }
 
       return false;
@@ -88,7 +101,17 @@ namespace astroaccelerate {
     /** \brief Process next time chunk with index chunk_idx, and set the time chunk dedispersed data in output_buffer. */
     bool next(const bool dump_to_disk, const bool dump_to_user, std::vector<analysis_output> &output) {
       if(memory_allocated) {
-	return run_pipeline(dump_to_disk, dump_to_user, output);
+	aa_pipeline_runner::status tmp;
+	return run_pipeline(dump_to_disk, dump_to_user, output, tmp);
+      }
+
+      return false;
+    }
+
+    /** \brief Process next time chunk with index chunk_idx, and set the time chunk dedispersed data in output_buffer. Also provides a status code. */
+    bool next(const bool dump_to_disk, const bool dump_to_user, std::vector<analysis_output> &output, aa_pipeline_runner::status &status_code) {
+      if(memory_allocated) {
+	return run_pipeline(dump_to_disk, dump_to_user, output, status_code);
       }
 
       return false;
@@ -148,6 +171,7 @@ namespace astroaccelerate {
     bool memory_allocated;
     bool memory_cleanup;
     bool periodicity_did_run;
+    bool did_notify_of_finishing_component;
     
     //Loop counter variables
     int t;
@@ -293,18 +317,30 @@ namespace astroaccelerate {
      * \details Process any flags for dumping output or providing it back to the user.
      * \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
      */
-    bool run_pipeline(const bool dump_to_disk, const bool dump_to_user, std::vector<analysis_output> &user_output) {
+    bool run_pipeline(const bool dump_to_disk, const bool dump_to_user, std::vector<analysis_output> &user_output, aa_pipeline_runner::status &status_code) {
       printf("NOTICE: Pipeline start/resume run_pipeline_3.\n");
       if(t >= num_tchunks) {
-	return periodicity();
-	m_timer.Stop();
-        float time = m_timer.Elapsed() / 1000;
-        printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
-        printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)", time);
-        printf("\nAmount of telescope time processed: %f", tstart_local);
-        printf("\nNumber of samples processed: %ld", inc);
-        printf("\nReal-time speedup factor: %lf\n", ( tstart_local ) / time);
-	return false; // In this case, there are no more chunks to process.
+	//In order to return the status code before the next pipeline component starts,
+	//the function first returns true and sets the status code to "finished_component".
+	//The caller calls the pipeline again, and then the component starts.
+	if(!did_notify_of_finishing_component) {
+	  m_timer.Stop();
+	  float time = m_timer.Elapsed() / 1000;
+	  printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
+	  printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)", time);
+	  printf("\nAmount of telescope time processed: %f", tstart_local);
+	  printf("\nNumber of samples processed: %ld", inc);
+	  printf("\nReal-time speedup factor: %lf\n", ( tstart_local ) / time);
+
+	  status_code = aa_pipeline_runner::status::finished_component;
+	  did_notify_of_finishing_component = true;
+	  return true;
+	}
+	
+	// The status code is set after completion of periodicity, this is why a separate boolean is declared and returned after setting the status code.
+	bool periodicity_return_value = periodicity();
+	status_code = aa_pipeline_runner::status::finished;
+	return periodicity_return_value;
       }
       else if(t == 0) {
 	m_timer.Start();
@@ -436,6 +472,7 @@ namespace astroaccelerate {
 
       ++t;
       printf("NOTICE: Pipeline ended run_pipeline_3 over chunk %d / %d.\n", t, num_tchunks);
+      status_code = aa_pipeline_runner::status::has_more;
       return true;
     }
 
@@ -494,6 +531,7 @@ namespace astroaccelerate {
 																			     memory_allocated(false),
 																			     memory_cleanup(false),
 																			     periodicity_did_run(false),
+																			     did_notify_of_finishing_component(false),
 																			     t(0),
 																			     m_d_MSD_workarea(NULL),
 																			     m_d_MSD_interpolated(NULL),
@@ -512,6 +550,7 @@ namespace astroaccelerate {
 																			    memory_allocated(false),
 																			    memory_cleanup(false),
 																			    periodicity_did_run(false),
+																			    did_notify_of_finishing_component(false),
 																			    t(0),
 																			    m_d_MSD_workarea(NULL),
 																			    m_d_MSD_interpolated(NULL),
@@ -529,6 +568,7 @@ namespace astroaccelerate {
 																					   memory_allocated(false),
 																					   memory_cleanup(false),
 																					   periodicity_did_run(false),
+																					   did_notify_of_finishing_component(false),
 																					   t(0),
 																					   m_d_MSD_workarea(NULL),
 																					   m_d_MSD_interpolated(NULL),
@@ -547,6 +587,7 @@ namespace astroaccelerate {
 																					  memory_allocated(false),
 																					  memory_cleanup(false),
 																					  periodicity_did_run(false),
+																					  did_notify_of_finishing_component(false),
 																					  t(0),
 																					  m_d_MSD_workarea(NULL),
 																					  m_d_MSD_interpolated(NULL),
@@ -564,6 +605,7 @@ namespace astroaccelerate {
 																			  memory_allocated(false),
 																			  memory_cleanup(false),
 																			  periodicity_did_run(false),
+																			  did_notify_of_finishing_component(false),
 																			  t(0),
 																			  m_d_MSD_workarea(NULL),
 																			  m_d_MSD_interpolated(NULL),
@@ -581,6 +623,7 @@ namespace astroaccelerate {
 																			   memory_allocated(false),
 																			   memory_cleanup(false),
 																			   periodicity_did_run(false),
+																			   did_notify_of_finishing_component(false),
 																			   t(0),
 																			   m_d_MSD_workarea(NULL),
 																			   m_d_MSD_interpolated(NULL),

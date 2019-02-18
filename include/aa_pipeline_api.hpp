@@ -403,6 +403,10 @@ namespace astroaccelerate {
      * \details If false, the user should check whether all plans have been bound and whether all strategies resulting from those plans are valid.
      */
     bool ready() {
+      if(pipeline_ready) {
+	return true;
+      }
+      
       pipeline_ready = false;
       if(!aa_permitted_pipelines::is_permitted(m_requested_pipeline)) {
 	LOG(log_level::error, "The requested pipeline is not permitted and cannot be made ready.");
@@ -913,6 +917,29 @@ namespace astroaccelerate {
       }
       else {
 	LOG(log_level::error, "Pipeline could not start/resume because either pipeline is not ready or runner is not setup.");
+	return false;
+      }
+    }
+    
+    /**
+     * \brief Runs the pipeline one step at a time and provides a status code.
+     * \details The user must call this method like a call-back.
+     * \details The pipeline is finished when the return value is "false".
+     **/
+    bool run(aa_pipeline_runner::status &status_code) {
+      /**
+       * This method to be overloaded with all possible combinations of
+       * data that the user may wish to extract from any pipeline.
+       * Any methods that are not supported are compile-time errors because
+       * the base class must provide a method for it.
+       */
+      if(pipeline_ready && m_runner->setup()) {
+	LOG(log_level::notice, "Pipeline running over next chunk.");
+	return m_runner->next(status_code);
+      }
+      else {
+	LOG(log_level::error, "Pipeline could not start/resume because either pipeline is not ready or runner is not setup.");
+	status_code = aa_pipeline_runner::status::finished;
 	return false;
       }
     }
