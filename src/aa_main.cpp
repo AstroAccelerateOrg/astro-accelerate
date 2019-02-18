@@ -27,10 +27,12 @@
 #include "aa_log.hpp"
 #include "aa_host_rfi.hpp"
 
+#include "aa_welcome_notice.hpp"
 
 using namespace astroaccelerate;
 
 int main(int argc, char *argv[]) {
+  welcome_notice();
   aa_command_line_arguments cli;
   for(int i = 0; i < argc; i++) {
     cli.input.push_back(argv[i]);
