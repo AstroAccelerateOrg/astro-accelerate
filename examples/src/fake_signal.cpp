@@ -11,10 +11,9 @@
 #include "aa_filterbank_metadata.hpp"
 #include "aa_permitted_pipelines_1.hpp"
 #include "aa_device_info.hpp"
-#include "aa_permitted_pipelines_2.hpp"
-#include "aa_analysis_plan.hpp"
-#include "aa_analysis_strategy.hpp"
-#include "params.hpp"
+#include "aa_params.hpp"
+
+#include "aa_log.hpp"
 
 #define MAX_VALUE 255
 
@@ -51,7 +50,7 @@ void inverse_gaussian(float* output, int length, float sigma, int *max_pos){
 
 int main() {
   aa_ddtr_plan ddtr_plan;
-  ddtr_plan.add_dm(85, 95, 0.1, 1, 1); // Add dm_ranges: dm_low, dm_high, dm_step, inBin, outBin (unused).
+  ddtr_plan.add_dm(60, 120, 1, 1, 1); // Add dm_ranges: dm_low, dm_high, dm_step, inBin, outBin (unused).
 
   // Filterbank metadata
   // (Data description from "SIGPROC-v3.7 (Pulsar) Signal Processing Programs")
@@ -59,7 +58,7 @@ int main() {
   const double total_bandwidth = 300.0f;
   const double tsamp = 6.4E-5;
   const double nbits = 8;
-  unsigned int nsamples = 3.0/tsamp; // 3s of data in current tsamp at minimum; must be more than signal_start + maxshift
+  unsigned int nsamples = 2.0/tsamp; // 3s of data in current tsamp at minimum; must be more than signal_start + maxshift
   const double fch1 = 1550;
   int nchans = 128;
   const double foff = -total_bandwidth/nchans;
@@ -81,21 +80,21 @@ int main() {
   
   aa_filterbank_metadata metadata(tstart, tsamp, nbits, nsamples, fch1, foff, nchans);
 
-  aa_device_info device_info;
+  aa_device_info& device_info = aa_device_info::instance();
   if(device_info.check_for_devices()) {
-    std::cout << "NOTICE: Checked for devices." << std::endl;
+    LOG(log_level::notice, "Checked for devices.");
   }
   else {
-    std::cout << "ERROR: Could not find any devices." << std::endl;
+    LOG(log_level::error, "Could not find any devices.");
   }
 
-  aa_device_info::CARD_ID selected_card = 1;
+  aa_device_info::CARD_ID selected_card = 0;
   aa_device_info::aa_card_info selected_card_info;
   if(device_info.init_card(selected_card, selected_card_info)) {
-    std::cout << "NOTICE: init_card complete." << std::endl;
+    LOG(log_level::notice, "init_card complete. Selected card " + std::to_string(selected_card) + ".");
   }
   else {
-    std::cout << "ERROR: init_card incomplete." << std::endl;
+    LOG(log_level::error, "init_card incomplete.")
   }
 
   aa_device_info::print_card_info(selected_card_info);
@@ -108,6 +107,7 @@ int main() {
     std::cout << "There was an error" << std::endl;
     return 0;
   }
+
 
   std::vector<float> dm_shifts;
   dm_shifts = strategy.dmshifts();
@@ -132,6 +132,7 @@ int main() {
 
   unsigned short* input_data;
   input_data = (unsigned short *)malloc(sizeof(unsigned short)*nsamples*nchans);
+  memset(input_data, 0, nsamples*nchans*sizeof(unsigned short));
   fake_generate_data(input_data, scale_factor, shifts_index, func_width, signal_start, signal_max_pos, nchans);
 
   FILE *fp_out2;
@@ -145,36 +146,23 @@ int main() {
 		fprintf(fp_out2,"%d %d %i\n", i, j, input_data[j*nchans + i]);
   fclose(fp_out2);
 
-  FILE *fp_out;
-  if (( fp_out = fopen("DD_data.dat", "wb") ) == NULL) {
-    fprintf(stderr, "Error opening output file!\n");
-    exit(0);
-  }
-  	
-  aa_permitted_pipelines_1<aa_compute::module_option::empty, false> runner(strategy, input_data);
+  aa_permitted_pipelines_1<aa_pipeline::component_option::empty, false> runner(strategy, input_data);
+  
+  bool dump_to_disk = true;
+//  bool dump_to_user = false;
+//  std::vector<analysis_output> output;
+
   if(runner.setup()) {
-    int chunk_idx = 0;
-    std::vector<std::vector<std::vector<float>>> out;
-// The user should consume the output vector data
-    // upon each iteration of .next(out), since
-    // the vector memory is re-allocated for the next chunk.
-    while(runner.next(out, chunk_idx)) {
-      std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
+    while(runner.next(true)) {
+      LOG(log_level::notice, "Pipeline running over next chunk.");
     }
-
-    for(size_t i = 0; i < out.at(0).size(); i++)
-	for (size_t j = 0; j < out.at(0).at(i).size(); j++)
-		fprintf(fp_out, "%zu %zu %.8lf \n", i, j, out.at(0).at(i).at(j));
-	
-  std::cout << "Value is: " << out.at(0).at(50).at(23437) << std::endl;
-
   }
-
+  float *** ptr = runner.output_buffer();
 
   free(scale_factor);
   free(shifts_index);
   free(input_data);
-  fclose(fp_out);
-  std::cout << "NOTICE: Finished." << std::endl;
+  LOG(log_level::notice, "Finished.");
+
   return 0;
 }
