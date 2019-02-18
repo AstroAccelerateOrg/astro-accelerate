@@ -44,16 +44,16 @@ namespace astroaccelerate {
     struct aa_card_info {
       int compute_capability_major;
       int compute_capability_minor;
-      float clock_rate;
-      float memory_clock_rate;
-      float memory_bus_width;
+      float clock_rate; // [kHz]
+      float memory_clock_rate; // [kHz]
+      float memory_bus_width; // [bits]
       CARD_ID card_number;
       int driver_version;
       int runtime_version;
-      int l2_cache_size;
-      size_t global_memory;
-      size_t total_memory;
-      size_t free_memory;
+      int l2_cache_size; // [bytes]
+      size_t global_memory; // [bytes]
+      size_t total_memory; // [bytes]
+      size_t free_memory; // [bytes]
       size_t user_requested_memory_for_allocation; // Memory the user wishes to allocate, may or may not already have been allocated.
       std::string name;
     };
@@ -249,15 +249,15 @@ namespace astroaccelerate {
       LOG(log_level::dev_debug, "CARD INFORMATION:");
       LOG(log_level::dev_debug, "Name:\t\t\t"+card.name);
       LOG(log_level::dev_debug, "Compute capability:\t" + std::to_string(card.compute_capability_major) + "." + std::to_string(card.compute_capability_minor));
-      LOG(log_level::dev_debug, "Clock rate:\t\t" + std::to_string(card.clock_rate));
-      LOG(log_level::dev_debug, "Memory clock rate:\t" + std::to_string(card.memory_clock_rate));
-      LOG(log_level::dev_debug, "Memory bus width:\t" + std::to_string(card.memory_bus_width));
+      LOG(log_level::dev_debug, "Clock rate [kHz]:\t" + std::to_string(card.clock_rate));
+      LOG(log_level::dev_debug, "Memory clock rate [kHz]:\t" + std::to_string(card.memory_clock_rate));
+      LOG(log_level::dev_debug, "Memory bus width [bits]:\t" + std::to_string(card.memory_bus_width));
       LOG(log_level::dev_debug, "ID # on this machine:\t" + std::to_string(card.card_number));
       LOG(log_level::dev_debug, "Driver version:\t\t" + std::to_string(card.driver_version));
-      LOG(log_level::dev_debug, "l2_cache_size:\t\t" + std::to_string(card.l2_cache_size));
-      LOG(log_level::dev_debug, "Global memory:\t\t" + std::to_string(card.global_memory));
-      LOG(log_level::dev_debug, "Total memory:\t\t" + std::to_string(card.total_memory));
-      LOG(log_level::dev_debug, "Free memory:\t\t" + std::to_string(card.free_memory));
+      LOG(log_level::dev_debug, "l2_cache_size [bytes]:\t" + std::to_string(card.l2_cache_size));
+      LOG(log_level::dev_debug, "Global memory [bytes]:\t" + std::to_string(card.global_memory));
+      LOG(log_level::dev_debug, "Total memory [bytes]:\t" + std::to_string(card.total_memory));
+      LOG(log_level::dev_debug, "Free memory [bytes]:\t" + std::to_string(card.free_memory));
       return true;
     }
     
