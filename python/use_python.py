@@ -14,6 +14,7 @@ if not sigproc_input.read_signal():
 input_buffer = sigproc_input.input_buffer()
 
 # ddtr_plan settings
+# settings: low, high, step, inBin, outBin.
 dm1 = aa_py_dm(0, 370, 0.307, 1, 1)
 dm2 = aa_py_dm(370, 740, 0.652, 2, 2)
 dm3 = aa_py_dm(740, 1480, 1.266, 4, 4)

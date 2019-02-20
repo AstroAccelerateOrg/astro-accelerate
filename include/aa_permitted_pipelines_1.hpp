@@ -116,7 +116,7 @@ namespace astroaccelerate {
       if(memory_allocated) {
 	return m_output_buffer;
       }
-      return false;
+      return NULL;
     }
 
     /** \brief De-allocate memory for this pipeline instance. */
