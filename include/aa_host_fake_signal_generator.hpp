@@ -39,22 +39,22 @@ namespace astroaccelerate {
 
 		public: 
 	
-			void setup(float sigma, int width);
+			void produce_mask(float sigma, int width);
 			void get_fake_signal(const aa_ddtr_strategy &strategy, const aa_fake_signal_metadata &m_fake, const aa_filterbank_metadata &m_signal);
 			/** \returns inverse Gaussian shape for scaling the fake data */
-			std::vector<float> scale_mask_data() const{
+			std::vector<float> get_mask_data() const{
 				return mask_data;
 			}
 			int max_pos(){
 				return maximum_pos;
 			}
-			std::vector<unsigned short> output_data() const{
-				return output;
+			std::vector<unsigned short> signal_data() const{
+				return signal_output;
 			}
 
 		private:
 			std::vector<float> mask_data;
-			std::vector<unsigned short> output;
+			std::vector<unsigned short> signal_output;
 			int maximum_pos = 0;
 	};
 

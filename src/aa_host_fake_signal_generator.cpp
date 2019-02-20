@@ -6,7 +6,7 @@
 
 namespace astroaccelerate {
 
-	void aa_fake_signal_generator::setup(float sigma, int length){
+	void aa_fake_signal_generator::produce_mask(float sigma, int length){
 		mask_data.resize(length);
 		float maximum = 0.0f;
 		float wid = 2*sigma*pow(3*log(30),0.5);
@@ -34,7 +34,7 @@ namespace astroaccelerate {
 		double tsamp = m_signal.tsamp();
 
 		shift_index.resize(nchans);
-		output.resize(nchans*nsamples);
+		signal_output.resize(nchans*nsamples);
 		dmshifts = strategy.dmshifts();
 
 		double dm_pos = m_fake.get_dm_pos();
@@ -47,7 +47,7 @@ namespace astroaccelerate {
 		for(int i = 0; i < width; i++){
 			int time_pos = (i - maximum_pos + signal_start)*nchans;
 		        for(int j = 0; j < nchans; j++){
-				output[j + nchans*shift_index[j] + time_pos] = (unsigned short)(MAX_VALUE*mask_data[i]); //255;
+				signal_output[j + nchans*shift_index[j] + time_pos] = (unsigned short)(MAX_VALUE*mask_data[i]); //255;
 		        }
 		}
 
