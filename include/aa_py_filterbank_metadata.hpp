@@ -9,6 +9,8 @@ namespace astroaccelerate {
 
       /**
        * \struct aa_py_filterbank_metadata_struct
+       * \brief Wrapper object for aa_filterbank_metadata.
+       * \details Please see aa_filterbank_metadata.hpp for library implementation details.
        */
       struct aa_py_filterbank_metadata_struct {
 	double m_tstart;

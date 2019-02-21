@@ -5,6 +5,7 @@ namespace astroaccelerate {
 
   /**
    * \struct analysis_pulse
+   * \brief Struct that contains a single analysis pulse output.
    * \details The data contains vector data referring to each peak found:
    * \details 1. Time in seconds since beginning of fil file. [seconds].
    * \details 2. Dispersion measure [parsec / cm^3].
