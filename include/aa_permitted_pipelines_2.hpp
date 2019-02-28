@@ -464,7 +464,7 @@ namespace astroaccelerate {
 		     analysis_output_for_this_dm);
 
 	if(dump_to_user) {
-	  for(int i = 0; i < user_output.size(); i++) {
+	  for(size_t i = 0; i < user_output.size(); i++) {
             user_output[i].pulses.clear();
           }
 	  user_output[dm_range] = analysis_output_for_this_dm;

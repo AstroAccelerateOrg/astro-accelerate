@@ -337,7 +337,7 @@ namespace astroaccelerate {
 	    output.dm_low  = dm_low [i];
 	    output.dm_high = dm_high[i];
 	    std::vector<analysis_pulse> pulses;
-	    for(size_t count = 0; count < i_peak_pos; count++) {
+	    for(auto count = 0; count < i_peak_pos; count++) {
 	      analysis_pulse tmp = {h_peak_list[4*count], h_peak_list[4*count + 1], h_peak_list[4*count + 2], h_peak_list[4*count + 3]};
 	      pulses.push_back(std::move(tmp));
 	    }
@@ -361,7 +361,7 @@ namespace astroaccelerate {
 	    output.dm_low  = dm_low [i];
 	    output.dm_high = dm_high[i];
 	    std::vector<analysis_pulse> pulses;
-            for(size_t count = 0; count < i_peak_pos; count++) {
+            for(auto count = 0; count < i_peak_pos; count++) {
               analysis_pulse tmp = {h_peak_list[4*count], h_peak_list[4*count + 1], h_peak_list[4*count + 2], h_peak_list[4*count + 3]};
               pulses.push_back(std::move(tmp));
             }
