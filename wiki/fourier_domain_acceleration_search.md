@@ -13,13 +13,14 @@ The convolution test consists from a signal which replaces data otherwise produc
 ## Accelerated sinusoid signal
 To test the whole FDAS algorithm we generate accelerated sinusoid signal according to
 
-![f1]
+![](https://github.com/AstroAccelerateOrg/images/blob/master/wiki/FDAS/f1.png)
 
-![f2]
+![](https://github.com/AstroAccelerateOrg/images/blob/master/wiki/FDAS/f2.png)
 
-![f3]
+![](https://github.com/AstroAccelerateOrg/images/blob/master/wiki/FDAS/f3.png)
 
-![f4]
+![](https://github.com/AstroAccelerateOrg/images/blob/master/wiki/FDAS/f4.png)
+
 
 Where *t* is time, *a* is pulsar acceleration, *a* is speed of light, *T* is observation length, *f* is pulsar period, *d* is pulsar duty cycle, *H* is number harmonics, *A* is amplitude and *Z* is acceleration template. Parameters which could be changed in the ‘lib/headers/fdas_test_parameters.h’ are listed together with default value here:
 
@@ -32,9 +33,3 @@ Where *t* is time, *a* is pulsar acceleration, *a* is speed of light, *T* is obs
 Output of this test has the same format as normal FDAS algorithm output. Again code will exit after exporting result of the test into the file. To enable this test a parameter `FDAS_ACC_SIG_TEST` must be #defined in ‘lib/headers/param.h’. Output of this test is shown in the figure below.
 
 ![](https://github.com/AstroAccelerateOrg/images/blob/master/wiki/FDAS/acceleration_test_plane.png)
-
-[f1]: ![](https://github.com/AstroAccelerateOrg/images/blob/master/wiki/FDAS/f1.png)
-[f2]: ![](https://github.com/AstroAccelerateOrg/images/blob/master/wiki/FDAS/f2.png)
-[f3]: ![](https://github.com/AstroAccelerateOrg/images/blob/master/wiki/FDAS/f3.png)
-[f4]: ![](https://github.com/AstroAccelerateOrg/images/blob/master/wiki/FDAS/f4.png)
-
