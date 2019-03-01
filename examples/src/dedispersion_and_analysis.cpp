@@ -85,9 +85,9 @@ int main() {
     while(runner.next(dump_to_disk, dump_to_user, output)) {
       LOG(log_level::notice, "Pipeline running over next chunk.");
 
-      for(int i = 0; i < output.size(); i++) {
+      for(size_t i = 0; i < output.size(); i++) {
 	std::cout << " dm_low " << output.at(i).dm_low << " dm_high " << output.at(i).dm_high << std::endl;
-	for(int j = 0; j < output.at(i).pulses.size(); j++) {
+	for(size_t j = 0; j < output.at(i).pulses.size(); j++) {
 	  analysis_pulse p = output.at(i).pulses.at(j);
 	  std::cout << "dispersion measure " << p.dispersion_measure << " time " << p.time << " snr " << p.snr << " pulse_width " << p.pulse_width << std::endl;
 	}
