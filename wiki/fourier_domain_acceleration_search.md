@@ -21,7 +21,7 @@ To test the whole FDAS algorithm we generate accelerated sinusoid signal accordi
 
 ![f4]
 
-Where *t* is time, *a* is pulsar acceleration, *a* is speed of light, *T* is observation length, *f* is pulsar period, *d* is pulsar duty cycle, *H* is number harmonics, *A* is amplitude and *Z* is acceleration template. Parameters which could be changed in the ‘include/aa_fdas_test_parameters.h’ are listed together with default value here:
+Where *t* is time, *a* is pulsar acceleration, *a* is speed of light, *T* is observation length, *f* is pulsar period, *d* is pulsar duty cycle, *H* is number harmonics, *A* is amplitude and *Z* is acceleration template. Parameters which could be changed in the ‘include/aa_fdas_test_parameters.hpp’ are listed together with default value here:
 
 * *f*: `FDAS_TEST_FREQUENCY 105.0`
 * *Z*: `FDAS_TEST_ZVALUE 6`
@@ -29,7 +29,7 @@ Where *t* is time, *a* is pulsar acceleration, *a* is speed of light, *T* is obs
 * *d*: `FDAS_TEST_DUTY_CYCLE 1.0`
 * *A*: `FDAS_TEST_SIGNAL_AMPLITUDE 1.0`
 
-Output of this test has the same format as normal FDAS algorithm output. Again code will exit after exporting result of the test into the file. To enable this test a parameter `FDAS_ACC_SIG_TEST` must be #defined in ‘include/aa_param.h’. Output of this test is shown in the figure below.
+Output of this test has the same format as normal FDAS algorithm output. Again code will exit after exporting result of the test into the file. To enable this test a parameter `FDAS_ACC_SIG_TEST` must be #defined in ‘include/aa_param.hpp’. Output of this test is shown in the figure below.
 
 ![](http://www.oerc.ox.ac.uk/sites/default/files/uploads/ProjectFiles/AstroAccelerate/acceleration_test_plane.png)
 
