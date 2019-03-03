@@ -15,8 +15,7 @@ using namespace astroaccelerate;
 
 int main() {
   aa_ddtr_plan ddtr_plan;
-  ddtr_plan.add_dm(0, 150, 1, 1, 1); // Add dm_ranges: dm_low, dm_high, dm_step, inBin, outBin (unused).
-
+  ddtr_plan.add_dm(0, 160, 1, 1, 1); // Add dm_ranges: dm_low, dm_high, dm_step, inBin, outBin (unused).
 
   // Filterbank metadata
   // (Data description from "SIGPROC-v3.7 (Pulsar) Signal Processing Programs")
@@ -24,19 +23,11 @@ int main() {
   const double total_bandwidth = 300.0f;
   const double tsamp = 6.4E-5;
   const double nbits = 8;
-  unsigned int nsamples = 2.0/tsamp; // 3s of data in current tsamp at minimum; must be more than signal_start + maxshift
+  unsigned int nsamples = 2/tsamp; // 2s of data in current tsamp at minimum; must be more than signal_start + maxshift
   const double fch1 = 1550;
-  int nchans = 128;
+  int nchans = 4096;
   const double foff = -total_bandwidth/nchans;
-  std::cout << "Nsamples " << nsamples << std::endl;
 
-  // params needed by the fake signal function
-  double dm_position = 90; // at what dm put the signal
-  const int func_width = 1/(tsamp*100); // width of the signal in terms of # of samples; now at 1% of samling rate
-  int signal_start = 1.0/tsamp; // position of the signal in samples
-
-  // setting the metadata for running fake generator
-  aa_fake_signal_metadata f_meta(dm_position, signal_start, func_width);
   // setting the signal metadata
   aa_filterbank_metadata metadata(tstart, tsamp, nbits, nsamples, fch1, foff, nchans);
 
@@ -70,23 +61,29 @@ int main() {
     return 0;
   }
 
-  aa_fake_signal_generator signal;
-  signal.produce_mask(0.5, func_width);
-  signal.get_fake_signal(strategy, f_meta, metadata);
-  std::vector<unsigned short> input_data;
-  input_data = signal.signal_data();
-//  fake_generate_data(input_data,  scale_factor, shifts_index, func_width, signal_start, signal_max_pos, nchans);
+  // params needed by the fake signal function
+  double dm_position = 90; // at what dm put the signal
+  const int func_width = 1/(tsamp*100); // width of the signal in terms of # of samples; now at 1% of samling rate
+  int signal_start = 1.0/tsamp; // position of the signal in samples
+  bool dump_to_disk = false;
+  const float sigma = 0.5;
 
-  FILE *fp_out2;
-  if (( fp_out2 = fopen("fake_data.dat", "wb") ) == NULL) {
-    fprintf(stderr, "Error opening output file!\n");
-    exit(0);
+  // setting the metadata for running fake generator
+  aa_fake_signal_metadata f_meta(dm_position, signal_start, func_width, sigma);
+
+  aa_fake_signal_generator signal;
+  //signal.produce_mask(0.5, func_width);
+  //signal.get_fake_signal(strategy, f_meta, metadata, dump_to_disk);
+  signal.create_signal(strategy, f_meta, metadata, dump_to_disk);
+
+
+  if(!(signal.ready())) {
+	std::cout << "Error in creating fake signal" << std::endl;
+	return 0;
   }
 
-  for (int i = 0; i < nchans; i++)
-	for (int j = 0; j < nsamples; j++)
-		fprintf(fp_out2,"%d %d %i\n", i, j, input_data[j*nchans + i]);
-  fclose(fp_out2);
+  std::vector<unsigned short> input_data;
+  input_data = signal.signal_data();
 
   aa_permitted_pipelines_1<aa_pipeline::component_option::empty, false> runner(strategy, input_data.data());
   
@@ -96,12 +93,7 @@ int main() {
     }
   }
 
-
   float *** ptr = runner.output_buffer();
-  const int *ndms = strategy.ndms_data();
-  LOG(log_level::dev_debug, "#ndms: " + std::to_string(ndms[0]));
-  LOG(log_level::dev_debug, "#t_processed: " + std::to_string( strategy.t_processed()[0][0] ) );
-
   FILE *fp;
   char filename[200];
   sprintf(filename, "ddtr_data.dat");
@@ -110,17 +102,19 @@ int main() {
       exit(0);
     }
 
-  for(int i = 0; i < strategy.range(); i++ ){
+  for(size_t i = 0; i < strategy.range(); i++ ){
 	for (int j = 0; j < strategy.ndms(i); j++ ) {
 		for (int k = 0; k < strategy.t_processed()[i][0]; k++ ){
-			fprintf(fp, "%d %d %lf\n", j, k, ptr[i][j][k]);
+			fprintf(fp, "%hu %d %lf\n", j, k, ptr[i][j][k]);
 		}
 	}
   }
 
   fclose(fp);
+
+  signal.print_info(f_meta);
   strategy.print_info(strategy);
-  
+
   LOG(log_level::notice, "Finished.");
 
   return 0;
