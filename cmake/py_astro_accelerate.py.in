@@ -1,3 +1,7 @@
+##
+# @package py_astro_accelerate py_astro_accelerate.py
+#
+#
 import sys
 if (sys.version_info < (3, 0)):
     print("ERROR: Python version less than 3.0. Exiting...")

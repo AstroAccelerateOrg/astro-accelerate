@@ -290,6 +290,14 @@ By default, the astro-accelerate executable looks for a configuration file in th
 A configuration file is required in order to run astro-accelerate.
 A number of example configuration files are included in the repository.
 
+Step 4: Results
+==
+To print results from the `analysis` and `periodicity` modules using gnuplot, use the following command
+
+    splot "../path/to/output_file.dat" binary format="%f%f%f%f" u 1:2:3 palette
+    
+which will plot the raw output data as saved to disk.
+
 Optimisations and Tuning
 ==
 Astro-Accelerate comes with the facility to tune the software to the input that the user provides.

@@ -108,7 +108,6 @@ namespace astroaccelerate {
 	m_ddtr_plan = plan;
             
 	//ddtr_strategy needs to know if analysis will be required
-	/** \todo Check the actual free memory when passing into ddtr_strategy. */
 	if(required_plans.find(aa_pipeline::component::analysis) != required_plans.end()) {
 	  aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_card_info.free_memory, true);
 	  if(ddtr_strategy.ready()) {

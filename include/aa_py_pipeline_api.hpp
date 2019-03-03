@@ -5,9 +5,18 @@
 #include "aa_py_filterbank_metadata.hpp"
 
 namespace astroaccelerate {
+  /**
+   * \namespace astroaccelerate::python
+   * \brief A project-wide namespace python is used to separate the implementation of the library from the Python wrapper code.
+   */
   namespace python {
     extern "C" {
 
+      /**
+       * \struct pipeline_components_struct
+       * \brief Wrapper for aa_pipeline::component.
+       * \details Please see include/aa_pipeline.hpp for implementation details.
+       */
       struct pipeline_components_struct {
 	bool dedispersion;
 	bool analysis;
@@ -15,6 +24,11 @@ namespace astroaccelerate {
 	bool fdas;
       };
 
+      /**
+       * \struct pipeline_component_option_struct
+       * \brief Wrapper for aa_pipeline::component_option.
+       * \details Please see include/aa_pipeline.hpp for implementation details.
+       */
       struct pipeline_component_option_struct {
 	bool zero_dm;
 	bool zero_dm_with_outliers;
