@@ -1,7 +1,6 @@
 #include "aa_device_dedispersion_kernel.hpp"
 
 #include "float.h"
-#include <helper_cuda.h>
 
 namespace astroaccelerate {
 
@@ -178,7 +177,7 @@ namespace astroaccelerate {
     cudaMemcpyToSymbol(i_nchans, &nchans, sizeof(int));
     cudaMemcpyToSymbol(i_nsamp, &length, sizeof(int));
     cudaMemcpyToSymbol(i_t_processed_s, &t_processed, sizeof(int));
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
   }
 
   /** \brief Kernel wrapper function to set device constants for kernel dedispersion_kernel function. */

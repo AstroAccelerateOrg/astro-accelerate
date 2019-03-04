@@ -53,7 +53,7 @@ namespace astroaccelerate {
 	
     if(nBlocks>0) call_kernel_SPDT_GPU_1st_plane(gridSize, blockSize, d_input, d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, (float2 *) d_MSD_interpolated, decimated_timesamples, nBoxcars, dtm);
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 	
     for(f=1; f<max_iteration; f++){
       MSD_plane_pos = MSD_plane_pos + nBoxcars;
@@ -74,7 +74,7 @@ namespace astroaccelerate {
 	  call_kernel_SPDT_GPU_Nth_plane(gridSize,blockSize, &d_decimated[shift], d_boxcar_values, &d_boxcar_values[nDMs*(nTimesamples>>1)], d_input, &d_output_SNR[nDMs*output_shift], &d_output_taps[nDMs*output_shift], (float2 *) &d_MSD_interpolated[MSD_plane_pos*2], decimated_timesamples, nBoxcars, startTaps, (1<<iteration), dtm);
       }
 		
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
     }
 
     return(0);

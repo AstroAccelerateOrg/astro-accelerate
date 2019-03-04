@@ -2,7 +2,6 @@
 #include "aa_params.hpp"
 #include "aa_device_set_stretch.hpp"
 #include "aa_device_set_stretch_kernel.hpp"
-#include <helper_cuda.h>
 
 namespace astroaccelerate {
   /** \brief Function for Doppler stretch. */
@@ -16,7 +15,7 @@ namespace astroaccelerate {
 
     cudaStreamWaitEvent(stream, event, 0);
     call_kernel_set_stretch_kernel(num_blocks, threads_per_block, 0, stream, samps, mean, d_input);
-    getLastCudaError("stretch_kernel failed");
+    //getLastCudaError("stretch_kernel failed");
     cudaEventRecord(event, stream);
   }
 } //namespace astroaccelerate

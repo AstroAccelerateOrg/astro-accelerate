@@ -17,7 +17,6 @@
 #include "aa_params.hpp"
 #include "aa_fdas_test_parameters.hpp"
 //#include <helper_functions.h>
-#include <helper_cuda.h>
 #include <curand.h>
 #include <libgen.h>
 //#include <random> // C++11 to use normal distribution

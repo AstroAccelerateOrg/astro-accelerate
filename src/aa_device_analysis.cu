@@ -9,6 +9,7 @@
 #include <utility>
 #include "aa_params.hpp"
 
+#include "aa_log.hpp"
 #include "aa_device_BC_plan.hpp"
 #include "aa_device_peak_find.hpp"
 #include "aa_device_MSD_plane_profile.hpp"
@@ -255,7 +256,7 @@ namespace astroaccelerate {
 #endif
 	//-------------- SPDT
 			
-	checkCudaErrors(cudaGetLastError());
+	//checkCudaErrors(cudaGetLastError());
 			
 #ifdef GPU_ANALYSIS_DEBUG
 	printf("    BC_shift:%d; DMs_per_cycle:%d; f*DMs_per_cycle:%d; max_iteration:%d;\n", DM_shift*nTimesamples, DM_list[f], DM_shift, max_iteration);
@@ -284,9 +285,14 @@ namespace astroaccelerate {
 	  //-------------- Peak finding
 	}
 			
-	checkCudaErrors(cudaGetLastError());
+	//checkCudaErrors(cudaGetLastError());
 			
-	checkCudaErrors(cudaMemcpy(&temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost));
+	cudaError_t e = cudaMemcpy(&temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost);
+
+	if(e != cudaSuccess) {
+	  LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	}
+	
 #ifdef GPU_ANALYSIS_DEBUG
 	printf("    temp_peak_pos:%d; host_pos:%zu; max:%zu; local_max:%d;\n", temp_peak_pos, (*peak_pos), max_peak_size, local_max_list_size);
 #endif
@@ -295,10 +301,30 @@ namespace astroaccelerate {
 	  temp_peak_pos=local_max_list_size;
 	}
 	if( ((*peak_pos) + temp_peak_pos)<max_peak_size){
-	  checkCudaErrors(cudaMemcpy(&h_peak_list_DM[(*peak_pos)],  d_peak_list_DM,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost));
-	  checkCudaErrors(cudaMemcpy(&h_peak_list_TS[(*peak_pos)],  d_peak_list_TS,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost));
-	  checkCudaErrors(cudaMemcpy(&h_peak_list_SNR[(*peak_pos)], d_peak_list_SNR, temp_peak_pos*sizeof(float), cudaMemcpyDeviceToHost));
-	  checkCudaErrors(cudaMemcpy(&h_peak_list_BW[(*peak_pos)],  d_peak_list_BW,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost));
+	  cudaError_t e = cudaMemcpy(&h_peak_list_DM[(*peak_pos)],  d_peak_list_DM,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+	  if(e != cudaSuccess) {
+	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	  }
+	  
+	  e = cudaMemcpy(&h_peak_list_TS[(*peak_pos)],  d_peak_list_TS,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+	  if(e != cudaSuccess) {
+	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	  }
+	  
+	  e = cudaMemcpy(&h_peak_list_SNR[(*peak_pos)], d_peak_list_SNR, temp_peak_pos*sizeof(float), cudaMemcpyDeviceToHost);
+
+	  if(e != cudaSuccess) {
+	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	  }
+	  
+	  e = cudaMemcpy(&h_peak_list_BW[(*peak_pos)],  d_peak_list_BW,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+	  
+	  if(e != cudaSuccess) {
+	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	  }
+	  
 	  *peak_pos = (*peak_pos) + temp_peak_pos;
 	}
 	else printf("Error peak list is too small!\n");

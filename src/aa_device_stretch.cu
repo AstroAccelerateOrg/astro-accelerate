@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "aa_params.hpp"
 #include "aa_device_stretch_kernel.hpp"
-#include <helper_cuda.h>
 
 namespace astroaccelerate {
   /** \brief Doppler stretch. Simple corner turn on the GPU. */
@@ -18,7 +17,7 @@ namespace astroaccelerate {
 
     cudaStreamWaitEvent(stream, event, 0);
     call_kernel_stretch_kernel(num_blocks, threads_per_block, 0, stream, acc, samps, tsamp, d_input, d_output, t_zero, multiplier, tsamp_inverse);
-    getLastCudaError("stretch_kernel failed");
+    //getLastCudaError("stretch_kernel failed");
     cudaEventRecord(event, stream);
   }
 } //namespace astroaccelerate
