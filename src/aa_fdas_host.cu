@@ -347,7 +347,7 @@ namespace astroaccelerate {
     }
     e = cudaMemcpy(gpuarrays->d_fft_signal, f2temp, (params->rfftlen)*sizeof(float2), cudaMemcpyHostToDevice);
     
-    if(e != CUFFT_SUCCESS) {
+    if(e != cudaSuccess) {
       LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
     }
     
