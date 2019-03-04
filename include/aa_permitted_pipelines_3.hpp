@@ -3,7 +3,6 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include <helper_cuda.h>
 
 #include <stdio.h>
 #include "aa_pipeline.hpp"
@@ -188,7 +187,10 @@ namespace astroaccelerate {
       printf("\n\n\n%d\n\n\n", time_samps);
       size_t gpu_inputsize = (size_t) time_samps * (size_t) nchans * sizeof(unsigned short);
 
-      checkCudaErrors( cudaMalloc((void **) d_input, gpu_inputsize) );
+      cudaError_t e = cudaMalloc((void **) d_input, gpu_inputsize);
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not allocate_memory_gpu cudaMalloc in aa_permitted_pipelines_3.hpp (" + std::string(cudaGetErrorString(e)) + ")");
+      }
 
       size_t gpu_outputsize = 0;
       if (nchans < max_ndms) {
@@ -198,7 +200,11 @@ namespace astroaccelerate {
 	gpu_outputsize = (size_t)time_samps * (size_t)nchans * sizeof(float);
       }
 
-      checkCudaErrors( cudaMalloc((void **) d_output, gpu_outputsize) );
+      e = cudaMalloc((void **) d_output, gpu_outputsize);
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not allocate_memory_gpu cudaMalloc in aa_permitted_pipelines_3.hpp (" + std::string(cudaGetErrorString(e)) + ")");
+      }
+      
       cudaMemset(*d_output, 0, gpu_outputsize);
     }
     
@@ -207,11 +213,25 @@ namespace astroaccelerate {
      */
     void allocate_memory_MSD(float **const d_MSD_workarea, unsigned short **const d_MSD_output_taps, float **const d_MSD_interpolated,
 			     const unsigned long int &MSD_maxtimesamples, const size_t &MSD_profile_size) {
-      checkCudaErrors(cudaMalloc((void **) d_MSD_workarea,        MSD_maxtimesamples*5.5*sizeof(float)));
-      checkCudaErrors(cudaMalloc((void **) &(*d_MSD_output_taps), sizeof(ushort)*2*MSD_maxtimesamples));
-      checkCudaErrors(cudaMalloc((void **) d_MSD_interpolated,    sizeof(float)*MSD_profile_size));
+      cudaError_t e = cudaMalloc((void **) d_MSD_workarea,        MSD_maxtimesamples*5.5*sizeof(float));
+      
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not allocate_memory_MSD cudaMalloc in aa_permitted_pipelines_3.hpp (" + std::string(cudaGetErrorString(e)) + ")");
+      }
+      
+      e = cudaMalloc((void **) &(*d_MSD_output_taps), sizeof(ushort)*2*MSD_maxtimesamples);
+      
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not allocate_memory_MSD cudaMalloc in aa_permitted_pipelines_3.hpp (" + std::string(cudaGetErrorString(e)) + ")");
+      }
+      
+      e = cudaMalloc((void **) d_MSD_interpolated,    sizeof(float)*MSD_profile_size);
+      
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not allocate_memory_MSD cudaMalloc in aa_permitted_pipelines_3.hpp (" + std::string(cudaGetErrorString(e)) + ")");
+      }
     }
-
+    
     /**
      * \brief Allocate a 3D array that is an output buffer that stores dedispersed array data.
      * \details This array is used by periodicity.
@@ -349,32 +369,32 @@ namespace astroaccelerate {
       
       const int *ndms = m_ddtr_strategy.ndms_data();
       
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
       load_data(-1, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
 
       if(zero_dm_type == aa_pipeline::component_option::zero_dm) {
 	zero_dm(d_input, nchans, t_processed[0][t]+maxshift, nbits);
       }
 
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
 
       if(zero_dm_type == aa_pipeline::component_option::zero_dm_with_outliers) {
 	zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
       }
 
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
 
       corner_turn(d_input, d_output, nchans, t_processed[0][t] + maxshift);
 
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
 
       if(enable_old_rfi) {
 	printf("\nPerforming old GPU rfi...");
 	rfi_gpu(d_input, nchans, t_processed[0][t]+maxshift);
       }
 
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
 
       int oldBin = 1;
       for(size_t dm_range = 0; dm_range < range; dm_range++) {
@@ -384,11 +404,11 @@ namespace astroaccelerate {
 	maxshift = maxshift_original / inBin[dm_range];
 
 	cudaDeviceSynchronize();
-	checkCudaErrors(cudaGetLastError());
+	//checkCudaErrors(cudaGetLastError());
 
 	load_data(dm_range, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t], maxshift, nchans, dmshifts);
 
-	checkCudaErrors(cudaGetLastError());
+	//checkCudaErrors(cudaGetLastError());
 
 
 	if (inBin[dm_range] > oldBin) {
@@ -396,11 +416,11 @@ namespace astroaccelerate {
 	  ( tsamp ) = ( tsamp ) * 2.0f;
 	}
 
-	checkCudaErrors(cudaGetLastError());
+	//checkCudaErrors(cudaGetLastError());
 
 	dedisperse(dm_range, t_processed[dm_range][t], inBin.data(), dmshifts, d_input, d_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
 
-	checkCudaErrors(cudaGetLastError());
+	//checkCudaErrors(cudaGetLastError());
 
 	for (int k = 0; k < ndms[dm_range]; k++) {
 	  save_data_offset(d_output, k * t_processed[dm_range][t], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
