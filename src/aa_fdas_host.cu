@@ -335,9 +335,9 @@ namespace astroaccelerate {
     float *ftemp;
     ftemp  = (float *)malloc(params->rfftlen*sizeof(float));
     f2temp = (float2 *)malloc(params->rfftlen*sizeof(float2));
-    cufftResult cufft_e = cudaMemcpy(ftemp, gpuarrays->d_in_signal, (params->rfftlen)*sizeof(float), cudaMemcpyDeviceToHost);
+    cudaError_t e = cudaMemcpy(ftemp, gpuarrays->d_in_signal, (params->rfftlen)*sizeof(float), cudaMemcpyDeviceToHost);
 
-    if(cufft_e != CUFFT_SUCCESS) {
+    if(e != cudaSuccess) {
       LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
     }
     
@@ -345,8 +345,8 @@ namespace astroaccelerate {
       f2temp[f].x = ftemp[f];
       f2temp[f].y = 0;
     }
-    cufft_e = cudaMemcpy(gpuarrays->d_fft_signal, f2temp, (params->rfftlen)*sizeof(float2), cudaMemcpyHostToDevice);
-
+    e = cudaMemcpy(gpuarrays->d_fft_signal, f2temp, (params->rfftlen)*sizeof(float2), cudaMemcpyHostToDevice);
+    
     if(e != CUFFT_SUCCESS) {
       LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
     }
