@@ -73,7 +73,8 @@ int main(int argc, char *argv[]) {
     LOG(log_level::notice, "init_card complete. Selected card " + std::to_string(selected_card) + ".");
   }
   else {
-    LOG(log_level::error, "init_card incomplete.")
+    LOG(log_level::error, "init_card incomplete.");
+    return 0;
   }
   
   aa_config configuration(pipeline);   // Set the pipeline and other run settings that would come from an input_file

@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <sstream>
 
 #include "aa_log.hpp"
 
@@ -145,22 +146,44 @@ namespace astroaccelerate {
           return false;
         }
       }
-    
+      
+      std::vector<int> compiled_cuda_sm_versions;
+      std::stringstream s(ASTRO_ACCELERATE_CUDA_SM_VERSION);
+      int i;
+      while(s >> i) {
+	compiled_cuda_sm_versions.push_back(i);
+	
+	if(s.peek() == ',') {
+	  s.ignore();
+	}
+      }
+      
       for(size_t i = 0; i < m_card_info.size(); i++) {
 	if(m_card_info.at(i).card_number == id) {
 #ifdef ASTRO_ACCELERATE_VERSION_H_DEFINED
+	  bool found_compatible_architecture = false;
 	  std::string device_compute_capability = std::to_string(m_card_info.at(i).compute_capability_major) + std::to_string(m_card_info.at(i).compute_capability_minor);
-	  if(std::to_string(ASTRO_ACCELERATE_CUDA_SM_VERSION) > device_compute_capability) {
-	    LOG(log_level::error, "Compiled for compute capability " + std::to_string(ASTRO_ACCELERATE_CUDA_SM_VERSION) + ".\n" + "The requested device has capability " + device_compute_capability + ".");
-	    return false;
+	  for(auto compiled_code : compiled_cuda_sm_versions) {
+	    if(std::to_string(compiled_code) > device_compute_capability) {
+	      continue;
+	    }
+	    else {
+	      LOG(log_level::notice, "Application binary compiled for compute capability "+std::to_string(compiled_code)+".");
+	      found_compatible_architecture = true;
+	    }
+	  }
+
+	  if(found_compatible_architecture) {
+	    LOG(log_level::notice, "The requested device has capability "+ device_compute_capability +" and the device code was compiled for a compatible architecture for the selected card.");
 	  }
 	  else {
-	    LOG(log_level::notice, "Application binary compiled for compute capability "+std::to_string(ASTRO_ACCELERATE_CUDA_SM_VERSION)+".");
-	    LOG(log_level::notice, "The requested device has capability "+device_compute_capability+".");
+	    LOG(log_level::error, "The requested device has capability "+ device_compute_capability +" but the device code was not compiled for a compatible architecture for the selected card.");
+	    return false;
 	  }
+	  
 #else
-	  LOG(log_level::notice, "Because #include \"version.h\" is not created by this build system, the compute capability of the device cannot be determined.");
-	  LOG(log_level::notice, "Please consider compiling using the CMakeLists file provided in the repository.");
+	  LOG(log_level::warning, "Because #include \"version.h\" is not created by this build system, the compute capability of the device code cannot be determined and compared with the physical device.");
+	  LOG(log_level::warning, "Please consider compiling using the CMakeLists file provided in the repository.");
 #endif
 	  selected_card_idx = i;
 	  cudaSetDevice(i);
