@@ -163,7 +163,7 @@ include_directories(${CUDA_LIBRARY_DIRS})
 
 # CUDA library object
 file(GLOB_RECURSE GPU_SOURCE_FILES "src/*.cu" "src/*.cpp")
-cuda_add_library(astroaccelerate ${GPU_SOURCE_FILES})
+cuda_add_library(astroaccelerate SHARED ${GPU_SOURCE_FILES})
 target_link_libraries(astroaccelerate PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUFFT_LIBRARIES} ${CUDA_curand_LIBRARY})
 set_target_properties(astroaccelerate PROPERTIES CUDA_SEPARABLE_COMPILATION OFF)
 set_target_properties(astroaccelerate PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -173,7 +173,7 @@ set_target_properties(astroaccelerate PROPERTIES BUILD_SHARED_LIBS ON)
 # Standalone executable to link against CUDA library
 file(GLOB_RECURSE SOURCE_FILES "src/aa_main.cpp")
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
-target_link_libraries(${PROJECT_NAME} astroaccelerate)
+target_link_libraries(${PROJECT_NAME} PRIVATE astroaccelerate)
 
 install(TARGETS astroaccelerate DESTINATION bin)
 
