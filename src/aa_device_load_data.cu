@@ -4,8 +4,6 @@
 
 #include "aa_params.hpp"
 
-#include <helper_cuda.h>
-
 namespace astroaccelerate {
 
   /**
@@ -17,9 +15,9 @@ namespace astroaccelerate {
     if(i == -1) {
       const long int length = ( t_processed + maxshift );
       const size_t size = (size_t)nchans * (size_t)length * (size_t)sizeof(unsigned short);
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
       cudaMemcpy(device_pointer, host_pointer, size, cudaMemcpyHostToDevice);
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
       set_device_constants_dedispersion_kernel(nchans, length, t_processed, dmshifts);
     }
     else if(i > 0) {

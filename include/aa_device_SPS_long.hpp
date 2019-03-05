@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <helper_cuda.h>
-
 #include "aa_params.hpp"
 #include "aa_device_BC_plan.hpp"
 #include "aa_device_SPS_long_kernel.hpp"

@@ -3,7 +3,8 @@
 #include <cufft.h>
 #include "aa_params.hpp"
 #include "aa_device_stats_kernel.hpp"
-#include <helper_cuda.h>
+#include "aa_log.hpp"
+
 
 namespace astroaccelerate {
   /** \brief Returns stats. */
@@ -23,25 +24,52 @@ namespace astroaccelerate {
     int size = (int) floor((float) acc_size / STATSLOOP);
 
     float* d_sum;
-    checkCudaErrors(cudaMalloc((void** )&d_sum, size * sizeof(float)));
+    cudaError_t e = cudaMalloc((void** )&d_sum, size * sizeof(float));
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMalloc in aa_device_stats.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
 
     float* d_sum_square;
-    checkCudaErrors(cudaMalloc((void** )&d_sum_square, size * sizeof(float)));
+    e = cudaMalloc((void** )&d_sum_square, size * sizeof(float));
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMalloc in aa_device_stats.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
 
     float* h_sum;
-    checkCudaErrors(cudaMallocHost((void** )&h_sum, size * sizeof(float)));
+    e = cudaMallocHost((void** )&h_sum, size * sizeof(float));
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMallocHost in aa_device_stats.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
 
     float* h_sum_square;
-    checkCudaErrors(cudaMallocHost((void** )&h_sum_square, size * sizeof(float)));
+    e = cudaMallocHost((void** )&h_sum_square, size * sizeof(float));
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMallocHost in aa_device_stats.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
 
     cudaStreamWaitEvent(stream, event, 0);
     call_kernel_stats_kernel(num_blocks, threads_per_block, 0, stream, half_samps, d_sum, d_sum_square, d_signal_power);
-    getLastCudaError("power_kernel failed");
+    //getLastCudaError("power_kernel failed");
     cudaEventRecord(event, stream);
 
     cudaStreamWaitEvent(stream, event, 0);
-    checkCudaErrors(cudaMemcpyAsync(h_sum, d_sum, size * sizeof(float), cudaMemcpyDeviceToHost, stream));
-    checkCudaErrors(cudaMemcpyAsync(h_sum_square, d_sum_square, size * sizeof(float), cudaMemcpyDeviceToHost, stream));
+    e = cudaMemcpyAsync(h_sum, d_sum, size * sizeof(float), cudaMemcpyDeviceToHost, stream);
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMemcpyAsync in aa_device_stats.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+
+    
+    e = cudaMemcpyAsync(h_sum_square, d_sum_square, size * sizeof(float), cudaMemcpyDeviceToHost, stream);
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMemcpyAsync in aa_device_stats.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+    
     cudaEventRecord(event, stream);
     cudaStreamSynchronize(stream);
 

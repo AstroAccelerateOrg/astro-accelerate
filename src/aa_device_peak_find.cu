@@ -1,6 +1,7 @@
 // James Sharpe's peak finding code
 //#define PEAK_FIND_DEBUG
 
+#include <stdio.h>
 #include "aa_device_peak_find.hpp"
 
 namespace astroaccelerate {

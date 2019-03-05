@@ -2,7 +2,6 @@
 #include <cufft.h>
 #include "aa_params.hpp"
 #include "aa_device_power_kernel.hpp"
-#include <helper_cuda.h>
 
 // define for debug info
 //#define POWER_DEBUG
@@ -24,7 +23,7 @@ namespace astroaccelerate {
 
     cudaStreamWaitEvent(stream, event, 0);
     call_kernel_power_kernel(num_blocks, threads_per_block, 0, stream, half_samps, acc, d_signal_fft, d_signal_power);
-    getLastCudaError("power_kernel failed");
+    //getLastCudaError("power_kernel failed");
     cudaEventRecord(event, stream);
   }
 

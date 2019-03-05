@@ -1,9 +1,11 @@
-#include <helper_cuda.h>
-
+#include <string>
+#include <fstream>
 #include "aa_device_single_FIR.hpp"
 #include "aa_bin_gpu.hpp"
 #include "aa_device_MSD.hpp"
 #include "aa_gpu_timer.hpp"
+#include "aa_log.hpp"
+
 
 #include "aa_device_MSD_shared_kernel_functions.hpp"
 //#define MSD_PLANE_DEBUG
@@ -54,7 +56,12 @@ namespace astroaccelerate {
 
   void MSD_plane_profile_debug(float *d_MSD, int DIT_value, int nTimesamples, int MSD_pos){
     float h_MSD[MSD_RESULTS_SIZE];
-    checkCudaErrors(cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
+    cudaError_t e = cudaMemcpy(h_MSD, d_MSD, MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+    
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+    
     printf("    DiT:%d; nTimesamples:%d; decimated_timesamples:%d; MSD_pos: %d; MSD:[%f; %f; %f]\n", (int) DIT_value, (int) nTimesamples, (int) (nTimesamples>>1), (int) MSD_pos, h_MSD[0], h_MSD[1], h_MSD[2]);
   }
 
@@ -83,7 +90,7 @@ namespace astroaccelerate {
 #endif
     //----------------------------------------------------------------------------------------
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 	
     //----------------------------------------------------------------------------------------
     //-------- DIT = 2
@@ -160,7 +167,7 @@ namespace astroaccelerate {
 #endif
     //----------------------------------------------------------------------------------------
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 	
     //----------------------------------------------------------------------------------------
     //-------- DIT > 3
@@ -208,11 +215,11 @@ namespace astroaccelerate {
 	MSD_plane_profile_debug(&d_MSD_DIT[f*MSD_RESULTS_SIZE], DIT_value, decimated_timesamples, f);
 #endif
       }
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
     }
     //----------------------------------------------------------------------------------------
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 
     //----------------------------------------------------------------------------------------
     //-------- Boxcar for last boxcar width if needed
@@ -228,7 +235,7 @@ namespace astroaccelerate {
 	nRest = PPF_L1(d_lichy, d_sudy, nDMs, decimated_timesamples, nTaps);
 	timer.Stop();	t_dit_time += timer.Elapsed();
 
-	checkCudaErrors(cudaGetLastError());
+	//checkCudaErrors(cudaGetLastError());
 			
 	timer.Start();
 			
@@ -241,7 +248,7 @@ namespace astroaccelerate {
 	nRest = PPF_L1(d_sudy, d_lichy, nDMs, decimated_timesamples, nTaps);
 	timer.Stop();	t_dit_time += timer.Elapsed();
 			
-	checkCudaErrors(cudaGetLastError());
+	//checkCudaErrors(cudaGetLastError());
 			
 	timer.Start();
 	Do_MSD(&d_MSD_DIT[f*MSD_RESULTS_SIZE], d_lichy, &d_MSD_DIT_previous[f*MSD_RESULTS_SIZE], d_MSD_workarea, decimated_timesamples, nDMs, nRest, OR_sigma_multiplier, enable_outlier_rejection, perform_continuous);
@@ -256,7 +263,7 @@ namespace astroaccelerate {
     }
     //----------------------------------------------------------------------------------------
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 	
     //----------------------------------------------------------------------------------------
     //-------- Data are decimated too much switching to boxcar filters	
@@ -286,7 +293,7 @@ namespace astroaccelerate {
 	nRest = PPF_L1(input_pointer, output_pointer, nDMs, decimated_timesamples, nTaps);
 	timer.Stop();	t_dit_time += timer.Elapsed();
 			
-	checkCudaErrors(cudaGetLastError());
+	//checkCudaErrors(cudaGetLastError());
 			
 	timer.Start();
 	Do_MSD(&d_MSD_DIT[f*MSD_RESULTS_SIZE], output_pointer, &d_MSD_DIT_previous[f*MSD_RESULTS_SIZE], d_MSD_workarea, decimated_timesamples, nDMs, nRest, OR_sigma_multiplier, enable_outlier_rejection, perform_continuous);
@@ -310,7 +317,7 @@ namespace astroaccelerate {
 	nRest = PPF_L1(input_pointer, output_pointer, nDMs, decimated_timesamples, nTaps);
 	timer.Stop();	t_dit_time += timer.Elapsed();
 			
-	checkCudaErrors(cudaGetLastError());
+	//checkCudaErrors(cudaGetLastError());
 			
 	timer.Start();
 	Do_MSD(&d_MSD_DIT[f*MSD_RESULTS_SIZE], output_pointer, &d_MSD_DIT_previous[f*MSD_RESULTS_SIZE], d_MSD_workarea, decimated_timesamples, nDMs, nRest, OR_sigma_multiplier, enable_outlier_rejection, perform_continuous);
@@ -331,7 +338,7 @@ namespace astroaccelerate {
     printf("------------------------------------------------------<\n");
 #endif
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 	
     total_timer.Stop();
     (*total_time) = total_timer.Elapsed();
@@ -451,10 +458,29 @@ namespace astroaccelerate {
     int MSD_DIT_size = h_MSD_DIT_widths->size();
     int *d_MSD_DIT_widths;
     int *d_boxcar;
-    checkCudaErrors(cudaMalloc((void **) &d_MSD_DIT_widths, sizeof(int)*MSD_DIT_size));
-    checkCudaErrors(cudaMemcpy(d_MSD_DIT_widths, &h_MSD_DIT_widths->operator[](0), sizeof(int)*MSD_DIT_size,cudaMemcpyHostToDevice));
-    cudaMalloc((void **) &d_boxcar, sizeof(int)*nWidths);
-    checkCudaErrors(cudaMemcpy(d_boxcar, &h_boxcar_widths->operator[](0), sizeof(int)*nWidths,cudaMemcpyHostToDevice));
+    cudaError_t e = cudaMalloc((void **) &d_MSD_DIT_widths, sizeof(int)*MSD_DIT_size);
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+    
+    e = cudaMemcpy(d_MSD_DIT_widths, &h_MSD_DIT_widths->operator[](0), sizeof(int)*MSD_DIT_size,cudaMemcpyHostToDevice);
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+    
+    e = cudaMalloc((void **) &d_boxcar, sizeof(int)*nWidths);
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+    
+    e = cudaMemcpy(d_boxcar, &h_boxcar_widths->operator[](0), sizeof(int)*nWidths,cudaMemcpyHostToDevice);
+    
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
 
 	
     //	checkCudaErrors(cudaMemcpy(h_MSD_DIT, d_MSD_DIT, nMSDs*MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
@@ -481,8 +507,18 @@ namespace astroaccelerate {
     float *h_MSD_DIT, *h_MSD_interpolated;
     h_MSD_DIT = new float[nMSDs*MSD_RESULTS_SIZE];
     h_MSD_interpolated = new float[nWidths*MSD_RESULTS_SIZE];
-    checkCudaErrors(cudaMemcpy(h_MSD_DIT, d_MSD_DIT, nMSDs*MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
-    checkCudaErrors(cudaMemcpy(h_MSD_interpolated, d_MSD_interpolated, nWidths*MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
+    e = cudaMemcpy(h_MSD_DIT, d_MSD_DIT, nMSDs*MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+    
+    e = cudaMemcpy(h_MSD_interpolated, d_MSD_interpolated, nWidths*MSD_RESULTS_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+    
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+    
     MSD_Export_plane(filename, h_MSD_DIT, h_MSD_DIT_widths, h_MSD_interpolated, h_boxcar_widths, max_width_performed);
     delete[] h_MSD_DIT;
     delete[] h_MSD_interpolated;
@@ -626,7 +662,7 @@ namespace astroaccelerate {
       }
     }
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 	
     for(int f=130; f<=256 && f<max_boxcar_width; f+=4){
       printf("nTimesamples: %zu; f: %d; %zu\n", nTimesamples, f, nTimesamples-f+1);
@@ -652,10 +688,10 @@ namespace astroaccelerate {
 	total_time = total_time + timer.Elapsed();
 	printf("DIT value: %d; took %f ms; Total time %fms\n", f, timer.Elapsed(), total_time);
       }
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
     }
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 	
     for(int f=272; f<=512 && f<max_boxcar_width; f+=16){
       printf("nTimesamples: %zu; f: %d; %zu\n", nTimesamples, f, nTimesamples-f+1);
@@ -681,10 +717,10 @@ namespace astroaccelerate {
 	total_time = total_time + timer.Elapsed();
 	printf("DIT value: %d; took %f ms; Total time %fms\n", f, timer.Elapsed(), total_time);
       }
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
     }
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 	
     for(int f=544; f<=1024 && f<max_boxcar_width; f+=32){
       printf("nTimesamples: %zu; f: %d; %zu\n", nTimesamples, f, nTimesamples-f+1);
@@ -710,10 +746,10 @@ namespace astroaccelerate {
 	total_time = total_time + timer.Elapsed();
 	printf("DIT value: %d; took %f ms; Total time %fms\n", f, timer.Elapsed(), total_time);
       }
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
     }
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 
     for(int f=1088; f<=2048 && f<max_boxcar_width; f+=64){
       printf("nTimesamples: %zu; f: %d; %zu\n", nTimesamples, f, nTimesamples-f+1);
@@ -739,10 +775,10 @@ namespace astroaccelerate {
 	total_time = total_time + timer.Elapsed();
 	printf("DIT value: %d; took %f ms; Total time %fms\n", f, timer.Elapsed(), total_time);
       }
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
     }
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 
     for(int f=2176; f<=4096 && f<max_boxcar_width; f+=128){
       printf("nTimesamples: %zu; f: %d; %zu\n", nTimesamples, f, nTimesamples-f+1);
@@ -768,10 +804,10 @@ namespace astroaccelerate {
 	total_time = total_time + timer.Elapsed();
 	printf("DIT value: %d; took %f ms; Total time %fms\n", f, timer.Elapsed(), total_time);
       }
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
     }
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 	
     for(int f=4352; f<=8192 && f<max_boxcar_width; f+=256){
       printf("nTimesamples: %zu; f: %d; %zu\n", nTimesamples, f, nTimesamples-f+1);
@@ -797,12 +833,22 @@ namespace astroaccelerate {
 	total_time = total_time + timer.Elapsed();
 	printf("DIT value: %d; took %f ms; Total time %fms\n", f, timer.Elapsed(), total_time);
       }
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
     }
 	
-    checkCudaErrors(cudaGetLastError());
-    checkCudaErrors(cudaFree(d_boxcar));
-    checkCudaErrors(cudaFree(d_MSD));
+    //checkCudaErrors(cudaGetLastError());
+    cudaError_t e = cudaFree(d_boxcar);
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaFree in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+    
+    e = cudaFree(d_MSD);
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaFree in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+    
   }
 
 

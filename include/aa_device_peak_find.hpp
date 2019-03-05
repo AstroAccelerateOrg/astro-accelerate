@@ -5,7 +5,6 @@
 
 #include <vector>
 #include <npp.h>
-#include <helper_cuda.h>
 
 #include "aa_params.hpp"
 #include "aa_device_peak_find_kernel.hpp"
