@@ -525,13 +525,13 @@ namespace astroaccelerate {
 	    //details contain zero_dm and old_rfi
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_1<zero_dm,               use_old_rfi>>(new aa_permitted_pipelines_1<zero_dm,               use_old_rfi>(m_ddtr_strategy, ptr_data_in));
 	    is_pipeline_set_to_runner = true;
-	    LOG(log_level::notice, "NOTICE: Selected Pipeline 1 with zero_dm, and old_rfi");
+	    LOG(log_level::notice, "Selected Pipeline 1 with zero_dm, and old_rfi");
 	  }
 	  else {
 	    //details contain zero_dm and do not contain old_rfi, so old_rfi is false
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_1<zero_dm,               no_rfi>>(new aa_permitted_pipelines_1<zero_dm,                    no_rfi>(m_ddtr_strategy, ptr_data_in));
 	    is_pipeline_set_to_runner	= true;
-	    LOG(log_level::notice, "NOTICE: Selected Pipeline 1 with zero_dm, and no rfi");
+	    LOG(log_level::notice, "Selected Pipeline 1 with zero_dm, and no rfi");
 	  }
 	}
 	else if(m_pipeline_options.find(zero_dm_with_outliers) != m_pipeline_options.end()) {
@@ -619,7 +619,7 @@ namespace astroaccelerate {
 	    //details contain zero_dm and do not contain old_rfi, so old_rfi is false
 	    m_runner = std::unique_ptr<aa_permitted_pipelines_3<zero_dm,               no_rfi>>(new aa_permitted_pipelines_3<zero_dm,                    no_rfi>(m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, ptr_data_in));
 	    is_pipeline_set_to_runner	= true;
-	    LOG(log_level::notice, "NOTICE: Selected Pipeline 3 with zero_dm, and no rfi");
+	    LOG(log_level::notice, "Selected Pipeline 3 with zero_dm, and no rfi");
 	  }
 	}
 	else if(m_pipeline_options.find(zero_dm_with_outliers) != m_pipeline_options.end()) {
