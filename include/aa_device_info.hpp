@@ -11,7 +11,7 @@
 #include <sstream>
 
 #include "aa_log.hpp"
-
+#include "aa_version.hpp"
 /**
  * If the build system (CMake) defines aa_version.hpp, then include it.
  */
