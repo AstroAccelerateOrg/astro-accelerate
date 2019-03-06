@@ -146,7 +146,8 @@ namespace astroaccelerate {
           return false;
         }
       }
-      
+
+#ifdef ASTRO_ACCELERATE_VERSION_H_DEFINED
       std::vector<int> compiled_cuda_sm_versions;
       std::stringstream s(ASTRO_ACCELERATE_CUDA_SM_VERSION);
       int i;
@@ -157,6 +158,7 @@ namespace astroaccelerate {
 	  s.ignore();
 	}
       }
+#endif
       
       for(size_t i = 0; i < m_card_info.size(); i++) {
 	if(m_card_info.at(i).card_number == id) {
