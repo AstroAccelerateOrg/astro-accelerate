@@ -1,5 +1,5 @@
 # Check if cmake has the required version
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6.0 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.9.0 FATAL_ERROR)
 set(PROJECT_NAME astro-accelerate)
 set(PROJECT_VERSION 1.3.1)	# Tagged release version
 set(PROJECT_LIB_NAME ASTRO_ACCELERATE)
