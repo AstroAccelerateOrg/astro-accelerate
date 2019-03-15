@@ -326,7 +326,7 @@ namespace astroaccelerate {
 	h_MSD_DIT_widths->push_back(last_admited_DIT_value*nTaps);
 			
 #ifdef MSD_PLANE_DEBUG
-	printf("    Performing additional boxcar: nTaps: %d; max_width_performed: %d; DIT_value: %d;\n", nTaps, max_width_performed, last_admited_DIT_value*nTaps);
+	printf("    Performing additional boxcar: nTaps: %d; max_width_performed: %d; DIT_value: %lu;\n", nTaps, max_width_performed, last_admited_DIT_value*nTaps);
 	MSD_plane_profile_debug(&d_MSD_DIT[f*MSD_RESULTS_SIZE], last_admited_DIT_value*nTaps, decimated_timesamples, f);
 #endif
       }
@@ -559,8 +559,8 @@ namespace astroaccelerate {
 #ifdef MSD_PLANE_DEBUG
     printf("Data size primary dim: %zu; secondary dim: %zu;\n", primary_dimension, secondary_dimension);
     printf("Temporary storage for data: %zu bytes = %zu floats;\n", t_wsib, t_wsib/4);
-    printf("Size of DIT MSDs: %d elements = %d float = %d bytes\n", nDecimations, nDecimations*MSD_RESULTS_SIZE, nDecimations*MSD_RESULTS_SIZE*sizeof(float));
-    printf("Max MSD blocks: %d blocks = %d float = %d bytes\n", max_nBlocks, max_nBlocks*MSD_PARTIAL_SIZE, max_nBlocks*MSD_PARTIAL_SIZE*sizeof(float));
+    printf("Size of DIT MSDs: %d elements = %d float = %lu bytes\n", nDecimations, nDecimations*MSD_RESULTS_SIZE, nDecimations*MSD_RESULTS_SIZE*sizeof(float));
+    printf("Max MSD blocks: %d blocks = %d float = %lu bytes\n", max_nBlocks, max_nBlocks*MSD_PARTIAL_SIZE, max_nBlocks*MSD_PARTIAL_SIZE*sizeof(float));
 #endif
 	
     (*workarea_size_in_bytes) = t_wsib;
