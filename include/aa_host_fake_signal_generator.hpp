@@ -11,12 +11,19 @@ namespace astroaccelerate {
 
 	class aa_fake_signal_metadata {
 		public:
-			aa_fake_signal_metadata(const double &dm_pos, const int &signal_start, const int &signal_width, const float sigma) : 
+			aa_fake_signal_metadata(const double &dm_pos, const int &signal_start, const int &signal_width, const float &sigma) : 
 				m_dm_position(dm_pos),
 				m_signal_start(signal_start),
 				m_signal_width(signal_width),
 				m_signal_sigma(sigma)
 				{}
+
+			aa_fake_signal_metadata(const double &dm_pos, const int &signal_width, const float &sigma, const int &periodicity) :
+                                m_dm_position(dm_pos),
+                                m_signal_width(signal_width),
+                                m_signal_sigma(sigma),
+				m_signal_period(periodicity)
+                                {}
 
 			double get_dm_pos() const{
 				return m_dm_position;
@@ -34,11 +41,16 @@ namespace astroaccelerate {
 				return m_signal_sigma;
 			}
 
+			int get_signal_period() const{
+				return m_signal_period;
+			}
+
 		private:
 			double m_dm_position;
-			int m_signal_start;
+			int m_signal_start = 0;
 			int m_signal_width;
 			float m_signal_sigma;
+			int m_signal_period = 0;
 	};
 
 	class aa_fake_signal_generator {
@@ -77,7 +89,8 @@ namespace astroaccelerate {
 				LOG(log_level::dev_debug, "DM position of signal:\t\t" + std::to_string(m_fake.get_dm_pos()));
 				LOG(log_level::dev_debug, "Signal start at [samples]:\t" + std::to_string(m_fake.get_signal_start()));
 				LOG(log_level::dev_debug, "Signal width [samples]:\t\t" + std::to_string(m_fake.get_signal_width()));
-				LOG(log_level::dev_debug, "Signal sigma selected:\t\t" + std::to_string(m_fake.get_signal_sigma()))
+				LOG(log_level::dev_debug, "Signal sigma selected:\t\t" + std::to_string(m_fake.get_signal_sigma()));
+				LOG(log_level::dev_debug, "Periodicity selected [ms]:\t" + std::to_string(m_fake.get_signal_period()))
 			return true;
 			}
 
