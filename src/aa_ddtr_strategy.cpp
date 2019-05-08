@@ -146,7 +146,7 @@ namespace astroaccelerate {
       size_t SPDT_memory_requirements = (enable_analysis ? (sizeof(float)*(m_max_ndms)*SPDT_fraction) : 0 );
       max_tsamps = (unsigned int) ( (gpu_memory) / ( sizeof(unsigned short)*nchans + sizeof(float)*(m_max_ndms) + SPDT_memory_requirements )); // maximum number of timesamples we can fit into GPU memory
 	size_t output_size_per_tchunk = ((size_t)max_tsamps)*sizeof(float)*((size_t)m_max_ndms);
-	if (output_size_per_tchunk > MAX_OUTPUT_SIZE) max_tsamp = (unsigned int) ( (MAX_OUTPUT_SIZE) / (sizeof(float)*(m_max_ndms)));
+	if (output_size_per_tchunk > MAX_OUTPUT_SIZE) max_tsamps = (unsigned int) ( (MAX_OUTPUT_SIZE) / (sizeof(float)*(m_max_ndms)));
       
       // Check that we dont have an out of range maxshift:
       if ((unsigned int)( m_maxshift ) > max_tsamps)    {
