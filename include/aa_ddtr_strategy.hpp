@@ -26,7 +26,7 @@ namespace astroaccelerate {
    * \details Further implementation details are provided in aa_ddtr_strategy.cpp.
    * \warning Upon construction, the user must specify whether aa_pipeline::component::analysis will be run in the pipeline.
    * \warning Incorrectly setting enable_analysis upon construction may lead to inefficient memory usage, or undefined behaviour.
-   * \author Cees Carels.
+   * \author AstroAccelerate team.
    * \date 23 October 2018.
    */
   class aa_ddtr_strategy : public aa_strategy {

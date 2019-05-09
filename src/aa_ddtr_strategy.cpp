@@ -2,6 +2,8 @@
 
 #include "aa_device_info.hpp"
 
+#define MAX_OUTPUT_SIZE 8589934592
+
 namespace astroaccelerate {
   /**
    * Trivial constructor for aa_ddtr_strategy which will result in a strategy that cannot be ready. 
@@ -14,7 +16,7 @@ namespace astroaccelerate {
    * Constructor for aa_ddtr_strategy that computes the strategy upon construction, and sets the ready state of the instance of the class.
    */
   aa_ddtr_strategy::aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis) : m_ready(false), m_strategy_already_calculated(false), m_configured_for_analysis(enable_analysis), is_setup(false), m_metadata(metadata), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_power(plan.power()), m_enable_msd_baseline_noise(plan.enable_msd_baseline_noise()) {    
-    strategy(plan, ((free_memory < 8000000000) ? free_memory : 8000000000), enable_analysis);
+    strategy(plan, free_memory, enable_analysis);
   }
 
   /**
@@ -31,7 +33,7 @@ namespace astroaccelerate {
     }
 
     LOG(log_level::notice, "Calculating strategy.");
-    
+	    
     //Part of the filterbank metadata
     const int nchans  = m_metadata.nchans();
     const int nsamp   = m_metadata.nsamples();
@@ -141,9 +143,10 @@ namespace astroaccelerate {
       // without increasing the memory needed
       
       // Maximum number of samples we can fit in our GPU RAM is then given by:
-      //max_tsamps = (unsigned int) ( (*gpu_memory) / ( sizeof(unsigned short) * ( (*m_max_ndms) + nchans ) ) ); // maximum number of timesamples we can fit into GPU memory
       size_t SPDT_memory_requirements = (enable_analysis ? (sizeof(float)*(m_max_ndms)*SPDT_fraction) : 0 );
       max_tsamps = (unsigned int) ( (gpu_memory) / ( sizeof(unsigned short)*nchans + sizeof(float)*(m_max_ndms) + SPDT_memory_requirements )); // maximum number of timesamples we can fit into GPU memory
+	size_t output_size_per_tchunk = ((size_t)max_tsamps)*sizeof(float)*((size_t)m_max_ndms);
+	if (output_size_per_tchunk > MAX_OUTPUT_SIZE) max_tsamps = (unsigned int) ( (MAX_OUTPUT_SIZE) / (sizeof(float)*(m_max_ndms)));
       
       // Check that we dont have an out of range maxshift:
       if ((unsigned int)( m_maxshift ) > max_tsamps)    {
@@ -207,9 +210,11 @@ namespace astroaccelerate {
       // without increasing the memory needed. Set the output buffer to be as large as the input buffer:
       
       // Maximum number of samples we can fit in our GPU RAM is then given by:
-      //max_tsamps = (unsigned int) ( ( *gpu_memory ) / ( nchans * ( sizeof(float) + 2 * sizeof(unsigned short) ) ) );
       size_t SPDT_memory_requirements = (enable_analysis ? (sizeof(float)*(m_max_ndms)*SPDT_fraction) : 0 );
       max_tsamps = (unsigned int) ( ( gpu_memory ) / ( nchans * ( sizeof(float) + sizeof(unsigned short) )+ SPDT_memory_requirements ));
+	size_t output_size_per_tchunk = ((size_t)max_tsamps)*sizeof(float)*((size_t)nchans);
+	if (output_size_per_tchunk > MAX_OUTPUT_SIZE) max_tsamps = (unsigned int)((MAX_OUTPUT_SIZE)/(sizeof(float)*nchans));
+
       
       // Check that we dont have an out of range maxshift:
       if (( m_maxshift ) > (int)max_tsamps) {
