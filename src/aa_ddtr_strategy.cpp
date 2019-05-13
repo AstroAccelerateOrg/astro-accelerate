@@ -85,27 +85,32 @@ namespace astroaccelerate {
     str_dm[0].low = plan.user_dm(0).low;                        //
     str_dm[0].high = str_dm[0].low + ( m_ndms[0] * ( plan.user_dm(0).step ) );   // Redefines DM plan to suit GPU
     str_dm[0].step = plan.user_dm(0).step;                      //
-    for (size_t i = 1; i < range; i++)    {
-      str_dm[i].low = str_dm[i-1].high;
-      str_dm[i].high = str_dm[i].low + m_ndms[i] * plan.user_dm(i).step;
-      str_dm[i].step = plan.user_dm(i).step;
-        
-      if (plan.user_dm(i-1).inBin > 1) {
-	m_maxshift = (int) ceil(( ( str_dm[i-1].low + str_dm[i-1].step * m_ndms[i - 1] ) * m_dmshifts[nchans - 1] ) / ( tsamp ));
-	m_maxshift = (int) ceil((float) ( m_maxshift + ( (float) ( SDIVINT*2*SNUMREG ) ) ) / (float) plan.user_dm(i-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
-	m_maxshift = ( m_maxshift ) * ( SDIVINT*2*SNUMREG ) * plan.user_dm(i-1).inBin;
-	if (( m_maxshift ) > m_maxshift_high)
-	  m_maxshift_high = ( m_maxshift );
-      }
-    }
+		for (size_t i = 1; i < range; i++) {
+			str_dm[i].low = str_dm[i - 1].high;
+			str_dm[i].high = str_dm[i].low + m_ndms[i]*plan.user_dm(i).step;
+			str_dm[i].step = plan.user_dm(i).step;
+
+			if (plan.user_dm(i - 1).inBin > 1) {
+				m_maxshift = (int)ceil(((str_dm[i - 1].low + str_dm[i - 1].step*m_ndms[i - 1])*m_dmshifts[nchans - 1]) / tsamp);
+				
+				float modulo = (float) (SDIVINT*2*SNUMREG);
+				m_maxshift = (int) ceil(( (float) m_maxshift / (float) plan.user_dm(i - 1).inBin + modulo ) / modulo );
+				m_maxshift = m_maxshift*(SDIVINT*2*SNUMREG)*plan.user_dm(i - 1).inBin;
+				if (m_maxshift > m_maxshift_high) {
+					m_maxshift_high = m_maxshift;
+				}
+			}
+		}
     
-    if (plan.user_dm(range-1).inBin > 1) {
-      m_maxshift = (int) ceil(( ( str_dm[range-1].low + str_dm[range-1].step * m_ndms[range - 1] ) * m_dmshifts[nchans - 1] ) / ( tsamp ));
-      m_maxshift = (int) ceil((float) ( m_maxshift + ( (float) ( SDIVINT*2*SNUMREG ) ) ) / (float) plan.user_dm(range-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
-      m_maxshift = m_maxshift * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
-      if (( m_maxshift ) > m_maxshift_high)
-	m_maxshift_high = ( m_maxshift );
-    }
+		if (plan.user_dm(range - 1).inBin > 1) {
+			m_maxshift = (int) ceil( ((str_dm[range - 1].low + str_dm[range - 1].step*m_ndms[range - 1])*m_dmshifts[nchans - 1]) / tsamp );
+
+			float modulo = (float) (SDIVINT*2*SNUMREG);
+			m_maxshift = (int) ceil(((float)m_maxshift / (float)plan.user_dm(i - 1).inBin + modulo) / modulo);
+			m_maxshift = m_maxshift*(SDIVINT*2*SNUMREG)*plan.user_dm(range - 1).inBin;
+			if (m_maxshift > m_maxshift_high)
+				m_maxshift_high = m_maxshift;
+		}
     
     if (m_maxshift_high == 0)    {
       m_maxshift_high = (int) ceil(( ( str_dm[range-1].low + str_dm[range-1].step * ( m_ndms[range - 1] ) ) * m_dmshifts[nchans - 1] ) / tsamp);
