@@ -84,18 +84,21 @@ int main(int argc, char *argv[]) {
 	//Why this is here we have already configured the pipeline? Not used later delete?
 	aa_config configuration(pipeline);   // Set the pipeline and other run settings that would come from an input_file
 
+	// Move this to pipeline
 	if (user_flags.rfi == 1) {
 		LOG(log_level::notice, "Performing host RFI reduction. This feature is experimental.");
 		rfi(filterbank_metadata.nsamples(), filterbank_metadata.nchans(), filterbank_datafile.input_buffer_modifiable());
 	}
 
-
-	aa_pipeline_api<unsigned short> pipeline_manager(pipeline,
+	// What is this doing
+	aa_pipeline_api<unsigned short> pipeline_manager(
+		pipeline, // list of components
 		pipeline_options,
 		filterbank_metadata,
 		filterbank_datafile.input_buffer().data(),
 		selected_card_info);
 
+	// MSD baseline noise should be moved to new component which would be candidate selection
 	bool msd_baseline_noise = false;
 	if (pipeline_options.find(aa_pipeline::component_option::msd_baseline_noise) != pipeline_options.end()) {
 		msd_baseline_noise = true;
@@ -111,13 +114,16 @@ int main(int argc, char *argv[]) {
 		//    return 0;
 	}
 
+	// Same here move this into independent component
 	aa_analysis_plan::selectable_candidate_algorithm candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::off;
 	if (user_flags.candidate_algorithm) {
 		candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::on;
 	}
 
+	
 	if (pipeline.find(aa_pipeline::component::analysis) != pipeline.end()) {
-		aa_analysis_plan analysis_plan(pipeline_manager.ddtr_strategy(),
+		aa_analysis_plan analysis_plan(
+			pipeline_manager.ddtr_strategy(),
 			user_flags.sigma_cutoff,
 			user_flags.sigma_constant,
 			user_flags.max_boxcar_width_in_sec,
@@ -131,20 +137,23 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+	
 	if (pipeline.find(aa_pipeline::component::periodicity) != pipeline.end()) {
 		//If these settings come from the input_file, then move them into aa_config to be read from the file.
-		aa_periodicity_plan periodicity_plan(user_flags.periodicity_sigma_cutoff,
+		aa_periodicity_plan periodicity_plan(
+			user_flags.periodicity_sigma_cutoff,
 			user_flags.sigma_constant,
 			user_flags.periodicity_nHarmonics,
 			user_flags.power,
 			user_flags.candidate_algorithm,
 			msd_baseline_noise);
-
 		pipeline_manager.bind(periodicity_plan);
 	}
 
+	
 	if (pipeline.find(aa_pipeline::component::fdas) != pipeline.end()) {
-		aa_fdas_plan fdas_plan(user_flags.sigma_cutoff,
+		aa_fdas_plan fdas_plan(
+			user_flags.sigma_cutoff,
 			user_flags.sigma_constant,
 			user_flags.nboots,
 			user_flags.ntrial_bins,
@@ -165,6 +174,10 @@ int main(int argc, char *argv[]) {
 			+ " " + std::to_string(ddtr_plan.user_dm(i).outBin));
 	}
 
+	// Way to general pipeline is probably to send list of required components aka 'pipeline' 
+	
+	
+	
 	// Validate if all Plans and Strategies are valid and ready to run
 	// Optional: Add throw catch to force user to check their settings
 	if (pipeline_manager.ready()) {
@@ -185,3 +198,5 @@ int main(int argc, char *argv[]) {
 	LOG(log_level::notice, "Finished.");
 	return 0;
 }
+
+// TODO: rename 'pipeline' to 'pipeline_components'

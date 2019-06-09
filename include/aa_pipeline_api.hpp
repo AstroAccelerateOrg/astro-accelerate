@@ -908,6 +908,11 @@ namespace astroaccelerate {
 			else {
 				//Pipeline 0
 			}
+			
+			// Create poiter to generic pipeline here!
+			// Do we have access to pipeline components?
+			// Do we have access to pipeline options?
+			// Do we have access to user flags?
 
 			//Do any last checks on the plans as a whole
 			if (is_pipeline_set_to_runner) {
