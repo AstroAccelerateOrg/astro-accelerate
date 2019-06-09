@@ -24,6 +24,7 @@
 #include "aa_permitted_pipelines_4_0.hpp"
 #include "aa_permitted_pipelines_5.hpp"
 #include "aa_permitted_pipelines_5_0.hpp"
+#include "aa_permitted_pipelines_generic.hpp"
 
 #include "aa_log.hpp"
 
@@ -549,8 +550,20 @@ namespace astroaccelerate {
 			 */
 			 
 			//Launching generic pipeline which would call components from a permitted pipeline
-			m_runner = std::unique_ptr<aa_permitted_pipelines_generic>(new aa_permitted_pipelines_generic(m_pipeline_options, m_requested_pipeline, m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, m_fdas_strategy, fdas_enable_custom_fft, fdas_enable_inbin, fdas_enable_norm, fdas_enable_output_ffdot_plan, fdas_enable_output_list, ptr_data_in));
-			is_pipeline_set_to_runner = true;
+			m_runner = std::unique_ptr<aa_permitted_pipelines_generic>(new aa_permitted_pipelines_generic(
+					m_requested_pipeline,
+					m_pipeline_options, 
+					m_ddtr_strategy, 
+					m_analysis_strategy, 
+					m_periodicity_strategy, 
+					m_fdas_strategy, 
+					fdas_enable_custom_fft, 
+					fdas_enable_inbin, 
+					fdas_enable_norm, 
+					fdas_enable_output_ffdot_plan, 
+					fdas_enable_output_list, 
+					ptr_data_in));
+			bool is_pipeline_set_to_runner = true;
 
 			/*
 			constexpr aa_pipeline::component_option off = aa_pipeline::component_option::empty;
@@ -559,7 +572,6 @@ namespace astroaccelerate {
 			constexpr bool no_rfi = false;
 			//Check which pipeline the user has requested (given by m_requested_pipeline) against the possible permitted pipelines.
 			//Then, assign a new object of that type to the base class pointer.
-			bool is_pipeline_set_to_runner = false;
 			if (m_requested_pipeline == aa_permitted_pipelines::pipeline1) {
 				if (m_pipeline_options.find(zero_dm) != m_pipeline_options.end()) {
 					if (m_pipeline_options.find(old_rfi) != m_pipeline_options.end()) {

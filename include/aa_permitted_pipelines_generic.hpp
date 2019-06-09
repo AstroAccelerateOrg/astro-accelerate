@@ -1,5 +1,5 @@
-#ifndef ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_5_HPP
-#define ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_5_HPP
+#ifndef ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_GENERIC_HPP
+#define ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_GENERIC_HPP
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -40,27 +40,25 @@ namespace astroaccelerate {
 	* \author AstroAccelerate team.
 	*/
 
-	template<aa_pipeline::component_option zero_dm_type, bool enable_old_rfi>
+	//template<aa_pipeline::component_option zero_dm_type, bool enable_old_rfi>
 	class aa_permitted_pipelines_generic : public aa_pipeline_runner {
 	private:
 		float              ***m_output_buffer;
-		int                **t_processed;
-		const aa_pipeline::pipeline          m_requested_pipeline; /** The user requested pipeline that was bound to the aa_pipeline_api instance on construction. */
+		int                **t_processed; //This should be in ddtr_strategy
+		const aa_pipeline::pipeline          m_pipeline_components; /** The user requested pipeline that was bound to the aa_pipeline_api instance on construction. */
 		const aa_pipeline::pipeline_option   m_pipeline_options; /** The user requested pipeline details containing component options for the aa_pipeline_api instance. */
 		aa_ddtr_strategy                     m_ddtr_strategy;
 		aa_analysis_strategy                 m_analysis_strategy;
 		aa_periodicity_strategy              m_periodicity_strategy;
 		aa_fdas_strategy                     m_fdas_strategy;
 		unsigned short     const*const m_input_buffer;
-		int                num_tchunks;
-		std::vector<float> dm_shifts;
-		float              *dmshifts;
-		int                maxshift;
-		int                max_ndms;
-		int                nchans;
+		int                num_tchunks; //This should be in ddtr_strategy
+		std::vector<float> dm_shifts; //This should be in ddtr_strategy
+		float              *dmshifts; //This should be in ddtr_strategy
+		int                maxshift; //This should be in ddtr_strategy
+		int                max_ndms; //This should be in ddtr_strategy
+		int                nchans; 
 		int                nbits;
-		int                enable_zero_dm;
-		int                enable_zero_dm_with_outliers;
 		int                failsafe;
 		long int           inc;
 		float              tsamp;
@@ -207,8 +205,6 @@ namespace astroaccelerate {
 			max_ndms = m_ddtr_strategy.max_ndms();
 			nchans = m_ddtr_strategy.metadata().nchans();
 			nbits = m_ddtr_strategy.metadata().nbits();
-			enable_zero_dm = 0;
-			enable_zero_dm_with_outliers = 0;
 			failsafe = 0;
 			inc = 0;
 			tsamp = m_ddtr_strategy.metadata().tsamp();
@@ -266,6 +262,10 @@ namespace astroaccelerate {
 		* \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
 		*/
 		bool run_pipeline(aa_pipeline_runner::status &status_code) {
+			const aa_pipeline::component_option opt_zero_dm               = aa_pipeline::component_option::zero_dm;
+			const aa_pipeline::component_option opt_zero_dm_with_outliers = aa_pipeline::component_option::zero_dm_with_outliers;
+			const aa_pipeline::component_option opt_old_rfi               = aa_pipeline::component_option::old_rfi;
+		
 			printf("NOTICE: Pipeline start/resume run_pipeline_5.\n");
 			if (current_time_chunk >= num_tchunks) {
 
@@ -300,33 +300,33 @@ namespace astroaccelerate {
 			else if (current_time_chunk == 0) {
 				m_timer.Start();
 			}
+			
 			printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][current_time_chunk], current_time_chunk);
 
 			const int *ndms = m_ddtr_strategy.ndms_data();
 
 			//checkCudaErrors(cudaGetLastError());
-			load_data(-1, inBin.data(), d_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][t], maxshift, nchans, dmshifts);
+			load_data(-1, inBin.data(), d_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift, nchans, dmshifts);
 			//checkCudaErrors(cudaGetLastError());
-
-			if (zero_dm_type == aa_pipeline::component_option::zero_dm) {
-				zero_dm(d_input, nchans, t_processed[0][t]+maxshift, nbits);
+			
+			if (m_pipeline_options.find(opt_zero_dm) != m_pipeline_options.end()) {
+				printf("\nPerforming zero DM...");
+				zero_dm(d_input, nchans, t_processed[0][current_time_chunk]+maxshift, nbits);
+			}
+			else if (m_pipeline_options.find(opt_zero_dm_with_outliers) != m_pipeline_options.end()) {
+				printf("\nPerforming zero dM with outliers...");
+				zero_dm_outliers(d_input, nchans, t_processed[0][current_time_chunk]+maxshift);
 			}
 
 			//checkCudaErrors(cudaGetLastError());
 
-			if (zero_dm_type == aa_pipeline::component_option::zero_dm_with_outliers) {
-				zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
-			}
+			corner_turn(d_input, d_output, nchans, t_processed[0][current_time_chunk] + maxshift);
 
 			//checkCudaErrors(cudaGetLastError());
 
-			corner_turn(d_input, d_output, nchans, t_processed[0][t] + maxshift);
-
-			//checkCudaErrors(cudaGetLastError());
-
-			if (enable_old_rfi) {
+			if (m_pipeline_options.find(opt_old_rfi) != m_pipeline_options.end()) {
 				printf("\nPerforming old GPU rfi...");
-				rfi_gpu(d_input, nchans, t_processed[0][t]+maxshift);
+				rfi_gpu(d_input, nchans, t_processed[0][current_time_chunk]+maxshift);
 			}
 
 			//checkCudaErrors(cudaGetLastError());
@@ -341,24 +341,24 @@ namespace astroaccelerate {
 				cudaDeviceSynchronize();
 				//checkCudaErrors(cudaGetLastError());
 
-				load_data(dm_range, inBin.data(), d_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[dm_range][t], maxshift, nchans, dmshifts);
+				load_data(dm_range, inBin.data(), d_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[dm_range][current_time_chunk], maxshift, nchans, dmshifts);
 
 				//checkCudaErrors(cudaGetLastError());
 
 
 				if (inBin[dm_range] > oldBin) {
-					bin_gpu(d_input, d_output, nchans, t_processed[dm_range - 1][t] + maxshift * inBin[dm_range]);
+					bin_gpu(d_input, d_output, nchans, t_processed[dm_range - 1][current_time_chunk] + maxshift * inBin[dm_range]);
 					(tsamp) = (tsamp) * 2.0f;
 				}
 
 				//checkCudaErrors(cudaGetLastError());
 
-				dedisperse(dm_range, t_processed[dm_range][t], inBin.data(), dmshifts, d_input, d_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
+				dedisperse(dm_range, t_processed[dm_range][current_time_chunk], inBin.data(), dmshifts, d_input, d_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
 
 				//checkCudaErrors(cudaGetLastError());
 
 				for (int k = 0; k < ndms[dm_range]; k++) {
-					save_data_offset(d_output, k * t_processed[dm_range][t], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
+					save_data_offset(d_output, k * t_processed[dm_range][current_time_chunk], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][current_time_chunk]);
 				}
 
 				//Add analysis
@@ -368,7 +368,7 @@ namespace astroaccelerate {
 				unsigned int *h_peak_list_BW;
 				size_t        max_peak_size;
 				size_t        peak_pos;
-				max_peak_size = (size_t)(ndms[dm_range]*t_processed[dm_range][t]/2);
+				max_peak_size = (size_t)(ndms[dm_range]*t_processed[dm_range][current_time_chunk]/2);
 				h_peak_list_DM = (unsigned int*)malloc(max_peak_size*sizeof(unsigned int));
 				h_peak_list_TS = (unsigned int*)malloc(max_peak_size*sizeof(unsigned int));
 				h_peak_list_SNR = (float*)malloc(max_peak_size*sizeof(float));
@@ -377,7 +377,8 @@ namespace astroaccelerate {
 				const bool dump_to_disk = true;
 				const bool dump_to_user = true;
 				analysis_output output;
-				analysis_GPU(h_peak_list_DM,
+				analysis_GPU(
+					h_peak_list_DM,
 					h_peak_list_TS,
 					h_peak_list_SNR,
 					h_peak_list_BW,
@@ -385,7 +386,7 @@ namespace astroaccelerate {
 					max_peak_size,
 					dm_range,
 					tstart_local,
-					t_processed[dm_range][t],
+					t_processed[dm_range][current_time_chunk],
 					inBin[dm_range],
 					&maxshift,
 					max_ndms,
@@ -416,14 +417,14 @@ namespace astroaccelerate {
 				oldBin = inBin[dm_range];
 			}
 
-			inc = inc + t_processed[0][t];
+			inc = inc + t_processed[0][current_time_chunk];
 			printf("\nNOTICE: INC:\t%ld\n", inc);
 			tstart_local = (tsamp_original * inc);
 			tsamp = tsamp_original;
 			maxshift = maxshift_original;
 
-			++t;
-			printf("NOTICE: Pipeline ended run_pipeline_5 over chunk %d / %d.\n", t, num_tchunks);
+			++current_time_chunk;
+			printf("NOTICE: Pipeline ended run_pipeline_5 over chunk %d / %d.\n", current_time_chunk, num_tchunks);
 			status_code = aa_pipeline_runner::status::has_more;
 			return true;
 		}
@@ -519,19 +520,41 @@ namespace astroaccelerate {
 
 	public:
 		aa_permitted_pipelines_generic(
-			const aa_pipeline::pipeline &pipeline_components,
-			const aa_pipeline::pipeline_option &pipeline_options,
-			const aa_ddtr_strategy &ddtr_strategy,
-			const aa_analysis_strategy &analysis_strategy,
-			const aa_periodicity_strategy &periodicity_strategy,
-			const aa_fdas_strategy &fdas_strategy,
-			const bool &fdas_enable_custom_fft,
-			const bool &fdas_enable_inbin,
-			const bool &fdas_enable_norm,
-			const bool &fdas_enable_output_ffdot_plan,
-			const bool &fdas_enable_output_list,
-			unsigned short const*const input_buffer) {
-		}
+		const aa_pipeline::pipeline &pipeline_components,
+		const aa_pipeline::pipeline_option &pipeline_options,
+		const aa_ddtr_strategy &ddtr_strategy,
+		const aa_analysis_strategy &analysis_strategy,
+		const aa_periodicity_strategy &periodicity_strategy,
+		const aa_fdas_strategy &fdas_strategy,
+		const bool &fdas_enable_custom_fft,
+		const bool &fdas_enable_inbin,
+		const bool &fdas_enable_norm,
+		const bool &fdas_enable_output_ffdot_plan,
+		const bool &fdas_enable_output_list,
+		unsigned short const*const input_buffer)
+		:
+		m_pipeline_components(pipeline_components),
+		m_pipeline_options(pipeline_options),
+		m_ddtr_strategy(ddtr_strategy),
+		m_analysis_strategy(analysis_strategy),
+		m_periodicity_strategy(periodicity_strategy),
+		m_fdas_strategy(fdas_strategy),
+		m_input_buffer(input_buffer),
+		m_fdas_enable_custom_fft(fdas_enable_custom_fft),
+		m_fdas_enable_inbin(fdas_enable_inbin),
+		m_fdas_enable_norm(fdas_enable_norm),
+		m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
+		m_fdas_enable_output_list(fdas_enable_output_list),
+		memory_allocated(false),
+		memory_cleanup(false),
+		periodicity_did_run(false),
+		acceleration_did_run(false),
+		did_notify_of_finishing_component(false),
+		current_time_chunk(0),
+		m_d_MSD_workarea(NULL),
+		m_d_MSD_interpolated(NULL),
+		m_d_MSD_output_taps(NULL) {
+	}
 
 		~aa_permitted_pipelines_generic() {
 			//Only call cleanup if memory had been allocated during setup,
@@ -598,6 +621,7 @@ namespace astroaccelerate {
 		
 	}; // class end
 
+	
 	inline aa_permitted_pipelines_generic::aa_permitted_pipelines_generic(
 		const aa_pipeline::pipeline &pipeline_components,
 		const aa_pipeline::pipeline_option &pipeline_options,
@@ -610,28 +634,8 @@ namespace astroaccelerate {
 		const bool &fdas_enable_norm,
 		const bool &fdas_enable_output_ffdot_plan,
 		const bool &fdas_enable_output_list,
-		unsigned short const*const input_buffer)
-		:
-		m_ddtr_strategy(ddtr_strategy),
-		m_analysis_strategy(analysis_strategy),
-		m_periodicity_strategy(periodicity_strategy),
-		m_fdas_strategy(fdas_strategy),
-		m_input_buffer(input_buffer),
-		m_fdas_enable_custom_fft(fdas_enable_custom_fft),
-		m_fdas_enable_inbin(fdas_enable_inbin),
-		m_fdas_enable_norm(fdas_enable_norm),
-		m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
-		m_fdas_enable_output_list(fdas_enable_output_list),
-		memory_allocated(false),
-		memory_cleanup(false),
-		periodicity_did_run(false),
-		acceleration_did_run(false),
-		did_notify_of_finishing_component(false),
-		current_time_chunk(0),
-		m_d_MSD_workarea(NULL),
-		m_d_MSD_interpolated(NULL),
-		m_d_MSD_output_taps(NULL) {
-	}
+		unsigned short const*const input_buffer);
+	
 
 } // namespace astroaccelerate
 
