@@ -52,11 +52,11 @@ namespace astroaccelerate {
 	private:
 		std::map<aa_pipeline::component, bool> required_plans; /** Plans required to configure the pipeline. */
 		std::map<aa_pipeline::component, bool> supplied_plans; /** Plans supplied by the user. */
-		std::vector<aa_strategy*>   m_all_strategy; /** Base class pointers to all strategies bound to the pipeline. */
-		aa_pipeline::pipeline        m_requested_pipeline; /** The user requested pipeline that was bound to the aa_pipeline_api instance on construction. */
-		const aa_pipeline::pipeline_option m_pipeline_options; /** The user requested pipeline details containing component options for the aa_pipeline_api instance. */
-		aa_device_info::aa_card_info m_card_info; /** The user provided GPU card information for the aa_pipeline_api instance. */
-		std::unique_ptr<aa_pipeline_runner> m_runner; /** A std::unique_ptr that will point to the correct class instantation of the selected aa_permitted_pipelines_ when the pipeline must be made ready to run. */
+		std::vector<aa_strategy*>              m_all_strategy; /** Base class pointers to all strategies bound to the pipeline. */
+		aa_pipeline::pipeline                  m_requested_pipeline; /** The user requested pipeline that was bound to the aa_pipeline_api instance on construction. */
+		const aa_pipeline::pipeline_option     m_pipeline_options; /** The user requested pipeline details containing component options for the aa_pipeline_api instance. */
+		aa_device_info::aa_card_info           m_card_info; /** The user provided GPU card information for the aa_pipeline_api instance. */
+		std::unique_ptr<aa_pipeline_runner>    m_runner; /** A std::unique_ptr that will point to the correct class instantation of the selected aa_permitted_pipelines_ when the pipeline must be made ready to run. */
 
 		aa_filterbank_metadata      m_filterbank_metadata; /** The filterbank file metadata that the user provided for the aa_pipeline_api instance on construction. */
 
@@ -477,6 +477,8 @@ namespace astroaccelerate {
 			if (!all_strategies_ready) {
 				return false;
 			}
+			
+			// By now pipeline is checked that it has reasonable components, that it has all required plans and that strategies are calculated correctly
 
 			// Start configuring the pipeline that will be run.
 			constexpr aa_pipeline::component_option zero_dm = aa_pipeline::component_option::zero_dm;
@@ -545,7 +547,12 @@ namespace astroaccelerate {
 			 * Lastly, because the type is being constructed, the parameters for the constructor must also be provided.
 			 *
 			 */
+			 
+			//Launching generic pipeline which would call components from a permitted pipeline
+			m_runner = std::unique_ptr<aa_permitted_pipelines_generic>(new aa_permitted_pipelines_generic(m_pipeline_options, m_requested_pipeline, m_ddtr_strategy, m_analysis_strategy, m_periodicity_strategy, m_fdas_strategy, fdas_enable_custom_fft, fdas_enable_inbin, fdas_enable_norm, fdas_enable_output_ffdot_plan, fdas_enable_output_list, ptr_data_in));
+			is_pipeline_set_to_runner = true;
 
+			/*
 			constexpr aa_pipeline::component_option off = aa_pipeline::component_option::empty;
 			constexpr aa_pipeline::component_option old_rfi = aa_pipeline::component_option::old_rfi;
 			constexpr bool use_old_rfi = true;
@@ -908,11 +915,12 @@ namespace astroaccelerate {
 			else {
 				//Pipeline 0
 			}
+			*/
 			
 			// Create poiter to generic pipeline here!
-			// Do we have access to pipeline components?
-			// Do we have access to pipeline options?
-			// Do we have access to user flags?
+			// Do we have access to pipeline components? YES!
+			// Do we have access to pipeline options? YES!
+			// Do we have access to user flags? NO! Do we need to?
 
 			//Do any last checks on the plans as a whole
 			if (is_pipeline_set_to_runner) {
