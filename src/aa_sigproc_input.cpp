@@ -1,5 +1,7 @@
 #include "aa_sigproc_input.hpp"
 
+#include "aa_log.hpp"
+
 namespace astroaccelerate {
 
   /** \brief Constructor for aa_sigproc_input. */
@@ -261,24 +263,33 @@ namespace astroaccelerate {
     
     // Check that we are working with one IF channel
     if (nifs != 1) {
-      printf("ERROR: Astro-Accelerate can only work with one IF channel.\n");
+      LOG(log_level::error, "Astro-Accelerate can only work with one IF channel.");
       return false;
     }
     
     fpos_t file_loc;
-    fgetpos(fp, &file_loc); //Position of end of header
+    //Position of end of header
+    if (fgetpos(fp, &file_loc) != 0){
+	    LOG(log_level::error, "Could not get position of the header end.");
+	    return false;
+    }
     
     unsigned long int nsamp = 0;
 
     // Getting number of time-samples based on file size
     unsigned long int data_start = ftell(fp);
     if (fseek(fp, 0, SEEK_END) != 0) {
-      printf("\nERROR!! Failed to seek to the end of data file\n");
+      LOG(log_level::error, "Failed to seek to the end of the data file");
       return false;
     }
+
     unsigned long int exp_total_data = ftell(fp);
     exp_total_data = exp_total_data - data_start;
-    fseek(fp, data_start, SEEK_SET);
+
+    if (fseek(fp, data_start, SEEK_SET) != 0){
+	    LOG(log_level::error, "Failed to seek to the data_start.");
+	    return false;
+    }
 
     if (( nbits ) == 32) {
       nsamp = exp_total_data/((nchans)*4);
@@ -299,14 +310,16 @@ namespace astroaccelerate {
       nsamp = 8*exp_total_data/((nchans));
     }
     else {
-      printf("ERROR: Currently this code only runs with 1, 2, 4, 8, and 16 bit data\n");
+      LOG(log_level::error, "Currently this code only runs with 1, 2, 4, 8 and 16 bit data.");
       return false;
     }
     
     // Move the file pointer back to the end of the header
-    fsetpos(fp, &file_loc);
+    if (fsetpos(fp, &file_loc) != 0){
+	LOG(log_level::error, "Could not set position to the end of the header in the file.");
+	return false;
+    }
     
-    nsamples = (int)((nsamples) ? nsamples : (nsamp) ? nsamp : 0);
     aa_filterbank_metadata meta(telescope_id,
                                 machine_id,
                                 data_type,
@@ -321,7 +334,7 @@ namespace astroaccelerate {
                                 tstart,
                                 tsamp,
                                 nbits,
-                                nsamples,
+                                nsamp,
                                 fch1,
                                 foff,
                                 0,
