@@ -52,11 +52,11 @@ namespace astroaccelerate {
 		aa_periodicity_strategy              m_periodicity_strategy;
 		aa_fdas_strategy                     m_fdas_strategy;
 		unsigned short     const*const m_input_buffer;
-		int                num_tchunks; //This should be in ddtr_strategy
-		std::vector<float> dm_shifts; //This should be in ddtr_strategy
-		float              *dmshifts; //This should be in ddtr_strategy
-		int                maxshift; //This should be in ddtr_strategy
-		int                max_ndms; //This should be in ddtr_strategy
+		int                num_tchunks; 
+		std::vector<float> dm_shifts; 
+		float              *dmshifts; 
+		int                maxshift; 
+		int                max_ndms; 
 		int                nchans; 
 		int                nbits;
 		int                failsafe;
@@ -262,13 +262,23 @@ namespace astroaccelerate {
 		* \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
 		*/
 		bool run_pipeline(aa_pipeline_runner::status &status_code) {
-			const aa_pipeline::component_option opt_zero_dm               = aa_pipeline::component_option::zero_dm;
-			const aa_pipeline::component_option opt_zero_dm_with_outliers = aa_pipeline::component_option::zero_dm_with_outliers;
-			const aa_pipeline::component_option opt_old_rfi               = aa_pipeline::component_option::old_rfi;
+			const aa_pipeline::component_option opt_zero_dm                = aa_pipeline::component_option::zero_dm;
+			const aa_pipeline::component_option opt_zero_dm_with_outliers  = aa_pipeline::component_option::zero_dm_with_outliers;
+			const aa_pipeline::component_option opt_old_rfi                = aa_pipeline::component_option::old_rfi;
+			const aa_pipeline::component_option opt_copy_ddtr_data_to_host = aa_pipeline::component_option::copy_ddtr_data_to_host;
+			
+			const aa_pipeline::component cmp_dedispersion = aa_pipeline::component::dedispersion;
+			const aa_pipeline::component cmp_analysis     = aa_pipeline::component::analysis;
+			const aa_pipeline::component cmp_periodicity  = aa_pipeline::component::periodicity;
+			const aa_pipeline::component cmp_fdas         = aa_pipeline::component::fdas;
+			
+			
 		
+
 			printf("NOTICE: Pipeline start/resume run_pipeline_5.\n");
 			if (current_time_chunk >= num_tchunks) {
-
+				
+				//------------------> End of pipeline
 				if (!did_notify_of_finishing_component) {
 					m_timer.Stop();
 					float time = m_timer.Elapsed() / 1000;
@@ -282,18 +292,25 @@ namespace astroaccelerate {
 					did_notify_of_finishing_component = true;
 					return true;
 				}
+				//--------------------------------------------------------------------------------<
 
-				if (!periodicity_did_run) {
+				
+				//------------------> Periodicity
+				if (!periodicity_did_run && m_pipeline_components.find(cmp_periodicity) != m_pipeline_components.end()) {
 					bool periodicity_return_value = periodicity();
 					status_code = aa_pipeline_runner::status::finished_component;
 					return periodicity_return_value;
 				}
+				//--------------------------------------------------------------------------------<
 
-				if (!acceleration_did_run) {
+				
+				//------------------> Acceleration FDAS
+				if (!acceleration_did_run && m_pipeline_components.find(cmp_fdas) != m_pipeline_components.end()) {
 					bool acceleration_return_value = acceleration();
 					status_code = aa_pipeline_runner::status::finished;
 					return acceleration_return_value;
 				}
+				//--------------------------------------------------------------------------------<
 
 				return false; // In this case, there are no more chunks to process, and periodicity and acceleration both ran.
 			}
@@ -301,6 +318,8 @@ namespace astroaccelerate {
 				m_timer.Start();
 			}
 			
+			//----------------------------------------------------------------------->
+			//------------------> Dedispersion
 			printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][current_time_chunk], current_time_chunk);
 
 			const int *ndms = m_ddtr_strategy.ndms_data();
@@ -309,6 +328,7 @@ namespace astroaccelerate {
 			load_data(-1, inBin.data(), d_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift, nchans, dmshifts);
 			//checkCudaErrors(cudaGetLastError());
 			
+			//---> Zero DM
 			if (m_pipeline_options.find(opt_zero_dm) != m_pipeline_options.end()) {
 				printf("\nPerforming zero DM...");
 				zero_dm(d_input, nchans, t_processed[0][current_time_chunk]+maxshift, nbits);
@@ -317,6 +337,7 @@ namespace astroaccelerate {
 				printf("\nPerforming zero dM with outliers...");
 				zero_dm_outliers(d_input, nchans, t_processed[0][current_time_chunk]+maxshift);
 			}
+			//-------------------<
 
 			//checkCudaErrors(cudaGetLastError());
 
@@ -324,10 +345,12 @@ namespace astroaccelerate {
 
 			//checkCudaErrors(cudaGetLastError());
 
+			//---> Zero DM
 			if (m_pipeline_options.find(opt_old_rfi) != m_pipeline_options.end()) {
 				printf("\nPerforming old GPU rfi...");
 				rfi_gpu(d_input, nchans, t_processed[0][current_time_chunk]+maxshift);
 			}
+			//-------------------<
 
 			//checkCudaErrors(cudaGetLastError());
 
@@ -352,67 +375,75 @@ namespace astroaccelerate {
 				}
 
 				//checkCudaErrors(cudaGetLastError());
-
+				
 				dedisperse(dm_range, t_processed[dm_range][current_time_chunk], inBin.data(), dmshifts, d_input, d_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
 
 				//checkCudaErrors(cudaGetLastError());
-
-				for (int k = 0; k < ndms[dm_range]; k++) {
-					save_data_offset(d_output, k * t_processed[dm_range][current_time_chunk], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][current_time_chunk]);
+				
+				//-----------> Copy data to the host
+				if(m_pipeline_components.find(cmp_fdas) != m_pipeline_components.end() || m_pipeline_components.find(cmp_periodicity) != m_pipeline_components.end() || m_pipeline_options.find(opt_copy_ddtr_data_to_host) != m_pipeline_options.end()){
+					for (int k = 0; k < ndms[dm_range]; k++) {
+						save_data_offset(d_output, k * t_processed[dm_range][current_time_chunk], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][current_time_chunk]);
+					}
 				}
+				//--------------------------------------------<
+				
 
-				//Add analysis
-				unsigned int *h_peak_list_DM;
-				unsigned int *h_peak_list_TS;
-				float        *h_peak_list_SNR;
-				unsigned int *h_peak_list_BW;
-				size_t        max_peak_size;
-				size_t        peak_pos;
-				max_peak_size = (size_t)(ndms[dm_range]*t_processed[dm_range][current_time_chunk]/2);
-				h_peak_list_DM = (unsigned int*)malloc(max_peak_size*sizeof(unsigned int));
-				h_peak_list_TS = (unsigned int*)malloc(max_peak_size*sizeof(unsigned int));
-				h_peak_list_SNR = (float*)malloc(max_peak_size*sizeof(float));
-				h_peak_list_BW = (unsigned int*)malloc(max_peak_size*sizeof(unsigned int));
-				peak_pos = 0;
-				const bool dump_to_disk = true;
-				const bool dump_to_user = true;
-				analysis_output output;
-				analysis_GPU(
-					h_peak_list_DM,
-					h_peak_list_TS,
-					h_peak_list_SNR,
-					h_peak_list_BW,
-					&peak_pos,
-					max_peak_size,
-					dm_range,
-					tstart_local,
-					t_processed[dm_range][current_time_chunk],
-					inBin[dm_range],
-					&maxshift,
-					max_ndms,
-					ndms,
-					m_analysis_strategy.sigma_cutoff(),
-					m_analysis_strategy.sigma_constant(),
-					m_analysis_strategy.max_boxcar_width_in_sec(),
-					d_output,
-					dm_low.data(),
-					dm_high.data(),
-					dm_step.data(),
-					tsamp,
-					m_analysis_strategy.candidate_algorithm(),
-					m_d_MSD_workarea,
-					m_d_MSD_output_taps,
-					m_d_MSD_interpolated,
-					m_analysis_strategy.MSD_data_info(),
-					m_analysis_strategy.enable_msd_baseline_noise(),
-					dump_to_disk,
-					dump_to_user,
-					output);
+				//------------------> Single pulse detection
+				if (m_pipeline_components.find(cmp_analysis) != m_pipeline_components.end()) {
+					unsigned int *h_peak_list_DM;
+					unsigned int *h_peak_list_TS;
+					float        *h_peak_list_SNR;
+					unsigned int *h_peak_list_BW;
+					size_t        max_peak_size;
+					size_t        peak_pos;
+					max_peak_size = (size_t)(ndms[dm_range]*t_processed[dm_range][current_time_chunk]/2);
+					h_peak_list_DM = (unsigned int*)malloc(max_peak_size*sizeof(unsigned int));
+					h_peak_list_TS = (unsigned int*)malloc(max_peak_size*sizeof(unsigned int));
+					h_peak_list_SNR = (float*)malloc(max_peak_size*sizeof(float));
+					h_peak_list_BW = (unsigned int*)malloc(max_peak_size*sizeof(unsigned int));
+					peak_pos = 0;
+					const bool dump_to_disk = true;
+					const bool dump_to_user = true;
+					analysis_output output;
+					analysis_GPU(
+						h_peak_list_DM,
+						h_peak_list_TS,
+						h_peak_list_SNR,
+						h_peak_list_BW,
+						&peak_pos,
+						max_peak_size,
+						dm_range,
+						tstart_local,
+						t_processed[dm_range][current_time_chunk],
+						inBin[dm_range],
+						&maxshift,
+						max_ndms,
+						ndms,
+						m_analysis_strategy.sigma_cutoff(),
+						m_analysis_strategy.sigma_constant(),
+						m_analysis_strategy.max_boxcar_width_in_sec(),
+						d_output,
+						dm_low.data(),
+						dm_high.data(),
+						dm_step.data(),
+						tsamp,
+						m_analysis_strategy.candidate_algorithm(),
+						m_d_MSD_workarea,
+						m_d_MSD_output_taps,
+						m_d_MSD_interpolated,
+						m_analysis_strategy.MSD_data_info(),
+						m_analysis_strategy.enable_msd_baseline_noise(),
+						dump_to_disk,
+						dump_to_user,
+						output);
 
-				free(h_peak_list_DM);
-				free(h_peak_list_TS);
-				free(h_peak_list_SNR);
-				free(h_peak_list_BW);
+					free(h_peak_list_DM);
+					free(h_peak_list_TS);
+					free(h_peak_list_SNR);
+					free(h_peak_list_BW);
+				}
+				//--------------------------------------------------------------------------------<
 
 				oldBin = inBin[dm_range];
 			}
@@ -565,6 +596,7 @@ namespace astroaccelerate {
 		}
 
 		aa_permitted_pipelines_generic(const aa_permitted_pipelines_generic &) = delete;
+		
 		/** \brief Method to setup and allocate memory for the pipeline containers. */
 		bool setup() override {
 			if (!memory_allocated) {
