@@ -277,13 +277,24 @@ namespace astroaccelerate {
     unsigned long int nsamp = 0;
 
     // Getting number of time-samples based on file size
-    unsigned long int data_start = ftell(fp);
+	long int data_start = ftell(fp);
+	if (data_start == -1){
+		LOG(log_level::error, "Wrong return of the start position indicator of the file (stream).");
+		return false;
+	}
+
+
     if (fseek(fp, 0, SEEK_END) != 0) {
       LOG(log_level::error, "Failed to seek to the end of the data file");
       return false;
     }
 
-    unsigned long int exp_total_data = ftell(fp);
+    long int exp_total_data = ftell(fp);
+	if (exp_total_data == -1){
+		LOG(log_level::error, "Wrong return of the end position indicator of the file (stream).");
+		return false;
+	}
+
     exp_total_data = exp_total_data - data_start;
 
     if (fseek(fp, data_start, SEEK_SET) != 0){
@@ -403,6 +414,7 @@ namespace astroaccelerate {
 	}
 	total_data++;
       }
+      printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
       free(temp_buffer);
     }
     else if (nbits == 16) {
@@ -420,6 +432,7 @@ namespace astroaccelerate {
 	}
 	total_data++;
       }
+      printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
       free(temp_buffer);
     }
     else if (nbits == 8) {
@@ -439,6 +452,7 @@ namespace astroaccelerate {
 	}
 	total_data++;
       }
+      printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
       free(temp_buffer);
     }
     else if (nbits == 4) {
@@ -464,6 +478,7 @@ namespace astroaccelerate {
 	}
 	total_data++;
       }
+      printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
       free(temp_buffer);
     }
     else if (nbits == 2) {
@@ -487,6 +502,7 @@ namespace astroaccelerate {
 	}
 	total_data++;
       }
+      printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
       free(temp_buffer);
     }
     else if (nbits == 1) {
@@ -514,6 +530,7 @@ namespace astroaccelerate {
 	}
 	total_data++;
       }
+      printf("Reading record %10lu / %10d \t (%2d%% complete)\n", total_data, m_meta.nsamples(), (int)(100.0*((float)total_data/(float)m_meta.nsamples())));
       free(temp_buffer);
     }
     else {
