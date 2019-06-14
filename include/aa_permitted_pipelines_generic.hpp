@@ -267,7 +267,7 @@ namespace astroaccelerate {
 			const aa_pipeline::component_option opt_old_rfi                = aa_pipeline::component_option::old_rfi;
 			const aa_pipeline::component_option opt_copy_ddtr_data_to_host = aa_pipeline::component_option::copy_ddtr_data_to_host;
 			
-			const aa_pipeline::component cmp_dedispersion = aa_pipeline::component::dedispersion;
+			//const aa_pipeline::component cmp_dedispersion = aa_pipeline::component::dedispersion;
 			const aa_pipeline::component cmp_analysis     = aa_pipeline::component::analysis;
 			const aa_pipeline::component cmp_periodicity  = aa_pipeline::component::periodicity;
 			const aa_pipeline::component cmp_fdas         = aa_pipeline::component::fdas;
@@ -596,6 +596,22 @@ namespace astroaccelerate {
 		}
 
 		aa_permitted_pipelines_generic(const aa_permitted_pipelines_generic &) = delete;
+		
+		void printinfo(){
+			printf("----------------------------------------------------------\n");
+			printf("Pipeline components:\n");
+			for (auto const i : m_pipeline_components) {
+				//LOG(log_level::notice, component_name(i));
+				printf("%s\n", component_name(i).c_str());
+			}
+			printf("\n");
+			printf("Component options:\n");
+			for (auto const i : m_pipeline_options) {
+				//LOG(log_level::notice, component_option_description(i));
+				printf("%s\n", component_option_description(i).c_str());
+			}
+			printf("----------------------------------------------------------\n");
+		}
 		
 		/** \brief Method to setup and allocate memory for the pipeline containers. */
 		bool setup() override {

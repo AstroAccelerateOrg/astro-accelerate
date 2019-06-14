@@ -61,16 +61,16 @@ namespace astroaccelerate {
 				return "empty";
 				break;
 			case aa_pipeline::component::dedispersion:
-				return "dedispersion";
+				return "De-dispersion";
 				break;
 			case aa_pipeline::component::analysis:
-				return "analysis";
+				return "Single pulse detection";
 				break;
 			case aa_pipeline::component::fdas:
-				return "fdas";
+				return "Fourier domain acceleration search";
 				break;
 			case aa_pipeline::component::periodicity:
-				return "periodicity";
+				return "Periodicity search";
 				break;
 			default:
 				return "ERROR: Component name not found";
@@ -79,7 +79,7 @@ namespace astroaccelerate {
     }
 	
     /** \brief Function to convert component types into strings so that the user can query the pipeline. */
-    inline const std::string component_option_name(const aa_pipeline::component_option &component) {
+    inline const std::string component_option_description(const aa_pipeline::component_option &component) {
 		switch (component) {
 			case aa_pipeline::component_option::empty:
 				return "empty";

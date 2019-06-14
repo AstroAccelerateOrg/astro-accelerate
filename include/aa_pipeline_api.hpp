@@ -44,7 +44,7 @@ namespace astroaccelerate {
 	   Therefore, the next pipeline should be constructed after the previous one has been fully configured.
 	 * \warning Configuring multiple pipeline objects and strategy objects at the same time means the pipeline will not see the correct amount of memory on the GPU.
 	 * \todo Nice to have but not needed: Add a way to transfer ownership of the data between aa_pipeline_api objects.
-	 * \author Cees Carels.
+	 * \author AstroAccelerate team
 	 * \date: 23 October 2018.
 	 */
 

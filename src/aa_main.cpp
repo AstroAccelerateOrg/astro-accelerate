@@ -50,9 +50,16 @@ int main(int argc, char *argv[]) {
 
 
 	LOG(log_level::notice, "File path "+file_path);
+	LOG(log_level::notice, "-----------------------------------");
+	LOG(log_level::notice, "Pipeline components:");
 	for (auto const i : pipeline) {
-		LOG(log_level::notice, component_name(i));
+		LOG(log_level::notice, "    " + component_name(i));
 	}
+	LOG(log_level::notice, "Component options:");
+	for (auto const i : pipeline_options) {
+		LOG(log_level::notice, "    " + component_option_description(i));
+	}
+	LOG(log_level::notice, "-----------------------------------");
 
 	aa_sigproc_input       filterbank_datafile(file_path.c_str());
 	aa_filterbank_metadata filterbank_metadata = filterbank_datafile.read_metadata();
