@@ -67,8 +67,8 @@ namespace astroaccelerate {
 		size_t             range;
 		float              tstart_local;
 
-		unsigned short     *d_input;
-		float              *d_output;
+		unsigned short     *d_DDTR_input;
+		float              *d_DDTR_output;
 
 		std::vector<float> dm_low;
 		std::vector<float> dm_high;
@@ -82,6 +82,14 @@ namespace astroaccelerate {
 		bool m_fdas_enable_output_ffdot_plan;
 		bool m_fdas_enable_output_list;
 
+		// Pipeline flags
+		bool do_dedispersion;
+		bool do_single_pulse_detection;
+		bool do_periodicity_search;
+		bool do_fdas;
+		
+		bool do_copy_DDTR_data_to_host;
+		
 		bool memory_allocated;
 		bool memory_cleanup;
 		bool periodicity_did_run;
@@ -96,17 +104,40 @@ namespace astroaccelerate {
 		float  *m_d_MSD_interpolated = NULL;
 		ushort *m_d_MSD_output_taps = NULL;
 
-		/** \brief Allocate the GPU memory needed for dedispersion. */
-		void allocate_memory_gpu(const int &maxshift, const int &max_ndms, const int &nchans, int **const t_processed, unsigned short **const d_input, float **const d_output) {
+		bool cleanup_DDTR() {
+			if (memory_allocated && !memory_cleanup) {
+				LOG(log_level::debug, "DDTR -> Memory cleanup after de-dispersion");
+				cudaFree(d_DDTR_input);
+				cudaFree(d_DDTR_output);
+				
+				if(do_single_pulse_detection){
+					cudaFree(m_d_MSD_workarea);
+					cudaFree(m_d_MSD_output_taps);
+					cudaFree(m_d_MSD_interpolated);
+				}
+				
+				// Why this is not in the ddtr_strategy?
+				size_t t_processed_size = m_ddtr_strategy.t_processed().size();
+				for (size_t i = 0; i < t_processed_size; i++) {
+					free(t_processed[i]);
+				}
+				free(t_processed);
 
+				memory_cleanup = false;
+			}
+			return true;
+		}
+		
+		/** \brief Allocate the GPU memory needed for dedispersion. */
+		void allocate_gpu_memory_DDTR(const int &maxshift, const int &max_ndms, const int &nchans, int **const t_processed, unsigned short **const d_DDTR_input, float **const d_DDTR_output) {
 			int time_samps = t_processed[0][0] + maxshift;
 			printf("\n\n\n%d\n\n\n", time_samps);
 			size_t gpu_inputsize = (size_t)time_samps * (size_t)nchans * sizeof(unsigned short);
+			cudaError_t e;
 
-			cudaError_t e = cudaMalloc((void **)d_input, gpu_inputsize);
-
+			e = cudaMalloc((void **)d_DDTR_input, gpu_inputsize);
 			if (e != cudaSuccess) {
-				LOG(log_level::error, "Could not allocate_memory_gpu cudaMalloc in aa_permitted_pipelines_5.hpp (" + std::string(cudaGetErrorString(e)) + ")");
+				LOG(log_level::error, "Could not allocate memory for d_DDTR_input using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
 			}
 
 			size_t gpu_outputsize = 0;
@@ -117,37 +148,34 @@ namespace astroaccelerate {
 				gpu_outputsize = (size_t)time_samps * (size_t)nchans * sizeof(float);
 			}
 
-			e = cudaMalloc((void **)d_output, gpu_outputsize);
-
+			e = cudaMalloc((void **)d_DDTR_output, gpu_outputsize);
 			if (e != cudaSuccess) {
-				LOG(log_level::error, "Could not allocate_memory_gpu cudaMalloc in aa_permitted_pipelines_5.hpp (" + std::string(cudaGetErrorString(e)) + ")");
+				LOG(log_level::error, "Could not allocate memory for d_DDTR_output using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
 			}
 
-			cudaMemset(*d_output, 0, gpu_outputsize);
+			cudaMemset(*d_DDTR_output, 0, gpu_outputsize);
 		}
 
 
 		/**
 		* \brief Allocate memory for MSD.
 		*/
-		void allocate_memory_MSD(float **const d_MSD_workarea, unsigned short **const d_MSD_output_taps, float **const d_MSD_interpolated,
-			const unsigned long int &MSD_maxtimesamples, const size_t &MSD_profile_size) {
-			cudaError_t e = cudaMalloc((void **)d_MSD_workarea, MSD_maxtimesamples*5.5*sizeof(float));
-
+		void allocate_gpu_memory_SPD(float **const d_MSD_workarea, unsigned short **const d_MSD_output_taps, float **const d_MSD_interpolated, const unsigned long int &MSD_maxtimesamples, const size_t &MSD_profile_size) {
+			cudaError_t e;
+			
+			e = cudaMalloc((void **)d_MSD_workarea, MSD_maxtimesamples*5.5*sizeof(float));
 			if (e != cudaSuccess) {
-				LOG(log_level::error, "Could not allocate_memory_MSD cudaMalloc in aa_permitted_pipelines_5.hpp (" + std::string(cudaGetErrorString(e)) + ")");
+				LOG(log_level::error, "Could not allocate memory for d_MSD_workarea using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
 			}
 
 			e = cudaMalloc((void **) &(*d_MSD_output_taps), sizeof(ushort)*2*MSD_maxtimesamples);
-
 			if (e != cudaSuccess) {
-				LOG(log_level::error, "Could not allocate_memory_MSD cudaMalloc in aa_permitted_pipelines_5.hpp (" + std::string(cudaGetErrorString(e)) + ")");
+				LOG(log_level::error, "Could not allocate memory for d_MSD_output_taps using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
 			}
 
 			e = cudaMalloc((void **)d_MSD_interpolated, sizeof(float)*MSD_profile_size);
-
 			if (e != cudaSuccess) {
-				LOG(log_level::error, "Could not allocate_memory_MSD cudaMalloc in aa_permitted_pipelines_5.hpp (" + std::string(cudaGetErrorString(e)) + ")");
+				LOG(log_level::error, "Could not allocate memory for d_MSD_interpolated cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
 			}
 
 		}
@@ -168,19 +196,21 @@ namespace astroaccelerate {
 				}
 			}
 
-			outputsize = 0;
-			m_output_buffer = (float ***)malloc(range * sizeof(float **));
-			for (size_t i = 0; i < range; i++) {
-				int total_samps = 0;
-				for (int k = 0; k < num_tchunks; k++) {
-					total_samps += t_processed[i][k];
+			//if(do_copy_DDTR_data_to_host){
+				outputsize = 0;
+				m_output_buffer = (float ***)malloc(range * sizeof(float **));
+				for (size_t i = 0; i < range; i++) {
+					int total_samps = 0;
+					for (int k = 0; k < num_tchunks; k++) {
+						total_samps += t_processed[i][k];
+					}
+					m_output_buffer[i] = (float **)malloc(ndms[i] * sizeof(float *));
+					for (int j = 0; j < ndms[i]; j++) {
+						m_output_buffer[i][j] = (float *)malloc((total_samps) * sizeof(float));
+					}
+					outputsize += (total_samps)* ndms[i] * sizeof(float);
 				}
-				m_output_buffer[i] = (float **)malloc(ndms[i] * sizeof(float *));
-				for (int j = 0; j < ndms[i]; j++) {
-					m_output_buffer[i][j] = (float *)malloc((total_samps) * sizeof(float));
-				}
-				outputsize += (total_samps)* ndms[i] * sizeof(float);
-			}
+			//}
 		}
 
 		/** \brief Method that allocates all memory for this pipeline. */
@@ -213,14 +243,16 @@ namespace astroaccelerate {
 			range = m_ddtr_strategy.range();
 			tstart_local = 0.0;
 
-			//Allocate GPU memory
-			d_input = NULL;
-			d_output = NULL;
+			//Data for dedispersion
+			d_DDTR_input = NULL;
+			d_DDTR_output = NULL;
 
 			//Allocate GPU memory for dedispersion
-			allocate_memory_gpu(maxshift, max_ndms, nchans, t_processed, &d_input, &d_output);
+			allocate_gpu_memory_DDTR(maxshift, max_ndms, nchans, t_processed, &d_DDTR_input, &d_DDTR_output);
 			//Allocate GPU memory for SPS (i.e. analysis)
-			allocate_memory_MSD(&m_d_MSD_workarea, &m_d_MSD_output_taps, &m_d_MSD_interpolated, m_analysis_strategy.MSD_data_info(), m_analysis_strategy.MSD_profile_size_in_bytes());
+			if(do_single_pulse_detection) {
+				allocate_gpu_memory_SPD(&m_d_MSD_workarea, &m_d_MSD_output_taps, &m_d_MSD_interpolated, m_analysis_strategy.MSD_data_info(), m_analysis_strategy.MSD_profile_size_in_bytes());
+			}
 			//Allocate memory for CPU output for periodicity
 			allocate_memory_cpu_output();
 
@@ -238,6 +270,31 @@ namespace astroaccelerate {
 			}
 			memory_allocated = true;
 			return true;
+		}
+
+		/** \brief Method that pipeline flags according to requested pipeline components. */
+		void set_pipeline_flags(){
+			//----> Components
+			//const aa_pipeline::component cmp_dedispersion = aa_pipeline::component::dedispersion;
+			const aa_pipeline::component cmp_analysis     = aa_pipeline::component::analysis;
+			const aa_pipeline::component cmp_periodicity  = aa_pipeline::component::periodicity;
+			const aa_pipeline::component cmp_fdas         = aa_pipeline::component::fdas;
+			
+			//----> Component options
+			const aa_pipeline::component_option opt_copy_ddtr_data_to_host = aa_pipeline::component_option::copy_ddtr_data_to_host;
+			
+			do_dedispersion = true; // default component
+			if(m_pipeline_components.find(cmp_analysis) != m_pipeline_components.end()) do_single_pulse_detection = true; 
+			else do_single_pulse_detection = false;
+			if(m_pipeline_components.find(cmp_periodicity) != m_pipeline_components.end()) do_periodicity_search = true;
+			else do_periodicity_search = false;
+			if(m_pipeline_components.find(cmp_fdas) != m_pipeline_components.end()) do_fdas = true;
+			else do_fdas = false;
+			
+			do_copy_DDTR_data_to_host = false;
+			if(m_pipeline_options.find(opt_copy_ddtr_data_to_host) != m_pipeline_options.end()) do_copy_DDTR_data_to_host = true;
+			if(do_periodicity_search) do_copy_DDTR_data_to_host = true;
+			if(do_fdas) do_copy_DDTR_data_to_host = true;
 		}
 
 		/** \brief Transfer data from the device to the host. */
@@ -265,20 +322,11 @@ namespace astroaccelerate {
 			const aa_pipeline::component_option opt_zero_dm                = aa_pipeline::component_option::zero_dm;
 			const aa_pipeline::component_option opt_zero_dm_with_outliers  = aa_pipeline::component_option::zero_dm_with_outliers;
 			const aa_pipeline::component_option opt_old_rfi                = aa_pipeline::component_option::old_rfi;
-			const aa_pipeline::component_option opt_copy_ddtr_data_to_host = aa_pipeline::component_option::copy_ddtr_data_to_host;
-			
-			//const aa_pipeline::component cmp_dedispersion = aa_pipeline::component::dedispersion;
-			const aa_pipeline::component cmp_analysis     = aa_pipeline::component::analysis;
-			const aa_pipeline::component cmp_periodicity  = aa_pipeline::component::periodicity;
-			const aa_pipeline::component cmp_fdas         = aa_pipeline::component::fdas;
-			
-			
-		
 
-			printf("NOTICE: Pipeline start/resume run_pipeline_5.\n");
+			printf("NOTICE: Pipeline start/resume run_pipeline_generic.\n");
 			if (current_time_chunk >= num_tchunks) {
 				
-				//------------------> End of pipeline
+				//------------------> End of DDTR + SPD
 				if (!did_notify_of_finishing_component) {
 					m_timer.Stop();
 					float time = m_timer.Elapsed() / 1000;
@@ -287,7 +335,8 @@ namespace astroaccelerate {
 					printf("\nAmount of telescope time processed: %f", tstart_local);
 					printf("\nNumber of samples processed: %ld", inc);
 					printf("\nReal-time speedup factor: %lf\n", (tstart_local) / time);
-
+					
+					cleanup_DDTR();
 					status_code = aa_pipeline_runner::status::finished_component;
 					did_notify_of_finishing_component = true;
 					return true;
@@ -296,7 +345,7 @@ namespace astroaccelerate {
 
 				
 				//------------------> Periodicity
-				if (!periodicity_did_run && m_pipeline_components.find(cmp_periodicity) != m_pipeline_components.end()) {
+				if (!periodicity_did_run && do_periodicity_search) {
 					bool periodicity_return_value = periodicity();
 					status_code = aa_pipeline_runner::status::finished_component;
 					return periodicity_return_value;
@@ -305,7 +354,7 @@ namespace astroaccelerate {
 
 				
 				//------------------> Acceleration FDAS
-				if (!acceleration_did_run && m_pipeline_components.find(cmp_fdas) != m_pipeline_components.end()) {
+				if (!acceleration_did_run && do_fdas) {
 					bool acceleration_return_value = acceleration();
 					status_code = aa_pipeline_runner::status::finished;
 					return acceleration_return_value;
@@ -325,30 +374,30 @@ namespace astroaccelerate {
 			const int *ndms = m_ddtr_strategy.ndms_data();
 
 			//checkCudaErrors(cudaGetLastError());
-			load_data(-1, inBin.data(), d_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift, nchans, dmshifts);
+			load_data(-1, inBin.data(), d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift, nchans, dmshifts);
 			//checkCudaErrors(cudaGetLastError());
 			
 			//---> Zero DM
 			if (m_pipeline_options.find(opt_zero_dm) != m_pipeline_options.end()) {
 				printf("\nPerforming zero DM...");
-				zero_dm(d_input, nchans, t_processed[0][current_time_chunk]+maxshift, nbits);
+				zero_dm(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift, nbits);
 			}
 			else if (m_pipeline_options.find(opt_zero_dm_with_outliers) != m_pipeline_options.end()) {
 				printf("\nPerforming zero dM with outliers...");
-				zero_dm_outliers(d_input, nchans, t_processed[0][current_time_chunk]+maxshift);
+				zero_dm_outliers(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift);
 			}
 			//-------------------<
 
 			//checkCudaErrors(cudaGetLastError());
 
-			corner_turn(d_input, d_output, nchans, t_processed[0][current_time_chunk] + maxshift);
+			corner_turn(d_DDTR_input, d_DDTR_output, nchans, t_processed[0][current_time_chunk] + maxshift);
 
 			//checkCudaErrors(cudaGetLastError());
 
 			//---> Zero DM
 			if (m_pipeline_options.find(opt_old_rfi) != m_pipeline_options.end()) {
 				printf("\nPerforming old GPU rfi...");
-				rfi_gpu(d_input, nchans, t_processed[0][current_time_chunk]+maxshift);
+				rfi_gpu(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift);
 			}
 			//-------------------<
 
@@ -364,33 +413,33 @@ namespace astroaccelerate {
 				cudaDeviceSynchronize();
 				//checkCudaErrors(cudaGetLastError());
 
-				load_data(dm_range, inBin.data(), d_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[dm_range][current_time_chunk], maxshift, nchans, dmshifts);
+				load_data(dm_range, inBin.data(), d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[dm_range][current_time_chunk], maxshift, nchans, dmshifts);
 
 				//checkCudaErrors(cudaGetLastError());
 
 
 				if (inBin[dm_range] > oldBin) {
-					bin_gpu(d_input, d_output, nchans, t_processed[dm_range - 1][current_time_chunk] + maxshift * inBin[dm_range]);
+					bin_gpu(d_DDTR_input, d_DDTR_output, nchans, t_processed[dm_range - 1][current_time_chunk] + maxshift * inBin[dm_range]);
 					(tsamp) = (tsamp) * 2.0f;
 				}
 
 				//checkCudaErrors(cudaGetLastError());
 				
-				dedisperse(dm_range, t_processed[dm_range][current_time_chunk], inBin.data(), dmshifts, d_input, d_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
+				dedisperse(dm_range, t_processed[dm_range][current_time_chunk], inBin.data(), dmshifts, d_DDTR_input, d_DDTR_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
 
 				//checkCudaErrors(cudaGetLastError());
 				
 				//-----------> Copy data to the host
-				if(m_pipeline_components.find(cmp_fdas) != m_pipeline_components.end() || m_pipeline_components.find(cmp_periodicity) != m_pipeline_components.end() || m_pipeline_options.find(opt_copy_ddtr_data_to_host) != m_pipeline_options.end()){
+				if(do_copy_DDTR_data_to_host){
 					for (int k = 0; k < ndms[dm_range]; k++) {
-						save_data_offset(d_output, k * t_processed[dm_range][current_time_chunk], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][current_time_chunk]);
+						save_data_offset(d_DDTR_output, k * t_processed[dm_range][current_time_chunk], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][current_time_chunk]);
 					}
 				}
 				//--------------------------------------------<
 				
 
 				//------------------> Single pulse detection
-				if (m_pipeline_components.find(cmp_analysis) != m_pipeline_components.end()) {
+				if (do_single_pulse_detection) {
 					unsigned int *h_peak_list_DM;
 					unsigned int *h_peak_list_TS;
 					float        *h_peak_list_SNR;
@@ -423,7 +472,7 @@ namespace astroaccelerate {
 						m_analysis_strategy.sigma_cutoff(),
 						m_analysis_strategy.sigma_constant(),
 						m_analysis_strategy.max_boxcar_width_in_sec(),
-						d_output,
+						d_DDTR_output,
 						dm_low.data(),
 						dm_high.data(),
 						dm_step.data(),
@@ -462,7 +511,6 @@ namespace astroaccelerate {
 
 		bool periodicity() {
 			if (periodicity_did_run) return false;
-			cleanup();
 			aa_gpu_timer timer;
 			timer.Start();
 			const int *ndms = m_ddtr_strategy.ndms_data();
@@ -538,6 +586,7 @@ namespace astroaccelerate {
 			printf("\nReal-time speedup factor: %lf\n", (tstart_local) / (time));
 			acceleration_did_run = true;
 
+			/*
 			for (size_t i = 0; i < range; i++) {
 				for (int j = 0; j < ndms[i]; j++) {
 					free(m_output_buffer[i][j]);
@@ -545,6 +594,7 @@ namespace astroaccelerate {
 				free(m_output_buffer[i]);
 			}
 			free(m_output_buffer);
+			*/
 
 			return true;
 		}
@@ -616,6 +666,7 @@ namespace astroaccelerate {
 		/** \brief Method to setup and allocate memory for the pipeline containers. */
 		bool setup() override {
 			if (!memory_allocated) {
+				set_pipeline_flags();
 				return set_data();
 			}
 
@@ -648,11 +699,16 @@ namespace astroaccelerate {
 		/** \brief De-allocate memory for this pipeline instance. */
 		bool cleanup() {
 			if (memory_allocated && !memory_cleanup) {
-				cudaFree(d_input);
-				cudaFree(d_output);
-				cudaFree(m_d_MSD_workarea);
-				cudaFree(m_d_MSD_output_taps);
-				cudaFree(m_d_MSD_interpolated);
+				LOG(log_level::debug, "Generic Pipeline -> Memory cleanup at the end of the pipeline");
+				/*
+				cudaFree(d_DDTR_input);
+				cudaFree(d_DDTR_output);
+				
+				if(do_single_pulse_detection){
+					cudaFree(m_d_MSD_workarea);
+					cudaFree(m_d_MSD_output_taps);
+					cudaFree(m_d_MSD_interpolated);
+				}
 				
 				// Why this is not in the ddtr_strategy?
 				size_t t_processed_size = m_ddtr_strategy.t_processed().size();
@@ -660,6 +716,18 @@ namespace astroaccelerate {
 					free(t_processed[i]);
 				}
 				free(t_processed);
+				*/
+
+				if(do_copy_DDTR_data_to_host) {
+					const int *ndms = m_ddtr_strategy.ndms_data();
+					for (size_t i = 0; i < range; i++) {
+						for (int j = 0; j < ndms[i]; j++) {
+							free(m_output_buffer[i][j]);
+						}
+						free(m_output_buffer[i]);
+					}
+					free(m_output_buffer);
+				}
 
 				memory_cleanup = true;
 			}
