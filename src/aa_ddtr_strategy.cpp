@@ -91,10 +91,10 @@ namespace astroaccelerate {
 			str_dm[i].step = plan.user_dm(i).step;
 
 			if (plan.user_dm(i - 1).inBin > 1) {
-				m_maxshift = (int)ceil(((str_dm[i - 1].low + str_dm[i - 1].step*m_ndms[i - 1])*m_dmshifts[nchans - 1]) / tsamp);
+				m_maxshift = (int) ceil(((str_dm[i - 1].low + str_dm[i - 1].step*m_ndms[i - 1])*m_dmshifts[nchans - 1]) / tsamp);
 				
 				float modulo = (float) (SDIVINT*2*SNUMREG);
-				m_maxshift = (int) ceil(( (float) m_maxshift / (float) plan.user_dm(i - 1).inBin + modulo ) / modulo );
+				m_maxshift = (int) (( (float) m_maxshift / (float) plan.user_dm(i - 1).inBin + modulo ) / modulo );
 				m_maxshift = m_maxshift*(SDIVINT*2*SNUMREG)*plan.user_dm(i - 1).inBin;
 				if (m_maxshift > m_maxshift_high) {
 					m_maxshift_high = m_maxshift;
@@ -106,7 +106,7 @@ namespace astroaccelerate {
 			m_maxshift = (int) ceil( ((str_dm[range - 1].low + str_dm[range - 1].step*m_ndms[range - 1])*m_dmshifts[nchans - 1]) / tsamp );
 
 			float modulo = (float) (SDIVINT*2*SNUMREG);
-			m_maxshift = (int) ceil(((float)m_maxshift / (float)plan.user_dm(range-1).inBin + modulo) / modulo);
+			m_maxshift = (int) (((float)m_maxshift / (float)plan.user_dm(range-1).inBin + modulo) / modulo);
 			m_maxshift = m_maxshift*(SDIVINT*2*SNUMREG)*plan.user_dm(range - 1).inBin;
 			if (m_maxshift > m_maxshift_high) {
 				m_maxshift_high = m_maxshift;
