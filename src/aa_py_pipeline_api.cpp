@@ -61,7 +61,23 @@ namespace astroaccelerate {
       aa_ddtr_strategy* aa_py_pipeline_api_ddtr_strategy(aa_pipeline_api<unsigned short> *const obj) {
 	return new aa_ddtr_strategy(obj->ddtr_strategy());
       }
-      
+
+      size_t aa_py_ddtr_range(aa_pipeline_api<unsigned short> *const obj){
+	      return  obj->range();
+      }
+
+      const int* aa_py_ndms(aa_pipeline_api<unsigned short> *const obj){
+	      return obj->ndms_data();
+      }
+
+      const int aa_py_dm_low(aa_pipeline_api<unsigned short> *const obj, const int range){
+	      return obj->dm_low(range);
+      }
+
+      const int aa_py_tprocessed(aa_pipeline_api<unsigned short> *const obj){
+	      return obj->tprocessed();
+      }
+
       bool aa_py_pipeline_api_bind_analysis_plan(aa_pipeline_api<unsigned short> *const obj, aa_analysis_plan const*const plan) {
 	return obj->bind(*plan);
       }
@@ -84,18 +100,24 @@ namespace astroaccelerate {
 	return obj->fdas_strategy();
       }
       
-      bool aa_py_pipeline_api_run(aa_pipeline_api<unsigned short> *const obj, int &status_code_int) {
-	aa_pipeline_runner::status status_code;
-	if(obj->ready()) {
-	  bool pipeline_return_value = obj->run(status_code);
-	  status_code_int = (int)status_code;
-	  return pipeline_return_value;
-	}
-	else {
-	  status_code_int = (int)aa_pipeline_runner::status::error;
-	  return false;
-	}
+	bool aa_py_pipeline_api_run(aa_pipeline_api<unsigned short> *const obj, int &status_code_int) {
+		aa_pipeline_runner::status status_code;
+		if(obj->ready()) {
+			bool dump_to_host = true;
+			bool pipeline_return_value = obj->run(dump_to_host,status_code);
+			status_code_int = (int)status_code;
+			return pipeline_return_value;
+		}
+		else {
+			status_code_int = (int)aa_pipeline_runner::status::error;
+			return false;
+		}
+	} // bool aa_py_pipeline_api_run(*,*)
+
+      float*** aa_py_buffer(aa_pipeline_api<unsigned short> *const obj){
+              return obj->output_buffer();
       }
-    }
-  }
-}
+
+   } //extern C
+  } //python
+} // namespace astroaccelerate

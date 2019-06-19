@@ -303,6 +303,22 @@ namespace astroaccelerate {
       }
     }
 
+    size_t range(){
+	    return m_ddtr_strategy.range();
+    }
+
+    const int* ndms_data(){
+	    return m_ddtr_strategy.ndms_data();
+    } 
+
+    const int tprocessed(){
+	    return m_ddtr_strategy.t_samples();
+    }
+
+    const int dm_low(const int range){
+	    return m_ddtr_strategy.dm(range).low;
+    }
+
     /** \returns The aa_analysis_strategy instance bound to the pipeline instance, or a trivial instance if a valid aa_analysis_strategy does not yet exist. */
     aa_analysis_strategy analysis_strategy() {
       //Does the pipeline actually need this strategy? 
@@ -948,6 +964,26 @@ namespace astroaccelerate {
 	return false;
       }
     }
+
+	bool run(const bool &dump_to_disk, aa_pipeline_runner::status &status_code){
+		/**
+		 * This method enable to run pipeline with dumping the ddtr output to host.
+		 */
+		if(pipeline_ready && m_runner->setup()){
+			return m_runner->next(dump_to_disk, status_code);
+		}
+		else{
+			status_code = aa_pipeline_runner::status::finished;
+			return false;
+		}
+	}
+
+	float ***output_buffer(){
+		/**
+		 * \brief Return the output of the DDTR. 
+		 */
+		return m_runner->output_buffer();
+	}
 
     /**
      * \brief Function pass input/output data from one aa_pipeline_api instance to another.

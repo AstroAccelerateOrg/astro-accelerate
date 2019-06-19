@@ -94,6 +94,16 @@ namespace astroaccelerate {
     const int* ndms_data() const {
       return m_ndms.data();
     }
+
+    /** \return number of nsamples in the first range */
+    int t_samples() const {
+	    return m_t_processed.at(0).at(0);
+    }
+
+    /** return the DM low for specified range */
+    const int dm_low(const int range) const{
+	    return str_dm.at(range).low;
+    }
     
     /** \returns The number of time chunks. */
     int num_tchunks() const {

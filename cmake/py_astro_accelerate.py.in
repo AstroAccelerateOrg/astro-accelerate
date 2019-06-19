@@ -431,6 +431,21 @@ class aa_py_pipeline():
         return lib.aa_py_pipeline_api_ddtr_strategy(self.m_obj)
         print("ddtr_strategy")
 
+    def ddtr_range(self):
+        lib.aa_py_ddtr_range.argtypes = [ctypes.c_void_p]
+        lib.aa_py_ddtr_range.restype = ctypes.c_size_t
+        print("range")
+        return lib.aa_py_ddtr_range(self.m_obj)
+
+    def ddtr_ndms(self):
+#        lib.aa_py_ndms.argtypes = [ctypes.c_void_p]
+        lib.aa_py_ndms.restype = ctypes.POINTER(ctypes.c_int)
+        return lib.aa_py_ndms(self.m_obj)
+
+    def ddtr_tprocessed(self):
+        lib.aa_py_tprocessed.restype = ctypes.c_int
+        return lib.aa_py_tprocessed(self.m_obj)
+
     def bind_analysis_plan(self, plan: aa_py_analysis_plan):
         lib.aa_py_pipeline_api_ddtr_strategy.argtypes = [ctypes.c_void_p]
         lib.aa_py_pipeline_api_ddtr_strategy.restype = ctypes.c_void_p
@@ -489,7 +504,37 @@ class aa_py_pipeline():
     ## \brief Returns a pointer to the dedispersed output_buffer in the library. #
     def get_buffer(self):
         #lib.my_class_get_buffer.argtypes = [ctypes.c_void_p]
-        #lib.my_class_get_buffer.restype = PPPFLOAT
+        lib.aa_py_buffer.restype = PPPFLOAT
         print("Getting buffer")
-        print(self.obj)
-        return lib.my_class_get_buffer(self.obj)
+        return lib.aa_py_buffer(self.m_obj)
+
+    def dm_low(self, pos: int):
+        lib.aa_py_dm_low.argtypes = [ctypes.c_int]
+        lib.aa_py_dm_low.restype = ctypes.c_int
+        return lib.aa_py_dm_low(self.m_obj,pos)
+
+
+class header():
+    def information_file(basename, samples, dm, metadata):
+        header_file = basename + ".inf"
+        header = open(header_file, "w")
+        header.write("Data file name without suffix          =  " + basename + "\n")
+        header.write("Telescope used                         =  ???\n")
+        header.write("Instrument used                        =  unset\n")
+        header.write("Object being observed                  =  Mystery_PSR\n")
+        header.write("J2000 Right Ascension (hh:mm:ss.ssss)  =  16:43:38.1000\n" ) #+ str(metadata.m_src_raj) + "\n")
+        header.write("J2000 Declination     (dd:mm:ss.ssss)  =  -12:24:58.7000\n") #+ str(metadata.m_src_dej) + "\n")
+        header.write("Data observed by                       =  unset\n")
+        header.write("Epoch of observation (MJD)             =  " + str(metadata.m_tstart) + "\n")
+        header.write("Barycentered?           (1 yes, 0 no)  =  0\n" ) #+ str(metadata.m_barycentric) + "\n")
+        header.write("Number of bins in the time series      =  " + str(samples) + "\n")
+        header.write("Width of each time series bin (sec)    =  " + str(metadata.m_tsamp) + "\n")
+        header.write("Any breaks in the data? (1 yes, 0 no)  =  0\n")
+        header.write("Type of observation (EM band)          =  Radio\n")
+        header.write("Beam diameter (arcsec)                 =  530\n")
+        header.write("Dispersion measure (cm-3 pc)           =  " + str("{:%.2f}".format(dm)) + "\n")
+        header.write("Central freq of low channel (MHz)      =  " + str(metadata.m_fch1) + "\n")
+        header.write("Total bandwidth (MHz)                  =  10.00\n")
+        header.write("Number of channels                     =  " + str(metadata.m_nchans) + "\n")
+        header.write("Channel bandwidth (MHz)                =  " + str(metadata.m_foff) + "\n")
+        header.write("Data analyzed by                       =  ????\n")
