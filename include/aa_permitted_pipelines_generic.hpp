@@ -394,7 +394,7 @@ namespace astroaccelerate {
 
 			//checkCudaErrors(cudaGetLastError());
 
-			//---> Zero DM
+			//---> old RFI
 			if (m_pipeline_options.find(opt_old_rfi) != m_pipeline_options.end()) {
 				printf("\nPerforming old GPU rfi...");
 				rfi_gpu(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift);

@@ -929,11 +929,6 @@ namespace astroaccelerate {
 			}
 			*/
 			
-			// Create poiter to generic pipeline here!
-			// Do we have access to pipeline components? YES!
-			// Do we have access to pipeline options? YES!
-			// Do we have access to user flags? NO! Do we need to?
-
 			//Do any last checks on the plans as a whole
 			if (is_pipeline_set_to_runner) {
 				pipeline_ready = true;
