@@ -32,7 +32,8 @@ class filterbank_metadata_struct (ctypes.Structure):
         ("m_foff",    ctypes.c_double),
         ("m_nbits",   ctypes.c_int),
         ("m_nsamples",ctypes.c_int),
-        ("m_nchans",  ctypes.c_int)
+        ("m_nchans",  ctypes.c_int), 
+        ("m_src_raj", ctypes.c_double)
     ]
 
 ##
@@ -80,7 +81,7 @@ class aa_py_sigproc_input:
 # \date 05 February 2019.
 #
 class aa_py_filterbank_metadata:
-    def __init__(self, tstart: float, tsamp: float, nbits: int, nsamples: int, fch1: float, foff: float, nchans: int):
+    def __init__(self, tstart: float, tsamp: float, nbits: int, nsamples: int, fch1: float, foff: float, nchans: int, src_raj: float):
         self.m_tstart = tstart
         self.m_tsamp = tsamp
         self.m_nbits = nbits
@@ -88,9 +89,10 @@ class aa_py_filterbank_metadata:
         self.m_fch1 = fch1
         self.m_foff = foff
         self.m_nchans = nchans
+        self.m_src_raj = src_raj
         lib.aa_py_filterbank_metadata.argtypes = []
         lib.aa_py_filterbank_metadata.restype = ctypes.c_void_p
-        self.m_obj = lib.aa_py_filterbank_metadata(ctypes.c_double(self.m_tstart), ctypes.c_double(self.m_tsamp), ctypes.c_int(self.m_nbits), ctypes.c_int(self.m_nsamples), ctypes.c_double(self.m_fch1), ctypes.c_double(self.m_foff), ctypes.c_int(self.m_nchans))
+        self.m_obj = lib.aa_py_filterbank_metadata(ctypes.c_double(self.m_tstart), ctypes.c_double(self.m_tsamp), ctypes.c_int(self.m_nbits), ctypes.c_int(self.m_nsamples), ctypes.c_double(self.m_fch1), ctypes.c_double(self.m_foff), ctypes.c_int(self.m_nchans), ctypes.c_double(self.m_src_raj))
         
     def __exit__(self, exc_type, exc_value, traceback):
         lib.aa_py_filterbank_metadata_delete.argtypes = [ctypes.c_void_p]
@@ -515,26 +517,28 @@ class aa_py_pipeline():
 
 
 class header():
-    def information_file(basename, samples, dm, metadata):
+    def information_file(basename, samples, dm, downsamp, metadata):
+        bandwidth = metadata.m_nchans*metadata.m_foff*(-1.0)
+        cfreq_low = metadata.m_fch1 - bandwidth - metadata.m_foff
         header_file = basename + ".inf"
         header = open(header_file, "w")
-        header.write("Data file name without suffix          =  " + basename + "\n")
-        header.write("Telescope used                         =  ???\n")
-        header.write("Instrument used                        =  unset\n")
-        header.write("Object being observed                  =  Mystery_PSR\n")
-        header.write("J2000 Right Ascension (hh:mm:ss.ssss)  =  16:43:38.1000\n" ) #+ str(metadata.m_src_raj) + "\n")
-        header.write("J2000 Declination     (dd:mm:ss.ssss)  =  -12:24:58.7000\n") #+ str(metadata.m_src_dej) + "\n")
-        header.write("Data observed by                       =  unset\n")
-        header.write("Epoch of observation (MJD)             =  " + str(metadata.m_tstart) + "\n")
-        header.write("Barycentered?           (1 yes, 0 no)  =  0\n" ) #+ str(metadata.m_barycentric) + "\n")
-        header.write("Number of bins in the time series      =  " + str(samples) + "\n")
-        header.write("Width of each time series bin (sec)    =  " + str(metadata.m_tsamp) + "\n")
-        header.write("Any breaks in the data? (1 yes, 0 no)  =  0\n")
-        header.write("Type of observation (EM band)          =  Radio\n")
-        header.write("Beam diameter (arcsec)                 =  530\n")
-        header.write("Dispersion measure (cm-3 pc)           =  " + str("{:%.2f}".format(dm)) + "\n")
-        header.write("Central freq of low channel (MHz)      =  " + str(metadata.m_fch1) + "\n")
-        header.write("Total bandwidth (MHz)                  =  10.00\n")
-        header.write("Number of channels                     =  " + str(metadata.m_nchans) + "\n")
-        header.write("Channel bandwidth (MHz)                =  " + str(metadata.m_foff) + "\n")
-        header.write("Data analyzed by                       =  ????\n")
+        header.write(" Data file name without suffix          =  " + basename + "\n")
+        header.write(" Telescope used                         =  ???\n")
+        header.write(" Instrument used                        =  unset\n")
+        header.write(" Object being observed                  =  Mystery_PSR\n")
+        header.write(" J2000 Right Ascension (hh:mm:ss.ssss)  =  00:00:00.0000\n") # + str(metadata.m_src_raj) + "\n")
+        header.write(" J2000 Declination     (dd:mm:ss.ssss)  =  00:00:00.0000\n") #+ str(metadata.m_src_dej) + "\n")
+        header.write(" Data observed by                       =  unset\n")
+        header.write(" Epoch of observation (MJD)             =  " + str(metadata.m_tstart) + "\n")
+        header.write(" Barycentered?           (1 yes, 0 no)  =  0\n" ) #+ str(metadata.m_barycentric) + "\n")
+        header.write(" Number of bins in the time series      =  " + str(samples) + "\n")
+        header.write(" Width of each time series bin (sec)    =  " + str(metadata.m_tsamp*downsamp) + "\n")
+        header.write(" Any breaks in the data? (1 yes, 0 no)  =  0\n")
+        header.write(" Type of observation (EM band)          =  Radio\n")
+        header.write(" Beam diameter (arcsec)                 =  530\n")
+        header.write(" Dispersion measure (cm-3 pc)           =  " + str(dm) + "\n")
+        header.write(" Central freq of low channel (MHz)      =  " + str(cfreq_low) + "\n")
+        header.write(" Total bandwidth (MHz)                  =  " + str(bandwidth) + "\n")
+        header.write(" Number of channels                     =  " + str(metadata.m_nchans) + "\n")
+        header.write(" Channel bandwidth (MHz)                =  " + str(metadata.m_foff*(-1.0)) + "\n")
+        header.write(" Data analyzed by                       =  ????\n")

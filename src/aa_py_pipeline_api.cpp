@@ -70,11 +70,11 @@ namespace astroaccelerate {
 	      return obj->ndms_data();
       }
 
-      const int aa_py_dm_low(aa_pipeline_api<unsigned short> *const obj, const int range){
+      int aa_py_dm_low(aa_pipeline_api<unsigned short> *const obj, const int range){
 	      return obj->dm_low(range);
       }
 
-      const int aa_py_tprocessed(aa_pipeline_api<unsigned short> *const obj){
+      int aa_py_tprocessed(aa_pipeline_api<unsigned short> *const obj){
 	      return obj->tprocessed();
       }
 

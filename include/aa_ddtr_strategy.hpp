@@ -101,7 +101,7 @@ namespace astroaccelerate {
     }
 
     /** return the DM low for specified range */
-    const int dm_low(const int range) const{
+    int dm_low(const int range) const{
 	    return str_dm.at(range).low;
     }
     

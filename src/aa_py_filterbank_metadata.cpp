@@ -10,7 +10,8 @@ namespace astroaccelerate {
 								  const int nsamples,
 								  const double fch1,
 								  const double foff,
-								  const int nchans) {
+								  const int nchans,
+								  const double src_raj) {
 	aa_py_filterbank_metadata_struct* obj = new aa_py_filterbank_metadata_struct;
 
 	obj->m_tstart = tstart;
@@ -21,6 +22,7 @@ namespace astroaccelerate {
 	obj->m_nbits = nbits;
 	obj->m_nsamples = nsamples;
 	obj->m_nchans = nchans;
+	obj->m_src_raj = src_raj;
 
 	return obj;
       }

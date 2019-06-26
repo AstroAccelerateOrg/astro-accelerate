@@ -311,11 +311,11 @@ namespace astroaccelerate {
 	    return m_ddtr_strategy.ndms_data();
     } 
 
-    const int tprocessed(){
+    int tprocessed(){
 	    return m_ddtr_strategy.t_samples();
     }
 
-    const int dm_low(const int range){
+    int dm_low(const int range){
 	    return m_ddtr_strategy.dm(range).low;
     }
 

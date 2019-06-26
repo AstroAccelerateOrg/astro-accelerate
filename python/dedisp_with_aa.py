@@ -104,14 +104,14 @@ for pos_range in range(pipeline.ddtr_range()):
     list_ndms = pipeline.ddtr_ndms()
     for n_dms in range(list_ndms[pos_range]):
         DM = pipeline.dm_low(pos_range) + dDMs[pos_range]*n_dms
-        filename = basename + "_DM_" + "{:.2f}".format(DM)
+        filename = basename + "_DM" + "{:07.2f}".format(DM)
         result_file = filename + ".dat"
         print("Writing results to: " + result_file)
         newfile = open(result_file, "wb")
         nsamp_for_range = int(pipeline.ddtr_tprocessed()/downsamps[pos_range])
-        header.information_file(filename,nsamp_for_range, "{:.2f}".format(DM) , metadata)
+        header.information_file(filename,nsamp_for_range, DM, downsamps[pos_range], metadata)
         for samples_pos in range(nsamp_for_range):
-            newfile.write(struct.pack('f',a[pos_range][n_dms][samples_pos]))
+            newfile.write(struct.pack('f',a[pos_range][n_dms][samples_pos]*4096*downsamps[pos_range]))
 
 if pipeline.status_code() == -1:
     print("ERROR: Pipeline status code is {}. The pipeline encountered an error and cannot continue.".format(pipeline.status_code()))

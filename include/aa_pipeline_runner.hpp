@@ -77,6 +77,7 @@ namespace astroaccelerate {
 
 	virtual float ***output_buffer(){
 		LOG(log_level::error, "The selected operation is not supported on this pipeline (output_buffer).");
+		return NULL;
 	}
 
 
