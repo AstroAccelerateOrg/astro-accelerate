@@ -736,21 +736,6 @@ namespace astroaccelerate {
 	
 		
 	}; // class end
-
-	
-	inline aa_permitted_pipelines_generic::aa_permitted_pipelines_generic(
-		const aa_pipeline::pipeline &pipeline_components,
-		const aa_pipeline::pipeline_option &pipeline_options,
-		const aa_ddtr_strategy &ddtr_strategy,
-		const aa_analysis_strategy &analysis_strategy,
-		const aa_periodicity_strategy &periodicity_strategy,
-		const aa_fdas_strategy &fdas_strategy,
-		const bool &fdas_enable_custom_fft,
-		const bool &fdas_enable_inbin,
-		const bool &fdas_enable_norm,
-		const bool &fdas_enable_output_ffdot_plan,
-		const bool &fdas_enable_output_list,
-		unsigned short const*const input_buffer);
 	
 
 } // namespace astroaccelerate
