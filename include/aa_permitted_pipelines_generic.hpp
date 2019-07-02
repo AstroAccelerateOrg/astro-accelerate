@@ -22,14 +22,13 @@
 #include "aa_device_rfi.hpp"
 #include "aa_dedisperse.hpp"
 
-#include "aa_gpu_timer.hpp"
-
 #include "aa_device_analysis.hpp"
 #include "aa_device_periods.hpp"
 #include "aa_device_acceleration_fdas.hpp"
 #include "aa_pipeline_runner.hpp"
 
 #include "aa_gpu_timer.hpp"
+#include "aa_timelog.hpp"
 
 namespace astroaccelerate {
 
@@ -43,6 +42,7 @@ namespace astroaccelerate {
 	//template<aa_pipeline::component_option zero_dm_type, bool enable_old_rfi>
 	class aa_permitted_pipelines_generic : public aa_pipeline_runner {
 	private:
+		TimeLog time_log;
 		float              ***m_output_buffer;
 		int                **t_processed; //This should be in ddtr_strategy
 		const aa_pipeline::pipeline          m_pipeline_components; /** The user requested pipeline that was bound to the aa_pipeline_api instance on construction. */
@@ -109,7 +109,9 @@ namespace astroaccelerate {
 				LOG(log_level::debug, "DDTR -> Memory cleanup after de-dispersion");
 				cudaFree(d_DDTR_input);
 				cudaFree(d_DDTR_output);
-				
+			
+				time_log.print();
+
 				if(do_single_pulse_detection){
 					cudaFree(m_d_MSD_workarea);
 					cudaFree(m_d_MSD_output_taps);
@@ -330,6 +332,7 @@ namespace astroaccelerate {
 				if (!did_notify_of_finishing_component) {
 					m_timer.Stop();
 					float time = m_timer.Elapsed() / 1000;
+					time_log.adding("DDTR", "total", (double)time);
 					printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 					printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)", time);
 					printf("\nAmount of telescope time processed: %f", tstart_local);
