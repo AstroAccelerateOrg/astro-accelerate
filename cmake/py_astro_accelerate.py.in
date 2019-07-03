@@ -21,7 +21,7 @@ PPPFLOAT = ctypes.POINTER(PPFLOAT)
 ##
 # \brief Python class to hold filterbank_metadata.
 # \details Please see include/aa_filterbank_metadata.hpp for library implementation.
-# \author Cees Carels.
+# \author AstroAccelerate.
 # \date 05 February 2019.
 #
 class filterbank_metadata_struct (ctypes.Structure):
@@ -38,7 +38,7 @@ class filterbank_metadata_struct (ctypes.Structure):
 ##
 # \brief Python class that reads a sigproc file.
 # \details Please see include/aa_sigproc_input.hpp for library implementation.
-# \author Cees Carels.
+# \author AstroAccelerate.
 # \date 05 February 2019.
 #
 class aa_py_sigproc_input:
@@ -76,7 +76,7 @@ class aa_py_sigproc_input:
 ##
 # \brief Python class for creating a filterbank_metadata object.
 # \details Please see include/aa_filterbank_metadata.hpp for library implementation.
-# \author Cees Carels.
+# \author AstroAccelerate.
 # \date 05 February 2019.
 #
 class aa_py_filterbank_metadata:
@@ -112,7 +112,7 @@ class aa_py_filterbank_metadata:
 ##
 # \brief Python class for creating dm settings that can be added to an aa_py_ddtr_plan.
 # \details Please see include/aa_ddtr_plan.hpp `struct dm` for library implementation.
-# \author Cees Carels.
+# \author AstroAccelerate.
 # \date 05 February 2019.
 #
 class aa_py_dm:
@@ -144,7 +144,7 @@ class aa_py_dm:
 ##
 # \brief Python class for creating a ddtr_plan.
 # \details Please see include/aa_ddtr_plan for library implementation.
-# \author Cees Carels.
+# \author AstroAccelerate.
 # \date 05 February 2019.
 #
 class aa_py_ddtr_plan:
@@ -216,7 +216,7 @@ class aa_py_ddtr_plan:
 ##
 # \brief Class for configuring an analysis_plan.
 # \details Please see include/aa_analysis_plan.hpp for library implementation.
-# \author Cees Carels.
+# \author AstroAccelerate.
 # \date 05 February 2019.
 #
 class aa_py_analysis_plan():
@@ -259,7 +259,7 @@ class aa_py_analysis_plan():
 ##
 # \brief Class for configuring a periodicity_plan.
 # \details Please see include/aa_periodicity_plan.hpp for library implementation.
-# \author Cees Carels.
+# \author AstroAccelerate.
 # \date 05 February 2019.
 #
 class aa_py_periodicity_plan():
@@ -295,20 +295,13 @@ class aa_py_periodicity_plan():
 ##
 # \brief Class for configuring an fdas_plan.
 # \details Please see include/aa_fdas_plan.hpp for library implementation.
-# \author Cees Carels.
+# \author AstroAccelerate.
 # \date 05 February 2019.
 #
 class aa_py_fdas_plan():
-    def __init__(self, sigma_cutoff: float, sigma_constant: float, num_boots: int, num_trial_bins: int, navdms: int, narrow: float, wide: float, nsearch: int, aggression: float, enable_msd_baseline_noise: bool):
+    def __init__(self, sigma_cutoff: float, sigma_constant: float, enable_msd_baseline_noise: bool):
         self.m_sigma_cutoff = sigma_cutoff
         self.m_sigma_constant = sigma_constant
-        self.m_num_boots = num_boots
-        self.m_num_trial_bins = num_trial_bins
-        self.m_navdms = navdms
-        self.m_narrow = narrow
-        self.m_wide = wide
-        self.m_nsearch = nsearch
-        self.m_aggression = aggression
         self.m_enable_msd_baseline_noise = enable_msd_baseline_noise
 
     def sigma_cutoff(self):
@@ -316,27 +309,6 @@ class aa_py_fdas_plan():
 
     def sigma_constant(self):
         return self.m_sigma_constant
-
-    def num_boots(self):
-        return self.m_num_boots
-
-    def num_trial_bins(self):
-        return self.m_num_trial_bins
-
-    def navdms(self):
-        return self.m_navdms
-
-    def narrow(self):
-        return self.m_narrow
-
-    def wide(self):
-        return self.m_wide
-
-    def nsearch(self):
-        return self.m_nsearch
-
-    def aggression(self):
-        return self.m_aggression
 
     def enable_msd_baseline_noise(self):
         return self.m_enable_msd_baseline_noise
@@ -347,7 +319,7 @@ class aa_py_fdas_plan():
 ##
 # \brief Class for configuring an fdas_strategy.
 # \details Please see include/aa_fdas_strategy.hpp for library implementation.
-# \author Cees Carels.
+# \author AstroAccelerate.
 # \date 05 February 2019.
 #
 class fdas_strategy_struct (ctypes.Structure):
@@ -368,7 +340,7 @@ class fdas_strategy_struct (ctypes.Structure):
 ##
 # \brief Structure to make pipeline object from pipeline components
 # \details Set flags to select a pipeline from the library.
-# \author Cees Carels.
+# \author AstroAccelerate.
 # \date 12 February 2019.
 #
 class aa_py_pipeline_components (ctypes.Structure):
@@ -383,7 +355,7 @@ class aa_py_pipeline_components (ctypes.Structure):
 ##
 # \brief Structure to make pipeline component settings object from pipeline component options
 # \details Set flags to select a pipeline option from the library.
-# \author Cees Carels.
+# \author AstroAccelerate.
 # \date 12 February 2019.
 #
 class aa_py_pipeline_component_options (ctypes.Structure):
@@ -404,7 +376,7 @@ class aa_py_pipeline_component_options (ctypes.Structure):
 ##
 # \brief Class for interacting with aa_pipeline_api objects from the library.
 # \details Please see include/aa_pipeline_api.hpp for library implementation.
-# \author Cees Carels.
+# \author AstroAccelerate.
 # \date 05 February 2019.
 #
 class aa_py_pipeline():
@@ -465,9 +437,9 @@ class aa_py_pipeline():
         return lib.aa_py_pipeline_api_bind_periodicity_plan(self.m_obj, ctypes.c_float(plan.sigma_cutoff()), ctypes.c_float(plan.sigma_constant()), ctypes.c_int(plan.nHarmonics()), ctypes.c_int(plan.export_powers()), ctypes.c_bool(plan.candidate_algorithm()), ctypes.c_bool(plan.enable_msd_baseline_noise()))
         
     def bind_fdas_plan(self, plan: aa_py_fdas_plan):
-        lib.aa_py_pipeline_api_bind_fdas_plan.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_float, ctypes.c_float, ctypes.c_int, ctypes.c_float, ctypes.c_bool]
+        lib.aa_py_pipeline_api_bind_fdas_plan.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_bool]
         lib.aa_py_pipeline_api_bind_fdas_plan.restype = ctypes.c_bool
-        return lib.aa_py_pipeline_api_bind_fdas_plan(self.m_obj, ctypes.c_float(plan.sigma_cutoff()), ctypes.c_float(plan.sigma_constant()), ctypes.c_int(plan.num_boots()), ctypes.c_int(plan.num_trial_bins()), ctypes.c_int(plan.navdms()), ctypes.c_float(plan.narrow()), ctypes.c_float(plan.wide()), ctypes.c_int(plan.nsearch()), ctypes.c_float(plan.aggression()), ctypes.c_bool(plan.enable_msd_baseline_noise()))
+        return lib.aa_py_pipeline_api_bind_fdas_plan(self.m_obj, ctypes.c_float(plan.sigma_cutoff()), ctypes.c_float(plan.sigma_constant()), ctypes.c_bool(plan.enable_msd_baseline_noise()))
         
     def fdas_strategy(self):
         lib.aa_py_pipeline_api_fdas_strategy.argtypes = [ctypes.c_void_p]

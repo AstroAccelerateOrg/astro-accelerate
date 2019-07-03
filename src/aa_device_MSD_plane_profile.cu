@@ -461,25 +461,25 @@ namespace astroaccelerate {
     cudaError_t e = cudaMalloc((void **) &d_MSD_DIT_widths, sizeof(int)*MSD_DIT_size);
 
     if(e != cudaSuccess) {
-      LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      LOG(log_level::error, "Could not allocate memory in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
     }
     
     e = cudaMemcpy(d_MSD_DIT_widths, &h_MSD_DIT_widths->operator[](0), sizeof(int)*MSD_DIT_size,cudaMemcpyHostToDevice);
 
     if(e != cudaSuccess) {
-      LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      LOG(log_level::error, "Could not cudaMemcpy (MSD_DIT_width) in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
     }
     
     e = cudaMalloc((void **) &d_boxcar, sizeof(int)*nWidths);
 
     if(e != cudaSuccess) {
-      LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      LOG(log_level::error, "Could not allocate memory (d_boxcar) in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
     }
     
     e = cudaMemcpy(d_boxcar, &h_boxcar_widths->operator[](0), sizeof(int)*nWidths,cudaMemcpyHostToDevice);
     
     if(e != cudaSuccess) {
-      LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      LOG(log_level::error, "Could not cudaMemcpy (d_boxcar) in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
     }
 
 	

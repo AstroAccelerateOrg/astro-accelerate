@@ -13,11 +13,17 @@ namespace astroaccelerate {
    * \brief Class that receives an aa_fdas_plan object, and produces an aa_fdas_strategy object.
    * \details The strategy is calculated based on the plan.
    * \details An fdas strategy is required for any pipeline running the fdas component.
-   * \author Cees Carels.
-   * \date 3 December 2018.
+   * \author AstroAccelerate.
+   * \date 1 July 2019.
    */
 
   class aa_fdas_strategy : public aa_strategy {
+  private:
+    float m_sigma_cutoff; /**< The strategy determined sigma_cutoff setting. */
+    float m_sigma_constant; /**< The strategy determined sigma_constant setting. */
+    bool  m_enable_msd_baseline_noise; /** Flag for enabling/disabling msd_baseline_noise reduction algorithm. */
+    
+    bool m_ready; /** The ready state of the instance of the fdas_strategy. */
   public:
     /** Trivial constructor for aa_fdas_strategy. */
     aa_fdas_strategy() : m_sigma_cutoff(0.0),
@@ -84,12 +90,6 @@ namespace astroaccelerate {
       LOG(log_level::dev_debug, "fdas_sigma_constant:\t\t\t" + std::to_string(strategy.sigma_constant()));
       return true;
     }
-  private:
-    float m_sigma_cutoff; /**< The strategy determined sigma_cutoff setting. */
-    float m_sigma_constant; /**< The strategy determined sigma_constant setting. */
-    bool  m_enable_msd_baseline_noise; /** Flag for enabling/disabling msd_baseline_noise reduction algorithm. */
-    
-    bool m_ready; /** The ready state of the instance of the fdas_strategy. */
   };
 
 } // namespace astroaccelerate

@@ -10,7 +10,7 @@ if (sys.version_info < (3, 0)):
 from py_astro_accelerate import *
 
 # Open filterbank file for reading metadata and signal data
-sigproc_input = aa_py_sigproc_input("/mnt/data/AstroAccelerate/filterbank/BenMeerKAT.fil")
+sigproc_input = aa_py_sigproc_input("/home/novotny/filterbank/ska-mid-b2-small.fil")
 metadata = sigproc_input.read_metadata()
 if not sigproc_input.read_signal():
     print("ERROR: Invalid .fil file path. Exiting...")
@@ -47,14 +47,7 @@ export_powers = 2
 periodicity_plan = aa_py_periodicity_plan(sigma_cutoff, sigma_constant, nHarmonics, export_powers, candidate_algorithm, enable_msd_baseline_noise)
 
 # Create fdas plan
-num_boots = 1
-num_trial_bins = 1
-navdms = 1
-narrow = 1
-wide = 1
-nsearch = 1
-aggression = 1
-fdas_plan = aa_py_fdas_plan(sigma_cutoff, sigma_constant, num_boots, num_trial_bins, navdms, narrow, wide, nsearch, aggression, enable_msd_baseline_noise)
+fdas_plan = aa_py_fdas_plan(sigma_cutoff, sigma_constant, enable_msd_baseline_noise)
 
 # Set up pipeline components
 pipeline_components = aa_py_pipeline_components()
@@ -87,6 +80,7 @@ pipeline.bind_analysis_plan(analysis_plan)
 pipeline.bind_periodicity_plan(periodicity_plan)
 pipeline.bind_fdas_plan(fdas_plan)
 fdas_strategy = pipeline.fdas_strategy()
+
 while (pipeline.run()):
     print("NOTICE: Python script running over next chunk")
     if pipeline.status_code() == -1:
