@@ -4,6 +4,7 @@
 #include <map>
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 
 namespace astroaccelerate {
 
@@ -17,6 +18,19 @@ namespace astroaccelerate {
 class TimeLog{
 
         public:
+		TimeLog(){};
+//		TimeLog(){
+//			time_file.open("time.log", std::ofstream::trunc);
+//			time_file << "#Component Sub-Component Time \n";
+//			time_file.close();
+//		}
+
+//		~TimeLog(){
+//			print();
+//		}
+
+                typedef std::map<std::pair<std::string, std::string>, double> maptype;
+                typedef std::pair<std::map<std::pair<std::string, std::string>, double>::iterator,bool> ret_maptype;
 
 		// adding new component with subcomponent. If it exists then just increase the time.
                 void adding(std::string component, std::string sub_component, double time){
@@ -26,18 +40,22 @@ class TimeLog{
                         }
                 };
 
+		maptype pat(){
+			return pattern;
+		}
+
                 void print(){
+			time_file.open("time.log", std::ofstream::out);
                         for (const auto &pair : pattern) {
-                                std::cout << pair.first.first << " " << pair.first.second << " " << pair.second << '\n';
+				time_file << pair.first.first << " " << pair.first.second << " " << pair.second << '\n';
                                 //note pair.first in the row column pair, pair.first.first is the row, pair.first.second is the column, pair.second is the string pattern
                         }
+			time_file.close();		
                 }
 
-                typedef std::map<std::pair<std::string, std::string>, double> maptype;
-                typedef std::pair<std::map<std::pair<std::string, std::string>, double>::iterator,bool> ret_maptype;
-
         private:
-                maptype pattern;
+		std::ofstream time_file;
+		static maptype pattern;
                 ret_maptype ret;
 };
 

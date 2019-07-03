@@ -30,6 +30,8 @@
 #include "aa_gpu_timer.hpp"
 #include "aa_timelog.hpp"
 
+//TimeLog::maptype TimeLog::pattern;
+
 namespace astroaccelerate {
 
 	/**
@@ -99,6 +101,7 @@ namespace astroaccelerate {
 		//Loop counter variables
 		int current_time_chunk;
 		aa_gpu_timer       m_timer;
+		aa_gpu_timer	   m_local_timer;
 
 		float  *m_d_MSD_workarea = NULL;
 		float  *m_d_MSD_interpolated = NULL;
@@ -110,8 +113,6 @@ namespace astroaccelerate {
 				cudaFree(d_DDTR_input);
 				cudaFree(d_DDTR_output);
 			
-				time_log.print();
-
 				if(do_single_pulse_detection){
 					cudaFree(m_d_MSD_workarea);
 					cudaFree(m_d_MSD_output_taps);
@@ -332,7 +333,7 @@ namespace astroaccelerate {
 				if (!did_notify_of_finishing_component) {
 					m_timer.Stop();
 					float time = m_timer.Elapsed() / 1000;
-					time_log.adding("DDTR", "total", (double)time);
+					time_log.adding("DDTR", "total", m_timer.Elapsed());
 					printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 					printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)", time);
 					printf("\nAmount of telescope time processed: %f", tstart_local);
@@ -377,30 +378,45 @@ namespace astroaccelerate {
 			const int *ndms = m_ddtr_strategy.ndms_data();
 
 			//checkCudaErrors(cudaGetLastError());
-			load_data(-1, inBin.data(), d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift, nchans, dmshifts);
+			m_local_timer.Start();
+				load_data(-1, inBin.data(), d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift, nchans, dmshifts);
+			m_local_timer.Stop();
+			time_log.adding("DDTR", "H2D", m_local_timer.Elapsed());
 			//checkCudaErrors(cudaGetLastError());
 			
 			//---> Zero DM
 			if (m_pipeline_options.find(opt_zero_dm) != m_pipeline_options.end()) {
 				printf("\nPerforming zero DM...");
-				zero_dm(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift, nbits);
+				m_local_timer.Start();
+					zero_dm(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift, nbits);
+				m_local_timer.Stop();
+				time_log.adding("DDTR", "Zero_DM", m_local_timer.Elapsed());
 			}
 			else if (m_pipeline_options.find(opt_zero_dm_with_outliers) != m_pipeline_options.end()) {
 				printf("\nPerforming zero dM with outliers...");
-				zero_dm_outliers(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift);
+				m_local_timer.Start();
+					zero_dm_outliers(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift);
+				m_local_timer.Stop();
+				time_log.adding("DDTR", "Zero_DM_outliers", m_local_timer.Elapsed());
 			}
 			//-------------------<
 
 			//checkCudaErrors(cudaGetLastError());
 
-			corner_turn(d_DDTR_input, d_DDTR_output, nchans, t_processed[0][current_time_chunk] + maxshift);
+			m_local_timer.Start();
+				corner_turn(d_DDTR_input, d_DDTR_output, nchans, t_processed[0][current_time_chunk] + maxshift);
+			m_local_timer.Stop();
+			time_log.adding("DDTR", "Corner_Turn", m_local_timer.Elapsed());
 
 			//checkCudaErrors(cudaGetLastError());
 
 			//---> old RFI
 			if (m_pipeline_options.find(opt_old_rfi) != m_pipeline_options.end()) {
 				printf("\nPerforming old GPU rfi...");
-				rfi_gpu(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift);
+				m_local_timer.Start();
+					rfi_gpu(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift);
+				m_local_timer.Stop();
+				time_log.adding("DDTR", "RFI_GPU", m_local_timer.Elapsed());
 			}
 			//-------------------<
 
@@ -734,6 +750,7 @@ namespace astroaccelerate {
 
 				memory_cleanup = true;
 			}
+			time_log.print();
 			return true;
 		}
 	
