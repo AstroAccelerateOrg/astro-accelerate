@@ -1,6 +1,8 @@
 #include "aa_device_acceleration_fdas.hpp"
 
 #include <iostream>
+#include <fstream>
+#include <iomanip>
 #include <stdio.h>
 #include <stdlib.h>
 #include <cufft.h>
@@ -266,11 +268,11 @@ namespace astroaccelerate {
 	    srand(time(NULL));
 	    for(int f=0; f<processed; f++) output_buffer[i][dm_count][f]=rand() / (float)RAND_MAX;
 				
-	    for(int f=15000; f<processed; f++){
-	      output_buffer[i][dm_count][f] = (f%FDAS_TEST_TOOTH_LENGTH)/500.0;
-	    }
-				
 	    if (processed>15000){
+			for(int f=15000; f<processed; f++){
+				output_buffer[i][dm_count][f] = (f%FDAS_TEST_TOOTH_LENGTH)/500.0;
+			}
+			
 	      for(int f=0; f<192; f++){
 		output_buffer[i][dm_count][f + 5300] = 10.0;
 	      }
@@ -291,6 +293,13 @@ namespace astroaccelerate {
 		output_buffer[i][dm_count][f + 11626] = 10.0;
 	      }
 	    }
+		
+		std::ofstream FILEOUT;
+		FILEOUT.open ("acc_conv_test_input_signal.dat", std::ofstream::out);
+		for(int f=0; f<processed; f++){
+			FILEOUT << output_buffer[i][dm_count][f] << std::endl;
+		}
+		FILEOUT.close();
 #endif
 				
 #ifdef FDAS_ACC_SIG_TEST
