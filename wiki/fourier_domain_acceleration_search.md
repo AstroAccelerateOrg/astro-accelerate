@@ -10,7 +10,7 @@ The convolution test consists from a signal which replaces data otherwise produc
 ![](https://github.com/AstroAccelerateOrg/images/blob/master/wiki/FDAS/simple_convolution_test.png)
 ![](https://github.com/AstroAccelerateOrg/images/blob/master/wiki/FDAS/tophat_signal.png)
 
-This could be plotted using gnuplot using following:
+This could be plotted using gnuplot:
 * `set xrange[49.5:50.5]`
 * `set yrange[0:30000]`
 * `splot 'acc_fdas_conv_test.dat' using 1:2:3 palette`
