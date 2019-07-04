@@ -88,6 +88,13 @@ namespace astroaccelerate {
       LOG(log_level::dev_debug, "FDAS STRATEGY INFORMATION");
       LOG(log_level::dev_debug, "fdas sigma_cutoff:\t\t\t" + std::to_string(strategy.sigma_cutoff()));
       LOG(log_level::dev_debug, "fdas_sigma_constant:\t\t\t" + std::to_string(strategy.sigma_constant()));
+      LOG(log_level::dev_debug, "\t\tNEXP:\t\t\t" + std::to_string(NEXP));
+      LOG(log_level::dev_debug, "\t\tPOTWO:\t\t\t" + std::to_string(POTWO));
+      LOG(log_level::dev_debug, "\t\tKERNLEN:\t\t" + std::to_string(KERNLEN));
+      LOG(log_level::dev_debug, "\t\tACCEL_STEP:\t\t" + std::to_string(ACCEL_STEP));
+      LOG(log_level::dev_debug, "\t\tACCEL_STEP_R:\t\t" + std::to_string(ACCEL_STEP_R));
+      LOG(log_level::dev_debug, "\t\tZMAX:\t\t\t" + std::to_string(ZMAX));
+      LOG(log_level::dev_debug, "\t\tNKERN:\t\t\t" + std::to_string(NKERN));
       return true;
     }
   };
