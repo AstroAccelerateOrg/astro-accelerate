@@ -11,7 +11,8 @@ Publications
 ===
 If you use AstroAccelerate, please cite the code using the following DOI
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2556573.svg)](https://doi.org/10.5281/zenodo.2556573)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1212487.svg)](https://doi.org/10.5281/zenodo.1212487)
+
 
 Please cite the following journal article
 * https://ui.adsabs.harvard.edu/#abs/arXiv:1804.05335
