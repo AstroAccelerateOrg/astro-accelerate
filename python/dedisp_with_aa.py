@@ -24,15 +24,6 @@ basename = "aa_dm90"
 # how multiple files are then interpreted?
 rawfiles = basename+".fil"
 
-### AstroAccelerate setup part, create ranges for the plan, 
-# setup plan, set modules, set options, run the pipeline
-#temp_list = []
-#for i in range(len(dDMs)):
-#    highDM = startDMs[i] + dmspercall*subcalls[i]*dDMs[i]
-#    tmp = aa_py_dm(startDMs[i],highDM,dDMs[i],downsamps[i],1)
-#    temp_list.append(tmp)
-#dm_list = np.array(temp_list,dtype=aa_py_dm)
-
 # Open filterbank file for reading metadata and signal data
 sigproc_input = aa_py_sigproc_input(rawfiles)
 metadata = sigproc_input.read_metadata()
@@ -63,6 +54,8 @@ pipeline_components.dedispersion = True
 # Set up pipeline component options
 pipeline_options = aa_py_pipeline_component_options()
 pipeline_options.output_dmt = True
+#Need to be enabled otherwise there will be no data copy from GPU memory to host memory
+pipeline_options.copy_ddtr_data_to_host = True;
 
 # Select GPU card number on this machine
 card_number = 0
@@ -71,17 +64,6 @@ card_number = 0
 pipeline = aa_py_pipeline(pipeline_components, pipeline_options, metadata, input_buffer, card_number)
 pipeline.bind_ddtr_plan(ddtr_plan) # Bind the ddtr_plan
 
-#strat = pipeline.ddtr_range()
-#attr = vars(strat)
-#print(strat)
-#attributes = [attr for attr in dir(strat) 
-#              if not attr.startswith('__')]
-#print(strat.bit_length)
-#print(attributes)
-#print(strat[0][0])
-#print ', '.join("%s: %s" % item for item in attrs.items())
-
-
 # Run the pipeline with AstroAccelerate
 while (pipeline.run()):
     print("NOTICE: Python script running over next chunk")
@@ -89,18 +71,10 @@ while (pipeline.run()):
         print("ERROR: Pipeline status code is {}. The pipeline encountered an error and cannot continue.".format(pipeline.status_code()))
         break
 
+# Get the data of DDTR to python
 a = pipeline.get_buffer()
-#b = pipeline.ddtr_ndms()
-#c = pipeline.ddtr_tprocessed()
-#print(a[0][0][0])
-#print(strat)
-#print(b[0], b[1],b[2],b[3])
-#print(c)
-
-#print(struct.pack('f',(a[0][0][0])) )
 
 for pos_range in range(pipeline.ddtr_range()):
-#for pos_range in range(2):
     list_ndms = pipeline.ddtr_ndms()
     for n_dms in range(list_ndms[pos_range]):
         DM = pipeline.dm_low(pos_range) + dDMs[pos_range]*n_dms
@@ -111,7 +85,7 @@ for pos_range in range(pipeline.ddtr_range()):
         nsamp_for_range = int(pipeline.ddtr_tprocessed()/downsamps[pos_range])
         header.information_file(filename,nsamp_for_range, DM, downsamps[pos_range], metadata)
         for samples_pos in range(nsamp_for_range):
-            newfile.write(struct.pack('f',a[pos_range][n_dms][samples_pos]*4096*downsamps[pos_range]))
+            newfile.write(struct.pack('f',a[pos_range][n_dms][samples_pos]*downsamps[pos_range]))
 
 if pipeline.status_code() == -1:
     print("ERROR: Pipeline status code is {}. The pipeline encountered an error and cannot continue.".format(pipeline.status_code()))

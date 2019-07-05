@@ -1019,24 +1019,17 @@ namespace astroaccelerate {
 			}
 		}
 
-		bool run(const bool &dump_to_disk, aa_pipeline_runner::status &status_code){
-			/**
-			 * This method enable to run pipeline with dumping the ddtr output to host.
-			 */
-			if(pipeline_ready && m_runner->setup()){
-				return m_runner->next(dump_to_disk, status_code);
-			}
-			else{
-				status_code = aa_pipeline_runner::status::finished;
-				return false;
-			}
-		}
-
 		float ***output_buffer(){
 			/**
 			 * \brief Return the output of the DDTR. 
 			 */
-			return m_runner->output_buffer();
+			if (m_pipeline_options.find(aa_pipeline::component_option::copy_ddtr_data_to_host) != m_pipeline_options.end()) {
+				return m_runner->output_buffer();
+			}
+			else {
+				LOG(log_level::error, "Could not get data from DDTR. The data are not copied from GPU memory to host memory. Enable option copy_DDTR_data_to_host.");
+				return m_runner->output_buffer();
+			}
 		}		
 
 		/**

@@ -65,16 +65,6 @@ namespace astroaccelerate {
 			return false;
 		}
 
-		/**
-		 * \bried Base class virtual methods for running a pipeline with ddtr output.
-		 * \details This implements an option to dump the ddtr output from device to host.
-		 */
-		virtual bool next(const bool &dump_to_host, aa_pipeline_runner::status &status_code){
-			LOG(log_level::error, "The selected opertaion is not supported on this pipeline (dump_to_disk: " + std::to_string(dump_to_host) + ").");
-			status_code = aa_pipeline_runner::status::finished;
-			return false;
-		}
-
 		virtual float ***output_buffer(){
 			LOG(log_level::error, "The selected operation is not supported on this pipeline (output_buffer).");
 			return NULL;

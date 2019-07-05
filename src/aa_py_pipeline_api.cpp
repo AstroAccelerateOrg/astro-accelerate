@@ -38,6 +38,7 @@ namespace astroaccelerate {
 	if(options.zero_dm) pipeline_options.insert(aa_pipeline::component_option::zero_dm);
 	if(options.zero_dm_with_outliers) pipeline_options.insert(aa_pipeline::component_option::zero_dm_with_outliers);
 	if(options.old_rfi) pipeline_options.insert(aa_pipeline::component_option::old_rfi);
+	if(options.copy_ddtr_data_to_host) pipeline_options.insert(aa_pipeline::component_option::copy_ddtr_data_to_host);
 	if(options.msd_baseline_noise) pipeline_options.insert(aa_pipeline::component_option::msd_baseline_noise);
 	if(options.output_dmt) pipeline_options.insert(aa_pipeline::component_option::output_dmt);
 	if(options.output_ffdot_plan) pipeline_options.insert(aa_pipeline::component_option::output_ffdot_plan);
@@ -103,8 +104,7 @@ namespace astroaccelerate {
 	bool aa_py_pipeline_api_run(aa_pipeline_api<unsigned short> *const obj, int &status_code_int) {
 		aa_pipeline_runner::status status_code;
 		if(obj->ready()) {
-			bool dump_to_host = true;
-			bool pipeline_return_value = obj->run(dump_to_host,status_code);
+			bool pipeline_return_value = obj->run(status_code);
 			status_code_int = (int)status_code;
 			return pipeline_return_value;
 		}

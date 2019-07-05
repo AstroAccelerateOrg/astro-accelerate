@@ -696,6 +696,20 @@ namespace astroaccelerate {
 			return false;
 		}
 
+		/**
+		 * \brief Return the pointer to the complete dedispersed output data.
+		 * \details The array data is only useful once the pipeline has finished running.
+		 * \details Users should finish running the pipeline so that all dedispersion output is available.
+		 * \details Alternatively, the user may access the data one time chunk at a time, but the next time chunk will not have been computed yet.
+		 * \details The structure of the ddtr output buffer data is indexed by: time_chunk index, dm_range index, dm.
+		 */
+		float*** output_buffer() {
+			if(memory_allocated) {
+				return m_output_buffer;
+			}
+			return NULL;
+		}
+
 		/** \brief De-allocate memory for this pipeline instance. */
 		bool cleanup() {
 			if (memory_allocated && !memory_cleanup) {
