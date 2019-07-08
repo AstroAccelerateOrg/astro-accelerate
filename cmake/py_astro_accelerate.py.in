@@ -326,12 +326,6 @@ class fdas_strategy_struct (ctypes.Structure):
     _fields_ = [
         ("m_sigma_cutoff",              ctypes.c_float),
         ("m_sigma_constant",            ctypes.c_float),
-        ("m_narrow",                    ctypes.c_float),
-        ("m_wide",                      ctypes.c_float),
-        ("m_aggression",                ctypes.c_float),
-        ("m_num_boots",                 ctypes.c_int),
-        ("m_num_trial_bins",            ctypes.c_int),
-        ("m_navdms",                    ctypes.c_int),
         ("m_enable_msd_baseline_noise", ctypes.c_bool),
         ("m_ready",                     ctypes.c_bool)
     ]
@@ -440,11 +434,6 @@ class aa_py_pipeline():
         lib.aa_py_pipeline_api_bind_fdas_plan.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_bool]
         lib.aa_py_pipeline_api_bind_fdas_plan.restype = ctypes.c_bool
         return lib.aa_py_pipeline_api_bind_fdas_plan(self.m_obj, ctypes.c_float(plan.sigma_cutoff()), ctypes.c_float(plan.sigma_constant()), ctypes.c_bool(plan.enable_msd_baseline_noise()))
-        
-    def fdas_strategy(self):
-        lib.aa_py_pipeline_api_fdas_strategy.argtypes = [ctypes.c_void_p]
-        lib.aa_py_pipeline_api_fdas_strategy.restype = fdas_strategy_struct
-        return lib.aa_py_pipeline_api_fdas_strategy(self.m_obj)
     
     ## \brief Runs the pipeline step by step. Also provides a status code. #
     def run(self):

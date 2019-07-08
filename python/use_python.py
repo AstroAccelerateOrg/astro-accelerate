@@ -54,7 +54,7 @@ pipeline_components = aa_py_pipeline_components()
 pipeline_components.dedispersion = True
 pipeline_components.analysis = True
 pipeline_components.periodicity = True
-pipeline_components.fdas = False
+pipeline_components.fdas = True
 
 # Set up pipeline component options
 pipeline_options = aa_py_pipeline_component_options()
@@ -66,7 +66,7 @@ pipeline_options.output_dmt = True
 pipeline_options.output_ffdot_plan = False
 pipeline_options.output_fdas_list = False
 pipeline_options.candidate_algorithm = False
-pipeline_options.fdas_custom_fft = False
+pipeline_options.fdas_custom_fft = True
 pipeline_options.fdas_inbin = False
 pipeline_options.fdas_norm = False
 
@@ -79,7 +79,6 @@ pipeline.bind_ddtr_plan(ddtr_plan) # Bind the ddtr_plan
 pipeline.bind_analysis_plan(analysis_plan)
 pipeline.bind_periodicity_plan(periodicity_plan)
 pipeline.bind_fdas_plan(fdas_plan)
-fdas_strategy = pipeline.fdas_strategy()
 
 while (pipeline.run()):
     print("NOTICE: Python script running over next chunk")
