@@ -97,6 +97,11 @@ namespace astroaccelerate {
 			LOG(log_level::error, "The selected operation is not supported on this pipeline (h_SPD_width).");
 			return NULL;
 		}
+
+		virtual size_t get_SPD_nCandidates(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (nCandidates).");
+			return NULL;
+		}
 		
 	protected:
 		/** \brief Exports dedispersed data to disk. */

@@ -1055,6 +1055,10 @@ namespace astroaccelerate {
 			return m_runner->h_SPD_ts();
 		}	
 
+		size_t SPD_nCandidates(){
+			return m_runner->get_SPD_nCandidates();
+		}
+
 		float ***output_buffer(){
 			/**
 			 * \brief Return the output of the DDTR. 

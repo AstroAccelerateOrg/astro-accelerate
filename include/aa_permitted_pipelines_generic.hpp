@@ -510,7 +510,7 @@ namespace astroaccelerate {
 						output);
 				}
 				//--------------------------------------------------------------------------------<
-
+				std::cout << "Total samples by AA: " << SPD_nCandidates << std::endl;
 				oldBin = inBin[dm_range];
 			}
 
@@ -758,6 +758,10 @@ namespace astroaccelerate {
                         }
                         return NULL;
                 }
+
+		size_t get_SPD_nCandidates(){
+			return SPD_nCandidates;
+		}
 
 		/** \brief De-allocate memory for this pipeline instance. */
 		bool cleanup() {

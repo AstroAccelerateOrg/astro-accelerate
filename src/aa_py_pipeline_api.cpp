@@ -147,6 +147,10 @@ namespace astroaccelerate {
 		return obj->h_SPD_ts();
 	}
 
-    }
-  }
-}
+	size_t aa_py_spd_nCandidates(aa_pipeline_api<size_t> *const obj){
+		return obj->SPD_nCandidates();
+	}
+
+    } // extern C
+  } // pythona
+} //namespace astroaccelerate
