@@ -92,50 +92,23 @@ namespace astroaccelerate {
 	return obj->bind(plan);
       }
 
-      bool aa_py_pipeline_api_bind_fdas_plan(aa_pipeline_api<unsigned short> *const obj, const float sigma_cutoff, const float sigma_constant, const int num_boots, const int num_trial_bins, const int navdms, const float narrow, const float wide, const int nsearch, const float aggression, const bool enable_msd_baseline_noise) {
-	aa_fdas_plan plan(sigma_cutoff, sigma_constant, num_boots, num_trial_bins, navdms, narrow, wide, nsearch, aggression, enable_msd_baseline_noise);
+      bool aa_py_pipeline_api_bind_fdas_plan(aa_pipeline_api<unsigned short> *const obj, const float sigma_cutoff, const float sigma_constant, const bool enable_msd_baseline_noise) {
+	aa_fdas_plan plan(sigma_cutoff, sigma_constant, enable_msd_baseline_noise);
 	return obj->bind(plan);
       }
-
-      aa_fdas_strategy aa_py_pipeline_api_fdas_strategy(aa_pipeline_api<unsigned short> *const obj) {
-	return obj->fdas_strategy();
+  
+      bool aa_py_pipeline_api_run(aa_pipeline_api<unsigned short> *const obj, int &status_code_int) {
+	aa_pipeline_runner::status status_code;
+	if(obj->ready()) {
+	  bool pipeline_return_value = obj->run(status_code);
+	  status_code_int = (int)status_code;
+	  return pipeline_return_value;
+	}
+	else {
+	  status_code_int = (int)aa_pipeline_runner::status::error;
+	  return false;
+	}
       }
-      
-	bool aa_py_pipeline_api_run(aa_pipeline_api<unsigned short> *const obj, int &status_code_int) {
-		aa_pipeline_runner::status status_code;
-		if(obj->ready()) {
-			bool pipeline_return_value = obj->run(status_code);
-			status_code_int = (int)status_code;
-			return pipeline_return_value;
-		}
-		else {
-			status_code_int = (int)aa_pipeline_runner::status::error;
-			return false;
-		}
-	} // bool aa_py_pipeline_api_run(*,*)
-
-        bool aa_py_pipeline_api_run2(aa_pipeline_api<unsigned short> *const obj, float &output, int &status_code_int) {
-                aa_pipeline_runner::status status_code;
-		std::vector<analysis_output> get_value;
-                if(obj->ready()) {
-			printf("I am in run2\n");
-                        bool pipeline_return_value = obj->run(get_value, status_code);
-                        status_code_int = (int)status_code;
-			output = get_value.at(0).pulses.at(0).snr;						
-//			std::cout << "Total Size " << get_value.at(0).pulses.at(0).snr << std::endl;
-                        return pipeline_return_value;
-                }
-                else {
-                        status_code_int = (int)aa_pipeline_runner::status::error;
-                        return false;
-                }
-        } // bool aa_py_pipeline_api_run(*,*)
-
-
-      float*** aa_py_buffer(aa_pipeline_api<unsigned short> *const obj){
-              return obj->output_buffer();
-      }
-
-   } //extern C
-  } //python
-} // namespace astroaccelerate
+    }
+  }
+}

@@ -74,6 +74,15 @@ namespace astroaccelerate {
 		std::vector<float> dm_high;
 		std::vector<float> dm_step;
 		std::vector<int>   inBin;
+		
+		// single pulse detection output candidates
+		unsigned int *h_SPD_candidate_list_DM;
+		unsigned int *h_SPD_candidate_list_TS;
+		float        *h_SPD_candidate_list_SNR;
+		unsigned int *h_SPD_candidate_list_BW;
+		size_t        SPD_max_peak_size;
+		size_t        SPD_nCandidates;
+		
 
 		// fdas acceleration search settings
 		bool m_fdas_enable_custom_fft;
@@ -114,6 +123,11 @@ namespace astroaccelerate {
 					cudaFree(m_d_MSD_workarea);
 					cudaFree(m_d_MSD_output_taps);
 					cudaFree(m_d_MSD_interpolated);
+					
+					free(h_SPD_candidate_list_DM);
+					free(h_SPD_candidate_list_TS);
+					free(h_SPD_candidate_list_SNR);
+					free(h_SPD_candidate_list_BW);
 				}
 				
 				// Why this is not in the ddtr_strategy?
@@ -157,9 +171,20 @@ namespace astroaccelerate {
 		}
 
 
-		/**
-		* \brief Allocate memory for MSD.
-		*/
+		/** \brief Allocate memory for single pulse detection (SPD) on the host. */
+		void allocate_cpu_memory_SPD(size_t max_nDMs, size_t timesamples_per_chunk){
+			SPD_max_peak_size        = (size_t)(max_nDMs*timesamples_per_chunk/2);
+			
+			h_SPD_candidate_list_DM  = (unsigned int*)malloc(SPD_max_peak_size*sizeof(unsigned int));
+			h_SPD_candidate_list_TS  = (unsigned int*)malloc(SPD_max_peak_size*sizeof(unsigned int));
+			h_SPD_candidate_list_SNR = (float*)malloc(SPD_max_peak_size*sizeof(float));
+			h_SPD_candidate_list_BW  = (unsigned int*)malloc(SPD_max_peak_size*sizeof(unsigned int));
+			if(h_SPD_candidate_list_DM==NULL || h_SPD_candidate_list_TS==NULL || h_SPD_candidate_list_SNR==NULL || h_SPD_candidate_list_BW==NULL) {
+				LOG(log_level::error, "Could not allocate memory on the host for single pulse detection candidates");
+			}
+		}
+		
+		/** \brief Allocate memory for single pulse detection (SPD) on the device.	*/
 		void allocate_gpu_memory_SPD(float **const d_MSD_workarea, unsigned short **const d_MSD_output_taps, float **const d_MSD_interpolated, const unsigned long int &MSD_maxtimesamples, const size_t &MSD_profile_size) {
 			cudaError_t e;
 			
@@ -249,8 +274,10 @@ namespace astroaccelerate {
 
 			//Allocate GPU memory for dedispersion
 			allocate_gpu_memory_DDTR(maxshift, max_ndms, nchans, t_processed, &d_DDTR_input, &d_DDTR_output);
-			//Allocate GPU memory for SPS (i.e. analysis)
+			
+			//Allocate GPU memory for SPD (i.e. analysis)
 			if(do_single_pulse_detection) {
+				allocate_cpu_memory_SPD(max_ndms, t_processed[0][0]);
 				allocate_gpu_memory_SPD(&m_d_MSD_workarea, &m_d_MSD_output_taps, &m_d_MSD_interpolated, m_analysis_strategy.MSD_data_info(), m_analysis_strategy.MSD_profile_size_in_bytes());
 			}
 			//Allocate memory for CPU output for periodicity
@@ -446,28 +473,17 @@ namespace astroaccelerate {
 
 				//------------------> Single pulse detection
 				if (do_single_pulse_detection) {
-					unsigned int *h_peak_list_DM;
-					unsigned int *h_peak_list_TS;
-					float        *h_peak_list_SNR;
-					unsigned int *h_peak_list_BW;
-					size_t        max_peak_size;
-					size_t        peak_pos;
-					max_peak_size = (size_t)(ndms[dm_range]*t_processed[dm_range][current_time_chunk]/2);
-					h_peak_list_DM = (unsigned int*)malloc(max_peak_size*sizeof(unsigned int));
-					h_peak_list_TS = (unsigned int*)malloc(max_peak_size*sizeof(unsigned int));
-					h_peak_list_SNR = (float*)malloc(max_peak_size*sizeof(float));
-					h_peak_list_BW = (unsigned int*)malloc(max_peak_size*sizeof(unsigned int));
-					peak_pos = 0;
 					const bool dump_to_disk = true;
-					const bool dump_to_user = true;
+					const bool dump_to_user = false;
 					analysis_output output;
+					SPD_nCandidates = 0;
 					analysis_GPU(
-						h_peak_list_DM,
-						h_peak_list_TS,
-						h_peak_list_SNR,
-						h_peak_list_BW,
-						&peak_pos,
-						max_peak_size,
+						h_SPD_candidate_list_DM,
+						h_SPD_candidate_list_TS,
+						h_SPD_candidate_list_SNR,
+						h_SPD_candidate_list_BW,
+						&SPD_nCandidates,
+						SPD_max_peak_size,
 						dm_range,
 						tstart_local,
 						t_processed[dm_range][current_time_chunk],
@@ -492,20 +508,6 @@ namespace astroaccelerate {
 						dump_to_disk,
 						dump_to_user,
 						output);
-
-					if(dump_to_user) {
-						for(size_t i = 0; i < user_output.size(); i++) {
-							user_output[i].pulses.clear();
-						}
-						user_output[dm_range] = output;
-						printf("user_output[0]: %zu", (size_t)user_output.at(0).pulses.size());
-					}
-
-
-					free(h_peak_list_DM);
-					free(h_peak_list_TS);
-					free(h_peak_list_SNR);
-					free(h_peak_list_BW);
 				}
 				//--------------------------------------------------------------------------------<
 
@@ -570,12 +572,6 @@ namespace astroaccelerate {
 				m_ddtr_strategy.metadata().nsamples(),
 				max_ndms,
 				inc,
-				m_fdas_strategy.num_boots(),
-				m_fdas_strategy.num_trial_bins(),
-				m_fdas_strategy.navdms(),
-				m_fdas_strategy.narrow(),
-				m_fdas_strategy.wide(),
-				m_fdas_strategy.aggression(),
 				m_fdas_strategy.sigma_cutoff(),
 				m_output_buffer,
 				ndms,
