@@ -468,7 +468,7 @@ namespace astroaccelerate {
 				//------------------> Single pulse detection
 				if (do_single_pulse_detection) {
 					const bool dump_to_disk = true;
-					const bool dump_to_user = true;
+					const bool dump_to_user = false;
 					analysis_output output;
 					SPD_nCandidates = 0;
 					analysis_GPU(
