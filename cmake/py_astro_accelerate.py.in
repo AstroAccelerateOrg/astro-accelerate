@@ -499,12 +499,11 @@ class aa_py_pipeline():
         lib.aa_py_h_width.restype = ctypes.POINTER(ctypes.c_uint)
         if self.m_status_code_c_int.value==1:
             nCandidates=lib.aa_py_spd_nCandidates(self.m_obj)
-            print("Number of candidates",nCandidates)
             dm = lib.aa_py_h_dm(self.m_obj)
             time_sample = lib.aa_py_h_ts(self.m_obj)
             snr = lib.aa_py_h_snr(self.m_obj)
             width = lib.aa_py_h_width(self.m_obj)
-            return dm, time_sample, snr, width
+            return nCandidates, dm, time_sample, snr, width
         else:
             return [], [], [], []
     
@@ -547,3 +546,14 @@ class header():
         header.write(" Number of channels                     =  " + str(metadata.m_nchans) + "\n")
         header.write(" Channel bandwidth (MHz)                =  " + str(metadata.m_foff*(-1.0)) + "\n")
         header.write(" Data analyzed by                       =  ????\n")
+
+class SPD():
+    def write_candidates(basename, chunk, metadata, nCandidates, dm, time_samples, snr, width):
+        header_file = basename + "-" + str(chunk) + ".singlepulse"
+        file_cand = open(header_file, "w")
+        file_cand.write("# DM      Sigma      Time (s)     Sample    Boxcar_Width\n")
+        for i in range(0,nCandidates):
+            file_cand.write(str(dm[i]) + "\t" + str(snr[i]) + "\t" + str(time_samples[i]) + "\t" + str(width[i]) + "\n")
+        file_cand.close()
+
+

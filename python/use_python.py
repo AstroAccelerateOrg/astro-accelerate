@@ -58,7 +58,7 @@ pipeline_components.fdas = False
 
 # Set up pipeline component options
 pipeline_options = aa_py_pipeline_component_options()
-pipeline_options.zero_dm = True
+pipeline_options.zero_dm = False
 pipeline_options.zero_dm_with_outliers = False
 pipeline_options.old_rfi = False
 pipeline_options.msd_baseline_noise = enable_msd_baseline_noise
@@ -80,12 +80,13 @@ pipeline.bind_analysis_plan(analysis_plan)
 pipeline.bind_periodicity_plan(periodicity_plan)
 pipeline.bind_fdas_plan(fdas_plan)
 
+chunk = 0
 while (pipeline.run()):
     print("NOTICE: Python script running over next chunk")
     if pipeline.status_code() == 1:      
-        (dm, ts, snr, width)=pipeline.get_candidates()
-        print("T: ", dm[0], ts[0], snr[0], width[0])
-#        print("A: ", a[0], a[1])
+        chunk += 1
+        (nCandidates, dm, ts, snr, width)=pipeline.get_candidates()
+        SPD.write_candidates("test", chunk, metadata, nCandidates, dm, ts, snr, width)
     if pipeline.status_code() == -1:
         print("ERROR: Pipeline status code is {}. The pipeline encountered an error and cannot continue.".format(pipeline.status_code()))
         break

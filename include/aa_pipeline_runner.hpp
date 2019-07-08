@@ -100,7 +100,7 @@ namespace astroaccelerate {
 
 		virtual size_t get_SPD_nCandidates(){
 			LOG(log_level::error, "The selected operation is not supported on this pipeline (nCandidates).");
-			return NULL;
+			return 0;
 		}
 		
 	protected:
