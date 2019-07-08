@@ -171,6 +171,7 @@ namespace astroaccelerate {
 		}
 
 
+		/** \brief Allocate memory for single pulse detection (SPD) on the host. */
 		void allocate_cpu_memory_SPD(size_t max_nDMs, size_t timesamples_per_chunk){
 			SPD_max_peak_size        = (size_t)(max_nDMs*timesamples_per_chunk/2);
 			
@@ -183,6 +184,7 @@ namespace astroaccelerate {
 			}
 		}
 		
+		/** \brief Allocate memory for single pulse detection (SPD) on the device.	*/
 		void allocate_gpu_memory_SPD(float **const d_MSD_workarea, unsigned short **const d_MSD_output_taps, float **const d_MSD_interpolated, const unsigned long int &MSD_maxtimesamples, const size_t &MSD_profile_size) {
 			cudaError_t e;
 			
