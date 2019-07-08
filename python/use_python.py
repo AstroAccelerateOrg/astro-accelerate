@@ -53,8 +53,8 @@ fdas_plan = aa_py_fdas_plan(sigma_cutoff, sigma_constant, enable_msd_baseline_no
 pipeline_components = aa_py_pipeline_components()
 pipeline_components.dedispersion = True
 pipeline_components.analysis = True
-pipeline_components.periodicity = True
-pipeline_components.fdas = True
+pipeline_components.periodicity = False
+pipeline_components.fdas = False
 
 # Set up pipeline component options
 pipeline_options = aa_py_pipeline_component_options()
@@ -80,15 +80,12 @@ pipeline.bind_analysis_plan(analysis_plan)
 pipeline.bind_periodicity_plan(periodicity_plan)
 pipeline.bind_fdas_plan(fdas_plan)
 
-while (pipeline.run(True)):
+while (pipeline.run()):
     print("NOTICE: Python script running over next chunk")
-    t=pipeline.t_test()
-    print(dir(t))
-    print(t)
-#    print(t.dm_high)
-#    print(t['dm_low'])
-#    print(t[0])
-#    print(list(t.pulses))
+    if pipeline.status_code() == 1:      
+        (dm, ts, snr, width)=pipeline.get_candidates()
+        print("T: ", dm[0], ts[0], snr[0], width[0])
+#        print("A: ", a[0], a[1])
     if pipeline.status_code() == -1:
         print("ERROR: Pipeline status code is {}. The pipeline encountered an error and cannot continue.".format(pipeline.status_code()))
         break

@@ -731,6 +731,34 @@ namespace astroaccelerate {
 			return NULL;
 		}
 
+		float* h_SPD_snr(){
+			if(memory_allocated && !memory_cleanup){
+				return h_SPD_candidate_list_SNR;
+			}
+			return NULL;
+		}
+
+		unsigned int* h_SPD_ts(){
+                        if(memory_allocated && !memory_cleanup){
+                                return h_SPD_candidate_list_TS;
+                        }
+                        return NULL;
+                }
+
+		unsigned int* h_SPD_dm(){
+                        if(memory_allocated && !memory_cleanup){
+                                return h_SPD_candidate_list_DM;
+                        }
+                        return NULL;
+                }
+
+		unsigned int* h_SPD_width(){
+                        if(memory_allocated && !memory_cleanup){
+                                return h_SPD_candidate_list_BW;
+                        }
+                        return NULL;
+                }
+
 		/** \brief De-allocate memory for this pipeline instance. */
 		bool cleanup() {
 			if (memory_allocated && !memory_cleanup) {

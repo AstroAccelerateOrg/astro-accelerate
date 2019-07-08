@@ -477,7 +477,7 @@ class aa_py_pipeline():
         api_return_value = lib.aa_py_pipeline_api_run(self.m_obj, self.m_status_code_c_int)
         return ctypes.c_bool(api_return_value).value
 
-    def run(self, test: bool):
+    def run2(self, test: bool):
         print("Hello")
         lib.aa_py_pipeline_api_run2.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_int)]
         lib.aa_py_pipeline_api_run2.restype = ctypes.c_bool
@@ -491,8 +491,20 @@ class aa_py_pipeline():
     def status_code(self):
         return self.m_status_code_c_int.value
 
-    def t_test(self):
-        return self.m_test
+    def get_candidates(self):
+#        lib.aa_py_spd_nCandidates.restype = ctypes.c_size_t
+        lib.aa_py_h_dm.restype = ctypes.POINTER(ctypes.c_uint)
+        lib.aa_py_h_ts.restype = ctypes.POINTER(ctypes.c_uint) 
+        lib.aa_py_h_snr.restype = PFLOAT
+        lib.aa_py_h_width.restype = ctypes.POINTER(ctypes.c_uint)
+        if self.m_status_code_c_int.value==1:
+            dm = lib.aa_py_h_dm(self.m_obj)
+            time_sample = lib.aa_py_h_ts(self.m_obj)
+            snr = lib.aa_py_h_snr(self.m_obj)
+            width = lib.aa_py_h_width(self.m_obj)
+            return dm, time_sample, snr, width
+        else:
+            return [], [], [], []
     
     ## \brief Returns a pointer to the dedispersed output_buffer in the library. #
     def get_buffer(self):

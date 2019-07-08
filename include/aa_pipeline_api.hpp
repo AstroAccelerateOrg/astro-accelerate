@@ -1039,6 +1039,22 @@ namespace astroaccelerate {
                         }
                 }
 
+		float* h_SPD_snr(){
+			return m_runner->h_SPD_snr();
+		}
+
+		unsigned int* h_SPD_dm(){
+			return m_runner->h_SPD_dm();
+		}	
+
+		unsigned int* h_SPD_width(){
+			return m_runner->h_SPD_width();
+		}	
+
+		unsigned int* h_SPD_ts(){
+			return m_runner->h_SPD_ts();
+		}	
+
 		float ***output_buffer(){
 			/**
 			 * \brief Return the output of the DDTR. 

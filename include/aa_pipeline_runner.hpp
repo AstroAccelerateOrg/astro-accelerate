@@ -77,6 +77,26 @@ namespace astroaccelerate {
 			LOG(log_level::error, "The selected operation is not supported on this pipeline (output_buffer).");
 			return NULL;
 		}
+
+		virtual float *h_SPD_snr(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (h_SPD_snr).");
+			return NULL;
+		}
+
+		virtual unsigned int* h_SPD_ts(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (h_SPD_time).");
+			return NULL;
+		}
+
+		virtual unsigned int* h_SPD_dm(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (h_SPD_dm).");
+			return NULL;
+		}
+
+		virtual unsigned int* h_SPD_width(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (h_SPD_width).");
+			return NULL;
+		}
 		
 	protected:
 		/** \brief Exports dedispersed data to disk. */
