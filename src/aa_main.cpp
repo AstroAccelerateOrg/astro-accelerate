@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 	aa_ddtr_plan ddtr_plan;
 	std::string file_path;
 	//aa_config_flags contains values like sigma_cutoff, card_id, but also rfi which should be pipeline option. It also contain vector of user_debug enumerator which should be independent.
-	aa_config_flags user_flags = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>() };
+	aa_config_flags user_flags = { 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>() };
 	//pipeline options is a set of options for the pipeline like: zero_dm, output_dmt, candidate_algorithm which should be handled better
 	aa_pipeline::pipeline_option pipeline_options;
 	//aa_config takes all argument as reference which is extremely confusing while still returning something. Must change to pointers and return nothing 
@@ -162,13 +162,6 @@ int main(int argc, char *argv[]) {
 		aa_fdas_plan fdas_plan(
 			user_flags.sigma_cutoff,
 			user_flags.sigma_constant,
-			user_flags.nboots,
-			user_flags.ntrial_bins,
-			user_flags.navdms,
-			user_flags.narrow,
-			user_flags.wide,
-			user_flags.nsearch,
-			user_flags.aggression,
 			msd_baseline_noise);
 		pipeline_manager.bind(fdas_plan);
 	}

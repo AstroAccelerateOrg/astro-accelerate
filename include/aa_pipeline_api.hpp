@@ -405,7 +405,7 @@ namespace astroaccelerate {
 			if (required_plans.find(aa_pipeline::component::fdas) != required_plans.end()) {
 				//It does need this strategy.
 				//Is it already computed?
-				if (m_fdas_strategy.ready()) { //Return since it was already computed.                                                                                                                                                          
+				if (m_fdas_strategy.ready()) { //Return since it was already computed.
 					return m_fdas_strategy;
 				}
 				else {
