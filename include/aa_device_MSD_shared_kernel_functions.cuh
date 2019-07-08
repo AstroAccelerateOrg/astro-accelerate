@@ -27,7 +27,7 @@ namespace astroaccelerate {
   __device__ __inline__ void Merge(float *A_M, float *A_S, float *A_j, float B_M, float B_S, float B_j){
     float ftemp;
   
-    ftemp = ( B_j / (*A_j)*(*A_M) - B_M );
+	ftemp = ( B_j / (*A_j))*(*A_M) - B_M;
     (*A_S) = (*A_S) + B_S + ( (*A_j) / ( B_j*( (*A_j) + B_j ) ) )*ftemp*ftemp;
     (*A_M) = (*A_M) + B_M;
     (*A_j) = (*A_j) + B_j;
