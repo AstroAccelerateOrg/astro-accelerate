@@ -1009,6 +1009,7 @@ namespace astroaccelerate {
 			 * the base class must provide a method for it.
 			 */
 			if (pipeline_ready && m_runner->setup()) {
+				printf("Running run with status code.\n");
 				LOG(log_level::notice, "Pipeline running over next chunk.");
 				return m_runner->next(status_code);
 			}
@@ -1018,6 +1019,25 @@ namespace astroaccelerate {
 				return false;
 			}
 		}
+
+                bool run(std::vector<analysis_output> &value, aa_pipeline_runner::status &status_code) {
+                        /**
+                         * This method to be overloaded with all possible combinations of
+                         * data that the user may wish to extract from any pipeline.
+                         * Any methods that are not supported are compile-time errors because
+                         * the base class must provide a method for it.
+                         */
+                        if (pipeline_ready && m_runner->setup()) {
+                                printf("Running run with status code.\n");
+                                LOG(log_level::notice, "Pipeline running over next chunk.");
+                                return m_runner->next(value, status_code);
+                        }
+                        else {
+                                LOG(log_level::error, "Pipeline could not start/resume because either pipeline is not ready or runner is not setup.");
+                                status_code = aa_pipeline_runner::status::finished;
+                                return false;
+                        }
+                }
 
 		float ***output_buffer(){
 			/**

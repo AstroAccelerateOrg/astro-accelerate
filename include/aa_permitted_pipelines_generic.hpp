@@ -318,7 +318,7 @@ namespace astroaccelerate {
 		* \details Returning false indicates the pipeline is finished running.
 		* \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
 		*/
-		bool run_pipeline(aa_pipeline_runner::status &status_code) {
+		bool run_pipeline(std::vector<analysis_output> &user_output, aa_pipeline_runner::status &status_code) {
 			const aa_pipeline::component_option opt_zero_dm                = aa_pipeline::component_option::zero_dm;
 			const aa_pipeline::component_option opt_zero_dm_with_outliers  = aa_pipeline::component_option::zero_dm_with_outliers;
 			const aa_pipeline::component_option opt_old_rfi                = aa_pipeline::component_option::old_rfi;
@@ -402,6 +402,12 @@ namespace astroaccelerate {
 			//-------------------<
 
 			//checkCudaErrors(cudaGetLastError());
+			
+
+			if(do_single_pulse_detection){
+				//assume the dump to user is always true?
+				user_output.resize(range);
+			}
 
 			int oldBin = 1;
 			for (size_t dm_range = 0; dm_range < range; dm_range++) {
@@ -487,6 +493,15 @@ namespace astroaccelerate {
 						dump_to_user,
 						output);
 
+					if(dump_to_user) {
+						for(size_t i = 0; i < user_output.size(); i++) {
+							user_output[i].pulses.clear();
+						}
+						user_output[dm_range] = output;
+						printf("user_output[0]: %zu", (size_t)user_output.at(0).pulses.size());
+					}
+
+
 					free(h_peak_list_DM);
 					free(h_peak_list_TS);
 					free(h_peak_list_SNR);
@@ -504,7 +519,7 @@ namespace astroaccelerate {
 			maxshift = maxshift_original;
 
 			++current_time_chunk;
-			printf("NOTICE: Pipeline ended run_pipeline_5 over chunk %d / %d.\n", current_time_chunk, num_tchunks);
+			printf("NOTICE: Pipeline ended run_pipeline_generic over chunk %d / %d.\n", current_time_chunk, num_tchunks);
 			status_code = aa_pipeline_runner::status::has_more;
 			return true;
 		}
@@ -679,22 +694,32 @@ namespace astroaccelerate {
 
 		/** \brief Override base class next() method to process next time chunk. */
 		bool next() override {
+			std::vector<analysis_output> output;
+//			int output;
 			if (memory_allocated) {
 				aa_pipeline_runner::status tmp;
-				return run_pipeline(tmp);
+				return run_pipeline(output, tmp);
 			}
-
 			return false;
 		}
 
 		/** \brief Override base class next() method to process next time chunk. Also provides a status code. */
 		bool next(aa_pipeline_runner::status &status_code) override {
+			std::vector<analysis_output> output;
+//			int output;
 			if (memory_allocated) {
-				return run_pipeline(status_code);
+				return run_pipeline(output, status_code);
 			}
-
 			return false;
 		}
+
+                bool next(std::vector<analysis_output> &output, aa_pipeline_runner::status &status_code) {
+			printf("Spoustim s output od analysis.\n\n");
+                        if (memory_allocated) {
+                                return run_pipeline(output, status_code);
+                        }
+                        return false;
+                }		
 
 		/**
 		 * \brief Return the pointer to the complete dedispersed output data.

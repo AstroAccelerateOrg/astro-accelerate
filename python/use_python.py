@@ -10,7 +10,7 @@ if (sys.version_info < (3, 0)):
 from py_astro_accelerate import *
 
 # Open filterbank file for reading metadata and signal data
-sigproc_input = aa_py_sigproc_input("/mnt/data/AstroAccelerate/filterbank/BenMeerKAT.fil")
+sigproc_input = aa_py_sigproc_input("/home/novotny/filterbank/ska-mid-b2-small.fil")
 metadata = sigproc_input.read_metadata()
 if not sigproc_input.read_signal():
     print("ERROR: Invalid .fil file path. Exiting...")
@@ -20,9 +20,9 @@ input_buffer = sigproc_input.input_buffer()
 # ddtr_plan settings
 # settings: low, high, step, inBin, outBin.
 dm1 = aa_py_dm(0, 370, 0.307, 1, 1)
-dm2 = aa_py_dm(370, 740, 0.652, 2, 2)
-dm3 = aa_py_dm(740, 1480, 1.266, 4, 4)
-dm_list = np.array([dm1, dm2, dm3], dtype=aa_py_dm)
+#dm2 = aa_py_dm(370, 740, 0.652, 2, 2)
+#dm3 = aa_py_dm(740, 1480, 1.266, 4, 4)
+dm_list = np.array([dm1], dtype=aa_py_dm)
 power = 2.0
 enable_msd_baseline_noise=False
 
@@ -35,7 +35,7 @@ ddtr_plan.print_info()
 sigma_cutoff = 6
 sigma_constant = 4.0
 max_boxcar_width_in_sec = 0.05
-candidate_algorithm = False
+candidate_algorithm = True
 enable_msd_baseline_noise = False
 
 analysis_plan = aa_py_analysis_plan(sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, candidate_algorithm, enable_msd_baseline_noise)
@@ -60,7 +60,7 @@ fdas_plan = aa_py_fdas_plan(sigma_cutoff, sigma_constant, num_boots, num_trial_b
 pipeline_components = aa_py_pipeline_components()
 pipeline_components.dedispersion = True
 pipeline_components.analysis = True
-pipeline_components.periodicity = True
+pipeline_components.periodicity = False
 pipeline_components.fdas = False
 
 # Set up pipeline component options
@@ -87,8 +87,15 @@ pipeline.bind_analysis_plan(analysis_plan)
 pipeline.bind_periodicity_plan(periodicity_plan)
 pipeline.bind_fdas_plan(fdas_plan)
 fdas_strategy = pipeline.fdas_strategy()
-while (pipeline.run()):
+while (pipeline.run(True)):
     print("NOTICE: Python script running over next chunk")
+    t=pipeline.t_test()
+    print(dir(t))
+    print(t)
+#    print(t.dm_high)
+#    print(t['dm_low'])
+#    print(t[0])
+#    print(list(t.pulses))
     if pipeline.status_code() == -1:
         print("ERROR: Pipeline status code is {}. The pipeline encountered an error and cannot continue.".format(pipeline.status_code()))
         break

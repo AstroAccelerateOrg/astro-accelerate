@@ -6,6 +6,8 @@
 #include <fstream>
 
 #include "aa_log.hpp"
+#include "aa_device_analysis.hpp"
+
 
 namespace astroaccelerate {
 
@@ -54,6 +56,12 @@ namespace astroaccelerate {
 			status_code = aa_pipeline_runner::status::finished;
 			return false;
 		}
+
+                virtual bool next(std::vector<analysis_output> &, aa_pipeline_runner::status &status_code) {
+                        LOG(log_level::error, "The selected operation is not supported on this pipeline.");
+                        status_code = aa_pipeline_runner::status::finished;
+                        return false;
+                }
 
 		/**
 		 * \brief Base class virtual methods for running a pipeline.

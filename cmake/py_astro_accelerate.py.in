@@ -23,6 +23,22 @@ PPPFLOAT = ctypes.POINTER(PPFLOAT)
 # \details Please see include/aa_filterbank_metadata.hpp for library implementation.
 # \author Cees Carels.
 # \date 05 February 2019.
+
+class analysis_pulse(ctypes.Structure):
+    _fields_ = [
+    ("dispersion_measure", ctypes.c_float ),
+    ("time", ctypes.c_float ),
+    ("snr", ctypes.c_float ),
+    ("pulse_width", ctypes.c_float )
+  ]
+
+class analysis_output(ctypes.Structure):
+    _fields_ = [  
+            ("pulses", analysis_pulse),
+            ("dm_low", ctypes.c_float),
+            ("dm_high", ctypes.c_float),
+            ]
+    
 #
 class filterbank_metadata_struct (ctypes.Structure):
     _fields_ = [
@@ -500,9 +516,22 @@ class aa_py_pipeline():
         api_return_value = lib.aa_py_pipeline_api_run(self.m_obj, self.m_status_code_c_int)
         return ctypes.c_bool(api_return_value).value
 
+    def run(self, test: bool):
+        print("Hello")
+        lib.aa_py_pipeline_api_run2.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_int)]
+        lib.aa_py_pipeline_api_run2.restype = ctypes.c_bool
+        self.m_status_code_c_int = ctypes.c_int()
+#        self.m_test = ctypes.POINTER(analysis_output())
+        self.m_test = ctypes.c_float()
+        api_return_value = lib.aa_py_pipeline_api_run2(self.m_obj, self.m_test, self.m_status_code_c_int)
+        return ctypes.c_bool(api_return_value).value
+
     ## \brief Status code of the pipeline that is available after each callback. #
     def status_code(self):
         return self.m_status_code_c_int.value
+
+    def t_test(self):
+        return self.m_test
     
     ## \brief Returns a pointer to the dedispersed output_buffer in the library. #
     def get_buffer(self):
@@ -514,7 +543,7 @@ class aa_py_pipeline():
     def dm_low(self, pos: int):
         lib.aa_py_dm_low.argtypes = [ctypes.c_int]
         lib.aa_py_dm_low.restype = ctypes.c_int
-        return lib.aa_py_dm_low(self.m_obj,pos)
+        return lib.aa_py_dm_low(self.m_obj, pos)
 
 
 class header():
