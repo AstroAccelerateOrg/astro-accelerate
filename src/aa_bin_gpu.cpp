@@ -17,7 +17,8 @@ void bin_gpu(unsigned short *const d_input, float *const d_output, const int nch
     //printf("\nDIVISOR:\t%f", (float)(nsamp)/(2*divisions_in_t));
     //printf("\ndivisions_in_t:%d\tdivisions_in_f:%d",divisions_in_t, divisions_in_f);
     //printf("\nnum_blocks_t:%d\tnum_blocks_f:%d\n",num_blocks_t,num_blocks_f);
-    
+
+    cudaMemset(d_output, 0, nchans * nsamp * sizeof(float));
     call_kernel_bin(num_blocks, threads_per_block, d_input, d_output, nsamp);
     
     int swap_divisions_in_t = CT;
