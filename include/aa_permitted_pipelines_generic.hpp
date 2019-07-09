@@ -439,7 +439,7 @@ namespace astroaccelerate {
 			//for (size_t dm_range = 0; dm_range < range; dm_range++) {
 			if(current_time_chunk<num_tchunks){
 				int dm_range = current_range;
-				float tsamp = tsamp_original;
+				float tsamp = tsamp_original*((float) inBin[dm_range]);
 				printf("\n\nNOTICE: %f\t%f\t%f\t%d\n", m_ddtr_strategy.dm(dm_range).low, m_ddtr_strategy.dm(dm_range).high, m_ddtr_strategy.dm(dm_range).step, m_ddtr_strategy.ndms(dm_range));
 				printf("\nAmount of telescope time processed: %f\n", tstart_local);
 
@@ -452,10 +452,9 @@ namespace astroaccelerate {
 
 				//checkCudaErrors(cudaGetLastError());
 
-
+				
 				if (inBin[dm_range] > oldBin) {
 					bin_gpu(d_DDTR_input, d_DDTR_output, nchans, t_processed[dm_range - 1][current_time_chunk] + maxshift * inBin[dm_range]);
-					tsamp = tsamp_original*((float) inBin[dm_range]);
 				}
 
 				//checkCudaErrors(cudaGetLastError());
