@@ -18,6 +18,16 @@ PFLOAT = ctypes.POINTER(FLOAT)
 PPFLOAT = ctypes.POINTER(PFLOAT)
 PPPFLOAT = ctypes.POINTER(PPFLOAT)
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 ##
 # \brief Python class to hold filterbank_metadata.
 # \details Please see include/aa_filterbank_metadata.hpp for library implementation.
@@ -478,7 +488,6 @@ class aa_py_pipeline():
         return ctypes.c_bool(api_return_value).value
 
     def run2(self, test: bool):
-        print("Hello")
         lib.aa_py_pipeline_api_run2.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_int)]
         lib.aa_py_pipeline_api_run2.restype = ctypes.c_bool
         self.m_status_code_c_int = ctypes.c_int()
@@ -550,10 +559,11 @@ class header():
 class SPD():
     def write_candidates(basename, chunk, metadata, nCandidates, dm, time_samples, snr, width):
         header_file = basename + "-" + str(chunk) + ".singlepulse"
+        print(bcolors.WARNING + "Writing candidates to: " + header_file + bcolors.ENDC)
         file_cand = open(header_file, "w")
         file_cand.write("# DM      Sigma      Time (s)     Sample    Boxcar_Width\n")
         for i in range(0,nCandidates):
-            file_cand.write(str(dm[i]) + "\t" + str(snr[i]) + "\t" + str(time_samples[i]) + "\t" + str(width[i]) + "\n")
+            file_cand.write(str('{:.3f}'.format(dm[i])) + "\t" + str('{:.3f}'.format(snr[i])) + "\t" + str('{:.4f}'.format(time_samples[i]*metadata.m_tsamp)) + "\t" + str(width[i]) + "\n")
         file_cand.close()
 
 
