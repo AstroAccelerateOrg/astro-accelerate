@@ -131,6 +131,11 @@ namespace astroaccelerate {
     /** \brief Static member function that prints member data for an aa_ddtr_strategy object. */
     static bool print_info(const aa_ddtr_strategy &strategy) {
       LOG(log_level::dev_debug, "DDTR STRATEGY INFORMATION:");
+      LOG(log_level::dev_debug, "Optimization settings:");
+      LOG(log_level::dev_debug, "\t\tUNROLL:\t\t\t" + std::to_string(UNROLLS));
+      LOG(log_level::dev_debug, "\t\tSNUMREG:\t\t" + std::to_string(SNUMREG));
+      LOG(log_level::dev_debug, "\t\tSDIVINT:\t\t" + std::to_string(SDIVINT));
+      LOG(log_level::dev_debug, "\t\tSDIVINDM:\t\t" + std::to_string(SDIVINDM));
       LOG(log_level::dev_debug, "ddtr+analysis:\t\t" +  (strategy.configured_for_analysis() ? std::string("true") : std::string("false")));
       LOG(log_level::dev_debug, "ddtr dm ranges:\t\t" + std::to_string(strategy.range()));
       for(size_t i = 0; i < strategy.range(); i++) {

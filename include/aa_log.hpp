@@ -59,8 +59,8 @@ namespace astroaccelerate {
    * \class aa_log aa_log.hpp "include/aa_log.hpp"
    * \brief Class for logging library information. Log a message to the console or to a file on disk.
    * \details Detailed instructions are included in MANUAL.md in the repository.
-   * \author Cees Carels.
-   * \date 7 January 2019.
+   * \author AstroAccelerate team.
+   * \date 3 July 2019.
    */
   template <class stream_target> class aa_log {
   public:
