@@ -5,6 +5,7 @@
 # Check Python version on this machine
 import sys
 import struct
+import time
 if (sys.version_info < (3, 0)):
     print("ERROR: Python version less than 3.0. Exiting...")
     sys.exit()
@@ -19,7 +20,8 @@ startDMs  = [0.0, 38.4, 60.0, 108.0]
 dmspercall = 24
 nsub = 32
 numout = 72000
-basename = "aa_dm90"
+#basename = "aa_dm90"
+basename = "ska_small"
 # cannot read more than one filterbank now, we can not use wildcards
 # how multiple files are then interpreted?
 rawfiles = basename+".fil"
@@ -54,10 +56,10 @@ pipeline_components.analysis = True
 
 # Create analysis plan
 sigma_cutoff = 6
-sigma_constant = 4.0
-max_boxcar_width_in_sec = 0.05
+sigma_constant = 3.0
+max_boxcar_width_in_sec = 0.5
 candidate_algorithm = True
-enable_msd_baseline_noise = False
+enable_msd_baseline_noise = True
 
 analysis_plan = aa_py_analysis_plan(sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, candidate_algorithm, enable_msd_baseline_noise)
 analysis_plan.print_info()
@@ -76,35 +78,44 @@ pipeline = aa_py_pipeline(pipeline_components, pipeline_options, metadata, input
 pipeline.bind_ddtr_plan(ddtr_plan) # Bind the ddtr_plan
 pipeline.bind_analysis_plan(analysis_plan) # Bind the analysis plan
 
+#print(dir(ddtr_plan))
+#for i in range(0,4):
+#    print(ddtr_plan.m_dm[i].m_step)
+#exit()
+
 # Run the pipeline with AstroAccelerate
-chunk = 0
 while (pipeline.run()):
     print("NOTICE: Python script running over next chunk")
     # during the run get the Candidates
     if pipeline.status_code() == 1:
-        chunk += 1
-        (nCandidates, dm, ts, snr, width)=pipeline.get_candidates()
+        start = time.time()
+        (nCandidates, dm, ts, snr, width, c_range, c_tchunk, ts_inc)=pipeline.get_candidates()
+        end = time.time()
+        print(bcolors.WARNING + "Time to read: " + str(end - start) + bcolors.ENDC)
         # Write the candidates to disk
-        SPD.write_candidates(basename, chunk, metadata, nCandidates, dm, ts, snr, width)
+        start = time.time()
+        SPD.write_candidates(basename, metadata, ddtr_plan, ts_inc, nCandidates, dm, ts, snr, width, c_range, c_tchunk)
+        end = time.time()
+        print(bcolors.WARNING + "Time to write: " + str(end - start) + bcolors.ENDC)
     if pipeline.status_code() == -1:
         print("ERROR: Pipeline status code is {}. The pipeline encountered an error and cannot continue.".format(pipeline.status_code()))
         break
 
 # Get the data of DDTR to python
-#ddtr_output = pipeline.get_buffer()
-#
-#for pos_range in range(pipeline.ddtr_range()):
-#    list_ndms = pipeline.ddtr_ndms()
-#    for n_dms in range(list_ndms[pos_range]):
-#        DM = pipeline.dm_low(pos_range) + dDMs[pos_range]*n_dms
-#        filename = basename + "_DM" + "{:07.2f}".format(DM)
-#        result_file = filename + ".dat"
-#        print("Writing results to: " + result_file)
-#        newfile = open(result_file, "wb")
-#        nsamp_for_range = int(pipeline.ddtr_tprocessed()/downsamps[pos_range])
-#        header.information_file(filename,nsamp_for_range, DM, downsamps[pos_range], metadata)
-#        for samples_pos in range(nsamp_for_range):
-#            newfile.write(struct.pack('f',ddtr_output[pos_range][n_dms][samples_pos]*downsamps[pos_range]))
+ddtr_output = pipeline.get_buffer()
+
+for pos_range in range(pipeline.ddtr_range()):
+    list_ndms = pipeline.ddtr_ndms()
+    for n_dms in range(list_ndms[pos_range]):
+        DM = pipeline.dm_low(pos_range) + dDMs[pos_range]*n_dms
+        filename = basename + "_DM" + "{:07.2f}".format(DM)
+        result_file = filename + ".dat"
+        print(bcolors.WARNING + "Writing results to: " + result_file, end='\r' + bcolors.ENDC)
+        newfile = open(result_file, "wb")
+        nsamp_for_range = int(ts_inc/downsamps[pos_range])
+        header.information_file(filename,nsamp_for_range, DM, downsamps[pos_range], metadata)
+        for samples_pos in range(nsamp_for_range):
+            newfile.write(struct.pack('f',ddtr_output[pos_range][n_dms][samples_pos]*downsamps[pos_range]))
 
 if pipeline.status_code() == -1:
     print("ERROR: Pipeline status code is {}. The pipeline encountered an error and cannot continue.".format(pipeline.status_code()))

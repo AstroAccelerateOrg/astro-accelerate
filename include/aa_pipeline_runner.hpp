@@ -102,6 +102,21 @@ namespace astroaccelerate {
 			LOG(log_level::error, "The selected operation is not supported on this pipeline (nCandidates).");
 			return 0;
 		}
+
+		virtual int get_current_range(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (current_range).");
+			return 0;
+		}
+
+                virtual int get_current_tchunk(){
+                        LOG(log_level::error, "The selected operation is not supported on this pipeline (current_time_chunk).");
+                        return 0;
+                }
+
+		virtual long int get_current_inc(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (current_inc).");
+			return 0;
+		}
 		
 	protected:
 		/** \brief Exports dedispersed data to disk. */

@@ -346,7 +346,7 @@ namespace astroaccelerate {
 		* \details Returning false indicates the pipeline is finished running.
 		* \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
 		*/
-		bool run_pipeline(std::vector<analysis_output> &user_output, aa_pipeline_runner::status &status_code) {
+		bool run_pipeline(aa_pipeline_runner::status &status_code) {
 			const aa_pipeline::component_option opt_zero_dm                = aa_pipeline::component_option::zero_dm;
 			const aa_pipeline::component_option opt_zero_dm_with_outliers  = aa_pipeline::component_option::zero_dm_with_outliers;
 			const aa_pipeline::component_option opt_old_rfi                = aa_pipeline::component_option::old_rfi;
@@ -695,33 +695,29 @@ namespace astroaccelerate {
 
 		/** \brief Override base class next() method to process next time chunk. */
 		bool next() override {
-			std::vector<analysis_output> output;
-//			int output;
 			if (memory_allocated) {
 				aa_pipeline_runner::status tmp;
-				return run_pipeline(output, tmp);
+				return run_pipeline(tmp);
 			}
 			return false;
 		}
 
 		/** \brief Override base class next() method to process next time chunk. Also provides a status code. */
 		bool next(aa_pipeline_runner::status &status_code) override {
-			std::vector<analysis_output> output;
-//			int output;
 			if (memory_allocated) {
-				return run_pipeline(output, status_code);
+				return run_pipeline(status_code);
 			}
 			return false;
 		}
 
-                bool next(std::vector<analysis_output> &output, aa_pipeline_runner::status &status_code) {
-			printf("Spoustim s output od analysis.\n\n");
-                        if (memory_allocated) {
-                                return run_pipeline(output, status_code);
-                        }
-                        return false;
-                }		
-
+//                bool next(std::vector<analysis_output> &output, aa_pipeline_runner::status &status_code) {
+//			printf("Spoustim s output od analysis.\n\n");
+//                        if (memory_allocated) {
+//                                return run_pipeline(output, status_code);
+//                        }
+//                        return false;
+//                }		
+//
 		/**
 		 * \brief Return the pointer to the complete dedispersed output data.
 		 * \details The array data is only useful once the pipeline has finished running.
@@ -766,6 +762,18 @@ namespace astroaccelerate {
 
 		size_t get_SPD_nCandidates(){
 			return SPD_nCandidates;
+		}
+
+		int get_current_range(){
+			return (current_range>0 ? current_range-1:nRanges-1);
+		}
+
+		int get_current_tchunk(){
+			return (current_range>0 ? current_time_chunk:current_time_chunk-1);
+		}
+
+		long int get_current_inc(){
+			return inc;
 		}
 
 		/** \brief De-allocate memory for this pipeline instance. */

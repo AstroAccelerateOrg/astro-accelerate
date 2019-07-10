@@ -80,9 +80,9 @@ for pos_range in range(pipeline.ddtr_range()):
         DM = pipeline.dm_low(pos_range) + dDMs[pos_range]*n_dms
         filename = basename + "_DM" + "{:07.2f}".format(DM)
         result_file = filename + ".dat"
-        print("Writing results to: " + result_file)
+        print("Writing results to: " + result_file, end='\r')
         newfile = open(result_file, "wb")
-        nsamp_for_range = int(pipeline.ddtr_tprocessed()/downsamps[pos_range])
+        nsamp_for_range = int(ts_inc/downsamps[pos_range])
         header.information_file(filename,nsamp_for_range, DM, downsamps[pos_range], metadata)
         for samples_pos in range(nsamp_for_range):
             newfile.write(struct.pack('f',a[pos_range][n_dms][samples_pos]*downsamps[pos_range]))

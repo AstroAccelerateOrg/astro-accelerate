@@ -506,21 +506,27 @@ class aa_py_pipeline():
         lib.aa_py_h_ts.restype = ctypes.POINTER(ctypes.c_uint) 
         lib.aa_py_h_snr.restype = PFLOAT
         lib.aa_py_h_width.restype = ctypes.POINTER(ctypes.c_uint)
+        lib.aa_py_current_range.restype = ctypes.c_int
+        lib.aa_py_current_time_chunk.restype = ctypes.c_int
+        lib.aa_py_current_inc.restype = ctypes.c_long
+#        time_sample = []
         if self.m_status_code_c_int.value==1:
             nCandidates=lib.aa_py_spd_nCandidates(self.m_obj)
             dm = lib.aa_py_h_dm(self.m_obj)
             time_sample = lib.aa_py_h_ts(self.m_obj)
             snr = lib.aa_py_h_snr(self.m_obj)
             width = lib.aa_py_h_width(self.m_obj)
-            return nCandidates, dm, time_sample, snr, width
+            current_range = lib.aa_py_current_range(self.m_obj)
+            current_tchunk = lib.aa_py_current_time_chunk(self.m_obj)
+            current_inc = lib.aa_py_current_inc(self.m_obj)
+            return nCandidates, dm, time_sample, snr, width, current_range, current_tchunk, current_inc
         else:
-            return [], [], [], []
+            return None, [], [], [], [], None, None, None
     
     ## \brief Returns a pointer to the dedispersed output_buffer in the library. #
     def get_buffer(self):
         #lib.my_class_get_buffer.argtypes = [ctypes.c_void_p]
         lib.aa_py_buffer.restype = PPPFLOAT
-        print("Getting buffer")
         return lib.aa_py_buffer(self.m_obj)
 
     def dm_low(self, pos: int):
@@ -557,13 +563,17 @@ class header():
         header.write(" Data analyzed by                       =  ????\n")
 
 class SPD():
-    def write_candidates(basename, chunk, metadata, nCandidates, dm, time_samples, snr, width):
-        header_file = basename + "-" + str(chunk) + ".singlepulse"
+    def write_candidates(basename, metadata, ddtr_plan, tprocessed, nCandidates, dm, time_samples, snr, width, current_range, current_tchunk):
+        header_file = basename + "-time_chunk_" + str('{:0>2d}'.format(current_tchunk)) + "-range_" + str('{:.2f}'.format(ddtr_plan.m_dm[current_range].m_low)) + "-" + str('{:.2f}'.format(ddtr_plan.m_dm[current_range].m_high)) + ".singlepulse"
         print(bcolors.WARNING + "Writing candidates to: " + header_file + bcolors.ENDC)
         file_cand = open(header_file, "w")
         file_cand.write("# DM      Sigma      Time (s)     Sample    Boxcar_Width\n")
         for i in range(0,nCandidates):
-            file_cand.write(str('{:.3f}'.format(dm[i])) + "\t" + str('{:.3f}'.format(snr[i])) + "\t" + str('{:.4f}'.format(time_samples[i]*metadata.m_tsamp)) + "\t" + str(width[i]) + "\n")
+            true_dm = dm[i]*(ddtr_plan.m_dm[current_range].m_step) + ddtr_plan.m_dm[current_range].m_low
+            true_ts = time_samples[i]*metadata.m_tsamp*ddtr_plan.m_dm[current_range].m_inBin + tprocessed*metadata.m_tsamp
+            true_sample = time_samples[i]*ddtr_plan.m_dm[current_range].m_inBin + tprocessed
+#            file_cand.write(str('{:.3f}'.format(dm[i]*ddtr_plan.m_dm[current_range].m_step)) + "\t" + str('{:.3f}'.format(snr[i])) + "\t" + str('{:.4f}'.format(time_samples[i]*metadata.m_tsamp)) + "\t" + str(width[i]) + "\n")
+            file_cand.write(str('{:.3f}'.format(true_dm)) + "\t" + str('{:.3f}'.format(snr[i])) + "\t" + str('{:.4f}'.format(true_ts)) + "\t" + str(true_sample) + "\t" + str(width[i]) + "\n")
         file_cand.close()
 
 
