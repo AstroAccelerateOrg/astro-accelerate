@@ -379,7 +379,7 @@ namespace astroaccelerate {
 
 			//checkCudaErrors(cudaGetLastError());
 			m_local_timer.Start();
-				load_data(-1, inBin.data(), d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift, nchans, dmshifts);
+			load_data(-1, inBin.data(), d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift, nchans, dmshifts);
 			m_local_timer.Stop();
 			time_log.adding("DDTR", "H2D", m_local_timer.Elapsed());
 			//checkCudaErrors(cudaGetLastError());
@@ -388,14 +388,14 @@ namespace astroaccelerate {
 			if (m_pipeline_options.find(opt_zero_dm) != m_pipeline_options.end()) {
 				printf("\nPerforming zero DM...");
 				m_local_timer.Start();
-					zero_dm(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift, nbits);
+				zero_dm(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift, nbits);
 				m_local_timer.Stop();
 				time_log.adding("DDTR", "Zero_DM", m_local_timer.Elapsed());
 			}
 			else if (m_pipeline_options.find(opt_zero_dm_with_outliers) != m_pipeline_options.end()) {
 				printf("\nPerforming zero dM with outliers...");
 				m_local_timer.Start();
-					zero_dm_outliers(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift);
+				zero_dm_outliers(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift);
 				m_local_timer.Stop();
 				time_log.adding("DDTR", "Zero_DM_outliers", m_local_timer.Elapsed());
 			}
@@ -404,7 +404,7 @@ namespace astroaccelerate {
 			//checkCudaErrors(cudaGetLastError());
 
 			m_local_timer.Start();
-				corner_turn(d_DDTR_input, d_DDTR_output, nchans, t_processed[0][current_time_chunk] + maxshift);
+			corner_turn(d_DDTR_input, d_DDTR_output, nchans, t_processed[0][current_time_chunk] + maxshift);
 			m_local_timer.Stop();
 			time_log.adding("DDTR", "Corner_Turn", m_local_timer.Elapsed());
 
@@ -414,7 +414,7 @@ namespace astroaccelerate {
 			if (m_pipeline_options.find(opt_old_rfi) != m_pipeline_options.end()) {
 				printf("\nPerforming old GPU rfi...");
 				m_local_timer.Start();
-					rfi_gpu(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift);
+				rfi_gpu(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift);
 				m_local_timer.Stop();
 				time_log.adding("DDTR", "RFI_GPU", m_local_timer.Elapsed());
 			}
@@ -433,7 +433,7 @@ namespace astroaccelerate {
 				//checkCudaErrors(cudaGetLastError());
 
 				m_local_timer.Start();
-					load_data(dm_range, inBin.data(), d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[dm_range][current_time_chunk], maxshift, nchans, dmshifts);
+				load_data(dm_range, inBin.data(), d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[dm_range][current_time_chunk], maxshift, nchans, dmshifts);
 				m_local_timer.Stop();
 				time_log.adding("DDTR", "H2D",m_local_timer.Elapsed());
 
@@ -442,8 +442,8 @@ namespace astroaccelerate {
 
 				if (inBin[dm_range] > oldBin) {
 					m_local_timer.Start();
-						bin_gpu(d_DDTR_input, d_DDTR_output, nchans, t_processed[dm_range - 1][current_time_chunk] + maxshift * inBin[dm_range]);
-						(tsamp) = (tsamp) * 2.0f;
+					bin_gpu(d_DDTR_input, d_DDTR_output, nchans, t_processed[dm_range - 1][current_time_chunk] + maxshift * inBin[dm_range]);
+					(tsamp) = (tsamp) * 2.0f;
 					m_local_timer.Stop();
 					time_log.adding("DDTR", "Binning",m_local_timer.Elapsed());
 				}
@@ -451,7 +451,7 @@ namespace astroaccelerate {
 				//checkCudaErrors(cudaGetLastError());
 				
 				m_local_timer.Start();
-					dedisperse(dm_range, t_processed[dm_range][current_time_chunk], inBin.data(), dmshifts, d_DDTR_input, d_DDTR_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
+				dedisperse(dm_range, t_processed[dm_range][current_time_chunk], inBin.data(), dmshifts, d_DDTR_input, d_DDTR_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
 				m_local_timer.Stop();
 				time_log.adding("DDTR","dedispersion",m_local_timer.Elapsed());
 
@@ -461,7 +461,7 @@ namespace astroaccelerate {
 				if(do_copy_DDTR_data_to_host){
 					m_local_timer.Start();
 					for (int k = 0; k < ndms[dm_range]; k++) {
-						save_data_offset(d_DDTR_output, k * t_processed[dm_range][current_time_chunk], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][current_time_chunk]);
+					save_data_offset(d_DDTR_output, k * t_processed[dm_range][current_time_chunk], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][current_time_chunk]);
 					}
 					m_local_timer.Stop();
 					time_log.adding("DDTR", "D2H", m_local_timer.Elapsed());
