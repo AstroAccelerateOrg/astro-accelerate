@@ -10,7 +10,7 @@ namespace astroaccelerate {
    * Loads data from the host memory into the GPU memory.
    * Users should not need to interact with this function directly.
    */
-  void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short const*const host_pointer, int t_processed, int maxshift, int nchans, float *dmshifts);
+  void load_data(int i, int *inBin, unsigned short *device_pointer, unsigned short const*const host_pointer, int t_processed, int maxshift, int nchans, float *dmshifts, float *d_dm_shifts);
 
 } // namespace astroaccelerate
 
