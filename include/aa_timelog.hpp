@@ -20,17 +20,8 @@ class TimeLog{
 
         public:
 		TimeLog(){};
-//		TimeLog(){
-//			time_file.open("time.log", std::ofstream::trunc);
-//			time_file << "#Component Sub-Component Time \n";
-//			time_file.close();
-//		}
 
-//		~TimeLog(){
-//			print();
-//		}
-
-                typedef std::map<std::pair<std::string, std::string>, double> maptype;
+		typedef std::map<std::pair<std::string, std::string>, double> maptype;
                 typedef std::pair<std::map<std::pair<std::string, std::string>, double>::iterator,bool> ret_maptype;
 
 		// adding new component with subcomponent. If it exists then just increase the time.
