@@ -764,7 +764,12 @@ namespace astroaccelerate {
 
 				memory_cleanup = true;
 			}
-			time_log.print();
+			
+			if (m_pipeline_options.find(aa_pipeline::component_option::timelog_export_to_file) != m_pipeline_options.end()) {
+				time_log.print();
+			}
+			//time_log.print();
+			
 			return true;
 		}
 	
