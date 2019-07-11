@@ -403,7 +403,6 @@ namespace astroaccelerate {
 				printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][current_time_chunk], current_time_chunk);
 
 				//checkCudaErrors(cudaGetLastError());
-				//load_data(-1, inBin.data(), d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift, nchans, dmshifts);
 				load_chunk_data(d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift_original, nchans, dmshifts);
 				//checkCudaErrors(cudaGetLastError());
 				
@@ -516,6 +515,8 @@ namespace astroaccelerate {
 				oldBin = inBin[dm_range];
 			}
 
+			printf("NOTICE: Pipeline ended run_pipeline_5 over chunk %d / %d and range %d / %d.\n", current_time_chunk, num_tchunks, current_range, nRanges);
+			
 			++current_range;
 			if(current_range>=nRanges) {
 				inc = inc + t_processed[0][current_time_chunk];
@@ -525,7 +526,6 @@ namespace astroaccelerate {
 				current_range = 0;
 			}
 			
-			printf("NOTICE: Pipeline ended run_pipeline_5 over chunk %d / %d and range %d / %d.\n", current_time_chunk, num_tchunks, current_range, nRanges);
 			status_code = aa_pipeline_runner::status::has_more;
 			return true;
 		}
@@ -710,14 +710,7 @@ namespace astroaccelerate {
 			return false;
 		}
 
-//                bool next(std::vector<analysis_output> &output, aa_pipeline_runner::status &status_code) {
-//			printf("Spoustim s output od analysis.\n\n");
-//                        if (memory_allocated) {
-//                                return run_pipeline(output, status_code);
-//                        }
-//                        return false;
-//                }		
-//
+
 		/**
 		 * \brief Return the pointer to the complete dedispersed output data.
 		 * \details The array data is only useful once the pipeline has finished running.
@@ -740,25 +733,25 @@ namespace astroaccelerate {
 		}
 
 		unsigned int* h_SPD_ts(){
-                        if(memory_allocated && !memory_cleanup){
-                                return h_SPD_candidate_list_TS;
-                        }
-                        return NULL;
-                }
+			if(memory_allocated && !memory_cleanup){
+					return h_SPD_candidate_list_TS;
+			}
+			return NULL;
+		}
 
 		unsigned int* h_SPD_dm(){
-                        if(memory_allocated && !memory_cleanup){
-                                return h_SPD_candidate_list_DM;
-                        }
-                        return NULL;
-                }
+			if(memory_allocated && !memory_cleanup){
+					return h_SPD_candidate_list_DM;
+			}
+			return NULL;
+		}
 
 		unsigned int* h_SPD_width(){
-                        if(memory_allocated && !memory_cleanup){
-                                return h_SPD_candidate_list_BW;
-                        }
-                        return NULL;
-                }
+			if(memory_allocated && !memory_cleanup){
+					return h_SPD_candidate_list_BW;
+			}
+			return NULL;
+		}
 
 		size_t get_SPD_nCandidates(){
 			return SPD_nCandidates;
@@ -780,23 +773,6 @@ namespace astroaccelerate {
 		bool cleanup() {
 			if (memory_allocated && !memory_cleanup) {
 				LOG(log_level::debug, "Generic Pipeline -> Memory cleanup at the end of the pipeline");
-				/*
-				cudaFree(d_DDTR_input);
-				cudaFree(d_DDTR_output);
-				
-				if(do_single_pulse_detection){
-					cudaFree(m_d_MSD_workarea);
-					cudaFree(m_d_MSD_output_taps);
-					cudaFree(m_d_MSD_interpolated);
-				}
-				
-				// Why this is not in the ddtr_strategy?
-				size_t t_processed_size = m_ddtr_strategy.t_processed().size();
-				for (size_t i = 0; i < t_processed_size; i++) {
-					free(t_processed[i]);
-				}
-				free(t_processed);
-				*/
 
 				if(do_copy_DDTR_data_to_host) {
 					const int *ndms = m_ddtr_strategy.ndms_data();
