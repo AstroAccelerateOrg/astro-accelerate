@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
+#include "aa_log.hpp"
 
 namespace astroaccelerate {
 
@@ -44,14 +45,23 @@ class TimeLog{
 			return pattern;
 		}
 
-                void print(){
+                void print_to_file(){
 			time_file.open("time.log", std::ofstream::out);
-                        for (const auto &pair : pattern) {
+                        for (const auto &pair : pattern){
 				time_file << pair.first.first << " " << pair.first.second << " " << pair.second << '\n';
                                 //note pair.first in the row column pair, pair.first.first is the row, pair.first.second is the column, pair.second is the string pattern
                         }
 			time_file.close();		
                 }
+
+		void print(){
+			LOG(log_level::notice,"--------------------------------------------------------------");
+			LOG(log_level::notice,"Summary of the times for each component and subcomponent [ms]:")
+			for (const auto &pair : pattern){
+				LOG(log_level::notice, "\t" + pair.first.first + " " + pair.first.second + " " + "\t" +std::to_string(pair.second));
+			}
+			LOG(log_level::notice,"--------------------------------------------------------------");
+		}
 
         private:
 		std::ofstream time_file;
