@@ -258,13 +258,13 @@ namespace astroaccelerate {
 			
 			__syncthreads();
 			
-			temp_f = ( __ldg(( d_input + ( __float2int_rz(dm_shifts[c] * shift_two) ) ) + ( nsamp_counter )) );
+			temp_f = ( __ldg(( d_input + ( __float2int_rz(d_dm_shifts[c] * shift_two) ) ) + ( nsamp_counter )) );
 			
 			f_line[0][idx].x = temp_f;
 			if (idx > 0) {
 				f_line[0][idx - 1].y = temp_f;
 			}
-			shift = __float2int_rz(shift_one * dm_shifts[c] + findex);
+			shift = __float2int_rz(shift_one * d_dm_shifts[c] + findex);
 			
 			nsamp_counter = ( nsamp_counter + i_nsamp );
 			

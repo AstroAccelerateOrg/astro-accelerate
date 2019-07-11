@@ -34,6 +34,7 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 	      cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
 	      //cudaFuncSetCacheConfig(shared_dedisperse_kernel_16, cudaFuncCachePreferShared); //Subsume in call_kernel_*
 	      if(nchans>8192){
+			  printf("Calling DDTR for 16k+\n");
 			  call_kernel_shared_dedisperse_kernel_16_nchan8192p(num_blocks, threads_per_block, inBin[i], d_input, d_output, d_dm_shifts, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
 		  }
 		  else {
@@ -76,6 +77,7 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 	      cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
 	      //cudaFuncSetCacheConfig(shared_dedisperse_kernel, cudaFuncCachePreferShared); //Subsume in call_kernel_*
 	      if(nchans>8192) {
+			  printf("Calling DDTR for 16k+\n");
 			  call_kernel_shared_dedisperse_kernel_nchan8192p(num_blocks, threads_per_block, inBin[i], d_input, d_output, d_dm_shifts, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
 		  }
 		  else {

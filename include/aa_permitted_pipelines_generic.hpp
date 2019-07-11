@@ -145,7 +145,7 @@ namespace astroaccelerate {
 		}
 		
 		/** \brief Allocate the GPU memory needed for dedispersion. */
-		void allocate_gpu_memory_DDTR(const int &maxshift, const int &max_ndms, const int &nchans, int **const t_processed, unsigned short **const d_DDTR_input, float **const d_DDTR_output) {
+		void allocate_gpu_memory_DDTR(const int &maxshift, const int &max_ndms, const int &nchans, int **const t_processed, unsigned short **const d_DDTR_input, float **const d_DDTR_output, float **const d_dm_shifts) {
 			int time_samps = t_processed[0][0] + maxshift;
 			printf("\n\n\n%d\n\n\n", time_samps);
 			size_t gpu_inputsize = (size_t)time_samps * (size_t)nchans * sizeof(unsigned short);
@@ -282,7 +282,7 @@ namespace astroaccelerate {
 			d_dm_shifts = NULL;
 
 			//Allocate GPU memory for dedispersion
-			allocate_gpu_memory_DDTR(maxshift, max_ndms, nchans, t_processed, &d_DDTR_input, &d_DDTR_output);
+			allocate_gpu_memory_DDTR(maxshift, max_ndms, nchans, t_processed, &d_DDTR_input, &d_DDTR_output, &d_dm_shifts);
 			
 			//Allocate GPU memory for SPD (i.e. analysis)
 			if(do_single_pulse_detection) {
