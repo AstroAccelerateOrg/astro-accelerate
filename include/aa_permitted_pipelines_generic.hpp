@@ -22,14 +22,13 @@
 #include "aa_device_rfi.hpp"
 #include "aa_dedisperse.hpp"
 
-#include "aa_gpu_timer.hpp"
-
 #include "aa_device_analysis.hpp"
 #include "aa_device_periods.hpp"
 #include "aa_device_acceleration_fdas.hpp"
 #include "aa_pipeline_runner.hpp"
 
 #include "aa_gpu_timer.hpp"
+#include "aa_timelog.hpp"
 
 namespace astroaccelerate {
 
@@ -109,7 +108,10 @@ namespace astroaccelerate {
 		//Loop counter variables
 		int current_time_chunk;
 		int current_range;
+		TimeLog time_log;
 		aa_gpu_timer       m_timer;
+		aa_gpu_timer m_local_timer;
+		aa_gpu_timer m_ddtr_total_timer;
 
 		float  *m_d_MSD_workarea = NULL;
 		float  *m_d_MSD_interpolated = NULL;
@@ -357,6 +359,7 @@ namespace astroaccelerate {
 				//------------------> End of DDTR + SPD
 				if (!did_notify_of_finishing_component) {
 					m_timer.Stop();
+					time_log.adding("Total", "total", m_timer.Elapsed());
 					float time = m_timer.Elapsed() / 1000;
 					printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 					printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)", time);
@@ -391,53 +394,71 @@ namespace astroaccelerate {
 
 				return false; // In this case, there are no more chunks to process, and periodicity and acceleration both ran.
 			}
-			else if (current_time_chunk == 0) {
+			else if (current_time_chunk == 0 && current_range == 0) {
 				m_timer.Start();
 			}
 			
 			//----------------------------------------------------------------------->
 			//------------------> Dedispersion
 			const int *ndms = m_ddtr_strategy.ndms_data();
-			
+				
 			if(current_range==0) {
+				m_ddtr_total_timer.Start();
 				printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][current_time_chunk], current_time_chunk);
 
 				//checkCudaErrors(cudaGetLastError());
+				m_local_timer.Start();
 				load_chunk_data(d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift_original, nchans, dmshifts);
+				m_local_timer.Stop();
+				time_log.adding("DDTR", "Host_To_Device", m_local_timer.Elapsed());
 				//checkCudaErrors(cudaGetLastError());
 				
 				//---> Zero DM
 				if (m_pipeline_options.find(opt_zero_dm) != m_pipeline_options.end()) {
 					printf("\nPerforming zero DM...");
+					m_local_timer.Start();
 					zero_dm(d_DDTR_input, nchans, t_processed[0][current_time_chunk] + maxshift_original, nbits);
+					m_local_timer.Stop();
+					time_log.adding("DDTR", "Zero_DM", m_local_timer.Elapsed());
 				}
 				else if (m_pipeline_options.find(opt_zero_dm_with_outliers) != m_pipeline_options.end()) {
 					printf("\nPerforming zero dM with outliers...");
+					m_local_timer.Start();
 					zero_dm_outliers(d_DDTR_input, nchans, t_processed[0][current_time_chunk] + maxshift_original);
+					m_local_timer.Stop();
+					time_log.adding("DDTR", "Zero_DM_outliers", m_local_timer.Elapsed());
 				}
 				//-------------------<
 
 	
 				//checkCudaErrors(cudaGetLastError());
-
+				m_local_timer.Start();
 				corner_turn(d_DDTR_input, d_DDTR_output, nchans, t_processed[0][current_time_chunk] + maxshift_original);
+				m_local_timer.Stop();
+				time_log.adding("DDTR", "Corner_Turn", m_local_timer.Elapsed());
 
 				//checkCudaErrors(cudaGetLastError());
 
 				//---> old RFI
 				if (m_pipeline_options.find(opt_old_rfi) != m_pipeline_options.end()) {
 					printf("\nPerforming old GPU rfi...");
+					m_local_timer.Start();
 					rfi_gpu(d_DDTR_input, nchans, t_processed[0][current_time_chunk] + maxshift_original);
+					m_local_timer.Stop();
+					time_log.adding("DDTR", "RFI_GPU", m_local_timer.Elapsed());
 				}
 				//-------------------<
 
 				//checkCudaErrors(cudaGetLastError());
 				oldBin = 1;
+				m_ddtr_total_timer.Stop();
+				time_log.adding("DDTR", "total", m_ddtr_total_timer.Elapsed());
 			}
 
 			
 			//for (size_t dm_range = 0; dm_range < range; dm_range++) {
 			if(current_time_chunk<num_tchunks){
+				m_ddtr_total_timer.Start();
 				int dm_range = current_range;
 				float tsamp = tsamp_original*((float) inBin[dm_range]);
 				printf("\n\nNOTICE: %f\t%f\t%f\t%d\n", m_ddtr_strategy.dm(dm_range).low, m_ddtr_strategy.dm(dm_range).high, m_ddtr_strategy.dm(dm_range).step, m_ddtr_strategy.ndms(dm_range));
@@ -447,29 +468,42 @@ namespace astroaccelerate {
 
 				cudaDeviceSynchronize();
 				//checkCudaErrors(cudaGetLastError());
-
+				m_local_timer.Start();
 				set_dedispersion_constants(t_processed[dm_range][current_time_chunk], maxshift);
+				m_local_timer.Stop();
+				time_log.adding("DDTR", "Host_To_Device",m_local_timer.Elapsed());
 
 				//checkCudaErrors(cudaGetLastError());
 
 				
 				if (inBin[dm_range] > oldBin) {
+					m_local_timer.Start();
 					bin_gpu(d_DDTR_input, d_DDTR_output, nchans, t_processed[dm_range - 1][current_time_chunk] + maxshift * inBin[dm_range]);
+					m_local_timer.Stop();
+					time_log.adding("DDTR", "Binning",m_local_timer.Elapsed());
 				}
 
 				//checkCudaErrors(cudaGetLastError());
-				
+				m_local_timer.Start();
 				dedisperse(dm_range, t_processed[dm_range][current_time_chunk], inBin.data(), dmshifts, d_DDTR_input, d_DDTR_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
+				m_local_timer.Stop();
+				time_log.adding("DDTR","Dedispersion",m_local_timer.Elapsed());
 
 				//checkCudaErrors(cudaGetLastError());
 				
 				//-----------> Copy data to the host
 				if(do_copy_DDTR_data_to_host){
+					m_local_timer.Start();
 					for (int k = 0; k < ndms[dm_range]; k++) {
 						save_data_offset(d_DDTR_output, k * t_processed[dm_range][current_time_chunk], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][current_time_chunk]);
 					}
+					m_local_timer.Stop();
+					time_log.adding("DDTR", "Device_To_Host", m_local_timer.Elapsed());
 				}
+				m_ddtr_total_timer.Stop();
+				time_log.adding("DDTR", "total", m_ddtr_total_timer.Elapsed());
 				//--------------------------------------------<
+
 				
 
 				//------------------> Single pulse detection
@@ -514,7 +548,7 @@ namespace astroaccelerate {
 				oldBin = inBin[dm_range];
 			}
 
-			printf("NOTICE: Pipeline ended run_pipeline_5 over chunk %d / %d and range %d / %d.\n", current_time_chunk, num_tchunks, current_range, nRanges);
+			printf("NOTICE: Pipeline ended run_pipeline_generic over chunk %d / %d and range %d / %d.\n", current_time_chunk, num_tchunks, current_range, nRanges);
 			
 			++current_range;
 			if(current_range>=nRanges) {
@@ -552,6 +586,8 @@ namespace astroaccelerate {
 				m_periodicity_strategy.sigma_constant());
 
 			timer.Stop();
+			time_log.adding("Periodicity", "total", timer.Elapsed());
+
 			float time = timer.Elapsed()/1000;
 			printf("\n\n === OVERALL PERIODICITY THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
@@ -591,6 +627,7 @@ namespace astroaccelerate {
 				m_fdas_enable_output_list);
 
 			timer.Stop();
+			time_log.adding("FDAS", "total", timer.Elapsed());
 			float time = timer.Elapsed()/1000;
 			printf("\n\n === OVERALL TDAS THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
@@ -786,14 +823,20 @@ namespace astroaccelerate {
 
 				memory_cleanup = true;
 			}
+			
+			if (m_pipeline_options.find(aa_pipeline::component_option::timelog_export_to_file) != m_pipeline_options.end()) {
+				time_log.print_to_file();
+			}
+			
+			time_log.print();
+
 			return true;
 		}
-	
 		
 	}; // class end
-	
 
 } // namespace astroaccelerate
 
 #endif // ASTRO_ACCELERATE_AA_PERMITTED_PIPELINES_GENERIC_HPP
+
 
