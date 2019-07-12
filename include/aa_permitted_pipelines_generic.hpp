@@ -22,14 +22,15 @@
 #include "aa_device_rfi.hpp"
 #include "aa_dedisperse.hpp"
 
-#include "aa_gpu_timer.hpp"
-
 #include "aa_device_analysis.hpp"
 #include "aa_device_periods.hpp"
 #include "aa_device_acceleration_fdas.hpp"
 #include "aa_pipeline_runner.hpp"
 
 #include "aa_gpu_timer.hpp"
+#include "aa_timelog.hpp"
+
+//TimeLog::maptype TimeLog::pattern;
 
 namespace astroaccelerate {
 
@@ -43,6 +44,7 @@ namespace astroaccelerate {
 	//template<aa_pipeline::component_option zero_dm_type, bool enable_old_rfi>
 	class aa_permitted_pipelines_generic : public aa_pipeline_runner {
 	private:
+		TimeLog time_log;
 		float              ***m_output_buffer;
 		int                **t_processed; //This should be in ddtr_strategy
 		const aa_pipeline::pipeline          m_pipeline_components; /** The user requested pipeline that was bound to the aa_pipeline_api instance on construction. */
@@ -108,6 +110,7 @@ namespace astroaccelerate {
 		//Loop counter variables
 		int current_time_chunk;
 		aa_gpu_timer       m_timer;
+		aa_gpu_timer	   m_local_timer;
 
 		float  *m_d_MSD_workarea = NULL;
 		float  *m_d_MSD_interpolated = NULL;
@@ -118,7 +121,7 @@ namespace astroaccelerate {
 				LOG(log_level::debug, "DDTR -> Memory cleanup after de-dispersion");
 				cudaFree(d_DDTR_input);
 				cudaFree(d_DDTR_output);
-				
+			
 				if(do_single_pulse_detection){
 					cudaFree(m_d_MSD_workarea);
 					cudaFree(m_d_MSD_output_taps);
@@ -357,6 +360,7 @@ namespace astroaccelerate {
 				if (!did_notify_of_finishing_component) {
 					m_timer.Stop();
 					float time = m_timer.Elapsed() / 1000;
+					time_log.adding("DDTR", "total", m_timer.Elapsed());
 					printf("\n\n === OVERALL DEDISPERSION THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 					printf("\n(Performed Brute-Force Dedispersion: %g (GPU estimate)", time);
 					printf("\nAmount of telescope time processed: %f", tstart_local);
@@ -401,30 +405,45 @@ namespace astroaccelerate {
 			const int *ndms = m_ddtr_strategy.ndms_data();
 
 			//checkCudaErrors(cudaGetLastError());
+			m_local_timer.Start();
 			load_data(-1, inBin.data(), d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift, nchans, dmshifts);
+			m_local_timer.Stop();
+			time_log.adding("DDTR", "H2D", m_local_timer.Elapsed());
 			//checkCudaErrors(cudaGetLastError());
 			
 			//---> Zero DM
 			if (m_pipeline_options.find(opt_zero_dm) != m_pipeline_options.end()) {
 				printf("\nPerforming zero DM...");
+				m_local_timer.Start();
 				zero_dm(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift, nbits);
+				m_local_timer.Stop();
+				time_log.adding("DDTR", "Zero_DM", m_local_timer.Elapsed());
 			}
 			else if (m_pipeline_options.find(opt_zero_dm_with_outliers) != m_pipeline_options.end()) {
 				printf("\nPerforming zero dM with outliers...");
+				m_local_timer.Start();
 				zero_dm_outliers(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift);
+				m_local_timer.Stop();
+				time_log.adding("DDTR", "Zero_DM_outliers", m_local_timer.Elapsed());
 			}
 			//-------------------<
 
 			//checkCudaErrors(cudaGetLastError());
 
+			m_local_timer.Start();
 			corner_turn(d_DDTR_input, d_DDTR_output, nchans, t_processed[0][current_time_chunk] + maxshift);
+			m_local_timer.Stop();
+			time_log.adding("DDTR", "Corner_Turn", m_local_timer.Elapsed());
 
 			//checkCudaErrors(cudaGetLastError());
 
 			//---> old RFI
 			if (m_pipeline_options.find(opt_old_rfi) != m_pipeline_options.end()) {
 				printf("\nPerforming old GPU rfi...");
+				m_local_timer.Start();
 				rfi_gpu(d_DDTR_input, nchans, t_processed[0][current_time_chunk]+maxshift);
+				m_local_timer.Stop();
+				time_log.adding("DDTR", "RFI_GPU", m_local_timer.Elapsed());
 			}
 			//-------------------<
 
@@ -440,27 +459,39 @@ namespace astroaccelerate {
 				cudaDeviceSynchronize();
 				//checkCudaErrors(cudaGetLastError());
 
+				m_local_timer.Start();
 				load_data(dm_range, inBin.data(), d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[dm_range][current_time_chunk], maxshift, nchans, dmshifts);
+				m_local_timer.Stop();
+				time_log.adding("DDTR", "H2D",m_local_timer.Elapsed());
 
 				//checkCudaErrors(cudaGetLastError());
 
 
 				if (inBin[dm_range] > oldBin) {
+					m_local_timer.Start();
 					bin_gpu(d_DDTR_input, d_DDTR_output, nchans, t_processed[dm_range - 1][current_time_chunk] + maxshift * inBin[dm_range]);
 					(tsamp) = (tsamp) * 2.0f;
+					m_local_timer.Stop();
+					time_log.adding("DDTR", "Binning",m_local_timer.Elapsed());
 				}
 
 				//checkCudaErrors(cudaGetLastError());
 				
+				m_local_timer.Start();
 				dedisperse(dm_range, t_processed[dm_range][current_time_chunk], inBin.data(), dmshifts, d_DDTR_input, d_DDTR_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
+				m_local_timer.Stop();
+				time_log.adding("DDTR","dedispersion",m_local_timer.Elapsed());
 
 				//checkCudaErrors(cudaGetLastError());
 				
 				//-----------> Copy data to the host
 				if(do_copy_DDTR_data_to_host){
+					m_local_timer.Start();
 					for (int k = 0; k < ndms[dm_range]; k++) {
-						save_data_offset(d_DDTR_output, k * t_processed[dm_range][current_time_chunk], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][current_time_chunk]);
+					save_data_offset(d_DDTR_output, k * t_processed[dm_range][current_time_chunk], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][current_time_chunk]);
 					}
+					m_local_timer.Stop();
+					time_log.adding("DDTR", "D2H", m_local_timer.Elapsed());
 				}
 				//--------------------------------------------<
 				
@@ -544,6 +575,7 @@ namespace astroaccelerate {
 
 			timer.Stop();
 			float time = timer.Elapsed()/1000;
+			time_log.adding("Periodicity", "total", timer.Elapsed());
 			printf("\n\n === OVERALL PERIODICITY THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
 			printf("\nPerformed Periodicity Location: %f (GPU estimate)", time);
@@ -583,6 +615,7 @@ namespace astroaccelerate {
 
 			timer.Stop();
 			float time = timer.Elapsed()/1000;
+			time_log.adding("FDAS", "total", timer.Elapsed());
 			printf("\n\n === OVERALL TDAS THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
 			printf("\nPerformed Acceleration Location: %lf (GPU estimate)", time);
@@ -736,6 +769,12 @@ namespace astroaccelerate {
 
 				memory_cleanup = true;
 			}
+			
+			if (m_pipeline_options.find(aa_pipeline::component_option::timelog_export_to_file) != m_pipeline_options.end()) {
+				time_log.print_to_file();
+			}
+			time_log.print();
+			
 			return true;
 		}
 	

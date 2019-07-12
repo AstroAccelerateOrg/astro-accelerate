@@ -10,6 +10,7 @@
 #include "aa_params.hpp"
 
 #include "aa_log.hpp"
+#include "aa_timelog.hpp"
 #include "aa_device_BC_plan.hpp"
 #include "aa_device_peak_find.hpp"
 #include "aa_device_MSD_plane_profile.hpp"
@@ -133,6 +134,8 @@ namespace astroaccelerate {
     int nTimesamples = t_processed;
     int nDMs = ndms[i];
     int temp_peak_pos;
+
+    TimeLog time_log;
 	
     //--------> Benchmarking
     double total_time=0, MSD_time=0, SPDT_time=0, PF_time=0;
@@ -251,6 +254,7 @@ namespace astroaccelerate {
 	SPDT_search_long_MSD_plane(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD_interpolated, &PD_plan, max_iteration, nTimesamples, DM_list[f]);
 	timer.Stop();
 	SPDT_time += timer.Elapsed();
+	time_log.adding("SPD","SPDT",timer.Elapsed());
 #ifdef GPU_PARTIAL_TIMER
 	printf("    SPDT took:%f ms\n", timer.Elapsed());
 #endif
@@ -268,6 +272,7 @@ namespace astroaccelerate {
 	  SPDT_threshold(d_output_SNR, d_output_taps, d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW, gmem_peak_pos, cutoff, DM_list[f], nTimesamples, DM_shift, &PD_plan, max_iteration, local_max_list_size);
 	  timer.Stop();
 	  PF_time += timer.Elapsed();
+	  time_log.adding("SPD", "Threshold", timer.Elapsed());
 #ifdef GPU_PARTIAL_TIMER
 	  printf("    Thresholding took:%f ms\n", timer.Elapsed());
 #endif
@@ -279,6 +284,7 @@ namespace astroaccelerate {
 	  SPDT_peak_find(d_output_SNR, d_output_taps, d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW, DM_list[f], nTimesamples, cutoff, local_max_list_size, gmem_peak_pos, DM_shift, &PD_plan, max_iteration);
 	  timer.Stop();
 	  PF_time = timer.Elapsed();
+	  time_log.adding("SPD", "Peak_Find", timer.Elapsed());
 #ifdef GPU_PARTIAL_TIMER
 	  printf("    Peak finding took:%f ms\n", timer.Elapsed());
 #endif
@@ -403,6 +409,8 @@ namespace astroaccelerate {
 
     total_timer.Stop();
     total_time = total_timer.Elapsed();
+    time_log.adding("SPD", "total", total_time);
+    time_log.adding("SPD", "MSD", MSD_time);
 #ifdef GPU_TIMER
     printf("\n  TOTAL TIME OF SPS:%f ms\n", total_time);
     printf("  MSD_time: %f ms; SPDT time: %f ms; Candidate selection time: %f ms;\n", MSD_time, SPDT_time, PF_time);
