@@ -9,52 +9,67 @@
 #include "aa_ddtr_plan.hpp"
 #include "aa_ddtr_strategy.hpp"
 #include "aa_filterbank_metadata.hpp"
-#include "aa_permitted_pipelines_1.hpp"
+#include "aa_sigproc_input.hpp"
+#include "aa_permitted_pipelines_generic.hpp"
+#include "aa_pipeline_api.hpp"
+#include "aa_device_info.hpp"
 
 using namespace astroaccelerate;
 
 int main() {
-  aa_ddtr_plan ddtr_plan;
-  ddtr_plan.add_dm(0, 370, 0.307, 1, 1); // Add dm_ranges: dm_low, dm_high, dm_step, inBin, outBin (unused).
-  ddtr_plan.add_dm(370, 740, 0.652, 1, 1);
-  ddtr_plan.add_dm(740, 1480, 1.266, 4, 4);
-  ddtr_plan.add_dm(1480, 2950, 25.12, 8, 8);
-  ddtr_plan.add_dm(2950, 5000, 4.000, 16, 16);
+	//-------------- Select de-dispersion plan
+	aa_ddtr_plan ddtr_plan;
+	ddtr_plan.add_dm(0, 370, 0.307, 1, 1); // Add dm_ranges: dm_low, dm_high, dm_step, inBin, outBin (unused).
+	ddtr_plan.add_dm(370, 740, 0.652, 1, 1);
+	ddtr_plan.add_dm(740, 1480, 1.266, 4, 4);
+	ddtr_plan.add_dm(1480, 2950, 25.12, 8, 8);
+	ddtr_plan.add_dm(2950, 5000, 4.000, 16, 16);
+	//--------------<
+	
+	// Filterbank metadata
+	aa_sigproc_input filterbank_datafile("/home/novotny/filterbank/aa_test_file_dm90_snr10_w064_tobs30.fil");
+	aa_filterbank_metadata metadata = filterbank_datafile.read_metadata();
+	filterbank_datafile.read_signal();
 
-  // Filterbank metadata
-  // (Data description from "SIGPROC-v3.7 (Pulsar) Signal Processing Programs")
-  const double tstart = 50000;
-  const double tsamp = 6.4E-5;
-  const double nbits = 8;
-  const double nsamples = 937984;
-  const double fch1 = 1564;
-  const double foff = -0.208984;
-  const double nchans = 2048;
-  
-  aa_filterbank_metadata metadata(tstart, tsamp, nbits, nsamples, fch1, foff, nchans);
-  
-  const size_t free_memory = 2147483648; // Free memory on the GPU in bytes
-  bool enable_analysis = false;       // The strategy will be optimised to run just dedispersion
-  aa_ddtr_strategy strategy(ddtr_plan, metadata, free_memory, enable_analysis);
-  
-  if(!(strategy.ready())) {
-    std::cout << "There was an error" << std::endl;
-    return 0;
-  }
+	aa_device_info& device_info = aa_device_info::instance();
+	aa_device_info::CARD_ID selected_card_number = 0;
+	aa_device_info::aa_card_info selected_card_info; 
+        device_info.init_card(selected_card_number, selected_card_info);
 
-  std::vector<unsigned short> input_data(nsamples*nchans);
+	//-------------- Configure pipeline. Select components and their options
+	aa_pipeline::pipeline pipeline_components;
+	pipeline_components.insert(aa_pipeline::component::dedispersion); // pipeline must always contain dedispersion step
+        //pipeline_components.insert(aa_pipeline::component::analysis); //optional
+        //pipeline_components.insert(aa_pipeline::component::periodicity); // optional
+        //pipeline_components.insert(aa_pipeline::component::fdas); // optional
+	
+        aa_pipeline::pipeline_option pipeline_options;
+        pipeline_options.insert(aa_pipeline::component_option::zero_dm);
+	//insert option to copy the DDTR output data from GPU memory to the host memory
+	//do not insert this option if the output is not needed
+	pipeline_options.insert(aa_pipeline::component_option::copy_ddtr_data_to_host);
+	//--------------<
+	
+	aa_pipeline_api<unsigned short> pipeline_runner(pipeline_components, pipeline_options, metadata, filterbank_datafile.input_buffer().data(), selected_card_info);
+	pipeline_runner.bind(ddtr_plan);
 
-  for(auto &i : input_data) {
-    i = 0.0;
-  }
-  
-  aa_permitted_pipelines_1<aa_pipeline::component_option::zero_dm, false> runner(strategy, input_data.data());
-  if(runner.setup()) {
-    while(runner.next(true)) {
-      std::cout << "NOTICE: Pipeline running over next chunk." << std::endl;
-    }
-  }
-  
-  std::cout << "NOTICE: Finished." << std::endl;
-  return 0;
+        if (pipeline_runner.ready()) {
+                LOG(log_level::notice, "Pipeline is ready.");
+        }
+        else {
+                LOG(log_level::notice, "Pipeline is not ready.");
+        }
+
+	//------------- Run the pipeline
+	aa_pipeline_runner::status status_code;
+	while(pipeline_runner.run(status_code)){
+	}
+	//-------------<
+	
+	float ***ddtr_output;
+	ddtr_output = pipeline_runner.output_buffer();
+
+	std::cout << "NOTICE: Finished." << std::endl;
+
+	return 0;
 }

@@ -195,6 +195,7 @@ namespace astroaccelerate {
 				//Is the ddtr_strategy provided by this analysis_plan ready?
 				if (!plan.ddtr_strategy().ready()) {
 					//This ddtr_strategy is not ready, so ignore this analysis_plan.
+					printf("Not ready the strategy\n");
 					return false;
 				}
 
