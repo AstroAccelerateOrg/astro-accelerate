@@ -9,8 +9,8 @@ if (sys.version_info < (3, 0)):
     sys.exit()
 from py_astro_accelerate import *
 
-# Open filterbank file for reading metadata and signal data
-sigproc_input = aa_py_sigproc_input("/home/novotny/filterbank/ska-mid-b2-small.fil")
+# Open filterbank file for reading metadata and signal data (please provide your filterbank file0)
+sigproc_input = aa_py_sigproc_input("<input_some_filterbank_data.fil>")
 metadata = sigproc_input.read_metadata()
 if not sigproc_input.read_signal():
     print("ERROR: Invalid .fil file path. Exiting...")
@@ -20,9 +20,9 @@ input_buffer = sigproc_input.input_buffer()
 # ddtr_plan settings
 # settings: low, high, step, inBin, outBin.
 dm1 = aa_py_dm(0, 370, 0.307, 1, 1)
-#dm2 = aa_py_dm(370, 740, 0.652, 2, 2)
-#dm3 = aa_py_dm(740, 1480, 1.266, 4, 4)
-dm_list = np.array([dm1], dtype=aa_py_dm)
+dm2 = aa_py_dm(370, 740, 0.652, 2, 2)
+dm3 = aa_py_dm(740, 1480, 1.266, 4, 4)
+dm_list = np.array([dm1, dm2, dm3], dtype=aa_py_dm)
 power = 2.0
 enable_msd_baseline_noise=False
 

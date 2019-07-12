@@ -102,7 +102,7 @@ while (pipeline.run()):
         break
 
 # Get the data of DDTR to python
-ddtr_output = pipeline.get_buffer()
+(ts_inc, ddtr_output) = pipeline.get_buffer()
 
 for pos_range in range(pipeline.ddtr_range()):
     list_ndms = pipeline.ddtr_ndms()

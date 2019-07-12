@@ -63,20 +63,16 @@ namespace astroaccelerate {
 	return new aa_ddtr_strategy(obj->ddtr_strategy());
       }
 
-      size_t aa_py_ddtr_range(aa_pipeline_api<unsigned short> *const obj){
-	      return  obj->range();
+      size_t aa_py_get_ddtr_nRanges(aa_pipeline_api<unsigned short> *const obj){
+	      return  obj->get_nRanges();
       }
 
-      const int* aa_py_ndms(aa_pipeline_api<unsigned short> *const obj){
-	      return obj->ndms_data();
+      const int* aa_py_get_ndms_array(aa_pipeline_api<unsigned short> *const obj){
+	      return obj->get_ndms_array();
       }
 
       int aa_py_dm_low(aa_pipeline_api<unsigned short> *const obj, const int range){
 	      return obj->dm_low(range);
-      }
-
-      int aa_py_tprocessed(aa_pipeline_api<unsigned short> *const obj){
-	      return obj->tprocessed();
       }
 
       bool aa_py_pipeline_api_bind_analysis_plan(aa_pipeline_api<unsigned short> *const obj, aa_analysis_plan const*const plan) {

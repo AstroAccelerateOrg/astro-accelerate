@@ -427,19 +427,15 @@ class aa_py_pipeline():
         print("ddtr_strategy")
 
     def ddtr_range(self):
-        lib.aa_py_ddtr_range.argtypes = [ctypes.c_void_p]
-        lib.aa_py_ddtr_range.restype = ctypes.c_size_t
+        lib.aa_py_get_ddtr_nRanges.argtypes = [ctypes.c_void_p]
+        lib.aa_py_get_ddtr_nRanges.restype = ctypes.c_size_t
         print("range")
-        return lib.aa_py_ddtr_range(self.m_obj)
+        return lib.aa_py_get_ddtr_nRanges(self.m_obj)
 
     def ddtr_ndms(self):
 #        lib.aa_py_ndms.argtypes = [ctypes.c_void_p]
-        lib.aa_py_ndms.restype = ctypes.POINTER(ctypes.c_int)
-        return lib.aa_py_ndms(self.m_obj)
-
-    def ddtr_tprocessed(self):
-        lib.aa_py_tprocessed.restype = ctypes.c_int
-        return lib.aa_py_tprocessed(self.m_obj)
+        lib.aa_py_get_ndms_array.restype = ctypes.POINTER(ctypes.c_int)
+        return lib.aa_py_get_ndms_array(self.m_obj)
 
     def bind_analysis_plan(self, plan: aa_py_analysis_plan):
         lib.aa_py_pipeline_api_ddtr_strategy.argtypes = [ctypes.c_void_p]
@@ -527,7 +523,10 @@ class aa_py_pipeline():
     def get_buffer(self):
         #lib.my_class_get_buffer.argtypes = [ctypes.c_void_p]
         lib.aa_py_buffer.restype = PPPFLOAT
-        return lib.aa_py_buffer(self.m_obj)
+        lib.aa_py_current_inc.restype = ctypes.c_long
+        ddtr_output_pointer = lib.aa_py_buffer(self.m_obj)
+        tprocessed = lib.aa_py_current_inc(self.m_obj)
+        return tprocessed, ddtr_output_pointer
 
     def dm_low(self, pos: int):
         lib.aa_py_dm_low.argtypes = [ctypes.c_int]

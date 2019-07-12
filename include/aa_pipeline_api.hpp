@@ -338,16 +338,12 @@ namespace astroaccelerate {
 			}
 		}
 
-		size_t range(){
-			return m_ddtr_strategy.range();
+		size_t get_nRanges(){
+			return m_ddtr_strategy.get_nRanges();
 		}
 
-		const int* ndms_data(){
+		const int* get_ndms_array(){
 			return m_ddtr_strategy.ndms_data();
-		}
-
-		int tprocessed(){
-			return m_ddtr_strategy.t_samples();
 		}
 
 		int dm_low(const int range){

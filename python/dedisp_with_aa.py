@@ -72,7 +72,7 @@ while (pipeline.run()):
         break
 
 # Get the data of DDTR to python
-a = pipeline.get_buffer()
+(ts_inc, ddtr_output) = pipeline.get_buffer()
 
 for pos_range in range(pipeline.ddtr_range()):
     list_ndms = pipeline.ddtr_ndms()
@@ -85,7 +85,7 @@ for pos_range in range(pipeline.ddtr_range()):
         nsamp_for_range = int(ts_inc/downsamps[pos_range])
         header.information_file(filename,nsamp_for_range, DM, downsamps[pos_range], metadata)
         for samples_pos in range(nsamp_for_range):
-            newfile.write(struct.pack('f',a[pos_range][n_dms][samples_pos]*downsamps[pos_range]))
+            newfile.write(struct.pack('f',ddtr_output[pos_range][n_dms][samples_pos]*downsamps[pos_range]))
 
 if pipeline.status_code() == -1:
     print("ERROR: Pipeline status code is {}. The pipeline encountered an error and cannot continue.".format(pipeline.status_code()))
