@@ -483,15 +483,6 @@ class aa_py_pipeline():
         api_return_value = lib.aa_py_pipeline_api_run(self.m_obj, self.m_status_code_c_int)
         return ctypes.c_bool(api_return_value).value
 
-    def run2(self, test: bool):
-        lib.aa_py_pipeline_api_run2.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_int)]
-        lib.aa_py_pipeline_api_run2.restype = ctypes.c_bool
-        self.m_status_code_c_int = ctypes.c_int()
-#        self.m_test = ctypes.POINTER(analysis_output())
-        self.m_test = ctypes.c_float()
-        api_return_value = lib.aa_py_pipeline_api_run2(self.m_obj, self.m_test, self.m_status_code_c_int)
-        return ctypes.c_bool(api_return_value).value
-
     ## \brief Status code of the pipeline that is available after each callback. #
     def status_code(self):
         return self.m_status_code_c_int.value

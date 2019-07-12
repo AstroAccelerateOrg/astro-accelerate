@@ -13,7 +13,7 @@ if (sys.version_info < (3, 0)):
 from py_astro_accelerate import *
 
 # Open filterbank file for reading metadata and signal data (please provide your filterbank file0)
-sigproc_input = aa_py_sigproc_input("/home/novotny/filterbank/aa_test_file_dm90_snr10_w064_tobs30.fil")
+sigproc_input = aa_py_sigproc_input("<input_some_filterbank_data.fil>")
 metadata = sigproc_input.read_metadata()
 if not sigproc_input.read_signal():
     print("ERROR: Invalid .fil file path. Exiting...")
