@@ -19,7 +19,6 @@ namespace astroaccelerate {
       cudaMemcpy(device_pointer, host_pointer, size, cudaMemcpyHostToDevice);
       //checkCudaErrors(cudaGetLastError());
       if(nchans>8192) {
-		  printf("Copy dm_shifts to the device\n");
 			cudaMemcpy(d_dm_shifts, dmshifts, nchans*sizeof(float), cudaMemcpyHostToDevice);
 	  }
 	  set_device_constants_dedispersion_kernel(nchans, length, t_processed, dmshifts);

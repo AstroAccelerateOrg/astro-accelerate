@@ -201,36 +201,6 @@ namespace astroaccelerate {
       }
   }
 
-  __global__ void cache_dedisperse_kernel(int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep) {
-    int   shift;	
-    float local_kernel;
-
-    int t  = blockIdx.x * SDIVINT  + threadIdx.x;
-	
-    // Initialise the time accumulators
-    local_kernel = 0.0f;
-
-    float shift_temp = mstartdm + ((blockIdx.y * SDIVINDM + threadIdx.y) * mdmstep);
-	
-    // Loop over the frequency channels.
-    for(int c = 0; c < i_nchans; c++) {
-
-
-      // Calculate the initial shift for this given frequency
-      // channel (c) at the current despersion measure (dm) 
-      // ** dm is constant for this thread!!**
-      shift = (c * (i_nsamp) + t) + __float2int_rz (dm_shifts[c] * shift_temp);
-		
-      local_kernel += (float)__ldg(&d_input[shift]);
-    }
-
-    // Write the accumulators to the output array. 
-    shift = ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + t;
-
-    d_output[shift] = (local_kernel / i_nchans / bin);
-
-  }
-
   
 	__global__ void shared_dedisperse_kernel_16_nchan8192p(int bin, unsigned short *d_input, float *d_output, float *d_dm_shifts, float mstartdm, float mdmstep) {
 		int i, c;
@@ -288,7 +258,66 @@ namespace astroaccelerate {
 	}
 
   
+  __global__ void cache_dedisperse_kernel(int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep) {
+    int   shift;	
+    float local_kernel;
+
+    int t  = blockIdx.x * SDIVINT  + threadIdx.x;
+	
+    // Initialise the time accumulators
+    local_kernel = 0.0f;
+
+    float shift_temp = mstartdm + ((blockIdx.y * SDIVINDM + threadIdx.y) * mdmstep);
+	
+    // Loop over the frequency channels.
+    for(int c = 0; c < i_nchans; c++) {
+
+
+      // Calculate the initial shift for this given frequency
+      // channel (c) at the current despersion measure (dm) 
+      // ** dm is constant for this thread!!**
+      shift = (c * (i_nsamp) + t) + __float2int_rz (dm_shifts[c] * shift_temp);
+		
+      local_kernel += (float)__ldg(&d_input[shift]);
+    }
+
+    // Write the accumulators to the output array. 
+    shift = ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + t;
+
+    d_output[shift] = (local_kernel / i_nchans / bin);
+
+  }
+
   
+	__global__ void cache_dedisperse_kernel_nchan8192p(int bin, unsigned short *d_input, float *d_output, float *d_dm_shifts, float mstartdm, float mdmstep) {
+		int   shift;	
+		float local_kernel;
+
+		int t  = blockIdx.x * SDIVINT  + threadIdx.x;
+	
+		// Initialise the time accumulators
+		local_kernel = 0.0f;
+
+		float shift_temp = mstartdm + ((blockIdx.y * SDIVINDM + threadIdx.y) * mdmstep);
+	
+		// Loop over the frequency channels.
+		for(int c = 0; c < i_nchans; c++) {
+			// Calculate the initial shift for this given frequency
+			// channel (c) at the current despersion measure (dm) 
+			// ** dm is constant for this thread!!**
+			shift = (c * (i_nsamp) + t) + __float2int_rz (d_dm_shifts[c]*shift_temp);
+			
+			local_kernel += (float)__ldg(&d_input[shift]);
+		}
+
+		// Write the accumulators to the output array. 
+		shift = ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + t;
+
+		d_output[shift] = (local_kernel / i_nchans / bin);
+  }
+ 
+
+	//-------------------------------- wrapper functions
   
   /** \brief Kernel wrapper function to set device constants for dedispersion_kernel kernel function. */
   void set_device_constants_dedispersion_kernel(const int &nchans, const int &length, const int &t_processed, const float *const dmshifts) {
@@ -338,5 +367,11 @@ namespace astroaccelerate {
     cudaFuncSetCacheConfig(cache_dedisperse_kernel, cudaFuncCachePreferL1);
     cache_dedisperse_kernel<<<block_size, grid_size>>>(bin, d_input, d_output, mstartdm, mdmstep);
   }
+  
+	/** \brief Kernel wrapper function for cache_dedisperse_kernel kernel function. */
+	void call_kernel_cache_dedisperse_kernel_nchan8192p(const dim3 &block_size, const dim3 &grid_size, const int &bin, unsigned short *const d_input, float *const d_output, float *const d_dm_shifts, const float &mstartdm, const float &mdmstep) {
+		cudaFuncSetCacheConfig(cache_dedisperse_kernel_nchan8192p, cudaFuncCachePreferL1);
+		cache_dedisperse_kernel_nchan8192p<<<block_size, grid_size>>>(bin, d_input, d_output, d_dm_shifts, mstartdm, mdmstep);
+	}
 
 } //namespace astroaccelerate
