@@ -1,6 +1,9 @@
+#!/usr/bin/env python3
 ##
 # @package use_python use_python.py
 #
+
+from __future__ import print_function
 
 # Check Python version on this machine
 import sys

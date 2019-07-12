@@ -1,6 +1,9 @@
+#!/usr/bin/env python3
 ##
 # @package use_python use_python.py
 #
+
+from __future__ import print_function
 
 # Check Python version on this machine
 import sys
@@ -10,7 +13,7 @@ if (sys.version_info < (3, 0)):
 from py_astro_accelerate import *
 
 # Open filterbank file for reading metadata and signal data (please provide your filterbank file0)
-sigproc_input = aa_py_sigproc_input("<input_some_filterbank_data.fil>")
+sigproc_input = aa_py_sigproc_input("/home/novotny/filterbank/aa_test_file_dm90_snr10_w064_tobs30.fil")
 metadata = sigproc_input.read_metadata()
 if not sigproc_input.read_signal():
     print("ERROR: Invalid .fil file path. Exiting...")
@@ -80,13 +83,11 @@ pipeline.bind_analysis_plan(analysis_plan)
 pipeline.bind_periodicity_plan(periodicity_plan)
 pipeline.bind_fdas_plan(fdas_plan)
 
-chunk = 0
 while (pipeline.run()):
     print("NOTICE: Python script running over next chunk")
     if pipeline.status_code() == 1:      
-        chunk += 1
-        (nCandidates, dm, ts, snr, width)=pipeline.get_candidates()
-        SPD.write_candidates("test", chunk, metadata, nCandidates, dm, ts, snr, width)
+        #this is the example hot to get SPD candidates to the python
+        (nCandidates, dm, ts, snr, width, c_range, c_tchunk, ts_inc)=pipeline.get_candidates()
     if pipeline.status_code() == -1:
         print("ERROR: Pipeline status code is {}. The pipeline encountered an error and cannot continue.".format(pipeline.status_code()))
         break
