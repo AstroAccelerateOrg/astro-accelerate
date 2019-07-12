@@ -338,6 +338,18 @@ namespace astroaccelerate {
 			}
 		}
 
+		size_t get_nRanges(){
+			return m_ddtr_strategy.get_nRanges();
+		}
+
+		const int* get_ndms_array(){
+			return m_ddtr_strategy.ndms_data();
+		}
+
+		int dm_low(const int range){
+			return m_ddtr_strategy.dm(range).low;
+		}
+
 		/** \returns The aa_analysis_strategy instance bound to the pipeline instance, or a trivial instance if a valid aa_analysis_strategy does not yet exist. */
 		aa_analysis_strategy analysis_strategy() {
 			//Does the pipeline actually need this strategy? 
@@ -993,6 +1005,7 @@ namespace astroaccelerate {
 			 * the base class must provide a method for it.
 			 */
 			if (pipeline_ready && m_runner->setup()) {
+				printf("Running run with status code.\n");
 				LOG(log_level::notice, "Pipeline running over next chunk.");
 				return m_runner->next(status_code);
 			}
@@ -1002,6 +1015,52 @@ namespace astroaccelerate {
 				return false;
 			}
 		}
+
+
+		float* h_SPD_snr(){
+			return m_runner->h_SPD_snr();
+		}
+
+		unsigned int* h_SPD_dm(){
+			return m_runner->h_SPD_dm();
+		}	
+
+		unsigned int* h_SPD_width(){
+			return m_runner->h_SPD_width();
+		}	
+
+		unsigned int* h_SPD_ts(){
+			return m_runner->h_SPD_ts();
+		}	
+
+		size_t SPD_nCandidates(){
+			return m_runner->get_SPD_nCandidates();
+		}
+
+		int get_current_range(){
+			return m_runner->get_current_range();
+		}
+
+		int get_current_tchunk(){
+			return m_runner->get_current_tchunk();
+		}
+
+		long int get_current_inc(){
+			return m_runner->get_current_inc();
+		}
+
+		float ***output_buffer(){
+			/**
+			 * \brief Return the output of the DDTR. 
+			 */
+			if (m_pipeline_options.find(aa_pipeline::component_option::copy_ddtr_data_to_host) != m_pipeline_options.end()) {
+				return m_runner->output_buffer();
+			}
+			else {
+				LOG(log_level::error, "Could not get data from DDTR. The data are not copied from GPU memory to host memory. Enable option copy_DDTR_data_to_host.");
+				return m_runner->output_buffer();
+			}
+		}		
 
 		/**
 		 * \brief Function pass input/output data from one aa_pipeline_api instance to another.
@@ -1021,3 +1080,4 @@ namespace astroaccelerate {
 } // namespace astroaccelerate
 
 #endif // ASTRO_ACCELERATE_AA_PIPELINE_API_HPP
+

@@ -21,6 +21,7 @@ namespace astroaccelerate {
 	int m_nbits;
 	int m_nsamples;
 	int m_nchans;
+	double m_src_raj;
       };
       
       aa_py_filterbank_metadata_struct* aa_py_filterbank_metadata(const double tstart,
@@ -29,7 +30,8 @@ namespace astroaccelerate {
 								  const int nsamples,
 								  const double fch1,
 								  const double foff,
-								  const int nchans);
+								  const int nchans,
+								  const double src_raj);
       
       void aa_py_filterbank_metadata_delete(aa_py_filterbank_metadata_struct const*const obj);
     

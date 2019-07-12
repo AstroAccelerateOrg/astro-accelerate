@@ -1,6 +1,9 @@
+#!/usr/bin/env python3
 ##
 # @package use_python use_python.py
 #
+
+from __future__ import print_function
 
 # Check Python version on this machine
 import sys
@@ -9,7 +12,7 @@ if (sys.version_info < (3, 0)):
     sys.exit()
 from py_astro_accelerate import *
 
-# Open filterbank file for reading metadata and signal data
+# Open filterbank file for reading metadata and signal data (please provide your filterbank file0)
 sigproc_input = aa_py_sigproc_input("<input_some_filterbank_data.fil>")
 metadata = sigproc_input.read_metadata()
 if not sigproc_input.read_signal():
@@ -35,7 +38,7 @@ ddtr_plan.print_info()
 sigma_cutoff = 6
 sigma_constant = 4.0
 max_boxcar_width_in_sec = 0.05
-candidate_algorithm = False
+candidate_algorithm = True
 enable_msd_baseline_noise = False
 
 analysis_plan = aa_py_analysis_plan(sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, candidate_algorithm, enable_msd_baseline_noise)
@@ -53,12 +56,12 @@ fdas_plan = aa_py_fdas_plan(sigma_cutoff, sigma_constant, enable_msd_baseline_no
 pipeline_components = aa_py_pipeline_components()
 pipeline_components.dedispersion = True
 pipeline_components.analysis = True
-pipeline_components.periodicity = True
-pipeline_components.fdas = True
+pipeline_components.periodicity = False
+pipeline_components.fdas = False
 
 # Set up pipeline component options
 pipeline_options = aa_py_pipeline_component_options()
-pipeline_options.zero_dm = True
+pipeline_options.zero_dm = False
 pipeline_options.zero_dm_with_outliers = False
 pipeline_options.old_rfi = False
 pipeline_options.msd_baseline_noise = enable_msd_baseline_noise
@@ -82,6 +85,9 @@ pipeline.bind_fdas_plan(fdas_plan)
 
 while (pipeline.run()):
     print("NOTICE: Python script running over next chunk")
+    if pipeline.status_code() == 1:      
+        #this is the example hot to get SPD candidates to the python
+        (nCandidates, dm, ts, snr, width, c_range, c_tchunk, ts_inc)=pipeline.get_candidates()
     if pipeline.status_code() == -1:
         print("ERROR: Pipeline status code is {}. The pipeline encountered an error and cannot continue.".format(pipeline.status_code()))
         break

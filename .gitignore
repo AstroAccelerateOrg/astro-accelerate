@@ -25,6 +25,11 @@ output/
 *.new
 *.ori
 *.dat
+*.inf
+*.fil
+*.singlepulse
+*.sub*
+*.fft
 
 out.txt
 include/aa_version.hpp
