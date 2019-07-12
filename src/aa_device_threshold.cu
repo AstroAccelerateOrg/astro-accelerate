@@ -1,7 +1,7 @@
 //Added by Karel Adamek
 //#define THRESHOLD_DEBUG
 
-#include <helper_cuda.h>
+#include <stdio.h>
 #include "aa_device_threshold.hpp"
 #include "aa_device_BC_plan.hpp"
 
@@ -47,7 +47,7 @@ namespace astroaccelerate {
 			
 	call_kernel_THR_GPU_WARP(gridSize, blockSize, &d_input[output_offset], &d_input_taps[output_offset], d_output_list_DM, d_output_list_TS, d_output_list_SNR, d_output_list_BW, gmem_pos, threshold, decimated_timesamples, decimated_timesamples-local_offset, shift, max_list_size, (1<<f));
 			
-	checkCudaErrors(cudaGetLastError());
+	//checkCudaErrors(cudaGetLastError());
       }
     }
 
@@ -81,7 +81,7 @@ namespace astroaccelerate {
     THR_init();
     call_kernel_GPU_Threshold_for_periodicity_kernel_old(gridSize, blockSize, d_input, d_input_harms, d_output_list, gmem_pos, d_MSD, threshold, primary_size, secondary_size, DM_shift, max_list_size, inBin);
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 
     return (0);
   }
@@ -138,7 +138,7 @@ namespace astroaccelerate {
 	
       call_kernel_GPU_Threshold_for_periodicity_kernel(gridSize, blockSize, &d_input[shift*primary_size], d_input_harms, d_output_list, gmem_pos, d_MSD, threshold, primary_size, secondary_size_per_chunk[f], DM_shift, max_list_size, inBin);
 	
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
       shift = shift + secondary_size_per_chunk[f];
     }
 

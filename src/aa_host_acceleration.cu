@@ -2,12 +2,14 @@
 #include <stdlib.h>
 #include <cufft.h>
 #include <time.h>
+#include <string>
+
+#include "aa_log.hpp"
 #include "aa_params.hpp"
 #include "aa_device_stats.hpp"
 #include "aa_device_stretch.hpp"
 #include "aa_device_set_stretch.hpp"
 #include "aa_device_power.hpp"
-#include <helper_cuda.h>
 
 namespace astroaccelerate {
 
@@ -62,73 +64,129 @@ namespace astroaccelerate {
       float* d_signal_in_e;
       size = samps * sizeof(float);
       printf("\nSize of GPU input signal:\t%zu MB", size / 1024 / 1024);
-      checkCudaErrors(cudaMalloc((void** )&d_signal_in_e, size));
+      cudaError_t e = cudaMalloc((void** )&d_signal_in_e, size);
+
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMalloc in aa_host_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
 
       float* d_signal_transformed_e;
       size = samps * sizeof(float);
       printf("\nSize of GPU stretched signal:\t%zu MB", size / 1024 / 1024);
-      checkCudaErrors(cudaMalloc((void** )&d_signal_transformed_e, size));
+      e = cudaMalloc((void** )&d_signal_transformed_e, size);
 
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMalloc in aa_host_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
+      
       cufftComplex* d_signal_fft_e;
       size = ( samps / 2 + 1 ) * sizeof(cufftComplex);
       printf("\nSize of GPU output signal:\t%zu MB", size / 1024 / 1024);
-      checkCudaErrors(cudaMalloc((void** )&d_signal_fft_e, size));
+      e = cudaMalloc((void** )&d_signal_fft_e, size);
+
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMalloc in aa_host_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
 
       float* d_signal_power_e;
       size = sizeof(float) * ( samps / 2 ) * ( 2 * ACCMAX + ACCSTEP ) / ACCSTEP;
       printf("\nSize of GPU power signal:\t%zu MB", size / 1024 / 1024);
-      checkCudaErrors(cudaMalloc((void** )&d_signal_power_e, size));
+      e = cudaMalloc((void** )&d_signal_power_e, size);
+
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMalloc in aa_host_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
 
       float2* h_signal_e;
       size = ( samps ) * sizeof(float2);
       printf("\nSize of host output signal:\t%zu MB", size / 1024 / 1024);
-      checkCudaErrors(cudaMallocHost((void** )&h_signal_e, size));
+      e = cudaMallocHost((void** )&h_signal_e, size);
+
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMalloc in aa_host_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
 
       float* h_signal_transformed_e;
       size = samps * sizeof(float);
       printf("\nSize of GPU stretched signal:\t%zu MB", size / 1024 / 1024);
-      checkCudaErrors(cudaMallocHost((void** )&h_signal_transformed_e, size));
+      e = cudaMallocHost((void** )&h_signal_transformed_e, size);
+
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMalloc in aa_host_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
 
       float* h_signal_power_e;
       size = sizeof(float) * ( samps / 2 ) * ( 2 * ACCMAX + ACCSTEP ) / ACCSTEP;
       printf("\nSize of total host power signal:\t%zu MB", size / 1024 / 1024), fflush(stdout);
-      checkCudaErrors(cudaMallocHost((void** )&h_signal_power_e, size));
+      e = cudaMallocHost((void** )&h_signal_power_e, size);
+
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMalloc in aa_host_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
 
       // Allocate memory for signal odd
       float* d_signal_in_o;
       size = samps * sizeof(float);
       printf("\nSize of GPU input signal:\t%zu MB", size / 1024 / 1024);
-      checkCudaErrors(cudaMalloc((void** )&d_signal_in_o, size));
+      e = cudaMalloc((void** )&d_signal_in_o, size);
+
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMalloc in aa_host_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
 
       float* d_signal_transformed_o;
       size = samps * sizeof(float);
       printf("\nSize of GPU stretched signal:\t%zu MB", size / 1024 / 1024);
-      checkCudaErrors(cudaMalloc((void** )&d_signal_transformed_o, size));
+      e = cudaMalloc((void** )&d_signal_transformed_o, size);
+
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMalloc in aa_host_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
 
       cufftComplex* d_signal_fft_o;
       size = ( samps / 2 + 1 ) * sizeof(cufftComplex);
       printf("\nSize of GPU output signal:\t%zu MB", size / 1024 / 1024);
-      checkCudaErrors(cudaMalloc((void** )&d_signal_fft_o, size));
+      e = cudaMalloc((void** )&d_signal_fft_o, size);
+
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMalloc in aa_host_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
 
       float* d_signal_power_o;
       size = sizeof(float) * ( samps / 2 ) * ( 2 * ACCMAX + ACCSTEP ) / ACCSTEP;
       printf("\nSize of GPU power signal:\t%zu MB", size / 1024 / 1024);
-      checkCudaErrors(cudaMalloc((void** )&d_signal_power_o, size));
+      e = cudaMalloc((void** )&d_signal_power_o, size);
+
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMalloc in aa_host_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
 
       float2* h_signal_o;
       size = ( samps ) * sizeof(float2);
       printf("\nSize of host output signal:\t%zu MB", size / 1024 / 1024);
-      checkCudaErrors(cudaMallocHost((void** )&h_signal_o, size));
+      e = cudaMallocHost((void** )&h_signal_o, size);
+
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMalloc in aa_host_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
 
       float* h_signal_transformed_o;
       size = samps * sizeof(float);
       printf("\nSize of GPU stretched signal:\t%zu MB", size / 1024 / 1024);
-      checkCudaErrors(cudaMallocHost((void** )&h_signal_transformed_o, size));
+      e = cudaMallocHost((void** )&h_signal_transformed_o, size);
+
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMalloc in aa_host_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
 
       float* h_signal_power_o;
       size = sizeof(float) * ( samps / 2 ) * ( 2 * ACCMAX + ACCSTEP ) / ACCSTEP;
       printf("\nSize of total host power signal:\t%zu MB", size / 1024 / 1024), fflush(stdout);
-      checkCudaErrors(cudaMallocHost((void** )&h_signal_power_o, size));
+      e = cudaMallocHost((void** )&h_signal_power_o, size);
+
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMalloc in aa_host_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
 
       // CUFFT plan even
       cufftHandle plan_e;
@@ -144,7 +202,12 @@ namespace astroaccelerate {
 
       // Transfer even memory asynchronously
       //TEST:checkCudaErrors(cudaMemcpyAsync(d_signal_in_e, output_buffer[i][230],   samps*sizeof(float), cudaMemcpyHostToDevice, stream_e));
-      checkCudaErrors(cudaMemcpyAsync(d_signal_in_e, output_buffer[i][0], samps * sizeof(float), cudaMemcpyHostToDevice, stream_e));
+      e = cudaMemcpyAsync(d_signal_in_e, output_buffer[i][0], samps * sizeof(float), cudaMemcpyHostToDevice, stream_e);
+
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMalloc in aa_host_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
+      
       cudaEventRecord(event_e, stream_e);
 
       // Cacluclate even dm
@@ -155,14 +218,24 @@ namespace astroaccelerate {
 	  set_stretch_gpu(event_e, stream_e, samps, mean, d_signal_transformed_e);
 	  stretch_gpu(event_e, stream_e, acc, samps, tsamp, d_signal_in_e, d_signal_transformed_e);
 	  cudaStreamWaitEvent(stream_e, event_e, 0);
-	  checkCudaErrors(cufftExecR2C(plan_e, (float * )d_signal_transformed_e, (cufftComplex * )d_signal_fft_e));
+	  cufftResult e = cufftExecR2C(plan_e, (float * )d_signal_transformed_e, (cufftComplex * )d_signal_fft_e);
+
+	  if(e != CUFFT_SUCCESS) {
+	    LOG(log_level::error, "Could not cufftExecR2C in aa_host_acceleration.cu");
+	  }
+	  
 	  power_gpu(event_e, stream_e, samps, a, d_signal_fft_e, d_signal_power_e);
 	}
 
       for (int dm_count = 1; dm_count < ndms[i] - 1; dm_count += 2)
 	{
 	  cudaStreamWaitEvent(stream_o, event_o, 0);
-	  checkCudaErrors(cudaMemcpyAsync(d_signal_in_o, output_buffer[i][dm_count], samps * sizeof(float), cudaMemcpyHostToDevice, stream_o));
+	  cudaError_t e = cudaMemcpyAsync(d_signal_in_o, output_buffer[i][dm_count], samps * sizeof(float), cudaMemcpyHostToDevice, stream_o);
+	  
+	  if(e != cudaSuccess) {
+	    LOG(log_level::error, "Could not cudaMemcpyAsync in aa_host_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	  }
+	  
 	  cudaEventRecord(event_o, stream_o);
 
 	  // Cacluclate odd dm
@@ -172,7 +245,12 @@ namespace astroaccelerate {
 	      float mean = 127.959f;
 	      set_stretch_gpu(event_o, stream_o, samps, mean, d_signal_transformed_o);
 	      stretch_gpu(event_o, stream_o, acc, samps, tsamp, d_signal_in_o, d_signal_transformed_o);
-	      checkCudaErrors(cufftExecR2C(plan_o, (float * )d_signal_transformed_o, (cufftComplex * )d_signal_fft_o));
+	      cufftResult cufft_e = cufftExecR2C(plan_o, (float * )d_signal_transformed_o, (cufftComplex * )d_signal_fft_o);
+	      
+	      if(cufft_e != CUFFT_SUCCESS) {
+		LOG(log_level::error, "Could not cufftExecR2C in aa_host_acceleration.cu");
+	      }
+	      
 	      cudaStreamWaitEvent(stream_o, event_o, 0);
 	      power_gpu(event_o, stream_o, samps, a, d_signal_fft_o, d_signal_power_o);
 	    }
@@ -181,7 +259,12 @@ namespace astroaccelerate {
 	  cudaStreamSynchronize(stream_e);
 	  stats_gpu(event_e, stream_e, samps, &mean, &stddev, h_signal_power_e, d_signal_power_e);
 	    
-	  checkCudaErrors(cudaMemcpyAsync(d_signal_in_e, output_buffer[i][dm_count + 1], samps * sizeof(float), cudaMemcpyHostToDevice, stream_e));
+	  e = cudaMemcpyAsync(d_signal_in_e, output_buffer[i][dm_count + 1], samps * sizeof(float), cudaMemcpyHostToDevice, stream_e);
+	  
+	  if(e != cudaSuccess) {
+	    LOG(log_level::error, "Could not cudaMemcpyAsync in aa_host_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	  }
+	  
 	  cudaEventRecord(event_e, stream_e);
 
 	  // Cacluclate even dm
@@ -192,7 +275,12 @@ namespace astroaccelerate {
 	      set_stretch_gpu(event_e, stream_e, samps, mean, d_signal_transformed_e);
 	      stretch_gpu(event_e, stream_e, acc, samps, tsamp, d_signal_in_e, d_signal_transformed_e);
 	      cudaStreamWaitEvent(stream_e, event_e, 0);
-	      checkCudaErrors(cufftExecR2C(plan_e, (float * )d_signal_transformed_e, (cufftComplex * )d_signal_fft_e));
+	      cufftResult e = cufftExecR2C(plan_e, (float * )d_signal_transformed_e, (cufftComplex * )d_signal_fft_e);
+	      
+	      if(e != CUFFT_SUCCESS) {
+		LOG(log_level::error, "Could not cufftExecR2C in aa_host_acceleration.cu");
+	      }
+	      
 	      power_gpu(event_e, stream_e, samps, a, d_signal_fft_e, d_signal_power_e);
 	    }
 

@@ -3,8 +3,6 @@
 
 #include <vector>
 
-#include <helper_cuda.h>
-
 #include "aa_device_MSD_Configuration.hpp"
 #include "aa_device_MSD_shared_kernel_functions.hpp"
 #include "aa_device_MSD_normal_kernel.hpp"

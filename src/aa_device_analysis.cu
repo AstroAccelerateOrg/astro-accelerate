@@ -9,6 +9,8 @@
 #include <utility>
 #include "aa_params.hpp"
 
+#include "aa_log.hpp"
+#include "aa_timelog.hpp"
 #include "aa_device_BC_plan.hpp"
 #include "aa_device_peak_find.hpp"
 #include "aa_device_MSD_plane_profile.hpp"
@@ -132,6 +134,8 @@ namespace astroaccelerate {
     int nTimesamples = t_processed;
     int nDMs = ndms[i];
     int temp_peak_pos;
+
+    TimeLog time_log;
 	
     //--------> Benchmarking
     double total_time=0, MSD_time=0, SPDT_time=0, PF_time=0;
@@ -250,12 +254,13 @@ namespace astroaccelerate {
 	SPDT_search_long_MSD_plane(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD_interpolated, &PD_plan, max_iteration, nTimesamples, DM_list[f]);
 	timer.Stop();
 	SPDT_time += timer.Elapsed();
+	time_log.adding("SPD","SPDT",timer.Elapsed());
 #ifdef GPU_PARTIAL_TIMER
 	printf("    SPDT took:%f ms\n", timer.Elapsed());
 #endif
 	//-------------- SPDT
 			
-	checkCudaErrors(cudaGetLastError());
+	//checkCudaErrors(cudaGetLastError());
 			
 #ifdef GPU_ANALYSIS_DEBUG
 	printf("    BC_shift:%d; DMs_per_cycle:%d; f*DMs_per_cycle:%d; max_iteration:%d;\n", DM_shift*nTimesamples, DM_list[f], DM_shift, max_iteration);
@@ -267,6 +272,7 @@ namespace astroaccelerate {
 	  SPDT_threshold(d_output_SNR, d_output_taps, d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW, gmem_peak_pos, cutoff, DM_list[f], nTimesamples, DM_shift, &PD_plan, max_iteration, local_max_list_size);
 	  timer.Stop();
 	  PF_time += timer.Elapsed();
+	  time_log.adding("SPD", "Threshold", timer.Elapsed());
 #ifdef GPU_PARTIAL_TIMER
 	  printf("    Thresholding took:%f ms\n", timer.Elapsed());
 #endif
@@ -278,15 +284,21 @@ namespace astroaccelerate {
 	  SPDT_peak_find(d_output_SNR, d_output_taps, d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW, DM_list[f], nTimesamples, cutoff, local_max_list_size, gmem_peak_pos, DM_shift, &PD_plan, max_iteration);
 	  timer.Stop();
 	  PF_time = timer.Elapsed();
+	  time_log.adding("SPD", "Peak_Find", timer.Elapsed());
 #ifdef GPU_PARTIAL_TIMER
 	  printf("    Peak finding took:%f ms\n", timer.Elapsed());
 #endif
 	  //-------------- Peak finding
 	}
 			
-	checkCudaErrors(cudaGetLastError());
+	//checkCudaErrors(cudaGetLastError());
 			
-	checkCudaErrors(cudaMemcpy(&temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost));
+	cudaError_t e = cudaMemcpy(&temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost);
+
+	if(e != cudaSuccess) {
+	  LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	}
+	
 #ifdef GPU_ANALYSIS_DEBUG
 	printf("    temp_peak_pos:%d; host_pos:%zu; max:%zu; local_max:%d;\n", temp_peak_pos, (*peak_pos), max_peak_size, local_max_list_size);
 #endif
@@ -295,10 +307,30 @@ namespace astroaccelerate {
 	  temp_peak_pos=local_max_list_size;
 	}
 	if( ((*peak_pos) + temp_peak_pos)<max_peak_size){
-	  checkCudaErrors(cudaMemcpy(&h_peak_list_DM[(*peak_pos)],  d_peak_list_DM,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost));
-	  checkCudaErrors(cudaMemcpy(&h_peak_list_TS[(*peak_pos)],  d_peak_list_TS,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost));
-	  checkCudaErrors(cudaMemcpy(&h_peak_list_SNR[(*peak_pos)], d_peak_list_SNR, temp_peak_pos*sizeof(float), cudaMemcpyDeviceToHost));
-	  checkCudaErrors(cudaMemcpy(&h_peak_list_BW[(*peak_pos)],  d_peak_list_BW,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost));
+	  cudaError_t e = cudaMemcpy(&h_peak_list_DM[(*peak_pos)],  d_peak_list_DM,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+	  if(e != cudaSuccess) {
+	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	  }
+	  
+	  e = cudaMemcpy(&h_peak_list_TS[(*peak_pos)],  d_peak_list_TS,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+	  if(e != cudaSuccess) {
+	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	  }
+	  
+	  e = cudaMemcpy(&h_peak_list_SNR[(*peak_pos)], d_peak_list_SNR, temp_peak_pos*sizeof(float), cudaMemcpyDeviceToHost);
+
+	  if(e != cudaSuccess) {
+	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	  }
+	  
+	  e = cudaMemcpy(&h_peak_list_BW[(*peak_pos)],  d_peak_list_BW,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+	  
+	  if(e != cudaSuccess) {
+	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	  }
+	  
 	  *peak_pos = (*peak_pos) + temp_peak_pos;
 	}
 	else printf("Error peak list is too small!\n");
@@ -377,6 +409,8 @@ namespace astroaccelerate {
 
     total_timer.Stop();
     total_time = total_timer.Elapsed();
+    time_log.adding("SPD", "total", total_time);
+    time_log.adding("SPD", "MSD", MSD_time);
 #ifdef GPU_TIMER
     printf("\n  TOTAL TIME OF SPS:%f ms\n", total_time);
     printf("  MSD_time: %f ms; SPDT time: %f ms; Candidate selection time: %f ms;\n", MSD_time, SPDT_time, PF_time);

@@ -1,5 +1,8 @@
 #include "aa_device_MSD.hpp"
 
+#include <string>
+#include "aa_log.hpp"
+
 //#define MSD_DEBUG
 
 // \todo Remove MSD_legacy
@@ -30,7 +33,12 @@ int MSD_normal(float *d_MSD, float *d_input, float *d_temp, MSD_Configuration *M
 	
 #ifdef MSD_DEBUG
   float h_MSD[MSD_PARTIAL_SIZE];
-  checkCudaErrors(cudaMemcpy(h_MSD, d_MSD, MSD_PARTIAL_SIZE*sizeof(float), cudaMemcpyDeviceToHost)); 
+  cudaError_t e = cudaMemcpy(h_MSD, d_MSD, MSD_PARTIAL_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+
+  if(e != cudaSuccess) {
+    LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD.cu (" + std::string(cudaGetErrorString(e)) + ")");
+  }
+  
   printf("Output: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
   printf("---------------------------<\n");
 #endif
@@ -42,9 +50,19 @@ int MSD_normal(float *d_MSD, float *d_input, int nTimesamples, int nDMs, int off
   int result;
   MSD_Configuration conf(nTimesamples, nDMs, offset, 0);
   float *d_temp;
-  checkCudaErrors(cudaMalloc((void **) &d_temp, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float)));
+  cudaError_t e = cudaMalloc((void **) &d_temp, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float));
+
+  if(e != cudaSuccess) {
+    LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD.cu (" + std::string(cudaGetErrorString(e)) + ")");
+  }
+  
   result = MSD_normal(d_MSD, d_input, d_temp, &conf);
-  checkCudaErrors(cudaFree(d_temp));
+  e = cudaFree(d_temp);
+  
+  if(e != cudaSuccess) {
+    LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD.cu (" + std::string(cudaGetErrorString(e)) + ")");
+  }
+  
   return(result);
 }
 
@@ -247,14 +265,25 @@ int MSD_outlier_rejection_grid(float *d_MSD, float *d_input, float *d_previous_p
 void Find_MSD(float *d_MSD, float *d_input, int nTimesamples, int nDMs, int offset, float OR_sigma_multiplier, int enable_outlier_rejection){
   MSD_Configuration conf(nTimesamples, nDMs, offset, 0);
   float *d_MSD_workarea;
-  checkCudaErrors(cudaMalloc((void **) &d_MSD_workarea, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float)));
+  cudaError_t e = cudaMalloc((void **) &d_MSD_workarea, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float));
+  
+  if(e != cudaSuccess) {
+    LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD.cu (" + std::string(cudaGetErrorString(e)) + ")");
+  }
+  
   if(enable_outlier_rejection){
     MSD_outlier_rejection(d_MSD, d_input, d_MSD_workarea, &conf, OR_sigma_multiplier);
   }
   else {
     MSD_normal(d_MSD, d_input, d_MSD_workarea, &conf);
   }
-  checkCudaErrors(cudaFree(d_MSD_workarea));
+
+  e = cudaFree(d_MSD_workarea);
+
+  if(e != cudaSuccess) {
+    LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD.cu (" + std::string(cudaGetErrorString(e)) + ")");
+  }
+  
 }
 
 void Find_MSD(float *d_MSD, float *d_input, float *d_MSD_workarea, MSD_Configuration *conf, float OR_sigma_multiplier, int enable_outlier_rejection){
@@ -269,14 +298,25 @@ void Find_MSD(float *d_MSD, float *d_input, float *d_MSD_workarea, MSD_Configura
 void Find_MSD_continuous(float *d_MSD, float *d_input, float *d_previous_partials, int nTimesamples, int nDMs, int offset, float OR_sigma_multiplier, int enable_outlier_rejection){
   MSD_Configuration conf(nTimesamples, nDMs, offset, 0);
   float *d_MSD_workarea;
-  checkCudaErrors(cudaMalloc((void **) &d_MSD_workarea, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float)));
+  cudaError_t e = cudaMalloc((void **) &d_MSD_workarea, conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float));
+
+  if(e != cudaSuccess) {
+    LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD.cu (" + std::string(cudaGetErrorString(e)) + ")");
+  }
+  
   if(enable_outlier_rejection){
     MSD_outlier_rejection_continuous(d_MSD, d_input, d_previous_partials, d_MSD_workarea, &conf, OR_sigma_multiplier);
   }
   else {
     MSD_normal_continuous(d_MSD, d_input, d_previous_partials, d_MSD_workarea, &conf);
   }
-  checkCudaErrors(cudaFree(d_MSD_workarea));
+
+  e = cudaFree(d_MSD_workarea);
+  
+  if(e != cudaSuccess) {
+    LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD.cu (" + std::string(cudaGetErrorString(e)) + ")");
+  }
+  
 }
 
 void Find_MSD_continuous(float *d_MSD, float *d_input, float *d_previous_partials, float *d_MSD_workarea, MSD_Configuration *conf, float OR_sigma_multiplier, int enable_outlier_rejection){

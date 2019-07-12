@@ -1,14 +1,15 @@
 #include "aa_device_acceleration_fdas.hpp"
 
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <cufft.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/time.h>
-#include <helper_cuda.h>
 #include <cuda_profiler_api.h>
 
+#include "aa_log.hpp"
 #include "aa_params.hpp"
 #include "aa_fdas_test_parameters.hpp"
 #include "aa_fdas.hpp"
@@ -17,8 +18,6 @@
 #include "aa_device_peak_find.hpp"
 #include "presto_funcs.hpp"
 #include "presto.hpp"
-
-#include <iostream>
 
 namespace astroaccelerate {
 
@@ -170,7 +169,11 @@ namespace astroaccelerate {
 	  mem_tot_needed = mem_ffdot + mem_ffdot_cpx + mem_kern_array + mem_signals + mem_max_list_size; // KA added + mem_max_list_size
 	if (cmdargs.kfft)
 	  mem_tot_needed = mem_ffdot + mem_kern_array + mem_signals + mem_max_list_size; // KA added + mem_max_list_size
-	checkCudaErrors(cudaMemGetInfo(&mfree, &mtotal));
+	cudaError_t e = cudaMemGetInfo(&mfree, &mtotal);
+
+	if(e != cudaSuccess) {
+	  LOG(log_level::error, "Could not cudaMemGetInfo in aa_device_acceleration_fdas.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	}
 
 	// get available memory info
 	printf( "Total memory for this device: %.2f GB\nAvailable memory on this device for data upload: %.2f GB \n", mtotal / gbyte, mfree / gbyte);
@@ -191,7 +194,7 @@ namespace astroaccelerate {
 	  printf("\nNot enough memory available on the device to process this array\nPlease use a shorter signal\nExiting program...\n\n");
 	  exit(1);
 	}
-	getLastCudaError("\nCuda Error\n");
+	//getLastCudaError("\nCuda Error\n");
 
 	/*
 	 * -- calculate total number of streams which can be processed
@@ -214,14 +217,14 @@ namespace astroaccelerate {
 	 * }
 	 */
 	fdas_alloc_gpu_arrays(&gpuarrays, &cmdargs);
-	getLastCudaError("\nCuda Error\n");
+	//getLastCudaError("\nCuda Error\n");
 
 	// Calculate kernel templates on CPU and upload-fft on GPU
 	printf("\nCreating acceleration templates with KERNLEN=%d, NKERN = %d zmax=%d... ",	KERNLEN, NKERN, ZMAX);
 
 	fdas_create_acc_kernels(gpuarrays.d_kernel, &cmdargs);
 	printf(" done.\n");
-	getLastCudaError("\nCuda Error\n");
+	//getLastCudaError("\nCuda Error\n");
 
 	/*
 	 * -- do the operation above for each stream
@@ -234,7 +237,7 @@ namespace astroaccelerate {
 	 */
 	//Create cufft plans
 	fdas_cuda_create_fftplans(&fftplans, &params);
-	getLastCudaError("\nCuda Error\n");
+	//getLastCudaError("\nCuda Error\n");
 
 	/*
 	 * Is 1 plan per stream needed here ?
@@ -319,7 +322,7 @@ namespace astroaccelerate {
 	    printf("\n\npreparing test signal, observation time = %f s, %d nsamps f0 = %f Hz with %d harmonics\n", tobs, acc_sig.nsamps, acc_sig.freq0, acc_sig.nharms);
 	    printf("\nz = %d accelereation = %f m/s^2\n", acc_sig.zval, accel);
 				
-	    printf("\nNow creating accelerated signal with fc=%f, accel=%f, harmonics=%d, duty cycle=%.1f%, noise=%d signal samples=%d, signal level: %.2f\n", acc_sig.freq0, accel, acc_sig.nharms, acc_sig.duty*100.0, acc_sig_snr, acc_sig.nsamps,acc_sig.sigamp);
+	    printf("\nNow creating accelerated signal with fc=%f, accel=%f, harmonics=%d, duty cycle=%.1f, noise=%f signal samples=%d, signal level: %.2f\n", acc_sig.freq0, accel, acc_sig.nharms, acc_sig.duty*100.0, acc_sig_snr, acc_sig.nsamps,acc_sig.sigamp);
 				
 	    for ( int sd=0; sd<acc_sig.nsamps; ++sd){	    
 	      t0 = sd*sampling_rate;
@@ -335,12 +338,14 @@ namespace astroaccelerate {
 #endif
 	    //!TEST!: put test signal here
 				
-	    checkCudaErrors( cudaMemcpy(gpuarrays.d_in_signal, output_buffer[i][dm_count], processed*sizeof(float), cudaMemcpyHostToDevice));
+	    e = cudaMemcpy(gpuarrays.d_in_signal, output_buffer[i][dm_count], processed*sizeof(float), cudaMemcpyHostToDevice);
 
-	    /*
-	     * checkCudaErrors( cudaMemcpyAsync(gpuarrays_list[i].d_in_signal, output_buffer[i][dm_count], processed*sizeof(float), cudaMemcpyHostToDevice, stream_list[ii]));
-	     *
-	     */
+	    if(e != cudaSuccess) {
+	      LOG(log_level::error, "Could not cudaMemcpy in aa_device_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	    }
+
+	    // This line is deliberately commented out
+	    //checkCudaErrors( cudaMemcpyAsync(gpuarrays_list[i].d_in_signal, output_buffer[i][dm_count], processed*sizeof(float), cudaMemcpyHostToDevice, stream_list[ii]));
 
 	    cudaDeviceSynchronize();
 	    gettimeofday(&t_end, NULL);
@@ -403,7 +408,7 @@ namespace astroaccelerate {
 		printf("Point\n");
 		Find_MSD(d_MSD, gpuarrays.d_ffdot_pwr, params.siglen/ibin, NKERN, 0, sigma_constant, 1);
 	      }
-	      checkCudaErrors(cudaGetLastError());
+	      //checkCudaErrors(cudaGetLastError());
 					
 	      //!TEST!: do not perform peak find instead export the thing to file.
 #ifdef FDAS_CONV_TEST
@@ -414,8 +419,17 @@ namespace astroaccelerate {
 					
 	      PEAK_FIND_FOR_FDAS(gpuarrays.d_ffdot_pwr, gpuarrays.d_fdas_peak_list, d_MSD, NKERN, ibin*params.siglen, cmdargs.thresh, params.max_list_length, gmem_fdas_peak_pos, dm_count*dm_step[i] + dm_low[i]);
 					
-	      checkCudaErrors(cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost));
-	      checkCudaErrors(cudaMemcpy(&list_size, gmem_fdas_peak_pos, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+	      e = cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost);
+	      
+	      if(e != cudaSuccess) {
+		LOG(log_level::error, "Could not cudaMemcpy in aa_device_acceleration_fdas.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	      }
+	      
+	      e = cudaMemcpy(&list_size, gmem_fdas_peak_pos, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+	      
+	      if(e != cudaSuccess) {
+		LOG(log_level::error, "Could not cudaMemcpy in aa_device_acceleration_fdas.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	      }
 					
 #ifdef FDAS_ACC_SIG_TEST
 	      fdas_write_list(&gpuarrays, &cmdargs, &params, h_MSD, dm_low[i], dm_count, dm_step[i], list_size);

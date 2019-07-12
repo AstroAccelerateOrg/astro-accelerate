@@ -468,26 +468,48 @@ namespace astroaccelerate {
 	
     int Get_Number_of_Power_Candidates(){
       int temp;
-      checkCudaErrors(cudaMemcpy(&temp, gmem_power_peak_pos, sizeof(int), cudaMemcpyDeviceToHost));
+      cudaError_t e = cudaMemcpy(&temp, gmem_power_peak_pos, sizeof(int), cudaMemcpyDeviceToHost);
+
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
+      
       return( (int) temp);
     }
 	
     int Get_Number_of_Interbin_Candidates(){
       int temp;
-      checkCudaErrors(cudaMemcpy(&temp, gmem_interbin_peak_pos, sizeof(int), cudaMemcpyDeviceToHost));
+      cudaError_t e = cudaMemcpy(&temp, gmem_interbin_peak_pos, sizeof(int), cudaMemcpyDeviceToHost);
+      
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
+      
       return( (int) temp);
     }
 	
     void Get_MSD(float *h_MSD){
-      checkCudaErrors(cudaMemcpy(h_MSD, d_MSD, MSD_interpolated_size*2*sizeof(float), cudaMemcpyDeviceToHost));
+      cudaError_t e = cudaMemcpy(h_MSD, d_MSD, MSD_interpolated_size*2*sizeof(float), cudaMemcpyDeviceToHost);
+
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
     }
 	
     void Get_MSD_partials(float *h_MSD_partials){
-      checkCudaErrors(cudaMemcpy(h_MSD_partials, d_previous_partials, MSD_DIT_size*MSD_PARTIAL_SIZE*sizeof(float), cudaMemcpyDeviceToHost));
+      cudaError_t e = cudaMemcpy(h_MSD_partials, d_previous_partials, MSD_DIT_size*MSD_PARTIAL_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
+      
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
     }
 	
     void Set_MSD_partials(float *h_MSD_partials){
-      checkCudaErrors(cudaMemcpy(d_previous_partials, h_MSD_partials, MSD_PARTIAL_SIZE*sizeof(float), cudaMemcpyHostToDevice));
+      cudaError_t e = cudaMemcpy(d_previous_partials, h_MSD_partials, MSD_PARTIAL_SIZE*sizeof(float), cudaMemcpyHostToDevice);
+
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
     }
 	
     /** \brief Destructor for GPU_Memory_for_Periodicity_Search. */
@@ -642,7 +664,11 @@ namespace astroaccelerate {
 
   void Copy_data_for_periodicity_search(float *d_one_A, float **dedispersed_data, Periodicity_Batch *batch){ //TODO add "cudaStream_t stream1"
     for(int ff=0; ff<batch->nDMs_per_batch; ff++){
-      checkCudaErrors( cudaMemcpy( &d_one_A[ff*batch->nTimesamples], dedispersed_data[batch->DM_shift + ff], batch->nTimesamples*sizeof(float), cudaMemcpyHostToDevice));
+      cudaError_t e = cudaMemcpy( &d_one_A[ff*batch->nTimesamples], dedispersed_data[batch->DM_shift + ff], batch->nTimesamples*sizeof(float), cudaMemcpyHostToDevice);
+      
+      if(e != cudaSuccess) {
+	LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+      }
     }
   }
 
@@ -663,7 +689,11 @@ namespace astroaccelerate {
     h_data = new float[data_size];
     h_export = new float[export_size];
 	
-    checkCudaErrors(cudaMemcpy(h_data, GPU_data, data_size*sizeof(float), cudaMemcpyDeviceToHost));
+    cudaError_t e = cudaMemcpy(h_data, GPU_data, data_size*sizeof(float), cudaMemcpyDeviceToHost);
+    
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
 	
     int nRepeats = nDMs/DMs_per_file;
     int nRest = nDMs%DMs_per_file;
@@ -730,7 +760,7 @@ namespace astroaccelerate {
 	
     aa_gpu_timer timer;
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 	
     //---------> cuFFT
     timer.Start();
@@ -758,7 +788,7 @@ namespace astroaccelerate {
     (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 	
     //---------> Calculate powers and interbinning
     timer.Start();
@@ -777,7 +807,7 @@ namespace astroaccelerate {
     //if(i==0 && dm==0 && export_data) Export_data_in_range(d_one_A, nTimesamples, t_nDMs_per_batch, "Interbin_data", dm_step[i], dm_low[i], tsamp DM_shift);
     //-----------------------------------------------------------------------------------
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 	
     //---------> Mean and StDev on powers
     timer.Start();
@@ -815,7 +845,7 @@ namespace astroaccelerate {
     (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 	
     //---------> Corner turn
     timer.Start();
@@ -828,7 +858,7 @@ namespace astroaccelerate {
     (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 	
     //---------> Harmonic summing
     timer.Start();
@@ -849,7 +879,7 @@ namespace astroaccelerate {
     (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 	
     //---------> Peak finding
     timer.Start();
@@ -880,7 +910,7 @@ namespace astroaccelerate {
     (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
   }
 
   void Export_Data_To_File(std::vector<Candidate_List> candidates, const char *filename) {
@@ -898,7 +928,12 @@ namespace astroaccelerate {
 
   int Get_Number_of_Candidates(int *GPU_data){
     int temp;
-    checkCudaErrors(cudaMemcpy(&temp, GPU_data, sizeof(int), cudaMemcpyDeviceToHost));
+    cudaError_t e = cudaMemcpy(&temp, GPU_data, sizeof(int), cudaMemcpyDeviceToHost);
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+    
     return(temp);
   }
 
@@ -967,7 +1002,7 @@ namespace astroaccelerate {
     printf("---------------------------------------------------------------------------------\n");
     printf("\n");
 	
-    checkCudaErrors(cudaGetLastError());
+    //checkCudaErrors(cudaGetLastError());
 	
     // Timing
     double Total_periodicity_time = 0, Total_calc_time = 0, calc_time_per_range = 0, Total_copy_time = 0, copy_time_per_range = 0;
@@ -1004,7 +1039,7 @@ namespace astroaccelerate {
       GPU_memory.Reset_MSD();
 #endif
 		
-      checkCudaErrors(cudaGetLastError());
+      //checkCudaErrors(cudaGetLastError());
 
       for(int r=0; r<(int) P_plan.inBin_group[p].Prange.size(); r++) {
 	printf("  Prange: %d\n", r);
@@ -1016,7 +1051,7 @@ namespace astroaccelerate {
 				
 	  GPU_memory.Reset_Candidate_List();
 				
-	  checkCudaErrors(cudaGetLastError());
+	  //checkCudaErrors(cudaGetLastError());
 
 	  //---------> Copy input data to the device
 	  timer.Start();
@@ -1027,7 +1062,7 @@ namespace astroaccelerate {
 	  //---------<
 				
 				
-	  checkCudaErrors(cudaGetLastError());
+	  //checkCudaErrors(cudaGetLastError());
 	  // TODO: cudaStreamSynchronize(stream);
 				
 				
@@ -1036,7 +1071,7 @@ namespace astroaccelerate {
 	  //---------<
 				
 				
-	  checkCudaErrors(cudaGetLastError());
+	  //checkCudaErrors(cudaGetLastError());
 	  // TODO: cudaStreamSynchronize(stream);
 				
 				
@@ -1049,17 +1084,25 @@ namespace astroaccelerate {
 	  last_entry = PowerCandidates.size()-1;
 	  printf("         -> POWER: Total number of peaks found in this range is %d;\n", nPowerCandidates);
 	  PowerCandidates[last_entry].Allocate(nPowerCandidates);
-	  checkCudaErrors(cudaMemcpy( &PowerCandidates[last_entry].list[0], &GPU_memory.d_two_B[0], nPowerCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost));
-				
-	  checkCudaErrors(cudaGetLastError());
+	  cudaError_t e = cudaMemcpy( &PowerCandidates[last_entry].list[0], &GPU_memory.d_two_B[0], nPowerCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
+	  
+	  if(e != cudaSuccess) {
+	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	  }
+	  
+	  //checkCudaErrors(cudaGetLastError());
 				
 	  int nInterbinCandidates = GPU_memory.Get_Number_of_Interbin_Candidates();
 	  InterbinCandidates.push_back(*(new Candidate_List(r)));
 	  last_entry = InterbinCandidates.size()-1;
 	  printf("         -> INTERBIN: Total number of peaks found in this range is %d;\n", nInterbinCandidates);
 	  InterbinCandidates[last_entry].Allocate(nInterbinCandidates);
-	  checkCudaErrors(cudaMemcpy( &InterbinCandidates[last_entry].list[0], &GPU_memory.d_two_B[input_plane_size], nInterbinCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost));
-				
+	  e = cudaMemcpy( &InterbinCandidates[last_entry].list[0], &GPU_memory.d_two_B[input_plane_size], nInterbinCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
+	  
+	  if(e != cudaSuccess) {
+	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	  }
+	  
 	  timer.Stop();
 	  printf("         => Copy of candidates took %f ms\n", timer.Elapsed() );
 	  copy_time_per_range = copy_time_per_range + timer.Elapsed();
