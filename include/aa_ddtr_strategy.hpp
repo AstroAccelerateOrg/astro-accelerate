@@ -71,7 +71,7 @@ namespace astroaccelerate {
     }
     
     /** \returns the number of dm ranges. */
-    size_t range() const {
+    size_t get_nRanges() const {
       return str_dm.size();
     }
 
@@ -93,6 +93,11 @@ namespace astroaccelerate {
     /** \returns A pointer to the ndms data. */
     const int* ndms_data() const {
       return m_ndms.data();
+    }
+
+    /** return the DM low for specified range */
+    int dm_low(const int range) const{
+	    return str_dm.at(range).low;
     }
     
     /** \returns The number of time chunks. */
@@ -137,8 +142,8 @@ namespace astroaccelerate {
       LOG(log_level::dev_debug, "\t\tSDIVINT:\t\t" + std::to_string(SDIVINT));
       LOG(log_level::dev_debug, "\t\tSDIVINDM:\t\t" + std::to_string(SDIVINDM));
       LOG(log_level::dev_debug, "ddtr+analysis:\t\t" +  (strategy.configured_for_analysis() ? std::string("true") : std::string("false")));
-      LOG(log_level::dev_debug, "ddtr dm ranges:\t\t" + std::to_string(strategy.range()));
-      for(size_t i = 0; i < strategy.range(); i++) {
+      LOG(log_level::dev_debug, "ddtr dm ranges:\t\t" + std::to_string(strategy.get_nRanges()));
+      for(size_t i = 0; i < strategy.get_nRanges(); i++) {
 	const aa_ddtr_plan::dm tmp = strategy.dm(i);
 	LOG(log_level::dev_debug, "     dm (low,high,step,inBin,outBin) " +
 	    std::to_string(tmp.low) + "," + std::to_string(tmp.high) + "," + std::to_string(tmp.step)

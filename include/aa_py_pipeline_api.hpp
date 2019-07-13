@@ -33,6 +33,7 @@ namespace astroaccelerate {
 	bool zero_dm;
 	bool zero_dm_with_outliers;
 	bool old_rfi;
+	bool copy_ddtr_data_to_host;
 	bool msd_baseline_noise;
 	bool output_dmt;
 	bool output_ffdot_plan;

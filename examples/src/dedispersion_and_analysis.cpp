@@ -9,92 +9,129 @@
 #include "aa_ddtr_plan.hpp"
 #include "aa_ddtr_strategy.hpp"
 #include "aa_filterbank_metadata.hpp"
-#include "aa_permitted_pipelines_2.hpp"
+#include "aa_permitted_pipelines_generic.hpp"
 
 #include "aa_analysis_plan.hpp"
 #include "aa_analysis_strategy.hpp"
 
+#include "aa_periodicity_plan.hpp"
+#include "aa_periodicity_strategy.hpp"
+
+#include "aa_fdas_plan.hpp"
+#include "aa_fdas_strategy.hpp"
+
 #include "aa_log.hpp"
 #include "aa_sigproc_input.hpp"
 
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <cuda_runtime_api.h>
+
 using namespace astroaccelerate;
 
-int main() {
-  aa_ddtr_plan ddtr_plan;
-  ddtr_plan.add_dm(0, 370, 0.307, 1, 1); // Add dm_ranges: dm_low, dm_high, dm_step, inBin, outBin (unused).
-  ddtr_plan.add_dm(370, 740, 0.652, 2, 2);
-  ddtr_plan.add_dm(740, 1480, 1.266, 4, 4);
-
-  // Filterbank metadata
-  // (Data description from "SIGPROC-v3.7 (Pulsar) Signal Processing Programs")
-  const double tstart = 50000;
-  const double tsamp = 6.4E-5;
-  const double nbits = 8;
-  const double nsamples = 937984;
-  const double fch1 = 1564;
-  const double foff = -0.208984;
-  const double nchans = 2048;
-  
-  aa_filterbank_metadata metadata(tstart, tsamp, nbits, nsamples, fch1, foff, nchans);
-  
-  const size_t free_memory = 7000000000; // Free memory on the GPU in bytes
-  bool enable_analysis = true;       // The strategy will be optimised to run just dedispersion
-  aa_ddtr_strategy ddtr_strategy(ddtr_plan, metadata, free_memory, enable_analysis);
-  
-  if(!(ddtr_strategy.ready())) {
-    LOG(log_level::error, "ddtr_strategy not ready.");
-    return 0;
-  }
-  
-  //Fill input data manually
-  /*std::vector<unsigned short> input_data(nsamples*nchans);
-  
-  for(auto& i : input_data) {
-    i = 0.0;
-  }*/
-  
-  aa_sigproc_input       filterbank_datafile("/mnt/data/AstroAccelerate/filterbank/BenMeerKAT.fil");
-  aa_filterbank_metadata filterbank_metadata = filterbank_datafile.read_metadata();
-  
-  if(!filterbank_datafile.read_signal()) {
-    std::cout << "ERROR: Could not read telescope data." << std::endl;
-    return 0;
-  }
-  
-  
-  const float sigma_cutoff = 6.0;
-  const float sigma_constant = 4.0;
-  const float max_boxcar_width_in_sec = 0.05;
-  const aa_analysis_plan::selectable_candidate_algorithm algo = aa_analysis_plan::selectable_candidate_algorithm::off;
-  
-  aa_analysis_plan analysis_plan(ddtr_strategy, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, algo, false);
-  aa_analysis_strategy analysis_strategy(analysis_plan);
-
-  if(!(analysis_strategy.ready())) {
-    LOG(log_level::error, "analysis_strategy not ready.");
-    return 0;
-  }
-  
-  aa_permitted_pipelines_2<aa_pipeline::component_option::zero_dm, false> runner(ddtr_strategy, analysis_strategy, filterbank_datafile.input_buffer().data());
-
-  bool dump_to_disk = false;
-  bool dump_to_user = true;
-  std::vector<analysis_output> output;
-  
-  if(runner.setup()) {
-    while(runner.next(dump_to_disk, dump_to_user, output)) {
-      LOG(log_level::notice, "Pipeline running over next chunk.");
-
-      for(size_t i = 0; i < output.size(); i++) {
-	std::cout << " dm_low " << output.at(i).dm_low << " dm_high " << output.at(i).dm_high << std::endl;
-	for(size_t j = 0; j < output.at(i).pulses.size(); j++) {
-	  analysis_pulse p = output.at(i).pulses.at(j);
-	  std::cout << "dispersion measure " << p.dispersion_measure << " time " << p.time << " snr " << p.snr << " pulse_width " << p.pulse_width << std::endl;
+int initialise_device(int device_id) {
+	int deviceCount;
+	cudaError_t error_id;
+	error_id = cudaGetDeviceCount(&deviceCount);
+	if (error_id != cudaSuccess) {
+		printf("CUDA ERROR: %s\n", cudaGetErrorString(error_id));
+		return(1);
 	}
-      }
-    }
-  }
-  
-  LOG(log_level::notice, "Finished.");
-  return 0;
+	if (device_id>=deviceCount) {
+		printf("Selected device is not available! Device id is %d;\n", device_id);
+		return(1);
+	}
+	if (cudaSetDevice(device_id) != cudaSuccess) {
+		printf("ERROR! unable to set the device with id %d.\n", device_id);
+		return(1);
+	}
+	return(0);
+}
+
+int main() {
+	//------------- Initialise device and get available memory
+	if(initialise_device(0)!=0) {
+		return(1);
+	}
+	size_t free_memory,total_memory;
+	cudaMemGetInfo(&free_memory,&total_memory);
+	//--------------<
+	
+	//-------------- Select de-dispersion plan
+	aa_ddtr_plan ddtr_plan;
+	ddtr_plan.add_dm(0, 370, 0.307, 1, 1); // Add dm_ranges: dm_low, dm_high, dm_step, inBin, outBin (unused).
+	ddtr_plan.add_dm(370, 740, 0.652, 2, 2);
+	ddtr_plan.add_dm(740, 1480, 1.266, 4, 4);
+	//--------------<
+
+	//-------------- Read filterbank metadata and data
+	aa_sigproc_input filterbank_datafile("/mnt/data/AstroAccelerate/filterbank/BenMeerKAT.fil");
+	aa_filterbank_metadata filterbank_metadata = filterbank_datafile.read_metadata();
+
+	if (!filterbank_datafile.read_signal()) {
+		std::cout << "ERROR: Could not read telescope data." << std::endl;
+		return 0;
+	}
+	//--------------<
+	
+	//-------------- Configure pipeline. Select components and their options.
+	aa_pipeline::pipeline pipeline_components;
+	pipeline_components.insert(aa_pipeline::component::dedispersion); // pipeline must always contain dedispersion step
+	pipeline_components.insert(aa_pipeline::component::analysis); //optional
+	//pipeline.insert(aa_pipeline::component::periodicity); // optional
+	//pipeline.insert(aa_pipeline::component::fdas); // optional
+	
+	aa_pipeline::pipeline_option pipeline_options;
+	pipeline_options.insert(aa_pipeline::component_option::zero_dm);
+	//--------------<
+
+
+	//-------------- Calculate dedispersion strategy
+	bool enable_analysis = true;       // The strategy will be optimised to run just dedispersion
+	aa_ddtr_strategy ddtr_strategy(ddtr_plan, filterbank_metadata, free_memory, enable_analysis);	
+	if (!(ddtr_strategy.ready())) {
+		LOG(log_level::error, "ddtr_strategy not ready.");
+		return 0;
+	}
+	//--------------<
+	
+	//-------------- Configure single pulse detection plan and calculate strategy
+	const float sigma_cutoff = 6.0;
+	const float sigma_constant = 4.0;
+	const float max_boxcar_width_in_sec = 0.5;
+	const bool  enable_MSD_outlier_rejection = true;
+	const aa_analysis_plan::selectable_candidate_algorithm algo = aa_analysis_plan::selectable_candidate_algorithm::off;
+
+	aa_analysis_plan analysis_plan(ddtr_strategy, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, algo, enable_MSD_outlier_rejection);
+	aa_analysis_strategy analysis_strategy(analysis_plan);
+
+	if (!(analysis_strategy.ready())) {
+		LOG(log_level::error, "analysis_strategy not ready.");
+		return 0;
+	}
+	//--------------<
+	
+	//-------------- Create empty strategy object for unused components
+	aa_fdas_strategy empty_fdas_strategy;
+	aa_periodicity_strategy empty_periodicity_strategy;
+	//--------------<
+	
+	
+	aa_permitted_pipelines_generic pipeline_runner(pipeline_components, pipeline_options, ddtr_strategy, analysis_strategy, empty_periodicity_strategy, empty_fdas_strategy, false, false, false, false, false, filterbank_datafile.input_buffer().data());
+	
+	if (pipeline_runner.setup()) {
+		while (pipeline_runner.next()) {
+			LOG(log_level::notice, "Pipeline running over next chunk.");
+		}
+	}
+
+	
+	//aa_pipeline_runner::status &status_code
+	
+	
+	
+	
+	
+	LOG(log_level::notice, "Finished.");
+	return 0;
 }

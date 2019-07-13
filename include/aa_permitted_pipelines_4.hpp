@@ -227,7 +227,7 @@ namespace astroaccelerate {
     void allocate_memory_cpu_output() {
       size_t estimate_outputbuffer_size = 0;
       size_t outputsize = 0;
-      const size_t range = m_ddtr_strategy.range();
+      const size_t range = m_ddtr_strategy.get_nRanges();
       const int *ndms = m_ddtr_strategy.ndms_data();
       
       for(size_t i = 0; i < range; i++) {
@@ -280,7 +280,7 @@ namespace astroaccelerate {
       tsamp                           = m_ddtr_strategy.metadata().tsamp();
       tsamp_original                  = tsamp;
       maxshift_original               = maxshift;
-      range                           = m_ddtr_strategy.range();
+      range                           = m_ddtr_strategy.get_nRanges();
       tstart_local                    = 0.0;
 
       //Allocate GPU memory
@@ -296,11 +296,11 @@ namespace astroaccelerate {
       
       //Put the dm low, high, step struct contents into separate arrays again.
       //This is needed so that the kernel wrapper functions don't need to be modified.
-      dm_low.resize(m_ddtr_strategy.range());
-      dm_high.resize(m_ddtr_strategy.range());
-      dm_step.resize(m_ddtr_strategy.range());
-      inBin.resize(m_ddtr_strategy.range());
-      for(size_t i = 0; i < m_ddtr_strategy.range(); i++) {
+      dm_low.resize(m_ddtr_strategy.get_nRanges());
+      dm_high.resize(m_ddtr_strategy.get_nRanges());
+      dm_step.resize(m_ddtr_strategy.get_nRanges());
+      inBin.resize(m_ddtr_strategy.get_nRanges());
+      for(size_t i = 0; i < m_ddtr_strategy.get_nRanges(); i++) {
 	dm_low[i]   = m_ddtr_strategy.dm(i).low;
 	dm_high[i]  = m_ddtr_strategy.dm(i).high;
 	dm_step[i]  = m_ddtr_strategy.dm(i).step;
@@ -492,7 +492,7 @@ namespace astroaccelerate {
       aa_gpu_timer timer;
       timer.Start();
       const int *ndms = m_ddtr_strategy.ndms_data();
-      acceleration_fdas(m_ddtr_strategy.range(),
+      acceleration_fdas(m_ddtr_strategy.get_nRanges(),
 					m_ddtr_strategy.metadata().nsamples(),
 					max_ndms,
 					inc,
