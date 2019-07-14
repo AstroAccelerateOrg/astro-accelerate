@@ -802,7 +802,13 @@ namespace astroaccelerate {
 		}
 
 		long int get_current_inc(){
-			return inc;
+			int temp_range = (current_range>0)?current_range-1:nRanges-1;
+			if(temp_range==nRanges-1 && current_time_chunk>0){
+				return(inc-t_processed[0][current_time_chunk-1]);
+			}
+			else {
+				return(inc);
+			}
 		}
 
 		/** \brief De-allocate memory for this pipeline instance. */

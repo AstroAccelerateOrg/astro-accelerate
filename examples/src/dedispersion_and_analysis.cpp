@@ -27,7 +27,7 @@ int main() {
 	//--------------<
 	
 	// Filterbank metadata
-	aa_sigproc_input filterbank_datafile("/home/novotny/filterbank/aa_test_file_dm90_snr10_w064_tobs30.fil");
+	aa_sigproc_input filterbank_datafile("/home/karel/filterbank/ska-mid-b2.fil");
 	aa_filterbank_metadata metadata = filterbank_datafile.read_metadata();
 	filterbank_datafile.read_signal();
 
@@ -43,15 +43,15 @@ int main() {
         //pipeline_components.insert(aa_pipeline::component::periodicity); // optional
         //pipeline_components.insert(aa_pipeline::component::fdas); // optional
 	
-        aa_pipeline::pipeline_option pipeline_options;
-	pipeline_options.insert(aa_pipeline::component_option::msd_baseline_noise);
+	aa_pipeline::pipeline_option pipeline_options;
+		pipeline_options.insert(aa_pipeline::component_option::msd_baseline_noise);
 	//--------------<
 	
-        //-------------- Configure single pulse detection plan and calculate strategy
-        const float sigma_cutoff = 6.0;
-        const float sigma_constant = 4.0;
-        const float max_boxcar_width_in_sec = 0.5;
-        const bool  enable_MSD_outlier_rejection = true;
+	//-------------- Configure single pulse detection plan and calculate strategy
+	const float sigma_cutoff = 6.0;
+	const float sigma_constant = 4.0;
+	const float max_boxcar_width_in_sec = 0.5;
+	const bool  enable_MSD_outlier_rejection = true;
 	aa_analysis_plan::selectable_candidate_algorithm candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::off;
 
 	aa_pipeline_api<unsigned short> pipeline_runner(pipeline_components, pipeline_options, metadata, filterbank_datafile.input_buffer().data(), selected_card_info);
@@ -61,32 +61,36 @@ int main() {
 	aa_analysis_plan analysis_plan(pipeline_runner.ddtr_strategy(), sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, candidate_algorithm, enable_MSD_outlier_rejection);
 	pipeline_runner.bind(analysis_plan);
 
-        if (pipeline_runner.ready()) {
-                LOG(log_level::notice, "Pipeline is ready.");
-        }
-        else {
-                LOG(log_level::notice, "Pipeline is not ready.");
-        }
+	if (pipeline_runner.ready()) {
+		LOG(log_level::notice, "Pipeline is ready.");
+	}
+	else {
+		LOG(log_level::notice, "Pipeline is not ready.");
+	}
+	
+	
 
 	//------------- Run the pipeline
-	size_t nCandidates;
-	unsigned int* dm;
-	unsigned int* ts;
-	unsigned int* width;
-	float* snr;
+	size_t SPD_nCandidates; // number of candidates found in single pulse detection
+	unsigned int* SPD_candidates_dm;
+	unsigned int* SPD_candidates_timesample;
+	unsigned int* SPD_candidates_width;
+	float* SPD_candidates_snr;
 	int c_range, c_tchunk;
-	long ts_inc;
+	long int timesamples_processed_sofar;
 	aa_pipeline_runner::status status_code;
 	while(pipeline_runner.run(status_code)){
 		if ((int)status_code == 1){
-			nCandidates = pipeline_runner.SPD_nCandidates();
-			dm = pipeline_runner.h_SPD_dm();
-			ts = pipeline_runner.h_SPD_width();
-			snr = pipeline_runner.h_SPD_snr();
-			width = pipeline_runner. h_SPD_width();
+			SPD_nCandidates = pipeline_runner.SPD_nCandidates();
+			SPD_candidates_dm = pipeline_runner.h_SPD_dm();
+			SPD_candidates_timesample = pipeline_runner.h_SPD_width();
+			SPD_candidates_snr = pipeline_runner.h_SPD_snr();
+			SPD_candidates_width = pipeline_runner. h_SPD_width();
 			c_range = pipeline_runner.get_current_range();
 			c_tchunk = pipeline_runner.get_current_tchunk();
-			ts_inc = pipeline_runner.get_current_inc();
+			timesamples_processed_sofar = pipeline_runner.get_current_inc();
+			
+			printf("Current range:%d; Current time chunk:%d; Time samples proceesed by pipeline so far:%zu;\n", c_range, c_tchunk, timesamples_processed_sofar);
 		}
 	}
 	//-------------<
