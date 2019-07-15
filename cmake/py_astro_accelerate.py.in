@@ -553,17 +553,36 @@ class header():
         header.write(" Data analyzed by                       =  ????\n")
 
 class SPD():
-    def write_candidates(basename, metadata, ddtr_plan, tprocessed, nCandidates, dm, time_samples, snr, width, current_range, current_tchunk):
-        header_file = basename + "-time_chunk_" + str('{:0>2d}'.format(current_tchunk)) + "-range_" + str('{:.2f}'.format(ddtr_plan.m_dm[current_range].m_low)) + "-" + str('{:.2f}'.format(ddtr_plan.m_dm[current_range].m_high)) + ".singlepulse"
+    def write_candidates(basename, metadata, pipeline, ddtr_plan, tprocessed, nCandidates, dm, time_samples, snr, width, current_range, current_tchunk):
+        list_ndms = pipeline.ddtr_ndms()
+        dm_low = pipeline.dm_low(current_range)
+        dm_high = pipeline.dm_low(current_range) + list_ndms[current_range]*ddtr_plan.m_dm[current_range].m_step
+        header_file = basename + "-time_chunk_" + str('{:0>2d}'.format(current_tchunk)) + "-range_" + str('{:.2f}'.format(dm_low)) + "-" + str('{:.2f}'.format(dm_high)) + ".singlepulse"
         print(bcolors.WARNING + "Writing candidates to: " + header_file + bcolors.ENDC)
         file_cand = open(header_file, "w")
         file_cand.write("# DM      Sigma      Time (s)     Sample    Boxcar_Width\n")
         for i in range(0,nCandidates):
-            true_dm = dm[i]*(ddtr_plan.m_dm[current_range].m_step) + ddtr_plan.m_dm[current_range].m_low
+            true_dm = dm[i]*(ddtr_plan.m_dm[current_range].m_step) + dm_low
             true_ts = time_samples[i]*metadata.m_tsamp*ddtr_plan.m_dm[current_range].m_inBin + tprocessed*metadata.m_tsamp
             true_sample = time_samples[i]*ddtr_plan.m_dm[current_range].m_inBin + tprocessed
 #            file_cand.write(str('{:.3f}'.format(dm[i]*ddtr_plan.m_dm[current_range].m_step)) + "\t" + str('{:.3f}'.format(snr[i])) + "\t" + str('{:.4f}'.format(time_samples[i]*metadata.m_tsamp)) + "\t" + str(width[i]) + "\n")
             file_cand.write(str('{:.3f}'.format(true_dm)) + "\t" + str('{:.3f}'.format(snr[i])) + "\t" + str('{:.4f}'.format(true_ts)) + "\t" + str(true_sample) + "\t" + str(width[i]) + "\n")
         file_cand.close()
 
+    def maximum(metadata, pipeline, ddtr_plan, tprocessed, nCandidates, dm, time_samples, snr, width, current_range, current_tchunk):
+        tmp = 0.0
+        for i in range(0, nCandidates):
+            if (snr[i] > tmp):
+                tmp = snr[i]
+                dm_low = pipeline.dm_low(current_range)
+                list_ndms = pipeline.ddtr_ndms()
+                scale_dm = dm[i]*(ddtr_plan.m_dm[current_range].m_step) + dm_low
+                scale_time_sample = time_samples[i]*ddtr_plan.m_dm[current_range].m_inBin + tprocessed
+                scale_time = time_samples[i]*metadata.m_tsamp*ddtr_plan.m_dm[current_range].m_inBin + tprocessed*metadata.m_tsamp
+                scale_width = width[i]
+        return scale_dm, tmp, scale_time_sample, scale_time, scale_width
 
+    def write_maximum(dm, snr, time, ts, width):
+        index = np.argmax(snr)
+        print("#DM \t SNR \t TIME \t SAMPLE \t WIDTH")
+        print('{:.2f}'.format(dm[index]), "\t", '{:.2f}'.format(snr[index]), "\t", '{:.2f}'.format(time[index]), "\t", ts[index], "\t", width[index])

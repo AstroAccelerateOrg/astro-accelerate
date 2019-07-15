@@ -27,7 +27,7 @@ int main() {
 	//--------------<
 	
 	// Filterbank metadata
-	aa_sigproc_input filterbank_datafile("/home/karel/filterbank/ska-mid-b2.fil");
+	aa_sigproc_input filterbank_datafile("/home/novotny/filterbank/ska-mid-b2-small.fil");
 	aa_filterbank_metadata metadata = filterbank_datafile.read_metadata();
 	filterbank_datafile.read_signal();
 

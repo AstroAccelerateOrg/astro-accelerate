@@ -1006,7 +1006,6 @@ namespace astroaccelerate {
 			 * the base class must provide a method for it.
 			 */
 			if (pipeline_ready && m_runner->setup()) {
-				printf("Running run with status code.\n");
 				LOG(log_level::notice, "Pipeline running over next chunk.");
 				return m_runner->next(status_code);
 			}
