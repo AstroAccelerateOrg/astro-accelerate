@@ -5,6 +5,7 @@
  */
 
 #include <iostream>
+#include <fstream>
 
 #include "aa_ddtr_plan.hpp"
 #include "aa_ddtr_strategy.hpp"
@@ -15,6 +16,31 @@
 #include "aa_device_info.hpp"
 
 using namespace astroaccelerate;
+
+void write_scale_candidates(aa_filterbank_metadata metadata, aa_pipeline_api<unsigned short> &pipeline, long int tprocessed, size_t nCandidates, unsigned int* dm, unsigned int* time_samples, float* snr, unsigned int* width, int current_range, int current_tchunk){
+	float scaled_dm, scaled_time_sample, scaled_time;
+	int scaled_width;
+	char filename[100];
+	std::ofstream output_file;
+
+	const int *list_ndms = pipeline.get_ndms_array();
+	aa_ddtr_strategy plan = pipeline.ddtr_strategy();
+	float dm_low =  plan.dm(current_range).low;
+	float dm_high = pipeline.dm_low(current_range) + list_ndms[current_range]*plan.dm(current_range).step;
+	sprintf(filename, "results_t-%d_dm-%.3f-%.3f.txt", current_tchunk, dm_low, dm_high);
+	output_file.open(filename);
+//	printf("DM: %lf %lf %lf %d", dm_low, dm_high, plan.dm(current_range).step,list_ndms[current_range]);
+	for (int i = 0; i < (int)nCandidates; i++){
+		scaled_dm = dm[i]*plan.dm(current_range).step + dm_low;
+                scaled_time_sample = time_samples[i]*plan.dm(current_range).inBin + tprocessed;
+                scaled_time = time_samples[i]*metadata.tsamp()*plan.dm(current_range).inBin + tprocessed*metadata.tsamp();
+                scaled_width = width[i];
+
+		output_file << scaled_dm << "\t" << snr[i] << "\t" << scaled_time_sample << "\t" << scaled_time << "\t" << scaled_width << "\n";
+	}
+
+	output_file.close();
+}
 
 int main() {
 	//-------------- Select de-dispersion plan
@@ -83,13 +109,13 @@ int main() {
 		if ((int)status_code == 1){
 			SPD_nCandidates = pipeline_runner.SPD_nCandidates();
 			SPD_candidates_dm = pipeline_runner.h_SPD_dm();
-			SPD_candidates_timesample = pipeline_runner.h_SPD_width();
+			SPD_candidates_timesample = pipeline_runner.h_SPD_ts();
 			SPD_candidates_snr = pipeline_runner.h_SPD_snr();
 			SPD_candidates_width = pipeline_runner. h_SPD_width();
 			c_range = pipeline_runner.get_current_range();
 			c_tchunk = pipeline_runner.get_current_tchunk();
 			timesamples_processed_sofar = pipeline_runner.get_current_inc();
-			
+			write_scale_candidates(metadata, pipeline_runner, timesamples_processed_sofar, SPD_nCandidates, SPD_candidates_dm, SPD_candidates_timesample, SPD_candidates_snr, SPD_candidates_width, c_range, c_tchunk);		
 			printf("Current range:%d; Current time chunk:%d; Time samples proceesed by pipeline so far:%zu;\n", c_range, c_tchunk, timesamples_processed_sofar);
 		}
 	}

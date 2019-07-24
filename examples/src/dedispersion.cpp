@@ -68,6 +68,10 @@ int main() {
 	
 	float ***ddtr_output;
 	ddtr_output = pipeline_runner.output_buffer();
+	aa_ddtr_strategy plan = pipeline_runner.ddtr_strategy();
+	
+	//ddtr_output[pos_range][n_dms][samples_pos]*plan.dm(pos_range).inBin
+	LOG(log_level::notice, "DDDTR output[0][0][0]: " + std::to_string(ddtr_output[0][0][0]*plan.dm(0).inBin));
 
 	std::cout << "NOTICE: Finished." << std::endl;
 
