@@ -69,6 +69,7 @@ namespace astroaccelerate {
 
 		unsigned short     *d_DDTR_input;
 		float              *d_DDTR_output;
+		float              *d_dm_shifts;
 
 		std::vector<float> dm_low;
 		std::vector<float> dm_high;
@@ -122,6 +123,7 @@ namespace astroaccelerate {
 				LOG(log_level::debug, "DDTR -> Memory cleanup after de-dispersion");
 				cudaFree(d_DDTR_input);
 				cudaFree(d_DDTR_output);
+				if(nchans>8192) cudaFree(d_dm_shifts);
 				
 				if(do_single_pulse_detection){
 					cudaFree(m_d_MSD_workarea);
@@ -147,7 +149,7 @@ namespace astroaccelerate {
 		}
 		
 		/** \brief Allocate the GPU memory needed for dedispersion. */
-		void allocate_gpu_memory_DDTR(const int &maxshift, const int &max_ndms, const int &nchans, int **const t_processed, unsigned short **const d_DDTR_input, float **const d_DDTR_output) {
+		void allocate_gpu_memory_DDTR(const int &maxshift, const int &max_ndms, const int &nchans, int **const t_processed, unsigned short **const d_DDTR_input, float **const d_DDTR_output, float **const d_dm_shifts) {
 			int time_samps = t_processed[0][0] + maxshift;
 			printf("\n\n\n%d\n\n\n", time_samps);
 			size_t gpu_inputsize = (size_t)time_samps * (size_t)nchans * sizeof(unsigned short);
@@ -172,6 +174,12 @@ namespace astroaccelerate {
 			}
 
 			cudaMemset(*d_DDTR_output, 0, gpu_outputsize);
+			if(nchans>8192){
+				e = cudaMalloc((void **)d_dm_shifts, nchans*sizeof(float));
+				if (e != cudaSuccess) {
+					LOG(log_level::error, "Could not allocate memory for d_dm_shifts using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
+				}
+			}
 		}
 
 
@@ -274,9 +282,10 @@ namespace astroaccelerate {
 			//Data for dedispersion
 			d_DDTR_input = NULL;
 			d_DDTR_output = NULL;
+			d_dm_shifts = NULL;
 
 			//Allocate GPU memory for dedispersion
-			allocate_gpu_memory_DDTR(maxshift, max_ndms, nchans, t_processed, &d_DDTR_input, &d_DDTR_output);
+			allocate_gpu_memory_DDTR(maxshift, max_ndms, nchans, t_processed, &d_DDTR_input, &d_DDTR_output, &d_dm_shifts);
 			
 			//Allocate GPU memory for SPD (i.e. analysis)
 			if(do_single_pulse_detection) {
@@ -408,7 +417,7 @@ namespace astroaccelerate {
 
 				//checkCudaErrors(cudaGetLastError());
 				m_local_timer.Start();
-				load_chunk_data(d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift_original, nchans, dmshifts);
+				load_chunk_data(d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift_original, nchans, dmshifts, d_dm_shifts);
 				m_local_timer.Stop();
 				time_log.adding("DDTR", "Host_To_Device", m_local_timer.Elapsed());
 				//checkCudaErrors(cudaGetLastError());
@@ -485,7 +494,7 @@ namespace astroaccelerate {
 
 				//checkCudaErrors(cudaGetLastError());
 				m_local_timer.Start();
-				dedisperse(dm_range, t_processed[dm_range][current_time_chunk], inBin.data(), dmshifts, d_DDTR_input, d_DDTR_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
+				dedisperse(dm_range, t_processed[dm_range][current_time_chunk], inBin.data(), dmshifts, d_DDTR_input, d_DDTR_output, d_dm_shifts, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
 				m_local_timer.Stop();
 				time_log.adding("DDTR","Dedispersion",m_local_timer.Elapsed());
 
