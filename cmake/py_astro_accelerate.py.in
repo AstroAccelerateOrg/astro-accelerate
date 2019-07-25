@@ -516,7 +516,7 @@ class aa_py_pipeline():
         lib.aa_py_buffer.restype = PPPFLOAT
         lib.aa_py_current_inc.restype = ctypes.c_long
         ddtr_output_pointer = lib.aa_py_buffer(self.m_obj)
-        tprocessed = lib.aa_py_current_inc(self.m_obj)
+        tprocessed = lib.aa_py_total_computed_samples(self.m_obj)
         return tprocessed, ddtr_output_pointer
 
     def dm_low(self, pos: int):

@@ -75,6 +75,10 @@ namespace astroaccelerate {
 	      return obj->dm_low(range);
       }
 
+      int aa_py_total_computed_samples(aa_pipeline_api<unsigned short> *const obj){
+	      return obj->total_computed_samples();
+      }
+
       bool aa_py_pipeline_api_bind_analysis_plan(aa_pipeline_api<unsigned short> *const obj, aa_analysis_plan const*const plan) {
 	return obj->bind(*plan);
       }

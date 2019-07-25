@@ -133,14 +133,14 @@ namespace astroaccelerate {
 					free(h_SPD_candidate_list_SNR);
 					free(h_SPD_candidate_list_BW);
 				}
-				
-				// Why this is not in the ddtr_strategy?
-				size_t t_processed_size = m_ddtr_strategy.t_processed().size();
-				for (size_t i = 0; i < t_processed_size; i++) {
-					free(t_processed[i]);
-				}
-				free(t_processed);
 
+                                // Why this is not in the ddtr_strategy?
+                                size_t t_processed_size = m_ddtr_strategy.t_processed().size();
+                                for (size_t i = 0; i < t_processed_size; i++) {
+                                        free(t_processed[i]);
+                                }
+                                free(t_processed);
+				
 				memory_cleanup = false;
 			}
 			return true;
@@ -802,7 +802,7 @@ namespace astroaccelerate {
 		}
 
 		long int get_current_inc(){
-			int temp_range = (current_range>0)?current_range-1:nRanges-1;
+			int temp_range = (current_range>0 ? current_range-1:nRanges-1);
 			if(temp_range==nRanges-1 && current_time_chunk>0){
 				return(inc-t_processed[0][current_time_chunk-1]);
 			}
