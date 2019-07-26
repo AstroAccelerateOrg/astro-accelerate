@@ -524,6 +524,11 @@ class aa_py_pipeline():
         lib.aa_py_dm_low.restype = ctypes.c_int
         return lib.aa_py_dm_low(self.m_obj, pos)
 
+    def cleanUp(self):
+        lib.aa_py_cleanup.restype = ctypes.c_bool
+        api_return_value = lib.aa_py_cleanup()
+        return ctypes.c_bool(api_return_value).value
+
 
 class header():
     def information_file(basename, samples, dm, downsamp, metadata):
@@ -579,7 +584,7 @@ class SPD():
                 scale_dm = dm[i]*(ddtr_plan.m_dm[current_range].m_step) + dm_low
                 scale_time_sample = time_samples[i]*ddtr_plan.m_dm[current_range].m_inBin + tprocessed
                 scale_time = time_samples[i]*metadata.m_tsamp*ddtr_plan.m_dm[current_range].m_inBin + tprocessed*metadata.m_tsamp
-                scale_width = width[i]
+                scale_width = width[i]*ddtr_plan.m_dm[current_range].m_inBin
         return scale_dm, tmp, scale_time_sample, scale_time, scale_width
 
     def write_maximum(dm, snr, time, ts, width):

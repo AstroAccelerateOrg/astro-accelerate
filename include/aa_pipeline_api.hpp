@@ -1057,6 +1057,10 @@ namespace astroaccelerate {
 			return m_runner->get_current_inc();
 		}
 
+		bool cleanup(){
+			return m_runner->cleanup();
+		}
+
 		float ***output_buffer(){
 			/**
 			 * \brief Return the output of the DDTR. 

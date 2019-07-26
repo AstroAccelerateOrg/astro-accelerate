@@ -122,6 +122,12 @@ namespace astroaccelerate {
 			LOG(log_level::error, "The selected operation is not supported on this pipeline (total_computed_samples).");
 			return 0;
 		}
+
+                virtual bool cleanup(){
+                        LOG(log_level::error, "The selected operation is not supported on this pipeline (cleanup).");
+                        return 0;
+                }
+
 		
 	protected:
 		/** \brief Exports dedispersed data to disk. */

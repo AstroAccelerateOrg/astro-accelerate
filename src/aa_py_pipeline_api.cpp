@@ -114,38 +114,42 @@ namespace astroaccelerate {
 		return obj->output_buffer();
 	}
 
-	unsigned int* aa_py_h_dm(aa_pipeline_api<float> *const obj){
+	unsigned int* aa_py_h_dm(aa_pipeline_api<unsigned short> *const obj){
 		return obj->h_SPD_dm();
 	}
 
-	unsigned int* aa_py_h_width(aa_pipeline_api<float> *const obj){
+	unsigned int* aa_py_h_width(aa_pipeline_api<unsigned short> *const obj){
 		return obj->h_SPD_width();
 	}
 
-	float* aa_py_h_snr(aa_pipeline_api<float> *const obj){
+	float* aa_py_h_snr(aa_pipeline_api<unsigned short> *const obj){
 		return obj->h_SPD_snr();
 	}
 
-	unsigned int* aa_py_h_ts(aa_pipeline_api<unsigned int> *const obj){
+	unsigned int* aa_py_h_ts(aa_pipeline_api<unsigned short> *const obj){
 		return obj->h_SPD_ts();
 	}
 
-	size_t aa_py_spd_nCandidates(aa_pipeline_api<size_t> *const obj){
+	size_t aa_py_spd_nCandidates(aa_pipeline_api<unsigned short> *const obj){
 		return obj->SPD_nCandidates();
 	}
 
-	int aa_py_current_range(aa_pipeline_api<size_t> *const obj){
+	int aa_py_current_range(aa_pipeline_api<unsigned short> *const obj){
 		return obj->get_current_range();
 	}
 
-	int aa_py_current_time_chunk(aa_pipeline_api<size_t> *const obj){
+	int aa_py_current_time_chunk(aa_pipeline_api<unsigned short> *const obj){
 		return obj->get_current_tchunk();
 	}
 
-	long int aa_py_current_inc(aa_pipeline_api<size_t> *const obj){
+	long int aa_py_current_inc(aa_pipeline_api<unsigned short> *const obj){
 		return obj->get_current_inc();
 	}
 
+	bool aa_py_cleanup(aa_pipeline_api<unsigned short> *const obj){
+		return obj->cleanup();
+	}
+
     } // extern C
-  } // pythona
+  } // python
 } //namespace astroaccelerate
