@@ -119,6 +119,7 @@ if pipeline.status_code() == -1:
     print("ERROR: Pipeline status code is {}. The pipeline encountered an error and cannot continue.".format(pipeline.status_code()))
 
 # Cleaning the plans
+pipeline.cleanUp()
 del ddtr_plan
 del analysis_plan
 

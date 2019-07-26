@@ -34,7 +34,7 @@ void write_scale_candidates(aa_filterbank_metadata metadata, aa_pipeline_api<uns
 		scaled_dm = dm[i]*plan.dm(current_range).step + dm_low;
                 scaled_time_sample = time_samples[i]*plan.dm(current_range).inBin + tprocessed;
                 scaled_time = time_samples[i]*metadata.tsamp()*plan.dm(current_range).inBin + tprocessed*metadata.tsamp();
-                scaled_width = width[i];
+                scaled_width = width[i]*plan.dm(current_range).inBin;
 
 		output_file << scaled_dm << "\t" << snr[i] << "\t" << scaled_time_sample << "\t" << scaled_time << "\t" << scaled_width << "\n";
 	}

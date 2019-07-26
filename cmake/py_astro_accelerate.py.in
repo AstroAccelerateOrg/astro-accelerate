@@ -526,7 +526,7 @@ class aa_py_pipeline():
 
     def cleanUp(self):
         lib.aa_py_cleanup.restype = ctypes.c_bool
-        api_return_value = lib.aa_py_cleanup()
+        api_return_value = lib.aa_py_cleanup(self.m_obj)
         return ctypes.c_bool(api_return_value).value
 
 
