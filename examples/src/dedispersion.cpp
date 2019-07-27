@@ -16,7 +16,11 @@
 
 using namespace astroaccelerate;
 
-int main() {
+int main(int argc, char *argv[]) {
+	if (argc != 2) {
+		LOG(log_level::notice, "Not enough arguments. To run type: ./examples_dedispersion <path to the fil file>");
+		return 0;
+	}
 	//-------------- Select de-dispersion plan
 	aa_ddtr_plan ddtr_plan;
 	ddtr_plan.add_dm(0, 370, 0.307, 1, 1); // Add dm_ranges: dm_low, dm_high, dm_step, inBin, outBin (unused).
@@ -27,10 +31,9 @@ int main() {
 	//--------------<
 	
 	// Filterbank metadata
-	aa_sigproc_input filterbank_datafile("/home/novotny/filterbank/aa_test_file_dm90_snr10_w064_tobs30.fil");
+	aa_sigproc_input filterbank_datafile(argv[1]);
 	aa_filterbank_metadata metadata = filterbank_datafile.read_metadata();
 	filterbank_datafile.read_signal();
-
 	aa_device_info& device_info = aa_device_info::instance();
 	aa_device_info::CARD_ID selected_card_number = 0;
 	aa_device_info::aa_card_info selected_card_info; 
