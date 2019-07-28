@@ -81,11 +81,6 @@ pipeline = aa_py_pipeline(pipeline_components, pipeline_options, metadata, input
 pipeline.bind_ddtr_plan(ddtr_plan) # Bind the ddtr_plan
 pipeline.bind_analysis_plan(analysis_plan) # Bind the analysis plan
 
-#print(dir(ddtr_plan))
-#for i in range(0,4):
-#    print(ddtr_plan.m_dm[i].m_step)
-#exit()
-
 # Run the pipeline with AstroAccelerate
 while (pipeline.run()):
     print("NOTICE: Python script running over next chunk")
@@ -97,7 +92,7 @@ while (pipeline.run()):
         print(bcolors.WARNING + "Time to read: " + str(end - start) + bcolors.ENDC)
         # Write the candidates to disk
         start = time.time()
-        SPD.write_candidates(basename, metadata, ddtr_plan, ts_inc, nCandidates, dm, ts, snr, width, c_range, c_tchunk)
+        SPD.write_candidates(basename, metadata, pipeline, ddtr_plan, ts_inc, nCandidates, dm, ts, snr, width, c_range, c_tchunk)
         end = time.time()
         print(bcolors.WARNING + "Time to write: " + str(end - start) + bcolors.ENDC)
     if pipeline.status_code() == -1:
@@ -124,7 +119,9 @@ if pipeline.status_code() == -1:
     print("ERROR: Pipeline status code is {}. The pipeline encountered an error and cannot continue.".format(pipeline.status_code()))
 
 # Cleaning the plans
+pipeline.cleanUp()
 del ddtr_plan
+del analysis_plan
 
 #Presto part
 #for dDM, dsubDM, downsamp, subcall, startDM in \
