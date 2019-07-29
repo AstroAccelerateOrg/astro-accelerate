@@ -6,7 +6,7 @@
 ################################################################################
 CUDA	:= $(CUDA_INSTALL_PATH)
 INC	:= -I$(CUDA)include -I$(CUDA)samples/common/inc/
-LIB	:= -L$(CUDA)/lib64
+LIB	:= $(CUDA)/lib64
 BUILD_DIR	:=./obj/
 ASTROLIB_DIR	:=./
 SRC_DIR		:= src/
@@ -77,4 +77,4 @@ examples_filterbank_dedispersion: libastroaccelerate.a
 			nvcc -o examples_filterbank_dedispersion ./examples/src/filterbank_dedispersion.cpp -L$(ASTROLIB_DIR) -lastroaccelerate -L${LIB} $(NVCCFLAGS)
 
 clean:
-	rm -f astro-accelerate *.a $(BUILD_DIR)*.o $(ASTROLIB_DIR)*.a
+	rm -f astro-accelerate *.a $(BUILD_DIR)*.o $(ASTROLIB_DIR)*.a $(EXAMPLES_FILES)

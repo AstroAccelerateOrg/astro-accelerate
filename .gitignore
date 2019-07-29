@@ -35,7 +35,7 @@ output/
 *.sub*
 *.fft
 
-out.txt
+*.txt
 include/aa_version.hpp
 
 # IDE project files
