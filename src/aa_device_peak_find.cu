@@ -22,8 +22,14 @@ namespace astroaccelerate {
 	gridSize.x = 1 + ((decimated_timesamples-local_offset-1)/blockDim.x);
 	gridSize.y = 1 + ((nDMs-1)/blockDim.y);
 	gridSize.z = 1;		
-			
-	call_kernel_dilate_peak_find(gridSize, blockDim, &d_output_SNR[nDMs*PD_plan->operator[](f).output_shift], &d_output_taps[nDMs*PD_plan->operator[](f).output_shift], d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW, decimated_timesamples, nDMs, local_offset, threshold, max_peak_size, gmem_peak_pos, shift, (1<<f));
+	int nThreads = 128;
+	int nBlocks = decimated_timesamples*nDMs/nThreads + 1;
+	
+//	printf("\n\n Call: width %d heaight %d nBlocks: %d\n\n", decimated_timesamples, nDMs, nBlocks);	
+//	call_kernel_dilate_peak_find(gridSize, blockDim, &d_output_SNR[nDMs*PD_plan->operator[](f).output_shift], &d_output_taps[nDMs*PD_plan->operator[](f).output_shift], d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW, decimated_timesamples, nDMs, local_offset, threshold, max_peak_size, gmem_peak_pos, shift, (1<<f));
+	call_kernel_peak_find_list(nBlocks,nThreads, &d_output_SNR[nDMs*PD_plan->operator[](f).output_shift], decimated_timesamples, nDMs, threshold, gmem_peak_pos,
+                                                      shift, (1<<f), &d_output_taps[nDMs*PD_plan->operator[](f).output_shift], max_peak_size,
+                                                      d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW);
       }
     }
   }

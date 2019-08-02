@@ -3,8 +3,71 @@
 #include "aa_device_peak_find_kernel.hpp"
 #include "aa_device_peak_find_shared_kernel_functions.cuh"
 #include "aa_device_threshold_shared_kernel_functions.cuh"
+#include <stdio.h>
 
 namespace astroaccelerate {
+
+__global__ void peak_find_list2(const float *d_input, const int width, const int height, float threshold, int *gmem_pos, int shift, int DIT_value, ushort* d_input_taps, int max_peak_size, unsigned int *const d_peak_list_DM, unsigned int *const d_peak_list_TS, float *const d_peak_list_SNR, unsigned int *const d_peak_list_BW){
+
+        int global_idx = blockDim.x*blockIdx.x + threadIdx.x;
+        int list_pos;
+	if (global_idx >= width*height) return;
+        if (    (global_idx > 3*width - 1) && (global_idx < (height - 3)*width) &&
+                ((global_idx % width > 2) && (global_idx % width < (width - 3)) ) ){
+                float a[7];
+                float b[7];
+                float c[7];
+                float d[7];
+                float e[7];
+                float f[7];
+                float g[7];
+                for (int i = 0; i < 7; i++){
+                        a[i] = __ldg(d_input + global_idx - 3*width - 3 + i);
+                        b[i] = __ldg(d_input + global_idx - 2*width - 3 + i);
+                        c[i] = __ldg(d_input + global_idx - 1*width - 3 + i);
+                        d[i] = __ldg(d_input + global_idx - 0*width - 3 + i);
+                        e[i] = __ldg(d_input + global_idx + 1*width - 3 + i);
+                        f[i] = __ldg(d_input + global_idx + 2*width - 3 + i);
+                        g[i] = __ldg(d_input + global_idx + 3*width - 3 + i);
+                }
+
+                float center = d_input[global_idx];
+
+                for (int i = 0; i < 7; i++){
+                        if (center < a[i] ){
+                                return;
+                        } else if (center < b[i]){
+                                return;
+                        } else if (center < c[i]){
+                                return;
+                        } else if (center < e[i]){
+                                return;
+                        } else if (center < f[i]){
+                                return;
+                        } else if (center < g[i]){
+                                return;
+                        } else if (center < d[i]){
+                                return;
+			}
+		}
+                if (center > threshold){
+                                        list_pos=atomicAdd(gmem_pos, 1);
+                                        if(list_pos<max_peak_size){
+						int h = (int)(global_idx/width);
+						int wi = (global_idx % width);
+//						printf("Center is : %lf %d %d %d %d %d\n", center, h, shift, height, global_idx, wi);
+//						for (int i = 0; i < 7; i++){
+//							printf("%4.1lf %4.1lf %4.1lf %4.1lf %4.1lf %4.1lf %4.1lf\n", a[i], b[i], c[i], d[i], e[i], f[i], g[i]);
+//						}
+                                                d_peak_list_DM[list_pos]  = h + shift; // DM coordinate (y)
+                                                d_peak_list_TS[list_pos]  = wi*DIT_value + d_input_taps[global_idx]/2; // time coordinate (x)
+                                                d_peak_list_SNR[list_pos] = center; // SNR value
+                                                d_peak_list_BW[list_pos]  = d_input_taps[0]; // width of the boxcar
+                                        } // if list_pos < max_peak
+                                } // if threshold
+        } // if outside boundaries
+} // kernel end
+
 
   __global__ void dilate_peak_find(const float *d_input, ushort* d_input_taps,  unsigned int *d_peak_list_DM,  unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW, const int width, const int height, const int offset, const float threshold, int max_peak_size, int *gmem_pos, int shift, int DIT_value) {
     int idxX = blockDim.x * blockIdx.x + threadIdx.x;
@@ -413,5 +476,9 @@ namespace astroaccelerate {
 							    max_peak_size,
 							    gmem_pos, d_MSD, DM_shift, DIT_value);
   }
+
+	void call_kernel_peak_find_list(const dim3 &grid_size, const dim3 &block_size, float *const d_input, const int width, const int height, const float &threshold, int *const gmem_pos, const int &shift, const int &DIT_value, ushort *const d_input_taps, const int &max_peak_size, unsigned int *const d_peak_list_DM, unsigned int *const d_peak_list_TS, float *const d_peak_list_SNR, unsigned int *const d_peak_list_BW){
+		peak_find_list2<<<grid_size,block_size>>>(d_input, width, height, threshold, gmem_pos, shift, DIT_value, d_input_taps, max_peak_size, d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW);
+	}
 
 } //namespace astroaccelerate
