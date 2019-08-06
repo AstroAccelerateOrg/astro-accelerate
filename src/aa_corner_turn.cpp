@@ -24,6 +24,7 @@ void corner_turn(unsigned short *const d_input, float *const d_output, const int
     
     call_kernel_simple_corner_turn_kernel(num_blocks, threads_per_block, d_input, d_output, nchans, nsamp);
     cudaDeviceSynchronize();
+    exit(0);
     call_kernel_swap(num_blocks, threads_per_block, d_input, d_output, nchans, nsamp);
     cudaDeviceSynchronize();
     
