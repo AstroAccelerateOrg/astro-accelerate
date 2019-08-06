@@ -155,10 +155,12 @@ namespace astroaccelerate {
 			size_t gpu_inputsize = (size_t)time_samps * (size_t)nchans * sizeof(unsigned short);
 			cudaError_t e;
 
+			printf("gpu_inputsize: %zu\n", gpu_inputsize);
 			e = cudaMalloc((void **)d_DDTR_input, gpu_inputsize);
 			if (e != cudaSuccess) {
 				LOG(log_level::error, "Could not allocate memory for d_DDTR_input using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
 			}
+			printf("done on DDTR input.\n");
 
 			size_t gpu_outputsize = 0;
 			if (nchans < max_ndms) {
@@ -168,10 +170,12 @@ namespace astroaccelerate {
 				gpu_outputsize = (size_t)time_samps * (size_t)nchans * sizeof(float);
 			}
 
+			printf("gpu_outputsize: %zu\n", gpu_outputsize);
 			e = cudaMalloc((void **)d_DDTR_output, gpu_outputsize);
 			if (e != cudaSuccess) {
 				LOG(log_level::error, "Could not allocate memory for d_DDTR_output using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
 			}
+			printf("done on DDTR output.\n");
 
 			cudaMemset(*d_DDTR_output, 0, gpu_outputsize);
 			if(nchans>8192){

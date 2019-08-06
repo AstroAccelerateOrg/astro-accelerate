@@ -47,6 +47,7 @@ namespace astroaccelerate {
   }
 
   __global__ void simple_corner_turn_kernel(unsigned short *d_input, float *d_output, int nchans, int nsamp) {
+	printf("yes\n");
 
     int t = blockIdx.x * blockDim.x + threadIdx.x;
     int c = blockIdx.y * blockDim.y + threadIdx.y;
