@@ -28,10 +28,6 @@ namespace astroaccelerate {
 	 * \brief A struct to contain all configurations from an input file.
 	 */
 	struct aa_config_flags {
-		float narrow;                   /**< Narrow setting. */
-		float wide;                     /**< Wide setting. */
-		float aggression;               /**< Aggression setting. */
-		float nsearch;                  /**< Number of searches. */
 		float power;                    /**< Power setting. */
 		float sigma_cutoff;             /**< Sigma cutoff setting. */
 		float sigma_constant;           /**< Sigma constant setting. */
@@ -40,9 +36,6 @@ namespace astroaccelerate {
 
 		int multi_file;                 /**< Multi file setting. This looks like it is deprecated. */
 		int output_dmt;                 /**< Enables or disables ddtr output to disk. */
-		int nboots;                     /**< nboots setting. */
-		int ntrial_bins;                /**< Number of bins for a dm trial. */
-		int navdms;                     /**< navdms setting. */
 		int range;                      /**< Range setting incremented to be the total number of user selected dm ranges. */
 		int candidate_algorithm;        /**< Enables or disables use of candidate algorithm for analysis. */
 		int nb_selected_dm;             /**< Incremented to be the total number of user selected dm ranges. Looks like a legacy duplicate of range. */
@@ -207,62 +200,6 @@ namespace astroaccelerate {
 							return false;
 						}
 					}
-					if (strcmp(string, "narrow") == 0)
-					{
-						if (fscanf(fp_in, "%f", &flg.narrow) == 0)
-						{
-							fprintf(stderr, "failed to read input\n");
-							return false;
-						}
-					}
-					if (strcmp(string, "wide") == 0)
-					{
-						if (fscanf(fp_in, "%f", &flg.wide) == 0)
-						{
-							fprintf(stderr, "failed to read input\n");
-							return false;
-						}
-					}
-					if (strcmp(string, "nboots") == 0)
-					{
-						if (fscanf(fp_in, "%d", &flg.nboots) == 0)
-						{
-							fprintf(stderr, "failed to read input\n");
-							return false;
-						}
-					}
-					if (strcmp(string, "navdms") == 0)
-					{
-						if (fscanf(fp_in, "%d", &flg.navdms) == 0)
-						{
-							fprintf(stderr, "failed to read input\n");
-							return false;
-						}
-					}
-					if (strcmp(string, "nwindows") == 0)
-					{
-						if (fscanf(fp_in, "%d", &flg.ntrial_bins) == 0)
-						{
-							fprintf(stderr, "failed to read input\n");
-							return false;
-						}
-					}
-					if (strcmp(string, "ntrial_bins") == 0)
-					{
-						if (fscanf(fp_in, "%d", &flg.ntrial_bins) == 0)
-						{
-							fprintf(stderr, "failed to read input\n");
-							return false;
-						}
-					}
-					if (strcmp(string, "aggression") == 0)
-					{
-						if (fscanf(fp_in, "%f", &flg.aggression) == 0)
-						{
-							fprintf(stderr, "failed to read input\n");
-							return false;
-						}
-					}
 					if (strcmp(string, "power") == 0)
 					{
 						if (fscanf(fp_in, "%f", &flg.power) == 0)
@@ -330,7 +267,7 @@ namespace astroaccelerate {
 			: 
 			configure_from_file(true), 
 			user_cli(cli_input), 
-			flg({ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>() })
+			flg({ 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>() })
 		{
 			flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
 			flg.periodicity_nHarmonics = 32; // wrong
@@ -345,7 +282,7 @@ namespace astroaccelerate {
 			: 
 			configure_from_file(false), 
 			m_pipeline(user_pipeline), 
-			flg({ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>() }) 
+			flg({ 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>() })
 		{
 			flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
 			flg.periodicity_nHarmonics = 32; // wrong

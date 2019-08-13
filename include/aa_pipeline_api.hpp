@@ -195,6 +195,7 @@ namespace astroaccelerate {
 				//Is the ddtr_strategy provided by this analysis_plan ready?
 				if (!plan.ddtr_strategy().ready()) {
 					//This ddtr_strategy is not ready, so ignore this analysis_plan.
+					printf("Not ready the strategy\n");
 					return false;
 				}
 
@@ -338,6 +339,26 @@ namespace astroaccelerate {
 			}
 		}
 
+		size_t get_nRanges(){
+			return m_ddtr_strategy.get_nRanges();
+		}
+
+		const int* get_ndms_array(){
+			return m_ddtr_strategy.ndms_data();
+		}
+
+		int dm_low(const int range){
+			return m_ddtr_strategy.dm(range).low;
+		}
+
+		int total_computed_samples(){
+			int tprocessed = 0;
+			for(size_t j = 0; j < m_ddtr_strategy.t_processed().at(0).size(); j++) {
+				tprocessed += m_ddtr_strategy.t_processed()[0][j];
+			}
+			return tprocessed;
+		}
+
 		/** \returns The aa_analysis_strategy instance bound to the pipeline instance, or a trivial instance if a valid aa_analysis_strategy does not yet exist. */
 		aa_analysis_strategy analysis_strategy() {
 			//Does the pipeline actually need this strategy? 
@@ -405,7 +426,7 @@ namespace astroaccelerate {
 			if (required_plans.find(aa_pipeline::component::fdas) != required_plans.end()) {
 				//It does need this strategy.
 				//Is it already computed?
-				if (m_fdas_strategy.ready()) { //Return since it was already computed.                                                                                                                                                          
+				if (m_fdas_strategy.ready()) { //Return since it was already computed.
 					return m_fdas_strategy;
 				}
 				else {
@@ -1003,6 +1024,56 @@ namespace astroaccelerate {
 			}
 		}
 
+
+		float* h_SPD_snr(){
+			return m_runner->h_SPD_snr();
+		}
+
+		unsigned int* h_SPD_dm(){
+			return m_runner->h_SPD_dm();
+		}	
+
+		unsigned int* h_SPD_width(){
+			return m_runner->h_SPD_width();
+		}	
+
+		unsigned int* h_SPD_ts(){
+			return m_runner->h_SPD_ts();
+		}	
+
+		size_t SPD_nCandidates(){
+			return m_runner->get_SPD_nCandidates();
+		}
+
+		int get_current_range(){
+			return m_runner->get_current_range();
+		}
+
+		int get_current_tchunk(){
+			return m_runner->get_current_tchunk();
+		}
+
+		long int get_current_inc(){
+			return m_runner->get_current_inc();
+		}
+
+		bool cleanup(){
+			return m_runner->cleanup();
+		}
+
+		float ***output_buffer(){
+			/**
+			 * \brief Return the output of the DDTR. 
+			 */
+			if (m_pipeline_options.find(aa_pipeline::component_option::copy_ddtr_data_to_host) != m_pipeline_options.end()) {
+				return m_runner->output_buffer();
+			}
+			else {
+				LOG(log_level::error, "Could not get data from DDTR. The data are not copied from GPU memory to host memory. Enable option copy_DDTR_data_to_host.");
+				return m_runner->output_buffer();
+			}
+		}		
+
 		/**
 		 * \brief Function pass input/output data from one aa_pipeline_api instance to another.
 		 * \warning Not yet implemented.
@@ -1021,3 +1092,4 @@ namespace astroaccelerate {
 } // namespace astroaccelerate
 
 #endif // ASTRO_ACCELERATE_AA_PIPELINE_API_HPP
+

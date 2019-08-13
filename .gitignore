@@ -9,6 +9,10 @@ Makefile
 # Compilation output
 astro-accelerate
 libastroaccelerate.so
+examples_dedispersion
+examples_dedispersion_and_analysis
+examples_periodicity
+examples_filterbank_dedispersion
 
 # Profiler output
 profile_results/
@@ -25,8 +29,13 @@ output/
 *.new
 *.ori
 *.dat
+*.inf
+*.fil
+*.singlepulse
+*.sub*
+*.fft
 
-out.txt
+*.txt
 include/aa_version.hpp
 
 # IDE project files

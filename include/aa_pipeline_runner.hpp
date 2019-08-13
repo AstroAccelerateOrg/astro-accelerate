@@ -6,6 +6,8 @@
 #include <fstream>
 
 #include "aa_log.hpp"
+#include "aa_device_analysis.hpp"
+
 
 namespace astroaccelerate {
 
@@ -13,8 +15,8 @@ namespace astroaccelerate {
 	 * \class aa_pipeline_runner aa_pipeline_runner.hpp "include/aa_pipeline_runner.hpp"
 	 * \brief Abstract base class for running a pipeline.
 	 * \details In practice, this class is used for creating base class pointers for pointing to a permitted pipeline instance.
-	 * \author Cees Carels.
-	 * \date 30 November 2018.
+	 * \author AstroAccelerate team.
+	 * \date 03 July 2019.
 	 */
 	class aa_pipeline_runner {
 	public:
@@ -55,6 +57,12 @@ namespace astroaccelerate {
 			return false;
 		}
 
+                virtual bool next(std::vector<analysis_output> &, aa_pipeline_runner::status &status_code) {
+                        LOG(log_level::error, "The selected operation is not supported on this pipeline.");
+                        status_code = aa_pipeline_runner::status::finished;
+                        return false;
+                }
+
 		/**
 		 * \brief Base class virtual methods for running a pipeline.
 		 * \details In case a derived class does not implement a method, this method will be called.
@@ -64,6 +72,62 @@ namespace astroaccelerate {
 			std::cout << "ERROR:  The selected operation is not supported on this pipeline." << std::endl;
 			return false;
 		}
+
+		virtual float ***output_buffer(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (output_buffer).");
+			return NULL;
+		}
+
+		virtual float *h_SPD_snr(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (h_SPD_snr).");
+			return NULL;
+		}
+
+		virtual unsigned int* h_SPD_ts(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (h_SPD_time).");
+			return NULL;
+		}
+
+		virtual unsigned int* h_SPD_dm(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (h_SPD_dm).");
+			return NULL;
+		}
+
+		virtual unsigned int* h_SPD_width(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (h_SPD_width).");
+			return NULL;
+		}
+
+		virtual size_t get_SPD_nCandidates(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (nCandidates).");
+			return 0;
+		}
+
+		virtual int get_current_range(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (current_range).");
+			return 0;
+		}
+
+                virtual int get_current_tchunk(){
+                        LOG(log_level::error, "The selected operation is not supported on this pipeline (current_time_chunk).");
+                        return 0;
+                }
+
+		virtual long int get_current_inc(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (current_inc).");
+			return 0;
+		}
+
+		virtual int total_computed_samples(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (total_computed_samples).");
+			return 0;
+		}
+
+                virtual bool cleanup(){
+                        LOG(log_level::error, "The selected operation is not supported on this pipeline (cleanup).");
+                        return 0;
+                }
+
 		
 	protected:
 		/** \brief Exports dedispersed data to disk. */
@@ -137,3 +201,4 @@ namespace astroaccelerate {
 
 } // namespace astroaccelerate
 #endif // ASTRO_ACCELERATE_AA_PIPELINE_RUNNER_HPP
+

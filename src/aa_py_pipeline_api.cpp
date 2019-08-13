@@ -38,6 +38,7 @@ namespace astroaccelerate {
 	if(options.zero_dm) pipeline_options.insert(aa_pipeline::component_option::zero_dm);
 	if(options.zero_dm_with_outliers) pipeline_options.insert(aa_pipeline::component_option::zero_dm_with_outliers);
 	if(options.old_rfi) pipeline_options.insert(aa_pipeline::component_option::old_rfi);
+	if(options.copy_ddtr_data_to_host) pipeline_options.insert(aa_pipeline::component_option::copy_ddtr_data_to_host);
 	if(options.msd_baseline_noise) pipeline_options.insert(aa_pipeline::component_option::msd_baseline_noise);
 	if(options.output_dmt) pipeline_options.insert(aa_pipeline::component_option::output_dmt);
 	if(options.output_ffdot_plan) pipeline_options.insert(aa_pipeline::component_option::output_ffdot_plan);
@@ -61,7 +62,23 @@ namespace astroaccelerate {
       aa_ddtr_strategy* aa_py_pipeline_api_ddtr_strategy(aa_pipeline_api<unsigned short> *const obj) {
 	return new aa_ddtr_strategy(obj->ddtr_strategy());
       }
-      
+
+      size_t aa_py_get_ddtr_nRanges(aa_pipeline_api<unsigned short> *const obj){
+	      return  obj->get_nRanges();
+      }
+
+      const int* aa_py_get_ndms_array(aa_pipeline_api<unsigned short> *const obj){
+	      return obj->get_ndms_array();
+      }
+
+      int aa_py_dm_low(aa_pipeline_api<unsigned short> *const obj, const int range){
+	      return obj->dm_low(range);
+      }
+
+      int aa_py_total_computed_samples(aa_pipeline_api<unsigned short> *const obj){
+	      return obj->total_computed_samples();
+      }
+
       bool aa_py_pipeline_api_bind_analysis_plan(aa_pipeline_api<unsigned short> *const obj, aa_analysis_plan const*const plan) {
 	return obj->bind(*plan);
       }
@@ -75,15 +92,11 @@ namespace astroaccelerate {
 	return obj->bind(plan);
       }
 
-      bool aa_py_pipeline_api_bind_fdas_plan(aa_pipeline_api<unsigned short> *const obj, const float sigma_cutoff, const float sigma_constant, const int num_boots, const int num_trial_bins, const int navdms, const float narrow, const float wide, const int nsearch, const float aggression, const bool enable_msd_baseline_noise) {
-	aa_fdas_plan plan(sigma_cutoff, sigma_constant, num_boots, num_trial_bins, navdms, narrow, wide, nsearch, aggression, enable_msd_baseline_noise);
+      bool aa_py_pipeline_api_bind_fdas_plan(aa_pipeline_api<unsigned short> *const obj, const float sigma_cutoff, const float sigma_constant, const bool enable_msd_baseline_noise) {
+	aa_fdas_plan plan(sigma_cutoff, sigma_constant, enable_msd_baseline_noise);
 	return obj->bind(plan);
       }
-
-      aa_fdas_strategy aa_py_pipeline_api_fdas_strategy(aa_pipeline_api<unsigned short> *const obj) {
-	return obj->fdas_strategy();
-      }
-      
+  
       bool aa_py_pipeline_api_run(aa_pipeline_api<unsigned short> *const obj, int &status_code_int) {
 	aa_pipeline_runner::status status_code;
 	if(obj->ready()) {
@@ -96,6 +109,47 @@ namespace astroaccelerate {
 	  return false;
 	}
       }
-    }
-  }
-}
+
+	float*** aa_py_buffer(aa_pipeline_api<unsigned short> *const obj){
+		return obj->output_buffer();
+	}
+
+	unsigned int* aa_py_h_dm(aa_pipeline_api<unsigned short> *const obj){
+		return obj->h_SPD_dm();
+	}
+
+	unsigned int* aa_py_h_width(aa_pipeline_api<unsigned short> *const obj){
+		return obj->h_SPD_width();
+	}
+
+	float* aa_py_h_snr(aa_pipeline_api<unsigned short> *const obj){
+		return obj->h_SPD_snr();
+	}
+
+	unsigned int* aa_py_h_ts(aa_pipeline_api<unsigned short> *const obj){
+		return obj->h_SPD_ts();
+	}
+
+	size_t aa_py_spd_nCandidates(aa_pipeline_api<unsigned short> *const obj){
+		return obj->SPD_nCandidates();
+	}
+
+	int aa_py_current_range(aa_pipeline_api<unsigned short> *const obj){
+		return obj->get_current_range();
+	}
+
+	int aa_py_current_time_chunk(aa_pipeline_api<unsigned short> *const obj){
+		return obj->get_current_tchunk();
+	}
+
+	long int aa_py_current_inc(aa_pipeline_api<unsigned short> *const obj){
+		return obj->get_current_inc();
+	}
+
+	bool aa_py_cleanup(aa_pipeline_api<unsigned short> *const obj){
+		return obj->cleanup();
+	}
+
+    } // extern C
+  } // python
+} //namespace astroaccelerate

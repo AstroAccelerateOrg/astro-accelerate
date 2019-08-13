@@ -239,7 +239,7 @@ namespace astroaccelerate {
     void allocate_memory_cpu_output() {
       size_t estimate_outputbuffer_size = 0;
       size_t outputsize = 0;
-      const size_t range = m_ddtr_strategy.range();
+      const size_t range = m_ddtr_strategy.get_nRanges();
       const int *ndms = m_ddtr_strategy.ndms_data();
       
       for(size_t i = 0; i < range; i++) {
@@ -292,7 +292,7 @@ namespace astroaccelerate {
       tsamp                           = m_ddtr_strategy.metadata().tsamp();
       tsamp_original                  = tsamp;
       maxshift_original               = maxshift;
-      range                           = m_ddtr_strategy.range();
+      range                           = m_ddtr_strategy.get_nRanges();
       tstart_local                    = 0.0;
 
       //Allocate GPU memory
@@ -308,11 +308,11 @@ namespace astroaccelerate {
       
       //Put the dm low, high, step struct contents into separate arrays again.
       //This is needed so that the kernel wrapper functions don't need to be modified.
-      dm_low.resize(m_ddtr_strategy.range());
-      dm_high.resize(m_ddtr_strategy.range());
-      dm_step.resize(m_ddtr_strategy.range());
-      inBin.resize(m_ddtr_strategy.range());
-      for(size_t i = 0; i < m_ddtr_strategy.range(); i++) {
+      dm_low.resize(m_ddtr_strategy.get_nRanges());
+      dm_high.resize(m_ddtr_strategy.get_nRanges());
+      dm_step.resize(m_ddtr_strategy.get_nRanges());
+      inBin.resize(m_ddtr_strategy.get_nRanges());
+      for(size_t i = 0; i < m_ddtr_strategy.get_nRanges(); i++) {
 	dm_low[i]   = m_ddtr_strategy.dm(i).low;
 	dm_high[i]  = m_ddtr_strategy.dm(i).high;
 	dm_step[i]  = m_ddtr_strategy.dm(i).step;
@@ -370,7 +370,7 @@ namespace astroaccelerate {
       const int *ndms = m_ddtr_strategy.ndms_data();
       
       //checkCudaErrors(cudaGetLastError());
-      load_data(-1, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts);
+      load_data(-1, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts, NULL);
       //checkCudaErrors(cudaGetLastError());
 
       if(zero_dm_type == aa_pipeline::component_option::zero_dm) {
@@ -406,7 +406,7 @@ namespace astroaccelerate {
 	cudaDeviceSynchronize();
 	//checkCudaErrors(cudaGetLastError());
 
-	load_data(dm_range, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t], maxshift, nchans, dmshifts);
+	load_data(dm_range, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t], maxshift, nchans, dmshifts, NULL);
 
 	//checkCudaErrors(cudaGetLastError());
 
@@ -418,7 +418,7 @@ namespace astroaccelerate {
 
 	//checkCudaErrors(cudaGetLastError());
 
-	dedisperse(dm_range, t_processed[dm_range][t], inBin.data(), dmshifts, d_input, d_output, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
+	dedisperse(dm_range, t_processed[dm_range][t], inBin.data(), dmshifts, d_input, d_output, NULL, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
 
 	//checkCudaErrors(cudaGetLastError());
 
@@ -505,7 +505,7 @@ namespace astroaccelerate {
       aa_gpu_timer timer;
       timer.Start();
       const int *ndms =	m_ddtr_strategy.ndms_data();
-      GPU_periodicity(m_ddtr_strategy.range(),
+      GPU_periodicity(m_ddtr_strategy.get_nRanges(),
 		      m_ddtr_strategy.metadata().nsamples(),
 		      max_ndms,
 		      inc,
