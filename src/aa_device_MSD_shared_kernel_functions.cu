@@ -44,8 +44,6 @@ namespace astroaccelerate {
     }
   }
 
-
-
   __global__ void MSD_GPU_final_nonregular(float *d_input, float *d_MSD, int size) {
     __shared__ float s_input[3*WARP*WARP];
 
@@ -84,7 +82,6 @@ namespace astroaccelerate {
       d_pp[2] = j;
     }
   }
-
 
   __global__ void MSD_GPU_Interpolate_linear(float *d_MSD_DIT, float *d_MSD_interpolated, int *d_MSD_DIT_widths, int MSD_DIT_size, int *boxcar, int max_width_performed){
 
