@@ -2,6 +2,7 @@
 //#define MSD_BOXCAR_TEST
 //#define GPU_PARTIAL_TIMER
 #define GPU_TIMER
+#define FILTER
 
 #include <vector>
 #include <stdio.h>
@@ -343,6 +344,7 @@ namespace astroaccelerate {
 	cudaMemset((void*) gmem_peak_pos, 0, sizeof(int));
       }
 
+#ifdef FILTER
 	//------------peak clustering from AA_experimental
 	size_t d_output_SNR_size = DMs_per_cycle*nTimesamples;
 	size_t d_peak_list_size = DMs_per_cycle*nTimesamples/4;
@@ -386,7 +388,7 @@ namespace astroaccelerate {
 
 		call_gpu_Filter_peaks(d_peak_list_DM, d_peak_list_TS, d_peak_list_BW, d_peak_list_SNR,
 			        d_peak_list_DM2, d_peak_list_TS2, d_peak_list_BW2, d_peak_list_SNR2,	
-				local_peak_pos, 6400, (int)d_peak_list_size, gmem_filteredPeak_pos);
+				local_peak_pos, 256.0, (int)d_peak_list_size, gmem_filteredPeak_pos);
 
 		cudaMemcpy(&temp_peak_pos, gmem_filteredPeak_pos, sizeof(int), cudaMemcpyDeviceToHost);
                 local_peak_pos = temp_peak_pos;
@@ -407,10 +409,11 @@ namespace astroaccelerate {
 	printf("    Clustering took:%f ms\n", timer.Elapsed());
 #endif
 	//------------------------------------------------
+	*peak_pos = local_peak_pos;
+#endif
 		
       //------------------------> Output
       float *h_peak_list;
-      *peak_pos = local_peak_pos;
       h_peak_list = new float[4*(*peak_pos)];
       int i_peak_pos = (int)(*peak_pos);
 
