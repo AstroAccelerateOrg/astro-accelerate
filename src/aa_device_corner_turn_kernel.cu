@@ -7,10 +7,10 @@ namespace astroaccelerate {
 
   __global__ void simple_corner_turn_kernel(float *d_input, float *d_output, int primary_size, int secondary_size){
 
-    int primary = blockIdx.x * blockDim.x + threadIdx.x;
-    int secondary = blockIdx.y * blockDim.y + threadIdx.y;
+    size_t primary = blockIdx.x * blockDim.x + threadIdx.x;
+    size_t secondary = blockIdx.y * blockDim.y + threadIdx.y;
 
-    d_output[primary*secondary_size + secondary] = (float) __ldg(&d_input[secondary*primary_size + primary]);
+    d_output[(size_t)primary*secondary_size + secondary] = (float) __ldg(&d_input[(size_t)secondary*primary_size + primary]);
   }
 
 
@@ -49,19 +49,19 @@ namespace astroaccelerate {
 
   __global__ void simple_corner_turn_kernel(unsigned short *d_input, float *d_output, int nchans, int nsamp) {
 
-    int t = blockIdx.x * blockDim.x + threadIdx.x;
-    int c = blockIdx.y * blockDim.y + threadIdx.y;
+    size_t t = blockIdx.x * blockDim.x + threadIdx.x;
+    size_t c = blockIdx.y * blockDim.y + threadIdx.y;
 
-    d_output[c * nsamp + t] = (float) __ldg(&d_input[t * nchans + c]);
+    d_output[(size_t)(c * nsamp) + t] = (float) __ldg(&d_input[(size_t)(t * nchans) + c]);
 
   }
 
   __global__ void swap(unsigned short *d_input, float *d_output, int nchans, int nsamp) {
 
-    int t = blockIdx.x * blockDim.x + threadIdx.x;
-    int c = blockIdx.y * blockDim.y + threadIdx.y;
+    size_t t = blockIdx.x * blockDim.x + threadIdx.x;
+    size_t c = blockIdx.y * blockDim.y + threadIdx.y;
 
-    d_input[c * nsamp + t] = (unsigned short) __ldg(&d_output[c * nsamp + t]);
+    d_input[(size_t)(c * nsamp) + t] = (unsigned short) __ldg(&d_output[(size_t)(c * nsamp) + t]);
 
   }
 

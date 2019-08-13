@@ -495,7 +495,6 @@ namespace astroaccelerate {
 					m_local_timer.Stop();
 					time_log.adding("DDTR", "Binning",m_local_timer.Elapsed());
 				}
-
 				//checkCudaErrors(cudaGetLastError());
 				m_local_timer.Start();
 				dedisperse(dm_range, t_processed[dm_range][current_time_chunk], inBin.data(), dmshifts, d_DDTR_input, d_DDTR_output, d_dm_shifts, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);

@@ -60,7 +60,7 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 	  // access...
 	  if (( ( SDIVINT - 1 ) + ( ( SDIVINDM - 1 ) * SDIVINT ) - 1 ) > lineshift) {
 
-	      printf("\nUsing fast shared memory kernel");
+	      printf("\nUsing fast shared memory kernel\n");
 
 	      //{{{ Dedisperse data on the GPU
 	      float startdm = dm_low[i];
@@ -69,6 +69,8 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 	      int divisions_in_dm = SDIVINDM;
 	      int num_blocks_t = t_processed / ( divisions_in_t * 2 * SNUMREG );
 	      int num_blocks_dm = ndms[i] / divisions_in_dm;
+//		printf("threads: [%d, %d]\n", divisions_in_t, divisions_in_dm);
+//		printf("blocks: [%d, %d]\n", num_blocks_t, num_blocks_dm);
 
 	      dim3 threads_per_block(divisions_in_t, divisions_in_dm);
 	      dim3 num_blocks(num_blocks_t, num_blocks_dm);
