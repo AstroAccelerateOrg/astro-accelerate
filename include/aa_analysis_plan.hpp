@@ -16,8 +16,9 @@ namespace astroaccelerate {
   public:
 
     enum class selectable_candidate_algorithm : int {
-      off = 0,
-	on			  
+		peak_find = 0,
+		threshold = 1,
+		peak_filtering = 2
 	};
     
     /** \brief Trivial constructor for aa_analysis_plan.

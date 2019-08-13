@@ -147,7 +147,7 @@ namespace astroaccelerate {
     //---------------------------------------------------------------------------
     //----------> GPU part
     printf("\n----------> GPU analysis part\n");
-    printf("  Dimensions nDMs:%d; nTimesamples:%d; inBin:%d; maxshift:%d; \n", ndms[i], t_processed, inBin, *maxshift);
+    printf("  Dimensions nDMs:%d; nTimesamples:%d; inBin:%d; maxshift:%d; candidate_algorithm:%d \n", ndms[i], t_processed, inBin, *maxshift, candidate_algorithm);
     aa_gpu_timer total_timer, timer;
     total_timer.Start();
 	
@@ -283,7 +283,7 @@ namespace astroaccelerate {
 #endif
 	  //-------------- Thresholding
 	}
-	else {
+	else if(candidate_algorithm==0) {
 	  //-------------- Peak finding
 	  timer.Start();
 	  SPDT_peak_find(d_output_SNR, d_output_taps, d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW, DM_list[f], nTimesamples, cutoff, local_max_list_size, gmem_peak_pos, DM_shift, &PD_plan, max_iteration);
@@ -294,6 +294,9 @@ namespace astroaccelerate {
 	  printf("    Peak finding took:%f ms\n", timer.Elapsed());
 #endif
 	  //-------------- Peak finding
+	}
+	else if(candidate_algorithm==2) { //peak filtering
+		
 	}
 			
 	//checkCudaErrors(cudaGetLastError());
@@ -413,16 +416,16 @@ namespace astroaccelerate {
 #endif
 		
       //------------------------> Output
-      float *h_peak_list;
-      h_peak_list = new float[4*(*peak_pos)];
-      int i_peak_pos = (int)(*peak_pos);
+	float *h_peak_list;
+	h_peak_list = new float[4*(*peak_pos)];
+	int i_peak_pos = (int)(*peak_pos);
 
-      for (int count = 0; count < i_peak_pos; count++){
-	h_peak_list[4*count]     = ((double) h_peak_list_DM[count])*dm_step[i] + dm_low[i];
-	h_peak_list[4*count + 1] = ((double) h_peak_list_TS[count])*tsamp + tstart;
-	h_peak_list[4*count + 2] = ((double) h_peak_list_SNR[count]);
-	h_peak_list[4*count + 3] = ((double) h_peak_list_BW[count])*inBin;
-      }
+	for (int count = 0; count < i_peak_pos; count++){
+		h_peak_list[4*count]     = ((double) h_peak_list_DM[count])*dm_step[i] + dm_low[i];
+		h_peak_list[4*count + 1] = ((double) h_peak_list_TS[count])*tsamp + tstart;
+		h_peak_list[4*count + 2] = ((double) h_peak_list_SNR[count]);
+		h_peak_list[4*count + 3] = ((double) h_peak_list_BW[count])*inBin;
+	}
         
       FILE *fp_out;
 		

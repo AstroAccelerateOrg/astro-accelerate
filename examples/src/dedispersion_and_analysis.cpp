@@ -82,7 +82,7 @@ int main(int argc, const char *argv[]) {
 	const float sigma_constant = 4.0;
 	const float max_boxcar_width_in_sec = 0.5;
 	const bool  enable_MSD_outlier_rejection = true;
-	aa_analysis_plan::selectable_candidate_algorithm candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::off;
+	aa_analysis_plan::selectable_candidate_algorithm candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::peak_find;
 
 	aa_pipeline_api<unsigned short> pipeline_runner(pipeline_components, pipeline_options, metadata, filterbank_datafile.input_buffer().data(), selected_card_info);
 
