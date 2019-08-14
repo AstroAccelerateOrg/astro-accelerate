@@ -111,14 +111,19 @@ namespace astroaccelerate {
     // Lastly, aa_ddtr_strategy contains a member field to query whether
     // analysis will be run. This enables aa_analysis_strategy to validate
     // the aa_ddtr_strategy that was supplied to it.
-
-    aa_analysis_plan::selectable_candidate_algorithm selected_candidate_algorithm;
-    if(analysis_enable_candidate_algorithm) {
-      selected_candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::on;
-    }
+	
+	
+	aa_analysis_plan::selectable_candidate_algorithm selected_candidate_algorithm;
+	if (pipeline_options.find(aa_pipeline::component_option::candidate_algorithm) != pipeline_options.end()) {
+		selected_candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::threshold;
+	}
+	else if (pipeline_options.find(aa_pipeline::component_option::candidate_filtering) != pipeline_options.end()) {
+		selected_candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::peak_filtering;
+	}
     else {
-      selected_candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::off;
+      selected_candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::peak_find ;
     }
+	
     
     aa_analysis_plan analysis_plan(pipeline_manager.ddtr_strategy(),
 				   analysis_sigma_cutoff,

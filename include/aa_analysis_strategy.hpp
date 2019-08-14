@@ -32,7 +32,7 @@ namespace astroaccelerate {
 			     m_MSD_data_info(0),
 			     m_MSD_profile_size_in_bytes(0),
 			     m_h_MSD_DIT_width(0),
-			     m_candidate_algorithm(aa_analysis_plan::selectable_candidate_algorithm::off),
+			     m_candidate_algorithm(aa_analysis_plan::selectable_candidate_algorithm::peak_find),
 			     m_enable_msd_baseline_noise(0),
 			     m_ready(false) {
       
@@ -128,19 +128,21 @@ namespace astroaccelerate {
 
     /** \returns an integer to indicate whether the candidate algorithm will be enabled or disabled. 0 for off, and 1 for on. */
     int candidate_algorithm() const {
-      switch(m_candidate_algorithm) {
-      case aa_analysis_plan::selectable_candidate_algorithm::off:
-	return 0;
-	break;
-      case aa_analysis_plan::selectable_candidate_algorithm::on:
-	return 1;
-	break;
-      default:
-	return 0;
-	break;
-      }
-      
-      return 0;
+		switch(m_candidate_algorithm) {
+			case aa_analysis_plan::selectable_candidate_algorithm::peak_find:
+				return 0;
+				break;
+			case aa_analysis_plan::selectable_candidate_algorithm::threshold:
+				return 1;
+				break;
+			case aa_analysis_plan::selectable_candidate_algorithm::peak_filtering:
+				return 2;
+				break;
+			default:
+				return 0;
+				break;
+		}
+		return 0;
     }
 
     /** \returns an integer to indicate whether the msd baseline noise reduction algorithm will be enabled or disabled. 0 for off (false), 1 for on (true). */
