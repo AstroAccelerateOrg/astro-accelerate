@@ -15,8 +15,8 @@ namespace astroaccelerate {
    * \details No pipeline will run if the input parameters are invalid.
    * \details This function serves as boilerplate code that provides a wrapper around the API.
    * \details This function serves as an example code for library users to integrate AstroAccelerate into their own applications.
-   * \author Cees Carels.
-   * \date 24 October 2018.
+   * \author AstroAccelerate.
+   * \date 16 August 2019.
    */  
   template <typename T>
   void aa_pipeline_generic(const std::vector<aa_pipeline::component> &selected_components,
@@ -27,7 +27,6 @@ namespace astroaccelerate {
 			   const float &analysis_sigma_cutoff = 0.0,
 			   const float &analysis_sigma_constant = 0.0,
 			   const float &analysis_max_boxcar_width_in_sec = 0.0,
-			   const bool  &analysis_enable_candidate_algorithm = false,
 			   const bool  &analysis_enable_msd_baseline_noise_algorithm = false,
 			   const float &periodicity_sigma_cutoff = 0.0,
 			   const float &periodicity_sigma_constant = 0.0,

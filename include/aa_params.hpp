@@ -81,7 +81,8 @@ namespace astroaccelerate {
 //experimental clustering filter
 #define PPF_PEAKS_PER_BLOCK 10
 #define PPF_DPB 128
-#define PPF_SIZE_SEARCH 15
+//radius of search for peak filtering in miliseconds
+#define	PPF_SEARCH_RANGE_IN_MS 15
 
 #define PPF_L1_THREADS_PER_BLOCK 256
 #define PPF_L1_SPECTRA_PER_BLOCK 5

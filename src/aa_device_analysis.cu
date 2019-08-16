@@ -394,7 +394,7 @@ namespace astroaccelerate {
 				LOG(log_level::error, "Could not cudaMemcpy in d_peak_list_SNR2 (" + std::string(cudaGetErrorString(e)) + ")");
 			}
 			
-			int filter_size = (int)(PPF_SIZE_SEARCH*0.001/tsamp);
+			int filter_size = (int)(PPF_SEARCH_RANGE_IN_MS*0.001/tsamp);
 			call_gpu_Filter_peaks(d_peak_list_DM, d_peak_list_TS, d_peak_list_BW, d_peak_list_SNR, d_peak_list_DM2, d_peak_list_TS2, d_peak_list_BW2, d_peak_list_SNR2, local_peak_pos, filter_size, (int)d_peak_list_size, gmem_filteredPeak_pos);
 
 			cudaMemcpy(&temp_peak_pos, gmem_filteredPeak_pos, sizeof(int), cudaMemcpyDeviceToHost);
