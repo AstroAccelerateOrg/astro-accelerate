@@ -61,7 +61,8 @@ pipeline_components.analysis = True
 sigma_cutoff = 6
 sigma_constant = 3.0
 max_boxcar_width_in_sec = 0.5
-candidate_algorithm = True
+# 0 -- peak_find; 1 -- threshold; 2 -- peak_filtering
+candidate_algorithm = 0
 enable_msd_baseline_noise = True
 
 analysis_plan = aa_py_analysis_plan(sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, candidate_algorithm, enable_msd_baseline_noise)

@@ -608,7 +608,6 @@ __global__ void gpu_Filter_peaks_kernel(unsigned int *d_new_peak_list_DM, unsign
 		nBlocks_x = (nElements + PPF_PEAKS_PER_BLOCK - 1)/PPF_PEAKS_PER_BLOCK; //10
 		nLoops = (nElements + PPF_DPB - 1)/PPF_DPB; //128
 
-		printf("Blocks: %d; nLoops: %d\n", nBlocks_x, nLoops);
 		dim3 blockDim(nThreads, 1, 1);
 		dim3 gridSize(nBlocks_x, 1, 1);
 		if ( (nBlocks_x > 0) && (nLoops > 0) ){

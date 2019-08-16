@@ -5,14 +5,29 @@
 #include "aa_device_peak_find.hpp"
 
 namespace astroaccelerate {
+  
+	void SPDT_peak_find_stencil_7x7(float *d_output_SNR, ushort *d_output_taps, unsigned int *d_peak_list_DM, unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW, int nDMs, int nTimesamples, float threshold, int max_peak_size, int *gmem_peak_pos, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration){
+
+		int decimated_timesamples, local_offset;
+
+		for(int f=0; f<max_iteration; f++){
+			decimated_timesamples = PD_plan->operator[](f).decimated_timesamples;
+			local_offset = PD_plan->operator[](f).unprocessed_samples;
+
+			if( (decimated_timesamples-local_offset-1)>0 ){
+				int nThreads = 128;
+				int nBlocks = decimated_timesamples*nDMs/nThreads + 1;
+
+				call_kernel_peak_find_list(nBlocks, nThreads, &d_output_SNR[nDMs*PD_plan->operator[](f).output_shift], decimated_timesamples, nDMs, threshold, gmem_peak_pos, shift, (1<<f), &d_output_taps[nDMs*PD_plan->operator[](f).output_shift], max_peak_size, d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW);
+			} // if (decimated_timesamples ...)
+		} //for max_iteration
+	}
 
   void SPDT_peak_find(float *d_output_SNR, ushort *d_output_taps, unsigned int *d_peak_list_DM, unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW, int nDMs, int nTimesamples, float threshold, int max_peak_size, int *gmem_peak_pos, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration){
     int decimated_timesamples, local_offset;
 	
-	
     dim3 blockDim(32, 2, 1);
     dim3 gridSize(1, 1, 1);
-		
 	
     for(int f=0; f<max_iteration; f++){
       decimated_timesamples = PD_plan->operator[](f).decimated_timesamples;
@@ -22,14 +37,8 @@ namespace astroaccelerate {
 	gridSize.x = 1 + ((decimated_timesamples-local_offset-1)/blockDim.x);
 	gridSize.y = 1 + ((nDMs-1)/blockDim.y);
 	gridSize.z = 1;		
-	int nThreads = 128;
-	int nBlocks = decimated_timesamples*nDMs/nThreads + 1;
 	
-//	printf("\n\n Call: width %d heaight %d nBlocks: %d\n\n", decimated_timesamples, nDMs, nBlocks);	
-//	call_kernel_dilate_peak_find(gridSize, blockDim, &d_output_SNR[nDMs*PD_plan->operator[](f).output_shift], &d_output_taps[nDMs*PD_plan->operator[](f).output_shift], d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW, decimated_timesamples, nDMs, local_offset, threshold, max_peak_size, gmem_peak_pos, shift, (1<<f));
-	call_kernel_peak_find_list(nBlocks,nThreads, &d_output_SNR[nDMs*PD_plan->operator[](f).output_shift], decimated_timesamples, nDMs, threshold, gmem_peak_pos,
-                                                      shift, (1<<f), &d_output_taps[nDMs*PD_plan->operator[](f).output_shift], max_peak_size,
-                                                      d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW);
+	call_kernel_dilate_peak_find(gridSize, blockDim, &d_output_SNR[nDMs*PD_plan->operator[](f).output_shift], &d_output_taps[nDMs*PD_plan->operator[](f).output_shift], d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW, decimated_timesamples, nDMs, local_offset, threshold, max_peak_size, gmem_peak_pos, shift, (1<<f));
       }
     }
   }

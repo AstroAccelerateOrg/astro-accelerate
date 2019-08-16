@@ -9,8 +9,8 @@ namespace astroaccelerate {
   /** \class aa_analysis_plan aa_analysis_plan.hpp "include/aa_analysis_plan.hpp"
    * \brief Class to set an aa_analysis_plan.
    * \details An analysis plan is required in order to create an analsyis strategy.   
-   * \author Cees Carels.
-   * \date 23 October 2018.
+   * \author AstroAccelerate.
+   * \date 14 August 2019.
    */
   class aa_analysis_plan {
   public:
