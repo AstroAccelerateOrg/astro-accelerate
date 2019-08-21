@@ -71,6 +71,10 @@ namespace astroaccelerate {
 	      return obj->get_ndms_array();
       }
 
+      int aa_py_get_t_proc(aa_pipeline_api<unsigned short> *const obj, const int i, const int j){
+	      return obj->samples_in_current(i,j);
+      }
+
       int aa_py_dm_low(aa_pipeline_api<unsigned short> *const obj, const int range){
 	      return obj->dm_low(range);
       }

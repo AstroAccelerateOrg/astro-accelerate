@@ -122,11 +122,13 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Same here move this into independent component
-	aa_analysis_plan::selectable_candidate_algorithm candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::off;
-	if (user_flags.candidate_algorithm) {
-		candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::on;
+	aa_analysis_plan::selectable_candidate_algorithm candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::peak_find;
+	if (user_flags.candidate_algorithm == 1) {
+		candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::threshold;
 	}
-
+	else if (user_flags.candidate_algorithm == 2) {
+		candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::peak_filtering;
+	}
 	
 	if (pipeline.find(aa_pipeline::component::analysis) != pipeline.end()) {
 		aa_analysis_plan analysis_plan(

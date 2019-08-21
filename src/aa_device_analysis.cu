@@ -146,7 +146,7 @@ namespace astroaccelerate {
     //---------------------------------------------------------------------------
     //----------> GPU part
     printf("\n----------> GPU analysis part\n");
-    printf("  Dimensions nDMs:%d; nTimesamples:%d; inBin:%d; maxshift:%d; \n", ndms[i], t_processed, inBin, *maxshift);
+    printf("  Dimensions nDMs:%d; nTimesamples:%d; inBin:%d; maxshift:%d; candidate_algorithm:%d \n", ndms[i], t_processed, inBin, *maxshift, candidate_algorithm);
     aa_gpu_timer total_timer, timer;
     total_timer.Start();
 	
@@ -190,7 +190,7 @@ namespace astroaccelerate {
     //---------> Comparison between interpolated values and computed values
     //-------------------------------------------------------------------------
 	
-	
+
 	
     //-------------------------------------------------------------------------
     //------------ Using MSD_plane_profile
@@ -245,6 +245,10 @@ namespace astroaccelerate {
       int *gmem_peak_pos;
       cudaMalloc((void**) &gmem_peak_pos, 1*sizeof(int));
       cudaMemset((void*) gmem_peak_pos, 0, sizeof(int));
+
+      int *gmem_filteredPeak_pos;
+      cudaMalloc((void**) &gmem_filteredPeak_pos, 1*sizeof(int));
+      cudaMemset((void*) gmem_filteredPeak_pos, 0, sizeof(int));
 		
       DM_shift = 0;
       int DM_list_size = (int)DM_list.size();
@@ -278,7 +282,7 @@ namespace astroaccelerate {
 #endif
 	  //-------------- Thresholding
 	}
-	else {
+	else if(candidate_algorithm==0) {
 	  //-------------- Peak finding
 	  timer.Start();
 	  SPDT_peak_find(d_output_SNR, d_output_taps, d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW, DM_list[f], nTimesamples, cutoff, local_max_list_size, gmem_peak_pos, DM_shift, &PD_plan, max_iteration);
@@ -289,6 +293,16 @@ namespace astroaccelerate {
 	  printf("    Peak finding took:%f ms\n", timer.Elapsed());
 #endif
 	  //-------------- Peak finding
+	}
+	else if(candidate_algorithm==2) { //peak filtering
+		timer.Start();
+		SPDT_peak_find_stencil_7x7(d_output_SNR, d_output_taps, d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW, DM_list[f], nTimesamples, cutoff, local_max_list_size, gmem_peak_pos, DM_shift, &PD_plan, max_iteration);
+		timer.Stop();
+		PF_time = timer.Elapsed();
+		time_log.adding("SPD", "Stencil_7x7", timer.Elapsed());		
+#ifdef GPU_PARTIAL_TIMER
+          printf("    Peak finding (stencil 7x7) took: %f ms\n", timer.Elapsed());
+#endif
 	}
 			
 	//checkCudaErrors(cudaGetLastError());
@@ -338,18 +352,82 @@ namespace astroaccelerate {
 	DM_shift = DM_shift + DM_list[f];
 	cudaMemset((void*) gmem_peak_pos, 0, sizeof(int));
       }
+
+	if(candidate_algorithm==2) { //peak filtering
+		//------------peak clustering from AA_experimental
+		size_t d_output_SNR_size = DMs_per_cycle*nTimesamples;
+		size_t d_peak_list_size = DMs_per_cycle*nTimesamples/4;
+		unsigned int local_peak_pos = *peak_pos;
+		unsigned int *d_peak_list_DM2;
+		unsigned int *d_peak_list_TS2;
+		unsigned int *d_peak_list_BW2;
+		float *d_peak_list_SNR2;
+		d_peak_list_DM2  = (unsigned int*) &d_output_SNR[0];
+		d_peak_list_TS2  = (unsigned int*) &d_output_SNR[d_peak_list_size];
+		d_peak_list_BW2  = (unsigned int*) &d_output_SNR[2*d_peak_list_size];
+		d_peak_list_SNR2  = (float*) &d_output_SNR[3*d_peak_list_size];
+
+		timer.Start();
+		printf("Number of peaks: %d; which is %f MB; d_output_SNR_size is %f MB;\n", local_peak_pos, (local_peak_pos*4.0*4.0)/(1024.0*1024.0), (d_output_SNR_size*4.0)/(1024.0*1024.0));
+
+		if(d_output_SNR_size > local_peak_pos){
+			cudaMemset((void*) d_output_SNR, 0, d_output_SNR_size*sizeof(float));
+			cudaMemset((void*) d_peak_list_DM, 0, sizeof(unsigned int)*d_peak_list_size);
+			cudaMemset((void*) d_peak_list_TS, 0, sizeof(unsigned int)*d_peak_list_size);
+			cudaMemset((void*) d_peak_list_BW, 0, sizeof(unsigned int)*d_peak_list_size);
+			cudaMemset((void*) d_peak_list_SNR, 0, sizeof(float)*d_peak_list_size);
+
+			cudaError_t e = cudaMemcpy(d_peak_list_DM2, h_peak_list_DM, sizeof(unsigned int)*local_peak_pos, cudaMemcpyHostToDevice);
+			if (e != cudaSuccess){
+				LOG(log_level::error, "Could not cudaMemcpy in d_peak_list_DM2 (" + std::string(cudaGetErrorString(e)) + ")");
+			}
+			e = cudaMemcpy(d_peak_list_TS2, h_peak_list_TS, sizeof(unsigned int)*local_peak_pos, cudaMemcpyHostToDevice);
+			if (e != cudaSuccess){
+				LOG(log_level::error, "Could not cudaMemcpy in d_peak_list_TS2 (" + std::string(cudaGetErrorString(e)) + ")");
+			}		
+			e = cudaMemcpy(d_peak_list_BW2, h_peak_list_BW, sizeof(unsigned int)*local_peak_pos, cudaMemcpyHostToDevice);
+			if (e != cudaSuccess){
+					LOG(log_level::error, "Could not cudaMemcpy in d_peak_list_BW2 (" + std::string(cudaGetErrorString(e)) + ")");
+			}
+			e = cudaMemcpy(d_peak_list_SNR2, h_peak_list_SNR, sizeof(float)*local_peak_pos, cudaMemcpyHostToDevice);
+			if (e != cudaSuccess){
+				LOG(log_level::error, "Could not cudaMemcpy in d_peak_list_SNR2 (" + std::string(cudaGetErrorString(e)) + ")");
+			}
+			
+			int filter_size = (int)(PPF_SEARCH_RANGE_IN_MS*0.001/tsamp);
+			call_gpu_Filter_peaks(d_peak_list_DM, d_peak_list_TS, d_peak_list_BW, d_peak_list_SNR, d_peak_list_DM2, d_peak_list_TS2, d_peak_list_BW2, d_peak_list_SNR2, local_peak_pos, filter_size, (int)d_peak_list_size, gmem_filteredPeak_pos);
+
+			cudaMemcpy(&temp_peak_pos, gmem_filteredPeak_pos, sizeof(int), cudaMemcpyDeviceToHost);
+			local_peak_pos = temp_peak_pos;
+
+			cudaMemcpy(h_peak_list_DM, d_peak_list_DM, local_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+			cudaMemcpy(h_peak_list_TS, d_peak_list_TS, local_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+			cudaMemcpy(h_peak_list_BW, d_peak_list_BW, local_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+			cudaMemcpy(h_peak_list_SNR, d_peak_list_SNR, local_peak_pos*sizeof(float), cudaMemcpyDeviceToHost);
+		} else {
+			LOG(log_level::error, "Not enough memory for filtering.");
+		}
+
+		timer.Stop();
+		time_log.adding("SPD", "Clustering", timer.Elapsed());
+	#ifdef GPU_PARTIAL_TIMER
+		printf("    Clustering took:%f ms\n", timer.Elapsed());
+	#endif
+		//------------------------------------------------
+		*peak_pos = local_peak_pos;
+	}
 		
       //------------------------> Output
-      float *h_peak_list;
-      h_peak_list = new float[4*(*peak_pos)];
-      int i_peak_pos = (int)(*peak_pos);
+	float *h_peak_list;
+	h_peak_list = new float[4*(*peak_pos)];
+	int i_peak_pos = (int)(*peak_pos);
 
-      for (int count = 0; count < i_peak_pos; count++){
-	h_peak_list[4*count]     = ((double) h_peak_list_DM[count])*dm_step[i] + dm_low[i];
-	h_peak_list[4*count + 1] = ((double) h_peak_list_TS[count])*tsamp + tstart;
-	h_peak_list[4*count + 2] = ((double) h_peak_list_SNR[count]);
-	h_peak_list[4*count + 3] = ((double) h_peak_list_BW[count])*inBin;
-      }
+	for (int count = 0; count < i_peak_pos; count++){
+		h_peak_list[4*count]     = ((double) h_peak_list_DM[count])*dm_step[i] + dm_low[i];
+		h_peak_list[4*count + 1] = ((double) h_peak_list_TS[count])*tsamp + tstart;
+		h_peak_list[4*count + 2] = ((double) h_peak_list_SNR[count]);
+		h_peak_list[4*count + 3] = ((double) h_peak_list_BW[count])*inBin;
+	}
         
       FILE *fp_out;
 		
