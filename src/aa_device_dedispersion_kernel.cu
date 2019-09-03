@@ -1,14 +1,100 @@
 #include "aa_device_dedispersion_kernel.hpp"
+//union magic_int {
+//	unsigned int i;
+//	unsigned short int j[2];
+//	unsigned short short int k[4];
+//}
 
 #include "float.h"
+#include <stdio.h>
+#include "aa_timelog.hpp"
 
 namespace astroaccelerate {
 
+	union magic_int {
+		unsigned int i;
+		unsigned short j[2];
+		unsigned char k[4];
+	};
+
   //{{{ shared_dedisperse_loop
 
-  __device__  __shared__ ushort2 f_line[UNROLLS][ARRAYSIZE + 2];
+  __device__ __shared__ ushort2 f_line[UNROLLS][ARRAYSIZE + 2];
+  __device__ __shared__ uchar4 test[UNROLLS][ARRAYSIZE+4];
   __device__ __constant__ int i_nsamp, i_nchans, i_t_processed_s;
   __device__ __constant__ float dm_shifts[8192];
+
+ __global__ void test_kernel(int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep){
+
+   ushort temp_f;
+
+   	if ((threadIdx.x == 0) & (threadIdx.y == 0) & (blockIdx.x == 0) & (blockIdx.y == 0)) printf("*****************************\n");
+    int i, c, unroll, stage;
+    magic_int local;
+
+    int shift;
+    int local_kernel_one[SNUMREG];
+    int local_kernel_two[SNUMREG];
+    int local_kernel_three[SNUMREG];
+    int local_kernel_four[SNUMREG];
+
+    float findex = (threadIdx.x*4 + 3); //max = 13*4+3 = 55;  orig:27;
+
+    for (i = 0; i < SNUMREG; i++)
+      {
+        local_kernel_one[i] = 0;
+        local_kernel_two[i] = 0;
+	local_kernel_three[i] = 0;
+	local_kernel_four[i] = 0;
+      }
+
+    int idx       = ( threadIdx.x + ( threadIdx.y * SDIVINT ) );  // 559
+    int nsamp_counter = ( idx + ( blockIdx.x * ( 4 * SNUMREG * SDIVINT ) ) ); //max: 559 + 168*4*8*14 = 75823  -- 75712 
+
+    float shift_two = ( mstartdm + ( __int2float_rz(blockIdx.y) * SFDIVINDM * mdmstep ) ); //max 0 + 37*40*1562.5 = 2312500
+    float shift_one = ( __int2float_rz(threadIdx.y) * mdmstep ); // max : 39*1562.5 = 60937.5
+
+    for (c = 0; c < i_nchans; c ++){
+	     __syncthreads();
+	     temp_f = ( __ldg(( d_input + ( __float2int_rz(dm_shifts[c]*shift_two) ) )  +  nsamp_counter) );
+		test[0][idx + 3].x = temp_f;
+		test[0][idx + 2].y = temp_f;
+		test[0][idx + 1].z = temp_f;
+		test[0][idx].w = temp_f;
+
+		shift = __float2int_rz(shift_one*dm_shifts[c] + findex);
+
+		 nsamp_counter = ( nsamp_counter + ( UNROLLS * i_nsamp ) );
+
+	       __syncthreads();
+
+	       for (i = 0; i < SNUMREG; i++){
+	            local.i = 0;
+	            unroll = ( i * 2 * SDIVINT );
+	            
+		    stage = *(int*) &test[0][( shift + unroll )];
+        	    local.i += stage;
+ 		    
+		    local_kernel_one[i] += local.k[0];
+	            local_kernel_two[i] += local.k[1];
+		    local_kernel_three[i] += local.k[2];
+		    local_kernel_four[i] += local.k[3];
+               }
+    }
+    if ((threadIdx.x == 0) & (threadIdx.y == 0) & (blockIdx.x == 0) & (blockIdx.y == 0)){
+	    printf("terno jak to jede: %d %d", local_kernel_one[0], local_kernel_two[0]);
+    }
+	local.i = ( ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + ( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + 2 * threadIdx.x;
+
+#pragma unroll
+    for (i = 0; i < SNUMREG; i++)
+      {
+        *( (float2*) ( d_output + local.i + ( i * 2 * SDIVINT ) ) ) = make_float2((float)local_kernel_one[i] / i_nchans/bin,
+                                                                                (float)local_kernel_two[i] / i_nchans/bin);
+      }
+
+
+ }
 
   __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep) {
     ushort temp_f;
@@ -27,11 +113,11 @@ namespace astroaccelerate {
 	local_kernel_two[i] = 0;
       }
 
-    int idx 	  = ( threadIdx.x + ( threadIdx.y * SDIVINT ) );
-    int nsamp_counter = ( idx + ( blockIdx.x * ( 2 * SNUMREG * SDIVINT ) ) );
+    int idx 	  = ( threadIdx.x + ( threadIdx.y * SDIVINT ) );  // 559
+    int nsamp_counter = ( idx + ( blockIdx.x * ( 2 * SNUMREG * SDIVINT ) ) ); //max: 559 + 337*2*8*14 = 76047; 559 + 168*4*8*14 = 75823  -- 75712 
 
-    float shift_two = ( mstartdm + ( __int2float_rz(blockIdx.y) * SFDIVINDM * mdmstep ) );
-    float shift_one = ( __int2float_rz(threadIdx.y) * mdmstep );
+    float shift_two = ( mstartdm + ( __int2float_rz(blockIdx.y) * SFDIVINDM * mdmstep ) ); //max 0 + 37*40*1562.5 = 2312500
+    float shift_one = ( __int2float_rz(threadIdx.y) * mdmstep ); // max : 39*1562.5 = 60937.5
 
     for (c = 0; c < i_nchans; c += UNROLLS)
       {
@@ -41,11 +127,19 @@ namespace astroaccelerate {
 	for (j = 0; j < UNROLLS; j++)
 	  {
 	    temp_f = ( __ldg(( d_input + ( __float2int_rz(dm_shifts[c + j] * shift_two) ) )  + ( nsamp_counter + ( j * i_nsamp ) )) );
+	    //0.000923 * 2312500 + 76047+insamp*c + 0*78130 = 20001332
+	    if ((idx == 559) & (c == 255) & (blockIdx.y == 37) & (blockIdx.x == 337)) printf("SSS %d %d\n", idx, nsamp_counter );
+	    if ( (idx < 2) & (c == 0) & (blockIdx.x == 0) & (blockIdx.y == 0) ){
+		    printf("%d z\n", i_nsamp);
+		    printf("\nidx: %d Zyyyyyyyyyyyyyyyyyyyyyy %hu %d %d %lf\n", idx, temp_f, d_input[0], d_input[1], shift_two);
+	    }
+
 
 	    f_line[j][idx + 1].x = temp_f;
 	    f_line[j][idx    ].y = temp_f;
 
 	    shift[j] = __float2int_rz(shift_one * dm_shifts[c + j] + findex);
+//	    if (c==255) printf("c: %lf shif: %d %lf\n", shift_one, shift[j], dm_shifts[c+j]);
 	  }
 
 	nsamp_counter = ( nsamp_counter + ( UNROLLS * i_nsamp ) );
@@ -63,12 +157,16 @@ namespace astroaccelerate {
 	      }
 	    local_kernel_one[i] += (local & 0x0000FFFF);
 	    local_kernel_two[i] += (local & 0xFFFF0000) >> 16;
+	    if ( (idx == 0) & (c == 0) & (blockIdx.x == 0) & (blockIdx.y == 0) ){
+		    printf("TTTTTT local_one: %d two:%d local:%d %d\n", local_kernel_one[i], local_kernel_two[i], local, shift[0]);
+	    }
 	  }
       }
 
     // Write the accumulators to the output array. 
     local = ( ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + ( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + 2 * threadIdx.x;
 
+    if ( (idx == 0) & (blockIdx.x == 0) & (blockIdx.y == 0)) printf("sum results: %d %d\n", local_kernel_one[0], local_kernel_two[0]);
 #pragma unroll
     for (i = 0; i < SNUMREG; i++)
       {
@@ -104,7 +202,6 @@ namespace astroaccelerate {
 		for (c = 0; c < i_nchans; c += UNROLLS) {
 			
 			__syncthreads();
-			
 			for (j = 0; j < UNROLLS; j++) {
 				temp_f = ( __ldg(( d_input + ( __float2int_rz(d_dm_shifts[c + j] * shift_two) ) )  + ( nsamp_counter + ( j * i_nsamp ) )) );
 				
@@ -170,6 +267,9 @@ namespace astroaccelerate {
 	__syncthreads();
 
 	temp_f = ( __ldg(( d_input + ( __float2int_rz(dm_shifts[c] * shift_two) ) ) + ( nsamp_counter )) );
+	if ( (idx < 2) & (c == 0) & (blockIdx.x == 0) & (blockIdx.y == 0) ){
+		printf("ladlgkgeapog %hu\n", temp_f);
+	}
 
 	f_line[0][idx].x = temp_f;
 	if (idx > 0)
@@ -188,6 +288,10 @@ namespace astroaccelerate {
 	    local = *(int*) &f_line[0][( shift + unroll )];
 	    local_kernel_one[i] += ( (ushort2*) ( &local ) )->x;
 	    local_kernel_two[i] += ( (ushort2*) ( &local ) )->y;
+            if ( (idx == 0) & (c == 0) & (blockIdx.x == 0) & (blockIdx.y == 0) ){
+                    printf("16TTTTTT local_one: %lf %lf %d\n", local_kernel_one[i], local_kernel_two[i], local);
+            }
+
 	  }
       }
 
@@ -339,6 +443,10 @@ namespace astroaccelerate {
 					    const int &bin, unsigned short *const d_input, float *const d_output, const float &mstartdm, const float &mdmstep) {
     cudaFuncSetCacheConfig(shared_dedisperse_kernel, cudaFuncCachePreferShared);
     shared_dedisperse_kernel<<<block_size, grid_size>>>(bin, d_input, d_output, mstartdm, mdmstep);
+//	dim3 blok(14,40,1);
+//	dim3 grid(169,38,1);
+//	printf("zzzzzzzzzzzzzzzzzzzz\n");
+  //  test_kernel<<<grid,blok>>>(bin, d_input, d_output, mstartdm, mdmstep);
   }
   
 	/** \brief Kernel wrapper function for dedispersion GPU kernel which works with number of channels greater than 8192. */
