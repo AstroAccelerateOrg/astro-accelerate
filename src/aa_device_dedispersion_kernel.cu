@@ -63,6 +63,8 @@ namespace astroaccelerate {
 		test[0][idx].w = temp_f;
 
 		shift = __float2int_rz(shift_one*dm_shifts[c] + findex);
+		//max 60937.5*0.000923 + 55
+		//orig 60937.5*0.000923 + 27
 
 		 nsamp_counter = ( nsamp_counter + ( UNROLLS * i_nsamp ) );
 
@@ -70,9 +72,11 @@ namespace astroaccelerate {
 
 	       for (i = 0; i < SNUMREG; i++){
 	            local.i = 0;
-	            unroll = ( i * 2 * SDIVINT );
+	            unroll = ( i * 4 * SDIVINT );
+		    //max: 7*4*14 = 392
+		    //orif 7*2*14 = 196
 	            
-		    stage = *(int*) &test[0][( shift + unroll )];
+		    stage = *(int*) &test[0][( shift + unroll )]; //196+27=223; now:447
         	    local.i += stage;
  		    
 		    local_kernel_one[i] += local.k[0];
@@ -82,15 +86,20 @@ namespace astroaccelerate {
                }
     }
     if ((threadIdx.x == 0) & (threadIdx.y == 0) & (blockIdx.x == 0) & (blockIdx.y == 0)){
-	    printf("terno jak to jede: %d %d", local_kernel_one[0], local_kernel_two[0]);
+	    printf("terno jak to jede: %d %d %d %d %d\n", local_kernel_one[0], local_kernel_two[0], local_kernel_three[0], local_kernel_four[0], i_t_processed_s);
     }
-	local.i = ( ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + ( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + 2 * threadIdx.x;
+	local.i = ( ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + ( blockIdx.x * 4 * SNUMREG * SDIVINT ) ) + 4 * threadIdx.x;
+	//max: (37*40 + 39)*75712 + 168*4*8*14 + 4*13 // 75264 + 52
+	//orig: (37*40 + 39)*75712 + 337*2*8*14 + 2*13 // 75488 + 26
 
 #pragma unroll
     for (i = 0; i < SNUMREG; i++)
       {
-        *( (float2*) ( d_output + local.i + ( i * 2 * SDIVINT ) ) ) = make_float2((float)local_kernel_one[i] / i_nchans/bin,
-                                                                                (float)local_kernel_two[i] / i_nchans/bin);
+        *( (float4*) ( d_output + local.i + ( i * 4 * SDIVINT ) ) ) = make_float4((float)local_kernel_one[i] / i_nchans/bin,
+                                                                                  (float)local_kernel_two[i] / i_nchans/bin,
+										  (float)local_kernel_three[i] / i_nchans/bin,
+										  (float)local_kernel_four[i] / i_nchans/bin 
+										  );
       }
 
 
@@ -166,7 +175,7 @@ namespace astroaccelerate {
     // Write the accumulators to the output array. 
     local = ( ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + ( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + 2 * threadIdx.x;
 
-    if ( (idx == 0) & (blockIdx.x == 0) & (blockIdx.y == 0)) printf("sum results: %d %d\n", local_kernel_one[0], local_kernel_two[0]);
+    if ( (idx < 2) & (blockIdx.x == 0) & (blockIdx.y == 0)) printf("sum results: %d %d %d %d\n", local_kernel_one[0], local_kernel_two[0], local_kernel_one[1], local_kernel_two[1]);
 #pragma unroll
     for (i = 0; i < SNUMREG; i++)
       {
@@ -443,10 +452,10 @@ namespace astroaccelerate {
 					    const int &bin, unsigned short *const d_input, float *const d_output, const float &mstartdm, const float &mdmstep) {
     cudaFuncSetCacheConfig(shared_dedisperse_kernel, cudaFuncCachePreferShared);
     shared_dedisperse_kernel<<<block_size, grid_size>>>(bin, d_input, d_output, mstartdm, mdmstep);
-//	dim3 blok(14,40,1);
-//	dim3 grid(169,38,1);
-//	printf("zzzzzzzzzzzzzzzzzzzz\n");
-  //  test_kernel<<<grid,blok>>>(bin, d_input, d_output, mstartdm, mdmstep);
+	dim3 blok(14,40,1);
+	dim3 grid(169,38,1);
+	printf("zzzzzzzzzzzzzzzzzzzz\n");
+    test_kernel<<<grid,blok>>>(bin, d_input, d_output, mstartdm, mdmstep);
   }
   
 	/** \brief Kernel wrapper function for dedispersion GPU kernel which works with number of channels greater than 8192. */
