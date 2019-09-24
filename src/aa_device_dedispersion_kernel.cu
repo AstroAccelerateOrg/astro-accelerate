@@ -96,74 +96,75 @@ namespace astroaccelerate {
 }
 
   __global__ void shared_dedisperse_kernel_4bit(unsigned short *d_input, float *d_output, float mstartdm, float mdmstep){
-	ushort temp_f;
 
-	int i, c, unroll, stage;
-	magic_int local;
+     unsigned char temp_f;
 
-	int shift[UNROLLS];
-	int local_kernel_one[SNUMREG];
-	int local_kernel_two[SNUMREG];
-	int local_kernel_three[SNUMREG];
-	int local_kernel_four[SNUMREG];
+        int i, j, c, local, unroll, stage;
 
-	float findex = (threadIdx.x*4 + 3);
+        int shift[UNROLLS];
+        int local_kernel_one[SNUMREG];
+        int local_kernel_two[SNUMREG];
 
-	for (i = 0; i < SNUMREG; i++){
-		local_kernel_one[i] = 0;
-		local_kernel_two[i] = 0;
-		local_kernel_three[i] = 0;
-		local_kernel_four[i] = 0;
-	}
+        float findex = (( threadIdx.x * 4 ) + 1 );
 
-	int idx = ( threadIdx.x + ( threadIdx.y*SDIVINT ) );
-	int nsamp_counter = ( idx + ( blockIdx.x*(4*SNUMREG*SDIVINT ) ) );
+        for (i = 0; i < SNUMREG; i++)
+        {
+                local_kernel_one[i] = 0;
+                local_kernel_two[i] = 0;
+        }
 
-	float shift_two = ( mstartdm + ( __int2float_rz(blockIdx.y)*SFDIVINDM*mdmstep ) );
-	float shift_one = ( __int2float_rz(threadIdx.y)*mdmstep );
+        int idx           = ( threadIdx.x + ( threadIdx.y * SDIVINT ) );
+        int nsamp_counter = ( idx + ( blockIdx.x * ( 4 * SNUMREG * SDIVINT ) ) );
 
-	for (c = 0; c < i_nchans; c+=UNROLLS){
-		__syncthreads();
+        float shift_two = ( mstartdm + ( __int2float_rz(blockIdx.y) * SFDIVINDM * mdmstep ) );
+        float shift_one = ( __int2float_rz(threadIdx.y) * mdmstep );
 
-		for (int j = 0; j < UNROLLS; j++){
-			temp_f = ( __ldg(( d_input + ( __float2int_rz(dm_shifts[c + j]*shift_two) ) ) + nsamp_counter + j*i_nsamp) );
-			test[j][idx + 3].x = temp_f;
-			test[j][idx + 2].y = temp_f;
-			test[j][idx + 1].z = temp_f;
-			test[j][idx].w = temp_f;
+        for (c = 0; c < i_nchans; c += UNROLLS)
+        {
 
-			shift[j] = __float2int_rz(shift_one*dm_shifts[c + j] + findex);
-		}
+                __syncthreads();
 
-		nsamp_counter = ( nsamp_counter + ( UNROLLS*i_nsamp ) );
+                for (j = 0; j < UNROLLS; j++)
+                {
+                        temp_f = (unsigned char)( __ldg(( d_input + ( __float2int_rz(dm_shifts[c + j] * shift_two) ) )  + ( nsamp_counter + ( j * i_nsamp ) )) );
 
-		__syncthreads();
+                        test[j][idx + 3].x = temp_f;
+                        test[j][idx + 2].y = temp_f;
+                        test[j][idx + 1].z = temp_f;
+                        test[j][idx    ].w = temp_f;
 
-		for (i = 0; i < SNUMREG; i++){
-			local.i = 0;
-			unroll = (i*4*SDIVINT);
-        
-			for (int j = 0; j < UNROLLS; j++){
-				stage = *(int*) &test[j][( shift[j] + unroll )];
-				local.i += stage;
-			}
-    
-			local_kernel_one[i] += local.k[0];
-			local_kernel_two[i] += local.k[1];
-			local_kernel_three[i] += local.k[2];
-			local_kernel_four[i] += local.k[3];
-		}
-	}
+                        shift[j] = __float2int_rz(shift_one * dm_shifts[c + j] + findex);
+                }
 
-	local.i = ( ( ( ( blockIdx.y*SDIVINDM ) + threadIdx.y )*( i_t_processed_s ) ) + ( blockIdx.x*4*SNUMREG*SDIVINT ) ) + 4*threadIdx.x;
+                nsamp_counter = ( nsamp_counter + ( UNROLLS * i_nsamp ) );
 
-	#pragma unroll
-	for (i = 0; i < SNUMREG; i++){
-	*( (float4*) ( d_output + local.i + ( i*4*SDIVINT ) ) ) = make_float4((float)local_kernel_one[i] / i_nchans,
-                                                                              (float)local_kernel_two[i] / i_nchans,
-									      (float)local_kernel_three[i] / i_nchans,
-									      (float)local_kernel_four[i] / i_nchans);
-	}
+                __syncthreads();
+
+                for (i = 0; i < SNUMREG; i++)
+                {
+                        local = 0;
+                        unroll = ( i * 4 * SDIVINT );
+                        for (j = 0; j < UNROLLS; j++)
+                        {
+                                stage = *(int*) &test[j][( shift[j] + unroll )];
+                                local += stage;
+                        }
+                        local_kernel_one[i] += (local & 0x00FF00FF);
+                        local_kernel_two[i] += (local & 0xFF00FF00) >> 16;
+                }
+        }
+
+        // Write the accumulators to the output array.
+        local = ( ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + ( blockIdx.x * 4 * SNUMREG * SDIVINT ) ) + 4 * threadIdx.x;
+
+        #pragma unroll
+        for (i = 0; i < SNUMREG; i++)
+        {
+                *( (float4*) ( d_output + local + ( i * 4 * SDIVINT ) ) ) = make_float4((float)(local_kernel_one[i] &0x0000FFFF) / i_nchans,
+                                                                                        (float)(local_kernel_one[i] &0xFFFF0000) / i_nchans,
+                                                                                        (float)(local_kernel_two[i] &0x0000FFFF) / i_nchans,
+                                                                                        (float)(local_kernel_two[i] &0xFFFF0000) / i_nchans);
+        }
 }
 
   __global__ void shared_dedisperse_kernel(int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep) {
