@@ -29,7 +29,7 @@ authors:
     given-names: Jayanth
   - family-names: Curran
     given-names: Dan
-  - family-names: Smith McIntosh
+  - family-names: "Smith McIntosh"
     given-names: Simon
   - family-names: Nunez-Yanez
     given-names: Jose
@@ -57,6 +57,17 @@ authors:
     given-names: Steve
   - family-names: Sharpe
     given-names: James
+keywords:
+  - "GPU"
+  - "CUDA"
+  - "GPGPU"
+  - "de-dispersion"
+  - "frb"
+  - "single pulse detection"
+  - "pulsar"
+  - "FDAS"
+  - "radio astronomy"
+license: "GNU GPL v3.0"
 cff-version: "1.0.3"
 doi: "10.5281/zenodo.1212487"
 message: "If you use this software, please cite it using these metadata."
