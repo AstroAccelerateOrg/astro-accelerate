@@ -1,0 +1,64 @@
+# YAML 1.2
+authors: 
+  - family-names: Armour
+    given-names: Wes
+    orcid: "https://orcid.org/0000-0003-1756-3064"
+  - family-names: Adamek
+    given-names: Karel
+    orcid: "https://orcid.org/0000-0003-2797-0595"
+  - family-names: Novotny
+    given-names: Jan
+    orcid: "https://orcid.org/0000-0002-9667-635X"
+  - family-names: Dimoudi
+    given-names: Sofia
+  - family-names: Carels
+    given-names: Cees
+  - family-names: Quannoughi
+    given-names: Nassim
+  - family-names: Giles
+    given-names: Mike
+  - family-names: Karastergiou
+    given-names: Aris
+  - family-names: Williams
+    given-names: Chris
+  - family-names: Roberts
+    given-names: Steve
+  - family-names: Brown
+    given-names: Ania
+  - family-names: Chennamangalam
+    given-names: Jayanth
+  - family-names: Curran
+    given-names: Dan
+  - family-names: Smith McIntosh
+    given-names: Simon
+  - family-names: Nunez-Yanez
+    given-names: Jose
+  - family-names: Mickalliger
+    given-names: Mitch
+  - family-names: Stappers
+    given-names: Ben
+  - family-names: Thiagaraj
+    given-names: Prabu
+  - family-names: Roy
+    given-names: Jayanta
+  - family-names: Bassa
+    given-names: Cees
+  - family-names: Hessels 
+    given-names: Jason
+  - family-names: Clark
+    given-names: Kate
+  - family-names: Lanfear
+    given-names: Tim
+  - family-names: Sinclair
+    given-names: Byron
+  - family-names: Ling
+    given-names: Andrew
+  - family-names: Casselman
+    given-names: Steve
+  - family-names: Sharpe
+    given-names: James
+cff-version: "1.0.3"
+doi: "10.5281/zenodo.1212487"
+message: "If you use this software, please cite it using these metadata."
+repository-code: "https://github.com/AstroAccelerateOrg/astro-accelerate"
+title: AstroAccelerate
