@@ -57,7 +57,7 @@ namespace astroaccelerate {
     //Strategy set DM settings
     str_dm.resize(range);
 
-    const size_t gpu_memory = free_memory - 1073741824;
+    const size_t gpu_memory = free_memory; // - 1073741824;
     
     const double SPDT_fraction = 3.0/4.0; // 1.0 for MSD plane profile validation
     //Calculate maxshift, the number of dms for this bin and the highest value of dm to be calculated in this bin
