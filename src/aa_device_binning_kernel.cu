@@ -40,7 +40,7 @@ namespace astroaccelerate {
     size_t shift_one = ( (size_t)(c*out_nsamp) + (size_t)t_out );
     size_t shift_two = ( (size_t)(c*in_nsamp)  + (size_t)t_in );
 
-    d_output[( shift_one )] = (float) ( ( d_input[( shift_two )] + d_input[size_t(shift_two + 1)] )/2.0f );
+    d_output[( shift_one )] = (float) ( ( d_input[( shift_two )] + d_input[(size_t)(shift_two + 1)] )/2.0f );
 
   }
 
