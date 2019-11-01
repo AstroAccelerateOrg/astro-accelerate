@@ -60,6 +60,7 @@ namespace astroaccelerate {
     
     if(e != cudaSuccess) {
       LOG(log_level::error, "Could not cudaMemcpy in aa_device_MSD_plane_profile.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	exit(25);
     }
     
     printf("    DiT:%d; nTimesamples:%d; decimated_timesamples:%d; MSD_pos: %d; MSD:[%f; %f; %f]\n", (int) DIT_value, (int) nTimesamples, (int) (nTimesamples>>1), (int) MSD_pos, h_MSD[0], h_MSD[1], h_MSD[2]);
@@ -84,7 +85,7 @@ namespace astroaccelerate {
     timer.Stop();	t_MSD_time += timer.Elapsed();
     h_MSD_DIT_widths->push_back(DIT_value);
 #ifdef MSD_PLANE_DEBUG
-    printf("------------------ MSD_plane_profile DEBUG - MSD_DIT calculation ------------\n");
+    printf("a------------------ MSD_plane_profile DEBUG - MSD_DIT calculation ------------\n");
     printf("    MSD format: [ mean ; StDev ; nElements ]\n");
     MSD_plane_profile_debug(d_MSD_DIT, DIT_value, nTimesamples, 0);
 #endif

@@ -14,7 +14,7 @@ namespace astroaccelerate {
     float limit_up = d_MSD[0] + bln_sigma_constant*d_MSD[1];
 	
     int spos = blockIdx.x*PD_NTHREADS + threadIdx.x;
-    int gpos = blockIdx.y*y_steps*nTimesamples + spos;
+    size_t gpos = (size_t)(blockIdx.y*y_steps*nTimesamples) + (size_t)(spos);
     M=0;	S=0;	j=0;
     if( spos<(nTimesamples-offset) ){
 		
@@ -28,7 +28,7 @@ namespace astroaccelerate {
 	    Add_one( &M, &S, &j, ftemp);
 	  }			
 	}
-	gpos = gpos + nTimesamples;
+	gpos = gpos + (size_t)(nTimesamples);
       }
 		
     }

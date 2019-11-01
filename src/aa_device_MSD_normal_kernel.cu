@@ -11,10 +11,10 @@ namespace astroaccelerate {
     __shared__ float s_input[3*PD_NTHREADS];
     float M, S, j, ftemp;
   
-    size_t spos = blockIdx.x*PD_NTHREADS + threadIdx.x;
-    size_t gpos = blockIdx.y*y_steps*nTimesamples + spos;
+    int spos = blockIdx.x*PD_NTHREADS + threadIdx.x;
+    size_t gpos = (size_t)(blockIdx.y*y_steps*nTimesamples) + (size_t)spos;
     M=0;	S=0;	j=0;
-    if( spos < (size_t)(nTimesamples-offset) ){
+    if( spos < (nTimesamples - offset) ){
     
       ftemp=__ldg(&d_input[gpos]);
       Initiate( &M, &S, &j, ftemp);

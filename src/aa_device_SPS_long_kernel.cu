@@ -44,7 +44,8 @@ namespace astroaccelerate {
     __shared__ float2 s_SNRs[PD_NTHREADS];
     __shared__ ushort2 s_taps[PD_NTHREADS];
 	
-    int d, gpos, spos;
+    int d, spos;
+    size_t gpos;
     float Bw[8];
     float2 ftemp1, ftemp2, ftemp3, SNR;
     ushort2 taps, taps1, taps2;
@@ -53,25 +54,25 @@ namespace astroaccelerate {
 	
     Bw[0]=0; Bw[1]=0; Bw[2]=0; Bw[3]=0; Bw[4]=0; Bw[5]=0; Bw[6]=0; Bw[7]=0; SNR.x=0; SNR.y=0;
 	
-    spos=blockIdx.x*(2*PD_NTHREADS-nBoxcars) + 2*threadIdx.x;
-    gpos = blockIdx.y*nTimesamples + spos;
+    spos=blockIdx.x*(2*PD_NTHREADS - nBoxcars) + 2*threadIdx.x;
+    gpos = (size_t)(blockIdx.y*nTimesamples) + (size_t)(spos);
 	
     // Loading data and normalization
-    if( (spos+4)<nTimesamples ){
+    if( (spos + 4)<nTimesamples ){
       ftemp1.x=d_input[gpos];	
-      ftemp1.y=d_input[gpos+1];
-      ftemp2.x=d_input[gpos+2];
-      ftemp2.y=d_input[gpos+3];
-      ftemp3.x=d_input[gpos+4];
+      ftemp1.y=d_input[gpos + 1];
+      ftemp2.x=d_input[gpos + 2];
+      ftemp2.y=d_input[gpos + 3];
+      ftemp3.x=d_input[gpos + 4];
 
       Bw[0]=ftemp1.x; Bw[4]=ftemp1.y;
-      Bw[1]=ftemp1.x+ftemp1.y; Bw[5]=ftemp1.y+ftemp2.x;
+      Bw[1]=ftemp1.x + ftemp1.y; Bw[5]=ftemp1.y + ftemp2.x;
       Bw[2]=Bw[1] + ftemp2.x; Bw[6]=Bw[5] + ftemp2.y;
       Bw[3]=Bw[1] + ftemp2.x + ftemp2.y; Bw[7] = Bw[5] + ftemp2.y + ftemp3.x;
     }
 	
     spos = blockIdx.x*(PD_NTHREADS-(nBoxcars>>1)) + threadIdx.x;
-    if( threadIdx.x<(PD_NTHREADS-(nBoxcars>>1)) &&  spos<dtm) d_decimated[blockIdx.y*dtm + spos]=Bw[1];
+    if( threadIdx.x<(PD_NTHREADS - (nBoxcars>>1)) &&  spos<dtm) d_decimated[blockIdx.y*dtm + spos]=Bw[1];
 		
     s_input[threadIdx.x].x = Bw[3];
     s_input[threadIdx.x].y = Bw[7];
@@ -79,20 +80,20 @@ namespace astroaccelerate {
     __syncthreads();
 	
     stat = d_MSD[0];
-    ftemp1.x = __fdividef(Bw[0]-stat.x, stat.y);
-    ftemp1.y = __fdividef(Bw[4]-stat.x, stat.y);
+    ftemp1.x = __fdividef(Bw[0] - stat.x, stat.y);
+    ftemp1.y = __fdividef(Bw[4] - stat.x, stat.y);
     stat = d_MSD[1];
-    ftemp2.x = __fdividef(Bw[1]-stat.x, stat.y);
-    ftemp2.y = __fdividef(Bw[5]-stat.x, stat.y);
+    ftemp2.x = __fdividef(Bw[1] - stat.x, stat.y);
+    ftemp2.y = __fdividef(Bw[5] - stat.x, stat.y);
     if(ftemp2.x>ftemp1.x) {ftemp1.x=ftemp2.x; taps1.x=2;} else taps1.x=1;
     if(ftemp2.y>ftemp1.y) {ftemp1.y=ftemp2.y; taps1.y=2;} else taps1.y=1;
 	
     stat = d_MSD[2];
-    ftemp2.x = __fdividef(Bw[2]-stat.x, stat.y);
-    ftemp2.y = __fdividef(Bw[6]-stat.x, stat.y);
+    ftemp2.x = __fdividef(Bw[2] - stat.x, stat.y);
+    ftemp2.y = __fdividef(Bw[6] - stat.x, stat.y);
     stat = d_MSD[3];
-    ftemp3.x = __fdividef(Bw[3]-stat.x, stat.y);
-    ftemp3.y = __fdividef(Bw[7]-stat.x, stat.y);
+    ftemp3.x = __fdividef(Bw[3] - stat.x, stat.y);
+    ftemp3.y = __fdividef(Bw[7] - stat.x, stat.y);
     if(ftemp3.x>ftemp2.x) {ftemp2.x=ftemp3.x; taps2.x=4;} else taps2.x=3;
     if(ftemp3.y>ftemp2.y) {ftemp2.y=ftemp3.y; taps2.y=4;} else taps2.y=3;
 	
@@ -102,7 +103,7 @@ namespace astroaccelerate {
     s_SNRs[threadIdx.x]=SNR;
     s_taps[threadIdx.x]=taps;
 	
-    for(d=4; d<nBoxcars; d=d+4){
+    for(d=4; d<nBoxcars; d=d + 4){
       __syncthreads();
       spos=threadIdx.x-(d>>1);
       if(spos>=0){
@@ -117,23 +118,23 @@ namespace astroaccelerate {
 	Bw[3] = Bw[3] + ftemp1.x; Bw[7] = Bw[7] + ftemp1.y;
 			
 	stat = d_MSD[d];
-	ftemp1.x = __fdividef( (Bw[0]-stat.x) , stat.y );
-	ftemp1.y = __fdividef( (Bw[4]-stat.x) , stat.y );
-	stat = d_MSD[d+1];
-	ftemp2.x = __fdividef( (Bw[1]-stat.x) , stat.y );
-	ftemp2.y = __fdividef( (Bw[5]-stat.x) , stat.y );
-	if(ftemp2.x>ftemp1.x) {ftemp1.x = ftemp2.x; taps1.x = d+2;} else taps1.x = d+1;
-	if(ftemp2.y>ftemp1.y) {ftemp1.y = ftemp2.y; taps1.y = d+2;} else taps1.y = d+1;
+	ftemp1.x = __fdividef( (Bw[0] - stat.x) , stat.y );
+	ftemp1.y = __fdividef( (Bw[4] - stat.x) , stat.y );
+	stat = d_MSD[d + 1];
+	ftemp2.x = __fdividef( (Bw[1] - stat.x) , stat.y );
+	ftemp2.y = __fdividef( (Bw[5] - stat.x) , stat.y );
+	if(ftemp2.x>ftemp1.x) {ftemp1.x = ftemp2.x; taps1.x = d + 2;} else taps1.x = d + 1;
+	if(ftemp2.y>ftemp1.y) {ftemp1.y = ftemp2.y; taps1.y = d + 2;} else taps1.y = d + 1;
 
 	// Using constant memory
-	stat = d_MSD[d+2];
-	ftemp2.x = __fdividef( (Bw[2]-stat.x) , stat.y );
-	ftemp2.y = __fdividef( (Bw[6]-stat.x) , stat.y );
-	stat = d_MSD[d+3];
-	ftemp3.x = __fdividef( (Bw[3]-stat.x) , stat.y );
-	ftemp3.y = __fdividef( (Bw[7]-stat.x) , stat.y );
-	if(ftemp3.x>ftemp2.x) {ftemp2.x = ftemp3.x; taps2.x = d+4;} else taps2.x = d+3;
-	if(ftemp3.y>ftemp2.y) {ftemp2.y = ftemp3.y; taps2.y = d+4;} else taps2.y = d+3;
+	stat = d_MSD[d + 2];
+	ftemp2.x = __fdividef( (Bw[2] - stat.x) , stat.y );
+	ftemp2.y = __fdividef( (Bw[6] - stat.x) , stat.y );
+	stat = d_MSD[d + 3];
+	ftemp3.x = __fdividef( (Bw[3] - stat.x) , stat.y );
+	ftemp3.y = __fdividef( (Bw[7] - stat.x) , stat.y );
+	if(ftemp3.x>ftemp2.x) {ftemp2.x = ftemp3.x; taps2.x = d + 4;} else taps2.x = d + 3;
+	if(ftemp3.y>ftemp2.y) {ftemp2.y = ftemp3.y; taps2.y = d + 4;} else taps2.y = d + 3;
 			
 			
 	if(ftemp2.x>ftemp1.x) {ftemp1.x = ftemp2.x; taps1.x = taps2.x;}
@@ -151,16 +152,16 @@ namespace astroaccelerate {
 	
     __syncthreads();
 	
-    spos=blockIdx.x*(2*PD_NTHREADS-nBoxcars) + 2*threadIdx.x;
-    if( threadIdx.x<(PD_NTHREADS-(nBoxcars>>1)) && spos<nTimesamples){
-      gpos=blockIdx.y*nTimesamples + spos;
+    spos=blockIdx.x*(2*PD_NTHREADS - nBoxcars) + 2*threadIdx.x;
+    if( threadIdx.x<(PD_NTHREADS - (nBoxcars>>1)) && spos<nTimesamples){
+      gpos=(size_t)(blockIdx.y*nTimesamples) + (size_t)spos;
       d_output_SNR[gpos] = s_SNRs[threadIdx.x].x;
       d_output_SNR[gpos + 1] = s_SNRs[threadIdx.x].y;
 		
       d_output_taps[gpos] = s_taps[threadIdx.x].x;
       d_output_taps[gpos + 1] = s_taps[threadIdx.x].y;
 		
-      spos = blockIdx.x*(PD_NTHREADS-(nBoxcars>>1)) + threadIdx.x;
+      spos = blockIdx.x*(PD_NTHREADS - (nBoxcars>>1)) + threadIdx.x;
       if(spos<dtm) d_bv_out[blockIdx.y*dtm + spos] = s_input[threadIdx.x].x;
     }
   }
@@ -173,7 +174,8 @@ namespace astroaccelerate {
     __shared__ ushort2 s_taps[PD_NTHREADS];
 	
 	
-    int d, gpos, spos;
+    int d, spos;
+    size_t gpos;
     float Bw[8];
     float2 ftemp1, ftemp2, ftemp3, SNR;
     ushort2 taps, taps1, taps2;
@@ -182,10 +184,10 @@ namespace astroaccelerate {
     Bw[0]=0; Bw[1]=0; Bw[2]=0; Bw[3]=0; Bw[4]=0; Bw[5]=0; Bw[6]=0; Bw[7]=0;
     s_BV[threadIdx.x].x=0; s_BV[threadIdx.x].y=0;
 	
-    spos=blockIdx.x*(2*PD_NTHREADS-nBoxcars) + 2*threadIdx.x;
-    gpos=blockIdx.y*nTimesamples + spos;
+    spos=blockIdx.x*(2*PD_NTHREADS - nBoxcars) + 2*threadIdx.x;
+    gpos=(size_t)(blockIdx.y*nTimesamples) + (size_t)spos;
 	
-    if( (spos+4)<nTimesamples ){
+    if( (spos + 4)<nTimesamples ){
       ftemp1.x=d_input[gpos];
       ftemp1.y=d_input[gpos + 1];
       ftemp2.x=d_input[gpos + 2];
@@ -194,16 +196,16 @@ namespace astroaccelerate {
 		
 		
       Bw[0]=ftemp1.x; Bw[4]=ftemp1.y;
-      Bw[1]=ftemp1.x+ftemp1.y; Bw[5]=ftemp1.y+ftemp2.x;
+      Bw[1]=ftemp1.x + ftemp1.y; Bw[5]=ftemp1.y + ftemp2.x;
       Bw[2]=Bw[1] + ftemp2.x; Bw[6]=Bw[5] + ftemp2.y;
       Bw[3]=Bw[1] + ftemp2.x + ftemp2.y; Bw[7] = Bw[5] + ftemp2.y + ftemp3.x;
 		
       s_BV[threadIdx.x].x=d_bv_in[gpos];//   - BV_mean;	
-      s_BV[threadIdx.x].y=d_bv_in[gpos+1];// - BV_mean;
+      s_BV[threadIdx.x].y=d_bv_in[gpos + 1];// - BV_mean;
     }
 	
-    spos = blockIdx.x*(PD_NTHREADS-(nBoxcars>>1)) + threadIdx.x;
-    if( threadIdx.x<(PD_NTHREADS-(nBoxcars>>1)) &&  spos<dtm) d_decimated[blockIdx.y*dtm + spos]=Bw[1];
+    spos = blockIdx.x*(PD_NTHREADS - (nBoxcars>>1)) + threadIdx.x;
+    if( threadIdx.x<(PD_NTHREADS - (nBoxcars>>1)) &&  spos<dtm) d_decimated[blockIdx.y*dtm + spos]=Bw[1];
 	
     s_input[threadIdx.x].x = Bw[3];
     s_input[threadIdx.x].y = Bw[7];
@@ -237,7 +239,7 @@ namespace astroaccelerate {
     s_SNRs[threadIdx.x]=SNR;
     s_taps[threadIdx.x]=taps;
 	
-    for(d=4; d<nBoxcars; d=d+4){
+    for(d=4; d<nBoxcars; d=d + 4){
       __syncthreads();
       spos=threadIdx.x-(d>>1);
       if(spos>=0){
@@ -250,25 +252,25 @@ namespace astroaccelerate {
 	Bw[2] = Bw[2] + ftemp1.x; Bw[6] = Bw[6] + ftemp1.y;
 	Bw[3] = Bw[3] + ftemp1.x; Bw[7] = Bw[7] + ftemp1.y;
 			
-	taps1.x = d+1; taps1.y=d+2;
+	taps1.x = d + 1; taps1.y=d + 2;
 	stat = d_MSD[d];
 	ftemp1.x = __fdividef( (s_BV[spos].x + (Bw[0] - stat.x)) , stat.y );
 	ftemp1.y = __fdividef( (s_BV[spos].y + (Bw[4] - stat.x)) , stat.y );
-	stat = d_MSD[d+1];
+	stat = d_MSD[d + 1];
 	ftemp2.x = __fdividef( (s_BV[spos].x + (Bw[1] - stat.x)) , stat.y );
 	ftemp2.y = __fdividef( (s_BV[spos].y + (Bw[5] - stat.x)) , stat.y );
-	if(ftemp2.x>ftemp1.x) {ftemp1.x = ftemp2.x; taps1.x = d+2;} else taps1.x = d+1;
-	if(ftemp2.y>ftemp1.y) {ftemp1.y = ftemp2.y; taps1.y = d+2;} else taps1.y = d+1;
+	if(ftemp2.x>ftemp1.x) {ftemp1.x = ftemp2.x; taps1.x = d + 2;} else taps1.x = d + 1;
+	if(ftemp2.y>ftemp1.y) {ftemp1.y = ftemp2.y; taps1.y = d + 2;} else taps1.y = d + 1;
 			
-	taps2.x=d+3; taps2.y=d+4;
-	stat = d_MSD[d+2];
+	taps2.x=d + 3; taps2.y=d + 4;
+	stat = d_MSD[d + 2];
 	ftemp2.x = __fdividef( (s_BV[spos].x + (Bw[2] - stat.x)) , stat.y);
 	ftemp2.y = __fdividef( (s_BV[spos].y + (Bw[6] - stat.x)) , stat.y);
-	stat = d_MSD[d+3];
+	stat = d_MSD[d + 3];
 	ftemp3.x = __fdividef( (s_BV[spos].x + (Bw[3] - stat.x)) , stat.y);
 	ftemp3.y = __fdividef( (s_BV[spos].y + (Bw[7] - stat.x)) , stat.y);
-	if(ftemp3.x>ftemp2.x) {ftemp2.x = ftemp3.x; taps2.x = d+4;} else taps2.x = d+3;
-	if(ftemp3.y>ftemp2.y) {ftemp2.y = ftemp3.y; taps2.y = d+4;} else taps2.y = d+3;
+	if(ftemp3.x>ftemp2.x) {ftemp2.x = ftemp3.x; taps2.x = d + 4;} else taps2.x = d + 3;
+	if(ftemp3.y>ftemp2.y) {ftemp2.y = ftemp3.y; taps2.y = d + 4;} else taps2.y = d + 3;
 			
 	if(ftemp2.x>ftemp1.x) {ftemp1.x = ftemp2.x; taps1.x = taps2.x;}
 	if(ftemp2.y>ftemp1.y) {ftemp1.y = ftemp2.y; taps1.y = taps2.y;}
@@ -287,8 +289,8 @@ namespace astroaccelerate {
     __syncthreads();
 	
     spos = blockIdx.x*(2*PD_NTHREADS-nBoxcars) + 2*threadIdx.x;
-    if( threadIdx.x<(PD_NTHREADS-(nBoxcars>>1))  && spos<(nTimesamples) ){
-      gpos=blockIdx.y*nTimesamples + spos;
+    if( threadIdx.x<(PD_NTHREADS - (nBoxcars>>1))  && spos<(nTimesamples) ){
+      gpos=(size_t)(blockIdx.y*nTimesamples) + (size_t)spos;
       d_output_SNR[gpos] = s_SNRs[threadIdx.x].x;
       d_output_SNR[gpos + 1] = s_SNRs[threadIdx.x].y;
 		
