@@ -552,6 +552,7 @@ namespace astroaccelerate {
 						dump_to_disk,
 						dump_to_user,
 						output);
+					printf("Number of candidates: %zu\n", SPD_nCandidates);
 				}
 				//--------------------------------------------------------------------------------<
 				oldBin = inBin[dm_range];

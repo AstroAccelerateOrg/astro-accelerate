@@ -47,6 +47,7 @@ namespace astroaccelerate {
 		output_dmt,             //< DDTR - Switches on output of ddtr to disk.
 		msd_baseline_noise,     //< MSD
 		candidate_algorithm,    //< CND - Enables/disables the candidate_algorithm
+		candidate_filtering,    //< CND - Enables advanced filtering of the SPS results
 		output_ffdot_plan,      //< FDAS - Switches on output of ffdot_plan to disk.
 		output_fdas_list,       //< FDAS - Switches on output of fdas_list to disk.
 		fdas_custom_fft,        //< FDAS - Switches on output of custom_fft.
@@ -106,6 +107,9 @@ namespace astroaccelerate {
 			case aa_pipeline::component_option::candidate_algorithm:
 				return "Candidate algorithm is threshold only";
 				break;
+			case aa_pipeline::component_option::candidate_filtering:
+				return "Candidate algorithm is peak-find and filtering";
+				break;				
 			case aa_pipeline::component_option::output_ffdot_plan:
 				return "FDAS will write f-f_dot planes to disk (need a lot of space!)";
 				break;

@@ -359,6 +359,10 @@ namespace astroaccelerate {
 			return tprocessed;
 		}
 
+		int samples_in_current(int i, int j){
+			return m_ddtr_strategy.t_processed()[i][j];
+		}
+
 		/** \returns The aa_analysis_strategy instance bound to the pipeline instance, or a trivial instance if a valid aa_analysis_strategy does not yet exist. */
 		aa_analysis_strategy analysis_strategy() {
 			//Does the pipeline actually need this strategy? 

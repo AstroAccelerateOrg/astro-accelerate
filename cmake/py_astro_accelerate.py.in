@@ -248,7 +248,7 @@ class aa_py_ddtr_plan:
 # \date 05 February 2019.
 #
 class aa_py_analysis_plan():
-    def __init__(self, sigma_cutoff: float, sigma_constant: float, max_boxcar_width_in_sec: float, candidate_algorithm: bool, enable_msd_baseline_noise: bool):
+    def __init__(self, sigma_cutoff: float, sigma_constant: float, max_boxcar_width_in_sec: float, candidate_algorithm: int, enable_msd_baseline_noise: bool):
         self.m_sigma_cutoff = sigma_cutoff
         self.m_sigma_constant = sigma_constant
         self.m_max_boxcar_width_in_sec = max_boxcar_width_in_sec
@@ -390,7 +390,7 @@ class aa_py_pipeline_component_options (ctypes.Structure):
         ("output_dmt",            ctypes.c_bool),
         ("output_ffdot_plan",     ctypes.c_bool),
         ("output_fdas_list",      ctypes.c_bool),
-        ("candidate_algorithm",   ctypes.c_bool),
+        ("candidate_algorithm",   ctypes.c_int),
         ("fdas_custom_fft",       ctypes.c_bool),
         ("fdas_inbin",            ctypes.c_bool),
         ("fdas_norm",             ctypes.c_bool)
@@ -446,14 +446,14 @@ class aa_py_pipeline():
                                             ctypes.c_float,
                                             ctypes.c_float,
                                             ctypes.c_float,
-                                            ctypes.c_bool,
+                                            ctypes.c_int,
                                             ctypes.c_bool]
         lib.aa_py_analysis_plan.restype = ctypes.c_void_p
         self.m_analysis_plan_ptr = lib.aa_py_analysis_plan(self.m_ddtr_strategy,
                                                            ctypes.c_float(plan.sigma_cutoff()),
                                                            ctypes.c_float(plan.sigma_constant()),
                                                            ctypes.c_float(plan.max_boxcar_width_in_sec()),
-                                                           ctypes.c_bool(plan.candidate_algorithm()),
+                                                           ctypes.c_int(plan.candidate_algorithm()),
                                                            ctypes.c_bool(plan.enable_msd_baseline_noise()))
 
         lib.aa_py_pipeline_api_bind_analysis_plan.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
@@ -574,18 +574,23 @@ class SPD():
             file_cand.write(str('{:.3f}'.format(true_dm)) + "\t" + str('{:.3f}'.format(snr[i])) + "\t" + str('{:.4f}'.format(true_ts)) + "\t" + str(true_sample) + "\t" + str(width[i]) + "\n")
         file_cand.close()
 
-    def maximum(metadata, pipeline, ddtr_plan, tprocessed, nCandidates, dm, time_samples, snr, width, current_range, current_tchunk):
-        tmp = 0.0
+    def scale(metadata, pipeline, ddtr_plan, tprocessed, nCandidates, dm, time_samples, snr, width, current_range, current_tchunk):
+        scale_dm = []
+        scale_time_sample = []
+        scale_time = []
+        scale_width = []
+        scale_snr = []
         for i in range(0, nCandidates):
-            if (snr[i] > tmp):
-                tmp = snr[i]
-                dm_low = pipeline.dm_low(current_range)
-                list_ndms = pipeline.ddtr_ndms()
-                scale_dm = dm[i]*(ddtr_plan.m_dm[current_range].m_step) + dm_low
-                scale_time_sample = time_samples[i]*ddtr_plan.m_dm[current_range].m_inBin + tprocessed
-                scale_time = time_samples[i]*metadata.m_tsamp*ddtr_plan.m_dm[current_range].m_inBin + tprocessed*metadata.m_tsamp
-                scale_width = width[i]*ddtr_plan.m_dm[current_range].m_inBin
-        return scale_dm, tmp, scale_time_sample, scale_time, scale_width
+            dm_low = pipeline.dm_low(current_range)
+            list_ndms = pipeline.ddtr_ndms()
+            scale_dm.append(dm[i]*(ddtr_plan.m_dm[current_range].m_step) + dm_low)
+            scale_time_sample.append(time_samples[i]*ddtr_plan.m_dm[current_range].m_inBin + tprocessed)
+            scale_time.append(time_samples[i]*metadata.m_tsamp*ddtr_plan.m_dm[current_range].m_inBin + tprocessed*metadata.m_tsamp)
+            scale_width.append(width[i]*ddtr_plan.m_dm[current_range].m_inBin)
+            scale_snr.append(snr[i])
+        return scale_dm, scale_snr, scale_time_sample, scale_time, scale_width
+
+    
 
     def write_maximum(dm, snr, time, ts, width):
         index = np.argmax(snr)
