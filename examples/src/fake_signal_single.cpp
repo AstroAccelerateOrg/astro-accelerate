@@ -101,7 +101,7 @@ int main() {
       exit(0);
     }
 
-  for(size_t i = 0; i < strategy.range(); i++ ){
+  for(size_t i = 0; i < strategy.get_nRanges(); i++ ){
 	for (int j = 0; j < strategy.ndms(i); j++ ) {
 		for (int k = 0; k < strategy.t_processed()[i][0]; k++ ){
 			fprintf(fp, "%hu %d %lf\n", j, k, ptr[i][j][k]);
