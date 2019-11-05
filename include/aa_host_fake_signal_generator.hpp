@@ -85,12 +85,14 @@ namespace astroaccelerate {
 
 			/** \brief Static member function that prints member data for an aa_host_fake_signal object. */
 			static bool print_info(const aa_fake_signal_metadata &m_fake) {
+				LOG(log_level::dev_debug, "------------------------------------------------------------->");
 				LOG(log_level::dev_debug, "FAKE SIGNAL INFORMATION:");
 				LOG(log_level::dev_debug, "DM position of signal:\t\t" + std::to_string(m_fake.get_dm_pos()));
 				LOG(log_level::dev_debug, "Signal start at [samples]:\t" + std::to_string(m_fake.get_signal_start()));
 				LOG(log_level::dev_debug, "Signal width [samples]:\t\t" + std::to_string(m_fake.get_signal_width()));
 				LOG(log_level::dev_debug, "Signal sigma selected:\t\t" + std::to_string(m_fake.get_signal_sigma()));
 				LOG(log_level::dev_debug, "Periodicity selected [ms]:\t" + std::to_string(m_fake.get_signal_period()))
+				LOG(log_level::dev_debug, "-------------------------------------------------------------<");
 			return true;
 			}
 
