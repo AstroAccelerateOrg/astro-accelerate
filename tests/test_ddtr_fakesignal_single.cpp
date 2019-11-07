@@ -48,15 +48,15 @@ int main() {
 	const double total_bandwidth = 300.0f;
 	const double tsamp = 6.4E-5;
 	const double nbits = 8;
-	const unsigned int nsamples = 1.0/tsamp;
+	const unsigned int nsamples = 2.0/tsamp;
 	const double fch1 = 1550;
-	const int nchans = 128;
+	const int nchans = 4096;
 	const double foff = -total_bandwidth/nchans;
 	// params needed by the fake signal function
 	double dm_position = 250.0; // at what dm put the signal
 	const int func_width = 1/(tsamp*25); // width of the signal in terms of # of samples;
 	const int signal_start = 0.2/tsamp; // position of the signal in samples; mean the position of the peak;
-	bool dump_signal_to_disk = true; // this option writes the generated signal to a file 'fake_signal.dat'
+	bool dump_signal_to_disk = false; // this option writes the generated signal to a file 'fake_signal.dat'
 	const float sigma = 0.5;
 	//---------------------------------------------------------------------------
 	
@@ -109,35 +109,36 @@ int main() {
                 while(runner.run(status_code)){
                 }
 	//-------------<
-	
 
-	//------------  Get data and write to a file 'ddtr_data.dat' 
+	//------------  Get data 
 	// Please note that the ddtr output is not scaled to true units
 	float ***ptr = runner.output_buffer();
-	
-	FILE *fp;
-	char filename[200];
-	sprintf(filename, "ddtr_data.dat");
-	if ((fp=fopen(filename, "wb")) == NULL) {
-		fprintf(stderr, "Error opening output file for fake signal!\n");
-		exit(0);
+	int dm_index_position = (int)dm_position/(int)strategy.dm(0).step;
+
+	if ( ptr[0][dm_index_position][signal_start] == 255 ){
+		LOG(log_level::notice, "Peak found at position. [" + std::to_string(dm_index_position) + ", " + std::to_string(signal_start) + ", " + std::to_string(ptr[0][dm_index_position][signal_start]) + "].");
 	}
-	
-	for(size_t i = 0; i < strategy.get_nRanges(); i++ ){
-	      for (int j = 0; j < strategy.ndms(i); j++ ) {
-	      	for (int k = 0; k < strategy.t_processed()[i][0]; k++ ){
-	      		fprintf(fp, "%hu %d %lf\n", j, k, ptr[i][j][k]);
-	      	}
-	      }
+	else {
+		LOG(log_level::notice, "Peak not found. [" + std::to_string(dm_index_position) + ", " + std::to_string(signal_start) + ", " + std::to_string(ptr[0][dm_index_position][signal_start]) + "].");
 	}
-	
-	fclose(fp);
-	//----------------------------------------------------------
-	
-	signal.print_info(f_meta);
-	strategy.print_info(strategy);
-	
-	LOG(log_level::notice, "Finished.");
+
+        FILE *fp;
+        char filename[200];
+        sprintf(filename, "ddtr_data.dat");
+        if ((fp=fopen(filename, "wb")) == NULL) {
+                fprintf(stderr, "Error opening output file for fake signal!\n");
+                exit(0);
+        }
+
+        for(size_t i = 0; i < strategy.get_nRanges(); i++ ){
+              for (int j = 0; j < strategy.ndms(i); j++ ) {
+                for (int k = 0; k < strategy.t_processed()[i][0]; k++ ){
+                        fprintf(fp, "%hu %d %lf\n", j, k, ptr[i][j][k]);
+                }
+              }
+        }
+
+        fclose(fp);
 	
 	return 0;
 }

@@ -76,8 +76,6 @@ namespace astroaccelerate {
 			shift_index[i] = floor(dmshifts[i]*dm_pos/tsamp);
 		}
 	
-//		printf("%lf %d %d\n", tsamp, signal_start, width);
-
 		int repeats = 1;
 		int period = 0;
 		if (m_fake.get_signal_period() > 0){
@@ -87,7 +85,7 @@ namespace astroaccelerate {
 			repeats = (nsamples + 2*strategy.maxshift())/(period) + 1;
 		}
 
-		printf("%lf %d %d %d %d\n", tsamp, signal_start, width, period, repeats);
+//		printf("%lf %d %d %d %d\n", tsamp, signal_start, width, period, repeats);
 
 		for(int r = 0; r < repeats; r++){
 			for(int i = 0; i < width; i++){

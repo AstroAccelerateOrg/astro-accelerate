@@ -1,6 +1,7 @@
 #include "aa_device_dedispersion_kernel.hpp"
 
 #include "float.h"
+#include <stdio.h>
 
 namespace astroaccelerate {
 
@@ -277,8 +278,9 @@ namespace astroaccelerate {
       // channel (c) at the current despersion measure (dm) 
       // ** dm is constant for this thread!!**
       shift = (c * (i_nsamp) + t) + __float2int_rz (dm_shifts[c] * shift_temp);
-		
+
       local_kernel += (float)__ldg(&d_input[shift]);
+	if ( (blockIdx.y == 12) && (threadIdx.y == 10) && (t == 3125 ) && (d_input[shift] != 255)) printf("\n\n\t\tAhoj %d %d %d %lf %lf %lf %d\n\n", c, shift, d_input[shift], local_kernel, dm_shifts[c],shift_temp, i_nsamp);
     }
 
     // Write the accumulators to the output array. 
