@@ -45,9 +45,8 @@ int main() {
 	
 	//initialize the random seed
 	srand(time(NULL));
-	double test = rand()%200 + 1;
-	printf("\n\n\t\t\t RRRRRRRRRRRRRannduuuuuuuuum is: %lf\n", test);
-	
+
+	for(int t=0; t < 2; t++){	
 	// Filterbank metadata
 	// (Data description from "SIGPROC-v3.7 (Pulsar) Signal Processing Programs")
 	const double tstart = 50000;
@@ -59,9 +58,9 @@ int main() {
 	const int nchans = 128;
 	const double foff = -total_bandwidth/nchans;
 	// params needed by the fake signal function
-	double dm_position = rand()%(int)(0.8*dm_search_max) + 1; // at what dm put the signal
+	double dm_position = rand()%(int)(0.8*dm_search_max); // at what dm put the signal
 	const int func_width = 1/(tsamp*25); // width of the signal in terms of # of samples;
-	const int signal_start = 0.2/tsamp; // position of the signal in samples; mean the position of the peak;
+	const int signal_start = (rand()%10)*1000 + (rand()%10)*100 + (rand()%10)*10;// 0.2/tsamp; // position of the signal in samples; mean the position of the peak;
 	bool dump_signal_to_disk = false; // this option writes the generated signal to a file 'fake_signal.dat'
 	const float sigma = 0.5;
 	//---------------------------------------------------------------------------
@@ -127,8 +126,8 @@ int main() {
 	else {
 		LOG(log_level::notice, "Peak not found. [" + std::to_string(dm_index_position) + ", " + std::to_string(signal_start) + ", " + std::to_string(ptr[0][dm_index_position][signal_start]) + "].");
 	}
-
-	signal.print_info(f_meta);	
-	strategy.print_info(strategy);
+	}
+//	signal.print_info(f_meta);	// print info about signal
+//	strategy.print_info(strategy);  // print info about strategy
 	return 0;
 }
