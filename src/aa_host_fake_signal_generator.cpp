@@ -72,8 +72,9 @@ namespace astroaccelerate {
 			signal_start = -maximum_pos-2*strategy.maxshift();
 		}
 
+		float temp = dm_pos/tsamp;
 		for (int i = 0; i < nchans; i++){
-			shift_index[i] = floor(dmshifts[i]*dm_pos/tsamp);
+			shift_index[i] = floor(dmshifts[i]*temp);
 		}
 	
 		int repeats = 1;
@@ -84,8 +85,6 @@ namespace astroaccelerate {
 			// shift the signal to a maxshift before and after the signal to obtain full signal covered with signal, i.e. heads and tails
 			repeats = (nsamples + 2*strategy.maxshift())/(period) + 1;
 		}
-
-//		printf("%lf %d %d %d %d\n", tsamp, signal_start, width, period, repeats);
 
 		for(int r = 0; r < repeats; r++){
 			for(int i = 0; i < width; i++){

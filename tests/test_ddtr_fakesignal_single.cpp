@@ -1,4 +1,5 @@
 #include <iostream>
+#include <time.h>
 
 #include "aa_ddtr_plan.hpp"
 #include "aa_ddtr_strategy.hpp"
@@ -11,7 +12,6 @@
 #include "aa_host_fake_signal_generator.hpp"
 
 #include "aa_sigproc_input.hpp"
-
 
 using namespace astroaccelerate;
 
@@ -39,8 +39,14 @@ int main() {
 
 	//-------- Define user DM plan 
 	aa_ddtr_plan ddtr_plan;
-	ddtr_plan.add_dm(0, 250, 1, 1, 1); // Add dm_ranges: dm_low, dm_high, dm_step, inBin, outBin (unused).
+	float dm_search_max = 250.0;
+	ddtr_plan.add_dm(0, dm_search_max, 1, 1, 1); // Add dm_ranges: dm_low, dm_high, dm_step, inBin, outBin (unused).
 	//----------------------------
+	
+	//initialize the random seed
+	srand(time(NULL));
+	double test = rand()%200 + 1;
+	printf("\n\n\t\t\t RRRRRRRRRRRRRannduuuuuuuuum is: %lf\n", test);
 	
 	// Filterbank metadata
 	// (Data description from "SIGPROC-v3.7 (Pulsar) Signal Processing Programs")
@@ -48,12 +54,12 @@ int main() {
 	const double total_bandwidth = 300.0f;
 	const double tsamp = 6.4E-5;
 	const double nbits = 8;
-	const unsigned int nsamples = 2.0/tsamp;
+	const unsigned int nsamples = 2.0/tsamp;  // set to 2s of observation 
 	const double fch1 = 1550;
-	const int nchans = 4096;
+	const int nchans = 128;
 	const double foff = -total_bandwidth/nchans;
 	// params needed by the fake signal function
-	double dm_position = 250.0; // at what dm put the signal
+	double dm_position = rand()%(int)(0.8*dm_search_max) + 1; // at what dm put the signal
 	const int func_width = 1/(tsamp*25); // width of the signal in terms of # of samples;
 	const int signal_start = 0.2/tsamp; // position of the signal in samples; mean the position of the peak;
 	bool dump_signal_to_disk = false; // this option writes the generated signal to a file 'fake_signal.dat'
@@ -122,23 +128,7 @@ int main() {
 		LOG(log_level::notice, "Peak not found. [" + std::to_string(dm_index_position) + ", " + std::to_string(signal_start) + ", " + std::to_string(ptr[0][dm_index_position][signal_start]) + "].");
 	}
 
-        FILE *fp;
-        char filename[200];
-        sprintf(filename, "ddtr_data.dat");
-        if ((fp=fopen(filename, "wb")) == NULL) {
-                fprintf(stderr, "Error opening output file for fake signal!\n");
-                exit(0);
-        }
-
-        for(size_t i = 0; i < strategy.get_nRanges(); i++ ){
-              for (int j = 0; j < strategy.ndms(i); j++ ) {
-                for (int k = 0; k < strategy.t_processed()[i][0]; k++ ){
-                        fprintf(fp, "%hu %d %lf\n", j, k, ptr[i][j][k]);
-                }
-              }
-        }
-
-        fclose(fp);
-	
+	signal.print_info(f_meta);	
+	strategy.print_info(strategy);
 	return 0;
 }
