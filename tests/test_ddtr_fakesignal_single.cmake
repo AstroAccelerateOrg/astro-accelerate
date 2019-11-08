@@ -12,4 +12,4 @@ target_sources(${TEST_NAME}
 )
 target_link_libraries(${TEST_NAME} PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUFFT_LIBRARIES} ${CUDA_curand_LIBRARY} astroaccelerate)
 add_test(NAME ${TEST_NAME} COMMAND tests/${TEST_NAME})
-set_tests_properties(${TEST_NAME} PROPERTIES PASS_REGULAR_EXPRESSION "Peak found at position.")
+set_tests_properties(${TEST_NAME} PROPERTIES PASS_REGULAR_EXPRESSION "Test OK. Passed: ")
