@@ -75,7 +75,7 @@ int main() {
   // params needed by the fake signal function
   double dm_position = rand()%100; // at what dm put the signal
   const int func_width = 1/(tsamp*10); 
-  const int period = rand()%200; // pulsar period with ms
+  const int period = rand()%100 + 100; // pulsar period with ms
   bool dump_to_disk = true;
   const float sigma = 0.5;
 
