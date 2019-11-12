@@ -132,7 +132,7 @@ int main() {
 		int count = 0;
 		int count_success = 0;
 		for(int r = r_pos; r < repeats; r++){
-			if (signal_start + strategy.maxshift() < nsamples){
+			if ( (unsigned int)signal_start + (unsigned int)strategy.maxshift() < nsamples){
 				count++;
 		                if ( ptr[0][dm_index_position][signal_start] == 255 ){
 		                        LOG(log_level::notice, "Peak #" + std::to_string(r-r_pos) + " found at position. [" + std::to_string(dm_index_position) + ", " + std::to_string(signal_start) + ", " + std::to_string(ptr[0][dm_index_position][signal_start]) + "], period: " + std::to_string(period) + " ms.");
