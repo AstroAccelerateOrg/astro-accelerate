@@ -40,9 +40,9 @@ namespace astroaccelerate {
     //---- Writing data
     if (threadIdx.x == 0) {
       gpos = blockIdx.y*gridDim.x + blockIdx.x;
-      d_output[3*gpos] = M;
-      d_output[3*gpos + 1] = S;
-      d_output[3*gpos + 2] = j;
+      d_output[MSD_PARTIAL_SIZE*gpos] = M;
+      d_output[MSD_PARTIAL_SIZE*gpos + 1] = S;
+      d_output[MSD_PARTIAL_SIZE*gpos + 2] = j;
     }
   }
 
