@@ -341,8 +341,8 @@ int main(void) {
 	}	
 	
 	int pass = check_boxcar_results(h_input, h_MSD_interpolated, h_boxcar_values, h_decimated, h_output_SNR, h_output_taps, nBoxcars, (size_t) nTimesamples, (size_t) nDMs);
-	if(pass==0) std::cout << "Fail." << std::endl;
-	else std::cout << "Runs." << std::endl;
+	if(pass==0) std::cout << "Test not passed" << std::endl;
+	else std::cout << "Test OK. Passed" << std::endl;
 
 	// deallocation
 	free(h_input);
