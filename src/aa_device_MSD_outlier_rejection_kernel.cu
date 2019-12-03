@@ -13,7 +13,7 @@ namespace astroaccelerate {
 		float M, S, max, min, ftemp, j;
 
 		int spos = blockIdx.x*PD_NTHREADS + threadIdx.x;
-		int gpos = blockIdx.y*y_steps*nTimesamples + spos;
+		size_t gpos = blockIdx.y*(size_t)y_steps*(size_t)nTimesamples + (size_t)spos;
 		M=0;	S=0;	j=0;	max=0;	min=0;
 		if( spos<(nTimesamples-offset) ){	
 			ftemp = (float) d_input[gpos];
@@ -21,13 +21,13 @@ namespace astroaccelerate {
 			max = ftemp;
 			min = ftemp;
 			
-			gpos = gpos + nTimesamples;
+			gpos = gpos + (size_t)nTimesamples;
 			for (int yf = 1; yf < y_steps; yf++) {
 				ftemp = (float) d_input[gpos];
 				max = (fmaxf(max,ftemp));
 				min = (fminf(min,ftemp));
 				Add_one( &M, &S, &j, ftemp);
-				gpos = gpos + nTimesamples;
+				gpos = gpos + (size_t)nTimesamples;
 			}
 		}
 		
@@ -67,7 +67,7 @@ namespace astroaccelerate {
 		if( (min>limit_down) && (max < limit_up) ) return;
 	
 		int spos = blockIdx.x*PD_NTHREADS + threadIdx.x;
-		int gpos = blockIdx.y*y_steps*nTimesamples + spos;
+		size_t gpos = blockIdx.y*(size_t)y_steps*(size_t)nTimesamples + (size_t)spos;
 		M=0;	S=0;	j=0;	max=0;	min=0;
 		if( spos<(nTimesamples-offset) ){
 			for (int yf = 0; yf < y_steps; yf++) {
@@ -84,7 +84,7 @@ namespace astroaccelerate {
 						min = fminf(min, ftemp);
 					}			
 				}
-				gpos = gpos + nTimesamples;
+				gpos = gpos + (size_t)nTimesamples;
 			}
 		}
 
@@ -112,13 +112,6 @@ namespace astroaccelerate {
 		}
 	}
 
-	
-	
-	
-	
-	
-	
-	
 
 	__global__ void MSD_BLN_grid_outlier_rejection_new(float *d_input, float *d_output, int size, float multiplier) {
 		__shared__ float s_input[3*WARP*WARP];
@@ -233,7 +226,8 @@ namespace astroaccelerate {
 	__global__ void MSD_BLN_grid_calculate_partials(float const* __restrict__ d_input, float *d_output, int x_steps, int y_steps, int nColumns, int msd) {
 		extern __shared__ float Ms_Ss[];
 
-		int warp_id, local_id, dim_y, pos;
+		int warp_id, local_id, dim_y;
+		size_t pos;
 		float x; // current element
 		float M; // streaming mean
 		float S; // streaming sum of squares (x_i-\bar{x})
@@ -246,7 +240,7 @@ namespace astroaccelerate {
 
 		//----------------------------------------------
 		//---- Calculating of streaming mean and sum of squares
-		pos = (blockIdx.y*dim_y + warp_id)*y_steps*nColumns + blockIdx.x*WARP*x_steps + local_id;
+		pos = (blockIdx.y*(size_t)dim_y + (size_t)warp_id)*(size_t)y_steps*(size_t)nColumns + blockIdx.x*WARP*(size_t)x_steps + (size_t)local_id;
 		M = __ldg(&d_input[pos]);
 		S = 0;
 		j = 1.0f;
@@ -259,7 +253,7 @@ namespace astroaccelerate {
 			S = S + 1.0f/(j*(j-1.0f))*ftemp*ftemp;
 		}
 
-		pos = pos + nColumns - (x_steps-1)*WARP;
+		pos = pos + (size_t)nColumns - (size_t)(x_steps-1)*WARP;
 		for (int yf = 1; yf<y_steps; yf++) {
 			for (int xf = 0; xf<x_steps; xf++) {
 				x = __ldg(&d_input[pos]);
@@ -269,7 +263,7 @@ namespace astroaccelerate {
 				S = S + 1.0f/(j*(j-1.0f))*ftemp*ftemp;
 				pos = pos + WARP;
 			}
-			pos = pos + nColumns - x_steps*WARP;
+			pos = pos + (size_t)nColumns - (size_t)x_steps*WARP;
 		}
 
 		Ms_Ss[threadIdx.x] = M;
