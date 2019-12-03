@@ -101,7 +101,7 @@ namespace astroaccelerate {
 #define SNUMREG 8
 #define SDIVINT 14
 #define SDIVINDM 40
-#define SFDIVINDM 40.0f
+	#define SFDIVINDM 40.0f
 
 } // namespace astroaccelerate
   

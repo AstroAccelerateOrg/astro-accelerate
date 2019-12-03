@@ -2,7 +2,9 @@
 
 #include "aa_device_info.hpp"
 
-#define MAX_OUTPUT_SIZE 8589934592
+//#define MAX_OUTPUT_SIZE 8589934592
+//#define MAX_OUTPUT_SIZE 12884901888
+#define MAX_OUTPUT_SIZE 17179869184
 
 namespace astroaccelerate {
   /**
@@ -55,7 +57,7 @@ namespace astroaccelerate {
     //Strategy set DM settings
     str_dm.resize(range);
 
-    const size_t gpu_memory = free_memory;
+    const size_t gpu_memory = free_memory; // - 1073741824;
     
     const double SPDT_fraction = 3.0/4.0; // 1.0 for MSD plane profile validation
     //Calculate maxshift, the number of dms for this bin and the highest value of dm to be calculated in this bin
@@ -223,8 +225,11 @@ namespace astroaccelerate {
       // Maximum number of samples we can fit in our GPU RAM is then given by:
       size_t SPDT_memory_requirements = (enable_analysis ? (sizeof(float)*(m_max_ndms)*SPDT_fraction) : 0 );
       max_tsamps = (unsigned int) ( ( gpu_memory ) / ( nchans * ( sizeof(float) + sizeof(unsigned short) )+ SPDT_memory_requirements ));
+	printf("gpu_memory: %zu. Maximum number of tsamp: %d. SPDT: %zu max_ndms: %d\n", gpu_memory, max_tsamps, SPDT_memory_requirements, m_max_ndms);
 	size_t output_size_per_tchunk = ((size_t)max_tsamps)*sizeof(float)*((size_t)nchans);
+	printf("output_sizePer_chunk: %zu\n", output_size_per_tchunk);
 	if (output_size_per_tchunk > MAX_OUTPUT_SIZE) max_tsamps = (unsigned int)((MAX_OUTPUT_SIZE)/(sizeof(float)*nchans));
+	printf("After check tsamp_max: %d\n", max_tsamps);
 
       
       // Check that we dont have an out of range maxshift:

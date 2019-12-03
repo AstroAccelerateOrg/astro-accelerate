@@ -255,7 +255,7 @@ namespace astroaccelerate {
       for(int f=0; f<DM_list_size; f++) {
 	//-------------- SPDT
 	timer.Start();
-	SPDT_search_long_MSD_plane(&output_buffer[DM_shift*nTimesamples], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD_interpolated, &PD_plan, max_iteration, nTimesamples, DM_list[f]);
+	SPDT_search_long_MSD_plane(&output_buffer[(size_t)(DM_shift)*(size_t)(nTimesamples)], d_boxcar_values, d_decimated, d_output_SNR, d_output_taps, d_MSD_interpolated, &PD_plan, max_iteration, nTimesamples, DM_list[f]);
 	timer.Stop();
 	SPDT_time += timer.Elapsed();
 	time_log.adding("SPD","SPDT",timer.Elapsed());
@@ -267,7 +267,7 @@ namespace astroaccelerate {
 	//checkCudaErrors(cudaGetLastError());
 			
 #ifdef GPU_ANALYSIS_DEBUG
-	printf("    BC_shift:%d; DMs_per_cycle:%d; f*DMs_per_cycle:%d; max_iteration:%d;\n", DM_shift*nTimesamples, DM_list[f], DM_shift, max_iteration);
+	printf("    BC_shift:%zu; DMs_per_cycle:%d; f*DMs_per_cycle:%d; max_iteration:%d;\n", (size_t)(DM_shift)*(size_t)(nTimesamples), DM_list[f], DM_shift, max_iteration);
 #endif
 			
 	if(candidate_algorithm==1){
@@ -310,7 +310,8 @@ namespace astroaccelerate {
 	cudaError_t e = cudaMemcpy(&temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost);
 
 	if(e != cudaSuccess) {
-	  LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	  LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu -- temp_peak_pos (" + std::string(cudaGetErrorString(e)) + ")");
+		exit(25);
 	}
 	
 #ifdef GPU_ANALYSIS_DEBUG
@@ -324,25 +325,25 @@ namespace astroaccelerate {
 	  cudaError_t e = cudaMemcpy(&h_peak_list_DM[(*peak_pos)],  d_peak_list_DM,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
 	  if(e != cudaSuccess) {
-	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu -- peak_list_DM (" + std::string(cudaGetErrorString(e)) + ")");
 	  }
 	  
 	  e = cudaMemcpy(&h_peak_list_TS[(*peak_pos)],  d_peak_list_TS,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
 	  if(e != cudaSuccess) {
-	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu -- peak_list_TS (" + std::string(cudaGetErrorString(e)) + ")");
 	  }
 	  
 	  e = cudaMemcpy(&h_peak_list_SNR[(*peak_pos)], d_peak_list_SNR, temp_peak_pos*sizeof(float), cudaMemcpyDeviceToHost);
 
 	  if(e != cudaSuccess) {
-	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu -- peak_list_SNR (" + std::string(cudaGetErrorString(e)) + ")");
 	  }
 	  
 	  e = cudaMemcpy(&h_peak_list_BW[(*peak_pos)],  d_peak_list_BW,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost);
 	  
 	  if(e != cudaSuccess) {
-	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu -- peak_list_BW (" + std::string(cudaGetErrorString(e)) + ")");
 	  }
 	  
 	  *peak_pos = (*peak_pos) + temp_peak_pos;

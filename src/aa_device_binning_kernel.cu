@@ -1,6 +1,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "aa_params.hpp"
+#include <stdio.h>
 
 namespace astroaccelerate {
 
@@ -36,10 +37,10 @@ namespace astroaccelerate {
     int t_out = ( ( blockIdx.x * BINDIVINT ) + threadIdx.x );
     int t_in = 2 * t_out;
 
-    int shift_one = ( ( c * out_nsamp ) + t_out );
-    int shift_two = ( ( c * in_nsamp ) + t_in );
+    size_t shift_one = ( (size_t)(c*out_nsamp) + (size_t)t_out );
+    size_t shift_two = ( (size_t)(c*in_nsamp)  + (size_t)t_in );
 
-    d_output[( shift_one )] = (float) ( ( d_input[( shift_two )] + d_input[shift_two + 1] )/2.0f );
+    d_output[( shift_one )] = (float) ( ( d_input[( shift_two )] + d_input[(size_t)(shift_two + 1)] )/2.0f );
 
   }
 
@@ -64,6 +65,7 @@ namespace astroaccelerate {
 
   /** \brief Kernel wrapper function for bin kernel function. */
   void call_kernel_bin(const dim3 &num_blocks, const dim3 &threads_per_block, unsigned short *const d_input, float *const d_output, const int &in_nsamp) {
+	printf("timesamples: %d\n", in_nsamp);
     bin<<<num_blocks, threads_per_block>>>(d_input, d_output, in_nsamp);
   }
 
