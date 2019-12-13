@@ -224,13 +224,13 @@ namespace astroaccelerate {
       }
 
     // Write the accumulators to the output array. 
-    local = ( ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + ( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + 2 * threadIdx.x;
+    size_t big_local;
+    big_local = ( ( (size_t)( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( (size_t)i_t_processed_s ) ) + (size_t)( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + (size_t)(2 * threadIdx.x);
 
 #pragma unroll
     for (i = 0; i < SNUMREG; i++)
       {
-	*( (float2*) ( d_output + local + ( i * 2 * SDIVINT ) ) ) = make_float2((float)local_kernel_one[i] / i_nchans/bin,
-										(float)local_kernel_two[i] / i_nchans/bin);
+	*( (float2*) ( d_output + big_local + (size_t)( i*2*SDIVINT ) ) ) = make_float2((float)local_kernel_one[i] / i_nchans/bin,(float)local_kernel_two[i] / i_nchans/bin);
       }
   }
 
@@ -287,11 +287,12 @@ namespace astroaccelerate {
 		}
 		
 		// Write the accumulators to the output array. 
-		local = ( ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + ( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + 2 * threadIdx.x;
+		size_t big_local;
+		big_local = (((size_t)((blockIdx.y*SDIVINDM ) + threadIdx.y)*((size_t)i_t_processed_s)) + (size_t)(blockIdx.x*2*SNUMREG*SDIVINT)) + (size_t)(2*threadIdx.x);
 		
 		#pragma unroll
 		for (i = 0; i < SNUMREG; i++) {
-			*( (float2*) ( d_output + local + ( i * 2 * SDIVINT ) ) ) = make_float2((float)local_kernel_one[i]/i_nchans/bin, (float)local_kernel_two[i]/i_nchans/bin);
+			*( (float2*) ( d_output + big_local + (size_t)(i*2*SDIVINT) ) ) = make_float2((float)local_kernel_one[i]/i_nchans/bin, (float)local_kernel_two[i]/i_nchans/bin);
 		}
 	}
 
@@ -355,12 +356,13 @@ namespace astroaccelerate {
       }
 
     // Write the accumulators to the output array. 
-    local = ( ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + ( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + 2 * threadIdx.x;
+	size_t big_local;
+    big_local = ( (size_t)( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y )*( i_t_processed_s ) ) + (size_t)( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + (size_t)(2*threadIdx.x);
 
 #pragma unroll
     for (i = 0; i < SNUMREG; i++)
       {
-	*( (float2*) ( d_output + local + ( i * 2 * SDIVINT ) ) ) = make_float2(local_kernel_one[i] / i_nchans / bin, local_kernel_two[i] / i_nchans / bin);
+	*( (float2*) ( d_output + big_local + (size_t)(i*2*SDIVINT ) ) ) = make_float2(local_kernel_one[i] / i_nchans / bin, local_kernel_two[i] / i_nchans / bin);
       }
   }
 
@@ -412,21 +414,21 @@ namespace astroaccelerate {
 		}
 		
 		// Write the accumulators to the output array. 
-		local = ( ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + ( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + 2 * threadIdx.x;
+		size_t big_local;
+		big_local = ( (size_t)( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + (size_t)( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + (size_t)(2*threadIdx.x);
 		
 		#pragma unroll
 		for (i = 0; i < SNUMREG; i++) {
-			*( (float2*) ( d_output + local + ( i * 2 * SDIVINT ) ) ) = make_float2(local_kernel_one[i]/i_nchans/bin, local_kernel_two[i]/i_nchans/bin);
+			*( (float2*) ( d_output + big_local + (size_t)( i * 2 * SDIVINT ) ) ) = make_float2(local_kernel_one[i]/i_nchans/bin, local_kernel_two[i]/i_nchans/bin);
 		}
 	}
 
   
   __global__ void cache_dedisperse_kernel(int bin, unsigned short *d_input, float *d_output, float mstartdm, float mdmstep) {
-    int   shift;	
+    size_t   shift;	
     float local_kernel;
 
     int t  = blockIdx.x * SDIVINT  + threadIdx.x;
-	
     // Initialise the time accumulators
     local_kernel = 0.0f;
 
@@ -439,13 +441,14 @@ namespace astroaccelerate {
       // Calculate the initial shift for this given frequency
       // channel (c) at the current despersion measure (dm) 
       // ** dm is constant for this thread!!**
-      shift = (c * (i_nsamp) + t) + __float2int_rz (dm_shifts[c] * shift_temp);
+
+      shift = ((size_t)(c*(i_nsamp)) + (size_t)t) + (size_t)(__float2int_rz (dm_shifts[c] * shift_temp));
 		
       local_kernel += (float)__ldg(&d_input[shift]);
     }
 
     // Write the accumulators to the output array. 
-    shift = ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + t;
+    shift = ( ( (size_t)( blockIdx.y * SDIVINDM ) + (size_t)threadIdx.y ) * ( (size_t)i_t_processed_s ) ) + (size_t)t;
 
     d_output[shift] = (local_kernel / i_nchans / bin);
 
@@ -453,7 +456,7 @@ namespace astroaccelerate {
 
   
 	__global__ void cache_dedisperse_kernel_nchan8192p(int bin, unsigned short *d_input, float *d_output, float *d_dm_shifts, float mstartdm, float mdmstep) {
-		int   shift;	
+		size_t   shift;	
 		float local_kernel;
 
 		int t  = blockIdx.x * SDIVINT  + threadIdx.x;
@@ -468,13 +471,13 @@ namespace astroaccelerate {
 			// Calculate the initial shift for this given frequency
 			// channel (c) at the current despersion measure (dm) 
 			// ** dm is constant for this thread!!**
-			shift = (c * (i_nsamp) + t) + __float2int_rz (d_dm_shifts[c]*shift_temp);
+			shift = ((size_t)(c*(i_nsamp)) + (size_t)t) + (size_t)(__float2int_rz (d_dm_shifts[c]*shift_temp));
 			
 			local_kernel += (float)__ldg(&d_input[shift]);
 		}
 
 		// Write the accumulators to the output array. 
-		shift = ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + t;
+		shift = ( (size_t)( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( (size_t)i_t_processed_s ) ) + (size_t)t;
 
 		d_output[shift] = (local_kernel / i_nchans / bin);
   }

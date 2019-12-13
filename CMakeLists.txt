@@ -4,6 +4,11 @@ set(PROJECT_NAME astro-accelerate)
 set(PROJECT_VERSION 1.3.1)	# Tagged release version
 set(PROJECT_LIB_NAME ASTRO_ACCELERATE)
 
+if(POLICY CMP0076)
+    cmake_policy(SET CMP0076 NEW)
+endif()
+
+
 # Set date and time of build
 string(TIMESTAMP ASTRO_ACCELERATE_BUILD_DATE_UTC "%d/%m/%Y" UTC)
 string(TIMESTAMP ASTRO_ACCELERATE_BUILD_TIME_UTC "%H:%M:%S" UTC)

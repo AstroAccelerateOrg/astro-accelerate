@@ -109,40 +109,37 @@ int MSD_normal_continuous(float *d_MSD, float *d_input, float *d_previous_partia
 
 //MSD_BLN_pw
 int MSD_outlier_rejection(float *d_MSD, float *d_input, float *d_temp, MSD_Configuration *MSD_conf, float OR_sigma_multiplier){
-#ifdef MSD_DEBUG
-  float h_MSD[3];
-  MSD_conf->print();
-#endif
+	#ifdef MSD_DEBUG
+		float h_MSD[3];
+		MSD_conf->print();
+	#endif
 	
-  MSD_init();
-  call_kernel_MSD_GPU_limited(MSD_conf->partials_gridSize,MSD_conf->partials_blockSize, d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int)MSD_conf->offset);
-  call_kernel_MSD_GPU_final_regular(MSD_conf->final_gridSize, MSD_conf->final_blockSize,
-				    &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE],
-				    d_MSD, MSD_conf->nBlocks_total);
+	MSD_init();
+	call_kernel_MSD_GPU_calculate_partials_2d_and_minmax(MSD_conf->partials_gridSize,MSD_conf->partials_blockSize, d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int)MSD_conf->offset);
+	call_kernel_MSD_GPU_final_regular(MSD_conf->final_gridSize, MSD_conf->final_blockSize, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
 
-#ifdef MSD_DEBUG
-  cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
-  printf("Before outlier rejection: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
-  printf("---------------------------<\n");
-#endif
-  for(int i=0; i<5; i++){
-    call_kernel_MSD_BLN_pw_rejection_normal(MSD_conf->partials_gridSize,MSD_conf->partials_blockSize, d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD,  MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset, OR_sigma_multiplier);
-    call_kernel_MSD_GPU_final_nonregular(MSD_conf->final_gridSize,MSD_conf->final_blockSize,
-					 &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
-#ifdef MSD_DEBUG
-    cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
-    printf("Rejection %d: Mean: %e, Standard deviation: %e; Elements:%zu;\n", i, h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
-    printf("---------------------------<\n");
-#endif
-  }
+	#ifdef MSD_DEBUG
+		cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+		printf("Before outlier rejection: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
+		printf("---------------------------<\n");
+	#endif
+	for(int i=0; i<5; i++){
+		call_kernel_MSD_BLN_calculate_partials_2d_and_minmax_with_outlier_rejection(MSD_conf->partials_gridSize,MSD_conf->partials_blockSize, d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD,  MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset, OR_sigma_multiplier);
+		call_kernel_MSD_GPU_final_nonregular(MSD_conf->final_gridSize,MSD_conf->final_blockSize, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD, MSD_conf->nBlocks_total);
+		#ifdef MSD_DEBUG
+			cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+			printf("Rejection %d: Mean: %e, Standard deviation: %e; Elements:%zu;\n", i, h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
+			printf("---------------------------<\n");
+		#endif
+	}
 	
-#ifdef MSD_DEBUG
-  cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
-  printf("Output: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
-  printf("---------------------------<\n");
-#endif
+	#ifdef MSD_DEBUG
+		cudaMemcpy(h_MSD, d_MSD, 3*sizeof(float), cudaMemcpyDeviceToHost); 
+		printf("Output: Mean: %e, Standard deviation: %e; Elements:%zu;\n", h_MSD[0], h_MSD[1], (size_t) h_MSD[2]);
+		printf("---------------------------<\n");
+	#endif
 	
-  return(0);
+	return(0);
 }
 
 
@@ -165,7 +162,7 @@ int MSD_outlier_rejection_continuous(float *d_MSD, float *d_input, float *d_prev
 #endif
 	
   MSD_init();
-  call_kernel_MSD_GPU_limited(MSD_conf->partials_gridSize,MSD_conf->partials_blockSize, d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int)MSD_conf->offset);
+  call_kernel_MSD_GPU_calculate_partials_2d_and_minmax(MSD_conf->partials_gridSize,MSD_conf->partials_blockSize, d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int)MSD_conf->offset);
   call_kernel_MSD_GPU_final_regular(MSD_conf->final_gridSize,MSD_conf->final_blockSize,
 				    &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE],
 				    d_MSD, MSD_conf->nBlocks_total);
@@ -175,7 +172,7 @@ int MSD_outlier_rejection_continuous(float *d_MSD, float *d_input, float *d_prev
   printf("---------------------------<\n");
 #endif
   for(int i=0; i<5; i++){
-    call_kernel_MSD_BLN_pw_rejection_normal(MSD_conf->partials_gridSize,MSD_conf->partials_blockSize, d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD,  MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset, OR_sigma_multiplier);
+    call_kernel_MSD_BLN_calculate_partials_2d_and_minmax_with_outlier_rejection(MSD_conf->partials_gridSize,MSD_conf->partials_blockSize, d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD,  MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset, OR_sigma_multiplier);
     call_kernel_MSD_GPU_final_nonregular(MSD_conf->final_gridSize,MSD_conf->final_blockSize,
 					 &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE],
 					 d_MSD, MSD_conf->nBlocks_total);
@@ -218,7 +215,7 @@ int MSD_outlier_rejection_grid(float *d_MSD, float *d_input, float *d_previous_p
 #endif
 	
   MSD_init();
-  call_kernel_MSD_GPU_limited(MSD_conf->partials_gridSize,MSD_conf->partials_blockSize, d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int)MSD_conf->offset);
+  call_kernel_MSD_GPU_calculate_partials_2d_and_minmax(MSD_conf->partials_gridSize,MSD_conf->partials_blockSize, d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int)MSD_conf->offset);
   call_kernel_MSD_GPU_final_regular(MSD_conf->final_gridSize,MSD_conf->final_blockSize,
 				    &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE],
 				    d_MSD, MSD_conf->nBlocks_total);
@@ -228,7 +225,7 @@ int MSD_outlier_rejection_grid(float *d_MSD, float *d_input, float *d_previous_p
   printf("---------------------------<\n");
 #endif
   for(int i=0; i<5; i++){
-    call_kernel_MSD_BLN_pw_rejection_normal(MSD_conf->partials_gridSize,MSD_conf->partials_blockSize, d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD,  MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset, OR_sigma_multiplier);
+    call_kernel_MSD_BLN_calculate_partials_2d_and_minmax_with_outlier_rejection(MSD_conf->partials_gridSize,MSD_conf->partials_blockSize, d_input, &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE], d_MSD,  MSD_conf->nSteps.y, (int) MSD_conf->nTimesamples, (int) MSD_conf->offset, OR_sigma_multiplier);
     call_kernel_MSD_GPU_final_nonregular(MSD_conf->final_gridSize,MSD_conf->final_blockSize,
 					 &d_temp[MSD_conf->address*MSD_PARTIAL_SIZE],
 					 d_MSD, MSD_conf->nBlocks_total);

@@ -1,0 +1,104 @@
+{
+    "creators": [
+        {
+            "affiliation": "University of Oxford",
+            "name": "Armour, Wes",
+            "orcid": "0000-0003-1756-3064"
+        },
+        {
+            "affiliation": "University of Oxford",
+            "name": "Adamek, Karel",
+            "orcid": "0000-0003-2797-0595"
+        },
+        {
+            "name": "Novotny, Jan",
+            "orcid": "0000-0002-9667-635X"
+        },
+	{
+		"name": "Dimoudi, Sofia"
+	},
+	{
+		"name": "Carels, Cees"
+	},
+ 	{
+                "name": "Quannoughi, Nassim"
+        },
+        {
+                "name": "Giles, Mike"
+        },
+        {
+                "name": "Karastergiou, Aris"
+        },
+        {
+                "name": "Williams, Chris"
+        },
+        {
+                "name": "Roberts, Steve"
+        },
+        {
+                "name": "Brown, Ania"
+        },
+        {
+                "name": "Chennamangalam, Jayanth"
+        },
+        {
+                "name": "Curran, Dan"
+        },
+        {
+                "name": "Smith, McIntosh Simon"
+        },
+        {
+                "name": "Nunez-Yanez, Jose"
+        },
+        {
+                "name": "Mickalliger, Mitch"
+        },
+        {
+                "name": "Stappers, Ben"
+        },
+        {
+                "name": "Thiagaraj, Prabu"
+        },
+        {
+                "name": "Roy, Jayanta"
+        },
+        {
+                "name": "Bassa, Cees"
+        },
+        {
+                "name": "Hessels, Jason"
+        },
+        {
+                "name": "Clark, Kate"
+        },
+        {
+                "name": "Lanfear, Tim"
+        },
+        {
+                "name": "Sinclair, Byron"
+        },
+        {
+                "name": "Ling, Andrew"
+        },
+        {
+                "name": "Casselman, Steve"
+        },
+        {
+                "name": "Sharpe, James"
+        }   	
+    ],
+    "title": "AstroAccelerate",
+    "license": "GNU GPL v3.0",
+    "keywords": [
+	"GPU",
+	"CUDA",
+	"GPGPU", 
+	"de-dispersion",
+	"frb",
+	"single pulse detection",
+	"pulsar",
+	"FDAS",
+	"radio astronomy"
+    ],
+    "description": "AstroAccelerate is a many core accelerated software package for processing time domain radio-astronomy data"
+}
