@@ -105,7 +105,7 @@ namespace astroaccelerate {
         int local_kernel_one[SNUMREG];
         int local_kernel_two[SNUMREG];
 
-        float findex = (( threadIdx.x * 4 ) + 1 );
+        float findex = (( threadIdx.x * 4 ) + 1 ); // + 1 
 
         for (i = 0; i < SNUMREG; i++)
         {
@@ -119,6 +119,8 @@ namespace astroaccelerate {
         float shift_two = ( mstartdm + ( __int2float_rz(blockIdx.y) * SFDIVINDM * mdmstep ) );
         float shift_one = ( __int2float_rz(threadIdx.y) * mdmstep );
 
+    if ((threadIdx.x == 0) & (threadIdx.y == 0) & (blockIdx.x == 0) & (blockIdx.y == 0)) printf("\n\n\n\t\t\t\t D_input: %d \n\n\n", d_input[0]);
+
         for (c = 0; c < i_nchans; c += UNROLLS)
         {
 
@@ -126,7 +128,7 @@ namespace astroaccelerate {
 
                 for (j = 0; j < UNROLLS; j++)
                 {
-                        temp_f = (unsigned char)( __ldg(( d_input + ( __float2int_rz(dm_shifts[c + j] * shift_two) ) )  + ( nsamp_counter + ( j * i_nsamp ) )) );
+                        temp_f = (unsigned char)( __ldg(( d_input + ( __float2int_rz(dm_shifts[c + j]*shift_two) ) )  + ( nsamp_counter + ( j*i_nsamp ) )) );
 
                         test[j][idx + 3].x = temp_f;
                         test[j][idx + 2].y = temp_f;
@@ -156,6 +158,7 @@ namespace astroaccelerate {
 
         // Write the accumulators to the output array.
         local = ( ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + ( blockIdx.x * 4 * SNUMREG * SDIVINT ) ) + 4 * threadIdx.x;
+	if (local == 0) printf("\n\t\t\t cislo je: %lf %d\n\n",(float)(local_kernel_one[0] & 0x0000FFFF), test[0][0].x);
 
         #pragma unroll
         for (i = 0; i < SNUMREG; i++)
@@ -186,6 +189,8 @@ namespace astroaccelerate {
 
     int idx 	  = ( threadIdx.x + ( threadIdx.y * SDIVINT ) );
     int nsamp_counter = ( idx + ( blockIdx.x * ( 2 * SNUMREG * SDIVINT ) ) );
+
+    if ((threadIdx.x == 0) & (threadIdx.y == 0) & (blockIdx.x == 0) & (blockIdx.y == 0)) printf("\n\n\n\t\t\t\t D_input: %d \n\n\n", d_input[0]);
 
     float shift_two = ( mstartdm + ( __int2float_rz(blockIdx.y) * SFDIVINDM * mdmstep ) );
     float shift_one = ( __int2float_rz(threadIdx.y) * mdmstep );
@@ -226,6 +231,7 @@ namespace astroaccelerate {
     // Write the accumulators to the output array. 
     size_t big_local;
     big_local = ( ( (size_t)( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( (size_t)i_t_processed_s ) ) + (size_t)( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + (size_t)(2 * threadIdx.x);
+    if (big_local == 0) printf("\n\n\t\t\tCislo je: %lf %d\n\n",(float)local_kernel_one[0], f_line[0][0].x);
 
 #pragma unroll
     for (i = 0; i < SNUMREG; i++)
