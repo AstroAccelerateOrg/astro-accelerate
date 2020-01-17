@@ -20,7 +20,7 @@ namespace astroaccelerate {
   //{{{ shared_dedisperse_loop
 
   __device__ __shared__ ushort2 f_line[UNROLLS][ARRAYSIZE + 2];
-  __device__ __shared__ uchar4 test[UNROLLS][ARRAYSIZE+4];
+  __device__ __shared__ uchar4 test[UNROLLS][ARRAYSIZE + 4];
   __device__ __constant__ int i_nsamp, i_nchans, i_t_processed_s;
   __device__ __constant__ float dm_shifts[8192];
 
@@ -105,7 +105,7 @@ namespace astroaccelerate {
         int local_kernel_one[SNUMREG];
         int local_kernel_two[SNUMREG];
 
-        float findex = (( threadIdx.x * 4 ) + 1 ); // + 1 
+        float findex = (( threadIdx.x * 4 ) + 3 ); // + 1 
 
         for (i = 0; i < SNUMREG; i++)
         {
@@ -136,6 +136,7 @@ namespace astroaccelerate {
                         test[j][idx    ].w = temp_f;
 
                         shift[j] = __float2int_rz(shift_one * dm_shifts[c + j] + findex);
+//			if ((threadIdx.x == 0) & (threadIdx.y == 0) & (blockIdx.x == 0) & (blockIdx.y == 0)) printf("\n\t %d %d, %u", c, j, temp_f);
                 }
 
                 nsamp_counter = ( nsamp_counter + ( UNROLLS * i_nsamp ) );
@@ -149,24 +150,34 @@ namespace astroaccelerate {
                         for (j = 0; j < UNROLLS; j++)
                         {
                                 stage = *(int*) &test[j][( shift[j] + unroll )];
+				if ((threadIdx.x == 0) & (threadIdx.y == 0) & (blockIdx.x == 0) & (blockIdx.y == 0)){
+//					printf("stage: %d %u %u %u\n", stage, test[j][shift[j] + unroll].x, test[j][shift[j] + unroll].y, test[j][shift[j] + unroll].z);
+				}
                                 local += stage;
                         }
+			if ((threadIdx.x == 0) & (threadIdx.y == 0) & (blockIdx.x == 0) & (blockIdx.y == 0)){
+//				printf("stage finale: %d %u %u %u\n", local, test[j][shift[j] + unroll].x, test[j][shift[j] + unroll].y, test[j][shift[j] + unroll].z);
+			}
                         local_kernel_one[i] += (local & 0x00FF00FF);
-                        local_kernel_two[i] += (local & 0xFF00FF00) >> 16;
+                        local_kernel_two[i] += ((local & 0xFF00FF00) >> 8);
                 }
         }
 
         // Write the accumulators to the output array.
-        local = ( ( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + ( blockIdx.x * 4 * SNUMREG * SDIVINT ) ) + 4 * threadIdx.x;
-	if (local == 0) printf("\n\t\t\t cislo je: %lf %d\n\n",(float)(local_kernel_one[0] & 0x0000FFFF), test[0][0].x);
+        local = ( ( ( ( blockIdx.y*SDIVINDM ) + threadIdx.y )*( i_t_processed_s ) ) + (blockIdx.x*4*SNUMREG*SDIVINT) ) + 4 * threadIdx.x;
+	if (local == 0) printf("\n\t\t\t cislo je: %lf %lf %lf %lf %d\n\n",(float)(local_kernel_one[0] & 0x0000FFFF), 
+								(float)((local_kernel_two[0] &0x0000FFFF)), 
+								(float)( (local_kernel_one[0] & 0xFFFF0000) >> 16), 
+								(float)( (local_kernel_two[0] & 0xFFFF0000) >> 16), 
+								test[0][0].x);
 
         #pragma unroll
         for (i = 0; i < SNUMREG; i++)
         {
                 *( (float4*) ( d_output + local + ( i * 4 * SDIVINT ) ) ) = make_float4((float)(local_kernel_one[i] &0x0000FFFF) / i_nchans,
-                                                                                        (float)(local_kernel_one[i] &0xFFFF0000) / i_nchans,
-                                                                                        (float)(local_kernel_two[i] &0x0000FFFF) / i_nchans,
-                                                                                        (float)(local_kernel_two[i] &0xFFFF0000) / i_nchans);
+                                                                                        (float)( (local_kernel_two[i] &0x0000FFFF)) / i_nchans,
+                                                                                        (float)( (local_kernel_one[i] &0xFFFF0000) >> 16) / i_nchans,
+                                                                                        (float)( (local_kernel_two[i] &0xFFFF0000) >> 16) / i_nchans);
         }
 }
 
@@ -231,7 +242,11 @@ namespace astroaccelerate {
     // Write the accumulators to the output array. 
     size_t big_local;
     big_local = ( ( (size_t)( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( (size_t)i_t_processed_s ) ) + (size_t)( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + (size_t)(2 * threadIdx.x);
-    if (big_local == 0) printf("\n\n\t\t\tCislo je: %lf %d\n\n",(float)local_kernel_one[0], f_line[0][0].x);
+    if (big_local == 0) printf("\n\n\t\t\tCislo je: %lf %lf %lf %lf %d\n\n",(float)local_kernel_one[0],
+									(float)(local_kernel_one[1]), 
+									(float)(local_kernel_two[0]), 
+									(float)(local_kernel_two[1]), 
+			   						f_line[0][0].x);
 
 #pragma unroll
     for (i = 0; i < SNUMREG; i++)
