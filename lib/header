@@ -26,7 +26,7 @@ namespace astroaccelerate {
   //Added by Karel Adamek
 #define WARP 32
 #define HALF_WARP 16
-#define MSD_PARTIAL_SIZE 3
+#define MSD_PARTIAL_SIZE 5
 #define MSD_RESULTS_SIZE 3
 #define MSD_ELEM_PER_THREAD 8
 #define MSD_WARPS_PER_BLOCK 16
@@ -51,7 +51,7 @@ namespace astroaccelerate {
 #define ACCEL_STEP (float)(2.0) //1 //default acceleration step
 #define ACCEL_STEP_R (float)(1.0f/ACCEL_STEP)
 #define ZMAX 96
-#define NKERN 97 //NKERN must be calculated from 2*ZMAX/(ACCEL_STEP)+1 
+#define NKERN (int)(2*ZMAX/(ACCEL_STEP)+1) //NKERN must be calculated from 2*ZMAX/(ACCEL_STEP)+1 
 //#define ZLO  -(int)((ZMAX/ACCEL_STEP) )
 #define TBSIZEX 32
 #define TBSIZEY 1
