@@ -123,7 +123,8 @@ namespace astroaccelerate {
 				LOG(log_level::debug, "DDTR -> Memory cleanup after de-dispersion");
 				cudaFree(d_DDTR_input);
 				cudaFree(d_DDTR_output);
-				if(nchans>8192) cudaFree(d_dm_shifts);
+				if( (nchans > 8192) && (nbits != 4) ) cudaFree(d_dm_shifts);
+				if( (nbits == 4) && (nchans > 4096) ) cudaFree(d_dm_shifts);
 				
 				if(do_single_pulse_detection){
 					cudaFree(m_d_MSD_workarea);
@@ -178,12 +179,21 @@ namespace astroaccelerate {
 			printf("done on DDTR output.\n");
 
 			cudaMemset(*d_DDTR_output, 0, gpu_outputsize);
-			if(nchans>8192){
+
+			if( (nchans>8192) && (nbits != 4) ){
 				e = cudaMalloc((void **)d_dm_shifts, nchans*sizeof(float));
 				if (e != cudaSuccess) {
 					LOG(log_level::error, "Could not allocate memory for d_dm_shifts using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
 				}
 			}
+			if( (nchans>4096) && (nbits==4) ){
+				e = cudaMalloc((void **)d_dm_shifts, nchans*sizeof(float));
+				if (e != cudaSuccess) {
+					LOG(log_level::error, "Could not allocate memory for d_dm_shifts (4-bit) using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
+				}
+			}
+
+
 		}
 
 
@@ -421,7 +431,7 @@ namespace astroaccelerate {
 
 				//checkCudaErrors(cudaGetLastError());
 				m_local_timer.Start();
-				load_chunk_data(d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift_original, nchans, dmshifts, d_dm_shifts);
+				load_chunk_data(d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift_original, nchans, dmshifts, d_dm_shifts, nbits);
 				m_local_timer.Stop();
 				time_log.adding("DDTR", "Host_To_Device", m_local_timer.Elapsed());
 				//checkCudaErrors(cudaGetLastError());

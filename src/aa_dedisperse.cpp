@@ -74,8 +74,8 @@ void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sh
 			dim3 num_blocks(num_blocks_t, num_blocks_dm);
 
 			cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeFourByte);
-			if (nchans>8192) {
-				call_kernel_shared_dedisperse_kernel_4bit_8192chan(num_blocks, threads_per_block, d_input, d_output, d_dm_shifts, (float)(startdm/(*tsamp)), (float)(dm_step[i]/(*tsamp)));
+			if (nchans>4096) {
+				call_kernel_shared_dedisperse_kernel_4bit_4096chan(num_blocks, threads_per_block, d_input, d_output, d_dm_shifts, (float)(startdm/(*tsamp)), (float)(dm_step[i]/(*tsamp)), nchans);
 			}
 			else {
 				call_kernel_shared_dedisperse_kernel_4bit(num_blocks, threads_per_block, d_input, d_output, (float)(startdm/(*tsamp)), (float)(dm_step[i]/(*tsamp)));
