@@ -994,10 +994,16 @@ namespace astroaccelerate {
 			 * the base class must provide a method for it.
 			 */
 			if (pipeline_ready && m_runner->setup()) {
-				while (m_runner->next()) {
+				aa_pipeline_runner::status status_code;
+				while (m_runner->next(status_code)) {
 					LOG(log_level::notice, "Pipeline running over next chunk.");
 				}
-				return true;
+				
+				if(status_code==aa_pipeline_runner::status::error){
+					LOG(log_level::notice, "Pipeline cannot proceed due to error.");
+					return false;
+				}
+				else return true;
 			}
 			else {
 				LOG(log_level::error, "Pipeline could not start/resume because either pipeline is not ready or runner is not setup.");
@@ -1019,7 +1025,12 @@ namespace astroaccelerate {
 			 */
 			if (pipeline_ready && m_runner->setup()) {
 				LOG(log_level::notice, "Pipeline running over next chunk.");
-				return m_runner->next(status_code);
+				bool return_value = m_runner->next(status_code);
+				if(status_code==aa_pipeline_runner::status::error){
+					LOG(log_level::notice, "Pipeline cannot proceed due to error.");
+					return false;
+				}
+				else return (return_value);
 			}
 			else {
 				LOG(log_level::error, "Pipeline could not start/resume because either pipeline is not ready or runner is not setup.");
