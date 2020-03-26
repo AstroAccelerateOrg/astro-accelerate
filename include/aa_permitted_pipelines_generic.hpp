@@ -923,6 +923,9 @@ namespace astroaccelerate {
 			if (memory_allocated && !memory_cleanup) {
 				cleanup();
 			}
+			if(pipeline_error==PIPELINE_ERROR_NO_ERROR){
+				time_log.print();
+			}
 		}
 
 		aa_permitted_pipelines_generic(const aa_permitted_pipelines_generic &) = delete;
@@ -1065,8 +1068,6 @@ namespace astroaccelerate {
 			if (m_pipeline_options.find(aa_pipeline::component_option::timelog_export_to_file) != m_pipeline_options.end()) {
 				time_log.print_to_file();
 			}
-			
-			time_log.print();
 
 			return true;
 		}
