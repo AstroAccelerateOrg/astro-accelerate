@@ -20,6 +20,7 @@
 #include "aa_corner_turn.hpp"
 #include "aa_device_rfi.hpp"
 #include "aa_dedisperse.hpp"
+#include "aa_device_save_data.hpp"
 
 #include "aa_gpu_timer.hpp"
 
@@ -262,16 +263,6 @@ namespace astroaccelerate {
       return true;
     }
 
-    /** \brief Transfer data from the device to the host. */
-    inline void save_data_offset(float *device_pointer, int device_offset, float *host_pointer, int host_offset, size_t size) {
-      cudaMemcpy(host_pointer + host_offset, device_pointer + device_offset, size, cudaMemcpyDeviceToHost);
-    }
-
-    /** \brief Transfer data from the device to the host. */
-    inline void save_data(float *const device_pointer, float *const host_pointer, const size_t &size) {
-      cudaMemcpy(host_pointer, device_pointer, size, cudaMemcpyDeviceToHost);
-    }
-
     /**
      * \brief Run the pipeline by processing the next time chunk of data.
      * \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
@@ -361,9 +352,12 @@ namespace astroaccelerate {
 
 	//checkCudaErrors(cudaGetLastError());
 
-	for (int k = 0; k < ndms[dm_range]; k++) {
-	  save_data_offset(d_output, k * t_processed[dm_range][t], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
-	}
+    for (size_t k = 0; k < (size_t) ndms[dm_range]; k++) {
+      size_t device_offset = (size_t) (k * (size_t) t_processed[dm_range][t]);
+      size_t host_offset = (size_t) (inc / inBin[dm_range]);
+      size_t data_size = (size_t) (sizeof(float) * (size_t) t_processed[dm_range][t]);
+      save_data_offset(d_output, device_offset, m_output_buffer[dm_range][k], host_offset, data_size);
+    }
 	
 	oldBin = inBin[dm_range];
       }

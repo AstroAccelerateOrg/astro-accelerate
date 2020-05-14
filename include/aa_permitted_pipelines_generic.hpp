@@ -21,6 +21,7 @@
 #include "aa_corner_turn.hpp"
 #include "aa_device_rfi.hpp"
 #include "aa_dedisperse.hpp"
+#include "aa_device_save_data.hpp"
 
 #include "aa_device_analysis.hpp"
 #include "aa_device_periods.hpp"
@@ -340,16 +341,6 @@ namespace astroaccelerate {
 			if(do_fdas) do_copy_DDTR_data_to_host = true;
 		}
 
-		/** \brief Transfer data from the device to the host. */
-		inline void save_data_offset(float *device_pointer, int device_offset, float *host_pointer, int host_offset, size_t size) {
-			cudaMemcpy(host_pointer + host_offset, device_pointer + device_offset, size, cudaMemcpyDeviceToHost);
-		}
-
-		/** \brief Transfer data from the device to the host. */
-		inline void save_data(float *const device_pointer, float *const host_pointer, const size_t &size) {
-			cudaMemcpy(host_pointer, device_pointer, size, cudaMemcpyDeviceToHost);
-		}
-
 		/**
 		* \brief Run the pipeline by processing the next time chunk of data.
 		* \details Process any flags for dumping output or providing it back to the user.
@@ -506,8 +497,11 @@ namespace astroaccelerate {
 				//-----------> Copy data to the host
 				if(do_copy_DDTR_data_to_host){
 					m_local_timer.Start();
-					for (int k = 0; k < ndms[dm_range]; k++) {
-						save_data_offset(d_DDTR_output, k * t_processed[dm_range][current_time_chunk], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][current_time_chunk]);
+					for (size_t k = 0; k < (size_t) ndms[dm_range]; k++) {
+						size_t device_offset = (size_t) (k * (size_t) t_processed[dm_range][current_time_chunk]);
+						size_t host_offset = (size_t) (inc / inBin[dm_range]);
+						size_t data_size = (size_t) (sizeof(float) * (size_t) t_processed[dm_range][current_time_chunk]);
+						save_data_offset(d_DDTR_output, device_offset, m_output_buffer[dm_range][k], host_offset, data_size);
 					}
 					m_local_timer.Stop();
 					time_log.adding("DDTR", "Device_To_Host", m_local_timer.Elapsed());
