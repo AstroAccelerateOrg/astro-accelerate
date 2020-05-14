@@ -17,7 +17,7 @@ namespace astroaccelerate {
    * \brief Function that performs the dedispersion on the GPU.
    * \brief Users should not need to interact with this function directly.
    */
-  void dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned short *d_input, float *d_output, float *d_dm_shifts, int nchans, float *tsamp, float *dm_low, float *dm_step, int const*const ndms, int nbits, int failsafe);
+  int dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned short *d_input, float *d_output, float *d_dm_shifts, int nchans, float *tsamp, float *dm_low, float *dm_step, int const*const ndms, int nbits, int failsafe);
 
 } // namespace astroaccelerate
   
