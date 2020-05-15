@@ -490,6 +490,7 @@ namespace astroaccelerate {
     total_time = total_timer.Elapsed();
     time_log.adding("SPD", "total", total_time);
     time_log.adding("SPD", "MSD", MSD_time);
+	time_log.adding("Total", "total", total_time);
 #ifdef GPU_TIMER
     printf("\n  TOTAL TIME OF SPS:%f ms\n", total_time);
     printf("  MSD_time: %f ms; SPDT time: %f ms; Candidate selection time: %f ms;\n", MSD_time, SPDT_time, PF_time);
