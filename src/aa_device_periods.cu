@@ -16,6 +16,7 @@
 #include "aa_device_MSD_plane_profile.hpp"
 #include "aa_device_peak_find.hpp"
 #include "aa_device_power.hpp"
+#include "aa_device_spectrum_whitening.hpp"
 #include "aa_device_harmonic_summing.hpp"
 #include "aa_corner_turn.hpp"
 #include "aa_device_threshold.hpp"
@@ -799,6 +800,15 @@ namespace astroaccelerate {
     (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
 	
+	//---------> Spectrum whitening
+	timer.Start();
+	cudaStream_t stream; stream = NULL;
+	spectrum_whitening_SGP1(d_frequency_power, (t_nTimesamples>>1), t_nDMs_per_batch, stream);
+	spectrum_whitening_SGP1(d_frequency_interbin, t_nTimesamples, t_nDMs_per_batch, stream);
+    timer.Stop();
+    printf("         -> Performing spectrum whitening took %f ms\n", timer.Elapsed());
+    (*compute_time) = (*compute_time) + timer.Elapsed();	
+	//---------<
     //-----------------------------------------------------------------------------------
     //if(i==0 && dm==0 && export_data) Export_data_in_range(d_half_C, nTimesamples/2, t_nDMs_per_batch, "power_data", dm_step[i], dm_low[i], tsamp, DM_shift);
     //-----------------------------------------------------------------------------------
