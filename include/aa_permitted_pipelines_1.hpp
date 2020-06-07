@@ -342,7 +342,7 @@ namespace astroaccelerate {
 
 
       if(zero_dm_type == aa_pipeline::component_option::zero_dm_with_outliers) {
-	zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
+	zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift, nbits);
       }
 
       //checkCudaErrors(cudaGetLastError());

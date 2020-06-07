@@ -9,10 +9,10 @@ namespace astroaccelerate {
     int num_blocks_t    = nsamp;
     int shared_memory = threads_for_sum*4;
     
-    printf("\nCORNER TURN!");
-    printf("\n%d %d %d", nsamp, nchans, threads_for_sum);
-    printf("\n%d %d", CT, 1);
-    printf("\n%d %d", num_blocks_t, 1);
+    //printf("\nCORNER TURN!");
+    //printf("\n%d %d %d", nsamp, nchans, threads_for_sum);
+    //printf("\n%d %d", CT, 1);
+    //printf("\n%d %d", num_blocks_t, 1);
     
     dim3 threads_per_block(threads_for_sum, 1);
     dim3 num_blocks(num_blocks_t,1);
