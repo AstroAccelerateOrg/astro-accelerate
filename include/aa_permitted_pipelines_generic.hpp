@@ -22,6 +22,8 @@
 #include <cuda_runtime.h>
 
 #include <stdio.h>
+#include <string.h>
+#include <omp.h>
 #include "aa_pipeline.hpp"
 #include "aa_ddtr_strategy.hpp"
 #include "aa_ddtr_plan.hpp"
@@ -695,34 +697,36 @@ namespace astroaccelerate {
 				//-----------> Copy data to the host
 				if(do_copy_DDTR_data_to_host){
 					m_local_timer.Start();
-					int nStreams = 8;
+					int nStreams = 2;
 					cudaStream_t stream_copy[nStreams];
 					cudaError_t e;
 					float *h_aPinned, *h_bPinned;
-					cudaMallocHost((void **) &h_aPinned, (size_t) (sizeof(float) * (size_t) t_processed[dm_range][current_time_chunk]));
-					cudaMallocHost((void **) &h_bPinned, (size_t) (sizeof(float) * (size_t) t_processed[dm_range][current_time_chunk]));
-//					pthread_t threads[2];
+					size_t data_size = (size_t) (sizeof(float) * (size_t) t_processed[dm_range][current_time_chunk]);
+					cudaMallocHost((void **) &h_aPinned, data_size);
+					cudaMallocHost((void **) &h_bPinned, data_size);
+
+
 					for (int i = 0; i < nStreams; i++){
 						e = cudaStreamCreate(&stream_copy[i]);
 						if (e != cudaSuccess) {
 							pipeline_error = PIPELINE_ERROR_COPY_TO_HOST;
 							LOG(log_level::error, "Could not create stream(" + std::string(cudaGetErrorString(e)) + ")");
 						}
-//						if (pthread_create(&threads[i],NULL,0,save_data_offset_stream,0){ 
-//							return 1;
-//						}
+
 					}
 
+//					#pragma omp parallel for num_threads(2)
 					for (size_t k = 0; k < (size_t) ndms[dm_range]; k++) {
 						int id_stream = k % nStreams;
 						size_t device_offset = (size_t) (k * (size_t) t_processed[dm_range][current_time_chunk]);
 						size_t host_offset = (size_t) (inc / inBin[dm_range]);
-						size_t data_size = (size_t) (sizeof(float) * (size_t) t_processed[dm_range][current_time_chunk]);
-//						save_data_offset_stream(d_DDTR_output, device_offset, m_output_buffer[dm_range][k], host_offset, data_size, stream_copy[id_stream]);
-						cudaMemcpyAsync(h_aPinned, d_DDTR_output, data_size, cudaMemcpyDeviceToHost, stream_copy[id_stream]);
+//						size_t data_size = (size_t) (sizeof(float) * (size_t) t_processed[dm_range][current_time_chunk]);
+						save_data_offset(d_DDTR_output, device_offset, m_output_buffer[dm_range][k], host_offset, data_size);
+//						cudaMemcpyAsync(h_aPinned, d_DDTR_output + device_offset, data_size, cudaMemcpyDeviceToHost, stream_copy[id_stream]);
+//						cudaStreamSynchronize(stream_copy[id_stream]);
+//						memmove(m_output_buffer[dm_range][k] + host_offset, h_aPinned, data_size);
+//						memcpy(m_output_buffer[dm_range][k] + host_offset, h_aPinned, data_size);
 					}
-					cudaFreeHost(h_aPinned);
-					cudaFreeHost(h_bPinned);
 					m_local_timer.Stop();
 					time_log.adding("DDTR", "Device_To_Host", m_local_timer.Elapsed());
 
@@ -739,6 +743,8 @@ namespace astroaccelerate {
 						pipeline_error = PIPELINE_ERROR_COPY_TO_HOST;
 						LOG(log_level::error, "GPU error at copy of dedispersed data to host. (" + std::string(cudaGetErrorString(CUDA_error)) + ")");
 					}
+					cudaFreeHost(h_aPinned);
+					cudaFreeHost(h_bPinned);
 				}
 				m_ddtr_total_timer.Stop();
 				time_log.adding("DDTR", "total", m_ddtr_total_timer.Elapsed());
