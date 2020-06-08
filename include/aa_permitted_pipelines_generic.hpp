@@ -135,7 +135,7 @@ namespace astroaccelerate {
 		
 		float  *m_d_MSD_workarea = NULL;
 		float  *m_d_MSD_interpolated = NULL;
-		ushort *m_d_MSD_output_taps = NULL;
+		ushort *m_d_SPDT_output_taps = NULL;
 
 		bool cleanup_DDTR() {
 			LOG(log_level::debug, "DDTR -> Memory cleanup after de-dispersion");
@@ -183,14 +183,14 @@ namespace astroaccelerate {
 						m_d_MSD_workarea = NULL;
 					}
 				}
-				if(m_d_MSD_output_taps!=NULL) {
-					e = cudaFree(m_d_MSD_output_taps);
+				if(m_d_SPDT_output_taps!=NULL) {
+					e = cudaFree(m_d_SPDT_output_taps);
 					if (e != cudaSuccess) {
 						pipeline_error = PIPELINE_ERROR_GPU_FREE_MEMORY_FAIL;
 						LOG(log_level::error, "Cannot free memory (" + std::string(cudaGetErrorString(e)) + ")");
 					}
 					else {
-						m_d_MSD_output_taps = NULL;
+						m_d_SPDT_output_taps = NULL;
 					}
 				}
 				if(m_d_MSD_interpolated!=NULL) {
@@ -233,7 +233,7 @@ namespace astroaccelerate {
 				
 				if(do_single_pulse_detection){
 					cudaFree(m_d_MSD_workarea);
-					cudaFree(m_d_MSD_output_taps);
+					cudaFree(m_d_SPDT_output_taps);
 					cudaFree(m_d_MSD_interpolated);
 					
 					free(h_SPD_candidate_list_DM);
@@ -335,7 +335,7 @@ namespace astroaccelerate {
 		
 		
 		/** \brief Allocate memory for single pulse detection (SPD) on the device.	*/
-		void allocate_gpu_memory_SPD(float **const d_MSD_workarea, unsigned short **const d_MSD_output_taps, float **const d_MSD_interpolated, const unsigned long int &MSD_maxtimesamples, const size_t &MSD_profile_size) {
+		void allocate_gpu_memory_SPD(float **const d_MSD_workarea, unsigned short **const d_SPDT_output_taps, float **const d_MSD_interpolated, const unsigned long int &MSD_maxtimesamples, const size_t &MSD_profile_size) {
 			cudaError_t e;
 			
 			e = cudaMalloc((void **)d_MSD_workarea, MSD_maxtimesamples*5.5*sizeof(float));
@@ -344,10 +344,10 @@ namespace astroaccelerate {
 				LOG(log_level::error, "Could not allocate memory for d_MSD_workarea using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
 			}
 
-			e = cudaMalloc((void **) &(*d_MSD_output_taps), sizeof(ushort)*2*MSD_maxtimesamples);
+			e = cudaMalloc((void **) &(*d_SPDT_output_taps), sizeof(ushort)*2*MSD_maxtimesamples);
 			if (e != cudaSuccess) {
 				pipeline_error = PIPELINE_ERROR_SPDT_GPU_MEMORY_FAIL;
-				LOG(log_level::error, "Could not allocate memory for d_MSD_output_taps using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
+				LOG(log_level::error, "Could not allocate memory for d_SPDT_output_taps using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
 			}
 
 			e = cudaMalloc((void **)d_MSD_interpolated, sizeof(float)*MSD_profile_size);
@@ -431,7 +431,7 @@ namespace astroaccelerate {
 			//Allocate GPU memory for SPD (i.e. analysis)
 			if(do_single_pulse_detection && pipeline_error==0) {
 				allocate_cpu_memory_SPD(max_ndms, t_processed[0][0]);
-				allocate_gpu_memory_SPD(&m_d_MSD_workarea, &m_d_MSD_output_taps, &m_d_MSD_interpolated, m_analysis_strategy.MSD_data_info(), m_analysis_strategy.MSD_profile_size_in_bytes());
+				allocate_gpu_memory_SPD(&m_d_MSD_workarea, &m_d_SPDT_output_taps, &m_d_MSD_interpolated, m_analysis_strategy.MSD_data_info(), m_analysis_strategy.MSD_profile_size_in_bytes());
 			}
 			//Allocate memory for CPU output for periodicity
 			if(pipeline_error==0) {
@@ -747,7 +747,7 @@ namespace astroaccelerate {
 						tsamp,
 						m_analysis_strategy.candidate_algorithm(),
 						m_d_MSD_workarea,
-						m_d_MSD_output_taps,
+						m_d_SPDT_output_taps,
 						m_d_MSD_interpolated,
 						m_analysis_strategy.MSD_data_info(),
 						m_analysis_strategy.enable_msd_baseline_noise(),
@@ -908,7 +908,7 @@ namespace astroaccelerate {
 		current_range(0),
 		m_d_MSD_workarea(NULL),
 		m_d_MSD_interpolated(NULL),
-		m_d_MSD_output_taps(NULL) {
+		m_d_SPDT_output_taps(NULL) {
 	}
 
 		~aa_permitted_pipelines_generic() {

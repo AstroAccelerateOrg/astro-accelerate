@@ -482,7 +482,7 @@ namespace astroaccelerate {
       }
       delete[] h_peak_list;
       //------------------------> Output
-
+		cudaFree(gmem_peak_pos);
     }
     else printf("Error not enough memory to search for pulses\n");
 
