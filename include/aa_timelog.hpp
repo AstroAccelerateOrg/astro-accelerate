@@ -53,6 +53,22 @@ class TimeLog{
 			}
 			LOG(log_level::notice,"--------------------------------------------------------------");
 		}
+		
+		void print(float processed_telescope_time){
+			LOG(log_level::notice,"--------------------------------------------------------------");
+			LOG(log_level::notice,"Summary of the times for each component and subcomponent [ms]:")
+			double max_time = 0;
+			for (const auto &pair : pattern){
+				LOG(log_level::notice, "\t" + pair.first.first + " " + pair.first.second + " " + "\t" +std::to_string(pair.second));
+				if(pair.second > max_time) max_time = pair.second;
+			}
+			char str[200];
+			sprintf(str,"%0.3f", processed_telescope_time/max_time);
+			LOG(log_level::notice, std::string("\tProcessed telescope time:\t") + std::to_string(processed_telescope_time*1000.0));
+			LOG(log_level::notice, " ");
+			LOG(log_level::notice, std::string("\tReal-time speed-up factor:\t") + std::to_string(processed_telescope_time/(max_time/1000.0)));
+			LOG(log_level::notice,"--------------------------------------------------------------");
+		}
 
         private:
 		std::ofstream time_file;

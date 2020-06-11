@@ -809,14 +809,14 @@ namespace astroaccelerate {
 
 			timer.Stop();
 			time_log.adding("Periodicity", "total", timer.Elapsed());
+			time_log.adding("Total", "total", timer.Elapsed());
 
-			float time = timer.Elapsed()/1000;
-			printf("\n\n === OVERALL PERIODICITY THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
-
-			printf("\nPerformed Periodicity Location: %f (GPU estimate)", time);
-			printf("\nAmount of telescope time processed: %f", tstart_local);
-			printf("\nNumber of samples processed: %ld", inc);
-			printf("\nReal-time speedup factor: %f\n", (tstart_local) / (time));
+			//float time = timer.Elapsed()/1000;
+			// printf("\n\n === OVERALL PERIODICITY THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
+			// printf("\nPerformed Periodicity Location: %f (GPU estimate)", time);
+			// printf("\nAmount of telescope time processed: %f", tstart_local);
+			// printf("\nNumber of samples processed: %ld", inc);
+			// printf("\nReal-time speedup factor: %f\n", (tstart_local) / (time) );
 			periodicity_did_run = true;
 			return true;
 		}
@@ -850,13 +850,14 @@ namespace astroaccelerate {
 
 			timer.Stop();
 			time_log.adding("FDAS", "total", timer.Elapsed());
+			time_log.adding("Total", "total", timer.Elapsed());
 			float time = timer.Elapsed()/1000;
 			printf("\n\n === OVERALL TDAS THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
 			printf("\nPerformed Acceleration Location: %lf (GPU estimate)", time);
 			printf("\nAmount of telescope time processed: %f", tstart_local);
 			printf("\nNumber of samples processed: %ld", inc);
-			printf("\nReal-time speedup factor: %lf\n", (tstart_local) / (time));
+			printf("\nReal-time speedup factor for FDAS: %lf\n", (tstart_local) / (time));
 			acceleration_did_run = true;
 
 			/*
@@ -918,7 +919,7 @@ namespace astroaccelerate {
 				cleanup();
 			}
 			if(pipeline_error==PIPELINE_ERROR_NO_ERROR){
-				time_log.print();
+				time_log.print(tstart_local);
 			}
 		}
 
