@@ -6,6 +6,8 @@
 #include <cufft.h>
 #include <math.h>
 #include <vector>
+#include <omp.h>
+#include <string.h>
 
 #include "aa_device_periods.hpp"
 #include "aa_params.hpp"
@@ -664,13 +666,42 @@ namespace astroaccelerate {
   }
 
   void Copy_data_for_periodicity_search(float *d_one_A, float **dedispersed_data, Periodicity_Batch *batch){ //TODO add "cudaStream_t stream1"
+	int nStreams = 16;
+	cudaStream_t stream_copy[16];
+	cudaError_t e;
+	float *h_small_dedispersed_data;
+	size_t data_size = batch->nTimesamples*sizeof(float);
+	cudaMallocHost((void **) &h_small_dedispersed_data, nStreams*data_size);
+
+	for (int i = 0; i < nStreams; i++){
+		e = cudaStreamCreate(&stream_copy[i]);
+		if (e != cudaSuccess) {
+			LOG(log_level::error, "Could not create streams in periodicity (" + std::string(cudaGetErrorString(e)) + ")");
+		}
+	}
+
+	size_t stream_offset = batch->nTimesamples;
+
+    #pragma omp parallel for num_threads(nStreams) shared(h_small_dedispersed_data, data_size, d_one_A, stream_copy, stream_offset)
     for(int ff=0; ff<batch->nDMs_per_batch; ff++){
-      cudaError_t e = cudaMemcpy( &d_one_A[ff*batch->nTimesamples], dedispersed_data[batch->DM_shift + ff], batch->nTimesamples*sizeof(float), cudaMemcpyHostToDevice);
-      
+      int id_stream = omp_get_thread_num();
+      memcpy(h_small_dedispersed_data + id_stream*stream_offset, dedispersed_data[batch->DM_shift + ff], data_size);
+//      e = cudaMemcpy( &d_one_A[ff*batch->nTimesamples], dedispersed_data[batch->DM_shift + ff], batch->nTimesamples*sizeof(float), cudaMemcpyHostToDevice);      
+      e = cudaMemcpyAsync(&d_one_A[ff*batch->nTimesamples], h_small_dedispersed_data + id_stream*stream_offset, data_size, cudaMemcpyHostToDevice, stream_copy[id_stream]);      
+      cudaStreamSynchronize(stream_copy[id_stream]);
       if(e != cudaSuccess) {
 	LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
       }
     }
+	for (int i = 0; i < nStreams; i++){
+		e = cudaStreamDestroy(stream_copy[i]);
+		if (e != cudaSuccess) {
+			LOG(log_level::error, "Could not destroy stream in periodicity (" + std::string(cudaGetErrorString(e)) + ")");
+		}
+	}
+
+    cudaFreeHost(h_small_dedispersed_data);
+
   }
 
   __inline__ float Calculate_frequency(int m, float sampling_time, int nTimesamples){
