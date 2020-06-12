@@ -697,12 +697,12 @@ namespace astroaccelerate {
 				//-----------> Copy data to the host
 				if(do_copy_DDTR_data_to_host){
 					m_local_timer.Start();
-					int nStreams = 2;
-					cudaStream_t stream_copy[nStreams];
+					int nStreams = 16;
+					cudaStream_t stream_copy[16];
 					cudaError_t e;
 					float *h_aPinned, *h_bPinned;
 					size_t data_size = (size_t) (sizeof(float) * (size_t) t_processed[dm_range][current_time_chunk]);
-					cudaMallocHost((void **) &h_aPinned, data_size);
+					cudaMallocHost((void **) &h_aPinned, data_size*nStreams);
 					cudaMallocHost((void **) &h_bPinned, data_size);
 
 
@@ -715,17 +715,15 @@ namespace astroaccelerate {
 
 					}
 
-//					#pragma omp parallel for num_threads(2)
+					#pragma omp parallel for num_threads(nStreams) shared(h_aPinned, m_output_buffer, d_DDTR_output, dm_range, data_size, stream_copy)
 					for (size_t k = 0; k < (size_t) ndms[dm_range]; k++) {
-						int id_stream = k % nStreams;
+						int id_stream = omp_get_thread_num();
 						size_t device_offset = (size_t) (k * (size_t) t_processed[dm_range][current_time_chunk]);
 						size_t host_offset = (size_t) (inc / inBin[dm_range]);
-//						size_t data_size = (size_t) (sizeof(float) * (size_t) t_processed[dm_range][current_time_chunk]);
-						save_data_offset(d_DDTR_output, device_offset, m_output_buffer[dm_range][k], host_offset, data_size);
-//						cudaMemcpyAsync(h_aPinned, d_DDTR_output + device_offset, data_size, cudaMemcpyDeviceToHost, stream_copy[id_stream]);
-//						cudaStreamSynchronize(stream_copy[id_stream]);
-//						memmove(m_output_buffer[dm_range][k] + host_offset, h_aPinned, data_size);
-//						memcpy(m_output_buffer[dm_range][k] + host_offset, h_aPinned, data_size);
+						size_t stream_offset = (size_t) (t_processed[dm_range][current_time_chunk]);
+						cudaMemcpyAsync(h_aPinned + id_stream*stream_offset, d_DDTR_output + device_offset, data_size, cudaMemcpyDeviceToHost,stream_copy[id_stream]);
+						cudaStreamSynchronize(stream_copy[id_stream]);
+						memcpy(m_output_buffer[dm_range][k] + host_offset, h_aPinned + id_stream*stream_offset, data_size);
 					}
 					m_local_timer.Stop();
 					time_log.adding("DDTR", "Device_To_Host", m_local_timer.Elapsed());

@@ -53,7 +53,7 @@ set(CUDA_LINK_LIBRARIES_KEYWORD PUBLIC)
 set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS})
 
-list(APPEND CUDA_NVCC_FLAGS --use_fast_math --default-stream per-thread )
+list(APPEND CUDA_NVCC_FLAGS --use_fast_math)
 list(APPEND CUDA_NVCC_FLAGS -g;)
 list(APPEND CUDA_NVCC_FLAGS -Xptxas -O3 -std=c++11;)
 list(APPEND CUDA_NVCC_FLAGS -lineinfo;)
