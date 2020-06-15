@@ -6,7 +6,7 @@
 // conv_size should really be determined by the class based on size of the filter and performance of the GPU
 namespace astroaccelerate {
 
-/** \class aa_jerk_plan aa_analysis_plan.hpp "include/aa_analysis_plan.hpp"
+/** \class aa_jerk_plan aa_jerk_plan.hpp "include/aa_jerk_plan.hpp"
  * \brief Class which contains parameters of the jerk search.
  * \details An jerk search plan is where user define search parameters. It is required for creating jerk strategy.   
  * \author AstroAccelerate.
