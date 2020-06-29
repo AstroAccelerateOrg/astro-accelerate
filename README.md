@@ -16,6 +16,7 @@ If you use AstroAccelerate, please cite the code using the following DOI
 
 Please cite the following journal article
 * https://ui.adsabs.harvard.edu/#abs/arXiv:1804.05335
+* https://ui.adsabs.harvard.edu/abs/2020ApJS..247...56A/abstract
 
 and the proceedings
 * https://arxiv.org/abs/1812.02647
