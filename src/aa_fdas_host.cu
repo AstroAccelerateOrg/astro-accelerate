@@ -203,7 +203,7 @@ namespace astroaccelerate {
       double z = (-ZMAX+ii*ACCEL_STEP);
       int halfwidth = presto_z_resp_halfwidth(z, LOWACC) ;
       int numkern = 2 * halfwidth * inbin;
-      tempkern = presto_gen_z_response( z, numkern, inbin);
+      tempkern = presto_gen_z_response(0.0, inbin, z, numkern);
       presto_place_complex_kernel(tempkern, numkern, (h_kernel+ii*KERNLEN), KERNLEN);
       free(tempkern);
     }
