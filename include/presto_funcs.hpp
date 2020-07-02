@@ -1,9 +1,13 @@
 #ifndef ASTRO_ACCELERATE_PRESTO_FUNCS_HPP
 #define ASTRO_ACCELERATE_PRESTO_FUNCS_HPP
 
+#include <cufft.h>
+
 #include "fresnl.hpp"
 #include "aa_median.hpp"
-#include <cufft.h>
+
+#include "aa_jerk_plan.hpp"
+#include "aa_jerk_strategy.hpp"
 
 namespace astroaccelerate {
 
@@ -19,6 +23,8 @@ namespace astroaccelerate {
 	void presto_place_complex_kernel(cufftComplex * kernel, int numkernel, cufftComplex * result, int numresult);
 	void presto_dered_sig(cufftComplex * fft, int numamps);
 	void presto_norm(cufftComplex * fft, int numamps);
+	
+	void jerk_create_acc_filters(float2 *jerk_filters, JERK_Strategy *jerk_strategy);
 
 } // namespace astroaccelerate
   
