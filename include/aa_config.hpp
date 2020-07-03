@@ -29,10 +29,14 @@ namespace astroaccelerate {
 	 */
 	struct aa_config_flags {
 		float power;                    /**< Power setting. */
-		float sigma_cutoff;             /**< Sigma cutoff setting. */
-		float sigma_constant;           /**< Sigma constant setting. */
+		float sigma_cutoff;             /**< Sigma threshold for candidate selection. */
+		float sigma_constant;           /**< Sigma cutoff for outlier rejection. */
 		float max_boxcar_width_in_sec;  /**< Boxcar width in seconds setting. */
 		float periodicity_sigma_cutoff; /**< Periodicity sigma cutoff setting. Should this be int or float? */
+		float z_max;  
+		float z_step; 
+		float w_max;  
+		float w_step; 
 
 		int multi_file;                 /**< Multi file setting. This looks like it is deprecated. */
 		int output_dmt;                 /**< Enables or disables ddtr output to disk. */
@@ -42,6 +46,7 @@ namespace astroaccelerate {
 		int failsafe;                   /**< Flag to select the failsafe algorithm for dedispersion. */
 		int periodicity_nHarmonics;     /**< Number of harmonics setting for periodicity. */
 		int selected_card_id;           /**< Selected card id on this machine. */
+		int dered;                      /** Enable deredning. */
 		bool rfi;                       /**< Enable (true) or disable (false) host RFI reduction of the input data. */
 		std::vector<aa_pipeline::debug> user_debug; /**< std::vector of debug flags. */
 	};
@@ -134,12 +139,16 @@ namespace astroaccelerate {
 						m_pipeline.insert(aa_pipeline::component::periodicity);
 					if (strcmp(string, "acceleration") == 0)
 						m_pipeline.insert(aa_pipeline::component::fdas);
+					if (strcmp(string, "acceleration_jerk") == 0)
+						m_pipeline.insert(aa_pipeline::component::jerk);
 					if (strcmp(string, "output_ffdot_plan") == 0)
 						m_pipeline_options.insert(aa_pipeline::component_option::output_ffdot_plan);
 					if (strcmp(string, "output_fdas_list") == 0)
 						m_pipeline_options.insert(aa_pipeline::component_option::output_fdas_list);
 					if (strcmp(string, "output_dmt") == 0)
 						m_pipeline_options.insert(aa_pipeline::component_option::output_dmt);
+					if (strcmp(string, "dered") == 0)
+						m_pipeline_options.insert(aa_pipeline::component_option::dered);
 					if (strcmp(string, "zero_dm") == 0)
 						m_pipeline_options.insert(aa_pipeline::component_option::zero_dm);
 					if (strcmp(string, "zero_dm_with_outliers") == 0)
@@ -178,7 +187,6 @@ namespace astroaccelerate {
 							return false;
 						}
 					}
-
 					if (strcmp(string, "periodicity_sigma_cutoff") == 0) {
 						if (fscanf(fp_in, "%f", &flg.periodicity_sigma_cutoff) == 0) {
 							fprintf(stderr, "failed to read input\n");
@@ -191,7 +199,30 @@ namespace astroaccelerate {
 							return false;
 						}
 					}
-
+					if (strcmp(string, "z_max") == 0) {
+						if (fscanf(fp_in, "%d", &flg.z_max) == 0) {
+							fprintf(stderr, "failed to read input\n");
+							return false;
+						}
+					}
+					if (strcmp(string, "z_step") == 0) {
+						if (fscanf(fp_in, "%d", &flg.z_step) == 0) {
+							fprintf(stderr, "failed to read input\n");
+							return false;
+						}
+					}
+					if (strcmp(string, "w_max") == 0) {
+						if (fscanf(fp_in, "%d", &flg.w_max) == 0) {
+							fprintf(stderr, "failed to read input\n");
+							return false;
+						}
+					}
+					if (strcmp(string, "w_step") == 0) {
+						if (fscanf(fp_in, "%d", &flg.w_step) == 0) {
+							fprintf(stderr, "failed to read input\n");
+							return false;
+						}
+					}
 					if (strcmp(string, "sigma_constant") == 0)
 					{
 						if (fscanf(fp_in, "%f", &flg.sigma_constant) == 0)
@@ -267,7 +298,7 @@ namespace astroaccelerate {
 			: 
 			configure_from_file(true), 
 			user_cli(cli_input), 
-			flg({ 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>() })
+			flg({ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>() })
 		{
 			flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
 			flg.periodicity_nHarmonics = 32; // wrong
@@ -282,7 +313,7 @@ namespace astroaccelerate {
 			: 
 			configure_from_file(false), 
 			m_pipeline(user_pipeline), 
-			flg({ 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>() })
+			flg({ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>() })
 		{
 			flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
 			flg.periodicity_nHarmonics = 32; // wrong

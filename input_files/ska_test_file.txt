@@ -13,10 +13,16 @@ periodicity_sigma_cutoff 20
 periodicity_harmonics 32
 analysis
 -acceleration
+-acceleration_jerk
+-z_max 200
+-z_step 2
+-w_max 800
+-w_step 20
 -output_ffdot_plan
 -output_fdas_list
 -periodicity
 -output_dmt
+-dered
 -zero_dm
 -zero_dm_with_outliers
 -rfi

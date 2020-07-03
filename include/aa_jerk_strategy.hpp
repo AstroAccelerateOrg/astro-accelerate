@@ -3,6 +3,7 @@
 
 #include "aa_strategy.hpp"
 #include "aa_jerk_plan.h"
+#include "presto_funcs.hpp"
 #include <iostream>
 #include <vector>
 
@@ -21,116 +22,131 @@ class aa_jerk_strategy : public aa_strategy {
 private:
 	//-----------------> JERK plan
 	// input parameters
-	size_t nSamples_time_dom;
-	size_t nSamples_freq_dom;
-	size_t nSamples_output_plane;
-	size_t nDMs;
+	size_t c_nSamples_time_dom;
+	size_t c_nSamples_freq_dom;
+	size_t c_nSamples_output_plane;
+	size_t c_nDMs;
 	
 	// filter parameters
-	float z_max_search_limit;
-	float z_search_step;
-	float w_max_search_limit;
-	float w_search_step;
-	int interbinned_samples;
-	int high_precision;
+	float c_z_max_search_limit;
+	float c_z_search_step;
+	float c_w_max_search_limit;
+	float c_w_search_step;
+	int   c_interbinned_samples;
+	int   c_high_precision;
 	
-	// output parameters
-	bool MSD_outlier_rejection;
-	int candidate_selection;
+	// MSD
+	bool  c_MSD_outlier_rejection;
+	float c_OR_sigma_cuttoff;
+	
+	// Candidate selection
+	float c_CS_sigma_threshold;
+	int   c_CS_algorithm;
 	
 	//-----------------> JERK strategy
 	
-	int conv_size; // size of the segment in overlap and save
-	int nFilters_z_half;
-	int nFilters_z;
-	int nFilters_w_half;
-	int nFilters_w;
-	int nFilters_total;
+	int c_conv_size; // size of the segment in overlap and save
+	int c_nFilters_z_half;
+	int c_nFilters_z;
+	int c_nFilters_w_half;
+	int c_nFilters_w;
+	int c_nFilters_total;
 	
-	int filter_halfwidth;
-	int useful_part_size;
+	int c_filter_halfwidth;
+	int c_useful_part_size;
 	
-	int nSegments;
-	size_t output_size_one_DM;
-	size_t output_size_z_plane;
-	size_t output_size_total;
+	int    c_nSegments;
+	size_t c_output_size_one_DM;
+	size_t c_output_size_z_plane;
+	size_t c_output_size_total;
 	
-	int nZPlanes;
-	int nZPlanes_per_chunk;
-	int nZPlanes_chunks;
-	int nZPlanes_remainder;
-	std::vector<int> ZW_chunks;
-	size_t free_memory;
-	size_t required_memory;
-	size_t total_memory;
-	size_t reserved_memory_for_candidate_selection;
+	int c_nZPlanes;
+	int c_nZPlanes_per_chunk;
+	int c_nZPlanes_chunks;
+	int c_nZPlanes_remainder;
+	std::vector<int> c_ZW_chunks;
+	size_t c_free_memory;
+	size_t c_required_memory;
+	size_t c_total_memory;
+	size_t c_reserved_memory_for_candidate_selection;
 	
-	size_t filter_padded_size;
-	size_t filter_padded_size_bytes;
+	size_t c_filter_padded_size;
+	size_t c_filter_padded_size_bytes;
 	
 	bool c_ready;
 	
 	void calculate_memory_split(size_t available_free_memory){
 		//---------> Memory testing and splitting
-		nZPlanes = nFilters_w;
-		size_t z_plane_size_bytes = output_size_z_plane*sizeof(float);
-		available_free_memory = available_free_memory - reserved_memory_for_candidate_selection - filter_padded_size_bytes;
-		nZPlanes_per_chunk = (int) (available_free_memory/z_plane_size_bytes);
-		nZPlanes_chunks = (int) (nZPlanes/nZPlanes_per_chunk);
-		nZPlanes_remainder = nZPlanes - nZPlanes_chunks*nZPlanes_per_chunk;
+		c_nZPlanes = c_nFilters_w;
+		size_t z_plane_size_bytes = c_output_size_z_plane*sizeof(float);
+		available_free_memory = available_free_memory - c_reserved_memory_for_candidate_selection - filter_padded_size_bytes;
+		c_nZPlanes_per_chunk = (int) (available_free_memory/z_plane_size_bytes);
+		c_nZPlanes_chunks = (int) (nZPlanes/c_nZPlanes_per_chunk);
+		c_nZPlanes_remainder = nZPlanes - c_nZPlanes_chunks*c_nZPlanes_per_chunk;
 		
-		for(int f=0; f<nZPlanes_chunks; f++){
-			ZW_chunks.push_back(nZPlanes_per_chunk);
+		for(int f=0; f<c_nZPlanes_chunks; f++){
+			c_ZW_chunks.push_back(c_nZPlanes_per_chunk);
 		}
-		if(nZPlanes_remainder>0) {
-			ZW_chunks.push_back(nZPlanes_remainder);
+		if(c_nZPlanes_remainder>0) {
+			c_ZW_chunks.push_back(c_nZPlanes_remainder);
 		}
 		
-		required_memory = (nZPlanes_chunks + nZPlanes_remainder)*z_plane_size_bytes + reserved_memory_for_candidate_selection;
+		c_required_memory = (c_nZPlanes_chunks + c_nZPlanes_remainder)*c_z_plane_size_bytes + c_reserved_memory_for_candidate_selection;
+		c_free_memory = available_free_memory - c_required_memory;
+		c_total_memory = available_free_memory;
 	}
 	
 public:
 	aa_jerk_strategy(aa_jerk_plan plan, size_t available_free_memory){
-		nSamples_time_dom   = plan.nTimesamples;
-		nSamples_freq_dom   = (plan.nTimesamples>>1) + 1; //because R2C FFT
-		nDMs                = plan.nDMs;
+		c_nSamples_time_dom   = plan.nTimesamples();
+		c_nSamples_freq_dom   = (plan.nTimesamples()>>1) + 1; //because R2C FFT
+		c_nDMs                = plan.nDMs();
 		
 		// Calculate number of filters
 		// number of filters must also account for negative accelerations and w=z=0;
-		nFilters_z_half   = plan.z_max_search_limit/plan.z_search_step;
-		nFilters_z        = nFilters_z_half + nFilters_z_half + 1; 
-		nFilters_w_half   = plan.w_max_search_limit/plan.w_search_step;
-		nFilters_w        = nFilters_w_half + nFilters_w_half + 1;
-		nFilters_total    = nFilters_z*nFilters_w;
+		c_nFilters_z_half   = plan.z_max_search_limit()/plan.z_search_step();
+		c_nFilters_z        = c_nFilters_z_half + c_nFilters_z_half + 1; 
+		c_nFilters_w_half   = plan.w_max_search_limit()/plan.w_search_step();
+		c_nFilters_w        = c_nFilters_w_half + c_nFilters_w_half + 1;
+		c_nFilters_total    = c_nFilters_z*c_nFilters_w;
 		
 		// recompute maximum z and w values based on step
-		z_max_search_limit  = nFilters_z_half*plan.z_search_step;
-		z_search_step       = plan.z_search_step;
-		w_max_search_limit  = nFilters_w_half*plan.w_search_step;
-		w_search_step       = plan.w_search_step;
-		interbinned_samples = plan.interbinned_samples;
-		high_precision      = plan.high_precision;
+		c_z_max_search_limit  = c_nFilters_z_half*plan.z_search_step();
+		c_z_search_step       = plan.z_search_step();
+		c_w_max_search_limit  = c_nFilters_w_half*plan.w_search_step();
+		c_w_search_step       = plan.w_search_step();
+		c_interbinned_samples = plan.number_of_interbinned_samples();
+		c_high_precision      = plan.precision();
+		
+		// MSD
+		c_MSD_outlier_rejection = plan.MSD_outlier_rejection();
+		c_OR_sigma_cuttoff = plan.OR_sigma_cuttoff();
+	
+		// Candidate selection
+		c_CS_sigma_threshold = plan.CS_sigma_threshold();
+		c_CS_algorithm = plan.CS_algorithm();
 		
 		// Strategy
-		conv_size = 2048;
+		c_conv_size = 2048;
 		
-		filter_halfwidth = plan.filter_halfwidth*interbinned_samples;
-		useful_part_size = conv_size - 2*filter_halfwidth + 1;
+		int presto_halfwidth = presto_w_resp_halfwidth(c_z_max_search_limit, c_w_max_search_limit, c_high_precision);
+		c_filter_halfwidth = presto_halfwidth*c_interbinned_samples;
+		c_useful_part_size = c_conv_size - 2*c_filter_halfwidth + 1;
 		
-		nSegments           = (nSamples_freq_dom + useful_part_size - 1)/useful_part_size;
-		output_size_one_DM  = nSegments*useful_part_size;
-		output_size_z_plane = nFilters_z*output_size_one_DM;
-		output_size_total   = nFilters_total*output_size_one_DM;
-		reserved_memory_for_candidate_selection = 2*output_size_z_plane*sizeof(float);
+		c_nSegments           = (c_nSamples_freq_dom + c_useful_part_size - 1)/c_useful_part_size;
+		c_output_size_one_DM  = c_nSegments*c_useful_part_size;
+		c_output_size_z_plane = c_nFilters_z*c_output_size_one_DM;
+		c_output_size_total   = c_nFilters_total*c_output_size_one_DM;
+		c_reserved_memory_for_candidate_selection = 2*c_output_size_z_plane*sizeof(float);
 		
-		filter_padded_size       = nFilters_total*conv_size;
-		filter_padded_size_bytes = nFilters_total*conv_size*sizeof(float2); //*8 for complex float
+		c_filter_padded_size       = c_nFilters_total*c_conv_size;
+		c_filter_padded_size_bytes = c_nFilters_total*c_conv_size*sizeof(float2); //*8 for complex float
 		
 		calculate_memory_split(available_free_memory);
 	}
 	
 	~aa_jerk_strategy(){
-		ZW_chunks.clear();
+		c_ZW_chunks.clear();
 	}
 	
     bool ready() const {
@@ -144,37 +160,37 @@ public:
 	void PrintStrategy(){
 		printf("-------------------------------------------\n");
 		printf("Input parameters:\n");
-		printf("    Number of time samples before FFT: %zu\n", nSamples_time_dom);
-		printf("    Number of time samples after FFT:  %zu\n", nSamples_freq_dom);
-		printf("    Number of time samples in output:  %zu\n", nSamples_freq_dom);
-		printf("    Number of DM trials:               %zu\n", nDMs);
+		printf("    Number of time samples before FFT: %zu\n", c_nSamples_time_dom);
+		printf("    Number of time samples after FFT:  %zu\n", c_nSamples_freq_dom);
+		printf("    Number of time samples in output:  %zu\n", c_nSamples_freq_dom);
+		printf("    Number of DM trials:               %zu\n", c_nDMs);
 		printf("Filter parameters:\n");
-		printf("    Filter's halfwidth %d;\n", filter_halfwidth);
-		printf("    z max:             %f;\n", z_max_search_limit);
-		printf("    z step size:       %f;\n", z_search_step);
-		printf("    w max:             %f;\n", w_max_search_limit);
-		printf("    w step size:       %f;\n", w_search_step);
+		printf("    Filter's halfwidth %d;\n", c_filter_halfwidth);
+		printf("    z max:             %f;\n", c_z_max_search_limit);
+		printf("    z step size:       %f;\n", c_z_search_step);
+		printf("    w max:             %f;\n", c_w_max_search_limit);
+		printf("    w step size:       %f;\n", c_w_search_step);
 		printf("\n");
 		printf("Interbinning: ");
-		if(interbinned_samples==2) printf("Yes.\n"); else printf("No.\n");
+		if(c_interbinned_samples==2) printf("Yes.\n"); else printf("No.\n");
 		printf("High precision filters: ");
-		if(high_precision==1) printf("Yes.\n"); else printf("No.\n");
+		if(c_high_precision==1) printf("Yes.\n"); else printf("No.\n");
 		printf("-------------------------------------------\n");
 		printf("\n");
 		printf("-------------------------------------------\n");
-		printf("Convolution size: %d\n", conv_size);
-		printf("Half filters widths z=%d; w=%d\n", nFilters_z_half, nFilters_w_half);
-		printf("Filters widths z=%d; w=%d\n", nFilters_z_half, nFilters_w_half);
-		printf("Number of filters: %d\n", nFilters_total);
-		printf("Halfwidth of the widest filter: %d\n", filter_halfwidth);
-		printf("Useful part of the segment: %d\n", useful_part_size);
-		printf("nSegments: %d\n", nSegments);
-		printf("Number of z-planes: %d; Number of z-planes per chunk: %d;\n", nZPlanes, nZPlanes_per_chunk);
+		printf("Convolution size: %d\n", c_conv_size);
+		printf("Half filters widths z=%d; w=%d\n", c_nFilters_z_half, c_nFilters_w_half);
+		printf("Filters widths z=%d; w=%d\n", c_nFilters_z_half, c_nFilters_w_half);
+		printf("Number of filters: %d\n", c_nFilters_total);
+		printf("Halfwidth of the widest filter: %d\n", c_filter_halfwidth);
+		printf("Useful part of the segment: %d\n", c_useful_part_size);
+		printf("nSegments: %d\n", c_nSegments);
+		printf("Number of z-planes: %d; Number of z-planes per chunk: %d;\n", c_nZPlanes, c_nZPlanes_per_chunk);
 		printf("ZW chunks:\n");
-		for(int f=0; f<(int) ZW_chunks.size(); f++){
-			printf("    %d\n", ZW_chunks[f]);
+		for(int f=0; f<(int) c_ZW_chunks.size(); f++){
+			printf("    %d\n", c_ZW_chunks[f]);
 		}
-		printf("Number of chunks: %d; Remainder: %d;\n", nZPlanes_chunks, nZPlanes_remainder);
+		printf("Number of chunks: %d; Remainder: %d;\n", c_nZPlanes_chunks, c_nZPlanes_remainder);
 		printf("-------------------------------------------\n");
 	}
 };

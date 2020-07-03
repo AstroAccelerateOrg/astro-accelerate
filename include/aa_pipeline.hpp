@@ -33,6 +33,7 @@ namespace astroaccelerate {
 		analysis,
 		periodicity,
 		fdas,
+		jerk
     };
     
     /** \enum component_option
@@ -46,6 +47,7 @@ namespace astroaccelerate {
 		copy_ddtr_data_to_host, //< DDTR - switch to copy ddtr data to host
 		output_dmt,             //< DDTR - Switches on output of ddtr to disk.
 		msd_baseline_noise,     //< MSD
+		dered,                  //< PSR--FDAS--JERK deredning of the DM-trial
 		candidate_algorithm,    //< CND - Enables/disables the candidate_algorithm
 		candidate_filtering,    //< CND - Enables advanced filtering of the SPS results
 		output_ffdot_plan,      //< FDAS - Switches on output of ffdot_plan to disk.
@@ -70,6 +72,9 @@ namespace astroaccelerate {
 				break;
 			case aa_pipeline::component::fdas:
 				return "Fourier domain acceleration search";
+				break;
+			case aa_pipeline::component::jerk:
+				return "Fourier domain acceleration search extension to JERK search";
 				break;
 			case aa_pipeline::component::periodicity:
 				return "Periodicity search";
@@ -103,6 +108,9 @@ namespace astroaccelerate {
 				break;
 			case aa_pipeline::component_option::msd_baseline_noise:
 				return "MSD will perform outlier rejection";
+				break;
+			case aa_pipeline::component_option::dered:
+				return "Deredning of the DM-trial for periodicity/FDAS/JERK search";
 				break;
 			case aa_pipeline::component_option::candidate_algorithm:
 				return "Candidate algorithm is threshold only";
