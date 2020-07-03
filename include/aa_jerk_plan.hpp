@@ -12,8 +12,12 @@ namespace astroaccelerate {
  * \author AstroAccelerate.
  * \date 2020-06-15
  */
-class jerk_plan {
+class aa_jerk_plan {
 private:
+	bool MSD_outlier_rejection;
+	int interbinned_samples;
+	int high_precision;
+	int CS_algorithm;
 
 public:
 	// input parameters
@@ -21,31 +25,19 @@ public:
 	size_t nDMs;
 	
 	// filter parameters
-	int filter_length;
-	int filter_halfwidth;
-	
-	// filter parameters
 	float z_max_search_limit;
 	float z_search_step;
 	float w_max_search_limit;
 	float w_search_step;
-	int interbinned_samples;
-	int high_precision;
-	
+
 	// Candidate selection
-	bool MSD_outlier_rejection;
 	float OR_sigma_cuttoff;
 	float CS_sigma_threshold;
-	int CS_algorithm;
 	
 	aa_jerk_plan(){
 		// input parameters
 		nTimesamples = 0;
 		nDMs = 0;
-	
-		// filter parameters
-		filter_length = 0;
-		filter_halfwidth = 0;
 	
 		// filter parameters
 		z_max_search_limit = 0;
@@ -94,6 +86,22 @@ public:
 		MSD_outlier_rejection = false;
 	}
 	
+	void enable_high_precision_filters(){
+		high_precision = 1;
+	}
+	
+	void disable_high_precision_filters(){
+		high_precision = 0;
+	}
+	
+	void enable_interbinning(){
+		interbinned_samples = 2;
+	}
+	
+	void disable_interbinning(){
+		interbinned_samples = 1;
+	}
+	
 	void set_outlier_rejection_sigma_cutoff(float sigma) {
 		OR_sigma_cuttoff = sigma;
 	}
@@ -108,8 +116,6 @@ public:
 		printf("    Number of DM trials:    %zu\n", nDMs);
 		
 		printf("Filter parameters:\n");
-		printf("    Filter's length    %d;\n", filter_length);
-		printf("    Filter's halfwidth %d;\n", filter_halfwidth);
 		printf("    z max:             %f;\n", z_max_search_limit);
 		printf("    z step size:       %f;\n", z_search_step);
 		printf("    w max:             %f;\n", w_max_search_limit);

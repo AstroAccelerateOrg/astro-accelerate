@@ -47,7 +47,6 @@ private:
 	int nFilters_w;
 	int nFilters_total;
 	
-	int filter_length;
 	int filter_halfwidth;
 	int useful_part_size;
 	
@@ -115,7 +114,6 @@ public:
 		// Strategy
 		conv_size = 2048;
 		
-		filter_length    = plan.filter_length*interbinned_samples;
 		filter_halfwidth = plan.filter_halfwidth*interbinned_samples;
 		useful_part_size = conv_size - 2*filter_halfwidth + 1;
 		
@@ -151,7 +149,6 @@ public:
 		printf("    Number of time samples in output:  %zu\n", nSamples_freq_dom);
 		printf("    Number of DM trials:               %zu\n", nDMs);
 		printf("Filter parameters:\n");
-		printf("    Filter's length    %d;\n", filter_length);
 		printf("    Filter's halfwidth %d;\n", filter_halfwidth);
 		printf("    z max:             %f;\n", z_max_search_limit);
 		printf("    z step size:       %f;\n", z_search_step);

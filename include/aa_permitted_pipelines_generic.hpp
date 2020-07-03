@@ -70,6 +70,7 @@ namespace astroaccelerate {
 		aa_analysis_strategy                 m_analysis_strategy;
 		aa_periodicity_strategy              m_periodicity_strategy;
 		aa_fdas_strategy                     m_fdas_strategy;
+		aa_jerk_strategy                     m_jerk_strategy;
 		unsigned short     const*const m_input_buffer;
 		int                num_tchunks; 
 		std::vector<float> dm_shifts; 
@@ -118,6 +119,7 @@ namespace astroaccelerate {
 		bool do_single_pulse_detection;
 		bool do_periodicity_search;
 		bool do_fdas;
+		bool do_jerk;
 		
 		bool do_copy_DDTR_data_to_host;
 		
@@ -470,6 +472,7 @@ namespace astroaccelerate {
 			const aa_pipeline::component cmp_analysis     = aa_pipeline::component::analysis;
 			const aa_pipeline::component cmp_periodicity  = aa_pipeline::component::periodicity;
 			const aa_pipeline::component cmp_fdas         = aa_pipeline::component::fdas;
+			const aa_pipeline::component cmp_jerk         = aa_pipeline::component::jerk;
 			
 			//----> Component options
 			const aa_pipeline::component_option opt_copy_ddtr_data_to_host = aa_pipeline::component_option::copy_ddtr_data_to_host;
@@ -481,11 +484,15 @@ namespace astroaccelerate {
 			else do_periodicity_search = false;
 			if(m_pipeline_components.find(cmp_fdas) != m_pipeline_components.end()) do_fdas = true;
 			else do_fdas = false;
+			if(m_pipeline_components.find(cmp_jerk) != m_pipeline_components.end()) do_jerk = true;
+			else do_jerk = false;
+			
 			
 			do_copy_DDTR_data_to_host = false;
 			if(m_pipeline_options.find(opt_copy_ddtr_data_to_host) != m_pipeline_options.end()) do_copy_DDTR_data_to_host = true;
 			if(do_periodicity_search) do_copy_DDTR_data_to_host = true;
 			if(do_fdas) do_copy_DDTR_data_to_host = true;
+			if(do_jerk) do_copy_DDTR_data_to_host = true;
 		}
 
 		/**
@@ -554,6 +561,15 @@ namespace astroaccelerate {
 					bool acceleration_return_value = acceleration();
 					status_code = aa_pipeline_runner::status::finished;
 					return acceleration_return_value;
+				}
+				//--------------------------------------------------------------------------------<
+				
+				
+				//------------------> JERK search
+				if (!jerk_did_run && do_jerk) {
+					bool jerk_return_value = jerk_search();
+					status_code = aa_pipeline_runner::status::finished;
+					return jerk_return_value;
 				}
 				//--------------------------------------------------------------------------------<
 
@@ -905,6 +921,24 @@ namespace astroaccelerate {
 			*/
 
 			return true;
+		}
+		
+		bool jerk_search() {
+			float z_max_search_limit = 50.0;
+			float z_search_step = 2.0;
+			float w_max_search_limit = 200.0;
+			float w_search_step = 20.0;
+			
+			//---------> Jerk plan
+			aa_jerk_plan jerk_plan(inc, 1, z_max_search_limit, z_search_step, w_max_search_limit, w_search_step, do_interbinning, do_high_precision);
+			if(enable_sps_baselinenoise==1) jerk_plan.enable_MSD_outlier_rejection();
+			else jerk_plan.disable_MSD_outlier_rejection();
+			jerk_plan.set_outlier_rejection_sigma_cutoff(OR_sigma_cutoff);
+			jerk_plan.set_candidate_selection_sigma_threshold(jerk_sigma_cutoff);
+			jerk_plan.interbinned_samples = 1;
+			
+			
+			jerk_search(output_buffer, jerk_plan, dm_low, dm_step, ndms, tsamp_original, inBin, range);
 		}
 
 	public:
