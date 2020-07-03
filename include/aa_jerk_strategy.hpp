@@ -157,6 +157,52 @@ public:
       return ready();
     }
 	
+	size_t nSamples_time_dom() return(c_nSamples_time_dom);
+	size_t nSamples_freq_dom() return(c_nSamples_freq_dom);
+	size_t nSamples_output_plane() return(c_nSamples_output_plane);
+	size_t nDMs() return(c_nDMs);
+	
+	float z_max_search_limit() return(c_z_max_search_limit);
+	float z_search_step() return(c_z_search_step);
+	float w_max_search_limit() return(c_w_max_search_limit);
+	float w_search_step() return(c_w_search_step);
+	int   interbinned_samples() return(c_interbinned_samples);
+	int   high_precision() return(c_high_precision);
+	
+	bool  MSD_outlier_rejection() return(c_MSD_outlier_rejection);
+	float OR_sigma_cuttoff() return(c_OR_sigma_cuttoff);
+	
+	float CS_sigma_threshold() return(c_CS_sigma_threshold);
+	int   CS_algorithm() return(c_CS_algorithm);
+	
+	int conv_size() return(c_conv_size);
+	int nFilters_z_half() return(c_nFilters_z_half);
+	int nFilters_z() return(c_nFilters_z);
+	int nFilters_w_half() return(c_nFilters_w_half);
+	int nFilters_w() return(c_nFilters_w);
+	int nFilters_total() return(c_nFilters_total);
+	
+	int filter_halfwidth() return(c_filter_halfwidth);
+	int useful_part_size() return(c_useful_part_size);
+	
+	int    nSegments() return(c_nSegments);
+	size_t output_size_one_DM() return(c_output_size_one_DM);
+	size_t output_size_z_plane() return(c_output_size_z_plane);
+	size_t output_size_total() return(c_output_size_total);
+	
+	int nZPlanes() return(c_nZPlanes);
+	int nZPlanes_per_chunk() return(c_nZPlanes_per_chunk);
+	int nZPlanes_chunks() return(c_nZPlanes_chunks);
+	int nZPlanes_remainder() return(c_nZPlanes_remainder);
+	std::vector<int> ZW_chunks() return(c_ZW_chunks);
+	size_t free_memory() return(c_free_memory);
+	size_t required_memory() return(c_required_memory);
+	size_t total_memory() return(c_total_memory);
+	size_t reserved_memory_for_candidate_selection() return(c_reserved_memory_for_candidate_selection);
+	
+	size_t c_filter_padded_size() return(c_filter_padded_size);
+	size_t c_filter_padded_size_bytes() return(c_filter_padded_size_bytes);
+	
 	void PrintStrategy(){
 		printf("-------------------------------------------\n");
 		printf("Input parameters:\n");

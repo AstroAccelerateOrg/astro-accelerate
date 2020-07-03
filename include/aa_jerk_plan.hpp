@@ -82,6 +82,14 @@ public:
 		else c_high_precision = 0;
 	}
 	
+	void change_nTimesamples(size_t nTimesamples){
+		c_nTimesamples = nTimesamples;
+	}
+	
+	void change_nDMs(size_t nDMs){
+		c_nDMs = nDMs;
+	}
+	
 	void enable_MSD_outlier_rejection(){
 		c_MSD_outlier_rejection = true;
 	}

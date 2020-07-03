@@ -924,17 +924,14 @@ namespace astroaccelerate {
 		}
 		
 		bool jerk_search() {
-			float z_max_search_limit = 50.0;
-			float z_search_step = 2.0;
-			float w_max_search_limit = 200.0;
-			float w_search_step = 20.0;
-			
 			//---------> Jerk plan
-			aa_jerk_plan jerk_plan(inc, 1, z_max_search_limit, z_search_step, w_max_search_limit, w_search_step, do_interbinning, do_high_precision);
-			if(enable_sps_baselinenoise==1) jerk_plan.enable_MSD_outlier_rejection();
+			bool do_interbinning = (m_jerk_strategy.interbinned_samples()==2?true:false0);
+			bool do_high_precision = (m_jerk_strategy.high_precision()==1?true:false);
+			aa_jerk_plan jerk_plan(inc, 1, m_jerk_strategy.z_max_search_limit(), m_jerk_strategy.z_search_step(), m_jerk_strategy.w_max_search_limit(), m_jerk_strategy.w_search_step(), do_interbinning, do_high_precision);
+			if(m_jerk_strategy.MSD_outlier_rejection()) jerk_plan.enable_MSD_outlier_rejection();
 			else jerk_plan.disable_MSD_outlier_rejection();
-			jerk_plan.set_outlier_rejection_sigma_cutoff(OR_sigma_cutoff);
-			jerk_plan.set_candidate_selection_sigma_threshold(jerk_sigma_cutoff);
+			jerk_plan.set_outlier_rejection_sigma_cutoff(m_jerk_strategy.OR_sigma_cuttoff());
+			jerk_plan.set_candidate_selection_sigma_threshold(m_jerk_strategy.CS_sigma_threshold());
 			jerk_plan.interbinned_samples = 1;
 			
 			

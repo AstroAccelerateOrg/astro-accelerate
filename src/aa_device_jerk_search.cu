@@ -26,7 +26,7 @@
 
 
 
-int jerk_search(float ***dedispersed_data, JERK_Plan user_plan, float *dm_low, float *dm_step, int *list_of_ndms, float sampling_time, int *inBin, int nRanges){
+int jerk_search(float ***dedispersed_data, aa_jerk_plan user_plan, float *dm_low, float *dm_step, int *list_of_ndms, float sampling_time, int *inBin, int nRanges){
 	// What do I need from the user?
 	// z_max_search_limit, z_search_step
 	// w_max_search_limit, w_search_step
@@ -200,6 +200,17 @@ int jerk_search(float ***dedispersed_data, JERK_Plan user_plan, float *dm_low, f
 	GpuTimer timer_total, timer_DM, timer;
 	double time_total=0, time_DM=0, time=0;
 	timer_total.Start();
+	
+	//---------> Jerk plan
+	JERK_Plan user_plan(
+		size_t t_nTimesamples, 
+		size_t t_nDMs,
+		float t_z_max_search_limit, 
+		float t_z_search_step, 
+		float t_w_max_search_limit, 
+		float t_w_search_step, 
+		bool t_do_interbinning,
+		bool t_do_high_precision);
 	
 	//---------> Jerk strategy
 	int filter_halfwidth = presto_w_resp_halfwidth(user_plan.z_max_search_limit, user_plan.w_max_search_limit, user_plan.high_precision);
