@@ -924,7 +924,7 @@ namespace astroaccelerate {
 		}
 		
 		bool jerk_search() {
-			//---------> Jerk plan
+			//---------> Create basic plan based on strategy
 			bool do_interbinning = (m_jerk_strategy.interbinned_samples()==2?true:false0);
 			bool do_high_precision = (m_jerk_strategy.high_precision()==1?true:false);
 			aa_jerk_plan jerk_plan(inc, 1, m_jerk_strategy.z_max_search_limit(), m_jerk_strategy.z_search_step(), m_jerk_strategy.w_max_search_limit(), m_jerk_strategy.w_search_step(), do_interbinning, do_high_precision);
@@ -932,7 +932,7 @@ namespace astroaccelerate {
 			else jerk_plan.disable_MSD_outlier_rejection();
 			jerk_plan.set_outlier_rejection_sigma_cutoff(m_jerk_strategy.OR_sigma_cuttoff());
 			jerk_plan.set_candidate_selection_sigma_threshold(m_jerk_strategy.CS_sigma_threshold());
-			jerk_plan.interbinned_samples = 1;
+			
 			
 			
 			jerk_search(output_buffer, jerk_plan, dm_low, dm_step, ndms, tsamp_original, inBin, range);

@@ -75,12 +75,13 @@ private:
 	
 	bool c_ready;
 	
-	void calculate_memory_split(size_t available_free_memory){
+	bool calculate_memory_split(size_t available_free_memory){
 		//---------> Memory testing and splitting
 		c_nZPlanes = c_nFilters_w;
 		size_t z_plane_size_bytes = c_output_size_z_plane*sizeof(float);
 		available_free_memory = available_free_memory - c_reserved_memory_for_candidate_selection - filter_padded_size_bytes;
 		c_nZPlanes_per_chunk = (int) (available_free_memory/z_plane_size_bytes);
+		if(c_nZPlanes_per_chunk == 0) return(false);
 		c_nZPlanes_chunks = (int) (nZPlanes/c_nZPlanes_per_chunk);
 		c_nZPlanes_remainder = nZPlanes - c_nZPlanes_chunks*c_nZPlanes_per_chunk;
 		
@@ -93,11 +94,12 @@ private:
 		
 		c_required_memory = (c_nZPlanes_chunks + c_nZPlanes_remainder)*c_z_plane_size_bytes + c_reserved_memory_for_candidate_selection;
 		c_free_memory = available_free_memory - c_required_memory;
-		c_total_memory = available_free_memory;
+		return(true);
 	}
 	
 public:
 	aa_jerk_strategy(aa_jerk_plan plan, size_t available_free_memory){
+		c_total_memory = available_free_memory;
 		c_nSamples_time_dom   = plan.nTimesamples();
 		c_nSamples_freq_dom   = (plan.nTimesamples()>>1) + 1; //because R2C FFT
 		c_nDMs                = plan.nDMs();
@@ -142,7 +144,7 @@ public:
 		c_filter_padded_size       = c_nFilters_total*c_conv_size;
 		c_filter_padded_size_bytes = c_nFilters_total*c_conv_size*sizeof(float2); //*8 for complex float
 		
-		calculate_memory_split(available_free_memory);
+		c_ready = calculate_memory_split(available_free_memory);
 	}
 	
 	~aa_jerk_strategy(){

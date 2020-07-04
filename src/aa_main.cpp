@@ -169,15 +169,17 @@ int main(int argc, char *argv[]) {
 	}
 	
 	if (pipeline.find(aa_pipeline::component::jerk) != pipeline.end()) {
+		bool high_precision_filters = false;
+		bool interbinning = false;
 		aa_jerk_plan jerk_plan(
-			0,
-			0, 
+			pipeline_manager.ddtr_strategy().nProcessedTimesamples(),
+			pipeline_manager.ddtr_strategy().max_ndms(), 
 			user_flags.z_max,
 			user_flags.z_step,
 			user_flags.w_max,
 			user_flags.w_step,
-			false,
-			false);
+			interbinning,
+			high_precision_filters);
 		if(msd_baseline_noise) enable_MSD_outlier_rejection();
 		else disable_MSD_outlier_rejection();
 		pipeline_manager.bind(jerk_plan);
