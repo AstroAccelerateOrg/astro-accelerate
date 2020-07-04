@@ -924,18 +924,8 @@ namespace astroaccelerate {
 		}
 		
 		bool jerk_search() {
-			//---------> Create basic plan based on strategy
-			bool do_interbinning = (m_jerk_strategy.interbinned_samples()==2?true:false0);
-			bool do_high_precision = (m_jerk_strategy.high_precision()==1?true:false);
-			aa_jerk_plan jerk_plan(inc, 1, m_jerk_strategy.z_max_search_limit(), m_jerk_strategy.z_search_step(), m_jerk_strategy.w_max_search_limit(), m_jerk_strategy.w_search_step(), do_interbinning, do_high_precision);
-			if(m_jerk_strategy.MSD_outlier_rejection()) jerk_plan.enable_MSD_outlier_rejection();
-			else jerk_plan.disable_MSD_outlier_rejection();
-			jerk_plan.set_outlier_rejection_sigma_cutoff(m_jerk_strategy.OR_sigma_cuttoff());
-			jerk_plan.set_candidate_selection_sigma_threshold(m_jerk_strategy.CS_sigma_threshold());
-			
-			
-			
-			jerk_search(output_buffer, jerk_plan, dm_low, dm_step, ndms, tsamp_original, inBin, range);
+			const int *ndms = m_ddtr_strategy.ndms_data();
+			jerk_search_from_ddtr_plan(output_buffer, m_jerk_strategy, dm_low.data(), dm_step.data(), ndms, tsamp_original, inBin.data(), nRanges);
 		}
 
 	public:
@@ -946,6 +936,7 @@ namespace astroaccelerate {
 		const aa_analysis_strategy &analysis_strategy,
 		const aa_periodicity_strategy &periodicity_strategy,
 		const aa_fdas_strategy &fdas_strategy,
+		const aa_jerk_strategy &jerk_strategy,
 		const bool &fdas_enable_custom_fft,
 		const bool &fdas_enable_inbin,
 		const bool &fdas_enable_norm,
@@ -959,6 +950,7 @@ namespace astroaccelerate {
 		m_analysis_strategy(analysis_strategy),
 		m_periodicity_strategy(periodicity_strategy),
 		m_fdas_strategy(fdas_strategy),
+		m_jerk_strategy(jerk_strategy),
 		m_input_buffer(input_buffer),
 		m_fdas_enable_custom_fft(fdas_enable_custom_fft),
 		m_fdas_enable_inbin(fdas_enable_inbin),

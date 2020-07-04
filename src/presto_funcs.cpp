@@ -533,14 +533,14 @@ void presto_place_complex_kernel(cufftComplex * kernel, int numkernel, cufftComp
 	}
   
 	void jerk_create_acc_filters(float2 *jerk_filters, JERK_Strategy *jerk_strategy){
-		int nFilters_z_half  = jerk_strategy->nFilters_z_half;
-		int nFilters_z       = jerk_strategy->nFilters_z; // number of filters must account also for negative accelerations; -1 because z=0;
-		int nFilters_w_half  = jerk_strategy->nFilters_w_half;
-		int nFilters_w       = jerk_strategy->nFilters_w;
-		int convolution_size = jerk_strategy->conv_size;
-		int interbinned_samples = jerk_strategy->interbinned_samples;
-		float z_step = jerk_strategy->z_search_step;
-		float w_step = jerk_strategy->w_search_step;
+		int nFilters_z_half  = jerk_strategy->nFilters_z_half();
+		int nFilters_z       = jerk_strategy->nFilters_z(); // number of filters must account also for negative accelerations; -1 because z=0;
+		int nFilters_w_half  = jerk_strategy->nFilters_w_half();
+		int nFilters_w       = jerk_strategy->nFilters_w();
+		int convolution_size = jerk_strategy->conv_size();
+		int interbinned_samples = jerk_strategy->interbinned_samples();
+		float z_step = jerk_strategy->z_search_step();
+		float w_step = jerk_strategy->w_search_step();
 		//printf("filter generation: nFilters_z_half=%d; nFilters_z=%d; nFilters_w_half=%d; nFilters_w=%d; Total=%d; \n", nFilters_z_half, nFilters_z, nFilters_w_half, nFilters_w, nFilters_z*nFilters_w);
 		
 		
@@ -554,7 +554,7 @@ void presto_place_complex_kernel(cufftComplex * kernel, int numkernel, cufftComp
 			for(int zs=-nFilters_z_half; zs<=nFilters_z_half; zs++){
 				double z = ((float) zs)*z_step;
 				double w = ((float) ws)*w_step;			
-				int halfwidth = presto_w_resp_halfwidth(z, w, jerk_strategy->high_precision);
+				int halfwidth = presto_w_resp_halfwidth(z, w, jerk_strategy->high_precision());
 				int filter_size = 2*halfwidth*interbinned_samples;
 				int pos = (ws + nFilters_w_half)*nFilters_z*convolution_size + (zs + nFilters_z_half)*convolution_size;
 				

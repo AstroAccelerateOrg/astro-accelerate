@@ -24,23 +24,19 @@
 // Convolution
 #include "aa_device_convolution.hpp"
 
+aa_jerk_plan create_plan_from_strategy(aa_jerk_strategy &strategy, size_t nTimesamples, size_t nDMs) {
+	bool do_interbinning = (strategy.interbinned_samples()==2?true:false0);
+	bool do_high_precision = (strategy.high_precision()==1?true:false);
+	aa_jerk_plan jerk_plan(nTimesamples, mDMs, strategy.z_max_search_limit(), strategy.z_search_step(), strategy.w_max_search_limit(), strategy.w_search_step(), do_interbinning, do_high_precision);
+	if(strategy.MSD_outlier_rejection()) jerk_plan.enable_MSD_outlier_rejection();
+	else jerk_plan.disable_MSD_outlier_rejection();
+	jerk_plan.set_outlier_rejection_sigma_cutoff(strategy.OR_sigma_cuttoff());
+	jerk_plan.set_candidate_selection_sigma_threshold(strategy.CS_sigma_threshold());
+}
 
 
-int jerk_search(float ***dedispersed_data, aa_jerk_plan user_plan, float *dm_low, float *dm_step, int *list_of_ndms, float sampling_time, int *inBin, int nRanges){
-	// What do I need from the user?
-	// z_max_search_limit, z_search_step
-	// w_max_search_limit, w_search_step
-	// high precision on not
-	// DM-trial
-	// output
-	
+int jerk_search_from_ddtr_plan(float ***dedispersed_data, aa_jerk_strategy jerk_strategy, float *dm_low, float *dm_step, int *list_of_ndms, float sampling_time, int *inBin, int nRanges){
 
-	//---------> Testing filter width
-	//printf(" FDAS search width: %d\n", presto_z_resp_halfwidth((double) ZMAX, 0));
-	//printf(" Jerk search width low precision: z=100 w=0 %d; z=100 w=250 %d; z=100 w=500 %d; z=300 w=800 %d\n",  presto_w_resp_halfwidth((double) ZMAX, 0, 0), presto_w_resp_halfwidth((double) ZMAX, 250, 0), presto_w_resp_halfwidth((double) ZMAX, 500, 0), presto_w_resp_halfwidth(300, 800, 0));
-	//printf(" Jerk search width high precision: z=100 w=0 size=%d; z=100 w=250 %d; z=100 w=500 size=%d; z=100 w=800 size=%d\n",  presto_w_resp_halfwidth((double) ZMAX, 0, 1), presto_w_resp_halfwidth((double) ZMAX, 250, 1), presto_w_resp_halfwidth((double) ZMAX, 500, 1), presto_w_resp_halfwidth(100, 800, 1));
-	//printf(" Jerk search width high precision: z=300 w=0 size=%d; z=300 w=500 %d; z=300 w=1000 size=%d; z=300 w=1500 size=%d\n",  presto_w_resp_halfwidth(300, 0, 1), presto_w_resp_halfwidth(300, 500, 1), presto_w_resp_halfwidth(300, 1000, 1), presto_w_resp_halfwidth(300, 1500, 1));
-	//-----------------------------------------------------------<
 	
 	//----------> Convolution test
 	int JERK_SEARCH_CONVOLUTION_TEST = 0;
@@ -194,38 +190,18 @@ int jerk_search(float ***dedispersed_data, aa_jerk_plan user_plan, float *dm_low
 	
 	
 	
-	
-	
-	
+	//---------> Time measurements
 	GpuTimer timer_total, timer_DM, timer;
 	double time_total=0, time_DM=0, time=0;
 	timer_total.Start();
 	
-	//---------> Jerk plan
-	JERK_Plan user_plan(
-		size_t t_nTimesamples, 
-		size_t t_nDMs,
-		float t_z_max_search_limit, 
-		float t_z_search_step, 
-		float t_w_max_search_limit, 
-		float t_w_search_step, 
-		bool t_do_interbinning,
-		bool t_do_high_precision);
-	
-	//---------> Jerk strategy
-	int filter_halfwidth = presto_w_resp_halfwidth(user_plan.z_max_search_limit, user_plan.w_max_search_limit, user_plan.high_precision);
-	user_plan.filter_halfwidth = filter_halfwidth;
-	
-	size_t free_memory, total_memory;
-	cudaMemGetInfo(&free_memory, &total_memory);
-	JERK_Strategy jerk_strategy(user_plan, free_memory);
 	jerk_strategy.PrintStrategy();
 	
 	//---------> Generating filters
 	float2 *h_jerk_filters;	
 	float2 *d_jerk_filters;
-	h_jerk_filters = new float2[jerk_strategy.filter_padded_size];
-	if ( cudaSuccess != cudaMalloc((void **) &d_jerk_filters,  sizeof(float2)*jerk_strategy.filter_padded_size)) {
+	h_jerk_filters = new float2[jerk_strategy.filter_padded_size()];
+	if ( cudaSuccess != cudaMalloc((void **) &d_jerk_filters,  sizeof(float2)*jerk_strategy.filter_padded_size() )) {
 		printf("Cannot allocate GPU memory for JERK filters!\n");
 		return(1);
 	}

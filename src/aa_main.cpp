@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	//Why this is here we have already configured the pipeline? Not used later delete?
-	aa_config configuration(pipeline);   // Set the pipeline and other run settings that would come from an input_file
+	//aa_config configuration(pipeline);   // Set the pipeline and other run settings that would come from an input_file
 
 	// Move this to pipeline
 	if (user_flags.rfi == 1) {

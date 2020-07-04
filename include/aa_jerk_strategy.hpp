@@ -144,7 +144,22 @@ public:
 		c_filter_padded_size       = c_nFilters_total*c_conv_size;
 		c_filter_padded_size_bytes = c_nFilters_total*c_conv_size*sizeof(float2); //*8 for complex float
 		
-		c_ready = calculate_memory_split(available_free_memory);
+		c_ready = calculate_memory_split(c_total_memory);
+	}
+	
+	bool recalculate(size_t nTimesamples, size_t nDMs){
+		c_ready = false;
+		c_nSamples_time_dom   = nTimesamples;
+		c_nSamples_freq_dom   = (nTimesamples>>1) + 1; //because R2C FFT
+		c_nDMs                = nDMs;
+		
+		c_nSegments           = (c_nSamples_freq_dom + c_useful_part_size - 1)/c_useful_part_size;c_output_size_one_DM  = c_nSegments*c_useful_part_size;
+		c_output_size_z_plane = c_nFilters_z*c_output_size_one_DM;
+		c_output_size_total   = c_nFilters_total*c_output_size_one_DM;
+		c_reserved_memory_for_candidate_selection = 2*c_output_size_z_plane*sizeof(float);
+		
+		c_ready = calculate_memory_split(c_total_memory);
+		return(c_ready);
 	}
 	
 	~aa_jerk_strategy(){
