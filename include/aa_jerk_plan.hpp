@@ -15,8 +15,8 @@ namespace astroaccelerate {
 class aa_jerk_plan {
 private:
 	// input parameters
-	size_t c_nTimesamples;
-	size_t c_nDMs;
+	unsigned long int c_nTimesamples;
+	unsigned long int c_nDMs;
 	
 	// filter parameters
 	float c_z_max_search_limit;
@@ -29,10 +29,16 @@ private:
 	// Candidate selection
 	float c_CS_sigma_threshold;
 	int   c_CS_algorithm;
+	int   c_nHarmonics;
 	
 	// MSD
 	bool  c_MSD_outlier_rejection;
 	float c_OR_sigma_cuttoff;
+	
+	// other flags
+	bool c_always_choose_next_power_of_2;
+	bool c_spectrum_whitening;
+	
 
 public:
 	
@@ -56,37 +62,56 @@ public:
 		// Candidate selection
 		c_CS_sigma_threshold = 0;
 		c_CS_algorithm = 0;
+		c_nHarmonics = 8;
+		
+		// other flags
+		c_always_choose_next_power_of_2 = false;
+		c_spectrum_whitening = false;
 	}
 	
 	aa_jerk_plan(
-			size_t t_nTimesamples, 
-			size_t t_nDMs,
-			float t_z_max_search_limit, 
-			float t_z_search_step, 
-			float t_w_max_search_limit, 
-			float t_w_search_step, 
-			bool t_do_interbinning,
-			bool t_do_high_precision){
-		c_nTimesamples = t_nTimesamples;
-		c_nDMs         = t_nDMs;
+			unsigned long int nTimesamples, 
+			unsigned long int nDMs,
+			float z_max_search_limit, 
+			float z_search_step, 
+			float w_max_search_limit, 
+			float w_search_step, 
+			bool do_interbinning,
+			bool do_high_precision,
+			float candidate_selection_sigma_threshold,
+			int nHarmonics,
+			bool do_outlier_rejection,
+			float outlier_rejection_sigma_cutoff,
+			bool always_choose_next_power_of_2,
+			bool spectrum_whitening){
+		c_nTimesamples = nTimesamples;
+		c_nDMs         = nDMs;
 		
-		c_z_max_search_limit = t_z_max_search_limit;
-		c_w_max_search_limit = t_w_max_search_limit;
-		c_z_search_step      = t_z_search_step;
-		c_w_search_step      = t_w_search_step;
-		
-		if(t_do_interbinning) c_interbinned_samples = 2; 
+		c_z_max_search_limit = z_max_search_limit;
+		c_w_max_search_limit = w_max_search_limit;
+		c_z_search_step      = z_search_step;
+		c_w_search_step      = w_search_step;
+		if(do_interbinning) c_interbinned_samples = 2; 
 		else c_interbinned_samples = 1;
-		
-		if(t_do_high_precision) c_high_precision = 1;
+		if(do_high_precision) c_high_precision = 1;
 		else c_high_precision = 0;
+		
+		c_CS_sigma_threshold = candidate_selection_sigma_threshold;
+		c_CS_algorithm = 0;
+		c_nHarmonics = nHarmonics;
+		
+		c_MSD_outlier_rejection = do_outlier_rejection;
+		c_OR_sigma_cuttoff = outlier_rejection_sigma_cutoff;
+		
+		c_always_choose_next_power_of_2 = always_choose_next_power_of_2;
+		c_spectrum_whitening = spectrum_whitening;
 	}
 	
-	void change_nTimesamples(size_t nTimesamples){
+	void change_nTimesamples(unsigned long int nTimesamples){
 		c_nTimesamples = nTimesamples;
 	}
 	
-	void change_nDMs(size_t nDMs){
+	void change_nDMs(unsigned long int nDMs){
 		c_nDMs = nDMs;
 	}
 	
@@ -122,8 +147,8 @@ public:
 		c_CS_sigma_threshold = sigma;
 	}
 	
-	size_t nTimesamples() return(c_nTimesamples);
-	size_t nDMs() return(c_nDMs);
+	unsigned long int nTimesamples() return(c_nTimesamples);
+	unsigned long int nDMs() return(c_nDMs);
 	float z_max_search_limit() return(c_z_max_search_limit);
 	float z_search_step() return(c_z_search_step);
 	float w_max_search_limit() return(c_w_max_search_limit);
@@ -133,9 +158,13 @@ public:
 	
 	float CS_sigma_threshold() return(c_CS_sigma_threshold);
 	int CS_algorithm() return(c_CS_algorithm);
+	int nHarmonics() return(c_nHarmonics);
 	
 	bool MSD_outlier_rejection() return(c_MSD_outlier_rejection);
 	float OR_sigma_cutoff() return(c_OR_sigma_cuttoff);
+	
+	bool always_choose_next_power_of_2() return(c_always_choose_next_power_of_2);
+	bool spectrum_whitening() return(c_spectrum_whitening);
 	
 	void PrintPlan(){
 		printf("Input parameters for FDAS/JERK search:\n");
@@ -152,6 +181,21 @@ public:
 		if(c_interbinned_samples==2) printf("Yes.\n"); else printf("No.\n");
 		printf("High precision filters: ");
 		if(c_high_precision==1) printf("Yes.\n"); else printf("No.\n");
+		
+		printf("    CS sigma thresh:   %f;\n", c_CS_sigma_threshold);
+		printf("    Number harmonics:  %d;\n", c_nHarmonics);
+		printf("    Algoriths:         ");
+		if(c_CS_algorithm==0) printf("threshold\n");
+		else if(c_CS_algorithm==1) printf("peak finding\n");
+		
+		printf("Outlier rejection     : ");
+		if(c_MSD_outlier_rejection==1) printf("Yes.\n"); else printf("No.\n");
+		printf("    Sigma cutoff:      %f;\n", c_OR_sigma_cuttoff);
+		
+		printf("Next power of two:      ");
+		if(c_always_choose_next_power_of_2) printf("Yes.\n"); else printf("No.\n");
+		printf("Spectrum whitening:     ");
+		if(c_spectrum_whitening) printf("Yes.\n"); else printf("No.\n");
 	}
 };
 

@@ -20,9 +20,33 @@
 // MSD
 #include "aa_device_MSD_Configuration.hpp"
 #include "aa_device_MSD.hpp"
+#include "aa_device_MSD_plane_profile.hpp"
 
 // Convolution
 #include "aa_device_convolution.hpp"
+
+class GPU_Memory_for_JERK_Search {
+	private:
+		size_t MSD_interpolated_size_in_bytes;
+		size_t MSD_DIT_size_in_bytes;
+		
+		size_t allocated_DM_trial;
+		size_t allocated_DM_trial_ffted;
+		size_t allocated_MSD_size;
+		size_t allocated_ZW_planes;
+		size_t allocated_ZW_candidates;
+		size_t allocated_MSD_workarea;
+		
+	public:
+		float *d_DM_trial;
+		float2 *d_DM_trial_ffted;
+		float *d_interpolated_MSD;
+		unsigned int *gmem_peak_pos;
+		float *d_ZW_candidates;
+		float *d_ZW_planes;
+		float *d_MSD_workarea;
+};
+		
 
 aa_jerk_plan create_plan_from_strategy(aa_jerk_strategy &strategy, size_t nTimesamples, size_t nDMs) {
 	bool do_interbinning = (strategy.interbinned_samples()==2?true:false0);
@@ -189,7 +213,6 @@ int jerk_search_from_ddtr_plan(float ***dedispersed_data, aa_jerk_strategy jerk_
 	//-----------------------------------------------------------<
 	
 	
-	
 	//---------> Time measurements
 	GpuTimer timer_total, timer_DM, timer;
 	double time_total=0, time_DM=0, time=0;
@@ -207,30 +230,30 @@ int jerk_search_from_ddtr_plan(float ***dedispersed_data, aa_jerk_strategy jerk_
 	}
 	
 	jerk_create_acc_filters(h_jerk_filters, &jerk_strategy);
-	if ( cudaSuccess != cudaMemcpy(d_jerk_filters, h_jerk_filters, jerk_strategy.filter_padded_size_bytes, cudaMemcpyHostToDevice) ) {
+	if ( cudaSuccess != cudaMemcpy(d_jerk_filters, h_jerk_filters, jerk_strategy.filter_padded_size_bytes(), cudaMemcpyHostToDevice) ) {
 		printf("Error occured during host -> device transfer!\n");
 		return(2);
 	}
 	
-	forwardCustomFFT(d_jerk_filters, jerk_strategy.conv_size, jerk_strategy.nFilters_total);
+	forwardCustomFFT(d_jerk_filters, jerk_strategy.conv_size(), jerk_strategy.nFilters_total());
 	//-----------------------------------------------------------<
 	
 	
-	//--------> Device data
+	//---------> Device data
 	float *d_DM_trial = NULL;
-	if ( cudaSuccess != cudaMalloc((void **) &d_DM_trial,  sizeof(float)*user_plan.nTimesamples)) {
+	if ( cudaSuccess != cudaMalloc((void **) &d_DM_trial,  sizeof(float)*jerk_strategy.nSamples_time_dom() )) {
 		printf("Cannot allocate GPU memory for DM trial!\n");
 		return(2);
 	}
 	
 	float2 *d_DM_trial_ffted = NULL;
-	if ( cudaSuccess != cudaMalloc((void **) &d_DM_trial_ffted,  sizeof(float2)*user_plan.nTimesamples)) {
+	if ( cudaSuccess != cudaMalloc((void **) &d_DM_trial_ffted,  sizeof(float2)*jerk_strategy.nSamples_freq_dom() )) {
 		printf("Cannot allocate GPU memory for FFTed DM trial!\n");
 		return(3);
 	}
 	
 	float *d_MSD;
-	if ( cudaSuccess != cudaMalloc((void **) &d_MSD,  MSD_PARTIAL_SIZE*sizeof(float))) {
+	if ( cudaSuccess != cudaMalloc((void **) &d_MSD,  MSD_PARTIAL_SIZE*jerk_strategy.nHarmonics()*sizeof(float))) {
 		printf("Cannot allocate GPU memory for MSD!\n");
 		return(4);
 	}
@@ -244,11 +267,12 @@ int jerk_search_from_ddtr_plan(float ***dedispersed_data, aa_jerk_strategy jerk_
 	float *d_ZW_candidates = NULL;
 	float *d_ZW_planes     = NULL;
 	float *d_MSD_workarea  = NULL;
-	//-------------------------<
+	//-----------------------------------------------------------<
 	
+	size_t default_nTimesamples = jerk_strategy.nTimesamples();
 	double MSD_time = 0, Candidate_time = 0, Convolution_time = 0;
 	for(int active_range=0; active_range<nRanges; active_range++){
-		size_t DM_trial_samples = user_plan.nTimesamples/inBin[active_range];
+		size_t DM_trial_samples = jerk_strategy.nTimesamples/inBin[active_range];
 		size_t nDMs = list_of_ndms[active_range];
 		
 		//---------> Jerk plan

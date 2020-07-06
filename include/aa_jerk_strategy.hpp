@@ -22,10 +22,11 @@ class aa_jerk_strategy : public aa_strategy {
 private:
 	//-----------------> JERK plan
 	// input parameters
-	size_t c_nSamples_time_dom;
-	size_t c_nSamples_freq_dom;
-	size_t c_nSamples_output_plane;
-	size_t c_nDMs;
+	unsigned long int c_nSamples_time_dom;
+	unsigned long int c_nSamples_freq_dom;
+	unsigned long int c_nSamples_output_plane;
+	unsigned long int c_nTimesamples;
+	unsigned long int c_nDMs;
 	
 	// filter parameters
 	float c_z_max_search_limit;
@@ -42,6 +43,11 @@ private:
 	// Candidate selection
 	float c_CS_sigma_threshold;
 	int   c_CS_algorithm;
+	int   c_nHarmonics;
+	
+	// other flags
+	bool c_always_choose_next_power_of_2;
+	bool c_spectrum_whitening;
 	
 	//-----------------> JERK strategy
 	
@@ -56,29 +62,41 @@ private:
 	int c_useful_part_size;
 	
 	int    c_nSegments;
-	size_t c_output_size_one_DM;
-	size_t c_output_size_z_plane;
-	size_t c_output_size_total;
+	unsigned long int c_output_size_one_DM;
+	unsigned long int c_output_size_z_plane;
+	unsigned long int c_output_size_total;
 	
 	int c_nZPlanes;
 	int c_nZPlanes_per_chunk;
 	int c_nZPlanes_chunks;
 	int c_nZPlanes_remainder;
 	std::vector<int> c_ZW_chunks;
-	size_t c_free_memory;
-	size_t c_required_memory;
-	size_t c_total_memory;
-	size_t c_reserved_memory_for_candidate_selection;
+	unsigned long int c_free_memory;
+	unsigned long int c_required_memory;
+	unsigned long int c_total_memory;
+	unsigned long int c_reserved_memory_for_candidate_selection;
 	
-	size_t c_filter_padded_size;
-	size_t c_filter_padded_size_bytes;
+	unsigned long int c_filter_padded_size;
+	unsigned long int c_filter_padded_size_bytes;
 	
 	bool c_ready;
 	
-	bool calculate_memory_split(size_t available_free_memory){
+	unsigned long int next_power_2(unsigned long int x) {
+		x--;
+		x |= x>>1;
+		x |= x>>2;
+		x |= x>>4;
+		x |= x>>8;
+		x |= x>>16;
+		x |= x>>32;
+		x++;
+		return x;
+	}
+	
+	bool calculate_memory_split(unsigned long int available_free_memory){
 		//---------> Memory testing and splitting
 		c_nZPlanes = c_nFilters_w;
-		size_t z_plane_size_bytes = c_output_size_z_plane*sizeof(float);
+		unsigned long int z_plane_size_bytes = c_output_size_z_plane*sizeof(float);
 		available_free_memory = available_free_memory - c_reserved_memory_for_candidate_selection - filter_padded_size_bytes;
 		c_nZPlanes_per_chunk = (int) (available_free_memory/z_plane_size_bytes);
 		if(c_nZPlanes_per_chunk == 0) return(false);
@@ -98,11 +116,16 @@ private:
 	}
 	
 public:
-	aa_jerk_strategy(aa_jerk_plan plan, size_t available_free_memory){
+	aa_jerk_strategy(aa_jerk_plan plan, unsigned long int available_free_memory){
 		c_total_memory = available_free_memory;
-		c_nSamples_time_dom   = plan.nTimesamples();
-		c_nSamples_freq_dom   = (plan.nTimesamples()>>1) + 1; //because R2C FFT
-		c_nDMs                = plan.nDMs();
+		c_always_choose_next_power_of_2 = plan.always_choose_next_power_of_2();
+		c_spectrum_whitening = plan.spectrum_whitening();
+		
+		c_nTimesamples      = plan.nTimesamples();
+		c_nSamples_time_dom = next_power_2(c_nTimesamples);
+		if( (c_nTimesamples/c_nSamples_time_dom)<0.65 && !c_always_choose_next_power_of_2) c_nSamples_time_dom = (c_nSamples_time_dom<<1);
+		c_nSamples_freq_dom = (c_nSamples_time_dom>>1) + 1; //because R2C FFT
+		c_nDMs              = plan.nDMs();
 		
 		// Calculate number of filters
 		// number of filters must also account for negative accelerations and w=z=0;
@@ -123,6 +146,7 @@ public:
 		// MSD
 		c_MSD_outlier_rejection = plan.MSD_outlier_rejection();
 		c_OR_sigma_cuttoff = plan.OR_sigma_cuttoff();
+		c_nHarmonics = plan.nHarmonics();
 	
 		// Candidate selection
 		c_CS_sigma_threshold = plan.CS_sigma_threshold();
@@ -147,11 +171,13 @@ public:
 		c_ready = calculate_memory_split(c_total_memory);
 	}
 	
-	bool recalculate(size_t nTimesamples, size_t nDMs){
+	bool recalculate(unsigned long int nTimesamples, unsigned long int nDMs){
 		c_ready = false;
-		c_nSamples_time_dom   = nTimesamples;
-		c_nSamples_freq_dom   = (nTimesamples>>1) + 1; //because R2C FFT
-		c_nDMs                = nDMs;
+		c_nTimesamples      = plan.nTimesamples();
+		c_nSamples_time_dom = next_power_2(c_nTimesamples);
+		if( (c_nTimesamples/c_nSamples_time_dom)<0.65 && !c_always_choose_next_power_of_2) c_nSamples_time_dom = (c_nSamples_time_dom<<1);
+		c_nSamples_freq_dom = (c_nSamples_time_dom>>1) + 1; //because R2C FFT
+		c_nDMs              = plan.nDMs();
 		
 		c_nSegments           = (c_nSamples_freq_dom + c_useful_part_size - 1)/c_useful_part_size;c_output_size_one_DM  = c_nSegments*c_useful_part_size;
 		c_output_size_z_plane = c_nFilters_z*c_output_size_one_DM;
@@ -174,10 +200,10 @@ public:
       return ready();
     }
 	
-	size_t nSamples_time_dom() return(c_nSamples_time_dom);
-	size_t nSamples_freq_dom() return(c_nSamples_freq_dom);
-	size_t nSamples_output_plane() return(c_nSamples_output_plane);
-	size_t nDMs() return(c_nDMs);
+	unsigned long int nSamples_time_dom() return(c_nSamples_time_dom);
+	unsigned long int nSamples_freq_dom() return(c_nSamples_freq_dom);
+	unsigned long int nSamples_output_plane() return(c_nSamples_output_plane);
+	unsigned long int nDMs() return(c_nDMs);
 	
 	float z_max_search_limit() return(c_z_max_search_limit);
 	float z_search_step() return(c_z_search_step);
@@ -191,6 +217,10 @@ public:
 	
 	float CS_sigma_threshold() return(c_CS_sigma_threshold);
 	int   CS_algorithm() return(c_CS_algorithm);
+	int   nHarmonics() return(c_nHarmonics);
+	
+	bool always_choose_next_power_of_2() return(always_choose_next_power_of_2);
+	bool spectrum_whitening() return(c_spectrum_whitening);
 	
 	int conv_size() return(c_conv_size);
 	int nFilters_z_half() return(c_nFilters_z_half);
@@ -203,22 +233,22 @@ public:
 	int useful_part_size() return(c_useful_part_size);
 	
 	int    nSegments() return(c_nSegments);
-	size_t output_size_one_DM() return(c_output_size_one_DM);
-	size_t output_size_z_plane() return(c_output_size_z_plane);
-	size_t output_size_total() return(c_output_size_total);
+	unsigned long int output_size_one_DM() return(c_output_size_one_DM);
+	unsigned long int output_size_z_plane() return(c_output_size_z_plane);
+	unsigned long int output_size_total() return(c_output_size_total);
 	
 	int nZPlanes() return(c_nZPlanes);
 	int nZPlanes_per_chunk() return(c_nZPlanes_per_chunk);
 	int nZPlanes_chunks() return(c_nZPlanes_chunks);
 	int nZPlanes_remainder() return(c_nZPlanes_remainder);
 	std::vector<int> ZW_chunks() return(c_ZW_chunks);
-	size_t free_memory() return(c_free_memory);
-	size_t required_memory() return(c_required_memory);
-	size_t total_memory() return(c_total_memory);
-	size_t reserved_memory_for_candidate_selection() return(c_reserved_memory_for_candidate_selection);
+	unsigned long int free_memory() return(c_free_memory);
+	unsigned long int required_memory() return(c_required_memory);
+	unsigned long int total_memory() return(c_total_memory);
+	unsigned long int reserved_memory_for_candidate_selection() return(c_reserved_memory_for_candidate_selection);
 	
-	size_t c_filter_padded_size() return(c_filter_padded_size);
-	size_t c_filter_padded_size_bytes() return(c_filter_padded_size_bytes);
+	unsigned long int c_filter_padded_size() return(c_filter_padded_size);
+	unsigned long int c_filter_padded_size_bytes() return(c_filter_padded_size_bytes);
 	
 	void PrintStrategy(){
 		printf("-------------------------------------------\n");
@@ -238,6 +268,22 @@ public:
 		if(c_interbinned_samples==2) printf("Yes.\n"); else printf("No.\n");
 		printf("High precision filters: ");
 		if(c_high_precision==1) printf("Yes.\n"); else printf("No.\n");
+		printf("\n");
+		printf("Candidate selection:\n");
+		printf("    CS sigma thresh:   %f;\n", c_CS_sigma_threshold);
+		printf("    Number harmonics:  %d;\n", c_nHarmonics);
+		printf("    Algoriths:         ");
+		if(c_CS_algorithm==0) printf("threshold\n");
+		else if(c_CS_algorithm==1) printf("peak finding\n");
+		printf("Mean and standard deviation:");
+		printf("Outlier rejection     : ");
+		if(c_MSD_outlier_rejection==1) printf("Yes.\n"); else printf("No.\n");
+		printf("    Sigma cutoff:      %f;\n", c_OR_sigma_cuttoff);
+		printf("Other flags:");
+		printf("Next power of two:      ");
+		if(c_always_choose_next_power_of_2) printf("Yes.\n"); else printf("No.\n");
+		printf("Spectrum whitening:     ");
+		if(c_spectrum_whitening) printf("Yes.\n"); else printf("No.\n");
 		printf("-------------------------------------------\n");
 		printf("\n");
 		printf("-------------------------------------------\n");
