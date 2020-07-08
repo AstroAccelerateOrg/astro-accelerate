@@ -24,7 +24,7 @@ namespace astroaccelerate {
 	void presto_dered_sig(cufftComplex * fft, int numamps);
 	void presto_norm(cufftComplex * fft, int numamps);
 	
-	void jerk_create_acc_filters(float2 *jerk_filters, JERK_Strategy *jerk_strategy);
+	void jerk_create_acc_filters(float2 *jerk_filters, aa_jerk_Strategy *jerk_strategy);
 
 } // namespace astroaccelerate
   

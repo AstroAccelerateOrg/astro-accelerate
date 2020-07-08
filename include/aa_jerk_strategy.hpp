@@ -2,7 +2,7 @@
 #define ASTRO_ACCELERATE_AA_JERK_STRATEGY_HPP
 
 #include "aa_strategy.hpp"
-#include "aa_jerk_plan.h"
+#include "aa_jerk_plan.hpp"
 #include "presto_funcs.hpp"
 #include <iostream>
 #include <vector>
@@ -61,7 +61,7 @@ private:
 	int c_filter_halfwidth;
 	int c_useful_part_size;
 	
-	int    c_nSegments;
+	int c_nSegments;
 	unsigned long int c_output_size_one_DM;
 	unsigned long int c_output_size_z_plane;
 	unsigned long int c_output_size_total;
@@ -97,11 +97,11 @@ private:
 		//---------> Memory testing and splitting
 		c_nZPlanes = c_nFilters_w;
 		unsigned long int z_plane_size_bytes = c_output_size_z_plane*sizeof(float);
-		available_free_memory = available_free_memory - c_reserved_memory_for_candidate_selection - filter_padded_size_bytes;
+		available_free_memory = available_free_memory - c_reserved_memory_for_candidate_selection - c_filter_padded_size_bytes;
 		c_nZPlanes_per_chunk = (int) (available_free_memory/z_plane_size_bytes);
 		if(c_nZPlanes_per_chunk == 0) return(false);
-		c_nZPlanes_chunks = (int) (nZPlanes/c_nZPlanes_per_chunk);
-		c_nZPlanes_remainder = nZPlanes - c_nZPlanes_chunks*c_nZPlanes_per_chunk;
+		c_nZPlanes_chunks = (int) (c_nZPlanes/c_nZPlanes_per_chunk);
+		c_nZPlanes_remainder = c_nZPlanes - c_nZPlanes_chunks*c_nZPlanes_per_chunk;
 		
 		for(int f=0; f<c_nZPlanes_chunks; f++){
 			c_ZW_chunks.push_back(c_nZPlanes_per_chunk);
@@ -110,7 +110,7 @@ private:
 			c_ZW_chunks.push_back(c_nZPlanes_remainder);
 		}
 		
-		c_required_memory = (c_nZPlanes_chunks + c_nZPlanes_remainder)*c_z_plane_size_bytes + c_reserved_memory_for_candidate_selection;
+		c_required_memory = (c_nZPlanes_chunks + c_nZPlanes_remainder)*z_plane_size_bytes + c_reserved_memory_for_candidate_selection;
 		c_free_memory = available_free_memory - c_required_memory;
 		return(true);
 	}
@@ -140,12 +140,12 @@ public:
 		c_z_search_step       = plan.z_search_step();
 		c_w_max_search_limit  = c_nFilters_w_half*plan.w_search_step();
 		c_w_search_step       = plan.w_search_step();
-		c_interbinned_samples = plan.number_of_interbinned_samples();
-		c_high_precision      = plan.precision();
+		c_interbinned_samples = plan.interbinned_samples();
+		c_high_precision      = plan.high_precision();
 		
 		// MSD
 		c_MSD_outlier_rejection = plan.MSD_outlier_rejection();
-		c_OR_sigma_cuttoff = plan.OR_sigma_cuttoff();
+		c_OR_sigma_cuttoff = plan.OR_sigma_cutoff();
 		c_nHarmonics = plan.nHarmonics();
 	
 		// Candidate selection
@@ -200,55 +200,56 @@ public:
       return ready();
     }
 	
-	unsigned long int nSamples_time_dom() return(c_nSamples_time_dom);
-	unsigned long int nSamples_freq_dom() return(c_nSamples_freq_dom);
-	unsigned long int nSamples_output_plane() return(c_nSamples_output_plane);
-	unsigned long int nDMs() return(c_nDMs);
+	unsigned long int nSamples_time_dom() {return(c_nSamples_time_dom);}
+	unsigned long int nSamples_freq_dom() {return(c_nSamples_freq_dom);}
+	unsigned long int nSamples_output_plane() {return(c_nSamples_output_plane);}
+	unsigned long int nDMs() {return(c_nDMs);}
+	unsigned long int nTimesamples() {return(c_nTimesamples);}
 	
-	float z_max_search_limit() return(c_z_max_search_limit);
-	float z_search_step() return(c_z_search_step);
-	float w_max_search_limit() return(c_w_max_search_limit);
-	float w_search_step() return(c_w_search_step);
-	int   interbinned_samples() return(c_interbinned_samples);
-	int   high_precision() return(c_high_precision);
+	float z_max_search_limit() {return(c_z_max_search_limit);}
+	float z_search_step() {return(c_z_search_step);}
+	float w_max_search_limit() {return(c_w_max_search_limit);}
+	float w_search_step() {return(c_w_search_step);}
+	int   interbinned_samples() {return(c_interbinned_samples);}
+	int   high_precision() {return(c_high_precision);}
 	
-	bool  MSD_outlier_rejection() return(c_MSD_outlier_rejection);
-	float OR_sigma_cuttoff() return(c_OR_sigma_cuttoff);
+	bool  MSD_outlier_rejection() {return(c_MSD_outlier_rejection);}
+	float OR_sigma_cuttoff() {return(c_OR_sigma_cuttoff);}
 	
-	float CS_sigma_threshold() return(c_CS_sigma_threshold);
-	int   CS_algorithm() return(c_CS_algorithm);
-	int   nHarmonics() return(c_nHarmonics);
+	float CS_sigma_threshold() {return(c_CS_sigma_threshold);}
+	int   CS_algorithm() {return(c_CS_algorithm);}
+	int   nHarmonics() {return(c_nHarmonics);}
 	
-	bool always_choose_next_power_of_2() return(always_choose_next_power_of_2);
-	bool spectrum_whitening() return(c_spectrum_whitening);
+	bool always_choose_next_power_of_2() {return(always_choose_next_power_of_2);}
+	bool spectrum_whitening() {return(c_spectrum_whitening);}
 	
-	int conv_size() return(c_conv_size);
-	int nFilters_z_half() return(c_nFilters_z_half);
-	int nFilters_z() return(c_nFilters_z);
-	int nFilters_w_half() return(c_nFilters_w_half);
-	int nFilters_w() return(c_nFilters_w);
-	int nFilters_total() return(c_nFilters_total);
+	int conv_size() {return(c_conv_size);}
+	int nFilters_z_half() {return(c_nFilters_z_half);}
+	int nFilters_z() {return(c_nFilters_z);}
+	int nFilters_w_half() {return(c_nFilters_w_half);}
+	int nFilters_w() {return(c_nFilters_w);}
+	int nFilters_total() {return(c_nFilters_total);}
 	
-	int filter_halfwidth() return(c_filter_halfwidth);
-	int useful_part_size() return(c_useful_part_size);
+	int filter_halfwidth() {return(c_filter_halfwidth);}
+	int useful_part_size() {return(c_useful_part_size);}
 	
-	int    nSegments() return(c_nSegments);
-	unsigned long int output_size_one_DM() return(c_output_size_one_DM);
-	unsigned long int output_size_z_plane() return(c_output_size_z_plane);
-	unsigned long int output_size_total() return(c_output_size_total);
+	int nSegments() {return(c_nSegments);}
+	unsigned long int output_size_one_DM() {return(c_output_size_one_DM);}
+	unsigned long int output_size_z_plane() {return(c_output_size_z_plane);}
+	unsigned long int output_size_total() {return(c_output_size_total);}
 	
-	int nZPlanes() return(c_nZPlanes);
-	int nZPlanes_per_chunk() return(c_nZPlanes_per_chunk);
-	int nZPlanes_chunks() return(c_nZPlanes_chunks);
-	int nZPlanes_remainder() return(c_nZPlanes_remainder);
-	std::vector<int> ZW_chunks() return(c_ZW_chunks);
-	unsigned long int free_memory() return(c_free_memory);
-	unsigned long int required_memory() return(c_required_memory);
-	unsigned long int total_memory() return(c_total_memory);
-	unsigned long int reserved_memory_for_candidate_selection() return(c_reserved_memory_for_candidate_selection);
+	int nZPlanes() {return(c_nZPlanes);}
+	int nZPlanes_per_chunk() {return(c_nZPlanes_per_chunk);}
+	int nZPlanes_chunks() {return(c_nZPlanes_chunks);}
+	int nZPlanes_remainder() {return(c_nZPlanes_remainder);}
+	std::vector<int> ZW_chunks() {return(c_ZW_chunks);}
+	unsigned long int free_memory() {return(c_free_memory);}
+	unsigned long int required_memory() {return(c_required_memory);}
+	unsigned long int total_memory() {return(c_total_memory);}
+	unsigned long int reserved_memory_for_candidate_selection() {return(c_reserved_memory_for_candidate_selection);}
 	
-	unsigned long int c_filter_padded_size() return(c_filter_padded_size);
-	unsigned long int c_filter_padded_size_bytes() return(c_filter_padded_size_bytes);
+	unsigned long int filter_padded_size() {return(c_filter_padded_size);}
+	unsigned long int filter_padded_size_bytes() {return(c_filter_padded_size_bytes);}
 	
 	void PrintStrategy(){
 		printf("-------------------------------------------\n");

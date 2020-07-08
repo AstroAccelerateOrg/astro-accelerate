@@ -272,31 +272,22 @@ int jerk_search_from_ddtr_plan(float ***dedispersed_data, aa_jerk_strategy jerk_
 	size_t default_nTimesamples = jerk_strategy.nTimesamples();
 	double MSD_time = 0, Candidate_time = 0, Convolution_time = 0;
 	for(int active_range=0; active_range<nRanges; active_range++){
-		size_t DM_trial_samples = jerk_strategy.nTimesamples/inBin[active_range];
+		size_t DM_trial_samples = default_nTimesamples/inBin[active_range];
 		size_t nDMs = list_of_ndms[active_range];
 		
-		//---------> Jerk plan
-		JERK_Plan local_plan;
-		local_plan = user_plan;
-		local_plan.nTimesamples = DM_trial_samples;
-		local_plan.nDMs = nDMs;
-		
-		//---------> Jerk strategy
-		cudaMemGetInfo(&free_memory, &total_memory);
-		if(free_memory>8589934592) free_memory = 8589934592;
-		JERK_Strategy jerk_strategy(local_plan, free_memory);
+		jerk_strategy.recalculate(DM_trial_samples,nDMs);
 		jerk_strategy.PrintStrategy();
 		
 		//---------> Allocation of the output Z-planes and candidates
-		size_t ZW_plane_size              = jerk_strategy.output_size_z_plane;
+		size_t ZW_plane_size              = jerk_strategy.output_size_z_plane();
 		unsigned int max_nZWCandidates    = (ZW_plane_size/4);
 		size_t single_ZW_plane_size_bytes = jerk_strategy.output_size_z_plane*sizeof(float);
-		size_t ZW_planes_size_bytes       = jerk_strategy.nZPlanes_per_chunk*single_ZW_plane_size_bytes;
+		size_t ZW_planes_size_bytes       = jerk_strategy.nZPlanes_per_chunk()*single_ZW_plane_size_bytes;
 		
 		printf("JERK SEARCH -> ZW single plane size: %zu elements = %f MB\n", single_ZW_plane_size_bytes, ((float) single_ZW_plane_size_bytes)/(1024.0*1024.0));
 		printf("JERK SEARCH -> ZW plane size: %zu elements = %f MB\n", ZW_planes_size_bytes, ((float) ZW_planes_size_bytes)/(1024.0*1024.0));
 		
-		if ( cudaSuccess != cudaMalloc((void **) &d_ZW_candidates, single_ZW_plane_size_bytes)) {
+		if ( cudaSuccess != cudaMalloc((void **) &d_ZW_candidates, max_nZWCandidates*sizeof(float))) {
 			printf("Cannot allocate GPU memory for ZW plane candidates!\n");
 		}
 		if ( cudaSuccess != cudaMalloc((void **) &d_ZW_planes, ZW_planes_size_bytes)) {
@@ -306,13 +297,13 @@ int jerk_search_from_ddtr_plan(float ***dedispersed_data, aa_jerk_strategy jerk_
 		//---------> cuFFT plan
 		cufftHandle cuFFT_plan;
 		cufftResult cuFFT_error;
-		cuFFT_error = cufftPlan1d(&cuFFT_plan, jerk_strategy.nSamples_time_dom, CUFFT_R2C, 1);
+		cuFFT_error = cufftPlan1d(&cuFFT_plan, jerk_strategy.nSamples_time_dom(), CUFFT_R2C, 1);
 		if (cuFFT_error!=CUFFT_SUCCESS) {
 			printf("ERROR while constructing cuFFT plan\n");
 		}
 		
 		//---------> MSD configuration
-		MSD_Configuration MSD_conf(jerk_strategy.output_size_one_DM, jerk_strategy.nFilters_z, 0, 0);
+		MSD_Configuration MSD_conf(jerk_strategy.output_size_one_DM(), jerk_strategy.nFilters_z(), 0, 0);
 		MSD_conf.print();
 		if ( cudaSuccess != cudaMalloc((void **) &d_MSD_workarea, MSD_conf.nBlocks_total*MSD_PARTIAL_SIZE*sizeof(float))) {
 			printf("Cannot allocate GPU memory for MSD workarea!\n");
@@ -321,7 +312,7 @@ int jerk_search_from_ddtr_plan(float ***dedispersed_data, aa_jerk_strategy jerk_
 
 		for(int active_DM = 0; active_DM<nDMs; active_DM++){
 			//-------> Copy DM-trial
-			if ( cudaSuccess != cudaMemcpy(d_DM_trial, dedispersed_data[active_range][active_DM], jerk_strategy.nSamples_time_dom*sizeof(float), cudaMemcpyHostToDevice) ) {
+			if ( cudaSuccess != cudaMemcpy(d_DM_trial, dedispersed_data[active_range][active_DM], jerk_strategy.nTimesamples()*sizeof(float), cudaMemcpyHostToDevice) ) {
 				printf("ERROR while copying DM-trial to the device!\n");
 			}
 			
@@ -337,14 +328,15 @@ int jerk_search_from_ddtr_plan(float ***dedispersed_data, aa_jerk_strategy jerk_
 			JERK_CandidateList allcandidates(jerk_strategy.nFilters_w);
 			printf("nSublists: %d\n", allcandidates.getNumberOfSubLists());
 			
-			for(int f=0; f<(int) jerk_strategy.ZW_chunks.size(); f++){
-				int nZW_planes = jerk_strategy.ZW_chunks[f];
+			std::vector<int> ZW_chunks = jerk_strategy.ZW_chunks();
+			for(int f=0; f<(int) ZW_chunks.size(); f++){
+				int nZW_planes = ZW_chunks[f];
 				
 				// Convolution
 				timer.Start();
-				printf("JERK DEBUG: Convolution: position of the filters = %d; nTimesamples = %d; conv_size = %d; useful_part_size = %d; offset = %d; nSegments = %d; nFilters = %d;\n", jerk_strategy.nFilters_z*ZW_planes_shift, jerk_strategy.output_size_one_DM, jerk_strategy.conv_size, jerk_strategy.useful_part_size, jerk_strategy.filter_halfwidth, jerk_strategy.nSegments, jerk_strategy.nFilters_z*nZW_planes);
+				printf("JERK DEBUG: Convolution: position of the filters = %d; nTimesamples = %d; conv_size = %d; useful_part_size = %d; offset = %d; nSegments = %d; nFilters = %d;\n", jerk_strategy.nFilters_z()*ZW_planes_shift, jerk_strategy.output_size_one_DM(), jerk_strategy.conv_size(), jerk_strategy.useful_part_size(), jerk_strategy.filter_halfwidth(), jerk_strategy.nSegments(), jerk_strategy.nFilters_z()*nZW_planes);
 				
-				conv_OLS_customFFT(d_DM_trial_ffted, d_ZW_planes, &d_jerk_filters[jerk_strategy.nFilters_z*ZW_planes_shift*jerk_strategy.conv_size], jerk_strategy.nSamples_freq_dom, jerk_strategy.conv_size, jerk_strategy.useful_part_size, jerk_strategy.filter_halfwidth, jerk_strategy.nSegments, jerk_strategy.nFilters_z*nZW_planes, 1.0f);
+				conv_OLS_customFFT(d_DM_trial_ffted, d_ZW_planes, &d_jerk_filters[jerk_strategy.nFilters_z()*ZW_planes_shift*jerk_strategy.conv_size()], jerk_strategy.nSamples_freq_dom(), jerk_strategy.conv_size(), jerk_strategy.useful_part_size(), jerk_strategy.filter_halfwidth(), jerk_strategy.nSegments(), jerk_strategy.nFilters_z()*nZW_planes, 1.0f);
 				timer.Stop(); printf("JERK SEARCH -> Convolution took: %g ms\n", timer.Elapsed());
 				Convolution_time += timer.Elapsed();
 				
@@ -353,7 +345,7 @@ int jerk_search_from_ddtr_plan(float ***dedispersed_data, aa_jerk_strategy jerk_
 					unsigned int nCandidates = 0;
 					char filename[200];
 					std::ofstream FILEOUT;
-					float w = ((float) (ZW_planes_shift + zp))*jerk_strategy.w_search_step - jerk_strategy.w_max_search_limit;
+					float w = ((float) (ZW_planes_shift + zp))*jerk_strategy.w_search_step() - jerk_strategy.w_max_search_limit();
 					
 					/*
 					//-------------------- DIRECT PLANE OUTPUT
@@ -384,7 +376,7 @@ int jerk_search_from_ddtr_plan(float ***dedispersed_data, aa_jerk_strategy jerk_
 					//------------> Calculation of the mean and standard deviation
 					timer.Start();
 					size_t pos = ((size_t) zp)*((size_t) ZW_plane_size);
-					Find_MSD(d_MSD, &d_ZW_planes[pos], d_MSD_workarea, &MSD_conf, user_plan.OR_sigma_cuttoff, user_plan.MSD_outlier_rejection);
+					Find_MSD(d_MSD, &d_ZW_planes[pos], d_MSD_workarea, &MSD_conf, user_plan.OR_sigma_cuttoff, jerk_strategy.MSD_outlier_rejection());
 					timer.Stop(); printf("JERK SEARCH -> MSD took: %g ms\n", timer.Elapsed());
 					MSD_time += timer.Elapsed();
 					
@@ -394,7 +386,7 @@ int jerk_search_from_ddtr_plan(float ***dedispersed_data, aa_jerk_strategy jerk_
 					timer.Start();
 					
 					cudaMemset((void*) gmem_peak_pos, 0, sizeof(unsigned int));
-					PEAK_FIND_FOR_FDAS(&d_ZW_planes[pos], d_ZW_candidates, d_MSD, jerk_strategy.nFilters_z, jerk_strategy.output_size_one_DM, user_plan.CS_sigma_threshold, max_nZWCandidates, gmem_peak_pos, w);
+					PEAK_FIND_FOR_FDAS(&d_ZW_planes[pos], d_ZW_candidates, d_MSD, jerk_strategy.nFilters_z(), jerk_strategy.output_size_one_DM(), jerk_strategy.CS_sigma_threshold(), max_nZWCandidates, gmem_peak_pos, w);
 					
 					timer.Stop();
 					printf("JERK SEARCH -> Candidate selection took: %g ms\n", timer.Elapsed());
@@ -414,8 +406,8 @@ int jerk_search_from_ddtr_plan(float ***dedispersed_data, aa_jerk_strategy jerk_
 						cudaMemcpy(h_candidates, d_ZW_candidates, nCandidates*4*sizeof(float), cudaMemcpyDeviceToHost);
 						
 						for(int f=0; f<nCandidates; f++){
-							h_candidates[4*f] = h_candidates[4*f]*jerk_strategy.z_search_step - jerk_strategy.z_max_search_limit;
-							h_candidates[4*f + 1] = h_candidates[4*f + 1]/(sampling_time*((float) inBin[active_range])*((double) user_plan.nTimesamples));
+							h_candidates[4*f] = h_candidates[4*f]*jerk_strategy.z_search_step() - jerk_strategy.z_max_search_limit();
+							h_candidates[4*f + 1] = h_candidates[4*f + 1]/(sampling_time*((float) inBin[active_range])*((double) jerk_strategy.nSamples_freq_dom()));
 						}
 						
 						FILE *fp_out;
@@ -433,7 +425,7 @@ int jerk_search_from_ddtr_plan(float ***dedispersed_data, aa_jerk_strategy jerk_
 					
 					
 					float DM = dm_low[active_range] + ((float) active_DM)*dm_step[active_range];
-					allcandidates.AddSubListFromGPU(nCandidates, d_ZW_candidates, w, DM, jerk_strategy.nSamples_time_dom, jerk_strategy.nFilters_z, jerk_strategy.z_max_search_limit, jerk_strategy.z_search_step, sampling_time*((float) inBin[active_range]), inBin[active_range]);
+					allcandidates.AddSubListFromGPU(nCandidates, d_ZW_candidates, w, DM, jerk_strategy.nSamples_time_dom(), jerk_strategy.nFilters_z(), jerk_strategy.z_max_search_limit(), jerk_strategy.z_search_step(), sampling_time*((float) inBin[active_range]), inBin[active_range]);
 					printf("JERK SEARCH -> Number of candidates: %d\n", nCandidates);
 					
 					checkCudaErrors(cudaGetLastError());

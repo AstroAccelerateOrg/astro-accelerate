@@ -147,24 +147,24 @@ public:
 		c_CS_sigma_threshold = sigma;
 	}
 	
-	unsigned long int nTimesamples() return(c_nTimesamples);
-	unsigned long int nDMs() return(c_nDMs);
-	float z_max_search_limit() return(c_z_max_search_limit);
-	float z_search_step() return(c_z_search_step);
-	float w_max_search_limit() return(c_w_max_search_limit);
-	float w_search_step() return(c_w_search_step);
-	int interbinned_samples() return(c_interbinned_samples);
-	int high_precision() return(c_high_precision);
+	unsigned long int nTimesamples() {return(c_nTimesamples);}
+	unsigned long int nDMs() {return(c_nDMs);}
+	float z_max_search_limit(){return(c_z_max_search_limit);}
+	float z_search_step() {return(c_z_search_step);}
+	float w_max_search_limit() {return(c_w_max_search_limit);}
+	float w_search_step() {return(c_w_search_step);}
+	int interbinned_samples() {return(c_interbinned_samples);}
+	int high_precision() {return(c_high_precision);}
 	
-	float CS_sigma_threshold() return(c_CS_sigma_threshold);
-	int CS_algorithm() return(c_CS_algorithm);
-	int nHarmonics() return(c_nHarmonics);
+	float CS_sigma_threshold() {return(c_CS_sigma_threshold);}
+	int CS_algorithm() {return(c_CS_algorithm);}
+	int nHarmonics() {return(c_nHarmonics);}
 	
-	bool MSD_outlier_rejection() return(c_MSD_outlier_rejection);
-	float OR_sigma_cutoff() return(c_OR_sigma_cuttoff);
+	bool MSD_outlier_rejection() {return(c_MSD_outlier_rejection);}
+	float OR_sigma_cutoff() {return(c_OR_sigma_cuttoff);}
 	
-	bool always_choose_next_power_of_2() return(c_always_choose_next_power_of_2);
-	bool spectrum_whitening() return(c_spectrum_whitening);
+	bool always_choose_next_power_of_2() {return(c_always_choose_next_power_of_2);}
+	bool spectrum_whitening() {return(c_spectrum_whitening);}
 	
 	void PrintPlan(){
 		printf("Input parameters for FDAS/JERK search:\n");
