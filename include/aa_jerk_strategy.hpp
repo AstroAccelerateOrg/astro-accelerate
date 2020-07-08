@@ -173,11 +173,11 @@ public:
 	
 	bool recalculate(unsigned long int nTimesamples, unsigned long int nDMs){
 		c_ready = false;
-		c_nTimesamples      = plan.nTimesamples();
+		c_nTimesamples      = nTimesamples;
 		c_nSamples_time_dom = next_power_2(c_nTimesamples);
 		if( (c_nTimesamples/c_nSamples_time_dom)<0.65 && !c_always_choose_next_power_of_2) c_nSamples_time_dom = (c_nSamples_time_dom<<1);
 		c_nSamples_freq_dom = (c_nSamples_time_dom>>1) + 1; //because R2C FFT
-		c_nDMs              = plan.nDMs();
+		c_nDMs              = nDMs;
 		
 		c_nSegments           = (c_nSamples_freq_dom + c_useful_part_size - 1)/c_useful_part_size;c_output_size_one_DM  = c_nSegments*c_useful_part_size;
 		c_output_size_z_plane = c_nFilters_z*c_output_size_one_DM;
@@ -220,7 +220,7 @@ public:
 	int   CS_algorithm() {return(c_CS_algorithm);}
 	int   nHarmonics() {return(c_nHarmonics);}
 	
-	bool always_choose_next_power_of_2() {return(always_choose_next_power_of_2);}
+	bool always_choose_next_power_of_2() {return(c_always_choose_next_power_of_2);}
 	bool spectrum_whitening() {return(c_spectrum_whitening);}
 	
 	int conv_size() {return(c_conv_size);}
@@ -305,6 +305,6 @@ public:
 	}
 };
 
-
+} // name space
 
 #endif

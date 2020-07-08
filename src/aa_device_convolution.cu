@@ -1,5 +1,4 @@
 #include <vector>
-#include <helper_cuda.h>
 #include "aa_device_convolution.hpp"
 
 namespace astroaccelerate {

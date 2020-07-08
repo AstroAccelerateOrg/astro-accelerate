@@ -15,6 +15,7 @@
 #include "aa_params.hpp"
 #include "aa_fdas_test_parameters.hpp"
 #include "aa_fdas.hpp"
+#include "aa_fdas_util.hpp"
 #include "aa_fdas_host.hpp"
 #include "aa_device_MSD.hpp"
 #include "aa_device_peak_find.hpp"
