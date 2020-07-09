@@ -253,6 +253,7 @@ public:
 	
 	bool recalculate(unsigned long int nTimesamples, unsigned long int nDMs){
 		c_ready = false;
+		c_ZW_chunks.clear();
 		c_nTimesamples      = nTimesamples;
 		c_nSamples_time_dom = next_power_2(c_nTimesamples);
 		if( (c_nTimesamples/c_nSamples_time_dom)<0.65 && !c_always_choose_next_power_of_2) c_nSamples_time_dom = (c_nSamples_time_dom>>1);

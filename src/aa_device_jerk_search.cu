@@ -275,7 +275,7 @@ namespace astroaccelerate {
 		aa_gpu_timer timer_total, timer_DM, timer;
 		double time_total=0;
 		timer_total.Start();
-		
+		cudaError_t cudaError;
 		aa_jerk_strategy::print_info(jerk_strategy);
 		
 		//---------> Generating filters
@@ -373,8 +373,10 @@ namespace astroaccelerate {
 				timer_DM.Start();
 				
 				//-------> Copy DM-trial
-				if ( cudaSuccess != cudaMemcpy(d_DM_trial, dedispersed_data[active_range][active_DM], jerk_strategy.nTimesamples()*sizeof(float), cudaMemcpyHostToDevice) ) {
+				cudaError = cudaMemcpy(d_DM_trial, dedispersed_data[active_range][active_DM], jerk_strategy.nSamples_time_dom()*sizeof(float), cudaMemcpyHostToDevice);
+				if ( cudaError != cudaSuccess) {
 					printf("ERROR while copying DM-trial to the device!\n");
+					printf("Error %s\n", cudaGetErrorString(cudaError));
 				}
 				
 				//-------> FFT of the DM-trial
@@ -388,6 +390,7 @@ namespace astroaccelerate {
 				printf("nSublists: %zu\n", allcandidates.getNumberOfSubLists());
 				
 				std::vector<int> ZW_chunks = jerk_strategy.ZW_chunks();
+				printf("size: %d\n", (int) ZW_chunks.size());
 				for(int f=0; f<(int) ZW_chunks.size(); f++){
 					int nZW_planes = ZW_chunks[f];
 					
