@@ -158,7 +158,7 @@ namespace astroaccelerate {
 		void AddSubListFromGPU(int t_nCandidates, float *d_candidate_input, float w, float DM, int nTimesaples_time_dom, int nFilters_z, float z_max_search_limit, float z_search_step, float sampling_time, int inBin){
 			clp.push_back(new JERK_CandidateSubList(t_nCandidates, d_candidate_input, w, DM, nTimesaples_time_dom, nFilters_z, z_max_search_limit, z_search_step, sampling_time, inBin));
 			int pos = ((int) clp.size()) - 1;
-			clp[pos]->Print();
+			//clp[pos]->Print();
 		}
 		
 		JERK_CandidateSubList* getSubList(size_t index){
@@ -196,7 +196,6 @@ namespace astroaccelerate {
 			for(size_t f=0; f<nSubLists; f++){
 				nCandidates_total = nCandidates_total + clp[f]->nCandidates;
 			}
-			printf("nCandidates_total: %zu\n", nCandidates_total);
 			
 			if(nCandidates_total>0){
 				FILE *fp_out;
@@ -204,7 +203,6 @@ namespace astroaccelerate {
 				
 				size_t current_pos = 0;
 				for(size_t f=0; f<nSubLists; f++){
-					printf("nCandidates: %d\n", clp[f]->nCandidates);
 					if(clp[f]->nCandidates>0){
 						fwrite(clp[f]->candidates, clp[f]->nCandidates*sizeof(float), 4, fp_out);
 					}
@@ -213,7 +211,7 @@ namespace astroaccelerate {
 				fclose(fp_out);
 			}
 			
-			return(0);
+			return(nCandidates_total);
 		}
 		
 		JERK_Candidate getCandidate(size_t index){

@@ -929,7 +929,17 @@ namespace astroaccelerate {
 		bool jerk_search() {
 			const int *ndms = m_ddtr_strategy.ndms_data();
 			int nRanges = m_ddtr_strategy.get_nRanges();
+			
+			aa_gpu_timer timer;
+			timer.Start();
+			
 			jerk_search_from_ddtr_plan(m_output_buffer, m_jerk_strategy, dm_low.data(), dm_step.data(), ndms, tsamp_original, inBin.data(), nRanges);
+			
+			timer.Stop();
+			time_log.adding("JERK", "total", timer.Elapsed());
+			time_log.adding("Total", "total", timer.Elapsed());
+			
+			jerk_did_run = true;
 			return (true);
 		}
 
