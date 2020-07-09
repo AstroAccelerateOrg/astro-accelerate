@@ -84,6 +84,18 @@ private:
 	bool c_ready;
 	
 	unsigned long int next_power_2(unsigned long int x) {
+		/*
+		int exp = 0;
+		unsigned long int temp = x;
+		while(temp!=0){
+			temp = temp>>1;
+			exp++;
+		}
+		printf("exp: %d; temp: %zu;\n", exp, temp);
+		temp = 1<<exp;
+		printf("temp: %zu\n", temp);
+		return(temp);
+		*/
 		x--;
 		x |= x>>1;
 		x |= x>>2;
@@ -112,7 +124,11 @@ private:
 			c_ZW_chunks.push_back(c_nZPlanes_remainder);
 		}
 		
-		c_required_memory = (c_nZPlanes_chunks + c_nZPlanes_remainder)*z_plane_size_bytes + c_reserved_memory_for_candidate_selection;
+		if(c_ZW_chunks.size()>0) {
+			c_required_memory = c_ZW_chunks[0]*z_plane_size_bytes + c_reserved_memory_for_candidate_selection;
+		}
+		else return (false);
+		
 		c_free_memory = available_free_memory - c_required_memory;
 		return(true);
 	}
@@ -183,16 +199,20 @@ public:
 		
 		c_nTimesamples      = plan.nTimesamples();
 		c_nSamples_time_dom = next_power_2(c_nTimesamples);
-		if( (c_nTimesamples/c_nSamples_time_dom)<0.65 && !c_always_choose_next_power_of_2) c_nSamples_time_dom = (c_nSamples_time_dom<<1);
+		if( (c_nTimesamples/c_nSamples_time_dom)<0.65 && !c_always_choose_next_power_of_2) c_nSamples_time_dom = (c_nSamples_time_dom>>1);
 		c_nSamples_freq_dom = (c_nSamples_time_dom>>1) + 1; //because R2C FFT
 		c_nDMs              = plan.nDMs();
 		
 		// Calculate number of filters
 		// number of filters must also account for negative accelerations and w=z=0;
-		c_nFilters_z_half   = plan.z_max_search_limit()/plan.z_search_step();
+		if(plan.z_search_step()>0) c_nFilters_z_half = plan.z_max_search_limit()/plan.z_search_step();
+		else c_nFilters_z_half = 0;
 		c_nFilters_z        = c_nFilters_z_half + c_nFilters_z_half + 1; 
-		c_nFilters_w_half   = plan.w_max_search_limit()/plan.w_search_step();
+		
+		if(plan.w_search_step()>0) c_nFilters_w_half = plan.w_max_search_limit()/plan.w_search_step();
+		c_nFilters_w_half = 0;
 		c_nFilters_w        = c_nFilters_w_half + c_nFilters_w_half + 1;
+		
 		c_nFilters_total    = c_nFilters_z*c_nFilters_w;
 		
 		// recompute maximum z and w values based on step
@@ -235,7 +255,7 @@ public:
 		c_ready = false;
 		c_nTimesamples      = nTimesamples;
 		c_nSamples_time_dom = next_power_2(c_nTimesamples);
-		if( (c_nTimesamples/c_nSamples_time_dom)<0.65 && !c_always_choose_next_power_of_2) c_nSamples_time_dom = (c_nSamples_time_dom<<1);
+		if( (c_nTimesamples/c_nSamples_time_dom)<0.65 && !c_always_choose_next_power_of_2) c_nSamples_time_dom = (c_nSamples_time_dom>>1);
 		c_nSamples_freq_dom = (c_nSamples_time_dom>>1) + 1; //because R2C FFT
 		c_nDMs              = nDMs;
 		
@@ -319,7 +339,8 @@ public:
 	static bool print_info(aa_jerk_strategy &strategy){
 		printf("-------------------------------------------\n");
 		printf("Input parameters:\n");
-		printf("    Number of time samples before FFT: %zu\n", strategy.nSamples_time_dom());
+		printf("    Number of time samples:            %zu\n", strategy.nTimesamples());
+		printf("    Number of time samples (padded):   %zu\n", strategy.nSamples_time_dom());
 		printf("    Number of time samples after FFT:  %zu\n", strategy.nSamples_freq_dom());
 		printf("    Number of time samples in output:  %zu\n", strategy.nSamples_freq_dom());
 		printf("    Number of DM trials:               %zu\n", strategy.nDMs());
@@ -341,21 +362,21 @@ public:
 		printf("    Algoriths:         ");
 		if(strategy.CS_algorithm()==0) printf("threshold\n");
 		else if(strategy.CS_algorithm()==1) printf("peak finding\n");
-		printf("Mean and standard deviation:");
-		printf("Outlier rejection     : ");
+		printf("Mean and standard deviation:\n");
+		printf("    Outlier rejection: ");
 		if(strategy.MSD_outlier_rejection()==1) printf("Yes.\n"); else printf("No.\n");
 		printf("    Sigma cutoff:      %f;\n", strategy.OR_sigma_cutoff());
-		printf("Other flags:");
-		printf("Next power of two:      ");
+		printf("Other flags:\n");
+		printf("    Next power of two:      ");
 		if(strategy.always_choose_next_power_of_2()) printf("Yes.\n"); else printf("No.\n");
-		printf("Spectrum whitening:     ");
+		printf("    Spectrum whitening:     ");
 		if(strategy.spectrum_whitening()) printf("Yes.\n"); else printf("No.\n");
 		printf("-------------------------------------------\n");
 		printf("\n");
 		printf("-------------------------------------------\n");
 		printf("Convolution size: %d\n", strategy.conv_size());
-		printf("Half filters widths z=%d; w=%d\n", strategy.nFilters_z_half(), strategy.nFilters_w_half());
-		printf("Filters widths z=%d; w=%d\n", strategy.nFilters_z_half(), strategy.nFilters_w_half());
+		printf("Number of filters in positive half z=%d; w=%d\n", strategy.nFilters_z_half(), strategy.nFilters_w_half());
+		printf("Number of filters in z=%d; w=%d\n", strategy.nFilters_z(), strategy.nFilters_w());
 		printf("Number of filters: %d\n", strategy.nFilters_total());
 		printf("Halfwidth of the widest filter: %d\n", strategy.filter_halfwidth());
 		printf("Useful part of the segment: %d\n", strategy.useful_part_size());

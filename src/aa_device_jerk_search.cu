@@ -340,7 +340,8 @@ namespace astroaccelerate {
 			size_t ZW_plane_size              = jerk_strategy.output_size_z_plane();
 			unsigned int max_nZWCandidates    = (ZW_plane_size/4);
 			size_t single_ZW_plane_size_bytes = jerk_strategy.output_size_z_plane()*sizeof(float);
-			size_t ZW_planes_size_bytes       = jerk_strategy.nZPlanes_per_chunk()*single_ZW_plane_size_bytes;
+			std::vector<int> ZW_chunks        = jerk_strategy.ZW_chunks();
+			size_t ZW_planes_size_bytes       = ZW_chunks[0]*single_ZW_plane_size_bytes;
 			
 			printf("JERK SEARCH -> ZW single plane size: %zu elements = %f MB\n", single_ZW_plane_size_bytes, ((float) single_ZW_plane_size_bytes)/(1024.0*1024.0));
 			printf("JERK SEARCH -> ZW plane size: %zu elements = %f MB\n", ZW_planes_size_bytes, ((float) ZW_planes_size_bytes)/(1024.0*1024.0));

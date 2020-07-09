@@ -72,7 +72,6 @@ int presto_z_resp_halfwidth(double z, int accuracy) {
     } else {
         m += NUMFINTBINS;
     }
-	printf("z_resp_halfwidth: z=%e halfwidth:%d\n;", z, m);
     return m;
 }
 
@@ -108,9 +107,7 @@ int presto_w_resp_halfwidth(double z, double w, int accuracy){
     }
     if (accuracy == HIGHACC) {
         return (int) (1.1 * maxdev) + NUMFINTBINS * 3;
-		printf("w_resp_halfwidth: z=%e; w=%e; halfwidth:=%d;\n", z, w, (int)((1.1 * maxdev) + NUMFINTBINS * 3));
     } else {
-		printf("w_resp_halfwidth: z=%e; w=%e; halfwidth:=%d;\n", z, w, (int) ((1.1 * maxdev) + NUMFINTBINS));
 		return (int) (1.1 * maxdev) + NUMFINTBINS;
     }
 }
@@ -405,7 +402,6 @@ cufftComplex *presto_gen_w_response(double roffset, int numbetween, double z, do
 	if(response==NULL) printf("Error allocating response!\n");
     /* Chop off the contaminated ends and/or the extra data */
     memcpy(response, data_fft + (fbar * numbetween - numkern / 2), sizeof(cufftComplex)*numkern);
-	printf("gen_w_response: roffset=%f; numbetween=%d; z=%f; w=%f; numkern=%d\n", roffset, numbetween, z, w, numkern);
 	
 	
     /* cleanup */

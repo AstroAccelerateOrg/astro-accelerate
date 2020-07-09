@@ -8,6 +8,7 @@
 #include <wordexp.h>
 #include <algorithm>
 
+#include "aa_log.hpp"
 #include "aa_params.hpp"
 #include "aa_ddtr_plan.hpp"
 #include "aa_pipeline.hpp"
@@ -139,8 +140,9 @@ namespace astroaccelerate {
 						m_pipeline.insert(aa_pipeline::component::periodicity);
 					if (strcmp(string, "acceleration") == 0)
 						m_pipeline.insert(aa_pipeline::component::fdas);
-					if (strcmp(string, "acceleration_jerk") == 0)
+					if (strcmp(string, "acceleration_jerk") == 0){
 						m_pipeline.insert(aa_pipeline::component::jerk);
+					}
 					if (strcmp(string, "output_ffdot_plan") == 0)
 						m_pipeline_options.insert(aa_pipeline::component_option::output_ffdot_plan);
 					if (strcmp(string, "output_fdas_list") == 0)
@@ -349,6 +351,7 @@ namespace astroaccelerate {
 					}
 					else {
 						//User input was read successfully, but pipeline is not permitted
+						LOG(log_level::error, "Pipeline configuration is unknown.");
 						const aa_pipeline::pipeline empty = { aa_pipeline::component::empty };
 						return empty;
 					}
@@ -366,6 +369,7 @@ namespace astroaccelerate {
 				}
 				else {
 					//The pre-supplied pipeline is not valid
+					LOG(log_level::error, "Pipeline configuration is unknown.");
 					const aa_pipeline::pipeline empty = { aa_pipeline::component::empty };
 					return empty;
 				}

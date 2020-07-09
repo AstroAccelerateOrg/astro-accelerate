@@ -35,4 +35,4 @@ baselinenoise
 debug
 -analysis_debug
 -failsafe
-file /mnt/data/AstroAccelerate/filterbank/ska_mb2_4bits.fil
+file ~/ska-mid-b2.fil

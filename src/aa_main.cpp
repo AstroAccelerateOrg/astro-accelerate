@@ -48,7 +48,6 @@ int main(int argc, char *argv[]) {
 	//aa_config takes all argument as reference which is extremely confusing while still returning something. Must change to pointers and return nothing 
 	aa_pipeline::pipeline pipeline = cli_configuration.setup(ddtr_plan, user_flags, pipeline_options, file_path);
 	//pipeline_options.insert(aa_pipeline::component_option::timelog_export_to_file);
-
 	LOG(log_level::notice, "File path "+file_path);
 	LOG(log_level::notice, "-----------------------------------");
 	LOG(log_level::notice, "Pipeline components:");
