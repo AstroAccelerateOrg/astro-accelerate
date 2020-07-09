@@ -17,7 +17,6 @@
 #define PIPELINE_ERROR_SPDT_ERROR 13
 
 
-
 #include <cuda.h>
 #include <cuda_runtime.h>
 
@@ -697,52 +696,9 @@ namespace astroaccelerate {
 				//-----------> Copy data to the host
 				if(do_copy_DDTR_data_to_host){
 					m_local_timer.Start();
-					int nStreams = 16;
-					cudaStream_t stream_copy[16];
-					cudaError_t e;
-					float *h_aPinned, *h_bPinned;
-					size_t data_size = (size_t) (sizeof(float) * (size_t) t_processed[dm_range][current_time_chunk]);
-					cudaMallocHost((void **) &h_aPinned, data_size*nStreams);
-					cudaMallocHost((void **) &h_bPinned, data_size);
-
-
-					for (int i = 0; i < nStreams; i++){
-						e = cudaStreamCreate(&stream_copy[i]);
-						if (e != cudaSuccess) {
-							pipeline_error = PIPELINE_ERROR_COPY_TO_HOST;
-							LOG(log_level::error, "Could not create stream(" + std::string(cudaGetErrorString(e)) + ")");
-						}
-
-					}
-
-					#pragma omp parallel for num_threads(nStreams) shared(h_aPinned, m_output_buffer, d_DDTR_output, dm_range, data_size, stream_copy)
-					for (size_t k = 0; k < (size_t) ndms[dm_range]; k++) {
-						int id_stream = omp_get_thread_num();
-						size_t device_offset = (size_t) (k * (size_t) t_processed[dm_range][current_time_chunk]);
-						size_t host_offset = (size_t) (inc / inBin[dm_range]);
-						size_t stream_offset = (size_t) (t_processed[dm_range][current_time_chunk]);
-						cudaMemcpyAsync(h_aPinned + id_stream*stream_offset, d_DDTR_output + device_offset, data_size, cudaMemcpyDeviceToHost,stream_copy[id_stream]);
-						cudaStreamSynchronize(stream_copy[id_stream]);
-						memcpy(m_output_buffer[dm_range][k] + host_offset, h_aPinned + id_stream*stream_offset, data_size);
-					}
+						save_data_offset_stream(dm_range, current_time_chunk, t_processed, inc, inBin.data(), ndms, d_DDTR_output, m_output_buffer);
 					m_local_timer.Stop();
 					time_log.adding("DDTR", "Device_To_Host", m_local_timer.Elapsed());
-
-					for (int i = 0; i < nStreams; i++){
-						e = cudaStreamDestroy(stream_copy[i]);
-                                                if (e != cudaSuccess) {
-                                                        pipeline_error = PIPELINE_ERROR_COPY_TO_HOST;
-                                                        LOG(log_level::error, "Could not destroy stream(" + std::string(cudaGetErrorString(e)) + ")");
-                                                }
-					}
-					
-					CUDA_error = cudaGetLastError();
-					if(CUDA_error != cudaSuccess) {
-						pipeline_error = PIPELINE_ERROR_COPY_TO_HOST;
-						LOG(log_level::error, "GPU error at copy of dedispersed data to host. (" + std::string(cudaGetErrorString(CUDA_error)) + ")");
-					}
-					cudaFreeHost(h_aPinned);
-					cudaFreeHost(h_bPinned);
 				}
 				m_ddtr_total_timer.Stop();
 				time_log.adding("DDTR", "total", m_ddtr_total_timer.Elapsed());
