@@ -310,7 +310,7 @@ namespace astroaccelerate {
 			if (required_plans.find(aa_pipeline::component::jerk) != required_plans.end()) {
 				m_jerk_plan = plan;
 				aa_jerk_strategy jerk_strategy(m_jerk_plan);
-				if (fdas_strategy.ready()) {
+				if (jerk_strategy.ready()) {
 					m_jerk_strategy = std::move(jerk_strategy);
 					m_all_strategy.push_back(&m_jerk_strategy);
 				}

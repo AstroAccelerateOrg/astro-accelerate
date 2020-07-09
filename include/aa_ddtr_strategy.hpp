@@ -62,8 +62,10 @@ namespace astroaccelerate {
 	
 	size_t nProcessedTimesamples() {
 		size_t sum = 0;
-		for(int f=0; f<(int)m_t_processed.size();f++){
-			sum = sum + m_t_processed[f];
+		if(m_t_processed.size()>0){
+			for(int f=0; f<(int)m_t_processed[0].size();f++){
+				sum = sum + m_t_processed[0][f];
+			}
 		}
 		return(sum);
 	}

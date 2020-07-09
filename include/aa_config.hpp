@@ -200,25 +200,25 @@ namespace astroaccelerate {
 						}
 					}
 					if (strcmp(string, "z_max") == 0) {
-						if (fscanf(fp_in, "%d", &flg.z_max) == 0) {
+						if (fscanf(fp_in, "%f", &flg.z_max) == 0) {
 							fprintf(stderr, "failed to read input\n");
 							return false;
 						}
 					}
 					if (strcmp(string, "z_step") == 0) {
-						if (fscanf(fp_in, "%d", &flg.z_step) == 0) {
+						if (fscanf(fp_in, "%f", &flg.z_step) == 0) {
 							fprintf(stderr, "failed to read input\n");
 							return false;
 						}
 					}
 					if (strcmp(string, "w_max") == 0) {
-						if (fscanf(fp_in, "%d", &flg.w_max) == 0) {
+						if (fscanf(fp_in, "%f", &flg.w_max) == 0) {
 							fprintf(stderr, "failed to read input\n");
 							return false;
 						}
 					}
 					if (strcmp(string, "w_step") == 0) {
-						if (fscanf(fp_in, "%d", &flg.w_step) == 0) {
+						if (fscanf(fp_in, "%f", &flg.w_step) == 0) {
 							fprintf(stderr, "failed to read input\n");
 							return false;
 						}

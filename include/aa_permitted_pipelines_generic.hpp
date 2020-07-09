@@ -31,6 +31,7 @@
 #include "aa_analysis_strategy.hpp"
 #include "aa_periodicity_strategy.hpp"
 #include "aa_fdas_strategy.hpp"
+#include "aa_jerk_strategy.hpp"
 
 #include "aa_filterbank_metadata.hpp"
 #include "aa_device_load_data.hpp"
@@ -45,6 +46,7 @@
 #include "aa_device_analysis.hpp"
 #include "aa_device_periods.hpp"
 #include "aa_device_acceleration_fdas.hpp"
+#include "aa_device_jerk_search.hpp"
 #include "aa_pipeline_runner.hpp"
 
 #include "aa_gpu_timer.hpp"
@@ -127,6 +129,7 @@ namespace astroaccelerate {
 		bool memory_cleanup;
 		bool periodicity_did_run;
 		bool acceleration_did_run;
+		bool jerk_did_run;
 		bool did_notify_of_finishing_component;
 
 		//Loop counter variables
@@ -925,7 +928,9 @@ namespace astroaccelerate {
 		
 		bool jerk_search() {
 			const int *ndms = m_ddtr_strategy.ndms_data();
-			jerk_search_from_ddtr_plan(output_buffer, m_jerk_strategy, dm_low.data(), dm_step.data(), ndms, tsamp_original, inBin.data(), nRanges);
+			int nRanges = m_ddtr_strategy.get_nRanges();
+			jerk_search_from_ddtr_plan(m_output_buffer, m_jerk_strategy, dm_low.data(), dm_step.data(), ndms, tsamp_original, inBin.data(), nRanges);
+			return (true);
 		}
 
 	public:
@@ -961,6 +966,7 @@ namespace astroaccelerate {
 		memory_cleanup(false),
 		periodicity_did_run(false),
 		acceleration_did_run(false),
+		jerk_did_run(false),
 		did_notify_of_finishing_component(false),
 		current_time_chunk(0),
 		current_range(0),

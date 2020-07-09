@@ -1,6 +1,7 @@
 #ifndef ASTRO_ACCELERATE_AA_JERK_PLAN_HPP
 #define ASTRO_ACCELERATE_AA_JERK_PLAN_HPP
 
+#include <stdio.h>
 
 // NOTES:
 // conv_size should really be determined by the class based on size of the filter and performance of the GPU
@@ -17,6 +18,7 @@ private:
 	// input parameters
 	unsigned long int c_nTimesamples;
 	unsigned long int c_nDMs;
+	unsigned long int c_available_memory;
 	
 	// filter parameters
 	float c_z_max_search_limit;
@@ -46,6 +48,7 @@ public:
 		// input parameters
 		c_nTimesamples = 0;
 		c_nDMs = 0;
+		c_available_memory = 0;
 	
 		// filter parameters
 		c_z_max_search_limit = 0;
@@ -72,6 +75,7 @@ public:
 	aa_jerk_plan(
 			unsigned long int nTimesamples, 
 			unsigned long int nDMs,
+			unsigned long int available_memory,
 			float z_max_search_limit, 
 			float z_search_step, 
 			float w_max_search_limit, 
@@ -86,6 +90,7 @@ public:
 			bool spectrum_whitening){
 		c_nTimesamples = nTimesamples;
 		c_nDMs         = nDMs;
+		c_available_memory = available_memory;
 		
 		c_z_max_search_limit = z_max_search_limit;
 		c_w_max_search_limit = w_max_search_limit;
@@ -149,6 +154,7 @@ public:
 	
 	unsigned long int nTimesamples() {return(c_nTimesamples);}
 	unsigned long int nDMs() {return(c_nDMs);}
+	unsigned long int available_memory() {return(c_available_memory);}
 	float z_max_search_limit(){return(c_z_max_search_limit);}
 	float z_search_step() {return(c_z_search_step);}
 	float w_max_search_limit() {return(c_w_max_search_limit);}
@@ -170,6 +176,7 @@ public:
 		printf("Input parameters for FDAS/JERK search:\n");
 		printf("    Number of time samples: %zu\n", c_nTimesamples);
 		printf("    Number of DM trials:    %zu\n", c_nDMs);
+		printf("    Available memory:       %zu\n", c_available_memory);
 		
 		printf("Filter parameters:\n");
 		printf("    z max:             %f;\n", c_z_max_search_limit);

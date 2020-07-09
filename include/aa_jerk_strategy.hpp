@@ -1,6 +1,8 @@
 #ifndef ASTRO_ACCELERATE_AA_JERK_STRATEGY_HPP
 #define ASTRO_ACCELERATE_AA_JERK_STRATEGY_HPP
 
+#include <stdio.h>
+
 #include "aa_strategy.hpp"
 #include "aa_jerk_plan.hpp"
 #include "presto_funcs.hpp"
@@ -38,7 +40,7 @@ private:
 	
 	// MSD
 	bool  c_MSD_outlier_rejection;
-	float c_OR_sigma_cuttoff;
+	float c_OR_sigma_cutoff;
 	
 	// Candidate selection
 	float c_CS_sigma_threshold;
@@ -116,8 +118,66 @@ private:
 	}
 	
 public:
-	aa_jerk_strategy(aa_jerk_plan plan, unsigned long int available_free_memory){
-		c_total_memory = available_free_memory;
+	aa_jerk_strategy() {
+		c_nSamples_time_dom = 0;
+		c_nSamples_freq_dom = 0;
+		c_nSamples_output_plane = 0;
+		c_nTimesamples = 0;
+		c_nDMs = 0;
+		
+		// filter parameters
+		c_z_max_search_limit = 0;
+		c_z_search_step = 0;
+		c_w_max_search_limit = 0;
+		c_w_search_step = 0;
+		c_interbinned_samples = 0;
+		c_high_precision = 0;
+		
+		// MSD
+		c_MSD_outlier_rejection = false;
+		c_OR_sigma_cutoff = 0;
+		
+		// Candidate selection
+		c_CS_sigma_threshold = 0;
+		c_CS_algorithm = 1;
+		c_nHarmonics = 0;
+		
+		// other flags
+		c_always_choose_next_power_of_2 = false;
+		c_spectrum_whitening = false;
+		
+		c_conv_size = 2048;
+		c_nFilters_z_half = 0;
+		c_nFilters_z = 0;
+		c_nFilters_w_half = 0;
+		c_nFilters_w = 0;
+		c_nFilters_total = 0;
+		
+		c_filter_halfwidth = 0;
+		c_useful_part_size = 0;
+		
+		c_nSegments = 0;
+		c_output_size_one_DM = 0;
+		c_output_size_z_plane = 0;
+		c_output_size_total = 0;
+		
+		c_nZPlanes = 0;
+		c_nZPlanes_per_chunk = 0;
+		c_nZPlanes_chunks = 0;
+		c_nZPlanes_remainder = 0;
+		c_free_memory = 0;
+		c_required_memory = 0;
+		c_total_memory = 0;
+		c_reserved_memory_for_candidate_selection = 0;
+		
+		c_filter_padded_size = 0;
+		c_filter_padded_size_bytes = 0;
+		
+		c_ready = false;
+	}
+	
+	aa_jerk_strategy(aa_jerk_plan &plan){
+		c_total_memory = plan.available_memory();
 		c_always_choose_next_power_of_2 = plan.always_choose_next_power_of_2();
 		c_spectrum_whitening = plan.spectrum_whitening();
 		
@@ -145,7 +205,7 @@ public:
 		
 		// MSD
 		c_MSD_outlier_rejection = plan.MSD_outlier_rejection();
-		c_OR_sigma_cuttoff = plan.OR_sigma_cutoff();
+		c_OR_sigma_cutoff = plan.OR_sigma_cutoff();
 		c_nHarmonics = plan.nHarmonics();
 	
 		// Candidate selection
@@ -200,6 +260,11 @@ public:
       return ready();
     }
 	
+	/** \returns The name of this mdoule. */
+    std::string name() const {
+      return "jerk_strategy";
+    }
+	
 	unsigned long int nSamples_time_dom() {return(c_nSamples_time_dom);}
 	unsigned long int nSamples_freq_dom() {return(c_nSamples_freq_dom);}
 	unsigned long int nSamples_output_plane() {return(c_nSamples_output_plane);}
@@ -214,7 +279,7 @@ public:
 	int   high_precision() {return(c_high_precision);}
 	
 	bool  MSD_outlier_rejection() {return(c_MSD_outlier_rejection);}
-	float OR_sigma_cuttoff() {return(c_OR_sigma_cuttoff);}
+	float OR_sigma_cutoff() {return(c_OR_sigma_cutoff);}
 	
 	float CS_sigma_threshold() {return(c_CS_sigma_threshold);}
 	int   CS_algorithm() {return(c_CS_algorithm);}
@@ -251,57 +316,59 @@ public:
 	unsigned long int filter_padded_size() {return(c_filter_padded_size);}
 	unsigned long int filter_padded_size_bytes() {return(c_filter_padded_size_bytes);}
 	
-	void PrintStrategy(){
+	static bool print_info(aa_jerk_strategy &strategy){
 		printf("-------------------------------------------\n");
 		printf("Input parameters:\n");
-		printf("    Number of time samples before FFT: %zu\n", c_nSamples_time_dom);
-		printf("    Number of time samples after FFT:  %zu\n", c_nSamples_freq_dom);
-		printf("    Number of time samples in output:  %zu\n", c_nSamples_freq_dom);
-		printf("    Number of DM trials:               %zu\n", c_nDMs);
+		printf("    Number of time samples before FFT: %zu\n", strategy.nSamples_time_dom());
+		printf("    Number of time samples after FFT:  %zu\n", strategy.nSamples_freq_dom());
+		printf("    Number of time samples in output:  %zu\n", strategy.nSamples_freq_dom());
+		printf("    Number of DM trials:               %zu\n", strategy.nDMs());
 		printf("Filter parameters:\n");
-		printf("    Filter's halfwidth %d;\n", c_filter_halfwidth);
-		printf("    z max:             %f;\n", c_z_max_search_limit);
-		printf("    z step size:       %f;\n", c_z_search_step);
-		printf("    w max:             %f;\n", c_w_max_search_limit);
-		printf("    w step size:       %f;\n", c_w_search_step);
+		printf("    Filter's halfwidth %d;\n", strategy.filter_halfwidth());
+		printf("    z max:             %f;\n", strategy.z_max_search_limit());
+		printf("    z step size:       %f;\n", strategy.z_search_step());
+		printf("    w max:             %f;\n", strategy.w_max_search_limit());
+		printf("    w step size:       %f;\n", strategy.w_search_step());
 		printf("\n");
 		printf("Interbinning: ");
-		if(c_interbinned_samples==2) printf("Yes.\n"); else printf("No.\n");
+		if(strategy.interbinned_samples()==2) printf("Yes.\n"); else printf("No.\n");
 		printf("High precision filters: ");
-		if(c_high_precision==1) printf("Yes.\n"); else printf("No.\n");
+		if(strategy.high_precision()==1) printf("Yes.\n"); else printf("No.\n");
 		printf("\n");
 		printf("Candidate selection:\n");
-		printf("    CS sigma thresh:   %f;\n", c_CS_sigma_threshold);
-		printf("    Number harmonics:  %d;\n", c_nHarmonics);
+		printf("    CS sigma thresh:   %f;\n", strategy.CS_sigma_threshold());
+		printf("    Number harmonics:  %d;\n", strategy.nHarmonics());
 		printf("    Algoriths:         ");
-		if(c_CS_algorithm==0) printf("threshold\n");
-		else if(c_CS_algorithm==1) printf("peak finding\n");
+		if(strategy.CS_algorithm()==0) printf("threshold\n");
+		else if(strategy.CS_algorithm()==1) printf("peak finding\n");
 		printf("Mean and standard deviation:");
 		printf("Outlier rejection     : ");
-		if(c_MSD_outlier_rejection==1) printf("Yes.\n"); else printf("No.\n");
-		printf("    Sigma cutoff:      %f;\n", c_OR_sigma_cuttoff);
+		if(strategy.MSD_outlier_rejection()==1) printf("Yes.\n"); else printf("No.\n");
+		printf("    Sigma cutoff:      %f;\n", strategy.OR_sigma_cutoff());
 		printf("Other flags:");
 		printf("Next power of two:      ");
-		if(c_always_choose_next_power_of_2) printf("Yes.\n"); else printf("No.\n");
+		if(strategy.always_choose_next_power_of_2()) printf("Yes.\n"); else printf("No.\n");
 		printf("Spectrum whitening:     ");
-		if(c_spectrum_whitening) printf("Yes.\n"); else printf("No.\n");
+		if(strategy.spectrum_whitening()) printf("Yes.\n"); else printf("No.\n");
 		printf("-------------------------------------------\n");
 		printf("\n");
 		printf("-------------------------------------------\n");
-		printf("Convolution size: %d\n", c_conv_size);
-		printf("Half filters widths z=%d; w=%d\n", c_nFilters_z_half, c_nFilters_w_half);
-		printf("Filters widths z=%d; w=%d\n", c_nFilters_z_half, c_nFilters_w_half);
-		printf("Number of filters: %d\n", c_nFilters_total);
-		printf("Halfwidth of the widest filter: %d\n", c_filter_halfwidth);
-		printf("Useful part of the segment: %d\n", c_useful_part_size);
-		printf("nSegments: %d\n", c_nSegments);
-		printf("Number of z-planes: %d; Number of z-planes per chunk: %d;\n", c_nZPlanes, c_nZPlanes_per_chunk);
+		printf("Convolution size: %d\n", strategy.conv_size());
+		printf("Half filters widths z=%d; w=%d\n", strategy.nFilters_z_half(), strategy.nFilters_w_half());
+		printf("Filters widths z=%d; w=%d\n", strategy.nFilters_z_half(), strategy.nFilters_w_half());
+		printf("Number of filters: %d\n", strategy.nFilters_total());
+		printf("Halfwidth of the widest filter: %d\n", strategy.filter_halfwidth());
+		printf("Useful part of the segment: %d\n", strategy.useful_part_size());
+		printf("nSegments: %d\n", strategy.nSegments());
+		printf("Number of z-planes: %d; Number of z-planes per chunk: %d;\n", strategy.nZPlanes(), strategy.nZPlanes_per_chunk());
 		printf("ZW chunks:\n");
-		for(int f=0; f<(int) c_ZW_chunks.size(); f++){
-			printf("    %d\n", c_ZW_chunks[f]);
+		std::vector<int> ZW_chunks = strategy.ZW_chunks();
+		for(int f=0; f<(int) ZW_chunks.size(); f++){
+			printf("    %d\n", ZW_chunks[f]);
 		}
-		printf("Number of chunks: %d; Remainder: %d;\n", c_nZPlanes_chunks, c_nZPlanes_remainder);
+		printf("Number of chunks: %d; Remainder: %d;\n", strategy.nZPlanes_chunks(), strategy.nZPlanes_remainder());
 		printf("-------------------------------------------\n");
+		return true;
 	}
 };
 

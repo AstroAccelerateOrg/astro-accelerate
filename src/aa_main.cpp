@@ -171,17 +171,28 @@ int main(int argc, char *argv[]) {
 	if (pipeline.find(aa_pipeline::component::jerk) != pipeline.end()) {
 		bool high_precision_filters = false;
 		bool interbinning = false;
+		bool always_choose_next_power_of_2 = false;
+		bool spectrum_whitening = false;
+		size_t free_mem, total_mem;
+		cudaMemGetInfo(&free_mem,&total_mem);
+		free_mem = free_mem*0.90;
 		aa_jerk_plan jerk_plan(
 			pipeline_manager.ddtr_strategy().nProcessedTimesamples(),
-			pipeline_manager.ddtr_strategy().max_ndms(), 
+			pipeline_manager.ddtr_strategy().max_ndms(),
+			free_mem,
 			user_flags.z_max,
 			user_flags.z_step,
 			user_flags.w_max,
 			user_flags.w_step,
 			interbinning,
-			high_precision_filters);
-		if(msd_baseline_noise) enable_MSD_outlier_rejection();
-		else disable_MSD_outlier_rejection();
+			high_precision_filters,
+			user_flags.sigma_cutoff,
+			user_flags.periodicity_nHarmonics,
+			msd_baseline_noise,
+			user_flags.sigma_constant,
+			always_choose_next_power_of_2,
+			spectrum_whitening
+		);
 		pipeline_manager.bind(jerk_plan);
 	}
 

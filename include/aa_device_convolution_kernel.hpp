@@ -21,7 +21,7 @@ namespace astroaccelerate {
 			int offset, 
 			int nConvolutions, 
 			int nFilters,
-			float scale
+			float scale,
 			int convolution_length);
 } // namespace astroaccelerate
 

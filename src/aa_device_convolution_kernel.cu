@@ -92,14 +92,6 @@ namespace astroaccelerate {
 	}
 
 
-	//__device__ __inline__ float shfl_xor(float *value, int par){
-	//	#if (CUDART_VERSION >= 9000)
-	//		return(__shfl_xor_sync(0xffffffff, (*value), par));
-	//	#else
-	//		return(__shfl_xor((*value), par));
-	//	#endif
-	//}
-
 
 	/* This function calculate the inverse FFT. It expect out of order input, that is order of the elements in the input must in the form produced by the Cooley-Tukey FFT algorithm.*/
 	template<class const_params>
@@ -163,14 +155,14 @@ namespace astroaccelerate {
 		
 		__syncthreads();
 		
-		A_DFT_value.x=parity*A_DFT_value.x + shfl_xor(&A_DFT_value.x, 1);
-		A_DFT_value.y=parity*A_DFT_value.y + shfl_xor(&A_DFT_value.y, 1);
-		B_DFT_value.x=parity*B_DFT_value.x + shfl_xor(&B_DFT_value.x, 1);
-		B_DFT_value.y=parity*B_DFT_value.y + shfl_xor(&B_DFT_value.y, 1);
-		C_DFT_value.x=parity*C_DFT_value.x + shfl_xor(&C_DFT_value.x, 1);
-		C_DFT_value.y=parity*C_DFT_value.y + shfl_xor(&C_DFT_value.y, 1);
-		D_DFT_value.x=parity*D_DFT_value.x + shfl_xor(&D_DFT_value.x, 1);
-		D_DFT_value.y=parity*D_DFT_value.y + shfl_xor(&D_DFT_value.y, 1);
+		A_DFT_value.x=parity*A_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK, A_DFT_value.x, 1);
+		A_DFT_value.y=parity*A_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK, A_DFT_value.y, 1);
+		B_DFT_value.x=parity*B_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK, B_DFT_value.x, 1);
+		B_DFT_value.y=parity*B_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK, B_DFT_value.y, 1);
+		C_DFT_value.x=parity*C_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK, C_DFT_value.x, 1);
+		C_DFT_value.y=parity*C_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK, C_DFT_value.y, 1);
+		D_DFT_value.x=parity*D_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK, D_DFT_value.x, 1);
+		D_DFT_value.y=parity*D_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK, D_DFT_value.y, 1);
 		
 		//--> Second through Fifth iteration (no synchronization)
 		PoT=2;
@@ -190,14 +182,14 @@ namespace astroaccelerate {
 			Dftemp.x = W.x*D_DFT_value.x - W.y*D_DFT_value.y;
 			Dftemp.y = W.x*D_DFT_value.y + W.y*D_DFT_value.x;
 			
-			A_DFT_value.x = Aftemp.x + parity*shfl_xor(&Aftemp.x,PoT);
-			A_DFT_value.y = Aftemp.y + parity*shfl_xor(&Aftemp.y,PoT);
-			B_DFT_value.x = Bftemp.x + parity*shfl_xor(&Bftemp.x,PoT);
-			B_DFT_value.y = Bftemp.y + parity*shfl_xor(&Bftemp.y,PoT);
-			C_DFT_value.x = Cftemp.x + parity*shfl_xor(&Cftemp.x,PoT);
-			C_DFT_value.y = Cftemp.y + parity*shfl_xor(&Cftemp.y,PoT);
-			D_DFT_value.x = Dftemp.x + parity*shfl_xor(&Dftemp.x,PoT);
-			D_DFT_value.y = Dftemp.y + parity*shfl_xor(&Dftemp.y,PoT);	
+			A_DFT_value.x = Aftemp.x + parity*aa_shfl_xor(AA_ASSUME_MASK, Aftemp.x, PoT);
+			A_DFT_value.y = Aftemp.y + parity*aa_shfl_xor(AA_ASSUME_MASK, Aftemp.y, PoT);
+			B_DFT_value.x = Bftemp.x + parity*aa_shfl_xor(AA_ASSUME_MASK, Bftemp.x, PoT);
+			B_DFT_value.y = Bftemp.y + parity*aa_shfl_xor(AA_ASSUME_MASK, Bftemp.y, PoT);
+			C_DFT_value.x = Cftemp.x + parity*aa_shfl_xor(AA_ASSUME_MASK, Cftemp.x, PoT);
+			C_DFT_value.y = Cftemp.y + parity*aa_shfl_xor(AA_ASSUME_MASK, Cftemp.y, PoT);
+			D_DFT_value.x = Dftemp.x + parity*aa_shfl_xor(AA_ASSUME_MASK, Dftemp.x, PoT);
+			D_DFT_value.y = Dftemp.y + parity*aa_shfl_xor(AA_ASSUME_MASK, Dftemp.y, PoT);	
 			
 			PoT=PoT<<1;
 			PoTp1=PoTp1<<1;
@@ -381,14 +373,14 @@ namespace astroaccelerate {
 			parity=(1-j*2);
 			W = Get_W_value(PoT, j*(m_param-PoTm1));
 			
-			Aftemp.x = parity*A_DFT_value.x + shfl_xor(&A_DFT_value.x, PoTm1);
-			Aftemp.y = parity*A_DFT_value.y + shfl_xor(&A_DFT_value.y, PoTm1);
-			Bftemp.x = parity*B_DFT_value.x + shfl_xor(&B_DFT_value.x, PoTm1);
-			Bftemp.y = parity*B_DFT_value.y + shfl_xor(&B_DFT_value.y, PoTm1);
-			Cftemp.x = parity*C_DFT_value.x + shfl_xor(&C_DFT_value.x, PoTm1);
-			Cftemp.y = parity*C_DFT_value.y + shfl_xor(&C_DFT_value.y, PoTm1);
-			Dftemp.x = parity*D_DFT_value.x + shfl_xor(&D_DFT_value.x, PoTm1);
-			Dftemp.y = parity*D_DFT_value.y + shfl_xor(&D_DFT_value.y, PoTm1);
+			Aftemp.x = parity*A_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK, A_DFT_value.x, PoTm1);
+			Aftemp.y = parity*A_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK, A_DFT_value.y, PoTm1);
+			Bftemp.x = parity*B_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK, B_DFT_value.x, PoTm1);
+			Bftemp.y = parity*B_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK, B_DFT_value.y, PoTm1);
+			Cftemp.x = parity*C_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK, C_DFT_value.x, PoTm1);
+			Cftemp.y = parity*C_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK, C_DFT_value.y, PoTm1);
+			Dftemp.x = parity*D_DFT_value.x + aa_shfl_xor(AA_ASSUME_MASK, D_DFT_value.x, PoTm1);
+			Dftemp.y = parity*D_DFT_value.y + aa_shfl_xor(AA_ASSUME_MASK, D_DFT_value.y, PoTm1);
 			
 			A_DFT_value.x = W.x*Aftemp.x - W.y*Aftemp.y; 
 			A_DFT_value.y = W.x*Aftemp.y + W.y*Aftemp.x;
@@ -582,23 +574,23 @@ namespace astroaccelerate {
 			
 		switch(FFT_size) {
 			case 256:
-				k_customFFT_GPU_forward<FFT_256><<<grid_size, block_size>>>(d_filters, d_filters);
+				k_customFFT_GPU_forward<FFT_256><<<grid_size, block_size>>>(d_input, d_output);
 				break;
 				
 			case 512:
-				k_customFFT_GPU_forward<FFT_512><<<grid_size, block_size>>>(d_filters, d_filters);
+				k_customFFT_GPU_forward<FFT_512><<<grid_size, block_size>>>(d_input, d_output);
 				break;
 			
 			case 1024:
-				k_customFFT_GPU_forward<FFT_1024><<<grid_size, block_size>>>(d_filters, d_filters);
+				k_customFFT_GPU_forward<FFT_1024><<<grid_size, block_size>>>(d_input, d_output);
 				break;
 
 			case 2048:
-				k_customFFT_GPU_forward<FFT_2048><<<grid_size, block_size>>>(d_filters, d_filters);
+				k_customFFT_GPU_forward<FFT_2048><<<grid_size, block_size>>>(d_input, d_output);
 				break;
 				
 			case 4096:
-				k_customFFT_GPU_forward<FFT_4096><<<grid_size, block_size>>>(d_filters, d_filters);
+				k_customFFT_GPU_forward<FFT_4096><<<grid_size, block_size>>>(d_input, d_output);
 				break;
 			
 			default : 
@@ -618,7 +610,7 @@ namespace astroaccelerate {
 			int offset, 
 			int nConvolutions, 
 			int nFilters,
-			float scale
+			float scale,
 			int convolution_length)
 		{
 			
@@ -648,5 +640,5 @@ namespace astroaccelerate {
 		}
 	}
 
-}
+} //namespace
 #endif

@@ -116,7 +116,7 @@ int presto_w_resp_halfwidth(double z, double w, int accuracy){
 }
 
 
-cufftComplex *presto_gen_r_response(double roffset, int numbetween, int numkern){
+cufftComplex *presto_gen_r_response(double roffset, int numbetween, int numkern)
   /*  Generate a complex response function for Fourier interpolation.  */
   /*  Arguments:                                                       */
   /*    'roffset' is the offset in Fourier bins for the full response  */
@@ -184,7 +184,7 @@ cufftComplex *presto_gen_r_response(double roffset, int numbetween, int numkern)
   }
 
 
-  cufftComplex* presto_gen_z_response(double roffset, int numbetween, double z, int numkern) {
+  cufftComplex* presto_gen_z_response(double roffset, int numbetween, double z, int numkern)
   /*  Generate the response function for Fourier f-dot interpolation.  */
   /*  Arguments:                                                       */
   /*    'roffset' is the offset in Fourier bins for the full response  */
@@ -379,7 +379,7 @@ cufftComplex *presto_gen_w_response(double roffset, int numbetween, double z, do
 		cudaError = cudaMemcpy(d_input, data, data_size, cudaMemcpyHostToDevice);
 	    if(cudaError != cudaSuccess) printf("Could not cudaMemcpy in presto_func.cpp");
 	    
-		cufftExecR2C(plan, d_input, d_input);
+		cufftExecR2C(plan, d_input, d_output);
 		
 		cudaError = cudaMemcpy(data_fft, d_output, data_fft_size, cudaMemcpyDeviceToHost);
 	    if(cudaError != cudaSuccess) printf("Could not cudaMemcpy in presto_func.cpp");
