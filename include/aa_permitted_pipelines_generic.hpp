@@ -587,16 +587,16 @@ namespace astroaccelerate {
 				
 				//---------> Zero DM
 				if (m_pipeline_options.find(opt_zero_dm) != m_pipeline_options.end()) {
-					printf("\nPerforming zero DM...");
+					LOG(log_level::debug, "Performing zero DM...");
 					m_local_timer.Start();
 					zero_dm(d_DDTR_input, nchans, t_processed[0][current_time_chunk] + maxshift_original, nbits);
 					m_local_timer.Stop();
 					time_log.adding("DDTR", "Zero_DM", m_local_timer.Elapsed());
 				}
 				else if (m_pipeline_options.find(opt_zero_dm_with_outliers) != m_pipeline_options.end()) {
-					printf("\nPerforming zero dM with outliers...");
+					LOG(log_level::debug, "Performing zero DM with outliers...");
 					m_local_timer.Start();
-					zero_dm_outliers(d_DDTR_input, nchans, t_processed[0][current_time_chunk] + maxshift_original);
+					zero_dm_outliers(d_DDTR_input, nchans, t_processed[0][current_time_chunk] + maxshift_original, nbits);
 					m_local_timer.Stop();
 					time_log.adding("DDTR", "Zero_DM_outliers", m_local_timer.Elapsed());
 				}
