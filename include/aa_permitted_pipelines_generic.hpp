@@ -30,6 +30,7 @@
 #include "aa_analysis_strategy.hpp"
 #include "aa_periodicity_strategy.hpp"
 #include "aa_fdas_strategy.hpp"
+#include "aa_jerk_strategy.hpp"
 
 #include "aa_filterbank_metadata.hpp"
 #include "aa_device_load_data.hpp"
@@ -44,6 +45,7 @@
 #include "aa_device_analysis.hpp"
 #include "aa_device_periods.hpp"
 #include "aa_device_acceleration_fdas.hpp"
+#include "aa_device_jerk_search.hpp"
 #include "aa_pipeline_runner.hpp"
 
 #include "aa_gpu_timer.hpp"
@@ -69,6 +71,7 @@ namespace astroaccelerate {
 		aa_analysis_strategy                 m_analysis_strategy;
 		aa_periodicity_strategy              m_periodicity_strategy;
 		aa_fdas_strategy                     m_fdas_strategy;
+		aa_jerk_strategy                     m_jerk_strategy;
 		unsigned short     const*const m_input_buffer;
 		int                num_tchunks; 
 		std::vector<float> dm_shifts; 
@@ -117,6 +120,7 @@ namespace astroaccelerate {
 		bool do_single_pulse_detection;
 		bool do_periodicity_search;
 		bool do_fdas;
+		bool do_jerk;
 		
 		bool do_copy_DDTR_data_to_host;
 		
@@ -124,6 +128,7 @@ namespace astroaccelerate {
 		bool memory_cleanup;
 		bool periodicity_did_run;
 		bool acceleration_did_run;
+		bool jerk_did_run;
 		bool did_notify_of_finishing_component;
 
 		//Loop counter variables
@@ -469,6 +474,7 @@ namespace astroaccelerate {
 			const aa_pipeline::component cmp_analysis     = aa_pipeline::component::analysis;
 			const aa_pipeline::component cmp_periodicity  = aa_pipeline::component::periodicity;
 			const aa_pipeline::component cmp_fdas         = aa_pipeline::component::fdas;
+			const aa_pipeline::component cmp_jerk         = aa_pipeline::component::jerk;
 			
 			//----> Component options
 			const aa_pipeline::component_option opt_copy_ddtr_data_to_host = aa_pipeline::component_option::copy_ddtr_data_to_host;
@@ -480,11 +486,15 @@ namespace astroaccelerate {
 			else do_periodicity_search = false;
 			if(m_pipeline_components.find(cmp_fdas) != m_pipeline_components.end()) do_fdas = true;
 			else do_fdas = false;
+			if(m_pipeline_components.find(cmp_jerk) != m_pipeline_components.end()) do_jerk = true;
+			else do_jerk = false;
+			
 			
 			do_copy_DDTR_data_to_host = false;
 			if(m_pipeline_options.find(opt_copy_ddtr_data_to_host) != m_pipeline_options.end()) do_copy_DDTR_data_to_host = true;
 			if(do_periodicity_search) do_copy_DDTR_data_to_host = true;
 			if(do_fdas) do_copy_DDTR_data_to_host = true;
+			if(do_jerk) do_copy_DDTR_data_to_host = true;
 		}
 
 		/**
@@ -553,6 +563,15 @@ namespace astroaccelerate {
 					bool acceleration_return_value = acceleration();
 					status_code = aa_pipeline_runner::status::finished;
 					return acceleration_return_value;
+				}
+				//--------------------------------------------------------------------------------<
+				
+				
+				//------------------> JERK search
+				if (!jerk_did_run && do_jerk) {
+					bool jerk_return_value = jerk_search();
+					status_code = aa_pipeline_runner::status::finished;
+					return jerk_return_value;
 				}
 				//--------------------------------------------------------------------------------<
 
@@ -862,6 +881,23 @@ namespace astroaccelerate {
 
 			return true;
 		}
+		
+		bool jerk_search() {
+			const int *ndms = m_ddtr_strategy.ndms_data();
+			int nRanges = m_ddtr_strategy.get_nRanges();
+			
+			aa_gpu_timer timer;
+			timer.Start();
+			
+			jerk_search_from_ddtr_plan(m_output_buffer, m_jerk_strategy, dm_low.data(), dm_step.data(), ndms, tsamp_original, inBin.data(), nRanges);
+			
+			timer.Stop();
+			time_log.adding("JERK", "total", timer.Elapsed());
+			time_log.adding("Total", "total", timer.Elapsed());
+			
+			jerk_did_run = true;
+			return (true);
+		}
 
 	public:
 		aa_permitted_pipelines_generic(
@@ -871,6 +907,7 @@ namespace astroaccelerate {
 		const aa_analysis_strategy &analysis_strategy,
 		const aa_periodicity_strategy &periodicity_strategy,
 		const aa_fdas_strategy &fdas_strategy,
+		const aa_jerk_strategy &jerk_strategy,
 		const bool &fdas_enable_custom_fft,
 		const bool &fdas_enable_inbin,
 		const bool &fdas_enable_norm,
@@ -884,6 +921,7 @@ namespace astroaccelerate {
 		m_analysis_strategy(analysis_strategy),
 		m_periodicity_strategy(periodicity_strategy),
 		m_fdas_strategy(fdas_strategy),
+		m_jerk_strategy(jerk_strategy),
 		m_input_buffer(input_buffer),
 		m_fdas_enable_custom_fft(fdas_enable_custom_fft),
 		m_fdas_enable_inbin(fdas_enable_inbin),
@@ -894,6 +932,7 @@ namespace astroaccelerate {
 		memory_cleanup(false),
 		periodicity_did_run(false),
 		acceleration_did_run(false),
+		jerk_did_run(false),
 		did_notify_of_finishing_component(false),
 		current_time_chunk(0),
 		current_range(0),

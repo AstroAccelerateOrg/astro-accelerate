@@ -95,9 +95,10 @@ int main() {
 
   //-------------- Create empty strategy object for unused components
   aa_fdas_strategy empty_fdas_strategy;
+  aa_jerk_strategy empty_jerk_strategy;
   //--------------<
 
-  aa_permitted_pipelines_generic pipeline_runner(pipeline_components, pipeline_options, ddtr_strategy, analysis_strategy, periodicity_strategy, empty_fdas_strategy, false, false, false, false, false, input_data.data());  
+  aa_permitted_pipelines_generic pipeline_runner(pipeline_components, pipeline_options, ddtr_strategy, analysis_strategy, periodicity_strategy, empty_fdas_strategy, empty_jerk_strategy, false, false, false, false, false, input_data.data());  
 //  aa_permitted_pipelines_3<aa_pipeline::component_option::zero_dm, false> runner(ddtr_strategy, analysis_strategy, periodicity_strategy, input_data.data());
   if(pipeline_runner.setup()) {
     while(pipeline_runner.next()) {
