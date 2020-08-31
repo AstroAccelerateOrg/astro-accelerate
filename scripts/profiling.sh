@@ -71,7 +71,7 @@ do
     done
 done
 
-optimum=$(grep "Real" ${ASTRO_ACCELERATE_PROFILING_OUTPUT_PATH}/profile_results/* | awk -F" " '{print $4" "$1}' | sort -n | tail -1 | awk -F" " '{print $2}' | awk -F"." '{print $1".h"}')
+optimum=$(grep "Real-time speedup factor" ${ASTRO_ACCELERATE_PROFILING_OUTPUT_PATH}/profile_results/* | awk -F" " '{print $4" "$1}' | sort -n | tail -1 | awk -F" " '{print $2}' | awk -F"." '{print $1".h"}')
 
 cp $optimum ${include}/aa_params.hpp
 pwd

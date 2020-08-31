@@ -59,6 +59,17 @@ namespace astroaccelerate {
     const std::vector<std::vector<int>>& t_processed() const {
       return m_t_processed;
     }
+	
+	size_t nProcessedTimesamples() {
+		size_t sum = 0;
+		if(m_t_processed.size()>0){
+			for(int f=0; f<(int)m_t_processed[0].size();f++){
+				sum = sum + m_t_processed[0][f];
+			}
+		}
+		return(sum);
+	}
+		
     
     /** \returns dmshifts as set by strategy. */
     std::vector<float> dmshifts() const {

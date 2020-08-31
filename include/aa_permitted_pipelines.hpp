@@ -35,6 +35,7 @@ namespace astroaccelerate {
      * \returns A boolean to indicate whether the pipeline is permitted (true) or not (false).
      */
     static bool is_permitted(const aa_pipeline::pipeline &pipeline) {
+		// With generic pipeline in mind we need to rethink this.
       if(pipeline == pipeline0) {
 	return true;
       }
@@ -63,7 +64,7 @@ namespace astroaccelerate {
 	return true;
       }
       else {
-	return false;
+	return true;
       }
         
       return false;

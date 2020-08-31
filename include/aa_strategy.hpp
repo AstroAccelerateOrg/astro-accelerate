@@ -2,6 +2,7 @@
 #define ASTRO_ACCELERATE_AA_STRATEGY_HPP
 
 #include <stdio.h>
+#include <string>
 
 namespace astroaccelerate {
 

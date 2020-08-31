@@ -565,17 +565,12 @@ namespace astroaccelerate {
 #endif
 	
     (*workarea_size_in_bytes) = t_wsib;
-    (*MSD_profile_size_in_bytes) = boxcar_widths->size()*2*sizeof(float);
-    (*MSD_DIT_profile_size_in_bytes) = nDecimations*MSD_PARTIAL_SIZE*sizeof(float);
+    (*MSD_profile_size_in_bytes) = boxcar_widths->size()*MSD_RESULTS_SIZE*sizeof(float);
+    (*MSD_DIT_profile_size_in_bytes) = nDecimations*MSD_RESULTS_SIZE*sizeof(float);
   }
 
 
-  // TODO:
-  //		Make it fail reasonably, which means if max_boxcar_width = 1 calculate only MSD for given plane and omit DIT completely
-  //		Add checks when StDev blows up because of too much DIT
-  //		Add checks if there is enough timesamples to do DIT.
-  // Note: By separating DIT = 2 into two parts we slightly decreasing precision if compared to non spit case, because outlier rejection has fewer points to work with. This could be a problem if we have a plane small enough to fit into memory but we still plit it in two.
-  //		Add branch that would not split DIT=2 if there is enough memory. 
+
   void MSD_plane_profile(float *d_MSD_interpolated, float *d_input_data, float *d_MSD_DIT_previous, float *workarea, bool high_memory, size_t primary_dimension, size_t secondary_dimension, std::vector<int> *boxcar_widths, float tstart, float dm_low, float dm_high, float OR_sigma_multiplier, int enable_outlier_rejection, bool perform_continuous, double *total_time, double *dit_time, double *MSD_time){
     int boxcar_widths_size = (int) boxcar_widths->size();
     int max_boxcar_width = boxcar_widths->operator[](boxcar_widths_size-1);
@@ -614,7 +609,7 @@ namespace astroaccelerate {
 
   //---------------------------------------------------------------
   //------------- MSD plane profile boxcars
-
+/*
   void Create_boxcar_MSD(float *d_data, size_t nTimesamples, size_t nDMs, std::vector<MSD_Data> *boxcar_MSD, std::vector<MSD_Data> *boxcar_MSD_BLN, int max_nTaps, int max_boxcar_width, float OR_sigma_multiplier){
     aa_gpu_timer timer;
     double total_time = 0;
@@ -851,9 +846,10 @@ namespace astroaccelerate {
     }
     
   }
+*/
 
 
-
+/*
   void MSD_plane_profile_boxcars(float *d_input_data, size_t nTimesamples, size_t nDMs, std::vector<int> *boxcar_widths, float OR_sigma_multiplier, float dm_low, float dm_high, float tstart){
     char filename[200];
     std::vector<MSD_Data> h_boxcar_MSD;
@@ -891,6 +887,7 @@ namespace astroaccelerate {
 	
     FILEOUT.close();
   }
+*/
 
 } //namespace astroaccelerate
   

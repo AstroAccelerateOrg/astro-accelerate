@@ -83,11 +83,10 @@ namespace astroaccelerate {
       }
       
       if((ready_to_configure) && (analysis_plan.ddtr_strategy().configured_for_analysis())) {
-	stratagy_MSD(analysis_plan.ddtr_strategy().max_ndms(),
-		     analysis_plan.max_boxcar_width_in_sec(),
-		     analysis_plan.ddtr_strategy().metadata().tsamp(),
-		     analysis_plan.ddtr_strategy().t_processed().at(0).at(0),
-		     m_MSD_data_info, m_MSD_profile_size_in_bytes, m_h_MSD_DIT_width);
+	stratagy_MSD(
+		analysis_plan.ddtr_strategy().max_ndms(),
+		analysis_plan.ddtr_strategy().t_processed().at(0).at(0),
+		m_MSD_data_info, m_MSD_profile_size_in_bytes, m_h_MSD_DIT_width);
       }
     }
 
@@ -203,11 +202,10 @@ namespace astroaccelerate {
       }
     }
 
-    void stratagy_MSD(const int &nDMs,
-		      const float &max_boxcar_width_in_sec,
-		      const float &tsamp,
-		      const int &nTimesamples,
-		      unsigned long int &maxtimesamples, size_t &MSD_profile_size_in_bytes, int &MSD_nDIT_widths) {
+    void stratagy_MSD(
+			const int &nDMs,
+			const int &nTimesamples,
+			unsigned long int &maxtimesamples, size_t &MSD_profile_size_in_bytes, int &MSD_nDIT_widths) {
 
       size_t vals;
       // Calculate the total number of values
@@ -216,7 +214,7 @@ namespace astroaccelerate {
       aa_device_info& mem = aa_device_info::instance();
       size_t free_mem = mem.gpu_memory() - mem.requested();
       printf("\n----------------------- MSD info ---------------------------\n");
-      printf("  Memory required by boxcar filters:%0.3f MB\n",(4.5*vals*sizeof(float) + 2*vals*sizeof(ushort))/(1024.0*1024) );
+      printf("  Memory required by single pulse detection:%0.3f MB\n",(5.5*vals*sizeof(float) + 2*vals*sizeof(ushort))/(1024.0*1024) );
       printf("  Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
       maxtimesamples = (free_mem*0.95)/((5.5*sizeof(float) + 2*sizeof(ushort)));
       printf("  Max samples: :%lu\n", maxtimesamples);
@@ -235,9 +233,11 @@ namespace astroaccelerate {
       size_t MSD_DIT_profile_size_in_bytes, workarea_size_in_bytes;
       Get_MSD_plane_profile_memory_requirements(&MSD_profile_size_in_bytes, &MSD_DIT_profile_size_in_bytes, &workarea_size_in_bytes, nTimesamples, nDMs, &h_boxcar_widths);
 	
-      MSD_nDIT_widths = (int)(max_boxcar_width_in_sec/tsamp);
+      MSD_nDIT_widths = h_boxcar_widths.size();
 
-      printf("\n  Size MSD: %zu \tSize workarea: %f, int: %d\n", MSD_profile_size_in_bytes, workarea_size_in_bytes/1024/1024.0, MSD_nDIT_widths);
+      printf("  Number of boxcar filter steps: %zu;\n", h_boxcar_widths.size());
+      printf("  Memory required for MSD results for all boxcar filters: %zu bytes;\n", MSD_profile_size_in_bytes);
+      printf("  Size of MSD temporary workarea: %0.3f MB;\n", workarea_size_in_bytes/1024/1024.0);
       printf("------------------------------------------------------------\n");
 
       // Inform aa_device_memory_manager of the memory that will be required
