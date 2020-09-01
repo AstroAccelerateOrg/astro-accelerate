@@ -3,7 +3,6 @@
 namespace astroaccelerate {
 
 int dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned short *d_input, float *d_output, float *d_dm_shifts, int nchans, float *tsamp, float *dm_low, float *dm_step, int const*const ndms, int nbits, int failsafe) {
-  cudaError_t CUDA_error;
     
   if (failsafe == 0) {
     if(nbits == 16 || nbits == 32) {
@@ -22,7 +21,7 @@ int dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sho
 
 	      printf("\nUsing fast shared memory kernel 16/32-bit\n");
 
-	      //{{{ Dedisperse data on the GPU
+	      //Dedisperse data on the GPU
 	      float startdm = dm_low[i];
 
 	      int divisions_in_t = SDIVINT;
@@ -105,7 +104,7 @@ int dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sho
 
 	      printf("\nUsing fast shared memory kernel 8-bit\n");
 
-	      //{{{ Dedisperse data on the GPU
+	      //Dedisperse data on the GPU
 	      float startdm = dm_low[i];
 
 	      int divisions_in_t = SDIVINT;
@@ -137,7 +136,7 @@ int dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sho
   if(failsafe != 0) {
       printf("\nUsing fallback failsafe kernel\n");
 
-      //{{{ Dedisperse data on the GPU
+      //Dedisperse data on the GPU
       float startdm = dm_low[i];
 
       int divisions_in_t = SDIVINT;
@@ -157,12 +156,13 @@ int dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sho
 		call_kernel_cache_dedisperse_kernel(num_blocks, threads_per_block, inBin[i], d_input, d_output, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
 	}
   }
-  
-  CUDA_error = cudaGetLastError();
-  if(CUDA_error != cudaSuccess) {
-    return(1);
-  }
-  else return(0);
+
+ cudaError_t CUDA_error;  
+ CUDA_error = cudaGetLastError();
+ if(CUDA_error != cudaSuccess) {
+  return(1);
+ }
+ else return(0);
 }
 
 } //namespace astroaccelerate

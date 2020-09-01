@@ -719,16 +719,17 @@ namespace astroaccelerate {
 					}
 				}
 				
-				
+				int kernel_error;				
 				m_local_timer.Start();
-				dedisperse(dm_range, t_processed[dm_range][current_time_chunk], inBin.data(), dmshifts, d_DDTR_input, d_DDTR_output, d_dm_shifts, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
+				kernel_error = dedisperse(dm_range, t_processed[dm_range][current_time_chunk], inBin.data(), dmshifts, d_DDTR_input, d_DDTR_output, d_dm_shifts, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
 				m_local_timer.Stop();
 				time_log.adding("DDTR","Dedispersion",m_local_timer.Elapsed());
 
-				CUDA_error = cudaGetLastError();
-				if(CUDA_error != cudaSuccess) {
+//				CUDA_error = cudaGetLastError();
+				if(kernel_error != 0) {
 					pipeline_error = PIPELINE_ERROR_DEDISPERSION;
-					LOG(log_level::error, "GPU error at Dedispersion. (" + std::string(cudaGetErrorString(CUDA_error)) + ")");
+//					LOG(log_level::error, "GPU error at Dedispersion. (" + std::string(cudaGetErrorString(CUDA_error)) + ")");
+					LOG(log_level::error, "GPU error at Dedispersion.");
 				}
 				
 				
