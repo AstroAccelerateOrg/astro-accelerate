@@ -19,11 +19,15 @@ namespace astroaccelerate {
 			//checkCudaErrors(cudaGetLastError());
 			if( (nchans>8192) && (nbits != 4) ){
 				cudaMemcpy(d_dm_shifts, dmshifts, nchans*sizeof(float), cudaMemcpyHostToDevice);
+				set_device_constants_dedispersion_kernel(nchans, length, t_processed);
 			}
-			if ( (nbits == 4) && (nchans > 4096) ){
+			else if ( (nbits == 4) && (nchans > 4096) ){
 				cudaMemcpy(d_dm_shifts, dmshifts, nchans*sizeof(float), cudaMemcpyHostToDevice);
+				set_device_constants_dedispersion_kernel(nchans, length, t_processed);
 			}
-			set_device_constants_dedispersion_kernel(nchans, length, t_processed, dmshifts);
+			else {
+				set_device_constants_dedispersion_kernel(nchans, length, t_processed, dmshifts);
+			}
 		}
 		else if(i > 0) {
 			const long int length = ( t_processed + maxshift );
@@ -40,11 +44,15 @@ namespace astroaccelerate {
 		//checkCudaErrors(cudaGetLastError());
 		if( (nchans>8192) && (nbits != 4) ){
 			cudaMemcpy(d_dm_shifts, dmshifts, nchans*sizeof(float), cudaMemcpyHostToDevice);
+			set_device_constants_dedispersion_kernel(nchans, length, t_processed);
 		}
-		if ( (nbits == 4) && (nchans > 4096) ){
+		else if ( (nbits == 4) && (nchans > 4096) ){
 			cudaMemcpy(d_dm_shifts, dmshifts, nchans*sizeof(float), cudaMemcpyHostToDevice);
+			set_device_constants_dedispersion_kernel(nchans, length, t_processed);
 		}
-		set_device_constants_dedispersion_kernel(nchans, length, t_processed, dmshifts);
+		else {
+			set_device_constants_dedispersion_kernel(nchans, length, t_processed, dmshifts);
+		}
     }
 	
     void set_dedispersion_constants(int t_processed, int maxshift){

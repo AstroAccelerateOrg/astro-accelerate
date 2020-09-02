@@ -15,6 +15,9 @@ namespace astroaccelerate {
   /** \brief Kernel wrapper function to set device constants for dedispersion_kernel kernel function. */
   void set_device_constants_dedispersion_kernel(const long int &length, const int &t_processed);
 
+  /** \brief Kernel wrapper function to set device constants for dedispersion_kernel kernel function. */
+  void set_device_constants_dedispersion_kernel(const int &nchans, const long int &length, const int &t_processed);
+
   /** \brief Kernel wrapper function for shared_dedisperse_kernel kernel function. */
   void call_kernel_shared_dedisperse_kernel(const dim3 &block_size, const dim3 &grid_size, const int &bin, unsigned short *const d_input, float *const d_output, const float &mstartdm, const float &mdmstep);
   

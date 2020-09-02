@@ -494,6 +494,12 @@ namespace astroaccelerate {
     cudaMemcpyToSymbol(i_t_processed_s, &t_processed, sizeof(int));
   }
 
+  void set_device_constants_dedispersion_kernel(const int &nchans, const long int &length, const int &t_processed) {
+    cudaMemcpyToSymbol(i_nchans, &nchans, sizeof(int));
+    cudaMemcpyToSymbol(i_nsamp, &length, sizeof(int));
+    cudaMemcpyToSymbol(i_t_processed_s, &t_processed, sizeof(int));
+  }
+
   /** \brief Kernel wrapper function for dedisperse_kernel  kernel function. */
   void call_kernel_shared_dedisperse_kernel(const dim3 &block_size, const dim3 &grid_size,
 					    const int &bin, unsigned short *const d_input, float *const d_output, const float &mstartdm, const float &mdmstep) {
