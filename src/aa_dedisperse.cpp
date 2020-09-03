@@ -61,7 +61,7 @@ int dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sho
 		// access...
 
 		if (( ( SDIVINT - 1 ) + ( ( SDIVINDM - 1 ) * SDIVINT ) - 1 ) > lineshift) {
-			printf("\nUsing fast shared memory kernel 4-bit");
+			printf("\nUsing fast shared memory kernel 4-bit\n");
 
 			float startdm = dm_low[i];
 
