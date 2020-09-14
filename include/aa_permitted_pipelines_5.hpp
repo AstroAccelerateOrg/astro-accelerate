@@ -369,7 +369,7 @@ namespace astroaccelerate {
       const int *ndms = m_ddtr_strategy.ndms_data();
       
       //checkCudaErrors(cudaGetLastError());
-      load_data(-1, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts, NULL);
+      load_data(-1, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts, NULL, nbits);
       //checkCudaErrors(cudaGetLastError());
 
       if(zero_dm_type == aa_pipeline::component_option::zero_dm) {
@@ -405,7 +405,7 @@ namespace astroaccelerate {
 	cudaDeviceSynchronize();
 	//checkCudaErrors(cudaGetLastError());
 
-	load_data(dm_range, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t], maxshift, nchans, dmshifts, NULL);
+	load_data(dm_range, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t], maxshift, nchans, dmshifts, NULL, nbits);
 
 	//checkCudaErrors(cudaGetLastError());
 

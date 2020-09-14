@@ -167,7 +167,7 @@ namespace astroaccelerate {
 					d_DDTR_output = NULL;
 				}
 			}
-			if(nchans>8192 && d_dm_shifts!=NULL) {
+			if(nchans>8192 && nbits!=4 && d_dm_shifts!=NULL) {
 				e =cudaFree(d_dm_shifts);
 				if (e != cudaSuccess) {
 					pipeline_error = PIPELINE_ERROR_GPU_FREE_MEMORY_FAIL;
@@ -177,7 +177,17 @@ namespace astroaccelerate {
 					d_dm_shifts = NULL;
 				}
 			}
-			
+			if(nchans>4096 && nbits==4 && d_dm_shifts!=NULL) {
+				e =cudaFree(d_dm_shifts);
+				if (e != cudaSuccess) {
+					pipeline_error = PIPELINE_ERROR_GPU_FREE_MEMORY_FAIL;
+					LOG(log_level::error, "Cannot free memory (" + std::string(cudaGetErrorString(e)) + ")");
+				}
+				else {
+					d_dm_shifts = NULL;
+				}
+			}
+            
 			if(do_single_pulse_detection){
 				if(m_d_MSD_workarea!=NULL) {
 					e = cudaFree(m_d_MSD_workarea);
@@ -235,7 +245,8 @@ namespace astroaccelerate {
 				LOG(log_level::debug, "DDTR -> Memory cleanup after de-dispersion");
 				cudaFree(d_DDTR_input);
 				cudaFree(d_DDTR_output);
-				if(nchans>8192) cudaFree(d_dm_shifts);
+				if( (nchans > 8192) && (nbits != 4) ) cudaFree(d_dm_shifts);
+				if( (nbits == 4) && (nchans > 4096) ) cudaFree(d_dm_shifts);
 				
 				if(do_single_pulse_detection){
 					cudaFree(m_d_MSD_workarea);
@@ -311,17 +322,26 @@ namespace astroaccelerate {
 				LOG(log_level::error, "Could not allocate memory for d_DDTR_output using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
 			}
 			cudaMemset(*d_DDTR_output, 0, gpu_outputsize);
-			
-			if(nchans>8192){
+
+			if( (nchans>8192) && (nbits != 4) ){		
 				e = cudaMalloc((void **)d_dm_shifts, nchans*sizeof(float));
 				if (e != cudaSuccess) {
 					pipeline_error = PIPELINE_ERROR_DDTR_GPU_MEMORY_FAIL;
 					LOG(log_level::error, "Could not allocate memory for d_dm_shifts using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
 				}
 			}
+
+			if( (nchans>4096) && (nbits==4) ){
+				e = cudaMalloc((void **)d_dm_shifts, nchans*sizeof(float));
+				if (e != cudaSuccess) {
+          pipeline_error = PIPELINE_ERROR_DDTR_GPU_MEMORY_FAIL;
+					LOG(log_level::error, "Could not allocate memory for d_dm_shifts (4-bit) using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
+				}
+			}
 			
 			if(pipeline_error!=PIPELINE_ERROR_NO_ERROR) return false;
 			else return true;
+
 		}
 
 
@@ -591,7 +611,7 @@ namespace astroaccelerate {
 
 				//---------> Load chunks
 				m_local_timer.Start();
-				load_chunk_data(d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift_original, nchans, dmshifts, d_dm_shifts);
+				load_chunk_data(d_DDTR_input, &m_input_buffer[(long int)(inc * nchans)], t_processed[0][current_time_chunk], maxshift_original, nchans, dmshifts, d_dm_shifts, nbits);
 				m_local_timer.Stop();
 				time_log.adding("DDTR", "Host_To_Device", m_local_timer.Elapsed());
 				
@@ -699,16 +719,17 @@ namespace astroaccelerate {
 					}
 				}
 				
-				
+				int kernel_error;				
 				m_local_timer.Start();
-				dedisperse(dm_range, t_processed[dm_range][current_time_chunk], inBin.data(), dmshifts, d_DDTR_input, d_DDTR_output, d_dm_shifts, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
+				kernel_error = dedisperse(dm_range, t_processed[dm_range][current_time_chunk], inBin.data(), dmshifts, d_DDTR_input, d_DDTR_output, d_dm_shifts, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
 				m_local_timer.Stop();
 				time_log.adding("DDTR","Dedispersion",m_local_timer.Elapsed());
 
-				CUDA_error = cudaGetLastError();
-				if(CUDA_error != cudaSuccess) {
+//				CUDA_error = cudaGetLastError();
+				if(kernel_error != 0) {
 					pipeline_error = PIPELINE_ERROR_DEDISPERSION;
-					LOG(log_level::error, "GPU error at Dedispersion. (" + std::string(cudaGetErrorString(CUDA_error)) + ")");
+//					LOG(log_level::error, "GPU error at Dedispersion. (" + std::string(cudaGetErrorString(CUDA_error)) + ")");
+					LOG(log_level::error, "GPU error at Dedispersion.");
 				}
 				
 				

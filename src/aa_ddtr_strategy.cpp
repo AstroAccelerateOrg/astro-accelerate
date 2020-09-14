@@ -42,6 +42,7 @@ namespace astroaccelerate {
     const float fch1  = m_metadata.fch1();
     const float foff  = m_metadata.foff();
     const float tsamp = m_metadata.tsamp();
+    const int nbits = m_metadata.nbits();
     
     if(!plan.range()) {
       //No user requested dm settings have been added, this is an invalid aa_ddtr_plan.
@@ -166,12 +167,25 @@ namespace astroaccelerate {
       if ((unsigned int)nsamp < max_tsamps)    {
 	// We have case 1)
 	// Allocate memory to hold the values of nsamps to be processed
-	unsigned long int local_t_processed = (unsigned long int) floor(( (double) ( nsamp - (m_maxshift) ) / (double) plan.user_dm(range-1).inBin ) / (double) ( SDIVINT*2*SNUMREG )); //number of timesamples per block
-	local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	unsigned long int local_t_processed;
+	if (nbits == 4){
+		local_t_processed = (unsigned long int) floor(( (double) ( nsamp - (m_maxshift) ) / (double) plan.user_dm(range-1).inBin ) / (double) ( SDIVINT*4*SNUMREG )); //number of timesamples per block	
+		local_t_processed = local_t_processed * ( SDIVINT*4*SNUMREG ) * plan.user_dm(range-1).inBin;
+	}
+	else {
+		local_t_processed = (unsigned long int) floor(( (double) ( nsamp - (m_maxshift) ) / (double) plan.user_dm(range-1).inBin ) / (double) ( SDIVINT*2*SNUMREG )); //number of timesamples per block
+		local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	}
 	for (size_t i = 0; i < range; i++)    {
 	  m_t_processed[i].resize(1);
-	  m_t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-	  m_t_processed[i][0] = m_t_processed[i][0] * ( SDIVINT*2*SNUMREG );
+	  if (nbits == 4) {
+		  m_t_processed[i][0] = (int)floor(( (float)(local_t_processed)/(float)plan.user_dm(i).inBin)/(float)(SDIVINT*4*SNUMREG));
+		  m_t_processed[i][0] = m_t_processed[i][0]*(SDIVINT*4*SNUMREG);
+	  }
+	  else {
+		  m_t_processed[i][0] = (int)floor(( (float)(local_t_processed)/(float)plan.user_dm(i).inBin)/(float)(SDIVINT*2*SNUMREG));
+		  m_t_processed[i][0] = m_t_processed[i][0]*(SDIVINT*2*SNUMREG);
+	  }
 	}
 	( m_num_tchunks ) = 1;
 	LOG(log_level::dev_debug, "In 1");
@@ -186,15 +200,28 @@ namespace astroaccelerate {
 	//int num_blocks = (int) floor(( (float) nsamp - ( *maxshift ) )) / ( (float) ( samp_block_size ) ) + 1;
         
 	// Find the common integer amount of samples between all bins
-	int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) plan.user_dm(range-1).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-	local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	int local_t_processed;
+	if (nbits == 4){
+		local_t_processed = (int) floor(((float)(samp_block_size)/(float)plan.user_dm(range-1).inBin)/(float)(SDIVINT*4*SNUMREG));
+		local_t_processed = local_t_processed*(SDIVINT*4*SNUMREG)*plan.user_dm(range-1).inBin;
+	}
+	else {
+		local_t_processed = (int) floor(((float)(samp_block_size)/(float)plan.user_dm(range-1).inBin)/(float)(SDIVINT*2*SNUMREG));
+		local_t_processed = local_t_processed*(SDIVINT*2*SNUMREG)*plan.user_dm(range-1).inBin;
+	}
         
 	int num_blocks = (int) ( ((float) (nsamp - m_maxshift)) / ((float) local_t_processed) );
         
 	// Work out the remaining fraction to be processed
-	int remainder =  nsamp -  (num_blocks*local_t_processed ) - (m_maxshift) ;
-	remainder = (int) floor((float) remainder / (float) plan.user_dm(range-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
-	remainder = remainder * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	int remainder =  nsamp - (num_blocks*local_t_processed ) - (m_maxshift);
+	if (nbits == 4){
+		remainder = (int) floor((float)remainder/(float)plan.user_dm(range-1).inBin)/(float)( SDIVINT*4*SNUMREG);
+		remainder = remainder*(SDIVINT*4*SNUMREG)*plan.user_dm(range-1).inBin;
+	}
+	else {
+		remainder = (int) floor((float)remainder/(float)plan.user_dm(range-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
+		remainder = remainder * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	}
 	int rem_block = 0;
 	if(remainder>0) rem_block = 1;
         
@@ -203,13 +230,25 @@ namespace astroaccelerate {
 		m_t_processed[i].resize(num_blocks + rem_block);
 		// Remember the last block holds less!
 		for (int j = 0; j < num_blocks; j++) {
-			m_t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-			m_t_processed[i][j] = m_t_processed[i][j] * ( SDIVINT*2*SNUMREG );
+			if (nbits == 4){
+				m_t_processed[i][j] = (int)floor(((float)(local_t_processed)/(float)plan.user_dm(i).inBin)/(float)(SDIVINT*4*SNUMREG));
+				m_t_processed[i][j] = m_t_processed[i][j]*(SDIVINT*4*SNUMREG);
+			}
+			else {
+				m_t_processed[i][j] = (int) floor(((float)(local_t_processed)/(float)plan.user_dm(i).inBin)/(float)(SDIVINT*2*SNUMREG));
+				m_t_processed[i][j] = m_t_processed[i][j]*(SDIVINT*2*SNUMREG);
+			}
 		}
 		// fractional bit
 		if(rem_block==1){
-			m_t_processed[i][num_blocks] = (int) floor(( (float) ( remainder ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-			m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks] * ( SDIVINT*2*SNUMREG );
+			if (nbits == 4){
+				m_t_processed[i][num_blocks] = (int) floor(((float)(remainder)/(float)plan.user_dm(i).inBin)/(float)(SDIVINT*4*SNUMREG));
+				m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks]*(SDIVINT*4*SNUMREG);
+			}
+			else {
+				m_t_processed[i][num_blocks] = (int) floor(((float)(remainder)/(float)plan.user_dm(i).inBin)/(float)(SDIVINT*2*SNUMREG));
+				m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks]*(SDIVINT*2*SNUMREG);
+			}
 		}
 	}
 	
@@ -242,12 +281,26 @@ namespace astroaccelerate {
       if ((unsigned int)nsamp < max_tsamps) {
 	// We have case 2)
 	// Allocate memory to hold the values of nsamps to be processed
-	int local_t_processed = (int) floor(( (float) ( nsamp - ( m_maxshift ) ) / (float) plan.user_dm(range-1).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-	local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	int local_t_processed;
+	if (nbits == 4){
+		local_t_processed = (int) floor(((float)(nsamp - (m_maxshift))/(float) plan.user_dm(range-1).inBin)/(float)(SDIVINT*4*SNUMREG));
+		local_t_processed = local_t_processed*(SDIVINT*4*SNUMREG)*plan.user_dm(range-1).inBin;
+	}
+	else {
+		local_t_processed = (int) floor(((float)(nsamp - (m_maxshift))/(float) plan.user_dm(range-1).inBin)/(float)(SDIVINT*2*SNUMREG));
+		local_t_processed = local_t_processed*(SDIVINT*2*SNUMREG)*plan.user_dm(range-1).inBin;
+	}
+
 	for (size_t i = 0; i < range; i++) {
 	  m_t_processed[i].resize(1);
-	  m_t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-	  m_t_processed[i][0] = m_t_processed[i][0] * ( SDIVINT*2*SNUMREG );
+	  if (nbits == 4) {
+		  m_t_processed[i][0] = (int) floor(((float)(local_t_processed)/(float)plan.user_dm(i).inBin)/(float)(SDIVINT*4*SNUMREG));
+		  m_t_processed[i][0] = m_t_processed[i][0]*(SDIVINT*4*SNUMREG);
+	  }
+	  else {
+		  m_t_processed[i][0] = (int) floor(((float)(local_t_processed)/(float)plan.user_dm(i).inBin)/(float)(SDIVINT*2*SNUMREG));
+		  m_t_processed[i][0] = m_t_processed[i][0]*(SDIVINT*2*SNUMREG);
+	  }
 	}
 	( m_num_tchunks ) = 1;
 	LOG(log_level::dev_debug, "In 2");
@@ -262,16 +315,29 @@ namespace astroaccelerate {
 	//int num_blocks = (int) floor(( (float) nsamp - (float) ( *maxshift ) ) / ( (float) samp_block_size ));
         
 	// Find the common integer amount of samples between all bins
-	int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) plan.user_dm(range-1).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-	local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	int local_t_processed;
+	if (nbits == 4) {
+		local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) plan.user_dm(range-1).inBin ) / (float) ( SDIVINT*4*SNUMREG ));
+		local_t_processed = local_t_processed * ( SDIVINT*4*SNUMREG ) * plan.user_dm(range-1).inBin;
+	}
+	else {
+		local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) plan.user_dm(range-1).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
+		local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	}
         
 	// samp_block_size was not used to calculate remainder instead there is local_t_processed which might be different
 	int num_blocks = (int) ( ((float) (nsamp - m_maxshift)) / ((float) local_t_processed) );
         
 	// Work out the remaining fraction to be processed
 	int remainder = nsamp - ( num_blocks * local_t_processed ) - ( m_maxshift );
-	remainder = (int) floor((float) remainder / (float) plan.user_dm(range-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
-	remainder = remainder * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	if (nbits == 4) {
+		remainder = (int) floor((float) remainder / (float) plan.user_dm(range-1).inBin) / (float) ( SDIVINT*4*SNUMREG );
+		remainder = remainder * ( SDIVINT*4*SNUMREG ) * plan.user_dm(range-1).inBin;
+	}
+	else {
+		remainder = (int) floor((float) remainder / (float) plan.user_dm(range-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
+		remainder = remainder * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	}
 	int rem_block = 0;
 	if(remainder>0) rem_block = 1;
         
@@ -280,13 +346,25 @@ namespace astroaccelerate {
 		m_t_processed[i].resize(num_blocks + rem_block);
 		// Remember the last block holds less!
 		for (int j = 0; j < num_blocks; j++) {
-			m_t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-			m_t_processed[i][j] = m_t_processed[i][j] * ( SDIVINT*2*SNUMREG );
+			if (nbits == 4) {
+				m_t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*4*SNUMREG ));
+				m_t_processed[i][j] = m_t_processed[i][j] * ( SDIVINT*4*SNUMREG );
+			}
+			else {
+				m_t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
+				m_t_processed[i][j] = m_t_processed[i][j] * ( SDIVINT*2*SNUMREG );
+			}
 		}
 		// fractional bit
 		if(rem_block==1){
-			m_t_processed[i][num_blocks] = (int) floor(( (float) ( remainder ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-			m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks] * ( SDIVINT*2*SNUMREG );
+			if (nbits == 4) {
+				m_t_processed[i][num_blocks] = (int) floor(( (float) ( remainder ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*4*SNUMREG ));
+				m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks] * ( SDIVINT*4*SNUMREG );
+			}
+			else {
+				m_t_processed[i][num_blocks] = (int) floor(( (float) ( remainder ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
+				m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks] * ( SDIVINT*2*SNUMREG );
+			}
 		}
 	}
 	m_num_tchunks = num_blocks + rem_block;
