@@ -34,26 +34,26 @@ int main(int argc, char *argv[]) {
 	aa_sigproc_input filterbank_datafile(argv[1]);
 	aa_filterbank_metadata metadata = filterbank_datafile.read_metadata();
 	filterbank_datafile.read_signal();
-	aa_device_info& device_info = aa_device_info::instance();
-	aa_device_info::CARD_ID selected_card_number = 0;
-	aa_device_info::aa_card_info selected_card_info; 
-        device_info.init_card(selected_card_number, selected_card_info);
+	
+	//Select desired device and initialize it by creating aa_device_info
+	int device = 0;
+	aa_device_info selected_device(device);
 
 	//-------------- Configure pipeline. Select components and their options
 	aa_pipeline::pipeline pipeline_components;
 	pipeline_components.insert(aa_pipeline::component::dedispersion); // pipeline must always contain dedispersion step
-        //pipeline_components.insert(aa_pipeline::component::analysis); //optional
-        //pipeline_components.insert(aa_pipeline::component::periodicity); // optional
-        //pipeline_components.insert(aa_pipeline::component::fdas); // optional
+	//pipeline_components.insert(aa_pipeline::component::analysis); //optional
+	//pipeline_components.insert(aa_pipeline::component::periodicity); // optional
+	//pipeline_components.insert(aa_pipeline::component::fdas); // optional
 	
-        aa_pipeline::pipeline_option pipeline_options;
-        pipeline_options.insert(aa_pipeline::component_option::zero_dm);
+	aa_pipeline::pipeline_option pipeline_options;
+	pipeline_options.insert(aa_pipeline::component_option::zero_dm);
 	//insert option to copy the DDTR output data from GPU memory to the host memory
 	//do not insert this option if the output is not needed
 	pipeline_options.insert(aa_pipeline::component_option::copy_ddtr_data_to_host);
 	//--------------<
 	
-	aa_pipeline_api<unsigned short> pipeline_runner(pipeline_components, pipeline_options, metadata, filterbank_datafile.input_buffer().data(), selected_card_info);
+	aa_pipeline_api<unsigned short> pipeline_runner(pipeline_components, pipeline_options, metadata, filterbank_datafile.input_buffer().data(), &selected_device);
 	pipeline_runner.bind(ddtr_plan);
 
         if (pipeline_runner.ready()) {

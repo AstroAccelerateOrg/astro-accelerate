@@ -61,10 +61,8 @@ int main(int argc, const char *argv[]) {
 	aa_filterbank_metadata metadata = filterbank_datafile.read_metadata();
 	filterbank_datafile.read_signal();
 
-	aa_device_info& device_info = aa_device_info::instance();
-	aa_device_info::CARD_ID selected_card_number = 0;
-	aa_device_info::aa_card_info selected_card_info; 
-        device_info.init_card(selected_card_number, selected_card_info);
+	int device = 0;
+	aa_device_info selected_device(device);
 
 	//-------------- Configure pipeline. Select components and their options
 	aa_pipeline::pipeline pipeline_components;
@@ -84,7 +82,7 @@ int main(int argc, const char *argv[]) {
 	const bool  enable_MSD_outlier_rejection = true;
 	aa_analysis_plan::selectable_candidate_algorithm candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::peak_find;
 
-	aa_pipeline_api<unsigned short> pipeline_runner(pipeline_components, pipeline_options, metadata, filterbank_datafile.input_buffer().data(), selected_card_info);
+	aa_pipeline_api<unsigned short> pipeline_runner(pipeline_components, pipeline_options, metadata, filterbank_datafile.input_buffer().data(), &selected_device);
 
 	pipeline_runner.bind(ddtr_plan);
        

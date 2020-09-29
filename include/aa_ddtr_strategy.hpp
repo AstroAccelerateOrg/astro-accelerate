@@ -12,6 +12,7 @@
 #include "aa_params.hpp"
 #include "aa_ddtr_plan.hpp"
 #include "aa_filterbank_metadata.hpp"
+#include "aa_device_info.hpp"
 
 #include "aa_log.hpp"
 
@@ -35,7 +36,7 @@ namespace astroaccelerate {
     aa_ddtr_strategy();
 
     /** \brief Implementation of non-trvial constructor in source file. All parameters are set once on construction. */
-    aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis);
+    aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis, aa_device_info *selected_device);
 
     /** \brief Destructor for aa_ddtr_strategy. */
     virtual ~aa_ddtr_strategy() {
@@ -187,6 +188,7 @@ namespace astroaccelerate {
     bool strategy(const aa_ddtr_plan &plan, const size_t &free_memory, const bool &enable_analysis);
     bool m_ready; /**< The ready state of the ddtr strategy. */
     bool m_strategy_already_calculated; /**< A flag to indicate whether the strategy for the instance has already been allocated. */
+	aa_device_info *m_selected_device;
 
     bool m_configured_for_analysis; /**< A flag to indicate whether the strategy will be configured to run aa_pipeline::component::analysis. */
     bool is_setup;  /**< A flag to indicate whether the setup method has been called. */

@@ -20,7 +20,7 @@ namespace astroaccelerate {
    * \brief Class to configure an analysis strategy.
    * \details An analysis strategy is required for running any pipeline that will run the analysis component aa_pipeline::component::analysis.
    * \details It is expected behaviour that the configuration values of the strategy may be different than those of the corresponding plan.
-   * \author Cees Carels.
+   * \author AstroAccelerate
    * \date 23 October 2018.
    */  
   class aa_analysis_strategy : public aa_strategy {
@@ -32,6 +32,7 @@ namespace astroaccelerate {
 			     m_MSD_data_info(0),
 			     m_MSD_profile_size_in_bytes(0),
 			     m_h_MSD_DIT_width(0),
+				 m_selected_device(NULL),
 			     m_candidate_algorithm(aa_analysis_plan::selectable_candidate_algorithm::peak_find),
 			     m_enable_msd_baseline_noise(0),
 			     m_ready(false) {
@@ -45,13 +46,14 @@ namespace astroaccelerate {
      * \warning At the moment the analysis component does not support this mode, so this constructor still sets m_ready(false) in the initialiser list.
      * \details If the user intends to run the AstroAccelerate implementation of ddtr, then they should use the other non-trivial constructor.
      */
-    aa_analysis_strategy(const aa_analysis_plan &analysis_plan, const aa_filterbank_metadata &metadata) : m_metadata(metadata),
+    aa_analysis_strategy(const aa_analysis_plan &analysis_plan, const aa_filterbank_metadata &metadata, aa_device_info *selected_device) : m_metadata(metadata),
 													  m_sigma_cutoff(analysis_plan.sigma_cutoff()),
 													  m_sigma_constant(analysis_plan.sigma_constant()),
 													  m_max_boxcar_width_in_sec(analysis_plan.max_boxcar_width_in_sec()),
 													  m_MSD_data_info(0),
 													  m_MSD_profile_size_in_bytes(0),
 													  m_h_MSD_DIT_width(0),
+													  m_selected_device(selected_device),
 													  m_candidate_algorithm(analysis_plan.candidate_algorithm()),
 													  m_enable_msd_baseline_noise(analysis_plan.enable_msd_baseline_noise()),
 													  m_ready(false) {
@@ -62,13 +64,14 @@ namespace astroaccelerate {
      * \details This constructor is intended to be used when ddtr has also been used.
      * \details Since it uses the aa_filterbank_metadata from ddtr_strategy, the state of aa_analysis_strategy stays consistent with that of aa_ddtr_strategy.
      */
-    aa_analysis_strategy(const aa_analysis_plan &analysis_plan) : m_metadata(analysis_plan.ddtr_strategy().metadata()),
+    aa_analysis_strategy(const aa_analysis_plan &analysis_plan, aa_device_info *selected_device) : m_metadata(analysis_plan.ddtr_strategy().metadata()),
 								  m_sigma_cutoff(analysis_plan.sigma_cutoff()),
 								  m_sigma_constant(analysis_plan.sigma_constant()),
 								  m_max_boxcar_width_in_sec(analysis_plan.max_boxcar_width_in_sec()),
 								  m_MSD_data_info(0),
 								  m_MSD_profile_size_in_bytes(0),
 								  m_h_MSD_DIT_width(0),
+								  m_selected_device(selected_device),
 								  m_candidate_algorithm(analysis_plan.candidate_algorithm()),
 								  m_enable_msd_baseline_noise(analysis_plan.enable_msd_baseline_noise()),
 								  m_ready(false) {
@@ -184,6 +187,7 @@ namespace astroaccelerate {
     unsigned long int m_MSD_data_info; /**< Strategy determined MSD_data_info. */
     size_t            m_MSD_profile_size_in_bytes; /**< Strategy determined MSD_profile_size_in_bytes. */
     int               m_h_MSD_DIT_width; /**< Strategy determined h_MSD_DIT_width. */
+	aa_device_info    *m_selected_device;
     aa_analysis_plan::selectable_candidate_algorithm m_candidate_algorithm; /**< Flag for selecting candidate algorithm (currently on/off). */
     bool              m_enable_msd_baseline_noise; /**< Flag for enabling/disabling msd_baseline_noise reduction algorithm. */
     bool              m_ready; /**< Ready state for an instance of aa_analysis_strategy. */
@@ -211,8 +215,8 @@ namespace astroaccelerate {
       // Calculate the total number of values
       vals = ((size_t) nDMs)*((size_t) nTimesamples);
 
-      aa_device_info& mem = aa_device_info::instance();
-      size_t free_mem = mem.gpu_memory() - mem.requested();
+      //aa_device_info& mem = aa_device_info::instance();
+      size_t free_mem = m_selected_device->free_memory();
       printf("\n----------------------- MSD info ---------------------------\n");
       printf("  Memory required by single pulse detection:%0.3f MB\n",(5.5*vals*sizeof(float) + 2*vals*sizeof(ushort))/(1024.0*1024) );
       printf("  Memory available:%0.3f MB \n", ((float) free_mem)/(1024.0*1024.0) );
@@ -242,18 +246,19 @@ namespace astroaccelerate {
 
       // Inform aa_device_memory_manager of the memory that will be required
       // This memory required is given by the allocate_memory_MSD function
-      if(!mem.request(maxtimesamples*5.5*sizeof(float))) {
-	std::cout << "ERROR:  Could not request memory. " << (unsigned long long)(maxtimesamples*5.5*sizeof(float)) << std::endl;
-	return;
+      if(!m_selected_device->request_memory(maxtimesamples*5.5*sizeof(float))) {
+        std::cout << "ERROR:  Could not request memory. " << (unsigned long long)(maxtimesamples*5.5*sizeof(float)) << std::endl;
+        return;
       }
-      if(!mem.request(sizeof(ushort)*2*maxtimesamples)) {
-	std::cout << "ERROR:  Could not request memory. " << (unsigned long long)(sizeof(ushort)*2*maxtimesamples) << std::endl;
-	return;
+      if(!m_selected_device->request_memory(sizeof(ushort)*2*maxtimesamples)) {
+        std::cout << "ERROR:  Could not request memory. " << (unsigned long long)(sizeof(ushort)*2*maxtimesamples) << std::endl;
+        return;
       }
-      if(!mem.request(sizeof(float)*MSD_profile_size_in_bytes)) {
-	std::cout << "ERROR:  Could not request memory. " << (unsigned long long)(sizeof(float)*MSD_profile_size_in_bytes) << std::endl;
-	return;
+      if(!m_selected_device->request_memory(sizeof(float)*MSD_profile_size_in_bytes)) {
+        std::cout << "ERROR:  Could not request memory. " << (unsigned long long)(sizeof(float)*MSD_profile_size_in_bytes) << std::endl;
+        return;
       }
+	  
       
       m_ready = true;
     }

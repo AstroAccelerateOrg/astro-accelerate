@@ -11,22 +11,7 @@ namespace astroaccelerate {
 	
 	aa_filterbank_metadata metadata(aa_py_metadata.m_tstart, aa_py_metadata.m_tsamp, aa_py_metadata.m_nbits, aa_py_metadata.m_nsamples, aa_py_metadata.m_fch1, aa_py_metadata.m_foff, aa_py_metadata.m_nchans);
 	
-	aa_device_info& device_info = aa_device_info::instance();
-	if(device_info.check_for_devices()) {
-	  LOG(log_level::notice, "Checked for devices.");
-	}
-	else {
-	  LOG(log_level::error, "Could not find any devices.");
-	}
-	
-	aa_device_info::CARD_ID selected_card = card_number;
-	aa_device_info::aa_card_info selected_card_info;
-	if(device_info.init_card(selected_card, selected_card_info)) {
-	  LOG(log_level::notice, "init_card complete. Selected card " + std::to_string(selected_card) + ".");
-	}
-	else {
-	  LOG(log_level::error, "init_card incomplete.");
-	}
+	aa_device_info selected_device(card_number);
 	
 	aa_pipeline::pipeline requested_pipeline;
 	if(pipeline.dedispersion) requested_pipeline.insert(aa_pipeline::component::dedispersion);
@@ -48,7 +33,7 @@ namespace astroaccelerate {
 	if(options.fdas_inbin) pipeline_options.insert(aa_pipeline::component_option::fdas_inbin);
 	if(options.fdas_norm) pipeline_options.insert(aa_pipeline::component_option::fdas_norm);
 	
-	return new aa_pipeline_api<unsigned short>(requested_pipeline, pipeline_options, metadata, input_data, selected_card_info);
+	return new aa_pipeline_api<unsigned short>(requested_pipeline, pipeline_options, metadata, input_data, &selected_device);
       }
       
       void aa_py_pipeline_api_delete(aa_pipeline_api<unsigned short> const*const obj) {
