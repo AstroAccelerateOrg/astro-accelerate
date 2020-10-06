@@ -970,6 +970,7 @@ namespace astroaccelerate {
 			}
 			if(pipeline_error==PIPELINE_ERROR_NO_ERROR){
 				time_log.print(tstart_local);
+				time_log.clean();
 			}
 		}
 

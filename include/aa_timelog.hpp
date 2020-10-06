@@ -20,6 +20,10 @@ class TimeLog{
 
         public:
 		TimeLog(){};
+                void clean(){
+                        pattern.clear();
+                };
+
 
 		typedef std::map<std::pair<std::string, std::string>, double> maptype;
                 typedef std::pair<std::map<std::pair<std::string, std::string>, double>::iterator,bool> ret_maptype;
@@ -44,6 +48,24 @@ class TimeLog{
                         }
 			time_file.close();		
                 }
+
+
+                void print_to_file_all(double f_central, double time_sampling, const int nchans, float dmstep, int ntrials, size_t nTimeProcessed, int unroll, int snumreg, int sdivint, int sdivindm, int failsafe){
+                        time_file.open("time.log", std::ofstream::out | std::ofstream::app);
+                        time_file << "# failsafe unroll snumreg sdivint sdivindm f_central time_sampling nchans dmstep n_dmtrials nTimeProcessed ";
+                        for (const auto &pair : pattern){
+                                time_file << pair.first.second << " ";
+                        }
+                        time_file << "\n";
+                        time_file << failsafe << " " << unroll << " " << snumreg << " " << sdivint << " " << sdivindm << " " << f_central << " " << time_sampling << " " << nchans << " " << dmstep << " " << ntrials << " " << nTimeProcessed;
+                        for (const auto &pair : pattern){
+                                time_file << " " << pair.second;
+                                //note pair.first in the row column pair, pair.first.first is the row, pair.first.second is the column, pair.second is the string pattern
+                        }
+                        time_file << "\n";
+                        time_file.close();
+                }
+
 
 		void print(){
 			LOG(log_level::notice,"--------------------------------------------------------------");
@@ -75,6 +97,20 @@ class TimeLog{
 		static maptype pattern;
                 ret_maptype ret;
 };
+
+class LogKernel{
+        public:
+                int get(){
+                        return kernel_id;
+                }
+
+                void set(int number){
+                        kernel_id = number;
+                }
+        private:
+                static int kernel_id;
+};
+
 
 } // namespace astroaccelerate
 

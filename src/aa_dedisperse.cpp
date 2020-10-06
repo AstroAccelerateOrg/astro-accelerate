@@ -1,4 +1,5 @@
 #include "aa_dedisperse.hpp"
+#include "aa_timelog.hpp"
 
 namespace astroaccelerate {
 
@@ -156,6 +157,9 @@ int dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sho
 		call_kernel_cache_dedisperse_kernel(num_blocks, threads_per_block, inBin[i], d_input, d_output, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
 	}
   }
+
+ LogKernel log;
+ log.set(failsafe+1);
 
  cudaError_t CUDA_error;  
  CUDA_error = cudaGetLastError();
