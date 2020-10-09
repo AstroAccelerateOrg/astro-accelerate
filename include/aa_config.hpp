@@ -163,6 +163,10 @@ namespace astroaccelerate {
 						m_pipeline_options.insert(aa_pipeline::component_option::candidate_algorithm);
 						flg.candidate_algorithm = 1;
 					}
+					if (strcmp(string, "peak_clustering") == 0) {
+						m_pipeline_options.insert(aa_pipeline::component_option::candidate_filtering);
+						flg.candidate_algorithm = 2;
+					}
 					if (strcmp(string, "baselinenoise") == 0)
 						m_pipeline_options.insert(aa_pipeline::component_option::msd_baseline_noise);
 					if (strcmp(string, "fdas_custom_fft") == 0)
