@@ -520,9 +520,10 @@ class aa_py_pipeline():
     
     ## \brief Returns a pointer to the dedispersed output_buffer in the library. #
     def get_buffer(self):
-        #lib.my_class_get_buffer.argtypes = [ctypes.c_void_p]
+        lib.aa_py_buffer.argtypes = [ctypes.c_void_p]
         lib.aa_py_buffer.restype = PPPFLOAT
-        lib.aa_py_current_inc.restype = ctypes.c_long
+        lib.aa_py_total_computed_samples.argtypes = [ctypes.c_void_p]
+        lib.aa_py_total_computed_samples.restype = ctypes.c_int
         ddtr_output_pointer = lib.aa_py_buffer(self.m_obj)
         tprocessed = lib.aa_py_total_computed_samples(self.m_obj)
         return tprocessed, ddtr_output_pointer
@@ -584,14 +585,13 @@ class SPD():
         file_cand.close()
 
     def scale(metadata, pipeline, ddtr_plan, tprocessed, nCandidates, dm, time_samples, snr, width, current_range, current_tchunk):
+        print("Python -- Scaling candidates ... ")
         scale_dm = []
         scale_time_sample = []
         scale_time = []
         scale_width = []
         scale_snr = []
-        print("Hellll: " + str(nCandidates))
         for i in range(0, nCandidates):
-            print(dm[i], time_samples[i], snr[i])
             dm_low = pipeline.dm_low(current_range)
             list_ndms = pipeline.ddtr_ndms()
             scale_dm.append(dm[i]*(ddtr_plan.m_dm[current_range].m_step) + dm_low)
@@ -599,11 +599,14 @@ class SPD():
             scale_time.append(time_samples[i]*metadata.m_tsamp*ddtr_plan.m_dm[current_range].m_inBin + tprocessed*metadata.m_tsamp)
             scale_width.append(width[i]*ddtr_plan.m_dm[current_range].m_inBin)
             scale_snr.append(snr[i])
+        print(" ... done")
         return scale_dm, scale_snr, scale_time_sample, scale_time, scale_width
 
     
 
     def write_maximum(dm, snr, time, ts, width):
+        print("Python -- writing candidates to file ...")
         index = np.argmax(snr)
         print("#DM \t SNR \t TIME \t SAMPLE \t WIDTH")
         print('{:.2f}'.format(dm[index]), "\t", '{:.2f}'.format(snr[index]), "\t", '{:.2f}'.format(time[index]), "\t", ts[index], "\t", width[index])
+        print(" ... done")
