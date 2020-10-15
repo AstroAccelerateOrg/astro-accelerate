@@ -27,7 +27,8 @@ analysis
 -zero_dm_with_outliers
 -rfi
 -oldrfi
-threshold
+-threshold
+peak_filtering_radius_in_ms 15
 baselinenoise
 -fdas_custom_fft
 -fdas_inbin
