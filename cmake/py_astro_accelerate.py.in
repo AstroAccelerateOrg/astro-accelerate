@@ -451,6 +451,7 @@ class aa_py_pipeline():
                                             ctypes.c_float,
                                             ctypes.c_float,
                                             ctypes.c_float,
+                                            ctypes.c_float,
                                             ctypes.c_int,
                                             ctypes.c_bool]
         lib.aa_py_analysis_plan.restype = ctypes.c_void_p
@@ -458,6 +459,7 @@ class aa_py_pipeline():
                                                            ctypes.c_float(plan.sigma_cutoff()),
                                                            ctypes.c_float(plan.sigma_constant()),
                                                            ctypes.c_float(plan.max_boxcar_width_in_sec()),
+                                                           ctypes.c_float(plan.peak_filtering_radius()),
                                                            ctypes.c_int(plan.candidate_algorithm()),
                                                            ctypes.c_bool(plan.enable_msd_baseline_noise()))
 
