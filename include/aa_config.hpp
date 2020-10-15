@@ -28,13 +28,14 @@ namespace astroaccelerate {
 	/** \struct aa_config_flags
 	 * \brief A struct to contain all configurations from an input file.
 	 */
-	struct aa_config_flags {
+	class aa_config_flags {
+	public:
 		float power;                    /**< Power setting. */
 		float sigma_cutoff;             /**< Sigma threshold for candidate selection. */
 		float sigma_constant;           /**< Sigma cutoff for outlier rejection. */
 		float max_boxcar_width_in_sec;  /**< Boxcar width in seconds setting. */
 		float periodicity_sigma_cutoff; /**< Periodicity sigma cutoff setting. Should this be int or float? */
-		float z_max;  
+		float z_max; 
 		float z_step; 
 		float w_max;  
 		float w_step; 
@@ -50,6 +51,34 @@ namespace astroaccelerate {
 		int dered;                      /** Enable deredning. */
 		bool rfi;                       /**< Enable (true) or disable (false) host RFI reduction of the input data. */
 		std::vector<aa_pipeline::debug> user_debug; /**< std::vector of debug flags. */
+		
+		void reset(){
+			power = 0.0;
+			sigma_cutoff = 0.0;
+			sigma_constant = 0.0;
+			max_boxcar_width_in_sec = 0.0;
+			periodicity_sigma_cutoff = 0.0;
+			z_max = 0.0;
+			z_step = 0.0;
+			w_max = 0.0;
+			w_step = 0.0;
+			
+			multi_file = 0;
+			output_dmt = 0;
+			range = 0;
+			candidate_algorithm = 0;
+			nb_selected_dm = 0;
+			failsafe = 0;
+			periodicity_nHarmonics = 0;
+			selected_card_id = 0;
+			dered = 0;
+			rfi = false;
+			user_debug = std::vector<aa_pipeline::debug>();			
+		}
+		
+		aa_config_flags(){
+			reset();
+		}
 	};
 
 	/**
@@ -163,9 +192,13 @@ namespace astroaccelerate {
 						m_pipeline_options.insert(aa_pipeline::component_option::candidate_algorithm);
 						flg.candidate_algorithm = 1;
 					}
-					if (strcmp(string, "peak_range_filtering") == 0) {
+					if (strcmp(string, "peak_range_filtering_in_ms") == 0) {
 						m_pipeline_options.insert(aa_pipeline::component_option::candidate_filtering);
 						flg.candidate_algorithm = 2;
+						if (fscanf(fp_in, "%f", &flg.z_max) == 0) {
+							fprintf(stderr, "failed to read input\n");
+							return false;
+						}
 					}
 					if (strcmp(string, "baselinenoise") == 0)
 						m_pipeline_options.insert(aa_pipeline::component_option::msd_baseline_noise);
@@ -304,7 +337,7 @@ namespace astroaccelerate {
 			: 
 			configure_from_file(true), 
 			user_cli(cli_input), 
-			flg({ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>() })
+			flg()
 		{
 			flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
 			flg.periodicity_nHarmonics = 32; // wrong
@@ -319,7 +352,7 @@ namespace astroaccelerate {
 			: 
 			configure_from_file(false), 
 			m_pipeline(user_pipeline), 
-			flg({ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>() })
+			flg()
 		{
 			flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
 			flg.periodicity_nHarmonics = 32; // wrong
