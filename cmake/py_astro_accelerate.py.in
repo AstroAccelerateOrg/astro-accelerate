@@ -433,7 +433,7 @@ class aa_py_pipeline():
         return lib.aa_py_get_ddtr_nRanges(self.m_obj)
 
     def ddtr_ndms(self):
-#        lib.aa_py_ndms.argtypes = [ctypes.c_void_p]
+        lib.aa_py_get_ndms_array.argtypes = [ctypes.c_void_p]
         lib.aa_py_get_ndms_array.restype = ctypes.POINTER(ctypes.c_int)
         return lib.aa_py_get_ndms_array(self.m_obj)
 
@@ -488,13 +488,21 @@ class aa_py_pipeline():
         return self.m_status_code_c_int.value
 
     def get_candidates(self):
+        lib.aa_py_spd_nCandidates.argtypes = [ctypes.c_void_p]
         lib.aa_py_spd_nCandidates.restype = ctypes.c_size_t
+        lib.aa_py_h_dm.argtypes = [ctypes.c_void_p]
         lib.aa_py_h_dm.restype = ctypes.POINTER(ctypes.c_uint)
+        lib.aa_py_h_ts.argtypes = [ctypes.c_void_p]
         lib.aa_py_h_ts.restype = ctypes.POINTER(ctypes.c_uint) 
+        lib.aa_py_h_snr.argtypes = [ctypes.c_void_p]
         lib.aa_py_h_snr.restype = PFLOAT
+        lib.aa_py_h_width.argtypes = [ctypes.c_void_p]
         lib.aa_py_h_width.restype = ctypes.POINTER(ctypes.c_uint)
+        lib.aa_py_current_range.argtypes = [ctypes.c_void_p]
         lib.aa_py_current_range.restype = ctypes.c_int
+        lib.aa_py_current_time_chunk.argtypes = [ctypes.c_void_p]
         lib.aa_py_current_time_chunk.restype = ctypes.c_int
+        lib.aa_py_current_inc.argtypes = [ctypes.c_void_p]
         lib.aa_py_current_inc.restype = ctypes.c_long
 #        time_sample = []
         if self.m_status_code_c_int.value==1:
@@ -512,19 +520,21 @@ class aa_py_pipeline():
     
     ## \brief Returns a pointer to the dedispersed output_buffer in the library. #
     def get_buffer(self):
-        #lib.my_class_get_buffer.argtypes = [ctypes.c_void_p]
+        lib.aa_py_buffer.argtypes = [ctypes.c_void_p]
         lib.aa_py_buffer.restype = PPPFLOAT
-        lib.aa_py_current_inc.restype = ctypes.c_long
+        lib.aa_py_total_computed_samples.argtypes = [ctypes.c_void_p]
+        lib.aa_py_total_computed_samples.restype = ctypes.c_int
         ddtr_output_pointer = lib.aa_py_buffer(self.m_obj)
         tprocessed = lib.aa_py_total_computed_samples(self.m_obj)
         return tprocessed, ddtr_output_pointer
 
     def dm_low(self, pos: int):
-        lib.aa_py_dm_low.argtypes = [ctypes.c_int]
+        lib.aa_py_dm_low.argtypes = [ctypes.c_void_p, ctypes.c_int]
         lib.aa_py_dm_low.restype = ctypes.c_int
         return lib.aa_py_dm_low(self.m_obj, pos)
 
     def cleanUp(self):
+        lib.aa_py_cleanup.argtypes = [ctypes.c_void_p]
         lib.aa_py_cleanup.restype = ctypes.c_bool
         api_return_value = lib.aa_py_cleanup(self.m_obj)
         return ctypes.c_bool(api_return_value).value
@@ -575,6 +585,7 @@ class SPD():
         file_cand.close()
 
     def scale(metadata, pipeline, ddtr_plan, tprocessed, nCandidates, dm, time_samples, snr, width, current_range, current_tchunk):
+        print("Python -- Scaling candidates ... ")
         scale_dm = []
         scale_time_sample = []
         scale_time = []
@@ -588,11 +599,14 @@ class SPD():
             scale_time.append(time_samples[i]*metadata.m_tsamp*ddtr_plan.m_dm[current_range].m_inBin + tprocessed*metadata.m_tsamp)
             scale_width.append(width[i]*ddtr_plan.m_dm[current_range].m_inBin)
             scale_snr.append(snr[i])
+        print(" ... done")
         return scale_dm, scale_snr, scale_time_sample, scale_time, scale_width
 
     
 
     def write_maximum(dm, snr, time, ts, width):
+        print("Python -- writing candidates to file ...")
         index = np.argmax(snr)
         print("#DM \t SNR \t TIME \t SAMPLE \t WIDTH")
         print('{:.2f}'.format(dm[index]), "\t", '{:.2f}'.format(snr[index]), "\t", '{:.2f}'.format(time[index]), "\t", ts[index], "\t", width[index])
+        print(" ... done")
