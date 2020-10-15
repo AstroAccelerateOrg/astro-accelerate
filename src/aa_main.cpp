@@ -131,7 +131,6 @@ int main(int argc, char *argv[]) {
 	}
 	
 	if (pipeline.find(aa_pipeline::component::analysis) != pipeline.end()) {
-		printf("Peak filtering radius: %f\n", user_flags.peak_filtering_radius);
 		aa_analysis_plan analysis_plan(
 			pipeline_manager.ddtr_strategy(),
 			user_flags.sigma_cutoff,

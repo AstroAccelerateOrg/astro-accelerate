@@ -248,10 +248,11 @@ class aa_py_ddtr_plan:
 # \date 05 February 2019.
 #
 class aa_py_analysis_plan():
-    def __init__(self, sigma_cutoff: float, sigma_constant: float, max_boxcar_width_in_sec: float, candidate_algorithm: int, enable_msd_baseline_noise: bool):
+    def __init__(self, sigma_cutoff: float, sigma_constant: float, max_boxcar_width_in_sec: float, peak_filtering_radius: float, candidate_algorithm: int, enable_msd_baseline_noise: bool):
         self.m_sigma_cutoff = sigma_cutoff
         self.m_sigma_constant = sigma_constant
         self.m_max_boxcar_width_in_sec = max_boxcar_width_in_sec
+        self.m_peak_filtering_radius = peak_filtering_radius
         self.m_candidate_algorithm = candidate_algorithm
         self.m_enable_msd_baseline_noise = enable_msd_baseline_noise
 
@@ -269,6 +270,9 @@ class aa_py_analysis_plan():
 
     def max_boxcar_width_in_sec(self):
         return self.m_max_boxcar_width_in_sec
+		
+    def peak_filtering_radius(self):
+        return self.m_peak_filtering_radius
 
     def candidate_algorithm(self):
         return self.m_candidate_algorithm
@@ -281,6 +285,7 @@ class aa_py_analysis_plan():
         print("     aa_py_analysis_plan sigma_cutoff {}".format(self.m_sigma_cutoff))
         print("     aa_py_analysis_plan sigma_constant {}".format(self.m_sigma_constant))
         print("     aa_py_analysis_plan max_boxcar_width_in_sec {}".format(self.m_max_boxcar_width_in_sec))
+        print("     aa_py_analysis_plan peak_filtering_radius {}".format(self.m_peak_filtering_radius))
         print("     aa_py_analysis_plan candidate_algorithm {}".format(self.m_candidate_algorithm))
         print("     aa_py_analysis_plan enable_msd_baseline_noise {}".format(self.m_enable_msd_baseline_noise))
         
