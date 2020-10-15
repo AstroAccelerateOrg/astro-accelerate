@@ -3,7 +3,7 @@
 namespace astroaccelerate {
   namespace python {
     extern "C" {
-      aa_analysis_plan* aa_py_analysis_plan(aa_ddtr_strategy const*const ddtr_strategy, const float sigma_cutoff, const float sigma_constant, const float max_boxcar_width_in_sec, const int candidate_algorithm, const bool enable_msd_baseline_noise) {
+      aa_analysis_plan* aa_py_analysis_plan(aa_ddtr_strategy const*const ddtr_strategy, const float sigma_cutoff, const float sigma_constant, const float max_boxcar_width_in_sec, const float peak_filtering_radius, const int candidate_algorithm, const bool enable_msd_baseline_noise) {
 	aa_analysis_plan::selectable_candidate_algorithm candidate_algorithm_flag = aa_analysis_plan::selectable_candidate_algorithm::peak_find;
 	if(candidate_algorithm == 1) {
 	  candidate_algorithm_flag = aa_analysis_plan::selectable_candidate_algorithm::threshold;
@@ -13,7 +13,7 @@ namespace astroaccelerate {
 		candidate_algorithm_flag = aa_analysis_plan::selectable_candidate_algorithm::peak_find;
 	}
 
-	return new aa_analysis_plan(*ddtr_strategy, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, candidate_algorithm_flag, enable_msd_baseline_noise);
+	return new aa_analysis_plan(*ddtr_strategy, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, peak_filtering_radius, candidate_algorithm_flag, enable_msd_baseline_noise);
       }
 
       void aa_analysis_plan_delete(aa_analysis_plan const*const obj) {

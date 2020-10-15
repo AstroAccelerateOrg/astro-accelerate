@@ -38,10 +38,12 @@ ddtr_plan.print_info()
 sigma_cutoff = 6
 sigma_constant = 4.0
 max_boxcar_width_in_sec = 0.05
+#peak filtering radius in ms
+peak_filtering_radius = 15
 candidate_algorithm = True
 enable_msd_baseline_noise = False
 
-analysis_plan = aa_py_analysis_plan(sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, candidate_algorithm, enable_msd_baseline_noise)
+analysis_plan = aa_py_analysis_plan(sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, peak_filtering_radius, candidate_algorithm, enable_msd_baseline_noise)
 analysis_plan.print_info()
 
 # Create periodicity plan

@@ -29,6 +29,7 @@ namespace astroaccelerate {
     aa_analysis_strategy() : m_sigma_cutoff(0),
 			     m_sigma_constant(0),
 			     m_max_boxcar_width_in_sec(0),
+				 m_peak_filtering_radius(0),
 			     m_MSD_data_info(0),
 			     m_MSD_profile_size_in_bytes(0),
 			     m_h_MSD_DIT_width(0),
@@ -66,6 +67,7 @@ namespace astroaccelerate {
 								  m_sigma_cutoff(analysis_plan.sigma_cutoff()),
 								  m_sigma_constant(analysis_plan.sigma_constant()),
 								  m_max_boxcar_width_in_sec(analysis_plan.max_boxcar_width_in_sec()),
+								  m_peak_filtering_radius(analysis_plan.peak_filtering_radius()),
 								  m_MSD_data_info(0),
 								  m_MSD_profile_size_in_bytes(0),
 								  m_h_MSD_DIT_width(0),
@@ -74,12 +76,8 @@ namespace astroaccelerate {
 								  m_ready(false) {
       
       bool ready_to_configure = false;
-      if((m_sigma_cutoff > 0)
-	 &&
-	 (m_sigma_constant > 0)
-	 &&
-	 (m_max_boxcar_width_in_sec > 0)) {
-	ready_to_configure = true;
+      if( (m_sigma_cutoff > 0) && (m_sigma_constant > 0) && (m_max_boxcar_width_in_sec > 0)) {
+        ready_to_configure = true;
       }
       
       if((ready_to_configure) && (analysis_plan.ddtr_strategy().configured_for_analysis())) {
@@ -108,6 +106,11 @@ namespace astroaccelerate {
     /** \returns the max_boxcar_width_in_sec determined by the strategy. */
     float max_boxcar_width_in_sec() const {
       return m_max_boxcar_width_in_sec;
+    }
+
+    /** \returns the filtering radius for peak filtering algorithm. */
+    float peak_filtering_radius() const {
+      return m_peak_filtering_radius;
     }
     
     /** \returns the MSD_data_info determined by the strategy. */ 
@@ -181,6 +184,7 @@ namespace astroaccelerate {
     float             m_sigma_cutoff; /**< The sigma_cutoff initially set by aa_analysis_plan, and modified as needed by an instance of aa_analysis_strategy. */
     float             m_sigma_constant; /**< The sigma_constant initially set by the aa_analysis_plan, and modified as needed by an instance of aa_analysis_strategy. */
     float             m_max_boxcar_width_in_sec; /**< Strategy determined m_max_boxcar_width_in_sec. */
+    float             m_peak_filtering_radius; /**< Filtering radius for candidate selection algorithm 2. */
     unsigned long int m_MSD_data_info; /**< Strategy determined MSD_data_info. */
     size_t            m_MSD_profile_size_in_bytes; /**< Strategy determined MSD_profile_size_in_bytes. */
     int               m_h_MSD_DIT_width; /**< Strategy determined h_MSD_DIT_width. */

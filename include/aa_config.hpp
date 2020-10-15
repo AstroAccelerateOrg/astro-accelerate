@@ -38,7 +38,8 @@ namespace astroaccelerate {
 		float z_max; 
 		float z_step; 
 		float w_max;  
-		float w_step; 
+		float w_step;
+		float peak_filtering_radius;
 
 		int multi_file;                 /**< Multi file setting. This looks like it is deprecated. */
 		int output_dmt;                 /**< Enables or disables ddtr output to disk. */
@@ -62,6 +63,7 @@ namespace astroaccelerate {
 			z_step = 0.0;
 			w_max = 0.0;
 			w_step = 0.0;
+			peak_filtering_radius = 0.0;
 			
 			multi_file = 0;
 			output_dmt = 0;
@@ -195,7 +197,7 @@ namespace astroaccelerate {
 					if (strcmp(string, "peak_range_filtering_in_ms") == 0) {
 						m_pipeline_options.insert(aa_pipeline::component_option::candidate_filtering);
 						flg.candidate_algorithm = 2;
-						if (fscanf(fp_in, "%f", &flg.z_max) == 0) {
+						if (fscanf(fp_in, "%f", &flg.peak_filtering_radius) == 0) {
 							fprintf(stderr, "failed to read input\n");
 							return false;
 						}

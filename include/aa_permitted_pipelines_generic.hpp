@@ -770,6 +770,7 @@ namespace astroaccelerate {
 						m_analysis_strategy.sigma_cutoff(),
 						m_analysis_strategy.sigma_constant(),
 						m_analysis_strategy.max_boxcar_width_in_sec(),
+						m_analysis_strategy.peak_filtering_radius(),
 						d_DDTR_output,
 						dm_low.data(),
 						dm_high.data(),

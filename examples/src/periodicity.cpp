@@ -68,10 +68,11 @@ int main() {
   const float sigma_cutoff = 6.0;
   const float sigma_constant = 4.0;
   const float max_boxcar_width_in_sec = 0.05;
+  const float peak_filtering_radius = 5; // in ms
   const bool  enable_MSD_outlier_rejection = true;
   const aa_analysis_plan::selectable_candidate_algorithm algo = aa_analysis_plan::selectable_candidate_algorithm::peak_find;
   
-  aa_analysis_plan analysis_plan(ddtr_strategy, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, algo, enable_MSD_outlier_rejection);
+  aa_analysis_plan analysis_plan(ddtr_strategy, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, peak_filtering_radius, algo, enable_MSD_outlier_rejection);
   aa_analysis_strategy analysis_strategy(analysis_plan);
 
   if(!(analysis_strategy.ready())) {

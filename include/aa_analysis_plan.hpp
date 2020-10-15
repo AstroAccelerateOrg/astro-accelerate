@@ -35,11 +35,13 @@ namespace astroaccelerate {
 		     const float &sigma_cutoff,
 		     const float &sigma_constant,
 		     const float &max_boxcar_width_in_sec,
+		     const float &peak_filtering_radius,
 		     const selectable_candidate_algorithm &candidate_algorithm,
 		     const bool &enable_msd_baseline_noise) : m_ddtr_strategy(ddtr_strategy),
 							      m_sigma_cutoff(sigma_cutoff),
 							      m_sigma_constant(sigma_constant),
 							      m_max_boxcar_width_in_sec(max_boxcar_width_in_sec),
+							      m_peak_filtering_radius(peak_filtering_radius),
 							      m_candidate_algorithm(candidate_algorithm),
 							      m_enable_msd_baseline_noise(enable_msd_baseline_noise) {
       
@@ -64,6 +66,11 @@ namespace astroaccelerate {
     float max_boxcar_width_in_sec() const {
       return m_max_boxcar_width_in_sec;
     }
+	
+    /** \returns The max_boxcar_width_in_sec that was configured with an instance of aa_analysis_strategy. */
+    float peak_filtering_radius() const {
+      return m_peak_filtering_radius;
+    }
 
     /** \returns The setting for the selectable candidate algorithm (currently on or off) that was configured with an instance of aa_analysis_strategy. */
     aa_analysis_plan::selectable_candidate_algorithm candidate_algorithm() const {
@@ -80,6 +87,7 @@ namespace astroaccelerate {
     float               m_sigma_cutoff; /**< The user defined sigma_cutoff. */
     float               m_sigma_constant; /**< The user defined sigma_constnat. */
     float               m_max_boxcar_width_in_sec; /**< The user defined max_boxcar_width_in_sec. */
+    float               m_peak_filtering_radius; /**< The user defined max_boxcar_width_in_sec. */
     aa_analysis_plan::selectable_candidate_algorithm m_candidate_algorithm; /**< The user defined setting for the selectable_candidate_algorithm (currently on or off). */
     bool                m_enable_msd_baseline_noise; /**< The user defined boolean setting to enable/disable the msd_baseline_noise reduction algorithm. */
   };
