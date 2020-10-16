@@ -4,7 +4,7 @@
 
 namespace astroaccelerate {
 
-  void Export_data_raw(float *h_data, size_t primary_dimension, size_t secondary_dimension, const char *base_filename, int sd_per_file) {
+  void Export_data_raw(float *h_data, size_t primary_dimension, size_t secondary_dimension, const char *base_filename, int sd_per_file, bool header) {
     char final_filename[200];
     size_t inner_sec_dim_shift;
     if(sd_per_file<0) sd_per_file = secondary_dimension;
@@ -22,23 +22,25 @@ namespace astroaccelerate {
 
     h_export_data = new float[export_size];
 
-    sprintf(final_filename,"%s_info.txt", base_filename);
-    std::ofstream FILEOUT;
-    FILEOUT.open (final_filename, std::ofstream::out);
-    FILEOUT << primary_dimension << std::endl;
-    FILEOUT << secondary_dimension << std::endl;
-    FILEOUT << sd_per_file << std::endl;
-    FILEOUT << (int) chunk_size.size() << std::endl;
-    FILEOUT.close();	
+	if(header){
+		sprintf(final_filename,"%s_info.txt", base_filename);
+		std::ofstream FILEOUT;
+		FILEOUT.open (final_filename, std::ofstream::out);
+		FILEOUT << primary_dimension << std::endl;
+		FILEOUT << secondary_dimension << std::endl;
+		FILEOUT << sd_per_file << std::endl;
+		FILEOUT << (int) chunk_size.size() << std::endl;
+		FILEOUT.close();
+	}
 
     inner_sec_dim_shift = 0;
     for(int i=0; i<(int) chunk_size.size(); i++){
       sprintf(final_filename,"%s_%d.dat", base_filename, i);
 		
       for(int d=0; d<chunk_size[i]; d++) {
-	for(size_t t=0; t<primary_dimension; t++) {
-	  h_export_data[d*primary_dimension + t] = h_data[(inner_sec_dim_shift + d)*primary_dimension + t];
-	}
+        for(size_t t=0; t<primary_dimension; t++) {
+          h_export_data[d*primary_dimension + t] = h_data[(inner_sec_dim_shift + d)*primary_dimension + t];
+        }
       }
 		
       FILE *fp_out;

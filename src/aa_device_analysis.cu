@@ -2,6 +2,10 @@
 //#define MSD_BOXCAR_TEST
 //#define GPU_PARTIAL_TIMER
 #define GPU_TIMER
+#define DUMP_RAW_SPDT_DATA
+#define DUMP_RAW_SPDT_DATA_RAW
+#define DUMP_RAW_SPDT_DATA_2D
+//#define DUMP_RAW_SPDT_DATA_1D
 
 #include <vector>
 #include <stdio.h>
@@ -18,6 +22,7 @@
 #include "aa_device_threshold.hpp"
 
 #include "aa_gpu_timer.hpp"
+#include "aa_host_export.hpp"
 
 #include "aa_device_analysis.hpp"
 
@@ -238,7 +243,7 @@ namespace astroaccelerate {
 		
       float *d_output_SNR;
       d_output_SNR = &d_MSD_workarea[mem_idx];
-      mem_idx += DMs_per_cycle*nTimesamples;
+      mem_idx += 2*DMs_per_cycle*nTimesamples;
 		
       // check if we are in limits of allocated memory
 		
@@ -270,6 +275,53 @@ namespace astroaccelerate {
 	printf("    BC_shift:%zu; DMs_per_cycle:%d; f*DMs_per_cycle:%d; max_iteration:%d;\n", (size_t)(DM_shift)*(size_t)(nTimesamples), DM_list[f], DM_shift, max_iteration);
 #endif
 			
+        #ifdef DUMP_RAW_SPDT_DATA
+          char SPDT_filename[200];
+		  float *h_SPDT_raw_data;
+		  unsigned short *h_SPDT_raw_taps;
+		  size_t nElements = 2*DM_list[0]*nTimesamples;
+		  h_SPDT_raw_data = new float[nElements];
+		  h_SPDT_raw_taps = new unsigned short[nElements];
+		  
+          
+          cudaMemcpy(h_SPDT_raw_data, d_output_SNR, nElements*sizeof(float), cudaMemcpyDeviceToHost);
+		  cudaMemcpy(h_SPDT_raw_taps, d_output_taps, nElements*sizeof(unsigned short), cudaMemcpyDeviceToHost);
+			  
+          for(int it=0; it<max_iteration; it++){
+            printf("Iteration it=%d;", it);
+			size_t shift = DM_list[f]*PD_plan[it].output_shift;
+			#ifdef DUMP_RAW_SPDT_DATA_RAW
+			sprintf(SPDT_filename, "SPDT_raw-dm_%.2f-it_%d", dm_low[i] + DM_shift*dm_step[i], it);
+			Export_data_raw(&h_SPDT_raw_data[shift], PD_plan[it].decimated_timesamples, DM_list[f], SPDT_filename, DM_list[f], true);
+			#endif
+			
+			#ifdef DUMP_RAW_SPDT_DATA_2D
+			sprintf(SPDT_filename, "SPDT_raw_list-dm_%.2f-it_%d", dm_low[i] + DM_shift*dm_step[i], it);
+			Export_data_as_list(&h_SPDT_raw_data[shift], PD_plan[it].decimated_timesamples, tsamp, tstart, DM_list[f], dm_step[i], dm_low[i] + DM_shift*dm_step[i], SPDT_filename, DM_list[f]);
+			#endif
+			
+			#ifdef DUMP_RAW_SPDT_DATA_1D
+            FILE *SPDT_data;
+			for(int dm=0; dm<DM_list[f]; dm++){
+              float DM_pos = dm_low[i] + (DM_shift + dm)*dm_step[i];
+			    size_t shift = DM_list[f]*PD_plan[it].output_shift;
+                sprintf(SPDT_filename, "SPDT_raw_1D-dm_%.2f-it_%d.dat", DM_pos, it);
+                //printf("Filename: %s; DM position: %f; shift: %zu; nTimesamples: %zu; dec: %zu; output_shift: %zu;\n", SPDT_filename, DM_pos, shift, (size_t) nTimesamples, (size_t) PD_plan[it].decimated_timesamples, (size_t) PD_plan[it].output_shift);
+                if (( SPDT_data = fopen(SPDT_filename, "a+b") ) == NULL) {
+                  fprintf(stderr, "Error opening output file!\n");
+                }
+			    fseek(SPDT_data, 0, SEEK_SET);
+                fwrite(&h_SPDT_raw_data[shift + dm*PD_plan[it].decimated_timesamples], sizeof(float), (PD_plan[it].decimated_timesamples - PD_plan[it].unprocessed_samples), SPDT_data);
+                fclose(SPDT_data);
+            }
+			#endif
+			
+          }
+		  
+		  delete [] h_SPDT_raw_data;
+		  delete [] h_SPDT_raw_taps;
+        #endif
+		
 	if(candidate_algorithm==1){
 	  //-------------- Thresholding
 	  timer.Start();
@@ -352,7 +404,7 @@ namespace astroaccelerate {
 
 	DM_shift = DM_shift + DM_list[f];
 	cudaMemset((void*) gmem_peak_pos, 0, sizeof(int));
-      }
+      } // for loop through DM chunks
 
 	if(candidate_algorithm==2) { //peak filtering
 		//------------peak clustering from AA_experimental
@@ -416,7 +468,7 @@ namespace astroaccelerate {
 	#endif
 		//------------------------------------------------
 		*peak_pos = local_peak_pos;
-	}
+	} // peak filtering
 		
       //------------------------> Output
 	float *h_peak_list;
