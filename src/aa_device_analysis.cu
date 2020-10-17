@@ -291,12 +291,12 @@ namespace astroaccelerate {
             printf("Iteration it=%d;", it);
 			size_t shift = DM_list[f]*PD_plan[it].output_shift;
 			#ifdef DUMP_RAW_SPDT_DATA_RAW
-			sprintf(SPDT_filename, "SPDT_raw-dm_%.2f-it_%d", dm_low[i] + DM_shift*dm_step[i], it);
+			sprintf(SPDT_filename, "SPDT_raw-dm_%.2f-t%0.2f-it_%d", dm_low[i] + DM_shift*dm_step[i], tstart, it);
 			Export_data_raw(&h_SPDT_raw_data[shift], PD_plan[it].decimated_timesamples, DM_list[f], SPDT_filename, DM_list[f], true);
 			#endif
 			
 			#ifdef DUMP_RAW_SPDT_DATA_2D
-			sprintf(SPDT_filename, "SPDT_raw_list-dm_%.2f-it_%d", dm_low[i] + DM_shift*dm_step[i], it);
+			sprintf(SPDT_filename, "SPDT_raw_list-dm_%.2f-t%0.2f-it_%d", dm_low[i] + DM_shift*dm_step[i], tstart, it);
 			Export_data_as_list(&h_SPDT_raw_data[shift], PD_plan[it].decimated_timesamples, tsamp, tstart, DM_list[f], dm_step[i], dm_low[i] + DM_shift*dm_step[i], SPDT_filename, DM_list[f]);
 			#endif
 			
