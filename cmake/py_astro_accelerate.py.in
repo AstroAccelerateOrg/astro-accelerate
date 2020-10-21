@@ -593,15 +593,18 @@ class SPD():
         scale_snr = []
         dm_idx = []
         ts_idx = []
+        n_dmtrials = 0
+        list_ndms = pipeline.ddtr_ndms()
+        dm_low = pipeline.dm_low(current_range)
+        for i in range(0, current_range):
+            n_dmtrials = n_dmtrials + list_ndms[i]
         for i in range(0, nCandidates):
-            dm_low = pipeline.dm_low(current_range)
-            list_ndms = pipeline.ddtr_ndms()
             scale_dm.append(dm[i]*(ddtr_plan.m_dm[current_range].m_step) + dm_low)
             scale_time_sample.append(time_samples[i]*ddtr_plan.m_dm[current_range].m_inBin + tprocessed)
             scale_time.append(time_samples[i]*metadata.m_tsamp*ddtr_plan.m_dm[current_range].m_inBin + tprocessed*metadata.m_tsamp)
             scale_width.append(width[i]*ddtr_plan.m_dm[current_range].m_inBin)
             scale_snr.append(snr[i])
-            dm_idx.append(dm[i])
+            dm_idx.append(dm[i] + n_dmtrials)
             ts_idx.append(time_samples[i])
         print(" ... done")
         return scale_dm, scale_snr, scale_time_sample, scale_time, scale_width, dm_idx, ts_idx
