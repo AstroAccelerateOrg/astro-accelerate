@@ -106,7 +106,7 @@ int main() {
 
   aa_pipeline::pipeline_option pipeline_options;
   pipeline_options.insert(aa_pipeline::component_option::copy_ddtr_data_to_host);
-	aa_pipeline_api<unsigned short> runner(pipeline_components, pipeline_options, metadata, input_data.data(), &selected_device);
+	aa_pipeline_api<unsigned short> runner(pipeline_components, pipeline_options, metadata, input_data.data(), selected_device);
         runner.bind(ddtr_plan);
 	runner.bind(analysis_plan);
 	runner.bind(periodicity_plan);

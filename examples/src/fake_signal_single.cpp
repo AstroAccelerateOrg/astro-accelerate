@@ -78,7 +78,7 @@ int main() {
         //do not insert this option if the output is not needed
         pipeline_options.insert(aa_pipeline::component_option::copy_ddtr_data_to_host);
 
-	aa_pipeline_api<unsigned short> runner(pipeline_components, pipeline_options, metadata, input_data.data(), &selected_device);
+	aa_pipeline_api<unsigned short> runner(pipeline_components, pipeline_options, metadata, input_data.data(), selected_device);
 	runner.bind(ddtr_plan);
  
         if (runner.ready()) {

@@ -82,7 +82,7 @@ int main(int argc, const char *argv[]) {
 	const bool  enable_MSD_outlier_rejection = true;
 	aa_analysis_plan::selectable_candidate_algorithm candidate_algorithm = aa_analysis_plan::selectable_candidate_algorithm::peak_find;
 
-	aa_pipeline_api<unsigned short> pipeline_runner(pipeline_components, pipeline_options, metadata, filterbank_datafile.input_buffer().data(), &selected_device);
+	aa_pipeline_api<unsigned short> pipeline_runner(pipeline_components, pipeline_options, metadata, filterbank_datafile.input_buffer().data(), selected_device);
 
 	pipeline_runner.bind(ddtr_plan);
        

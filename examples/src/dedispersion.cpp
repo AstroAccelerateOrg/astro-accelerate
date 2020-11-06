@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
 	pipeline_options.insert(aa_pipeline::component_option::copy_ddtr_data_to_host);
 	//--------------<
 	
-	aa_pipeline_api<unsigned short> pipeline_runner(pipeline_components, pipeline_options, metadata, filterbank_datafile.input_buffer().data(), &selected_device);
+	aa_pipeline_api<unsigned short> pipeline_runner(pipeline_components, pipeline_options, metadata, filterbank_datafile.input_buffer().data(), selected_device);
 	pipeline_runner.bind(ddtr_plan);
 
         if (pipeline_runner.ready()) {

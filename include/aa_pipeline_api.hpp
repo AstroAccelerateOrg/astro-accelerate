@@ -58,7 +58,7 @@ namespace astroaccelerate {
 		std::vector<aa_strategy*>              m_all_strategy; /** Base class pointers to all strategies bound to the pipeline. */
 		aa_pipeline::pipeline                  m_requested_pipeline; /** The user requested pipeline that was bound to the aa_pipeline_api instance on construction. */
 		const aa_pipeline::pipeline_option     m_pipeline_options; /** The user requested pipeline details containing component options for the aa_pipeline_api instance. */
-		aa_device_info				           *m_selected_device; /** The user provided GPU card information for the aa_pipeline_api instance. */
+		aa_device_info				           m_selected_device; /** The user provided GPU card information for the aa_pipeline_api instance. */
 		std::unique_ptr<aa_pipeline_runner>    m_runner; /** A std::unique_ptr that will point to the correct class instantation of the selected aa_permitted_pipelines_ when the pipeline must be made ready to run. */
 
 		aa_filterbank_metadata      m_filterbank_metadata; /** The filterbank file metadata that the user provided for the aa_pipeline_api instance on construction. */
@@ -93,7 +93,7 @@ namespace astroaccelerate {
 			const aa_pipeline::pipeline_option &pipeline_options,
 			const aa_filterbank_metadata &filterbank_metadata,
 			T const*const input_data,
-			aa_device_info *card_info)
+			aa_device_info &card_info)
 			: 
 			m_pipeline_options(pipeline_options),
 			m_selected_device(card_info),
@@ -141,7 +141,7 @@ namespace astroaccelerate {
 
 				//ddtr_strategy needs to know if analysis will be required
 				if (required_plans.find(aa_pipeline::component::analysis) != required_plans.end()) {
-					aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_selected_device->free_memory(), true, m_selected_device);
+					aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_selected_device.free_memory(), true, &m_selected_device);
 					if (ddtr_strategy.ready()) {
 						m_ddtr_strategy = std::move(ddtr_strategy);
 						m_all_strategy.push_back(&m_ddtr_strategy);
@@ -153,7 +153,7 @@ namespace astroaccelerate {
 					}
 				}
 				else {
-					aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_selected_device->free_memory(), false, m_selected_device);
+					aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_selected_device.free_memory(), false, &m_selected_device);
 					if (ddtr_strategy.ready()) {
 						m_ddtr_strategy = std::move(ddtr_strategy);
 						m_all_strategy.push_back(&m_ddtr_strategy);
@@ -198,7 +198,7 @@ namespace astroaccelerate {
 
 				m_analysis_plan = plan;
 
-				aa_analysis_strategy analysis_strategy(m_analysis_plan, m_selected_device);
+				aa_analysis_strategy analysis_strategy(m_analysis_plan, &m_selected_device);
 				if (analysis_strategy.ready()) {
 					m_analysis_strategy = std::move(analysis_strategy);
 					m_all_strategy.push_back(&m_analysis_strategy);
@@ -335,7 +335,7 @@ namespace astroaccelerate {
 					//ddtr_strategy was not yet computed, do it now.
 					//ddtr_strategy needs to know if analysis will be required
 					if (required_plans.find(aa_pipeline::component::analysis) != required_plans.end()) { //analysis will be required
-						aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_selected_device->free_memory(), true, m_selected_device);
+						aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_selected_device.free_memory(), true, &m_selected_device);
 						if (ddtr_strategy.ready()) {
 							m_ddtr_strategy = std::move(ddtr_strategy);
 							m_all_strategy.push_back(&m_ddtr_strategy);
@@ -346,7 +346,7 @@ namespace astroaccelerate {
 						}
 					}
 					else { //analysis will not be required
-						aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_selected_device->free_memory(), false, m_selected_device);
+						aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_selected_device.free_memory(), false, &m_selected_device);
 						if (ddtr_strategy.ready()) {
 							m_ddtr_strategy = std::move(ddtr_strategy);
 							m_all_strategy.push_back(&m_ddtr_strategy);
@@ -402,7 +402,7 @@ namespace astroaccelerate {
 				}
 				else {
 					//analysis_strategy was not yet computed, do it now.
-					aa_analysis_strategy analysis_strategy(m_analysis_plan, m_selected_device);
+					aa_analysis_strategy analysis_strategy(m_analysis_plan, &m_selected_device);
 					if (analysis_strategy.ready()) {
 						m_analysis_strategy = std::move(analysis_strategy);
 						m_all_strategy.push_back(&m_analysis_strategy);
@@ -1020,7 +1020,7 @@ namespace astroaccelerate {
 			}
 
 			LOG(log_level::notice, "---PIPELINE DIAGNOSTIC INFORMATION---");
-			m_selected_device->print_card_info();
+			m_selected_device.print_card_info();
 
 			aa_filterbank_metadata::print_info(m_filterbank_metadata);
 

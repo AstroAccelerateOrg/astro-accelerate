@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
 		pipeline_options,
 		filterbank_metadata,
 		filterbank_datafile.input_buffer().data(),
-		&selected_device);
+		selected_device);
 
 	// MSD baseline noise should be moved to new component which would be candidate selection
 	bool msd_baseline_noise = false;

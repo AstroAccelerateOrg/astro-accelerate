@@ -33,7 +33,7 @@ namespace astroaccelerate {
 	if(options.fdas_inbin) pipeline_options.insert(aa_pipeline::component_option::fdas_inbin);
 	if(options.fdas_norm) pipeline_options.insert(aa_pipeline::component_option::fdas_norm);
 	
-	return new aa_pipeline_api<unsigned short>(requested_pipeline, pipeline_options, metadata, input_data, &selected_device);
+	return new aa_pipeline_api<unsigned short>(requested_pipeline, pipeline_options, metadata, input_data, selected_device);
       }
       
       void aa_py_pipeline_api_delete(aa_pipeline_api<unsigned short> const*const obj) {

@@ -62,7 +62,7 @@ namespace astroaccelerate {
     
     // Supply the requested pipeline and telescope data to a pipeline manager, which will check which components are required to be configured.
     // If a component is not required, then even if it is supplied, it will be ignored.
-    aa_pipeline_api<T> pipeline_manager(the_pipeline, pipeline_options, filterbank_data, input_data, &selected_device);
+    aa_pipeline_api<T> pipeline_manager(the_pipeline, pipeline_options, filterbank_data, input_data, selected_device);
     
     // Bind the Plan to the manager
     aa_ddtr_plan ddtr_plan;
