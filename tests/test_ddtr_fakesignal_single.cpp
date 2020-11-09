@@ -17,24 +17,10 @@ using namespace astroaccelerate;
 
 int main() {
 	//-----------------------  Init the GPU card
-	aa_device_info& device_info = aa_device_info::instance();
-	if(device_info.check_for_devices()) {
-		LOG(log_level::notice, "Checked for devices.");
-	}
-	else {
-		LOG(log_level::error, "Could not find any devices.");
-	}
+	int device = 0;
+	aa_device_info selected_device(device);
 	
-	aa_device_info::CARD_ID selected_card = 0;
-	aa_device_info::aa_card_info selected_card_info;
-	if(device_info.init_card(selected_card, selected_card_info)) {
-		LOG(log_level::notice, "init_card complete. Selected card " + std::to_string(selected_card) + ".");
-	}
-	else {
-		LOG(log_level::error, "init_card incomplete.")
-	}
-	
-	aa_device_info::print_card_info(selected_card_info);
+	selected_device.print_card_info();
 	//-------------------------------------------
 
 	//-------- Define user DM plan 
@@ -72,10 +58,10 @@ int main() {
 		// setting the metadata for running fake generator
 		aa_fake_signal_metadata f_meta(dm_position, signal_start, func_width, sigma);	
 	
-		const size_t free_memory = selected_card_info.free_memory; // Free memory on the GPU in bytes
+		const size_t free_memory = selected_device.free_memory(); // Free memory on the GPU in bytes
 		bool enable_analysis = false; 
 		
-		aa_ddtr_strategy strategy(ddtr_plan, metadata, free_memory, enable_analysis);
+		aa_ddtr_strategy strategy(ddtr_plan, metadata, free_memory, enable_analysis, &selected_device);
 		if(!(strategy.ready())) {
 			std::cout << "There was an error" << std::endl;
 			return 0;
@@ -101,7 +87,7 @@ int main() {
 	        //do not insert this option if the output is not needed
 	        pipeline_options.insert(aa_pipeline::component_option::copy_ddtr_data_to_host);
 	
-		aa_pipeline_api<unsigned short> runner(pipeline_components, pipeline_options, metadata, input_data.data(), selected_card_info);
+		aa_pipeline_api<unsigned short> runner(pipeline_components, pipeline_options, metadata, input_data.data(), selected_device);
 		runner.bind(ddtr_plan);
 	 
 	        if (runner.ready()) {

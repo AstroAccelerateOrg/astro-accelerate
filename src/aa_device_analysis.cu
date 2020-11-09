@@ -127,7 +127,7 @@ namespace astroaccelerate {
    * \brief Users should not interact with this function. Instead they should use aa_analysis_plan and aa_analysis_strategy.
    * \details Argument int i is the current dm_range.
    */
-  void analysis_GPU(unsigned int *h_peak_list_DM, unsigned int *h_peak_list_TS, float *h_peak_list_SNR, unsigned int *h_peak_list_BW, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int *maxshift, int max_ndms, int const*const ndms, float cutoff, float OR_sigma_multiplier, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, int candidate_algorithm, float *d_MSD_workarea, unsigned short *d_output_taps, float *d_MSD_interpolated, unsigned long int maxTimeSamples, int enable_msd_baselinenoise, const bool dump_to_disk, const bool dump_to_user, analysis_output &output){
+  bool analysis_GPU(unsigned int *h_peak_list_DM, unsigned int *h_peak_list_TS, float *h_peak_list_SNR, unsigned int *h_peak_list_BW, size_t *peak_pos, size_t max_peak_size, int i, float tstart, int t_processed, int inBin, int *maxshift, int max_ndms, int const*const ndms, float cutoff, float OR_sigma_multiplier, float max_boxcar_width_in_sec, float *output_buffer, float *dm_low, float *dm_high, float *dm_step, float tsamp, int candidate_algorithm, float *d_MSD_workarea, unsigned short *d_output_taps, float *d_MSD_interpolated, unsigned long int maxTimeSamples, int enable_msd_baselinenoise, const bool dump_to_disk, const bool dump_to_user, analysis_output &output){
     //--------> Task
     int max_boxcar_width = (int) (max_boxcar_width_in_sec/tsamp);
     int max_width_performed=0;
@@ -482,7 +482,7 @@ namespace astroaccelerate {
       }
       delete[] h_peak_list;
       //------------------------> Output
-
+		cudaFree(gmem_peak_pos);
     }
     else printf("Error not enough memory to search for pulses\n");
 
@@ -490,6 +490,7 @@ namespace astroaccelerate {
     total_time = total_timer.Elapsed();
     time_log.adding("SPD", "total", total_time);
     time_log.adding("SPD", "MSD", MSD_time);
+	time_log.adding("Total", "total", total_time);
 #ifdef GPU_TIMER
     printf("\n  TOTAL TIME OF SPS:%f ms\n", total_time);
     printf("  MSD_time: %f ms; SPDT time: %f ms; Candidate selection time: %f ms;\n", MSD_time, SPDT_time, PF_time);
@@ -499,6 +500,7 @@ namespace astroaccelerate {
     //----------> GPU part
     //---------------------------------------------------------------------------
 	
+	return true;
   }
 
 } //namespace astroaccelerate

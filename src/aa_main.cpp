@@ -42,13 +42,12 @@ int main(int argc, char *argv[]) {
 	aa_ddtr_plan ddtr_plan;
 	std::string file_path;
 	//aa_config_flags contains values like sigma_cutoff, card_id, but also rfi which should be pipeline option. It also contain vector of user_debug enumerator which should be independent.
-	aa_config_flags user_flags = { 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>() };
+	aa_config_flags user_flags = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>() };
 	//pipeline options is a set of options for the pipeline like: zero_dm, output_dmt, candidate_algorithm which should be handled better
 	aa_pipeline::pipeline_option pipeline_options;
 	//aa_config takes all argument as reference which is extremely confusing while still returning something. Must change to pointers and return nothing 
 	aa_pipeline::pipeline pipeline = cli_configuration.setup(ddtr_plan, user_flags, pipeline_options, file_path);
 	//pipeline_options.insert(aa_pipeline::component_option::timelog_export_to_file);
-
 	LOG(log_level::notice, "File path "+file_path);
 	LOG(log_level::notice, "-----------------------------------");
 	LOG(log_level::notice, "Pipeline components:");
@@ -70,26 +69,11 @@ int main(int argc, char *argv[]) {
 	}
 
 	//Select card
-	aa_device_info& device_info = aa_device_info::instance();
-	if (device_info.check_for_devices()) {
-		LOG(log_level::notice, "Checked for devices.");
-	}
-	else {
-		LOG(log_level::error, "Could not find any devices.");
-	}
-
-	aa_device_info::CARD_ID selected_card = user_flags.selected_card_id;
-	aa_device_info::aa_card_info selected_card_info;
-	if (device_info.init_card(selected_card, selected_card_info)) {
-		LOG(log_level::notice, "init_card complete. Selected card " + std::to_string(selected_card) + ".");
-	}
-	else {
-		LOG(log_level::error, "init_card incomplete.");
-		return 0;
-	}
+	int device = 0;
+	aa_device_info selected_device(device);
 
 	//Why this is here we have already configured the pipeline? Not used later delete?
-	aa_config configuration(pipeline);   // Set the pipeline and other run settings that would come from an input_file
+	//aa_config configuration(pipeline);   // Set the pipeline and other run settings that would come from an input_file
 
 	// Move this to pipeline
 	if (user_flags.rfi == 1) {
@@ -103,7 +87,7 @@ int main(int argc, char *argv[]) {
 		pipeline_options,
 		filterbank_metadata,
 		filterbank_datafile.input_buffer().data(),
-		selected_card_info);
+		selected_device);
 
 	// MSD baseline noise should be moved to new component which would be candidate selection
 	bool msd_baseline_noise = false;
@@ -166,6 +150,34 @@ int main(int argc, char *argv[]) {
 			user_flags.sigma_constant,
 			msd_baseline_noise);
 		pipeline_manager.bind(fdas_plan);
+	}
+	
+	if (pipeline.find(aa_pipeline::component::jerk) != pipeline.end()) {
+		bool high_precision_filters = false;
+		bool interbinning = false;
+		bool always_choose_next_power_of_2 = false;
+		bool spectrum_whitening = false;
+		size_t free_mem, total_mem;
+		cudaMemGetInfo(&free_mem,&total_mem);
+		free_mem = free_mem*0.90;
+		aa_jerk_plan jerk_plan(
+			pipeline_manager.ddtr_strategy().nProcessedTimesamples(),
+			pipeline_manager.ddtr_strategy().max_ndms(),
+			free_mem,
+			user_flags.z_max,
+			user_flags.z_step,
+			user_flags.w_max,
+			user_flags.w_step,
+			interbinning,
+			high_precision_filters,
+			user_flags.sigma_cutoff,
+			user_flags.periodicity_nHarmonics,
+			msd_baseline_noise,
+			user_flags.sigma_constant,
+			always_choose_next_power_of_2,
+			spectrum_whitening
+		);
+		pipeline_manager.bind(jerk_plan);
 	}
 
 	for (size_t i = 0; i < ddtr_plan.range(); i++) {

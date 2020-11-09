@@ -21,6 +21,7 @@
 #include "aa_device_rfi.hpp"
 #include "aa_device_acceleration_fdas.hpp"
 #include "aa_dedisperse.hpp"
+#include "aa_device_save_data.hpp"
 
 #include "aa_gpu_timer.hpp"
 
@@ -298,16 +299,6 @@ namespace astroaccelerate {
       return true;
     }
 
-    /** \brief Transfer data from the device to the host. */
-    inline void save_data_offset(float *device_pointer, int device_offset, float *host_pointer, int host_offset, size_t size) {
-      cudaMemcpy(host_pointer + host_offset, device_pointer + device_offset, size, cudaMemcpyDeviceToHost);
-    }
-
-    /** \brief Transfer data from the device to the host. */
-    inline void save_data(float *const device_pointer, float *const host_pointer, const size_t &size) {
-      cudaMemcpy(host_pointer, device_pointer, size, cudaMemcpyDeviceToHost);
-    }
-
     /**
      * \brief Run the pipeline by processing the next time chunk of data.
      * \returns A boolean to indicate whether further time chunks are available to process (true) or not (false).
@@ -347,7 +338,7 @@ namespace astroaccelerate {
       const int *ndms = m_ddtr_strategy.ndms_data();
       
       //checkCudaErrors(cudaGetLastError());
-      load_data(-1, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts, NULL);
+      load_data(-1, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[0][t], maxshift, nchans, dmshifts, NULL, nbits);
       //checkCudaErrors(cudaGetLastError());
 
       if(zero_dm_type == aa_pipeline::component_option::zero_dm) {
@@ -357,7 +348,7 @@ namespace astroaccelerate {
       //checkCudaErrors(cudaGetLastError());
 
       if(zero_dm_type == aa_pipeline::component_option::zero_dm_with_outliers) {
-	zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift);
+	zero_dm_outliers(d_input, nchans, t_processed[0][t]+maxshift, nbits);
       }
 
       //checkCudaErrors(cudaGetLastError());
@@ -383,7 +374,7 @@ namespace astroaccelerate {
 	cudaDeviceSynchronize();
 	//checkCudaErrors(cudaGetLastError());
 
-	load_data(dm_range, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t], maxshift, nchans, dmshifts, NULL);
+	load_data(dm_range, inBin.data(), d_input, &m_input_buffer[(long int) ( inc * nchans )], t_processed[dm_range][t], maxshift, nchans, dmshifts, NULL, nbits);
 
 	//checkCudaErrors(cudaGetLastError());
 
@@ -399,9 +390,12 @@ namespace astroaccelerate {
 
 	//checkCudaErrors(cudaGetLastError());
 
-	for (int k = 0; k < ndms[dm_range]; k++) {
-          save_data_offset(d_output, k * t_processed[dm_range][t], m_output_buffer[dm_range][k], inc / inBin[dm_range], sizeof(float) * t_processed[dm_range][t]);
-        }
+    for (size_t k = 0; k < (size_t) ndms[dm_range]; k++) {
+      size_t device_offset = (size_t) (k * (size_t) t_processed[dm_range][t]);
+      size_t host_offset = (size_t) (inc / inBin[dm_range]);
+      size_t data_size = (size_t) (sizeof(float) * (size_t) t_processed[dm_range][t]);
+      save_data_offset(d_output, device_offset, m_output_buffer[dm_range][k], host_offset, data_size);
+    }
 	
 	oldBin = inBin[dm_range];
       }

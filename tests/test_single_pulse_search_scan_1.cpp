@@ -234,7 +234,6 @@ int check_boxcar_results(float *h_input, float *h_MSD_interpolated, float *h_GPU
 }
 
 int main(void) {
-	//aa_device_info& device_info = aa_device_info::instance();
 	cudaSetDevice(CARD);
 	
 	// GPU memory

@@ -10,14 +10,14 @@ namespace astroaccelerate {
   /**
    * Trivial constructor for aa_ddtr_strategy which will result in a strategy that cannot be ready. 
    */
-  aa_ddtr_strategy::aa_ddtr_strategy() : m_ready(false), m_strategy_already_calculated(false), m_configured_for_analysis(false), is_setup(false), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_power(0.0), m_enable_msd_baseline_noise(false) {
+  aa_ddtr_strategy::aa_ddtr_strategy() : m_ready(false), m_strategy_already_calculated(false), m_selected_device(NULL), m_configured_for_analysis(false), is_setup(false), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_power(0.0), m_enable_msd_baseline_noise(false) {
     
   }
 
   /**
    * Constructor for aa_ddtr_strategy that computes the strategy upon construction, and sets the ready state of the instance of the class.
    */
-  aa_ddtr_strategy::aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis) : m_ready(false), m_strategy_already_calculated(false), m_configured_for_analysis(enable_analysis), is_setup(false), m_metadata(metadata), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_power(plan.power()), m_enable_msd_baseline_noise(plan.enable_msd_baseline_noise()) {    
+  aa_ddtr_strategy::aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis, aa_device_info *selected_device) : m_ready(false), m_strategy_already_calculated(false), m_selected_device(selected_device), m_configured_for_analysis(enable_analysis), is_setup(false), m_metadata(metadata), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_power(plan.power()), m_enable_msd_baseline_noise(plan.enable_msd_baseline_noise()) {
     strategy(plan, free_memory, enable_analysis);
   }
 
@@ -42,6 +42,7 @@ namespace astroaccelerate {
     const float fch1  = m_metadata.fch1();
     const float foff  = m_metadata.foff();
     const float tsamp = m_metadata.tsamp();
+    const int nbits = m_metadata.nbits();
     
     if(!plan.range()) {
       //No user requested dm settings have been added, this is an invalid aa_ddtr_plan.
@@ -57,7 +58,7 @@ namespace astroaccelerate {
     //Strategy set DM settings
     str_dm.resize(range);
 
-    const size_t gpu_memory = free_memory; // - 1073741824;
+    const size_t gpu_memory = free_memory - 104857600; // - 1073741824;
     
     const double SPDT_fraction = 3.0/4.0; // 1.0 for MSD plane profile validation
     //Calculate maxshift, the number of dms for this bin and the highest value of dm to be calculated in this bin
@@ -166,12 +167,25 @@ namespace astroaccelerate {
       if ((unsigned int)nsamp < max_tsamps)    {
 	// We have case 1)
 	// Allocate memory to hold the values of nsamps to be processed
-	unsigned long int local_t_processed = (unsigned long int) floor(( (double) ( nsamp - (m_maxshift) ) / (double) plan.user_dm(range-1).inBin ) / (double) ( SDIVINT*2*SNUMREG )); //number of timesamples per block
-	local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	unsigned long int local_t_processed;
+	if (nbits == 4){
+		local_t_processed = (unsigned long int) floor(( (double) ( nsamp - (m_maxshift) ) / (double) plan.user_dm(range-1).inBin ) / (double) ( SDIVINT*4*SNUMREG )); //number of timesamples per block	
+		local_t_processed = local_t_processed * ( SDIVINT*4*SNUMREG ) * plan.user_dm(range-1).inBin;
+	}
+	else {
+		local_t_processed = (unsigned long int) floor(( (double) ( nsamp - (m_maxshift) ) / (double) plan.user_dm(range-1).inBin ) / (double) ( SDIVINT*2*SNUMREG )); //number of timesamples per block
+		local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	}
 	for (size_t i = 0; i < range; i++)    {
 	  m_t_processed[i].resize(1);
-	  m_t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-	  m_t_processed[i][0] = m_t_processed[i][0] * ( SDIVINT*2*SNUMREG );
+	  if (nbits == 4) {
+		  m_t_processed[i][0] = (int)floor(( (float)(local_t_processed)/(float)plan.user_dm(i).inBin)/(float)(SDIVINT*4*SNUMREG));
+		  m_t_processed[i][0] = m_t_processed[i][0]*(SDIVINT*4*SNUMREG);
+	  }
+	  else {
+		  m_t_processed[i][0] = (int)floor(( (float)(local_t_processed)/(float)plan.user_dm(i).inBin)/(float)(SDIVINT*2*SNUMREG));
+		  m_t_processed[i][0] = m_t_processed[i][0]*(SDIVINT*2*SNUMREG);
+	  }
 	}
 	( m_num_tchunks ) = 1;
 	LOG(log_level::dev_debug, "In 1");
@@ -186,15 +200,28 @@ namespace astroaccelerate {
 	//int num_blocks = (int) floor(( (float) nsamp - ( *maxshift ) )) / ( (float) ( samp_block_size ) ) + 1;
         
 	// Find the common integer amount of samples between all bins
-	int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) plan.user_dm(range-1).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-	local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	int local_t_processed;
+	if (nbits == 4){
+		local_t_processed = (int) floor(((float)(samp_block_size)/(float)plan.user_dm(range-1).inBin)/(float)(SDIVINT*4*SNUMREG));
+		local_t_processed = local_t_processed*(SDIVINT*4*SNUMREG)*plan.user_dm(range-1).inBin;
+	}
+	else {
+		local_t_processed = (int) floor(((float)(samp_block_size)/(float)plan.user_dm(range-1).inBin)/(float)(SDIVINT*2*SNUMREG));
+		local_t_processed = local_t_processed*(SDIVINT*2*SNUMREG)*plan.user_dm(range-1).inBin;
+	}
         
 	int num_blocks = (int) ( ((float) (nsamp - m_maxshift)) / ((float) local_t_processed) );
         
 	// Work out the remaining fraction to be processed
-	int remainder =  nsamp -  (num_blocks*local_t_processed ) - (m_maxshift) ;
-	remainder = (int) floor((float) remainder / (float) plan.user_dm(range-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
-	remainder = remainder * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	int remainder =  nsamp - (num_blocks*local_t_processed ) - (m_maxshift);
+	if (nbits == 4){
+		remainder = (int) floor((float)remainder/(float)plan.user_dm(range-1).inBin)/(float)( SDIVINT*4*SNUMREG);
+		remainder = remainder*(SDIVINT*4*SNUMREG)*plan.user_dm(range-1).inBin;
+	}
+	else {
+		remainder = (int) floor((float)remainder/(float)plan.user_dm(range-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
+		remainder = remainder * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	}
 	int rem_block = 0;
 	if(remainder>0) rem_block = 1;
         
@@ -203,13 +230,25 @@ namespace astroaccelerate {
 		m_t_processed[i].resize(num_blocks + rem_block);
 		// Remember the last block holds less!
 		for (int j = 0; j < num_blocks; j++) {
-			m_t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-			m_t_processed[i][j] = m_t_processed[i][j] * ( SDIVINT*2*SNUMREG );
+			if (nbits == 4){
+				m_t_processed[i][j] = (int)floor(((float)(local_t_processed)/(float)plan.user_dm(i).inBin)/(float)(SDIVINT*4*SNUMREG));
+				m_t_processed[i][j] = m_t_processed[i][j]*(SDIVINT*4*SNUMREG);
+			}
+			else {
+				m_t_processed[i][j] = (int) floor(((float)(local_t_processed)/(float)plan.user_dm(i).inBin)/(float)(SDIVINT*2*SNUMREG));
+				m_t_processed[i][j] = m_t_processed[i][j]*(SDIVINT*2*SNUMREG);
+			}
 		}
 		// fractional bit
 		if(rem_block==1){
-			m_t_processed[i][num_blocks] = (int) floor(( (float) ( remainder ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-			m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks] * ( SDIVINT*2*SNUMREG );
+			if (nbits == 4){
+				m_t_processed[i][num_blocks] = (int) floor(((float)(remainder)/(float)plan.user_dm(i).inBin)/(float)(SDIVINT*4*SNUMREG));
+				m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks]*(SDIVINT*4*SNUMREG);
+			}
+			else {
+				m_t_processed[i][num_blocks] = (int) floor(((float)(remainder)/(float)plan.user_dm(i).inBin)/(float)(SDIVINT*2*SNUMREG));
+				m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks]*(SDIVINT*2*SNUMREG);
+			}
 		}
 	}
 	
@@ -242,12 +281,26 @@ namespace astroaccelerate {
       if ((unsigned int)nsamp < max_tsamps) {
 	// We have case 2)
 	// Allocate memory to hold the values of nsamps to be processed
-	int local_t_processed = (int) floor(( (float) ( nsamp - ( m_maxshift ) ) / (float) plan.user_dm(range-1).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-	local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	int local_t_processed;
+	if (nbits == 4){
+		local_t_processed = (int) floor(((float)(nsamp - (m_maxshift))/(float) plan.user_dm(range-1).inBin)/(float)(SDIVINT*4*SNUMREG));
+		local_t_processed = local_t_processed*(SDIVINT*4*SNUMREG)*plan.user_dm(range-1).inBin;
+	}
+	else {
+		local_t_processed = (int) floor(((float)(nsamp - (m_maxshift))/(float) plan.user_dm(range-1).inBin)/(float)(SDIVINT*2*SNUMREG));
+		local_t_processed = local_t_processed*(SDIVINT*2*SNUMREG)*plan.user_dm(range-1).inBin;
+	}
+
 	for (size_t i = 0; i < range; i++) {
 	  m_t_processed[i].resize(1);
-	  m_t_processed[i][0] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-	  m_t_processed[i][0] = m_t_processed[i][0] * ( SDIVINT*2*SNUMREG );
+	  if (nbits == 4) {
+		  m_t_processed[i][0] = (int) floor(((float)(local_t_processed)/(float)plan.user_dm(i).inBin)/(float)(SDIVINT*4*SNUMREG));
+		  m_t_processed[i][0] = m_t_processed[i][0]*(SDIVINT*4*SNUMREG);
+	  }
+	  else {
+		  m_t_processed[i][0] = (int) floor(((float)(local_t_processed)/(float)plan.user_dm(i).inBin)/(float)(SDIVINT*2*SNUMREG));
+		  m_t_processed[i][0] = m_t_processed[i][0]*(SDIVINT*2*SNUMREG);
+	  }
 	}
 	( m_num_tchunks ) = 1;
 	LOG(log_level::dev_debug, "In 2");
@@ -262,16 +315,29 @@ namespace astroaccelerate {
 	//int num_blocks = (int) floor(( (float) nsamp - (float) ( *maxshift ) ) / ( (float) samp_block_size ));
         
 	// Find the common integer amount of samples between all bins
-	int local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) plan.user_dm(range-1).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-	local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	int local_t_processed;
+	if (nbits == 4) {
+		local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) plan.user_dm(range-1).inBin ) / (float) ( SDIVINT*4*SNUMREG ));
+		local_t_processed = local_t_processed * ( SDIVINT*4*SNUMREG ) * plan.user_dm(range-1).inBin;
+	}
+	else {
+		local_t_processed = (int) floor(( (float) ( samp_block_size ) / (float) plan.user_dm(range-1).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
+		local_t_processed = local_t_processed * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	}
         
 	// samp_block_size was not used to calculate remainder instead there is local_t_processed which might be different
 	int num_blocks = (int) ( ((float) (nsamp - m_maxshift)) / ((float) local_t_processed) );
         
 	// Work out the remaining fraction to be processed
 	int remainder = nsamp - ( num_blocks * local_t_processed ) - ( m_maxshift );
-	remainder = (int) floor((float) remainder / (float) plan.user_dm(range-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
-	remainder = remainder * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	if (nbits == 4) {
+		remainder = (int) floor((float) remainder / (float) plan.user_dm(range-1).inBin) / (float) ( SDIVINT*4*SNUMREG );
+		remainder = remainder * ( SDIVINT*4*SNUMREG ) * plan.user_dm(range-1).inBin;
+	}
+	else {
+		remainder = (int) floor((float) remainder / (float) plan.user_dm(range-1).inBin) / (float) ( SDIVINT*2*SNUMREG );
+		remainder = remainder * ( SDIVINT*2*SNUMREG ) * plan.user_dm(range-1).inBin;
+	}
 	int rem_block = 0;
 	if(remainder>0) rem_block = 1;
         
@@ -280,13 +346,25 @@ namespace astroaccelerate {
 		m_t_processed[i].resize(num_blocks + rem_block);
 		// Remember the last block holds less!
 		for (int j = 0; j < num_blocks; j++) {
-			m_t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-			m_t_processed[i][j] = m_t_processed[i][j] * ( SDIVINT*2*SNUMREG );
+			if (nbits == 4) {
+				m_t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*4*SNUMREG ));
+				m_t_processed[i][j] = m_t_processed[i][j] * ( SDIVINT*4*SNUMREG );
+			}
+			else {
+				m_t_processed[i][j] = (int) floor(( (float) ( local_t_processed ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
+				m_t_processed[i][j] = m_t_processed[i][j] * ( SDIVINT*2*SNUMREG );
+			}
 		}
 		// fractional bit
 		if(rem_block==1){
-			m_t_processed[i][num_blocks] = (int) floor(( (float) ( remainder ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
-			m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks] * ( SDIVINT*2*SNUMREG );
+			if (nbits == 4) {
+				m_t_processed[i][num_blocks] = (int) floor(( (float) ( remainder ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*4*SNUMREG ));
+				m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks] * ( SDIVINT*4*SNUMREG );
+			}
+			else {
+				m_t_processed[i][num_blocks] = (int) floor(( (float) ( remainder ) / (float) plan.user_dm(i).inBin ) / (float) ( SDIVINT*2*SNUMREG ));
+				m_t_processed[i][num_blocks] = m_t_processed[i][num_blocks] * ( SDIVINT*2*SNUMREG );
+			}
 		}
 	}
 	m_num_tchunks = num_blocks + rem_block;
@@ -303,22 +381,23 @@ namespace astroaccelerate {
 
     // The memory that will be allocated on the GPU in function allocate_memory_gpu is given by gpu_inputsize + gpu_outputsize
     // gpu_inputsize
-    aa_device_info& device_info = aa_device_info::instance();
+    //aa_device_info& device_info = aa_device_info::instance();
     int time_samps = m_t_processed[0][0] + m_maxshift;
-    device_info.request((size_t) time_samps * (size_t)nchans * sizeof(unsigned short));
+    m_selected_device->request_memory((size_t) time_samps * (size_t)nchans * sizeof(unsigned short));
     // gpu_outputsize depends on nchans
     if (nchans < m_max_ndms) {
-      if(!device_info.request((size_t)time_samps * (size_t)m_max_ndms * sizeof(float))) {
+      if(!m_selected_device->request_memory((size_t)time_samps * (size_t)m_max_ndms * sizeof(float))) {
 	std::cout << "ERROR:  Could not request memory." << std::endl;
 	return false;
       }
     }
     else {
-      if(!device_info.request((size_t)time_samps * (size_t)nchans * sizeof(float))) {
+      if(!m_selected_device->request_memory((size_t)time_samps * (size_t)nchans * sizeof(float))) {
 	std::cout << "ERROR:  Could not request memory." << std::endl;
 	return false;
       }
     }
+	
     
     //Strategy does not change inBin, outBin.
     //Re-assign original inBin, outBin to the strategy.

@@ -13,6 +13,8 @@
 #include "aa_analysis_strategy.hpp"
 #include "aa_periodicity_plan.hpp"
 #include "aa_periodicity_strategy.hpp"
+#include "aa_jerk_plan.hpp"
+#include "aa_jerk_strategy.hpp"
 #include "aa_filterbank_metadata.hpp"
 #include "aa_device_info.hpp"
 #include "aa_permitted_pipelines.hpp"
@@ -56,7 +58,7 @@ namespace astroaccelerate {
 		std::vector<aa_strategy*>              m_all_strategy; /** Base class pointers to all strategies bound to the pipeline. */
 		aa_pipeline::pipeline                  m_requested_pipeline; /** The user requested pipeline that was bound to the aa_pipeline_api instance on construction. */
 		const aa_pipeline::pipeline_option     m_pipeline_options; /** The user requested pipeline details containing component options for the aa_pipeline_api instance. */
-		aa_device_info::aa_card_info           m_card_info; /** The user provided GPU card information for the aa_pipeline_api instance. */
+		aa_device_info				           m_selected_device; /** The user provided GPU card information for the aa_pipeline_api instance. */
 		std::unique_ptr<aa_pipeline_runner>    m_runner; /** A std::unique_ptr that will point to the correct class instantation of the selected aa_permitted_pipelines_ when the pipeline must be made ready to run. */
 
 		aa_filterbank_metadata      m_filterbank_metadata; /** The filterbank file metadata that the user provided for the aa_pipeline_api instance on construction. */
@@ -72,6 +74,9 @@ namespace astroaccelerate {
 
 		aa_fdas_plan                m_fdas_plan; /** The instance of this type that is currently bound to the aa_pipeline_api instance. */
 		aa_fdas_strategy            m_fdas_strategy; /** The instance of this type that is currently bound to the aa_pipeline_api instance. */
+		
+		aa_jerk_plan                m_jerk_plan; /** The instance of this type that is currently bound to the aa_pipeline_api instance. */
+		aa_jerk_strategy            m_jerk_strategy; /** The instance of this type that is currently bound to the aa_pipeline_api instance. */
 
 		bool bound_with_raw_ptr; /** Flag to indicate whether the input data is bound via a raw pointer (true) or not (false). */
 		bool pipeline_ready; /** Flag to indicate whether the pipeline is ready to execute (true) or not (false).  */
@@ -88,23 +93,15 @@ namespace astroaccelerate {
 			const aa_pipeline::pipeline_option &pipeline_options,
 			const aa_filterbank_metadata &filterbank_metadata,
 			T const*const input_data,
-			const aa_device_info::aa_card_info &card_info)
+			aa_device_info &card_info)
 			: 
 			m_pipeline_options(pipeline_options),
-			m_card_info(card_info),
+			m_selected_device(card_info),
 			m_filterbank_metadata(filterbank_metadata),
 			bound_with_raw_ptr(true),
 			pipeline_ready(false),
 			ptr_data_in(input_data) 
 		{
-			//Reset all previously requested memory on the card, so that strategy objects see the whole card available for allocation.
-			if (aa_device_info::instance().reset_requested_memory_on_card(card_info.card_number)) {
-				LOG(log_level::notice, "The pipeline has reset all previously requested memory on card " + std::to_string(card_info.card_number) + ".");
-			}
-			else {
-				LOG(log_level::warning, "The pipeline could not reset all previously requested memory on card " + std::to_string(card_info.card_number) + ", which may result in sub-optimal memory strategies." + ".");
-			}
-
 			//Add requested pipeline components
 			for (auto i : requested_pipeline) {
 				required_plans.insert(std::pair<aa_pipeline::component, bool>(i, true));
@@ -144,7 +141,7 @@ namespace astroaccelerate {
 
 				//ddtr_strategy needs to know if analysis will be required
 				if (required_plans.find(aa_pipeline::component::analysis) != required_plans.end()) {
-					aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_card_info.free_memory, true);
+					aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_selected_device.free_memory(), true, &m_selected_device);
 					if (ddtr_strategy.ready()) {
 						m_ddtr_strategy = std::move(ddtr_strategy);
 						m_all_strategy.push_back(&m_ddtr_strategy);
@@ -156,7 +153,7 @@ namespace astroaccelerate {
 					}
 				}
 				else {
-					aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_card_info.free_memory, false);
+					aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_selected_device.free_memory(), false, &m_selected_device);
 					if (ddtr_strategy.ready()) {
 						m_ddtr_strategy = std::move(ddtr_strategy);
 						m_all_strategy.push_back(&m_ddtr_strategy);
@@ -201,7 +198,7 @@ namespace astroaccelerate {
 
 				m_analysis_plan = plan;
 
-				aa_analysis_strategy analysis_strategy(m_analysis_plan);
+				aa_analysis_strategy analysis_strategy(m_analysis_plan, &m_selected_device);
 				if (analysis_strategy.ready()) {
 					m_analysis_strategy = std::move(analysis_strategy);
 					m_all_strategy.push_back(&m_analysis_strategy);
@@ -292,6 +289,37 @@ namespace astroaccelerate {
 
 			return true;
 		}
+		
+		bool bind(aa_jerk_plan plan) {
+			pipeline_ready = false;
+
+			//If a plan has already been supplied, return false and do nothing with the new plan
+			if (supplied_plans.find(aa_pipeline::component::jerk) == supplied_plans.end()) {
+				return false;
+			}
+
+			//Does the pipeline actually need this plan?
+			if (required_plans.find(aa_pipeline::component::jerk) != required_plans.end()) {
+				m_jerk_plan = plan;
+				aa_jerk_strategy jerk_strategy(m_jerk_plan);
+				if (jerk_strategy.ready()) {
+					m_jerk_strategy = std::move(jerk_strategy);
+					m_all_strategy.push_back(&m_jerk_strategy);
+				}
+				else {
+					return false;
+				}
+
+				//If the plan is valid then the supplied_plan becomes true 
+				supplied_plans.at(aa_pipeline::component::jerk) = true;
+			}
+			else {
+				//The plan is not required, ignore.
+				return false;
+			}
+
+			return true;
+		}
 
 		/** \returns The aa_ddtr_strategy instance bound to the pipeline instance, or a trivial instance if a valid aa_ddtr_strategy does not yet exist. */
 		aa_ddtr_strategy ddtr_strategy() {
@@ -307,7 +335,7 @@ namespace astroaccelerate {
 					//ddtr_strategy was not yet computed, do it now.
 					//ddtr_strategy needs to know if analysis will be required
 					if (required_plans.find(aa_pipeline::component::analysis) != required_plans.end()) { //analysis will be required
-						aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_card_info.free_memory, true);
+						aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_selected_device.free_memory(), true, &m_selected_device);
 						if (ddtr_strategy.ready()) {
 							m_ddtr_strategy = std::move(ddtr_strategy);
 							m_all_strategy.push_back(&m_ddtr_strategy);
@@ -318,7 +346,7 @@ namespace astroaccelerate {
 						}
 					}
 					else { //analysis will not be required
-						aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_card_info.free_memory, false);
+						aa_ddtr_strategy ddtr_strategy(m_ddtr_plan, m_filterbank_metadata, m_selected_device.free_memory(), false, &m_selected_device);
 						if (ddtr_strategy.ready()) {
 							m_ddtr_strategy = std::move(ddtr_strategy);
 							m_all_strategy.push_back(&m_ddtr_strategy);
@@ -374,7 +402,7 @@ namespace astroaccelerate {
 				}
 				else {
 					//analysis_strategy was not yet computed, do it now.
-					aa_analysis_strategy analysis_strategy(m_analysis_plan);
+					aa_analysis_strategy analysis_strategy(m_analysis_plan, &m_selected_device);
 					if (analysis_strategy.ready()) {
 						m_analysis_strategy = std::move(analysis_strategy);
 						m_all_strategy.push_back(&m_analysis_strategy);
@@ -452,6 +480,37 @@ namespace astroaccelerate {
 				return empty_strategy;
 			}
 			aa_fdas_strategy empty_strategy;
+			return empty_strategy;
+		}
+		
+		/** \returns The aa_jerk_strategy instance bound to the pipeline instance, or a trivial instance if a valid aa_jerk_strategy does not yet exist. */
+		aa_jerk_strategy jerk_strategy() {
+			//Does the pipeline actually need this strategy?
+			if (required_plans.find(aa_pipeline::component::jerk) != required_plans.end()) {
+				//It does need this strategy.
+				//Is it already computed?
+				if (m_jerk_strategy.ready()) { //Return since it was already computed.
+					return m_jerk_strategy;
+				}
+				else {
+					//fdas_strategy was not yet computed, do it now.
+					aa_jerk_strategy jerk_strategy(m_jerk_plan);
+					if (jerk_strategy.ready()) {
+						m_jerk_strategy = std::move(jerk_strategy);
+						m_all_strategy.push_back(&m_jerk_strategy);
+					}
+					else { //Tried to calculate fdas strategy, but failed.
+						aa_jerk_strategy empty_strategy;
+						return empty_strategy;
+					}
+				}
+			}
+			else {
+				//The pipeline does not need this strategy
+				aa_jerk_strategy empty_strategy;
+				return empty_strategy;
+			}
+			aa_jerk_strategy empty_strategy;
 			return empty_strategy;
 		}
 
@@ -582,6 +641,7 @@ namespace astroaccelerate {
 					m_analysis_strategy, 
 					m_periodicity_strategy, 
 					m_fdas_strategy, 
+					m_jerk_strategy, 
 					fdas_enable_custom_fft, 
 					fdas_enable_inbin, 
 					fdas_enable_norm, 
@@ -960,7 +1020,7 @@ namespace astroaccelerate {
 			}
 
 			LOG(log_level::notice, "---PIPELINE DIAGNOSTIC INFORMATION---");
-			aa_device_info::print_card_info(m_card_info);
+			m_selected_device.print_card_info();
 
 			aa_filterbank_metadata::print_info(m_filterbank_metadata);
 
@@ -979,6 +1039,10 @@ namespace astroaccelerate {
 			if (required_plans.find(aa_pipeline::component::fdas) != required_plans.end()) {
 				aa_fdas_strategy::print_info(m_fdas_strategy);
 			}
+			
+			if (required_plans.find(aa_pipeline::component::jerk) != required_plans.end()) {
+				aa_jerk_strategy::print_info(m_jerk_strategy);
+			}
 
 			pipeline_ready = true;
 			return true;
@@ -994,10 +1058,16 @@ namespace astroaccelerate {
 			 * the base class must provide a method for it.
 			 */
 			if (pipeline_ready && m_runner->setup()) {
-				while (m_runner->next()) {
+				aa_pipeline_runner::status status_code;
+				while (m_runner->next(status_code)) {
 					LOG(log_level::notice, "Pipeline running over next chunk.");
 				}
-				return true;
+				
+				if(status_code==aa_pipeline_runner::status::error){
+					LOG(log_level::notice, "Pipeline cannot proceed due to error.");
+					return false;
+				}
+				else return true;
 			}
 			else {
 				LOG(log_level::error, "Pipeline could not start/resume because either pipeline is not ready or runner is not setup.");
@@ -1019,7 +1089,12 @@ namespace astroaccelerate {
 			 */
 			if (pipeline_ready && m_runner->setup()) {
 				LOG(log_level::notice, "Pipeline running over next chunk.");
-				return m_runner->next(status_code);
+				bool return_value = m_runner->next(status_code);
+				if(status_code==aa_pipeline_runner::status::error){
+					LOG(log_level::notice, "Pipeline cannot proceed due to error.");
+					return false;
+				}
+				else return (return_value);
 			}
 			else {
 				LOG(log_level::error, "Pipeline could not start/resume because either pipeline is not ready or runner is not setup.");
