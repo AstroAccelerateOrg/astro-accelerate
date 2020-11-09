@@ -67,7 +67,7 @@ int main() {
 				    period);
 
   const bool enable_analysis = false;
-  aa_ddtr_strategy ddtr_test_1(ddtr_plan, meta, selected_device.free_memory(), enable_analysis);
+  aa_ddtr_strategy ddtr_test_1(ddtr_plan, meta, selected_device.free_memory(), enable_analysis, &selected_device);
   
   std::cout << "Runs" << std::endl;
   return 0;

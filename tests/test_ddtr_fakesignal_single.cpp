@@ -61,7 +61,7 @@ int main() {
 		const size_t free_memory = selected_device.free_memory(); // Free memory on the GPU in bytes
 		bool enable_analysis = false; 
 		
-		aa_ddtr_strategy strategy(ddtr_plan, metadata, free_memory, enable_analysis);
+		aa_ddtr_strategy strategy(ddtr_plan, metadata, free_memory, enable_analysis, &selected_device);
 		if(!(strategy.ready())) {
 			std::cout << "There was an error" << std::endl;
 			return 0;
