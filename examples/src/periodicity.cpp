@@ -38,7 +38,8 @@ int main() {
   
   aa_filterbank_metadata metadata(tstart, tsamp, nbits, nsamples, fch1, foff, nchans);
   
-  const size_t free_memory = 2147483648; // Free memory on the GPU in bytes
+  int device = 0;
+  aa_device_info selected_device(device);
 
   //-------------- Configure pipeline. Select components and their options
   aa_pipeline::pipeline pipeline_components;
@@ -52,7 +53,7 @@ int main() {
   //--------------<
 
   bool enable_analysis = true;       // The strategy will be optimised to run just dedispersion
-  aa_ddtr_strategy ddtr_strategy(ddtr_plan, metadata, free_memory, enable_analysis);
+  aa_ddtr_strategy ddtr_strategy(ddtr_plan, metadata, selected_device.free_memory(), enable_analysis, &selected_device);
   
   if(!(ddtr_strategy.ready())) {
     std::cout << "ERROR: ddtr_strategy not ready." << std::endl;
@@ -72,7 +73,7 @@ int main() {
   const aa_analysis_plan::selectable_candidate_algorithm algo = aa_analysis_plan::selectable_candidate_algorithm::peak_find;
   
   aa_analysis_plan analysis_plan(ddtr_strategy, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, algo, enable_MSD_outlier_rejection);
-  aa_analysis_strategy analysis_strategy(analysis_plan);
+  aa_analysis_strategy analysis_strategy(analysis_plan, &selected_device);
 
   if(!(analysis_strategy.ready())) {
     std::cout << "ERROR: analysis_strategy not ready." << std::endl;

@@ -6,15 +6,17 @@
 using namespace astroaccelerate;
 
 int main(int argc, char* argv[]) {
-  aa_device_info& device_info = aa_device_info::instance();
+  //aa_device_info& device_info = aa_device_info::instance();
 
   if(!argc) {
     std::cout << "Fail." << std::endl;
     return 0;
   }
   
+  
   std::stringstream s1;
   s1 << argv[1];
+  /*
   
   size_t tmp = 0;
   s1 >> tmp;
@@ -25,7 +27,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Fail." << std::endl;
     return 0;
   }
-
+  */
 
   std::cout << "Runs." << std::endl;
   

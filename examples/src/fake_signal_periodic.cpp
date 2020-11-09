@@ -38,29 +38,13 @@ int main() {
   aa_filterbank_metadata metadata(tstart, tsamp, nbits, nsamples, fch1, foff, nchans);
 
   // Init the GPU card
-  aa_device_info& device_info = aa_device_info::instance();
-  if(device_info.check_for_devices()) {
-    LOG(log_level::notice, "Checked for devices.");
-  }
-  else {
-    LOG(log_level::error, "Could not find any devices.");
-  }
-
-  aa_device_info::CARD_ID selected_card = 0;
-  aa_device_info::aa_card_info selected_card_info;
-  if(device_info.init_card(selected_card, selected_card_info)) {
-    LOG(log_level::notice, "init_card complete. Selected card " + std::to_string(selected_card) + ".");
-  }
-  else {
-    LOG(log_level::error, "init_card incomplete.")
-  }
-
-  aa_device_info::print_card_info(selected_card_info);
+  int device = 0;
+  aa_device_info selected_device(device);
   
-  const size_t free_memory = selected_card_info.free_memory; // Free memory on the GPU in bytes
+  const size_t free_memory = selected_device.free_memory(); // Free memory on the GPU in bytes
   bool enable_analysis = true; 
 
-  aa_ddtr_strategy strategy(ddtr_plan, metadata, free_memory, enable_analysis);
+  aa_ddtr_strategy strategy(ddtr_plan, metadata, free_memory, enable_analysis, &selected_device);
 
   if(!(strategy.ready())) {
     std::cout << "There was an error" << std::endl;
@@ -73,7 +57,7 @@ int main() {
   const aa_analysis_plan::selectable_candidate_algorithm algo = aa_analysis_plan::selectable_candidate_algorithm::peak_find;
 
   aa_analysis_plan analysis_plan(strategy, sigma_cutoff, sigma_constant, max_boxcar_width_in_sec, algo, false);
-  aa_analysis_strategy analysis_strategy(analysis_plan);
+  aa_analysis_strategy analysis_strategy(analysis_plan, &selected_device);
 
   if(!(analysis_strategy.ready())) {
     std::cout << "ERROR: analysis_strategy not ready." << std::endl;
@@ -122,7 +106,7 @@ int main() {
 
   aa_pipeline::pipeline_option pipeline_options;
   pipeline_options.insert(aa_pipeline::component_option::copy_ddtr_data_to_host);
-	aa_pipeline_api<unsigned short> runner(pipeline_components, pipeline_options, metadata, input_data.data(), selected_card_info);
+	aa_pipeline_api<unsigned short> runner(pipeline_components, pipeline_options, metadata, input_data.data(), selected_device);
         runner.bind(ddtr_plan);
 	runner.bind(analysis_plan);
 	runner.bind(periodicity_plan);

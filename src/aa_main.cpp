@@ -69,23 +69,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	//Select card
-	aa_device_info& device_info = aa_device_info::instance();
-	if (device_info.check_for_devices()) {
-		LOG(log_level::notice, "Checked for devices.");
-	}
-	else {
-		LOG(log_level::error, "Could not find any devices.");
-	}
-
-	aa_device_info::CARD_ID selected_card = user_flags.selected_card_id;
-	aa_device_info::aa_card_info selected_card_info;
-	if (device_info.init_card(selected_card, selected_card_info)) {
-		LOG(log_level::notice, "init_card complete. Selected card " + std::to_string(selected_card) + ".");
-	}
-	else {
-		LOG(log_level::error, "init_card incomplete.");
-		return 0;
-	}
+	int device = 0;
+	aa_device_info selected_device(device);
 
 	//Why this is here we have already configured the pipeline? Not used later delete?
 	//aa_config configuration(pipeline);   // Set the pipeline and other run settings that would come from an input_file
@@ -102,7 +87,7 @@ int main(int argc, char *argv[]) {
 		pipeline_options,
 		filterbank_metadata,
 		filterbank_datafile.input_buffer().data(),
-		selected_card_info);
+		selected_device);
 
 	// MSD baseline noise should be moved to new component which would be candidate selection
 	bool msd_baseline_noise = false;

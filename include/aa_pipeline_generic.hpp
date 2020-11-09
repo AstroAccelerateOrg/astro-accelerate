@@ -53,30 +53,16 @@ namespace astroaccelerate {
       the_pipeline.insert(selected_components.at(i));
     }
     
-    //Select card
-    aa_device_info& device_info = aa_device_info::instance();
-    if(device_info.check_for_devices()) {
-      LOG(log_level::notice, "Checked for devices.");
-    }
-    else {
-      LOG(log_level::error, "Could not find any devices.");
-    }
-    
-    aa_device_info::CARD_ID selected_card = 0;
-    aa_device_info::aa_card_info selected_card_info;
-    if(device_info.init_card(selected_card, selected_card_info)) {
-      LOG(log_level::notice, "init_card complete.");
-    }
-    else {
-      LOG(log_level::error, "init_card incomplete.");
-    }
+	
+	int device = 0;
+	aa_device_info selected_device(device);
         
     aa_config configuration(the_pipeline);   // Set the pipeline and other run settings that would come from an input_file
     the_pipeline = configuration.setup();    // The configuration validates whether the pipeline is valid and returns either a valid pipeline or a trivial pipeline
     
     // Supply the requested pipeline and telescope data to a pipeline manager, which will check which components are required to be configured.
     // If a component is not required, then even if it is supplied, it will be ignored.
-    aa_pipeline_api<T> pipeline_manager(the_pipeline, pipeline_options, filterbank_data, input_data, selected_card_info);
+    aa_pipeline_api<T> pipeline_manager(the_pipeline, pipeline_options, filterbank_data, input_data, selected_device);
     
     // Bind the Plan to the manager
     aa_ddtr_plan ddtr_plan;

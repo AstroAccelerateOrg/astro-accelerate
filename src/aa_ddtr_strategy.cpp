@@ -10,14 +10,14 @@ namespace astroaccelerate {
   /**
    * Trivial constructor for aa_ddtr_strategy which will result in a strategy that cannot be ready. 
    */
-  aa_ddtr_strategy::aa_ddtr_strategy() : m_ready(false), m_strategy_already_calculated(false), m_configured_for_analysis(false), is_setup(false), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_power(0.0), m_enable_msd_baseline_noise(false) {
+  aa_ddtr_strategy::aa_ddtr_strategy() : m_ready(false), m_strategy_already_calculated(false), m_selected_device(NULL), m_configured_for_analysis(false), is_setup(false), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_power(0.0), m_enable_msd_baseline_noise(false) {
     
   }
 
   /**
    * Constructor for aa_ddtr_strategy that computes the strategy upon construction, and sets the ready state of the instance of the class.
    */
-  aa_ddtr_strategy::aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis) : m_ready(false), m_strategy_already_calculated(false), m_configured_for_analysis(enable_analysis), is_setup(false), m_metadata(metadata), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_power(plan.power()), m_enable_msd_baseline_noise(plan.enable_msd_baseline_noise()) {    
+  aa_ddtr_strategy::aa_ddtr_strategy(const aa_ddtr_plan &plan, const aa_filterbank_metadata &metadata, const size_t &free_memory, const bool &enable_analysis, aa_device_info *selected_device) : m_ready(false), m_strategy_already_calculated(false), m_selected_device(selected_device), m_configured_for_analysis(enable_analysis), is_setup(false), m_metadata(metadata), m_maxshift(0), m_num_tchunks(0), m_total_ndms(0), m_max_dm(0.0), m_maxshift_high(0), m_max_ndms(0), m_power(plan.power()), m_enable_msd_baseline_noise(plan.enable_msd_baseline_noise()) {
     strategy(plan, free_memory, enable_analysis);
   }
 
@@ -381,22 +381,23 @@ namespace astroaccelerate {
 
     // The memory that will be allocated on the GPU in function allocate_memory_gpu is given by gpu_inputsize + gpu_outputsize
     // gpu_inputsize
-    aa_device_info& device_info = aa_device_info::instance();
+    //aa_device_info& device_info = aa_device_info::instance();
     int time_samps = m_t_processed[0][0] + m_maxshift;
-    device_info.request((size_t) time_samps * (size_t)nchans * sizeof(unsigned short));
+    m_selected_device->request_memory((size_t) time_samps * (size_t)nchans * sizeof(unsigned short));
     // gpu_outputsize depends on nchans
     if (nchans < m_max_ndms) {
-      if(!device_info.request((size_t)time_samps * (size_t)m_max_ndms * sizeof(float))) {
+      if(!m_selected_device->request_memory((size_t)time_samps * (size_t)m_max_ndms * sizeof(float))) {
 	std::cout << "ERROR:  Could not request memory." << std::endl;
 	return false;
       }
     }
     else {
-      if(!device_info.request((size_t)time_samps * (size_t)nchans * sizeof(float))) {
+      if(!m_selected_device->request_memory((size_t)time_samps * (size_t)nchans * sizeof(float))) {
 	std::cout << "ERROR:  Could not request memory." << std::endl;
 	return false;
       }
     }
+	
     
     //Strategy does not change inBin, outBin.
     //Re-assign original inBin, outBin to the strategy.

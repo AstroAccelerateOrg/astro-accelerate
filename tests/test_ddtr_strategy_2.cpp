@@ -6,16 +6,8 @@ using namespace astroaccelerate;
 
 int main() {
   std::cout << "Running test_ddtr_strategy_1.cpp" << std::endl;
-  aa_device_info& device_info = aa_device_info::instance();
-  aa_device_info::CARD_ID selected_card = 0;
-  aa_device_info::aa_card_info selected_card_info;
-  if(device_info.init_card(selected_card, selected_card_info)) {
-    std::cout << "NOTICE: init_card complete." << std::endl;
-  }
-  else {
-    std::cout << "ERROR: init_card incomplete." << std::endl;
-    return 0;
-  }
+  int device = 0;
+  aa_device_info selected_device(device);
   
   aa_ddtr_plan ddtr_plan;
   ddtr_plan.add_dm(0, 370, 0.307, 1, 1);
@@ -75,7 +67,7 @@ int main() {
 				    period);
 
   const bool enable_analysis = true;
-  aa_ddtr_strategy ddtr_test_1(ddtr_plan, meta, selected_card_info.free_memory, enable_analysis);
+  aa_ddtr_strategy ddtr_test_1(ddtr_plan, meta, selected_device.free_memory(), enable_analysis, &selected_device);
   
   std::cout << "Runs" << std::endl;
   return 0;
