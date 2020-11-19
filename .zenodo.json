@@ -11,6 +11,7 @@
             "orcid": "0000-0003-2797-0595"
         },
         {
+	    "affiliation": "Silesian University in Opava",
             "name": "Novotny, Jan",
             "orcid": "0000-0002-9667-635X"
         },
@@ -88,7 +89,7 @@
         }   	
     ],
     "title": "AstroAccelerate",
-    "license": "GNU GPL v3.0",
+    "license": "GPL-3.0",
     "keywords": [
 	"GPU",
 	"CUDA",
@@ -98,6 +99,7 @@
 	"single pulse detection",
 	"pulsar",
 	"FDAS",
+	"jerk search",
 	"radio astronomy"
     ],
     "description": "AstroAccelerate is a many core accelerated software package for processing time domain radio-astronomy data"
