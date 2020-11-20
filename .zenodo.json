@@ -6,7 +6,6 @@
             "orcid": "0000-0003-1756-3064"
         },
         {
-            "affiliation": "University of Oxford",
             "name": "Adamek, Karel",
             "orcid": "0000-0003-2797-0595"
         },
@@ -88,7 +87,7 @@
         }   	
     ],
     "title": "AstroAccelerate",
-    "license": "GNU GPL v3.0",
+    "license": "GPL-3.0",
     "keywords": [
 	"GPU",
 	"CUDA",
@@ -98,6 +97,7 @@
 	"single pulse detection",
 	"pulsar",
 	"FDAS",
+	"jerk search",
 	"radio astronomy"
     ],
     "description": "AstroAccelerate is a many core accelerated software package for processing time domain radio-astronomy data"
