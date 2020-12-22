@@ -187,7 +187,7 @@ __device__ __inline__ void MSD_block_outlier_rejection(unsigned short *d_input, 
 }
 
 
-__global__ void zero_dm_outliers_kernel_channels(unsigned short *d_input, int nchans, float outlier_sigma,float normalization_factor) {
+__global__ void zero_dm_outliers_kernel_channels(unsigned short *d_input, int nchans, float outlier_sigma, int nbits, float normalization_factor) {
 	__shared__ float s_par_MSD[256];
 	__shared__ int s_par_nElements[128];
 	float mean, stdev, old_mean;
@@ -207,7 +207,24 @@ __global__ void zero_dm_outliers_kernel_channels(unsigned short *d_input, int nc
 	
 	for(int c = 0; c < x_steps; c++){
 		if ((c*blockDim.x + threadIdx.x) < nchans) {
-			d_input[blockIdx.x*nchans + c*blockDim.x + threadIdx.x] =(unsigned short)((unsigned char)((float)d_input[blockIdx.x*nchans + c*blockDim.x + threadIdx.x] - shift));
+			unsigned short value;
+			float result = (float)d_input[blockIdx.x*nchans + c*blockDim.x + threadIdx.x] - shift;
+			if( nbits == 4 ){
+				if(result<0) value = 0;
+				else if(result>15) value = 15;
+				else value = (unsigned short) result;
+			}
+			else if( nbits == 8 ){
+				if(result<0) value = 0;
+				else if(result>255) value = 255;
+				else value = (unsigned short) result;
+			}
+			else if( nbits == 16 ){
+				if(result<0) value = 0;
+				else if(result>65535) value = 65535;
+				else value = (unsigned short) result;
+			}
+			d_input[blockIdx.x*nchans + c*blockDim.x + threadIdx.x] = value;
 		}
 	}
 }
@@ -465,12 +482,13 @@ void call_kernel_zero_dm_outliers_kernel_channels(
 	unsigned short *const d_input, 
 	const int &nchans, 
 	const float &outlier_sigma, 
+	const int &nbits, 
 	const float &normalization_factor) {
 		if (block_size.x<=0 || block_size.y<=0 || block_size.z<=0 || grid_size.x<=0 || grid_size.y<=0 || grid_size.z<=0){
 			LOG(log_level::error, "Zero DM kernel is configured incorrectly. grid_size=[" + std::to_string(grid_size.x) + "; " + std::to_string(grid_size.y) + "; " + std::to_string(grid_size.z) + "] block_size=[" + std::to_string(block_size.x) + "; " + std::to_string(block_size.y) + "; " + std::to_string(block_size.z) + "]");
 		}
 		else {
-			zero_dm_outliers_kernel_channels<<< grid_size, block_size, smem, stream >>>(d_input, nchans, outlier_sigma, normalization_factor);
+			zero_dm_outliers_kernel_channels<<< grid_size, block_size, smem, stream >>>(d_input, nchans, outlier_sigma, nbits, normalization_factor);
 			cudaDeviceSynchronize();
 		}
 }

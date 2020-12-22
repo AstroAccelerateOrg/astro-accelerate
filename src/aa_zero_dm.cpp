@@ -21,7 +21,7 @@ namespace astroaccelerate {
     start_t = clock();
     
     float normalization_factor = ((pow(2,nbits)-1)/2);
-    call_kernel_zero_dm_kernel(num_blocks, threads_per_block, shared_memory, d_input, nchans, nsamp, normalization_factor);
+    call_kernel_zero_dm_kernel(num_blocks, threads_per_block, shared_memory, d_input, nchans, nsamp, nbits, normalization_factor);
     cudaDeviceSynchronize();
     
     end_t = clock();
