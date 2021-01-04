@@ -25,6 +25,7 @@ void zero_dm_outliers(unsigned short *const d_input, const int nchans, const int
 		d_input, 
 		nchans, 
 		outlier_sigma, 
+		nbits,
 		normalization_factor
 	); 
 }

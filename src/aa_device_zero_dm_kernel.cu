@@ -25,7 +25,7 @@ namespace astroaccelerate {
    * \brief zero_dm_kernel.
    * \todo Needs cleaning and optimizing (WA 21/10/16).
    */
-  __global__ void zero_dm_kernel(unsigned short *d_input, int nchans, int nsamp, float normalization_factor)
+  __global__ void zero_dm_kernel(unsigned short *d_input, int nchans, int nsamp, int nbits, float normalization_factor)
   {
 
     int t  = threadIdx.x;
@@ -37,7 +37,7 @@ namespace astroaccelerate {
 
     for(int c = 0; c < n_iterations; c++){
       if ((c*blockDim.x + t) < nchans) {
-	sum += d_input[blockIdx.x*nchans + c*blockDim.x + t];
+        sum += d_input[blockIdx.x*nchans + c*blockDim.x + t];
       }
     }
 
@@ -57,15 +57,40 @@ namespace astroaccelerate {
 
     for(int c = 0; c < n_iterations; c++){
       if ((c*blockDim.x + t) < nchans) {
-	d_input[blockIdx.x*nchans + c*blockDim.x + t] =(unsigned short)((unsigned char)((float)d_input[blockIdx.x*nchans + c*blockDim.x + t] - sum));
+		unsigned short value;
+		float result = (float)d_input[blockIdx.x*nchans + c*blockDim.x + t] - sum;
+		if( nbits == 4 ){
+          if(result<0) value = 0;
+          else if(result>15) value = 15;
+          else value = (unsigned short) result;
+		}
+		else if( nbits == 8 ){
+          if(result<0) value = 0;
+          else if(result>255) value = 255;
+          else value = (unsigned short) result;
+		}
+		else if( nbits == 16 ){
+          if(result<0) value = 0;
+          else if(result>65535) value = 65535;
+          else value = (unsigned short) result;
+		}
+        d_input[blockIdx.x*nchans + c*blockDim.x + t] = value;
       }
     }
 
   }
 
   /** \brief Kernel wrapper function for zero_dm_kernel kernel function. */
-  void call_kernel_zero_dm_kernel(const dim3 &block_size, const dim3 &grid_size, const int &sharedMemory_size,
-				  unsigned short *const d_input, const int &nchans, const int &nsamp, const float &normalization_factor) {
-    zero_dm_kernel<<<block_size, grid_size, sharedMemory_size >>>(d_input, nchans, nsamp, normalization_factor);
+  void call_kernel_zero_dm_kernel(
+    const dim3 &block_size, 
+    const dim3 &grid_size, 
+    const int &sharedMemory_size,
+    unsigned short *const d_input, 
+    const int &nchans, 
+    const int &nsamp, 
+	const int &nbits,
+    const float &normalization_factor
+  ) {
+    zero_dm_kernel<<<block_size, grid_size, sharedMemory_size >>>(d_input, nchans, nsamp, nbits, normalization_factor);
   }
 } //namespace astroaccelerate
