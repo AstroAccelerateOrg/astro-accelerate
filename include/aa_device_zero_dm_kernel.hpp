@@ -12,7 +12,7 @@ namespace astroaccelerate {
     const int &nchans, 
     const int &nsamp, 
     const int &nbits,
-    const float &normalization_factor);
+    float *normalization_factor);
 
 } // namespace astroaccelerate
   

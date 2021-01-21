@@ -72,6 +72,7 @@ namespace astroaccelerate {
 		aa_periodicity_strategy              m_periodicity_strategy;
 		aa_fdas_strategy                     m_fdas_strategy;
 		aa_jerk_strategy                     m_jerk_strategy;
+		
 		unsigned short     const*const m_input_buffer;
 		int                num_tchunks; 
 		std::vector<float> dm_shifts; 
@@ -93,6 +94,7 @@ namespace astroaccelerate {
 		unsigned short     *d_DDTR_input;
 		float              *d_DDTR_output;
 		float              *d_dm_shifts;
+		float              *d_bandpass_normalization;
 
 		std::vector<float> dm_low;
 		std::vector<float> dm_high;
@@ -187,7 +189,17 @@ namespace astroaccelerate {
 					d_dm_shifts = NULL;
 				}
 			}
+			
+			e = cudaFree(d_bandpass_normalization);
+			if (e != cudaSuccess) {
+				pipeline_error = PIPELINE_ERROR_GPU_FREE_MEMORY_FAIL;
+				LOG(log_level::error, "Cannot free d_bandpass_normalization memory: (" + std::string(cudaGetErrorString(e)) + ")");
+			}
+			else {
+				d_bandpass_normalization = NULL;
+			}
             
+			//----------------- Single pulse memory de-allocation --->
 			if(do_single_pulse_detection){
 				if(m_d_MSD_workarea!=NULL) {
 					e = cudaFree(m_d_MSD_workarea);
@@ -277,7 +289,8 @@ namespace astroaccelerate {
 		}
 		
 		/** \brief Allocate the GPU memory needed for dedispersion. */
-		bool allocate_gpu_memory_DDTR(const int &maxshift, const int &max_ndms, const int &nchans, int **const t_processed, unsigned short **const d_DDTR_input, float **const d_DDTR_output, float **const d_dm_shifts) {
+		bool allocate_gpu_memory_DDTR(){
+				//const int &maxshift, const int &max_ndms, const int &nchans, int **const t_processed, unsigned short **const d_DDTR_input, float **const d_DDTR_output, float **const d_dm_shifts) {
 			
 			size_t free_memory = 0, total_memory = 0, required_memory = 0;
 			cudaMemGetInfo(&free_memory,&total_memory);
@@ -310,21 +323,21 @@ namespace astroaccelerate {
 			
 			//---------------------------------> Allocations
 			cudaError_t e;
-			e = cudaMalloc((void **)d_DDTR_input, gpu_inputsize);
+			e = cudaMalloc((void **)&d_DDTR_input, gpu_inputsize);
 			if (e != cudaSuccess) {
 				pipeline_error = PIPELINE_ERROR_DDTR_GPU_MEMORY_FAIL;
 				LOG(log_level::error, "Could not allocate memory for d_DDTR_input using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
 			}
 
-			e = cudaMalloc((void **)d_DDTR_output, gpu_outputsize);
+			e = cudaMalloc((void **)&d_DDTR_output, gpu_outputsize);
 			if (e != cudaSuccess) {
 				pipeline_error = PIPELINE_ERROR_DDTR_GPU_MEMORY_FAIL;
 				LOG(log_level::error, "Could not allocate memory for d_DDTR_output using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
 			}
-			cudaMemset(*d_DDTR_output, 0, gpu_outputsize);
+			cudaMemset(d_DDTR_output, 0, gpu_outputsize);
 
 			if( (nchans>8192) && (nbits != 4) ){		
-				e = cudaMalloc((void **)d_dm_shifts, nchans*sizeof(float));
+				e = cudaMalloc((void **) &d_dm_shifts, nchans*sizeof(float));
 				if (e != cudaSuccess) {
 					pipeline_error = PIPELINE_ERROR_DDTR_GPU_MEMORY_FAIL;
 					LOG(log_level::error, "Could not allocate memory for d_dm_shifts using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
@@ -332,16 +345,22 @@ namespace astroaccelerate {
 			}
 
 			if( (nchans>4096) && (nbits==4) ){
-				e = cudaMalloc((void **)d_dm_shifts, nchans*sizeof(float));
+				e = cudaMalloc((void **) &d_dm_shifts, nchans*sizeof(float));
 				if (e != cudaSuccess) {
-          pipeline_error = PIPELINE_ERROR_DDTR_GPU_MEMORY_FAIL;
+					pipeline_error = PIPELINE_ERROR_DDTR_GPU_MEMORY_FAIL;
 					LOG(log_level::error, "Could not allocate memory for d_dm_shifts (4-bit) using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
 				}
 			}
 			
+			//Allocation of bandpass normalization for zerodm
+			e = cudaMalloc((void **) &d_bandpass_normalization, nchans*sizeof(float));
+			if (e != cudaSuccess) {
+				pipeline_error = PIPELINE_ERROR_DDTR_GPU_MEMORY_FAIL;
+				LOG(log_level::error, "Could not allocate memory for d_bandpass_normalization using cudaMalloc in aa_permitted_pipelines_generic.hpp (" + std::string(cudaGetErrorString(e)) + ")");
+			}
+			
 			if(pipeline_error!=PIPELINE_ERROR_NO_ERROR) return false;
 			else return true;
-
 		}
 
 
@@ -447,12 +466,22 @@ namespace astroaccelerate {
 			tstart_local = 0.0;
 
 			//Data for dedispersion
-			d_DDTR_input = NULL;
+			d_DDTR_input  = NULL;
 			d_DDTR_output = NULL;
-			d_dm_shifts = NULL;
-
+			d_dm_shifts   = NULL;
+			
+			//Data for zero_dm
+			d_bandpass_normalization = NULL;
+			
 			//Allocate GPU memory for dedispersion
-			allocate_gpu_memory_DDTR(maxshift, max_ndms, nchans, t_processed, &d_DDTR_input, &d_DDTR_output, &d_dm_shifts);
+			//allocate_gpu_memory_DDTR(maxshift, max_ndms, nchans, t_processed, &d_DDTR_input, &d_DDTR_output, &d_dm_shifts);
+			allocate_gpu_memory_DDTR();
+			
+			if(m_ddtr_strategy.bandpass_normalization_size() == (size_t) nchans){
+				cudaMemcpy(d_bandpass_normalization, m_ddtr_strategy.bandpass_normalization_pointer(), nchans*sizeof(float), cudaMemcpyHostToDevice);
+			}
+			else pipeline_error=PIPELINE_ERROR_ZERO_DM;
+			
 			
 			//Allocate GPU memory for SPD (i.e. analysis)
 			if(do_single_pulse_detection && pipeline_error==0) {
@@ -604,7 +633,7 @@ namespace astroaccelerate {
 			//----------------------------------------------------------------------->
 			//------------------> Dedispersion
 			const int *ndms = m_ddtr_strategy.ndms_data();
-				
+			
 			if(current_range==0 && pipeline_error==PIPELINE_ERROR_NO_ERROR) {
 				m_ddtr_total_timer.Start();
 				printf("\nNOTICE: t_processed:\t%d, %d", t_processed[0][current_time_chunk], current_time_chunk);
@@ -627,14 +656,14 @@ namespace astroaccelerate {
 				if (m_pipeline_options.find(opt_zero_dm) != m_pipeline_options.end()) {
 					LOG(log_level::debug, "Performing zero DM...");
 					m_local_timer.Start();
-					zero_dm(d_DDTR_input, nchans, t_processed[0][current_time_chunk] + maxshift_original, nbits);
+					zero_dm(d_DDTR_input, nchans, t_processed[0][current_time_chunk] + maxshift_original, nbits, d_bandpass_normalization);
 					m_local_timer.Stop();
 					time_log.adding("DDTR", "Zero_DM", m_local_timer.Elapsed());
 				}
 				else if (m_pipeline_options.find(opt_zero_dm_with_outliers) != m_pipeline_options.end()) {
 					LOG(log_level::debug, "Performing zero DM with outliers...");
 					m_local_timer.Start();
-					zero_dm_outliers(d_DDTR_input, nchans, t_processed[0][current_time_chunk] + maxshift_original, nbits);
+					zero_dm_outliers(d_DDTR_input, nchans, t_processed[0][current_time_chunk] + maxshift_original, nbits, d_bandpass_normalization);
 					m_local_timer.Stop();
 					time_log.adding("DDTR", "Zero_DM_outliers", m_local_timer.Elapsed());
 				}
@@ -683,7 +712,6 @@ namespace astroaccelerate {
 			}
 
 			
-			//for (size_t dm_range = 0; dm_range < range; dm_range++) {
 			if(current_time_chunk<num_tchunks && pipeline_error==PIPELINE_ERROR_NO_ERROR){
 				m_ddtr_total_timer.Start();
 				int dm_range = current_range;
@@ -725,10 +753,9 @@ namespace astroaccelerate {
 				m_local_timer.Stop();
 				time_log.adding("DDTR","Dedispersion",m_local_timer.Elapsed());
 
-//				CUDA_error = cudaGetLastError();
 				if(kernel_error != 0) {
 					pipeline_error = PIPELINE_ERROR_DEDISPERSION;
-//					LOG(log_level::error, "GPU error at Dedispersion. (" + std::string(cudaGetErrorString(CUDA_error)) + ")");
+					//LOG(log_level::error, "GPU error at Dedispersion. (" + std::string(cudaGetErrorString(CUDA_error)) + ")");
 					LOG(log_level::error, "GPU error at Dedispersion.");
 				}
 				

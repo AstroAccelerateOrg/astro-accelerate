@@ -110,11 +110,51 @@ namespace astroaccelerate {
     bool enable_msd_baseline_noise() const {
       return m_enable_msd_baseline_noise;
     }
+	
+    /**
+     * \brief Set the custom bandpass normalization values for zerodm filtering.
+     */
+    bool bind_bandpass_normalization(float *custom_bandpass_normalization, int bandpass_size) {
+      if(bandpass_size>0){
+        bandpass_normalization.resize(bandpass_size);
+        std::copy( custom_bandpass_normalization, custom_bandpass_normalization + bandpass_size, bandpass_normalization.begin() );
+		return true;
+	  }
+	  else {
+        return false;
+	  }
+    }
+	
+    /**
+     * \brief Set the custom bandpass normalization values for zerodm filtering.
+     */
+	bool bind_bandpass_normalization_vector(std::vector<float> &custom_bandpass_normalization) {
+      bandpass_normalization = custom_bandpass_normalization;
+      return true;
+	}
+	
+    /**
+     * \returns the size of the custom bandpass normalization array.
+	 */
+	size_t bandpass_normalization_size() const {
+		return(bandpass_normalization.size());
+	}
+	
+    /**
+     * \returns the pointer to the custom bandpass normalization array.
+	 */
+	const float* bandpass_data_pointer() const {
+		if(bandpass_normalization.size()>0){
+			return(bandpass_normalization.data());
+		}
+		else return NULL;
+	}
     
   private:
     std::vector<dm> m_user_dm; /**< Storage for all supplied dm properties. */
     float m_power;
     bool m_enable_msd_baseline_noise; /** Flag to enable or disable msd_baseline_noise reduction algorithm. */
+	std::vector<float> bandpass_normalization;
   
   };
 } // namespace astroaccelerate

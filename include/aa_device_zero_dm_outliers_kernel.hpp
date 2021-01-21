@@ -12,7 +12,7 @@ void call_kernel_zero_dm_outliers_kernel_channels(
 	const int &nchans, 
 	const float &outlier_sigma, 
 	const int &nbits,
-	const float &normalization_factor);
+	float *normalization_factor);
 	
   /** \brief Kernel wrapper function for zero_dm_outliers_kernel_one kernel function. */
   void call_kernel_zero_dm_outliers_kernel_one(const dim3 &block_size, const dim3 &grid_size,

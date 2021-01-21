@@ -2,20 +2,27 @@
 
 namespace astroaccelerate {
 
-/** \brief Performs zero_dm. */
+/** \brief Performs zero_dm with outliers. This is legacy code for other pipelines.*/
 void zero_dm_outliers(unsigned short *const d_input, const int nchans, const int nsamp, const int nbits) {
 	int threads_for_sum = 128;
 	int num_blocks_t    = nsamp;
 	dim3 block_size(threads_for_sum, 1);
 	dim3 grid_size(num_blocks_t,1);
-	float normalization_factor = ((pow(2,nbits)-1)/2);
 	float outlier_sigma = 3.0;
 	cudaStream_t stream = NULL;
 	int shared_memory_required = 0;
 	
-	//printf("------> Zero DM with outliers INFO\n");
-	//printf("block_size=[%d;%d;%d]; grid_size=[%d;%d;%d]\n", block_size.x, block_size.y, block_size.z, grid_size.x, grid_size.y, grid_size.z);
-	//printf("Normalization factor=%f; outlier_sigma=%f;\n", normalization_factor, outlier_sigma);
+    float normalization_factor = ((pow(2,nbits)-1)/2);
+	std::vector<float> local_bandpass_normalization;
+	local_bandpass_normalization.resize(nchans,normalization_factor);
+	float *d_normalization_factor = NULL;
+	cudaError_t e;
+	e = cudaMalloc((void **)d_normalization_factor, nchans*sizeof(float));
+	if (e != cudaSuccess) {
+		LOG(log_level::error, "Could not allocate memory for d_normalization_factor (" + std::string(cudaGetErrorString(e)) + ")");
+	}
+	cudaMemcpy(d_normalization_factor, local_bandpass_normalization.data(), nchans*sizeof(float), cudaMemcpyHostToDevice);
+	
 	
 	call_kernel_zero_dm_outliers_kernel_channels(
 		grid_size, 
@@ -26,7 +33,35 @@ void zero_dm_outliers(unsigned short *const d_input, const int nchans, const int
 		nchans, 
 		outlier_sigma, 
 		nbits,
-		normalization_factor
+		d_normalization_factor
+	);
+	
+	e =cudaFree(d_normalization_factor);
+	if (e != cudaSuccess) {
+		LOG(log_level::error, "Cannot free d_normalization_factor memory: (" + std::string(cudaGetErrorString(e)) + ")");
+	}
+}
+
+/** \brief Performs zero_dm with outliers. */
+void zero_dm_outliers(unsigned short *const d_input, const int nchans, const int nsamp, const int nbits, float *d_normalization_factor) {
+	int threads_for_sum = 128;
+	int num_blocks_t    = nsamp;
+	dim3 block_size(threads_for_sum, 1);
+	dim3 grid_size(num_blocks_t,1);
+	float outlier_sigma = 3.0;
+	cudaStream_t stream = NULL;
+	int shared_memory_required = 0;
+	
+	call_kernel_zero_dm_outliers_kernel_channels(
+		grid_size, 
+		block_size, 
+		shared_memory_required, 
+		stream, 
+		d_input, 
+		nchans, 
+		outlier_sigma, 
+		nbits,
+		d_normalization_factor
 	); 
 }
 

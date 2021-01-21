@@ -43,6 +43,32 @@ namespace astroaccelerate {
     const float foff  = m_metadata.foff();
     const float tsamp = m_metadata.tsamp();
     const int nbits = m_metadata.nbits();
+	
+	// Custom bandpass normalization for zerodm filtering
+	if(plan.bandpass_normalization_size() == (size_t) nchans){
+		m_bandpass_normalization.resize(nchans);
+		std::copy( plan.bandpass_data_pointer(), plan.bandpass_data_pointer() + nchans, m_bandpass_normalization.begin() );
+		
+		printf("Using predefined bandpass normalization with values:\n");
+		for(size_t f=0; f<m_bandpass_normalization.size(); f++){
+			printf("%f; ", m_bandpass_normalization[f]);
+		}
+		printf("\n");
+	}
+	else {
+		// custom bandpass normalization is not set or has wrong size => using default normalization values
+		if(plan.bandpass_normalization_size()>0){
+			LOG(log_level::notice, "Custom bandpass normalization must be of size equal to number of frequency channels. Using default values instead.");
+		}
+		m_bandpass_normalization.resize(nchans,(((1<<nbits)-1.0)/2.0));
+		
+		printf("Using default bandpass normalization with values:\n");
+		for(size_t f=0; f<m_bandpass_normalization.size(); f++){
+			printf("%f; ", m_bandpass_normalization[f]);
+		}
+		printf("\n");
+	}
+	
     
     if(!plan.range()) {
       //No user requested dm settings have been added, this is an invalid aa_ddtr_plan.

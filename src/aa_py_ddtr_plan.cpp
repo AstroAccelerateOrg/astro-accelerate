@@ -39,7 +39,11 @@ namespace astroaccelerate {
 
       bool aa_py_ddtr_plan_enable_msd_baseline_noise(aa_ddtr_plan const*const obj) {
 	return obj->enable_msd_baseline_noise();
-      }      
+      }
+
+      bool aa_py_ddtr_plan_bind_bandpass_normalization(aa_ddtr_plan *const obj, float const*const data, const int data_size) {
+        return obj->bind_bandpass_normalization(data, data_size);
+	  }
     }
   }
 }

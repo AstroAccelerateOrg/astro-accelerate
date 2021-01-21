@@ -25,7 +25,7 @@ namespace astroaccelerate {
    * \brief zero_dm_kernel.
    * \todo Needs cleaning and optimizing (WA 21/10/16).
    */
-  __global__ void zero_dm_kernel(unsigned short *d_input, int nchans, int nsamp, int nbits, float normalization_factor)
+  __global__ void zero_dm_kernel(unsigned short *d_input, int nchans, int nsamp, int nbits, float *normalization_factor)
   {
 
     int t  = threadIdx.x;
@@ -53,12 +53,12 @@ namespace astroaccelerate {
     __syncthreads();
     sum = s_input[0];
 
-    sum = (sum/(float)nchans-normalization_factor);
+    sum = sum/((float) nchans);
 
     for(int c = 0; c < n_iterations; c++){
       if ((c*blockDim.x + t) < nchans) {
 		unsigned short value;
-		float result = (float)d_input[blockIdx.x*nchans + c*blockDim.x + t] - sum;
+		float result = (float)d_input[blockIdx.x*nchans + c*blockDim.x + t] - sum + normalization_factor[c*blockDim.x + t];
 		if( nbits == 4 ){
           if(result<0) value = 0;
           else if(result>15) value = 15;
@@ -89,7 +89,7 @@ namespace astroaccelerate {
     const int &nchans, 
     const int &nsamp, 
 	const int &nbits,
-    const float &normalization_factor
+    float *normalization_factor
   ) {
     zero_dm_kernel<<<block_size, grid_size, sharedMemory_size >>>(d_input, nchans, nsamp, nbits, normalization_factor);
   }

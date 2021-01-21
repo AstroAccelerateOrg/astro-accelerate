@@ -230,6 +230,11 @@ class aa_py_ddtr_plan:
         lib.aa_py_ddtr_plan_enable_msd_baseline_noise.restype = ctypes.c_bool
         self.m_set_enable_msd_baseline_noise = ctypes.c_float(lib.aa_py_ddtr_plan_enable_msd_baseline_noise).value
         return self.m_enable_msd_baseline_noise
+	
+	def bind_bandpass_normalization(self, data: ctypes.POINTER(ctypes.c_float), data_size: int):
+		lib.aa_py_ddtr_plan_bind_bandpass_normalization.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
+		lib.aa_py_ddtr_plan_bind_bandpass_normalization.restype = ctypes.c_bool
+		return lib.aa_py_ddtr_plan_bind_bandpass_normalization(self.m_obj, ctypes.cast(data, ctypes.POINTER(ctypes.c_float)), ctypes.cast(data_size, ctypes.c_int))
 
     def print_info(self):
         print("AA_PY_DDTR_PLAN INFORMATION:")
