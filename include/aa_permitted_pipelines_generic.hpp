@@ -723,7 +723,9 @@ namespace astroaccelerate {
 				m_local_timer.Start();
 				kernel_error = dedisperse(dm_range, t_processed[dm_range][current_time_chunk], inBin.data(), dmshifts, d_DDTR_input, d_DDTR_output, d_dm_shifts, nchans, &tsamp, dm_low.data(), dm_step.data(), ndms, nbits, failsafe);
 				m_local_timer.Stop();
-				time_log.adding("DDTR","Dedispersion",m_local_timer.Elapsed());
+				char str[200];
+				sprintf(str,"Dedispersion_range%d", dm_range);
+				time_log.adding("DDTR",str, m_local_timer.Elapsed());
 
 //				CUDA_error = cudaGetLastError();
 				if(kernel_error != 0) {
