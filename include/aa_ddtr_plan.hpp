@@ -114,7 +114,7 @@ namespace astroaccelerate {
     /**
      * \brief Set the custom bandpass normalization values for zerodm filtering.
      */
-    bool bind_bandpass_normalization(float *custom_bandpass_normalization, int bandpass_size) {
+    bool bind_bandpass_normalization(const float *custom_bandpass_normalization, int bandpass_size) {
       if(bandpass_size>0){
         bandpass_normalization.resize(bandpass_size);
         std::copy( custom_bandpass_normalization, custom_bandpass_normalization + bandpass_size, bandpass_normalization.begin() );
