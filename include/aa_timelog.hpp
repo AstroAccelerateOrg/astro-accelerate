@@ -6,6 +6,8 @@
 #include <iostream>
 #include <fstream>
 #include "aa_log.hpp"
+#include "aa_ddtr_strategy.hpp"
+#include <vector>
 
 namespace astroaccelerate {
 
@@ -14,12 +16,16 @@ namespace astroaccelerate {
    * \class aa_TimeLog aa_timelog.hpp "include/aa_timelog.hpp"
    * \brief Class for logging timing information of concrete components and their subcomponents. Log a message to a file on disk.
    * \author AstroAccelerate team.
-   * \date 2 July 2019.
+   * \date 16 February 2021.
    */
 class TimeLog{
 
         public:
 		TimeLog(){};
+
+                void clean(){
+                        pattern.clear();
+                };
 
 		typedef std::map<std::pair<std::string, std::string>, double> maptype;
                 typedef std::pair<std::map<std::pair<std::string, std::string>, double>::iterator,bool> ret_maptype;
@@ -43,6 +49,48 @@ class TimeLog{
                                 //note pair.first in the row column pair, pair.first.first is the row, pair.first.second is the column, pair.second is the string pattern
                         }
 			time_file.close();		
+                }
+
+                void print_to_file_all(double f_central, double time_sampling, const int nchans, aa_ddtr_strategy &strategy, int unroll, int snumreg, int sdivint, int sdivindm, int failsafe){
+			aa_ddtr_plan::dm tmp;
+			size_t nTimeProcessed = strategy.nProcessedTimesamples();
+                        time_file.open("time.log", std::ofstream::out | std::ofstream::app);
+                        time_file << "# failsafe unroll snumreg sdivint sdivindm f_central time_sampling nchans ";
+                        for (size_t i = 0; i < strategy.get_nRanges(); i++){
+                                time_file << "binning_" << i << " ";
+                        }
+			for (size_t i = 0; i < strategy.get_nRanges(); i++){
+				time_file << "dmstep_" << i << " ";
+			}
+			for (size_t i = 0; i < strategy.get_nRanges(); i++){
+				time_file << "n_dmtrials_" << i << " ";
+			}
+			time_file << "nTimeProcessed ";
+                        for (const auto &pair : pattern){
+                                time_file << pair.first.second << " ";
+                        }
+                        time_file << "\n";
+
+			////// data 
+                        time_file << failsafe << " " << unroll << " " << snumreg << " " << sdivint << " " << sdivindm << " " << f_central << " " << time_sampling << " " << nchans << " " << " ";
+                        for (size_t i = 0; i < strategy.get_nRanges(); i++){
+				tmp = strategy.dm(i);
+                                time_file << tmp.inBin << " ";
+                        }
+                        for (size_t i = 0; i < strategy.get_nRanges(); i++){
+				tmp = strategy.dm(i);
+                                time_file << tmp.step << " ";
+                        }
+                        for (size_t i = 0; i < strategy.get_nRanges(); i++){
+                                time_file << strategy.ndms(i) << " ";
+                        }
+			time_file << nTimeProcessed;
+                        for (const auto &pair : pattern){
+                                time_file << " " << pair.second;
+                                //note pair.first in the row column pair, pair.first.first is the row, pair.first.second is the column, pair.second is the string pattern
+                        }
+                        time_file << "\n";
+                        time_file.close();
                 }
 
 		void print(){
@@ -74,6 +122,21 @@ class TimeLog{
 		std::ofstream time_file;
 		static maptype pattern;
                 ret_maptype ret;
+};
+
+class LogKernel{
+        public:
+                int get(){
+                        return kernel_id;
+                }
+
+                void set(int number){
+                        kernel_id = number;
+                }
+
+        private:
+                static int kernel_id;
+		std::vector<int> m_kernel_vec;
 };
 
 } // namespace astroaccelerate

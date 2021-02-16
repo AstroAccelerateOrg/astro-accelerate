@@ -47,10 +47,10 @@ namespace astroaccelerate {
                 }
 	
 		const int nchans = m_signal.nchans();
-		int nsamples = m_signal.nsamples();
+		unsigned int nsamples = m_signal.nsamples();
 		double tsamp = m_signal.tsamp();
 
-		if(m_fake.get_signal_start() + strategy.maxshift() > nsamples){
+		if((unsigned int)m_fake.get_signal_start() + (unsigned int)strategy.maxshift() > nsamples){
 			LOG(log_level::error, "Fake signal is too short.");	
 			LOG(log_level::error, "Asked for a signal lenght: \t" + std::to_string(nsamples));
 			LOG(log_level::error, "Signal injected at: \t\t" + std::to_string(m_fake.get_signal_start()));
@@ -62,7 +62,7 @@ namespace astroaccelerate {
 		std::vector<float> dmshifts;
 		std::vector<int> shift_index(nchans);
 
-		signal_output.resize(nchans*nsamples);
+		signal_output.resize((size_t)nchans*(size_t)nsamples);
 		dmshifts = strategy.dmshifts();
 
 		double dm_pos = m_fake.get_dm_pos();
@@ -90,8 +90,8 @@ namespace astroaccelerate {
 			for(int i = 0; i < width; i++){
 				const int time_pos = (i - maximum_pos + signal_start + period*r)*nchans;
 			        for(int j = 0; j < nchans; j++){
-					const int global_index = j + nchans*shift_index[j] + time_pos;
-					if ( (global_index < nsamples*nchans) && (global_index > 0)){
+					const unsigned int global_index = j + nchans*shift_index[j] + time_pos;
+					if ( (global_index < nsamples*(unsigned int)nchans) && (global_index > 0)){
 						signal_output[global_index] = (unsigned short)(MAX_VALUE*mask_data[i]); //255;
 					}
 			        }
@@ -106,7 +106,7 @@ namespace astroaccelerate {
 		  }
 		
 		  for (int i = 0; i < nchans; i++)
-		      for (int j = 0; j < nsamples; j++)
+		      for (unsigned int j = 0; j < nsamples; j++)
 		              fprintf(fp_out,"%d %d %i\n", i, j, signal_output[j*nchans + i]);
 		  fclose(fp_out);
 	}
