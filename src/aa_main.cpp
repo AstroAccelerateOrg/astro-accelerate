@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	//Select card
-	int device = 0;
+	int device = user_flags.selected_card_id;
 	aa_device_info selected_device(device);
 
 	//Why this is here we have already configured the pipeline? Not used later delete?
