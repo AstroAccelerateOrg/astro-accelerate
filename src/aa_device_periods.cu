@@ -23,17 +23,23 @@
 #include "aa_corner_turn.hpp"
 #include "aa_device_threshold.hpp"
 #include "aa_gpu_timer.hpp"
+#include "aa_host_utilities.hpp"
+#include "presto_funcs.hpp"
+#include "presto.hpp"
 
 namespace astroaccelerate {
 
   // define to see debug info
-#define GPU_PERIODICITY_SEARCH_DEBUG
+  #define GPU_PERIODICITY_SEARCH_DEBUG
+  
+  // define to perform CPU spectral whitening debug
+  //#define CPU_SPECTRAL_WHITENING_DEBUG
 
   // define to reuse old MSD results to generate a new one (it means new MSD is calculated from more samples) (WORKING WITHIN SAME INBIN VALUE)
-#define PS_REUSE_MSD_WITHIN_INBIN
+  // #define PS_REUSE_MSD_WITHIN_INBIN
 
   // experimental and this might not be very useful with real noise BROKEN!
-  //#define PS_REUSE_MSD_THROUGH_INBIN
+  // #define PS_REUSE_MSD_THROUGH_INBIN
 
   //#define OLD_PERIODICITY
 
@@ -356,17 +362,17 @@ namespace astroaccelerate {
       float dm_step       = inBin_group->Prange[rangeid].range.dm_step;
       float dm_low        = inBin_group->Prange[rangeid].range.dm_low;
       float sampling_time = inBin_group->Prange[rangeid].range.sampling_time;
-      float nTimesamples    = inBin_group->Prange[rangeid].range.nTimesamples;
-      int nPoints_before = size();
+      float nTimesamples  = inBin_group->Prange[rangeid].range.nTimesamples;
+      int nPoints_before  = size();
       int harmonics;
 
       for(int c=0; c<(int)size(); c++) {
-	harmonics = (int) list[c*el+3];
-	list[c*el+0] = list[c*el+0]*dm_step + dm_low;
-	list[c*el+1] = list[c*el+1]*(1.0/(sampling_time*nTimesamples*mod));
-	//list[c*el+2] = white_noise_approximation(list[c*el+2], list[c*el+3], MSD);
-	list[c*el+2] = (list[c*el+2] - MSD[2*harmonics])/(MSD[2*harmonics+1]);
-	list[c*el+3] = list[c*el+3];
+        harmonics = (int) list[c*el+3];
+        list[c*el+0] = list[c*el+0]*dm_step + dm_low;
+        list[c*el+1] = list[c*el+1]*(1.0/(sampling_time*nTimesamples*mod));
+        //list[c*el+2] = white_noise_approximation(list[c*el+2], list[c*el+3], MSD);
+        list[c*el+2] = (list[c*el+2] - MSD[2*harmonics])/(MSD[2*harmonics+1]);
+        list[c*el+3] = list[c*el+3];
       }
     }
 	
@@ -382,17 +388,17 @@ namespace astroaccelerate {
 
       std::vector<float> new_list;
       for(int c=0; c<(int)size(); c++) {
-	float oldSNR = list[c*el+2];
-	int harmonics = (int) list[c*el+3];
-	//SNR = white_noise_approximation(list[c*el+2], list[c*el+3], MSD);
-	SNR = (list[c*el+2] - MSD[2*harmonics])/(MSD[2*harmonics+1]);
-			
-	if(SNR>sigma_cutoff) {
-	  new_list.push_back(list[c*el+0]*dm_step + dm_low);
-	  new_list.push_back(list[c*el+1]*(1.0/(sampling_time*nTimesamples*mod)));
-	  new_list.push_back(SNR);
-	  new_list.push_back(list[c*el+3]);
-	}
+        float oldSNR = list[c*el+2];
+        int harmonics = (int) list[c*el+3];
+        //SNR = white_noise_approximation(list[c*el+2], list[c*el+3], MSD);
+        SNR = (list[c*el+2] - MSD[2*harmonics])/(MSD[2*harmonics+1]);
+
+        if(SNR>sigma_cutoff) {
+          new_list.push_back(list[c*el+0]*dm_step + dm_low);
+          new_list.push_back(list[c*el+1]*(1.0/(sampling_time*nTimesamples*mod)));
+          new_list.push_back(SNR);
+          new_list.push_back(list[c*el+3]);
+        }
       }
       list.clear();
       list = new_list;
@@ -474,7 +480,7 @@ namespace astroaccelerate {
       cudaError_t e = cudaMemcpy(&temp, gmem_power_peak_pos, sizeof(int), cudaMemcpyDeviceToHost);
 
       if(e != cudaSuccess) {
-	LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+        LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
       }
       
       return( (int) temp);
@@ -485,7 +491,7 @@ namespace astroaccelerate {
       cudaError_t e = cudaMemcpy(&temp, gmem_interbin_peak_pos, sizeof(int), cudaMemcpyDeviceToHost);
       
       if(e != cudaSuccess) {
-	LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+        LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
       }
       
       return( (int) temp);
@@ -495,7 +501,7 @@ namespace astroaccelerate {
       cudaError_t e = cudaMemcpy(h_MSD, d_MSD, MSD_interpolated_size*2*sizeof(float), cudaMemcpyDeviceToHost);
 
       if(e != cudaSuccess) {
-	LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+        LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
       }
     }
 	
@@ -503,7 +509,7 @@ namespace astroaccelerate {
       cudaError_t e = cudaMemcpy(h_MSD_partials, d_previous_partials, MSD_DIT_size*MSD_PARTIAL_SIZE*sizeof(float), cudaMemcpyDeviceToHost);
       
       if(e != cudaSuccess) {
-	LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+        LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
       }
     }
 	
@@ -511,7 +517,7 @@ namespace astroaccelerate {
       cudaError_t e = cudaMemcpy(d_previous_partials, h_MSD_partials, MSD_PARTIAL_SIZE*sizeof(float), cudaMemcpyHostToDevice);
 
       if(e != cudaSuccess) {
-	LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+        LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
       }
     }
 	
@@ -530,7 +536,6 @@ namespace astroaccelerate {
       cudaFree(cuFFT_workarea);
     }
   };
-
 
 
 
@@ -582,10 +587,10 @@ namespace astroaccelerate {
       int localinBin = DD_plan->DD_range[f].inBin;
 
       if(oldinBin != localinBin) {
-	P_plan->inBin_group.push_back( *(new Periodicity_inBin_Group) );
-	last = (int) P_plan->inBin_group.size() - 1;
-	P_plan->inBin_group[last].total_MSD_blocks = 0;
-	oldinBin = localinBin;
+        P_plan->inBin_group.push_back( *(new Periodicity_inBin_Group) );
+        last = (int) P_plan->inBin_group.size() - 1;
+        P_plan->inBin_group[last].total_MSD_blocks = 0;
+        oldinBin = localinBin;
       }
 		
       Periodicity_Range Prange(DD_plan->DD_range[f], max_nDMs_in_memory, f, P_plan->inBin_group[last].total_MSD_blocks);
@@ -620,7 +625,10 @@ namespace astroaccelerate {
     do {
       printf("   Memory_for_data: %zu = %0.3f MB\n", memory_for_data, (float) memory_for_data/(1024.0*1024.0));
       t_max_nDMs_in_memory = Calculate_max_nDMs_in_memory(t_max_nTimesamples, t_max_nDMs, memory_for_data, multiple_float, multiple_ushort);
-      if(t_max_nDMs_in_memory==0) { printf("Error not enough memory for periodicity search!"); exit(1); }
+      if(t_max_nDMs_in_memory==0) {
+        printf("Error not enough memory for periodicity search!");
+        exit(1);
+      }
       input_plane_size = (t_max_nTimesamples+2)*t_max_nDMs_in_memory;
       memory_allocated = input_plane_size*multiple_float*sizeof(float) + multiple_ushort*input_plane_size*sizeof(ushort);
       printf("   Maximum number of DM trials which fit into memory is %zu;\n   Maximum time trials %zu;\n   Input plane size: %0.2f MB;\n", (size_t) t_max_nDMs_in_memory, t_max_nTimesamples, (((float) input_plane_size*sizeof(float))/(1024.0*1024.0)) );
@@ -638,9 +646,9 @@ namespace astroaccelerate {
       if(t_max_nTimesamples!=(size_t)P_plan->max_nTimesamples) printf("Interesting!\n");
 		
       if(memory_allocated>memory_available) {
-	printf("Not enough memory for given configuration of periodicity plan. Calculating new plan...\n");
-	memory_for_data = memory_for_data - additional_data_size;
-	P_plan->clear();
+        printf("Not enough memory for given configuration of periodicity plan. Calculating new plan...\n");
+        memory_for_data = memory_for_data - additional_data_size;
+        P_plan->clear();
       }
     } while(memory_allocated > memory_available);
     printf("------------------------------------------------------------------------------------------\n");
@@ -666,19 +674,19 @@ namespace astroaccelerate {
   }
 
   void Copy_data_for_periodicity_search(float *d_one_A, float **dedispersed_data, Periodicity_Batch *batch){ //TODO add "cudaStream_t stream1"
-	int nStreams = 16;
-	cudaStream_t stream_copy[16];
-	cudaError_t e;
-	float *h_small_dedispersed_data;
-	size_t data_size = batch->nTimesamples*sizeof(float);
-	cudaMallocHost((void **) &h_small_dedispersed_data, nStreams*data_size);
+    int nStreams = 16;
+    cudaStream_t stream_copy[16];
+    cudaError_t e;
+    float *h_small_dedispersed_data;
+    size_t data_size = batch->nTimesamples*sizeof(float);
+    cudaMallocHost((void **) &h_small_dedispersed_data, nStreams*data_size);
 
-	for (int i = 0; i < nStreams; i++){
-		e = cudaStreamCreate(&stream_copy[i]);
-		if (e != cudaSuccess) {
-			LOG(log_level::error, "Could not create streams in periodicity (" + std::string(cudaGetErrorString(e)) + ")");
-		}
-	}
+    for (int i = 0; i < nStreams; i++){
+      e = cudaStreamCreate(&stream_copy[i]);
+      if (e != cudaSuccess) {
+        LOG(log_level::error, "Could not create streams in periodicity (" + std::string(cudaGetErrorString(e)) + ")");
+      }
+    }
 
 	size_t stream_offset = batch->nTimesamples;
 
@@ -686,19 +694,19 @@ namespace astroaccelerate {
     for(int ff=0; ff<batch->nDMs_per_batch; ff++){
       int id_stream = omp_get_thread_num();
       memcpy(h_small_dedispersed_data + id_stream*stream_offset, dedispersed_data[batch->DM_shift + ff], data_size);
-//      e = cudaMemcpy( &d_one_A[ff*batch->nTimesamples], dedispersed_data[batch->DM_shift + ff], batch->nTimesamples*sizeof(float), cudaMemcpyHostToDevice);      
+      //e = cudaMemcpy( &d_one_A[ff*batch->nTimesamples], dedispersed_data[batch->DM_shift + ff], batch->nTimesamples*sizeof(float), cudaMemcpyHostToDevice);      
       e = cudaMemcpyAsync(&d_one_A[ff*batch->nTimesamples], h_small_dedispersed_data + id_stream*stream_offset, data_size, cudaMemcpyHostToDevice, stream_copy[id_stream]);      
       cudaStreamSynchronize(stream_copy[id_stream]);
       if(e != cudaSuccess) {
-	LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+        LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
       }
     }
-	for (int i = 0; i < nStreams; i++){
-		e = cudaStreamDestroy(stream_copy[i]);
-		if (e != cudaSuccess) {
-			LOG(log_level::error, "Could not destroy stream in periodicity (" + std::string(cudaGetErrorString(e)) + ")");
-		}
-	}
+    for (int i = 0; i < nStreams; i++){
+      e = cudaStreamDestroy(stream_copy[i]);
+      if (e != cudaSuccess) {
+        LOG(log_level::error, "Could not destroy stream in periodicity (" + std::string(cudaGetErrorString(e)) + ")");
+      }
+    }
 
     cudaFreeHost(h_small_dedispersed_data);
 
@@ -742,18 +750,18 @@ namespace astroaccelerate {
       printf("Exporting file %s\n", final_filename);
 		
       for(int dm = 0; dm<chunk_size[i]; dm++) {
-	for(int t=0; t<nTimesamples; t++){
-	  int pos = dm*nTimesamples + t;
-	  h_export[data_mod*pos + 0] = (lower + dm)*dm_step + dm_low;
-	  h_export[data_mod*pos + 1] = Calculate_frequency(t, sampling_time, nTimesamples);
-	  h_export[data_mod*pos + 2] = h_data[(inner_DM_shift+dm)*nTimesamples + t];
-	}
+        for(int t=0; t<nTimesamples; t++){
+          int pos = dm*nTimesamples + t;
+          h_export[data_mod*pos + 0] = (lower + dm)*dm_step + dm_low;
+          h_export[data_mod*pos + 1] = Calculate_frequency(t, sampling_time, nTimesamples);
+          h_export[data_mod*pos + 2] = h_data[(inner_DM_shift+dm)*nTimesamples + t];
+        }
       }
 		
       FILE *fp_out;
       if (( fp_out = fopen(final_filename, "wb") ) == NULL) {
-	fprintf(stderr, "Error opening output file!\n");
-	exit(0);
+        fprintf(stderr, "Error opening output file!\n");
+        exit(0);
       }
       fwrite(h_export, nTimesamples*chunk_size[i]*sizeof(float), 3, fp_out);
       fclose(fp_out);
@@ -769,7 +777,7 @@ namespace astroaccelerate {
    * \brief Performs a periodicity search on the GPU.
    * \todo Clarify the difference between Periodicity_search and GPU_periodicity.
    **/
-  void Periodicity_search(GPU_Memory_for_Periodicity_Search *gmem, aa_periodicity_strategy per_param, double *compute_time, size_t input_plane_size, int inBin, Periodicity_Batch *batch, std::vector<int> *h_boxcar_widths){ //TODO add "cudaStream_t stream1"
+  void Periodicity_search(GPU_Memory_for_Periodicity_Search *gmem, aa_periodicity_strategy per_param, double *compute_time, size_t input_plane_size, Periodicity_Range *Prange, Periodicity_Batch *batch, std::vector<int> *h_boxcar_widths, int harmonic_sum_algorithm, bool enable_scalloping_loss_removal){
     int local_max_list_size = (input_plane_size)/4;
 	
     float *d_dedispersed_data, *d_FFT_complex_output, *d_frequency_power, *d_frequency_interbin, *d_frequency_power_CT, *d_frequency_interbin_CT, *d_power_SNR, *d_interbin_SNR, *d_power_list, *d_interbin_list, *d_MSD_workarea;
@@ -785,14 +793,12 @@ namespace astroaccelerate {
     d_power_list            = &gmem->d_two_B[0];
     d_interbin_list         = &gmem->d_two_B[input_plane_size];
 	
-    int t_inBin             = inBin;
     int t_nTimesamples      = batch->nTimesamples;
     int t_nDMs_per_batch    = batch->nDMs_per_batch;
     int t_DM_shift          = batch->DM_shift;
+    int t_inBin             = Prange->range.inBin;
 	
     aa_gpu_timer timer;
-	
-    //checkCudaErrors(cudaGetLastError());
 	
     //---------> cuFFT
     timer.Start();
@@ -820,7 +826,156 @@ namespace astroaccelerate {
     (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
 	
-    //checkCudaErrors(cudaGetLastError());
+	#ifdef CPU_SPECTRAL_WHITENING_DEBUG
+	//---------> CPU spectral whitening
+	float t_dm_step         = Prange->range.dm_step;
+    float t_dm_low          = Prange->range.dm_low;
+	
+	// Copy stuff to the host
+	cudaError_t err;
+	char filename[300];
+	size_t fft_input_size_bytes = (t_nTimesamples>>1)*t_nDMs_per_batch*sizeof(float2);
+	size_t fft_power_size_bytes = (t_nTimesamples>>1)*t_nDMs_per_batch*sizeof(float);
+	float2 *h_fft_input;
+	float  *h_fft_power;
+	printf("Data copied and power calculation...\n");
+	h_fft_input = (float2*) malloc(fft_input_size_bytes);
+	h_fft_power = (float*) malloc(fft_power_size_bytes);
+	err = cudaMemcpy(h_fft_input, d_FFT_complex_output, fft_input_size_bytes, cudaMemcpyDeviceToHost);
+	if(err != cudaSuccess) printf("CUDA error\n");
+	for(int d=0; d<t_nDMs_per_batch; d++){
+		for(int s=0; s<(t_nTimesamples>>1); s++){
+			size_t pos = d*(t_nTimesamples>>1) + s;
+			h_fft_power[pos] = h_fft_input[pos].x*h_fft_input[pos].x + h_fft_input[pos].y*h_fft_input[pos].y;
+		}
+	}
+	
+	
+	// Export data to file
+	//printf("Exporting fft data to file...\n");
+	//for(int d=0; d<t_nDMs_per_batch; d++){
+	//	sprintf(filename, "PSR_fft_data_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
+	//	size_t pos = d*(t_nTimesamples>>1);
+	//	Export_data_to_file(&h_fft_input[pos], (t_nTimesamples>>1), 1, filename);
+	//}
+	
+	
+	// Create segments for de-redning
+	printf("Calculating segment sizes...\n");
+	int max_segment_length = 256;
+	int min_segment_length = 6;
+	std::vector<int> segment_sizes;
+	create_dered_segment_sizes_prefix_sum(&segment_sizes, min_segment_length, max_segment_length, (t_nTimesamples>>1));
+	int nSegments = segment_sizes.size();
+	
+	// Calculate mean for segments and export_size
+	printf("Calculating MSD...\n");
+	size_t MSD_segmented_size_bytes = 2*nSegments*t_nDMs_per_batch*sizeof(float);
+	float *h_segmented_MSD;
+	h_segmented_MSD = (float*) malloc(MSD_segmented_size_bytes);
+	for(int d=0; d<t_nDMs_per_batch; d++){
+		for(int s=0; s<(nSegments - 1); s++){
+			size_t MSD_pos = d*nSegments + s;
+			double mean, stdev;
+			int range = segment_sizes[s + 1] - segment_sizes[s];
+			size_t pos = d*(t_nTimesamples>>1) + segment_sizes[s];
+			MSD_Kahan(&h_fft_power[pos], 1, range, 0, &mean, &stdev);
+			h_segmented_MSD[2*MSD_pos] = (float) mean;
+			h_segmented_MSD[2*MSD_pos + 1] = (float) stdev;
+		}
+		
+		sprintf(filename, "PSR_fft_data_means_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
+		Export_data_to_file((float2*) &h_segmented_MSD[d*nSegments], nSegments, 1, filename);
+	}
+	
+	// Calculate medians for segments
+	printf("Calculating median...\n");
+	size_t MED_segmented_size_bytes = nSegments*t_nDMs_per_batch*sizeof(float);
+	float *h_segmented_MED;
+	h_segmented_MED = (float*) malloc(MED_segmented_size_bytes);
+	for(int d=0; d<t_nDMs_per_batch; d++){
+		for(int s=0; s<(nSegments - 1); s++){
+			size_t MED_pos = d*nSegments + s;
+			int range = segment_sizes[s + 1] - segment_sizes[s];
+			size_t pos = d*(t_nTimesamples>>1) + segment_sizes[s];
+			h_segmented_MED[MED_pos] = Calculate_median(&h_fft_power[pos], range);
+		}
+		
+		sprintf(filename, "PSR_fft_data_median_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
+		Export_data_to_file(&h_segmented_MED[d*nSegments], nSegments, 1, filename);
+	}
+	
+	// Calculate medians for segments based on presto
+	printf("Calculating median using presto...\n");
+	float *h_segmented_MED_p;
+	h_segmented_MED_p = (float*) malloc(MED_segmented_size_bytes);
+	for(int d=0; d<t_nDMs_per_batch; d++){
+		for(int s=0; s<(nSegments - 1); s++){
+			size_t MED_pos = d*nSegments + s;
+			int range = segment_sizes[s + 1] - segment_sizes[s];
+			size_t pos = d*(t_nTimesamples>>1) + segment_sizes[s];
+			h_segmented_MED_p[MED_pos] = median(&h_fft_power[pos], range);
+		}
+		
+		sprintf(filename, "PSR_fft_data_median_p_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
+		Export_data_to_file(&h_segmented_MED_p[d*nSegments], nSegments, 1, filename);
+	}
+	
+	// Deredning by presto
+	printf("De-redning...\n");
+	for(int d=0; d<t_nDMs_per_batch; d++){
+		float2 *presto_dered, *MSD_dered, *MED_dered;
+		presto_dered = new float2[(t_nTimesamples>>1)];
+		MSD_dered    = new float2[(t_nTimesamples>>1)];
+		MED_dered    = new float2[(t_nTimesamples>>1)];
+		for(int s=0; s<(t_nTimesamples>>1); s++){
+			size_t pos = d*(t_nTimesamples>>1) + s;
+			presto_dered[s] = h_fft_input[pos];
+			MSD_dered[s]    = h_fft_input[pos];
+			MED_dered[s]    = h_fft_input[pos];
+		}
+		size_t MSD_pos = d*nSegments;
+		presto_dered_sig(presto_dered, (t_nTimesamples>>1));
+		dered_with_MSD(MSD_dered, (t_nTimesamples>>1), segment_sizes.data(), nSegments, (float*) &h_segmented_MSD[MSD_pos]);
+		dered_with_MED(MED_dered, (t_nTimesamples>>1), segment_sizes.data(), nSegments, &h_segmented_MED[MSD_pos]);
+		sprintf(filename, "PSR_fft_dered_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
+		Export_data_to_file(presto_dered, MSD_dered, MED_dered, (t_nTimesamples>>1), filename);
+	}
+	
+	free(h_fft_input);
+	free(h_fft_power);
+	free(h_segmented_MSD);
+	free(h_segmented_MED);
+	
+	#endif
+	
+    //---------> Spectrum whitening
+    timer.Start();
+    cudaStream_t stream; stream = NULL;
+    spectrum_whitening_SGP2((float2 *) d_FFT_complex_output, (t_nTimesamples>>1), t_nDMs_per_batch, true, stream);
+    timer.Stop();
+    printf("         -> Performing spectrum whitening took %f ms\n", timer.Elapsed());
+    (*compute_time) = (*compute_time) + timer.Elapsed();
+	
+	#ifdef CPU_SPECTRAL_WHITENING_DEBUG
+	printf("Data copied and power calculation...\n");
+	h_fft_input = (float2*) malloc(fft_input_size_bytes);
+	err = cudaMemcpy(h_fft_input, d_FFT_complex_output, fft_input_size_bytes, cudaMemcpyDeviceToHost);
+	if(err != cudaSuccess) printf("CUDA error\n");
+	// Export data to file
+	printf("Exporting fft data to file...\n");
+	for(int d=0; d<t_nDMs_per_batch; d++){
+		sprintf(filename, "PSR_fft_data_GPU_dered_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
+		size_t pos = d*(t_nTimesamples>>1);
+		Export_data_to_file(&h_fft_input[pos], (t_nTimesamples>>1), 1, filename);
+		printf(".");
+		fflush(stdout);
+	}
+	printf(" Finished!\n");
+	#endif
+	
+
+    //---------<
 	
     //---------> Calculate powers and interbinning
     timer.Start();
@@ -830,121 +985,85 @@ namespace astroaccelerate {
     printf("         -> Calculation of powers and interbining took %f ms\n", timer.Elapsed());
     (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
-	
-	//---------> Spectrum whitening
-	timer.Start();
-	cudaStream_t stream; stream = NULL;
-	spectrum_whitening_SGP1(d_frequency_power, (t_nTimesamples>>1), t_nDMs_per_batch, stream);
-	spectrum_whitening_SGP1(d_frequency_interbin, t_nTimesamples, t_nDMs_per_batch, stream);
-    timer.Stop();
-    printf("         -> Performing spectrum whitening took %f ms\n", timer.Elapsed());
-    (*compute_time) = (*compute_time) + timer.Elapsed();	
-	//---------<
-    //-----------------------------------------------------------------------------------
-    //if(i==0 && dm==0 && export_data) Export_data_in_range(d_half_C, nTimesamples/2, t_nDMs_per_batch, "power_data", dm_step[i], dm_low[i], tsamp, DM_shift);
-    //-----------------------------------------------------------------------------------
-    // Do Exports
-    //-----------------------------------------------------------------------------------
-    //if(i==0 && dm==0 && export_data) Export_data_in_range(d_one_A, nTimesamples, t_nDMs_per_batch, "Interbin_data", dm_step[i], dm_low[i], tsamp DM_shift);
-    //-----------------------------------------------------------------------------------
-	
-    //checkCudaErrors(cudaGetLastError());
+
+	//printf("Export:\n");
+	//printf("nTimesamples:%d\n", t_nTimesamples);
+	//printf("nDMs_per_batch:%d\n", t_nDMs_per_batch);
+	//printf("DM_shift:%d\n", t_DM_shift);
+	//printf("dm_step:%f\n", t_dm_step);
+	//printf("dm_low:%f\n", t_dm_low);
+	//printf("sampling_time:%f\n", t_sampling_time);
+    //Export_data_in_range(d_frequency_power, (t_nTimesamples>>1), t_nDMs_per_batch, "Periodicity_input", t_dm_step, t_dm_low, t_sampling_time, t_DM_shift, 1);
 	
     //---------> Mean and StDev on powers
     timer.Start();
     bool perform_continuous = false;
-#ifdef PS_REUSE_MSD_WITHIN_INBIN
-    perform_continuous = true;
-#endif
 
-
-#ifdef OLD_PERIODICITY
-    if(per_param.enable_outlier_rejection()){
-#ifdef PS_REUSE_MSD_WITHIN_INBIN
-      MSD_outlier_rejection_grid(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, gmem->d_all_blocks, &batch->MSD_conf, per_param.sigma_constant());
-#else
-      MSD_outlier_rejection(gmem->d_MSD, d_frequency_power, gmem->d_all_blocks, &batch->MSD_conf, per_param.sigma_constant());
-#endif
-    }
-    else {
-#ifdef PS_REUSE_MSD_WITHIN_INBIN
-      MSD_normal_continuous(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, gmem->d_all_blocks, &batch->MSD_conf);
-#else
-      MSD_normal(gmem->d_MSD, d_frequency_power, gmem->d_all_blocks, &batch->MSD_conf);
-#endif
-    }
-#else
     double total_time, dit_time, MSD_time;
     MSD_plane_profile(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, d_MSD_workarea, true, (t_nTimesamples>>1), t_nDMs_per_batch, h_boxcar_widths, 0, 0, 0, per_param.sigma_constant(), per_param.enable_msd_baseline_noise(), perform_continuous, &total_time, &dit_time, &MSD_time);
     printf("    MSD time: Total: %f ms; DIT: %f ms; MSD: %f ms;\n", total_time, dit_time, MSD_time);
-#endif
-	
-
-	
+    
     timer.Stop();
     printf("         -> MSD took %f ms\n", timer.Elapsed());
     (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
-	
-    //checkCudaErrors(cudaGetLastError());
-	
-    //---------> Corner turn
+    
+    
+    //---------> Harmonic sum
+    bool transposed_data = false;
     timer.Start();
-    //corner_turn_SM(d_half_C, &d_two_B[0], (nTimesamples>>1), t_nDMs_per_batch);
-    //corner_turn_SM(d_one_A, &d_two_B[input_plane_size], nTimesamples, t_nDMs_per_batch);
-    corner_turn_SM(d_frequency_power, d_frequency_power_CT, (t_nTimesamples>>1), t_nDMs_per_batch);
-    corner_turn_SM(d_frequency_interbin, d_frequency_interbin_CT, t_nTimesamples, t_nDMs_per_batch);
-    timer.Stop();
-    printf("         -> corner turn took %f ms\n", timer.Elapsed());
-    (*compute_time) = (*compute_time) + timer.Elapsed();
-    //---------<
-	
-    //checkCudaErrors(cudaGetLastError());
-	
-    //---------> Harmonic summing
-    timer.Start();
-
-    /** \todo Re-enable the if statement after debugging. */
-    //if(per_param.nHarmonics() > 1) {
-      
-#ifdef OLD_PERIODICITY
-      periodicity_simple_harmonic_summing_old(d_frequency_power_CT, d_power_SNR, gmem->d_power_harmonics, gmem->d_MSD, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.nHarmonics());
-      periodicity_simple_harmonic_summing_old(d_frequency_interbin_CT, d_interbin_SNR, gmem->d_interbin_harmonics, gmem->d_MSD, t_nTimesamples, t_nDMs_per_batch, per_param.nHarmonics());
-#else
-      periodicity_simple_harmonic_summing(d_frequency_power_CT, d_power_SNR, gmem->d_power_harmonics, gmem->d_MSD, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.nHarmonics());
-      periodicity_simple_harmonic_summing(d_frequency_interbin_CT, d_interbin_SNR, gmem->d_interbin_harmonics, gmem->d_MSD, t_nTimesamples, t_nDMs_per_batch, per_param.nHarmonics());
-#endif
-      //}
+    if(harmonic_sum_algorithm == 0){
+        transposed_data = true;
+        //---------> Corner turn
+        corner_turn_SM(d_frequency_power, d_frequency_power_CT, (t_nTimesamples>>1), t_nDMs_per_batch);
+        corner_turn_SM(d_frequency_interbin, d_frequency_interbin_CT, t_nTimesamples, t_nDMs_per_batch);
+        //---------<
+        
+        //---------> Simple harmonic summing
+        periodicity_simple_harmonic_summing(d_frequency_power_CT, d_power_SNR, gmem->d_power_harmonics, gmem->d_MSD, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.nHarmonics());
+        periodicity_simple_harmonic_summing(d_frequency_interbin_CT, d_interbin_SNR, gmem->d_interbin_harmonics, gmem->d_MSD, t_nTimesamples, t_nDMs_per_batch, per_param.nHarmonics());
+        //---------<
+    }
+    else if(harmonic_sum_algorithm == 1) {
+        transposed_data = false;
+        //---------> Greedy harmonic summing
+        periodicity_greedy_harmonic_summing(d_frequency_power, d_power_SNR, gmem->d_power_harmonics, gmem->d_MSD, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.nHarmonics(), enable_scalloping_loss_removal);
+        periodicity_greedy_harmonic_summing(d_frequency_interbin, d_interbin_SNR, gmem->d_interbin_harmonics, gmem->d_MSD, t_nTimesamples, t_nDMs_per_batch, per_param.nHarmonics(), enable_scalloping_loss_removal);
+        //---------<
+    }
+    else if(harmonic_sum_algorithm == 2) {
+        transposed_data = false;
+        //---------> PRESTO harmonic summing
+        periodicity_presto_harmonic_summing(d_frequency_power, d_power_SNR, gmem->d_power_harmonics, gmem->d_MSD, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.nHarmonics(), enable_scalloping_loss_removal);
+        periodicity_presto_harmonic_summing(d_frequency_interbin, d_interbin_SNR, gmem->d_interbin_harmonics, gmem->d_MSD, t_nTimesamples, t_nDMs_per_batch, per_param.nHarmonics(), enable_scalloping_loss_removal);
+        //---------<
+    }
     timer.Stop();
     printf("         -> harmonic summing took %f ms\n", timer.Elapsed());
     (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
-	
-    //checkCudaErrors(cudaGetLastError());
-	
+    
+    
     //---------> Peak finding
     timer.Start();
     if(per_param.candidate_algorithm()){
-      //-------------- Thresholding
-#ifdef OLD_PERIODICITY
-      Threshold_for_periodicity_old(d_power_SNR, gmem->d_power_harmonics, d_power_list, gmem->gmem_power_peak_pos, gmem->d_MSD, per_param.sigma_cutoff(), t_nDMs_per_batch, (t_nTimesamples>>1), t_DM_shift, t_inBin, local_max_list_size);
-      Threshold_for_periodicity_old(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, gmem->gmem_interbin_peak_pos, gmem->d_MSD, per_param.sigma_cutoff(), t_nDMs_per_batch, t_nTimesamples, t_DM_shift, t_inBin, local_max_list_size);
-#else
-      Threshold_for_periodicity(d_power_SNR, gmem->d_power_harmonics, d_power_list, gmem->gmem_power_peak_pos, gmem->d_MSD, per_param.sigma_cutoff(), t_nDMs_per_batch, (t_nTimesamples>>1), t_DM_shift, t_inBin, local_max_list_size);
-      Threshold_for_periodicity(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, gmem->gmem_interbin_peak_pos, gmem->d_MSD, per_param.sigma_cutoff(), t_nDMs_per_batch, t_nTimesamples, t_DM_shift, t_inBin, local_max_list_size);
-#endif
-      //-------------- Thresholding
+		printf("Doing Thresholding...\n");
+        //-------------- Thresholding
+        if(harmonic_sum_algorithm == 0){
+            Threshold_for_periodicity_transposed(d_power_SNR, gmem->d_power_harmonics, d_power_list, gmem->gmem_power_peak_pos, gmem->d_MSD, per_param.sigma_cutoff(), t_nDMs_per_batch, (t_nTimesamples>>1), t_DM_shift, t_inBin, local_max_list_size);
+            Threshold_for_periodicity_transposed(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, gmem->gmem_interbin_peak_pos, gmem->d_MSD, per_param.sigma_cutoff(), t_nDMs_per_batch, t_nTimesamples, t_DM_shift, t_inBin, local_max_list_size);
+        }
+        else {
+            Threshold_for_periodicity_normal(d_power_SNR, gmem->d_power_harmonics, d_power_list, gmem->gmem_power_peak_pos, gmem->d_MSD, per_param.sigma_cutoff(), (t_nTimesamples>>1), t_nDMs_per_batch, t_DM_shift, t_inBin, local_max_list_size);
+            Threshold_for_periodicity_normal(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, gmem->gmem_interbin_peak_pos, gmem->d_MSD, per_param.sigma_cutoff(), t_nTimesamples, t_nDMs_per_batch, t_DM_shift, t_inBin, local_max_list_size);
+        }
+        //-------------- Thresholding
     }
     else {
-      //-------------- Peak finding
-#ifdef OLD_PERIODICITY
-      Peak_find_for_periodicity_search_old(d_power_SNR, gmem->d_power_harmonics, d_power_list, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.sigma_cutoff(), local_max_list_size, gmem->gmem_power_peak_pos, gmem->d_MSD, t_DM_shift, t_inBin);
-      Peak_find_for_periodicity_search_old(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, t_nTimesamples, t_nDMs_per_batch, per_param.sigma_cutoff(), local_max_list_size, gmem->gmem_interbin_peak_pos, gmem->d_MSD, t_DM_shift, t_inBin);
-#else
-      Peak_find_for_periodicity_search(d_power_SNR, gmem->d_power_harmonics, d_power_list, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.sigma_cutoff(), local_max_list_size, gmem->gmem_power_peak_pos, gmem->d_MSD, t_DM_shift, t_inBin);
-      Peak_find_for_periodicity_search(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, t_nTimesamples, t_nDMs_per_batch, per_param.sigma_cutoff(), local_max_list_size, gmem->gmem_interbin_peak_pos, gmem->d_MSD, t_DM_shift, t_inBin);
-#endif
-      //-------------- Peak finding
+        //-------------- Peak finding
+        Peak_find_for_periodicity_search(d_power_SNR, gmem->d_power_harmonics, d_power_list, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.sigma_cutoff(), local_max_list_size, gmem->gmem_power_peak_pos, gmem->d_MSD, t_DM_shift, t_inBin, transposed_data);
+        Peak_find_for_periodicity_search(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, t_nTimesamples, t_nDMs_per_batch, per_param.sigma_cutoff(), local_max_list_size, gmem->gmem_interbin_peak_pos, gmem->d_MSD, t_DM_shift, t_inBin, transposed_data);
+        //-------------- Peak finding
     }
     timer.Stop();
     printf("         -> Peak finding took %f ms\n", timer.Elapsed());
@@ -999,7 +1118,7 @@ namespace astroaccelerate {
     // Creating periodicity parameters object (temporary, it should be moved elsewhere)
     aa_periodicity_plan per_param_plan(sigma_cutoff, OR_sigma_multiplier, nHarmonics, 0, candidate_algorithm, enable_msd_baseline_noise); // \warning The periodicity plan uses a hardcoded number (this also used to be the case for the (now deprecated) Periodicity_parameters class.
     aa_periodicity_strategy per_param(per_param_plan);
-    per_param.print_parameters();	
+    per_param.print_parameters();
 	
     std::vector<int> h_boxcar_widths; h_boxcar_widths.resize(nHarmonics); 
     for(int f=0; f<nHarmonics; f++) h_boxcar_widths[f]=f+1;
@@ -1060,122 +1179,90 @@ namespace astroaccelerate {
       std::vector<Candidate_List> PowerCandidates;
       std::vector<Candidate_List> InterbinCandidates;
 
-#ifdef PS_REUSE_MSD_THROUGH_INBIN
-      if(p>0){
-	float h_MSD_partials[MSD_PARTIAL_SIZE];
-	int ratio = P_plan.inBin_group[p].Prange[0].range.inBin/P_plan.inBin_group[p-1].Prange[0].range.inBin;
-	ratio = ratio*4;
-				
-	GPU_memory.Get_MSD_partials(h_MSD_partials);
-	printf("This groups inBin: %d; Previous groups inBin: %d; ratio: %d;\n", P_plan.inBin_group[p].Prange[0].range.inBin, P_plan.inBin_group[p-1].Prange[0].range.inBin, P_plan.inBin_group[p].Prange[0].range.inBin/P_plan.inBin_group[p-1].Prange[0].range.inBin);
-				
-	printf("Old MSD: [%f;%f]\n", h_MSD_partials[0]/h_MSD_partials[2], sqrt(h_MSD_partials[1]/h_MSD_partials[2]));
-	h_MSD_partials[0] = h_MSD_partials[0]/ratio;
-	h_MSD_partials[1] = h_MSD_partials[1]/(ratio*ratio);
-	printf("New MSD: [%f;%f]\n", h_MSD_partials[0]/h_MSD_partials[2], sqrt(h_MSD_partials[1]/h_MSD_partials[2]));
-				
-	GPU_memory.Set_MSD_partials(h_MSD_partials);
-      }
-#else
       GPU_memory.Reset_MSD();
-#endif
 		
       //checkCudaErrors(cudaGetLastError());
 
       for(int r=0; r<(int) P_plan.inBin_group[p].Prange.size(); r++) {
-	printf("  Prange: %d\n", r);
-	P_plan.inBin_group[p].Prange[r].print();
-			
-	for(int b=0; b<(int)P_plan.inBin_group[p].Prange[r].batches.size(); b++) {
-	  printf("      Batch: %d\n", b);
-	  P_plan.inBin_group[p].Prange[r].batches[b].print();
-				
-	  GPU_memory.Reset_Candidate_List();
-				
-	  //checkCudaErrors(cudaGetLastError());
+        printf("  Prange: %d\n", r);
+        P_plan.inBin_group[p].Prange[r].print();
+        
+        for(int b=0; b<(int)P_plan.inBin_group[p].Prange[r].batches.size(); b++) {
+          printf("      Batch: %d\n", b);
+          P_plan.inBin_group[p].Prange[r].batches[b].print();
+	
+          GPU_memory.Reset_Candidate_List();
+	
+          //---------> Copy input data to the device
+          timer.Start();
+          Copy_data_for_periodicity_search(GPU_memory.d_one_A, output_buffer[P_plan.inBin_group[p].Prange[r].rangeid], &P_plan.inBin_group[p].Prange[r].batches[b]);
+          timer.Stop();
+          printf("         => Copy of data to device took %f ms\n", timer.Elapsed() );
+          copy_time_per_range = copy_time_per_range + timer.Elapsed();
+          //---------<
 
-	  //---------> Copy input data to the device
-	  timer.Start();
-	  Copy_data_for_periodicity_search(GPU_memory.d_one_A, output_buffer[P_plan.inBin_group[p].Prange[r].rangeid], &P_plan.inBin_group[p].Prange[r].batches[b]);
-	  timer.Stop();
-	  printf("         => Copy of data to device took %f ms\n", timer.Elapsed() );
-	  copy_time_per_range = copy_time_per_range + timer.Elapsed();
-	  //---------<
-				
-				
-	  //checkCudaErrors(cudaGetLastError());
-	  // TODO: cudaStreamSynchronize(stream);
-				
-				
-	  //---------> Periodicity search
-	  Periodicity_search(&GPU_memory, per_param, &calc_time_per_range, input_plane_size, P_plan.inBin_group[p].Prange[r].range.inBin, &P_plan.inBin_group[p].Prange[r].batches[b], &h_boxcar_widths);
-	  //---------<
-				
-				
-	  //checkCudaErrors(cudaGetLastError());
-	  // TODO: cudaStreamSynchronize(stream);
-				
-				
-	  //---------> Copy candidates to the host
-	  timer.Start();
-				
-	  int last_entry;
-	  int nPowerCandidates = GPU_memory.Get_Number_of_Power_Candidates();
-	  PowerCandidates.push_back(*(new Candidate_List(r)));
-	  last_entry = PowerCandidates.size()-1;
-	  printf("         -> POWER: Total number of peaks found in this range is %d;\n", nPowerCandidates);
-	  PowerCandidates[last_entry].Allocate(nPowerCandidates);
-	  cudaError_t e = cudaMemcpy( &PowerCandidates[last_entry].list[0], &GPU_memory.d_two_B[0], nPowerCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
+          // simple harmonic sum 0
+          // greedy harmonic sum 1
+          // presto harmonic sum 2
+          int harmonic_sum_algorithm = 1;
+		  bool enable_scalloping_loss_removal = false;
+          
+          //---------> Periodicity search
+          Periodicity_search(&GPU_memory, per_param, &calc_time_per_range, input_plane_size, &P_plan.inBin_group[p].Prange[r], &P_plan.inBin_group[p].Prange[r].batches[b], &h_boxcar_widths, harmonic_sum_algorithm, enable_scalloping_loss_removal);
+          //---------<
+	
+          //---------> Copy candidates to the host
+          timer.Start();
+	
+          int last_entry;
+          int nPowerCandidates = GPU_memory.Get_Number_of_Power_Candidates();
+          PowerCandidates.push_back(*(new Candidate_List(r)));
+          last_entry = PowerCandidates.size()-1;
+          printf("         -> POWER: Total number of peaks found in this range is %d;\n", nPowerCandidates);
+          PowerCandidates[last_entry].Allocate(nPowerCandidates);
+          cudaError_t e = cudaMemcpy( &PowerCandidates[last_entry].list[0], &GPU_memory.d_two_B[0], nPowerCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
 	  
-	  if(e != cudaSuccess) {
-	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
-	  }
+          if(e != cudaSuccess) {
+            LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+          }
+	
+          int nInterbinCandidates = GPU_memory.Get_Number_of_Interbin_Candidates();
+          InterbinCandidates.push_back(*(new Candidate_List(r)));
+          last_entry = InterbinCandidates.size()-1;
+          printf("         -> INTERBIN: Total number of peaks found in this range is %d;\n", nInterbinCandidates);
+          InterbinCandidates[last_entry].Allocate(nInterbinCandidates);
+          e = cudaMemcpy( &InterbinCandidates[last_entry].list[0], &GPU_memory.d_two_B[input_plane_size], nInterbinCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
 	  
-	  //checkCudaErrors(cudaGetLastError());
-				
-	  int nInterbinCandidates = GPU_memory.Get_Number_of_Interbin_Candidates();
-	  InterbinCandidates.push_back(*(new Candidate_List(r)));
-	  last_entry = InterbinCandidates.size()-1;
-	  printf("         -> INTERBIN: Total number of peaks found in this range is %d;\n", nInterbinCandidates);
-	  InterbinCandidates[last_entry].Allocate(nInterbinCandidates);
-	  e = cudaMemcpy( &InterbinCandidates[last_entry].list[0], &GPU_memory.d_two_B[input_plane_size], nInterbinCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
+          if(e != cudaSuccess) {
+            LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
+          }
 	  
-	  if(e != cudaSuccess) {
-	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
-	  }
-	  
-	  timer.Stop();
-	  printf("         => Copy of candidates took %f ms\n", timer.Elapsed() );
-	  copy_time_per_range = copy_time_per_range + timer.Elapsed();
-	  //---------<
-				
-#ifndef PS_REUSE_MSD_WITHIN_INBIN
-	  GPU_memory.Get_MSD(h_MSD);
-					
-	  PowerCandidates[last_entry].Process(h_MSD, &P_plan.inBin_group[p],  1.0);
-	  InterbinCandidates[last_entry].Process(h_MSD, &P_plan.inBin_group[p], 2.0);
-#endif
-				
-	  printf("\n");
-	} //batches
+          timer.Stop();
+          printf("         => Copy of candidates took %f ms\n", timer.Elapsed() );
+          copy_time_per_range = copy_time_per_range + timer.Elapsed();
+          //---------<
+	
+          GPU_memory.Get_MSD(h_MSD);
+	
+          PowerCandidates[last_entry].Process(h_MSD, &P_plan.inBin_group[p],  1.0);
+          InterbinCandidates[last_entry].Process(h_MSD, &P_plan.inBin_group[p], 2.0);
+	
+          printf("\n");
+        } //batches
 
       } // ranges
 
-#ifdef PS_REUSE_MSD_WITHIN_INBIN
-      GPU_memory.Get_MSD(h_MSD);
-
-			
-
-      for(int f=0; f<(int)PowerCandidates.size(); f++) {
-	//PowerCandidates[f].Rescale_Threshold_and_Process(h_MSD, &P_plan.inBin_group[p], per_param.sigma_cutoff, 1.0);
-	PowerCandidates[f].Process(h_MSD, &P_plan.inBin_group[p], 1.0);
-      }
-
-      for(int f=0; f<(int)InterbinCandidates.size(); f++) {
-	//InterbinCandidates[f].Rescale_Threshold_and_Process(h_MSD, &P_plan.inBin_group[p], per_param.sigma_cutoff, 2.0);
-	InterbinCandidates[f].Process(h_MSD, &P_plan.inBin_group[p], 2.0);
-      }
-#endif
+//    #ifdef PS_REUSE_MSD_WITHIN_INBIN
+//      GPU_memory.Get_MSD(h_MSD);
+//      
+//      for(int f=0; f<(int)PowerCandidates.size(); f++) {
+//        PowerCandidates[f].Process(h_MSD, &P_plan.inBin_group[p], 1.0);
+//      }
+//      
+//      for(int f=0; f<(int)InterbinCandidates.size(); f++) {
+//        InterbinCandidates[f].Process(h_MSD, &P_plan.inBin_group[p], 2.0);
+//      }
+//    #endif
 
       // Export of the candidate list for inBin range;
       char filename[100];

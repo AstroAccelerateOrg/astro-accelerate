@@ -19,20 +19,40 @@ namespace astroaccelerate {
 					     const unsigned int &max_peak_size, unsigned int *const gmem_pos, const float &DM_trial);
 
   /** \brief Kernel wrapper function for peak_find_for_periods_old kernel function. */
-  void call_kernel_dilate_peak_find_for_periods_old(const dim3 &grid_size, const dim3 &block_size,
-						    float *const d_input, ushort *const d_input_taps, float *const d_peak_list,
-						    const int &width, const int &height, const int &offset,
-						    const float &threshold,
-						    const int &max_peak_size, int *const gmem_pos, float *const d_MDF,
-						    const int &DM_shift, const int &DIT_value);
+  void call_kernel_peak_find_for_periodicity_normal(
+      const dim3 &grid_size,
+      const dim3 &block_size,
+      float *const d_input,
+      ushort *const d_input_taps,
+      float *const d_peak_list,
+      const int &nTimesamples,
+      const int &nDMs,
+      const int &offset,
+      const float &threshold,
+      const int &max_peak_size,
+      int *const gmem_pos,
+      float const *const d_MSD,
+      const int &DM_shift,
+      const int &DIT_value
+  );
 
   /** \brief Kernel wrapper function for peak_find_for_periods kernel function. */
-  void call_kernel_dilate_peak_find_for_periods(const dim3 &grid_size, const dim3 &block_size,
-						float *const d_input, ushort *const d_input_taps,
-						float *const d_peak_list, const int &width,
-						const int &height, const int &offset, const float &threshold,
-						const int &max_peak_size,
-						int *const gmem_pos, float const *const d_MSD, const int &DM_shift, const int &DIT_value);
+  void call_kernel_peak_find_for_periodicity_transposed(
+      const dim3 &grid_size,
+      const dim3 &block_size,
+      float *const d_input,
+      ushort *const d_input_taps,
+      float *const d_peak_list,
+      const int &width,
+      const int &height,
+      const int &offset,
+      const float &threshold,
+      const int &max_peak_size,
+      int *const gmem_pos,
+      float const *const d_MSD,
+      const int &DM_shift,
+      const int &DIT_value
+  );
 
   void call_kernel_peak_find_list(const dim3 &grid_size, const dim3 &block_size, float *const d_input, const int width, const int height, const float &threshold, int *const gmem_pos, const int &shift, const int &DIT_value, ushort *const d_input_taps, const int &max_peak_size, unsigned int *const d_peak_list_DM, unsigned int *const d_peak_list_TS, float *const d_peak_list_SNR, unsigned int *const d_peak_list_BW);
 

@@ -67,6 +67,7 @@ namespace astroaccelerate {
 
   // for periodicity harmonic summing
 #define PHS_NTHREADS 64
+#define GHRMS_NTHREADS 256
 
   // for power and interbin calculation
 #define PAI_NTHREADS 512

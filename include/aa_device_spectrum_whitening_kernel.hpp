@@ -12,6 +12,42 @@ namespace astroaccelerate {
 		float *d_input, 
 		unsigned long int nSamples
 	);
+	
+	void call_kernel_segmented_MSD(
+		const  dim3 &block_size, 
+		const  dim3 &grid_size, 
+		const  int &smem_bytes, 
+		const  cudaStream_t &stream, 
+		float  *d_segmented_MSD, 
+		float2 *d_input, 
+		int    *d_segment_sizes,
+		size_t nSamples,
+		int    nSegments
+	);
+	
+	void call_kernel_segmented_median(
+		const  dim3 &block_size, 
+		const  dim3 &grid_size, 
+		const  int &smem_bytes, 
+		const  cudaStream_t &stream, 
+		float  *d_segmented_MSD, 
+		float2 *d_input, 
+		int    *d_segment_sizes,
+		size_t nSamples,
+		int    nSegments
+	);
+	
+	void call_kernel_spectrum_whitening_SGP2(
+		const  dim3 &block_size, 
+		const  dim3 &grid_size, 
+		const  int &smem_bytes, 
+		const  cudaStream_t &stream, 
+		float  *d_segmented_MSD, 
+		float2 *d_input,
+		int    *d_segment_sizes,
+		size_t nSamples,
+		int    nSegments
+	);
 
 } // namespace astroaccelerate
   
