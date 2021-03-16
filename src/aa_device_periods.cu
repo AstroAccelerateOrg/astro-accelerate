@@ -830,7 +830,7 @@ namespace astroaccelerate {
 	//---------> CPU spectral whitening
 	float t_dm_step         = Prange->range.dm_step;
     float t_dm_low          = Prange->range.dm_low;
-	
+	printf("full nTimesamples=%d; half nTimesamples=%d;\n", t_nTimesamples, (t_nTimesamples>>1));
 	// Copy stuff to the host
 	cudaError_t err;
 	char filename[300];
@@ -936,6 +936,7 @@ namespace astroaccelerate {
 		}
 		size_t MSD_pos = d*nSegments;
 		presto_dered_sig(presto_dered, (t_nTimesamples>>1));
+		//cudaMemcpy((float2*) &d_FFT_complex_output[d*(t_nTimesamples>>1)], presto_dered, (t_nTimesamples>>1)*sizeof(float2), cudaMemcpyHostToDevice);
 		dered_with_MSD(MSD_dered, (t_nTimesamples>>1), segment_sizes.data(), nSegments, (float*) &h_segmented_MSD[MSD_pos]);
 		dered_with_MED(MED_dered, (t_nTimesamples>>1), segment_sizes.data(), nSegments, &h_segmented_MED[MSD_pos]);
 		sprintf(filename, "PSR_fft_dered_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
@@ -950,12 +951,13 @@ namespace astroaccelerate {
 	#endif
 	
     //---------> Spectrum whitening
-    timer.Start();
-    cudaStream_t stream; stream = NULL;
-    spectrum_whitening_SGP2((float2 *) d_FFT_complex_output, (t_nTimesamples>>1), t_nDMs_per_batch, true, stream);
-    timer.Stop();
-    printf("         -> Performing spectrum whitening took %f ms\n", timer.Elapsed());
-    (*compute_time) = (*compute_time) + timer.Elapsed();
+    //timer.Start();
+    //cudaStream_t stream; stream = NULL;
+    //spectrum_whitening_SGP2((float2 *) d_FFT_complex_output, (t_nTimesamples>>1), t_nDMs_per_batch, true, stream);
+    //timer.Stop();
+    //printf("         -> Performing spectrum whitening took %f ms\n", timer.Elapsed());
+    //(*compute_time) = (*compute_time) + timer.Elapsed();
+    //---------<
 	
 	#ifdef CPU_SPECTRAL_WHITENING_DEBUG
 	printf("Data copied and power calculation...\n");
@@ -972,10 +974,9 @@ namespace astroaccelerate {
 		fflush(stdout);
 	}
 	printf(" Finished!\n");
+	free(h_fft_input);
 	#endif
 	
-
-    //---------<
 	
     //---------> Calculate powers and interbinning
     timer.Start();
@@ -986,14 +987,6 @@ namespace astroaccelerate {
     (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
 
-	//printf("Export:\n");
-	//printf("nTimesamples:%d\n", t_nTimesamples);
-	//printf("nDMs_per_batch:%d\n", t_nDMs_per_batch);
-	//printf("DM_shift:%d\n", t_DM_shift);
-	//printf("dm_step:%f\n", t_dm_step);
-	//printf("dm_low:%f\n", t_dm_low);
-	//printf("sampling_time:%f\n", t_sampling_time);
-    //Export_data_in_range(d_frequency_power, (t_nTimesamples>>1), t_nDMs_per_batch, "Periodicity_input", t_dm_step, t_dm_low, t_sampling_time, t_DM_shift, 1);
 	
     //---------> Mean and StDev on powers
     timer.Start();

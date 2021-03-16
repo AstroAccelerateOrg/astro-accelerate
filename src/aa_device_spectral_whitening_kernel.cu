@@ -403,13 +403,13 @@ __global__ void GPU_kernel_spectrum_whitening_SGP2(float *d_segmented_MSD, float
 		float previous_mean = d_segmented_MSD[blockIdx.y*nSegments + blockIdx.x - 1]*1.44269504088896;
 		float current_mean  = d_segmented_MSD[blockIdx.y*nSegments + blockIdx.x]*1.44269504088896;
 		
-		int range = ((previous_range + current_range)>>1);
+		int range = ((previous_range + current_range + 1)>>1);
 		int i = range - threadIdx.x;
 		float slope = (current_mean - previous_mean) / ((float) range);
 		float norm  = 1.0/sqrt(previous_mean + slope*i);
 		int local_pos = fm1_pos + (previous_range>>1) + i;
 		
-		if( i >= 0 && i<=range && local_pos < nSamples){
+		if( i >= 0 && i<range && local_pos < nSamples){
 			size_t global_pos = blockIdx.y*nSamples + local_pos;
 			d_input[global_pos].x *= norm;
 			d_input[global_pos].y *= norm;
