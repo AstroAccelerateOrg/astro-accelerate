@@ -35,7 +35,7 @@ namespace astroaccelerate {
    * \class aa_permitted_pipelines_3_0 aa_permitted_pipelines_3_0.hpp "include/aa_permitted_pipelines_3_0.hpp"
    * \brief Templated class to run dedispersion and periodicity.
    * \details The class is templated over the zero_dm_type (aa_pipeline::component_option::zero_dm or aa_pipeline::component_option::zero_dm_with_outliers).
-   * \author Cees Carels.
+   * \author AstroAccelerate
    * \date 28 November 2018.
    */
 
@@ -381,8 +381,6 @@ namespace astroaccelerate {
       timer.Start();
       const int *ndms =	m_ddtr_strategy.ndms_data();
       GPU_periodicity(m_ddtr_strategy.get_nRanges(),
-		      m_ddtr_strategy.metadata().nsamples(),
-		      max_ndms,
 		      inc,
 		      m_periodicity_strategy.sigma_cutoff(),
 		      m_output_buffer,

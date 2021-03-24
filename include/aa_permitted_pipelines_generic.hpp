@@ -822,8 +822,6 @@ namespace astroaccelerate {
 			timer.Start();
 			const int *ndms = m_ddtr_strategy.ndms_data();
 			GPU_periodicity(m_ddtr_strategy.get_nRanges(),
-				m_ddtr_strategy.metadata().nsamples(),
-				max_ndms,
 				inc,
 				m_periodicity_strategy.sigma_cutoff(),
 				m_output_buffer,

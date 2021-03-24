@@ -1169,7 +1169,7 @@ namespace astroaccelerate {
 
 
   /** \brief Function that performs a GPU periodicity search. */
-  void GPU_periodicity(int nRanges, int nsamp, int max_ndms, int processed, float sigma_cutoff, float ***output_buffer, int const*const ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp, int nHarmonics, bool candidate_algorithm, bool enable_msd_baseline_noise, float OR_sigma_multiplier) {
+  void GPU_periodicity(int nRanges, int processed, float sigma_cutoff, float ***output_buffer, int const*const ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp, int nHarmonics, bool candidate_algorithm, bool enable_msd_baseline_noise, float OR_sigma_multiplier) {
     // processed = maximum number of time-samples through out all ranges
     // nTimesamples = number of time-samples in given range 'i'
 	
