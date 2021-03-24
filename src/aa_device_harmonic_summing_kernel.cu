@@ -67,8 +67,8 @@ __global__ void greedy_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
     int maxHarmonics;
     
     if(threadIdx.x<nHarmonics) {
-        s_MSD[threadIdx.x]      = d_MSD[2*threadIdx.x];
-        s_MSD[32 + threadIdx.x] = d_MSD[2*threadIdx.x + 1];
+        s_MSD[2*threadIdx.x]      = d_MSD[2*threadIdx.x];
+        s_MSD[2*threadIdx.x + 1] = d_MSD[2*threadIdx.x + 1];
     }
     
     __syncthreads();

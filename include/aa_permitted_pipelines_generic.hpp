@@ -532,6 +532,7 @@ namespace astroaccelerate {
 			const aa_pipeline::component_option opt_zero_dm                = aa_pipeline::component_option::zero_dm;
 			const aa_pipeline::component_option opt_zero_dm_with_outliers  = aa_pipeline::component_option::zero_dm_with_outliers;
 			const aa_pipeline::component_option opt_old_rfi                = aa_pipeline::component_option::old_rfi;
+			//const aa_pipeline::component_option opt_dered                  = aa_pipeline::component_option::dered;
 			
 			//------------------------------------> Error checking
 			if(pipeline_error!=0) {

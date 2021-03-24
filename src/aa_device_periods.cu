@@ -34,6 +34,10 @@ namespace astroaccelerate {
   
   // define to perform CPU spectral whitening debug
   //#define CPU_SPECTRAL_WHITENING_DEBUG
+  
+  // define to export data from power calculation
+  //#define CPU_POWER_AND_INTERBIN_DEBUG
+  //#define CPU_SNR_DEBUG
 
   // define to reuse old MSD results to generate a new one (it means new MSD is calculated from more samples) (WORKING WITHIN SAME INBIN VALUE)
   // #define PS_REUSE_MSD_WITHIN_INBIN
@@ -55,7 +59,6 @@ namespace astroaccelerate {
    * \author -
    * \date -
    */
-
   class Dedispersion_Range {
   public:
     float dm_low;
@@ -778,22 +781,39 @@ namespace astroaccelerate {
    * \todo Clarify the difference between Periodicity_search and GPU_periodicity.
    **/
   void Periodicity_search(GPU_Memory_for_Periodicity_Search *gmem, aa_periodicity_strategy per_param, double *compute_time, size_t input_plane_size, Periodicity_Range *Prange, Periodicity_Batch *batch, std::vector<int> *h_boxcar_widths, int harmonic_sum_algorithm, bool enable_scalloping_loss_removal){
+	bool transposed_data = true;
+	if(harmonic_sum_algorithm != 0){
+		transposed_data = false;
+	}
+	
     int local_max_list_size = (input_plane_size)/4;
 	
     float *d_dedispersed_data, *d_FFT_complex_output, *d_frequency_power, *d_frequency_interbin, *d_frequency_power_CT, *d_frequency_interbin_CT, *d_power_SNR, *d_interbin_SNR, *d_power_list, *d_interbin_list, *d_MSD_workarea;
-    d_dedispersed_data      = gmem->d_one_A;
+    
+	d_dedispersed_data      = gmem->d_one_A;
     d_FFT_complex_output    = gmem->d_two_B;
     d_MSD_workarea          = gmem->d_two_B;
     d_frequency_power       = gmem->d_half_C;
     d_frequency_interbin    = gmem->d_one_A;
-    d_frequency_power_CT    = &gmem->d_two_B[0];
-    d_frequency_interbin_CT = &gmem->d_two_B[input_plane_size];
-    d_power_SNR             = gmem->d_half_C;
-    d_interbin_SNR          = gmem->d_one_A;
-    d_power_list            = &gmem->d_two_B[0];
-    d_interbin_list         = &gmem->d_two_B[input_plane_size];
+	if(transposed_data){
+		d_frequency_power_CT    = &gmem->d_two_B[0];
+		d_frequency_interbin_CT = &gmem->d_two_B[input_plane_size];
+		d_power_SNR             = gmem->d_half_C;
+		d_interbin_SNR          = gmem->d_one_A;
+		d_power_list            = &gmem->d_two_B[0];
+		d_interbin_list         = &gmem->d_two_B[input_plane_size];
+	}
+	else {
+		d_frequency_power_CT    = NULL;
+		d_frequency_interbin_CT = NULL;
+		d_power_SNR             = &gmem->d_two_B[0];
+		d_interbin_SNR          = &gmem->d_two_B[input_plane_size];
+		d_power_list            = gmem->d_half_C;
+		d_interbin_list         = gmem->d_one_A;
+	}
 	
     int t_nTimesamples      = batch->nTimesamples;
+	int t_nTSamplesFFT      = (t_nTimesamples>>1) + 1;
     int t_nDMs_per_batch    = batch->nDMs_per_batch;
     int t_DM_shift          = batch->DM_shift;
     int t_inBin             = Prange->range.inBin;
@@ -827,37 +847,51 @@ namespace astroaccelerate {
     //---------<
 	
 	#ifdef CPU_SPECTRAL_WHITENING_DEBUG
-	//---------> CPU spectral whitening
 	float t_dm_step         = Prange->range.dm_step;
-    float t_dm_low          = Prange->range.dm_low;
-	printf("full nTimesamples=%d; half nTimesamples=%d;\n", t_nTimesamples, (t_nTimesamples>>1));
+	float t_dm_low          = Prange->range.dm_low;
+		
+	//---------> CPU spectral whitening
+	printf("full nTimesamples=%d; half nTimesamples=%d;\n", t_nTimesamples, t_nTSamplesFFT);
 	// Copy stuff to the host
 	cudaError_t err;
 	char filename[300];
-	size_t fft_input_size_bytes = (t_nTimesamples>>1)*t_nDMs_per_batch*sizeof(float2);
-	size_t fft_power_size_bytes = (t_nTimesamples>>1)*t_nDMs_per_batch*sizeof(float);
+	size_t fft_input_size_bytes = t_nTSamplesFFT*t_nDMs_per_batch*sizeof(float2);
+	size_t fft_power_size_bytes = t_nTSamplesFFT*t_nDMs_per_batch*sizeof(float);
+	size_t fft_ddtr_size_bytes  = t_nTimesamples*t_nDMs_per_batch*sizeof(float);
 	float2 *h_fft_input;
 	float  *h_fft_power;
+	float  *h_ddtr_data;
 	printf("Data copied and power calculation...\n");
 	h_fft_input = (float2*) malloc(fft_input_size_bytes);
 	h_fft_power = (float*) malloc(fft_power_size_bytes);
+	h_ddtr_data = (float*) malloc(fft_ddtr_size_bytes);
+	
 	err = cudaMemcpy(h_fft_input, d_FFT_complex_output, fft_input_size_bytes, cudaMemcpyDeviceToHost);
 	if(err != cudaSuccess) printf("CUDA error\n");
+	err = cudaMemcpy(h_ddtr_data, d_dedispersed_data, fft_ddtr_size_bytes, cudaMemcpyDeviceToHost);
+	if(err != cudaSuccess) printf("CUDA error\n");
+	
 	for(int d=0; d<t_nDMs_per_batch; d++){
-		for(int s=0; s<(t_nTimesamples>>1); s++){
-			size_t pos = d*(t_nTimesamples>>1) + s;
+		for(int s=0; s<t_nTSamplesFFT; s++){
+			size_t pos = d*t_nTSamplesFFT + s;
 			h_fft_power[pos] = h_fft_input[pos].x*h_fft_input[pos].x + h_fft_input[pos].y*h_fft_input[pos].y;
 		}
 	}
 	
 	
 	// Export data to file
-	//printf("Exporting fft data to file...\n");
-	//for(int d=0; d<t_nDMs_per_batch; d++){
-	//	sprintf(filename, "PSR_fft_data_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
-	//	size_t pos = d*(t_nTimesamples>>1);
-	//	Export_data_to_file(&h_fft_input[pos], (t_nTimesamples>>1), 1, filename);
-	//}
+	printf("Exporting fft data to file...\n");
+	for(int d=0; d<t_nDMs_per_batch; d++){
+		sprintf(filename, "PSR_fft_data_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
+		size_t pos = d*t_nTSamplesFFT;
+		Export_data_to_file(&h_fft_input[pos], t_nTSamplesFFT, 1, filename);
+	}
+	printf("Exporting ddtr data to file...\n");
+	for(int d=0; d<t_nDMs_per_batch; d++){
+		sprintf(filename, "PSR_ddtr_data_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
+		size_t pos = d*t_nTimesamples;
+		Export_data_to_file(&h_ddtr_data[pos], t_nTimesamples, 1, filename);
+	}
 	
 	
 	// Create segments for de-redning
@@ -865,7 +899,7 @@ namespace astroaccelerate {
 	int max_segment_length = 256;
 	int min_segment_length = 6;
 	std::vector<int> segment_sizes;
-	create_dered_segment_sizes_prefix_sum(&segment_sizes, min_segment_length, max_segment_length, (t_nTimesamples>>1));
+	create_dered_segment_sizes_prefix_sum(&segment_sizes, min_segment_length, max_segment_length, t_nTSamplesFFT);
 	int nSegments = segment_sizes.size();
 	
 	// Calculate mean for segments and export_size
@@ -878,7 +912,7 @@ namespace astroaccelerate {
 			size_t MSD_pos = d*nSegments + s;
 			double mean, stdev;
 			int range = segment_sizes[s + 1] - segment_sizes[s];
-			size_t pos = d*(t_nTimesamples>>1) + segment_sizes[s];
+			size_t pos = d*t_nTSamplesFFT + segment_sizes[s];
 			MSD_Kahan(&h_fft_power[pos], 1, range, 0, &mean, &stdev);
 			h_segmented_MSD[2*MSD_pos] = (float) mean;
 			h_segmented_MSD[2*MSD_pos + 1] = (float) stdev;
@@ -897,7 +931,7 @@ namespace astroaccelerate {
 		for(int s=0; s<(nSegments - 1); s++){
 			size_t MED_pos = d*nSegments + s;
 			int range = segment_sizes[s + 1] - segment_sizes[s];
-			size_t pos = d*(t_nTimesamples>>1) + segment_sizes[s];
+			size_t pos = d*t_nTSamplesFFT + segment_sizes[s];
 			h_segmented_MED[MED_pos] = Calculate_median(&h_fft_power[pos], range);
 		}
 		
@@ -913,7 +947,7 @@ namespace astroaccelerate {
 		for(int s=0; s<(nSegments - 1); s++){
 			size_t MED_pos = d*nSegments + s;
 			int range = segment_sizes[s + 1] - segment_sizes[s];
-			size_t pos = d*(t_nTimesamples>>1) + segment_sizes[s];
+			size_t pos = d*t_nTSamplesFFT + segment_sizes[s];
 			h_segmented_MED_p[MED_pos] = median(&h_fft_power[pos], range);
 		}
 		
@@ -925,38 +959,36 @@ namespace astroaccelerate {
 	printf("De-redning...\n");
 	for(int d=0; d<t_nDMs_per_batch; d++){
 		float2 *presto_dered, *MSD_dered, *MED_dered;
-		presto_dered = new float2[(t_nTimesamples>>1)];
-		MSD_dered    = new float2[(t_nTimesamples>>1)];
-		MED_dered    = new float2[(t_nTimesamples>>1)];
-		for(int s=0; s<(t_nTimesamples>>1); s++){
-			size_t pos = d*(t_nTimesamples>>1) + s;
+		presto_dered = new float2[t_nTSamplesFFT];
+		MSD_dered    = new float2[t_nTSamplesFFT];
+		MED_dered    = new float2[t_nTSamplesFFT];
+		for(int s=0; s<t_nTSamplesFFT; s++){
+			size_t pos = d*t_nTSamplesFFT + s;
 			presto_dered[s] = h_fft_input[pos];
 			MSD_dered[s]    = h_fft_input[pos];
 			MED_dered[s]    = h_fft_input[pos];
 		}
 		size_t MSD_pos = d*nSegments;
-		presto_dered_sig(presto_dered, (t_nTimesamples>>1));
-		//cudaMemcpy((float2*) &d_FFT_complex_output[d*(t_nTimesamples>>1)], presto_dered, (t_nTimesamples>>1)*sizeof(float2), cudaMemcpyHostToDevice);
-		dered_with_MSD(MSD_dered, (t_nTimesamples>>1), segment_sizes.data(), nSegments, (float*) &h_segmented_MSD[MSD_pos]);
-		dered_with_MED(MED_dered, (t_nTimesamples>>1), segment_sizes.data(), nSegments, &h_segmented_MED[MSD_pos]);
+		presto_dered_sig(presto_dered, t_nTSamplesFFT);
+		dered_with_MSD(MSD_dered, t_nTSamplesFFT, segment_sizes.data(), nSegments, (float*) &h_segmented_MSD[MSD_pos]);
+		dered_with_MED(MED_dered, t_nTSamplesFFT, segment_sizes.data(), nSegments, &h_segmented_MED[MSD_pos]);
 		sprintf(filename, "PSR_fft_dered_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
-		Export_data_to_file(presto_dered, MSD_dered, MED_dered, (t_nTimesamples>>1), filename);
+		Export_data_to_file(presto_dered, MSD_dered, MED_dered, t_nTSamplesFFT, filename);
 	}
 	
 	free(h_fft_input);
 	free(h_fft_power);
 	free(h_segmented_MSD);
 	free(h_segmented_MED);
-	
 	#endif
 	
     //---------> Spectrum whitening
-    //timer.Start();
-    //cudaStream_t stream; stream = NULL;
-    //spectrum_whitening_SGP2((float2 *) d_FFT_complex_output, (t_nTimesamples>>1), t_nDMs_per_batch, true, stream);
-    //timer.Stop();
-    //printf("         -> Performing spectrum whitening took %f ms\n", timer.Elapsed());
-    //(*compute_time) = (*compute_time) + timer.Elapsed();
+    timer.Start();
+    cudaStream_t stream; stream = NULL;
+    spectrum_whitening_SGP2((float2 *) d_FFT_complex_output, t_nTSamplesFFT, t_nDMs_per_batch, true, stream);
+    timer.Stop();
+    printf("         -> Performing spectrum whitening took %f ms\n", timer.Elapsed());
+    (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
 	
 	#ifdef CPU_SPECTRAL_WHITENING_DEBUG
@@ -968,8 +1000,8 @@ namespace astroaccelerate {
 	printf("Exporting fft data to file...\n");
 	for(int d=0; d<t_nDMs_per_batch; d++){
 		sprintf(filename, "PSR_fft_data_GPU_dered_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
-		size_t pos = d*(t_nTimesamples>>1);
-		Export_data_to_file(&h_fft_input[pos], (t_nTimesamples>>1), 1, filename);
+		size_t pos = d*t_nTSamplesFFT;
+		Export_data_to_file(&h_fft_input[pos], t_nTSamplesFFT, 1, filename);
 		printf(".");
 		fflush(stdout);
 	}
@@ -986,6 +1018,30 @@ namespace astroaccelerate {
     printf("         -> Calculation of powers and interbining took %f ms\n", timer.Elapsed());
     (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
+	
+	#ifdef CPU_POWER_AND_INTERBIN_DEBUG
+	printf("Data from power and interbin copied...\n");
+	size_t power_and_interbin_size_bytes = (t_nTimesamples>>1)*t_nDMs_per_batch*sizeof(float);
+	float *h_power_output;
+	h_power_output = (float*) malloc(power_and_interbin_size_bytes);
+	cudaError_t perr;
+	perr = cudaMemcpy(h_power_output, d_frequency_power, power_and_interbin_size_bytes, cudaMemcpyDeviceToHost);
+	if(perr != cudaSuccess) printf("CUDA error\n");
+	// Export data to file
+	char power_filename[300];
+	printf("Exporting fft data to file...\n");
+	for(int d=0; d<t_nDMs_per_batch; d++){
+		float t_dm_step         = Prange->range.dm_step;
+		float t_dm_low          = Prange->range.dm_low;
+		sprintf(power_filename, "PSR_power_data_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
+		size_t pos = d*(t_nTimesamples>>1);
+		Export_data_to_file(&h_power_output[pos], (t_nTimesamples>>1), 1, power_filename);
+		printf(".");
+		fflush(stdout);
+	}
+	printf(" Finished!\n");
+	free(h_power_output);
+	#endif
 
 	
     //---------> Mean and StDev on powers
@@ -1003,10 +1059,8 @@ namespace astroaccelerate {
     
     
     //---------> Harmonic sum
-    bool transposed_data = false;
     timer.Start();
     if(harmonic_sum_algorithm == 0){
-        transposed_data = true;
         //---------> Corner turn
         corner_turn_SM(d_frequency_power, d_frequency_power_CT, (t_nTimesamples>>1), t_nDMs_per_batch);
         corner_turn_SM(d_frequency_interbin, d_frequency_interbin_CT, t_nTimesamples, t_nDMs_per_batch);
@@ -1018,14 +1072,12 @@ namespace astroaccelerate {
         //---------<
     }
     else if(harmonic_sum_algorithm == 1) {
-        transposed_data = false;
         //---------> Greedy harmonic summing
         periodicity_greedy_harmonic_summing(d_frequency_power, d_power_SNR, gmem->d_power_harmonics, gmem->d_MSD, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.nHarmonics(), enable_scalloping_loss_removal);
         periodicity_greedy_harmonic_summing(d_frequency_interbin, d_interbin_SNR, gmem->d_interbin_harmonics, gmem->d_MSD, t_nTimesamples, t_nDMs_per_batch, per_param.nHarmonics(), enable_scalloping_loss_removal);
         //---------<
     }
     else if(harmonic_sum_algorithm == 2) {
-        transposed_data = false;
         //---------> PRESTO harmonic summing
         periodicity_presto_harmonic_summing(d_frequency_power, d_power_SNR, gmem->d_power_harmonics, gmem->d_MSD, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.nHarmonics(), enable_scalloping_loss_removal);
         periodicity_presto_harmonic_summing(d_frequency_interbin, d_interbin_SNR, gmem->d_interbin_harmonics, gmem->d_MSD, t_nTimesamples, t_nDMs_per_batch, per_param.nHarmonics(), enable_scalloping_loss_removal);
@@ -1035,6 +1087,29 @@ namespace astroaccelerate {
     printf("         -> harmonic summing took %f ms\n", timer.Elapsed());
     (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
+	
+	
+	#ifdef CPU_SNR_DEBUG
+	printf("Data from power and interbin copied...\n");
+	size_t power_and_interbin_size_bytes = (t_nTimesamples>>1)*t_nDMs_per_batch*sizeof(float);
+	float *h_SNR_output;
+	h_SNR_output = (float*) malloc(power_and_interbin_size_bytes);
+	cudaError_t perr;
+	perr = cudaMemcpy(h_SNR_output, d_power_SNR, power_and_interbin_size_bytes, cudaMemcpyDeviceToHost);
+	if(perr != cudaSuccess) printf("CUDA error\n");
+	// Export data to file
+	char power_filename[300];
+	printf("Exporting fft data to file...\n");
+	for(int d=0; d<t_nDMs_per_batch; d++){
+		sprintf(power_filename, "PSR_SNR_data_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
+		size_t pos = d*(t_nTimesamples>>1);
+		Export_data_to_file(&h_SNR_output[pos], (t_nTimesamples>>1), 1, power_filename);
+		printf(".");
+		fflush(stdout);
+	}
+	printf(" Finished!\n");
+	free(h_SNR_output);
+	#endif
     
     
     //---------> Peak finding
@@ -1093,18 +1168,10 @@ namespace astroaccelerate {
 
 
 
-
   /** \brief Function that performs a GPU periodicity search. */
-  void GPU_periodicity(int range, int nsamp, int max_ndms, int processed, float sigma_cutoff, float ***output_buffer, int const*const ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp, int nHarmonics, bool candidate_algorithm, bool enable_msd_baseline_noise, float OR_sigma_multiplier) {
+  void GPU_periodicity(int nRanges, int nsamp, int max_ndms, int processed, float sigma_cutoff, float ***output_buffer, int const*const ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp, int nHarmonics, bool candidate_algorithm, bool enable_msd_baseline_noise, float OR_sigma_multiplier) {
     // processed = maximum number of time-samples through out all ranges
     // nTimesamples = number of time-samples in given range 'i'
-    // TODO:
-    //      ->Use callbacks for power calculation
-    //      ->Solve peak finding problem from batch to batch (we do not want to find peaks on shared borders)
-    //      ->max_ndms is possibly the same thing as max_nDMs! Investigate.
-    //      ->check is zero-th element does not mess up statistics
-    //      ->prepare data on the host before copying them to device
-    //		->There must by one inBin group per stream. We cannot have batches or Pranges per stream because MSD. :(
 	
     printf("\n");
     printf("------------ STARTING PERIODICITY SEARCH ------------\n\n");
@@ -1118,7 +1185,7 @@ namespace astroaccelerate {
 	
     // Creating DDrange vector (temporary, it should be moved elsewhere)
     Dedispersion_Plan DD_plan;
-    Create_DD_plan(&DD_plan, range, dm_low, dm_high, dm_step, inBin, processed, ndms, tsamp);
+    Create_DD_plan(&DD_plan, nRanges, dm_low, dm_high, dm_step, inBin, processed, ndms, tsamp);
 	
     printf("--------------------------\n");
     DD_plan.print();
@@ -1174,7 +1241,6 @@ namespace astroaccelerate {
 
       GPU_memory.Reset_MSD();
 		
-      //checkCudaErrors(cudaGetLastError());
 
       for(int r=0; r<(int) P_plan.inBin_group[p].Prange.size(); r++) {
         printf("  Prange: %d\n", r);
@@ -1207,13 +1273,19 @@ namespace astroaccelerate {
           //---------> Copy candidates to the host
           timer.Start();
 	
+		  cudaError_t e;
           int last_entry;
           int nPowerCandidates = GPU_memory.Get_Number_of_Power_Candidates();
           PowerCandidates.push_back(*(new Candidate_List(r)));
           last_entry = PowerCandidates.size()-1;
           printf("         -> POWER: Total number of peaks found in this range is %d;\n", nPowerCandidates);
           PowerCandidates[last_entry].Allocate(nPowerCandidates);
-          cudaError_t e = cudaMemcpy( &PowerCandidates[last_entry].list[0], &GPU_memory.d_two_B[0], nPowerCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
+          if(harmonic_sum_algorithm==0) {
+			e = cudaMemcpy( &PowerCandidates[last_entry].list[0], &GPU_memory.d_two_B[0], nPowerCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
+		  }
+          else {
+			  e = cudaMemcpy( &PowerCandidates[last_entry].list[0], GPU_memory.d_half_C, nPowerCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
+		  }
 	  
           if(e != cudaSuccess) {
             LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
@@ -1224,7 +1296,12 @@ namespace astroaccelerate {
           last_entry = InterbinCandidates.size()-1;
           printf("         -> INTERBIN: Total number of peaks found in this range is %d;\n", nInterbinCandidates);
           InterbinCandidates[last_entry].Allocate(nInterbinCandidates);
-          e = cudaMemcpy( &InterbinCandidates[last_entry].list[0], &GPU_memory.d_two_B[input_plane_size], nInterbinCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
+          if(harmonic_sum_algorithm==0) {
+			  e = cudaMemcpy( &InterbinCandidates[last_entry].list[0], &GPU_memory.d_two_B[input_plane_size], nInterbinCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
+		  }
+		  else {
+			e = cudaMemcpy( &InterbinCandidates[last_entry].list[0], GPU_memory.d_one_A, nInterbinCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
+		  }
 	  
           if(e != cudaSuccess) {
             LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
