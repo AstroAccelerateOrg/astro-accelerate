@@ -21,7 +21,6 @@ Please cite the following journal article
 and the proceedings
 * https://arxiv.org/abs/1812.02647
 * https://arxiv.org/abs/1711.10855
-* https://arxiv.org/abs/1611.09704
 * https://arxiv.org/abs/1511.07343
 
 Features
