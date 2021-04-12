@@ -6,16 +6,30 @@
 namespace astroaccelerate {
 
   __device__ __inline__ void Reduce_SM(float *s_input){
-
     for (int i = ( blockDim.x >> 1 ); i > 16; i = i >> 1) {
       if (threadIdx.x < i) {
-	s_input[threadIdx.x] = s_input[threadIdx.x] + s_input[threadIdx.x + i];
+        s_input[threadIdx.x] = s_input[threadIdx.x] + s_input[threadIdx.x + i];
+      }
+      __syncthreads();
+    }
+  }
+  
+  __device__ __inline__ void Reduce_SM(int *s_input){
+    for (int i = ( blockDim.x >> 1 ); i > 16; i = i >> 1) {
+      if (threadIdx.x < i) {
+        s_input[threadIdx.x] = s_input[threadIdx.x] + s_input[threadIdx.x + i];
       }
       __syncthreads();
     }
   }
 
   __device__ __inline__ void Reduce_WARP(float *sum){
+    for (int q = 16; q > 0; q = q >> 1) {
+      *sum += aa_shfl_down(AA_ASSUME_MASK,(*sum), q);
+    }
+  }
+  
+  __device__ __inline__ void Reduce_WARP(int *sum){
     for (int q = 16; q > 0; q = q >> 1) {
       *sum += aa_shfl_down(AA_ASSUME_MASK,(*sum), q);
     }
@@ -31,50 +45,67 @@ namespace astroaccelerate {
     int t  = threadIdx.x;
 
     extern __shared__ float s_input[];
+	extern __shared__ int s_elements[];
     float sum = 0.0f;
 
     int n_iterations = (nchans+blockDim.x-1)/blockDim.x;
+	int nElements_per_thread = 0;
 
     for(int c = 0; c < n_iterations; c++){
-      if ((c*blockDim.x + t) < nchans) {
-        sum += d_input[blockIdx.x*nchans + c*blockDim.x + t];
+      size_t pos = c*blockDim.x + t;
+      if (pos < nchans) {
+        if(normalization_factor[pos]>0.1){
+          size_t global_pos = blockIdx.x*((size_t) nchans) + pos;
+          sum += d_input[global_pos];
+          nElements_per_thread++;
+        }
       }
     }
 
     s_input[t] = sum;
+	s_elements[t] = nElements_per_thread;
     __syncthreads();
 
     Reduce_SM(s_input);
+	Reduce_SM(s_elements);
     sum = s_input[t];
+	nElements_per_thread = s_elements[t];
 
     Reduce_WARP(&sum);
+    Reduce_WARP(&nElements_per_thread);
 
-    if (t  == 0) s_input[0] = sum;
+    if (t == 0) {
+      s_input[0] = sum;
+      s_elements[0] = nElements_per_thread;
+    }
     __syncthreads();
     sum = s_input[0];
+    nElements_per_thread = s_elements[0];
 
-    sum = sum/((float) nchans);
+    sum = sum/((float) nElements_per_thread);
 
     for(int c = 0; c < n_iterations; c++){
-      if ((c*blockDim.x + t) < nchans) {
-		unsigned short value;
-		float result = (float)d_input[blockIdx.x*nchans + c*blockDim.x + t] - sum + normalization_factor[c*blockDim.x + t];
-		if( nbits == 4 ){
+      size_t pos = c*blockDim.x + t;
+      if(pos < nchans) {
+        size_t global_pos = blockIdx.x*((size_t) nchans) + pos;
+        unsigned short value;
+        float result = (float)d_input[global_pos] - sum + normalization_factor[pos];
+        if( nbits == 4 ){
           if(result<0) value = 0;
           else if(result>15) value = 15;
           else value = (unsigned short) result;
-		}
-		else if( nbits == 8 ){
+        }
+        else if( nbits == 8 ){
           if(result<0) value = 0;
           else if(result>255) value = 255;
           else value = (unsigned short) result;
-		}
-		else if( nbits == 16 ){
+        }
+        else if( nbits == 16 ){
           if(result<0) value = 0;
           else if(result>65535) value = 65535;
           else value = (unsigned short) result;
-		}
-        d_input[blockIdx.x*nchans + c*blockDim.x + t] = value;
+        }
+        d_input[global_pos] = value;
       }
     }
 
