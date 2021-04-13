@@ -28,7 +28,8 @@ namespace astroaccelerate {
 	/** \struct aa_config_flags
 	 * \brief A struct to contain all configurations from an input file.
 	 */
-	struct aa_config_flags {
+	class aa_config_flags {
+	public:
 		float power;                    /**< Power setting. */
 		float sigma_cutoff;             /**< Sigma threshold for candidate selection. */
 		float sigma_constant;           /**< Sigma cutoff for outlier rejection. */
@@ -41,7 +42,7 @@ namespace astroaccelerate {
 
 		int multi_file;                 /**< Multi file setting. This looks like it is deprecated. */
 		int output_dmt;                 /**< Enables or disables ddtr output to disk. */
-		int range;                      /**< Range setting incremented to be the total number of user selected dm ranges. */
+		int nRanges;                      /**< Range setting incremented to be the total number of user selected dm ranges. */
 		int candidate_algorithm;        /**< Enables or disables use of candidate algorithm for analysis. */
 		int nb_selected_dm;             /**< Incremented to be the total number of user selected dm ranges. Looks like a legacy duplicate of range. */
 		int failsafe;                   /**< Flag to select the failsafe algorithm for dedispersion. */
@@ -50,6 +51,35 @@ namespace astroaccelerate {
 		int dered;                      /** Enable deredning. */
 		bool rfi;                       /**< Enable (true) or disable (false) host RFI reduction of the input data. */
 		std::vector<aa_pipeline::debug> user_debug; /**< std::vector of debug flags. */
+		
+		void init(){
+			power = 0.0;
+			sigma_cutoff = 0.0;
+			sigma_constant = 0.0;
+			max_boxcar_width_in_sec = 0.0;
+			periodicity_sigma_cutoff = 0.0;
+			
+			z_max = 0.0;
+			z_step = 0.0;
+			w_max = 0.0;
+			w_step = 0.0;
+			
+			multi_file = 0;
+			output_dmt = 0;
+			nRanges = 0;
+			candidate_algorithm = 0;
+			nb_selected_dm = 0;
+			failsafe = 0;
+			periodicity_nHarmonics = 0;
+			selected_card_id = 0;
+			dered = 0;
+			rfi = false;
+			user_debug = std::vector<aa_pipeline::debug>();
+		}
+		
+		aa_config_flags(){
+			init();
+		}
 	};
 
 	/**
@@ -95,7 +125,7 @@ namespace astroaccelerate {
 					fprintf(stderr, "Invalid input file!\n");
 					return false;
 				}
-				flg.range = 0;
+				flg.nRanges = 0;
 				while (!feof(fp_in))
 				{
 					if (fscanf(fp_in, "%s", string) == 0)
@@ -103,7 +133,7 @@ namespace astroaccelerate {
 						fprintf(stderr, "failed to read input\n");
 						return false;
 					}
-					if (strcmp(string, "range") == 0) ++flg.range;
+					if (strcmp(string, "range") == 0) ++flg.nRanges;
 					if (strcmp(string, "selected_dm") == 0) ++flg.nb_selected_dm;
 				}
 				rewind(fp_in);
@@ -296,12 +326,10 @@ namespace astroaccelerate {
 		 * \details This must at least contain the full path to an input file.
 		 * \details If using AstroAccelerate as a library user, then use the other constructor of the aa_config class.
 		 */
-		aa_config(const aa_command_line_arguments &cli_input)
-			: 
-			configure_from_file(true), 
-			user_cli(cli_input), 
-			flg({ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>() })
-		{
+		aa_config(const aa_command_line_arguments &cli_input) {
+			configure_from_file = true;
+			user_cli = cli_input;
+			flg.init();
 			flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
 			flg.periodicity_nHarmonics = 32; // wrong
 			flg.selected_card_id = CARD; // wrong
@@ -311,12 +339,10 @@ namespace astroaccelerate {
 		 * \details The aa_pipeline::pipeline object contains the user requested pipeline component to be run.
 		 * \details Use this constructor when using AstroAccelerate as a library user.
 		 */
-		aa_config(aa_pipeline::pipeline &user_pipeline) 
-			: 
-			configure_from_file(false), 
-			m_pipeline(user_pipeline), 
-			flg({ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, std::vector<aa_pipeline::debug>() })
-		{
+		aa_config(aa_pipeline::pipeline &user_pipeline) {
+			configure_from_file = false;
+			m_pipeline = user_pipeline;
+			flg.init();
 			flg.power = 2.0; // The initialiser list is rather long, and if new members are added, the change in declaration order may introduce a bug. So, it is done explicitly in the body.
 			flg.periodicity_nHarmonics = 32; // wrong
 			flg.selected_card_id = CARD; // wrong
