@@ -39,50 +39,35 @@ namespace astroaccelerate {
    * \brief zero_dm_kernel.
    * \todo Needs cleaning and optimizing (WA 21/10/16).
    */
-  __global__ void zero_dm_kernel(unsigned short *d_input, int nchans, int nsamp, int nbits, float *normalization_factor)
-  {
-
+  __global__ void zero_dm_kernel(unsigned short *d_input, int nchans, int nsamp, int nbits, float *normalization_factor) {
     int t  = threadIdx.x;
-
     extern __shared__ float s_input[];
-	extern __shared__ int s_elements[];
     float sum = 0.0f;
-
     int n_iterations = (nchans+blockDim.x-1)/blockDim.x;
-	int nElements_per_thread = 0;
 
     for(int c = 0; c < n_iterations; c++){
       size_t pos = c*blockDim.x + t;
       if (pos < nchans) {
-        if(normalization_factor[pos]>0.1){
-          size_t global_pos = blockIdx.x*((size_t) nchans) + pos;
-          sum += d_input[global_pos];
-          nElements_per_thread++;
-        }
+        size_t global_pos = blockIdx.x*((size_t) nchans) + pos;
+        sum += d_input[global_pos];
       }
     }
 
     s_input[t] = sum;
-	s_elements[t] = nElements_per_thread;
     __syncthreads();
 
     Reduce_SM(s_input);
-	Reduce_SM(s_elements);
     sum = s_input[t];
-	nElements_per_thread = s_elements[t];
 
     Reduce_WARP(&sum);
-    Reduce_WARP(&nElements_per_thread);
 
     if (t == 0) {
       s_input[0] = sum;
-      s_elements[0] = nElements_per_thread;
     }
     __syncthreads();
     sum = s_input[0];
-    nElements_per_thread = s_elements[0];
 
-    sum = sum/((float) nElements_per_thread);
+    sum = sum/((float) nchans);
 
     for(int c = 0; c < n_iterations; c++){
       size_t pos = c*blockDim.x + t;
