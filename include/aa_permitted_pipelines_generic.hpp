@@ -516,6 +516,37 @@ namespace astroaccelerate {
 			}
 		}
 
+		bool input_data_preprocessing(){
+			cudaError_t cuda_error;
+			const aa_pipeline::component_option opt_set_bandpass_average = aa_pipeline::component_option::set_bandpass_average;
+			
+			if (m_pipeline_options.find(opt_set_bandpass_average) != m_pipeline_options.end()) {
+				LOG(log_level::debug, "Calculating zero DM bandpass (average)...");
+				m_local_timer.Start();
+				
+				float *h_new_bandpass;
+				h_new_bandpass = new float[nchans];
+				
+				// Place code here
+				
+				cuda_error = cudaMemcpy(d_bandpass_normalization, h_new_bandpass, nchans*sizeof(float), cudaMemcpyHostToDevice);
+				if (cuda_error != cudaSuccess) {
+					pipeline_error=PIPELINE_ERROR_ZERO_DM;
+				}
+				delete[] h_new_bandpass;
+				
+				m_local_timer.Stop();
+				time_log.adding("PREP", "Bandpass", m_local_timer.Elapsed());
+			}
+			
+			if(pipeline_error!=0) {
+				return false;
+			}
+			else {
+				return true;
+			}
+		}
+
 		/** \brief Method that pipeline flags according to requested pipeline components. */
 		void set_pipeline_flags(){
 			//----> Components
@@ -1048,6 +1079,7 @@ namespace astroaccelerate {
 			
 			if (!memory_allocated) {
 				set_data();
+				if(memory_allocated) input_data_preprocessing();
 			}
 
 			if (memory_allocated) {

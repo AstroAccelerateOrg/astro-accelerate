@@ -34,6 +34,7 @@ namespace astroaccelerate {
 	bool zero_dm_with_outliers;
 	bool input_DDTR_normalization;
 	bool output_DDTR_normalization;
+	bool set_bandpass_average;
 	bool old_rfi;
 	bool copy_ddtr_data_to_host;
 	bool msd_baseline_noise;

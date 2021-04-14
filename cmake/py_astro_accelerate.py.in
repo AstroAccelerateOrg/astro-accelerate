@@ -391,6 +391,7 @@ class aa_py_pipeline_component_options (ctypes.Structure):
         ("zero_dm_with_outliers",     ctypes.c_bool),
         ("input_DDTR_normalization",  ctypes.c_bool),
         ("output_DDTR_normalization", ctypes.c_bool),
+        ("set_bandpass_average",      ctypes.c_bool),
         ("old_rfi",                   ctypes.c_bool),
         ("copy_ddtr_data_to_host",    ctypes.c_bool),
         ("msd_baseline_noise",        ctypes.c_bool),

@@ -159,6 +159,8 @@ namespace astroaccelerate {
 						m_pipeline_options.insert(aa_pipeline::component_option::input_DDTR_normalization);
 					if (strcmp(string, "output_DDTR_normalization") == 0)
 						m_pipeline_options.insert(aa_pipeline::component_option::output_DDTR_normalization);
+					if (strcmp(string, "set_bandpass_average") == 0)
+						m_pipeline_options.insert(aa_pipeline::component_option::output_DDTR_normalization);
 					if (strcmp(string, "rfi") == 0)
 						flg.rfi = true;
 					if (strcmp(string, "oldrfi") == 0)
