@@ -155,6 +155,10 @@ namespace astroaccelerate {
 						m_pipeline_options.insert(aa_pipeline::component_option::zero_dm);
 					if (strcmp(string, "zero_dm_with_outliers") == 0)
 						m_pipeline_options.insert(aa_pipeline::component_option::zero_dm_with_outliers);
+					if (strcmp(string, "input_DDTR_normalization") == 0)
+						m_pipeline_options.insert(aa_pipeline::component_option::input_DDTR_normalization);
+					if (strcmp(string, "output_DDTR_normalization") == 0)
+						m_pipeline_options.insert(aa_pipeline::component_option::output_DDTR_normalization);
 					if (strcmp(string, "rfi") == 0)
 						flg.rfi = true;
 					if (strcmp(string, "oldrfi") == 0)

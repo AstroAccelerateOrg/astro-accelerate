@@ -387,18 +387,20 @@ class aa_py_pipeline_components (ctypes.Structure):
 #
 class aa_py_pipeline_component_options (ctypes.Structure):
     _fields_ = [
-        ("zero_dm",               ctypes.c_bool),
-        ("zero_dm_with_outliers", ctypes.c_bool),
-        ("old_rfi",               ctypes.c_bool),
-        ("copy_ddtr_data_to_host",ctypes.c_bool),
-        ("msd_baseline_noise",    ctypes.c_bool),
-        ("output_dmt",            ctypes.c_bool),
-        ("output_ffdot_plan",     ctypes.c_bool),
-        ("output_fdas_list",      ctypes.c_bool),
-        ("candidate_algorithm",   ctypes.c_int),
-        ("fdas_custom_fft",       ctypes.c_bool),
-        ("fdas_inbin",            ctypes.c_bool),
-        ("fdas_norm",             ctypes.c_bool)
+        ("zero_dm",                   ctypes.c_bool),
+        ("zero_dm_with_outliers",     ctypes.c_bool),
+        ("input_DDTR_normalization",  ctypes.c_bool),
+        ("output_DDTR_normalization", ctypes.c_bool),
+        ("old_rfi",                   ctypes.c_bool),
+        ("copy_ddtr_data_to_host",    ctypes.c_bool),
+        ("msd_baseline_noise",        ctypes.c_bool),
+        ("output_dmt",                ctypes.c_bool),
+        ("output_ffdot_plan",         ctypes.c_bool),
+        ("output_fdas_list",          ctypes.c_bool),
+        ("candidate_algorithm",       ctypes.c_int),
+        ("fdas_custom_fft",           ctypes.c_bool),
+        ("fdas_inbin",                ctypes.c_bool),
+        ("fdas_norm",                 ctypes.c_bool)
     ]    
     
 ##

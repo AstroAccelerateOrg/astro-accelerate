@@ -22,6 +22,9 @@ namespace astroaccelerate {
    */
   void zero_dm(unsigned short *const d_input, const int nchans, const int nsamp, const int nbits, float *normalization_factor);
   void zero_dm(unsigned short *const d_input, const int nchans, const int nsamp, const int nbits);
+  void post_DDTR_normalization(float *d_input, size_t nTimesamples, size_t nDMs);
+  void zero_dm_normalization_dm(unsigned short *d_input, size_t nTimesamples, size_t nChannels, int nbits);
+
 } // namespace astroaccelerate
   
 #endif // ASTRO_ACCELERATE_AA_ZERO_DM_HPP
