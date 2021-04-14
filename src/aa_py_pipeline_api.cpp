@@ -22,6 +22,8 @@ namespace astroaccelerate {
 	aa_pipeline::pipeline_option pipeline_options;
 	if(options.zero_dm) pipeline_options.insert(aa_pipeline::component_option::zero_dm);
 	if(options.zero_dm_with_outliers) pipeline_options.insert(aa_pipeline::component_option::zero_dm_with_outliers);
+	if(options.input_DDTR_normalization) pipeline_options.insert(aa_pipeline::component_option::input_DDTR_normalization);
+	if(options.output_DDTR_normalization) pipeline_options.insert(aa_pipeline::component_option::output_DDTR_normalization);
 	if(options.old_rfi) pipeline_options.insert(aa_pipeline::component_option::old_rfi);
 	if(options.copy_ddtr_data_to_host) pipeline_options.insert(aa_pipeline::component_option::copy_ddtr_data_to_host);
 	if(options.msd_baseline_noise) pipeline_options.insert(aa_pipeline::component_option::msd_baseline_noise);

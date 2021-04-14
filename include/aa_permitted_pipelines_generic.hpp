@@ -560,6 +560,8 @@ namespace astroaccelerate {
 		bool run_pipeline(aa_pipeline_runner::status &status_code) {
 			const aa_pipeline::component_option opt_zero_dm                = aa_pipeline::component_option::zero_dm;
 			const aa_pipeline::component_option opt_zero_dm_with_outliers  = aa_pipeline::component_option::zero_dm_with_outliers;
+			const aa_pipeline::component_option opt_input_DDTR_normalization  = aa_pipeline::component_option::input_DDTR_normalization;
+			const aa_pipeline::component_option opt_output_DDTR_normalization = aa_pipeline::component_option::output_DDTR_normalization;
 			const aa_pipeline::component_option opt_old_rfi                = aa_pipeline::component_option::old_rfi;
 			
 			//------------------------------------> Error checking
@@ -676,6 +678,16 @@ namespace astroaccelerate {
 				//-------------------------<
 
 	
+				//---------> Input DDTR data normalization
+				if (m_pipeline_options.find(opt_input_DDTR_normalization) != m_pipeline_options.end()) {
+					LOG(log_level::debug, "Performing input DDTR normalization...");
+					m_local_timer.Start();
+					size_t nTimesamples = t_processed[0][current_time_chunk] + maxshift_original;
+					zero_dm_normalization_dm(d_DDTR_input, nchans, nTimesamples, nbits);
+					m_local_timer.Stop();
+					time_log.adding("DDTR", "input_DDTR_norm", m_local_timer.Elapsed());
+				}
+				//-------------------------<
 				//---------> Corner turn
 				m_local_timer.Start();
 				corner_turn(d_DDTR_input, d_DDTR_output, nchans, t_processed[0][current_time_chunk] + maxshift_original);
@@ -759,6 +771,17 @@ namespace astroaccelerate {
 					LOG(log_level::error, "GPU error at Dedispersion.");
 				}
 				
+				//---------> Output DDTR data normalization
+				if (m_pipeline_options.find(opt_output_DDTR_normalization) != m_pipeline_options.end()) {
+					LOG(log_level::debug, "Performing output DDTR normalization...");
+					m_local_timer.Start();
+					size_t nTimesamples = t_processed[dm_range][current_time_chunk];
+					size_t nDMs = ndms[dm_range];
+					post_DDTR_normalization(d_DDTR_output, nTimesamples, nDMs);
+					m_local_timer.Stop();
+					time_log.adding("DDTR", "output_DDTR_norm", m_local_timer.Elapsed());
+				}
+				//-------------------------<
 				
 				//-----------> Copy data to the host
 				if(do_copy_DDTR_data_to_host){
