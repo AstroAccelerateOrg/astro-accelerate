@@ -50,6 +50,7 @@
 
 #include "aa_gpu_timer.hpp"
 #include "aa_timelog.hpp"
+#include "aa_host_cpu_msd.hpp"
 
 namespace astroaccelerate {
 
@@ -507,6 +508,7 @@ namespace astroaccelerate {
 			}
 			
 			if(pipeline_error!=0) {
+				
 				memory_allocated = false;
 				return false;
 			}
@@ -519,15 +521,17 @@ namespace astroaccelerate {
 		bool input_data_preprocessing(){
 			cudaError_t cuda_error;
 			const aa_pipeline::component_option opt_set_bandpass_average = aa_pipeline::component_option::set_bandpass_average;
-			
 			if (m_pipeline_options.find(opt_set_bandpass_average) != m_pipeline_options.end()) {
-				LOG(log_level::debug, "Calculating zero DM bandpass (average)...");
+				LOG(log_level::debug, "Calculating zero DM bandpass (average)... ");
 				m_local_timer.Start();
 				
 				float *h_new_bandpass;
 				h_new_bandpass = new float[nchans];
+				size_t nsamples = m_ddtr_strategy.metadata().nsamples();
+
 				
 				// Place code here
+				call_cpu_msd(h_new_bandpass, m_input_buffer, (size_t)nchans, nsamples);
 				
 				cuda_error = cudaMemcpy(d_bandpass_normalization, h_new_bandpass, nchans*sizeof(float), cudaMemcpyHostToDevice);
 				if (cuda_error != cudaSuccess) {
