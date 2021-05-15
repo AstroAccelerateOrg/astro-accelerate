@@ -437,13 +437,13 @@ namespace astroaccelerate {
       // channel (c) at the current despersion measure (dm) 
       // ** dm is constant for this thread!!**
 
-      shift = ((size_t)(c*(i_nsamp)) + (size_t)t) + (size_t)(__float2int_rz (dm_shifts[c] * shift_temp));
+      shift = ((size_t)(c)*(size_t)(i_nsamp) + (size_t)(t)) + (size_t)(__float2int_rz (dm_shifts[c] * shift_temp));
 		
       local_kernel += (float)__ldg(&d_input[shift]);
     }
 
     // Write the accumulators to the output array. 
-    shift = ( ( (size_t)( blockIdx.y * SDIVINDM ) + (size_t)threadIdx.y ) * ( (size_t)i_t_processed_s ) ) + (size_t)t;
+    shift = ( ( (size_t)( blockIdx.y) * (size_t)(SDIVINDM ) + (size_t)threadIdx.y ) * ( (size_t)i_t_processed_s ) ) + (size_t)t;
 
     d_output[shift] = (local_kernel / i_nchans / bin);
 
@@ -453,27 +453,27 @@ namespace astroaccelerate {
 		size_t   shift;	
 		float local_kernel;
 
-		int t  = blockIdx.x * SDIVINT  + threadIdx.x;
+		size_t t  = blockIdx.x*SDIVINT + threadIdx.x;
 	
 		// Initialise the time accumulators
 		local_kernel = 0.0f;
 
-		float shift_temp = mstartdm + ((blockIdx.y * SDIVINDM + threadIdx.y) * mdmstep);
+		float shift_temp = mstartdm + ((blockIdx.y*SDIVINDM + threadIdx.y)*mdmstep);
 	
 		// Loop over the frequency channels.
 		for(int c = 0; c < i_nchans; c++) {
 			// Calculate the initial shift for this given frequency
 			// channel (c) at the current despersion measure (dm) 
 			// ** dm is constant for this thread!!**
-			shift = ((size_t)(c*(i_nsamp)) + (size_t)t) + (size_t)(__float2int_rz (d_dm_shifts[c]*shift_temp));
+			shift = (((size_t)(c)*(size_t)(i_nsamp)) + t) + (size_t)(__float2int_rz(d_dm_shifts[c]*shift_temp));
 			
 			local_kernel += (float)__ldg(&d_input[shift]);
 		}
 
 		// Write the accumulators to the output array. 
-		shift = ( (size_t)( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( (size_t)i_t_processed_s ) ) + (size_t)t;
+		shift = ((size_t)((blockIdx.y*SDIVINDM) + threadIdx.y)*((size_t)i_t_processed_s)) + t;
 
-		d_output[shift] = (local_kernel / i_nchans / bin);
+		d_output[shift] = (local_kernel/i_nchans/bin);
   }
  
 
