@@ -234,12 +234,12 @@ namespace astroaccelerate {
       int size = (int)batches.size();
 	  int batchDM_0 = batches[0].nDMs_per_batch;
       //printf("  De-dispersion range: %f--%f:%f inBin:%d; nTimesamples:%d; nDMs:%d;\n", range.dm_low, range.dm_high, range.dm_step, range.inBin, range.nTimesamples, range.nDMs);
-      LOG(log_level::notice, "-> De-dispersion range:" + std::to_string(range.dm_low) + "--" + std::to_string(range.dm_high) + ":" + std::to_string(range.dm_step) + "; Binning:" + std::to_string(range.inBin) + "; nTimesamples:" + std::to_string(range.nTimesamples) + "; nDMs:" + std::to_string(range.nDMs) + ";");
+      LOG(log_level::notice, "De-dispersion range:" + std::to_string(range.dm_low) + "--" + std::to_string(range.dm_high) + ":" + std::to_string(range.dm_step) + "; Binning:" + std::to_string(range.inBin) + "; nTimesamples:" + std::to_string(range.nTimesamples) + "; nDMs:" + std::to_string(range.nDMs) + ";");
       if(size>1) {
         int batchDM_last = batches[size-1].nDMs_per_batch;
-        LOG(log_level::notice, "-> De-dispersion range will be processed in " + std::to_string(size) + " batches each containing " + std::to_string(batchDM_0) + " DM trials with tail of " + std::to_string(batchDM_last) + " DM trials");
+        LOG(log_level::debug, "-> De-dispersion range will be processed in " + std::to_string(size) + " batches each containing " + std::to_string(batchDM_0) + " DM trials with tail of " + std::to_string(batchDM_last) + " DM trials");
       }
-      else LOG(log_level::notice, "-> Periodicity search will run 1 batch containing " + std::to_string(batchDM_0) + " DM trials.");
+      else LOG(log_level::debug, "-> Periodicity search will run 1 batch containing " + std::to_string(batchDM_0) + " DM trials.");
       float MSD_block_mem = (total_MSD_blocks*MSD_PARTIAL_SIZE*sizeof(float))/(1024.0*1024.0);
       LOG(log_level::debug, "-> Total number of MSD blocks is " + std::to_string(total_MSD_blocks) + " which is " + std::to_string(MSD_block_mem) + "MB");
       #ifdef GPU_PERIODICITY_SEARCH_DEBUG
@@ -1312,7 +1312,7 @@ void checkCudaErrors( cudaError_t CUDA_error){
           int nPowerCandidates = GPU_memory.Get_Number_of_Power_Candidates();
           PowerCandidates.push_back(*(new Candidate_List(r)));
           last_entry = PowerCandidates.size()-1;
-          LOG(log_level::notice, " PSR: Total number of candidates found in this range is " + std::to_string(nPowerCandidates) + ";");
+          LOG(log_level::debug, " PSR: Total number of candidates found in this range is " + std::to_string(nPowerCandidates) + ";");
           PowerCandidates[last_entry].Allocate(nPowerCandidates);
           if(harmonic_sum_algorithm==0) {
 			e = cudaMemcpy( &PowerCandidates[last_entry].list[0], &GPU_memory.d_two_B[0], nPowerCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
@@ -1328,7 +1328,7 @@ void checkCudaErrors( cudaError_t CUDA_error){
           int nInterbinCandidates = GPU_memory.Get_Number_of_Interbin_Candidates();
           InterbinCandidates.push_back(*(new Candidate_List(r)));
           last_entry = InterbinCandidates.size()-1;
-          LOG(log_level::notice, " PSR with inter-binning: Total number of candidates found in this range is " + std::to_string(nInterbinCandidates) + ";");
+          LOG(log_level::debug, " PSR with inter-binning: Total number of candidates found in this range is " + std::to_string(nInterbinCandidates) + ";");
           InterbinCandidates[last_entry].Allocate(nInterbinCandidates);
           if(harmonic_sum_algorithm==0) {
 			  e = cudaMemcpy( &InterbinCandidates[last_entry].list[0], &GPU_memory.d_two_B[input_plane_size], nInterbinCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
