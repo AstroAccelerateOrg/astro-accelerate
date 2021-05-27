@@ -98,11 +98,19 @@ namespace astroaccelerate {
 
   // Usual
 
-#define UNROLLS 4
-#define SNUMREG 14
-#define SDIVINT 8
-#define SDIVINDM 64
-#define SFDIVINDM 64.0f
+#ifndef UNROLLS
+	#define UNROLLS 4
+#endif
+#ifndef SNUMREG
+	#define SNUMREG 14
+#endif
+#ifndef SDIVINT
+	#define SDIVINT 8
+#endif
+#ifndef SDIVINDM
+	#define SDIVINDM 64
+#endif
+#define SFDIVINDM SDIVINDM
 
 
 } // namespace astroaccelerate
