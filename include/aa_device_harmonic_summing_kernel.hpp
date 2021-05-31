@@ -43,7 +43,7 @@ namespace astroaccelerate {
       bool enable_scalloping_loss_removal
   );
   
-  void call_kernel_presto_harmonic_sum_GPU_kernel(
+  void call_kernel_presto_plus_harmonic_sum_GPU_kernel(
       const dim3 &grid_size,
       const dim3 &block_size,
       float const *const d_input,

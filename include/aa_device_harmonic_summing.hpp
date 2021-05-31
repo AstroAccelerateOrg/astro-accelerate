@@ -24,7 +24,7 @@ extern int periodicity_greedy_harmonic_summing(
   int enable_scalloping_loss_removal
 );
 
-extern int periodicity_presto_harmonic_summing(
+extern int periodicity_presto_plus_harmonic_summing(
   float *d_input,
   float *d_output_SNR,
   ushort *d_output_harmonics,
