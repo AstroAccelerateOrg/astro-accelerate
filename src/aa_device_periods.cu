@@ -1122,6 +1122,12 @@ void checkCudaErrors( cudaError_t CUDA_error){
         //---------<
     }
     else if(harmonic_sum_algorithm == 2) {
+        //---------> PRESTO plus harmonic summing
+        periodicity_presto_plus_harmonic_summing(d_frequency_power, d_power_SNR, gmem->d_power_harmonics, gmem->d_MSD, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.nHarmonics(), enable_scalloping_loss_removal);
+        periodicity_presto_plus_harmonic_summing(d_frequency_interbin, d_interbin_SNR, gmem->d_interbin_harmonics, gmem->d_MSD, t_nTimesamples, t_nDMs_per_batch, per_param.nHarmonics(), enable_scalloping_loss_removal);
+        //---------<
+    }
+    else if(harmonic_sum_algorithm == 3) {
         //---------> PRESTO harmonic summing
         periodicity_presto_harmonic_summing(d_frequency_power, d_power_SNR, gmem->d_power_harmonics, gmem->d_MSD, (t_nTimesamples>>1), t_nDMs_per_batch, per_param.nHarmonics(), enable_scalloping_loss_removal);
         periodicity_presto_harmonic_summing(d_frequency_interbin, d_interbin_SNR, gmem->d_interbin_harmonics, gmem->d_MSD, t_nTimesamples, t_nDMs_per_batch, per_param.nHarmonics(), enable_scalloping_loss_removal);
@@ -1296,7 +1302,8 @@ void checkCudaErrors( cudaError_t CUDA_error){
 
           // simple harmonic sum 0
           // greedy harmonic sum 1
-          // presto harmonic sum 2
+          // presto plus harmonic sum 2
+          // presto harmonic sum 3
           int harmonic_sum_algorithm = 1;
           bool enable_scalloping_loss_removal = true;
           

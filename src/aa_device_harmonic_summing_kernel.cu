@@ -75,7 +75,7 @@ __global__ void greedy_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
     
     int data_shift=0;
     float data_down = 0, data_step = 0;
-    int pos = GHRMS_NTHREADS*blockIdx.x + threadIdx.x;
+    int pos = const_params::nThreads*blockIdx.x + threadIdx.x;
     if( pos > 1 && pos + 3 < nTimesamples) {
         int block_pos = blockIdx.y*nTimesamples + pos;
         get_frequency_bins<const_params>(&data_down, &data_step, d_input, block_pos);
@@ -91,7 +91,7 @@ __global__ void greedy_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
     maxHarmonics = 0;
     
     for(int h=1; h<nHarmonics; h++){
-        int pos = (h+1)*(GHRMS_NTHREADS*blockIdx.x + threadIdx.x) + data_shift;
+        int pos = (h+1)*(const_params::nThreads*blockIdx.x + threadIdx.x) + data_shift;
         float data_down = 0, data_step = 0;
         if( pos > 1 && pos + 3 < nTimesamples) {
             int block_pos = blockIdx.y*nTimesamples + pos;
@@ -113,7 +113,7 @@ __global__ void greedy_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
         }
     }
     
-    pos = GHRMS_NTHREADS*blockIdx.x + threadIdx.x;
+    pos = const_params::nThreads*blockIdx.x + threadIdx.x;
     if(pos < nTimesamples) {
         d_maxSNR[blockIdx.y*nTimesamples + pos] = maxSNR;
         d_maxHarmonics[blockIdx.y*nTimesamples + pos] = (ushort) maxHarmonics;
@@ -138,7 +138,7 @@ __inline__ __device__ void get_frequency_bin_value(float *frequency_bin, float c
 
 
 template<class const_params>
-__global__ void presto_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHarmonics, float const* __restrict__ d_input, float const* __restrict__ d_MSD, int nTimesamples, int nDMs, int nHarmonics){
+__global__ void presto_plus_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHarmonics, float const* __restrict__ d_input, float const* __restrict__ d_MSD, int nTimesamples, int nDMs, int nHarmonics){
     __shared__ float s_MSD[64];
     float SNR;
     float partial_sum, maxSNR, frequency_bin, fundamental;
@@ -154,7 +154,7 @@ __global__ void presto_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
     partial_sum = 0;
     frequency_bin = 0;
     fundamental = 0;
-    pos = GHRMS_NTHREADS*blockIdx.x + threadIdx.x;
+    pos = const_params::nThreads*blockIdx.x + threadIdx.x;
     if( (pos > 1) && (pos + 2) < nTimesamples ) {
         int block_pos = blockIdx.y*nTimesamples + pos;
         get_frequency_bin_value<const_params>(&fundamental, d_input, block_pos);
@@ -187,7 +187,7 @@ __global__ void presto_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
     
     __syncthreads();
     
-    pos = GHRMS_NTHREADS*blockIdx.x + threadIdx.x;
+    pos = const_params::nThreads*blockIdx.x + threadIdx.x;
     if( pos < nTimesamples ){
         int block_pos = blockIdx.y*nTimesamples + pos;
         d_maxSNR[block_pos] = maxSNR;
@@ -196,6 +196,66 @@ __global__ void presto_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
 }
 
 
+template<class const_params>
+__global__ void presto_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHarmonics, float const* __restrict__ d_input, float const* __restrict__ d_MSD, int nTimesamples, int nDMs, int nHarmonicsFactor){
+    __shared__ float s_MSD[64];
+    float SNR;
+    float partial_sum, maxSNR, frequency_bin, fundamental;
+    int maxHarmonics, pos;
+    
+    int nHarmonics = (1<<(nHarmonicsFactor-1));
+    if(threadIdx.x<nHarmonics) {
+        s_MSD[2*threadIdx.x]   = d_MSD[2*threadIdx.x];
+        s_MSD[2*threadIdx.x+1] = d_MSD[2*threadIdx.x+1];
+    }
+    
+    __syncthreads();
+    
+    maxSNR = -10000;
+    maxHarmonics = 0;
+    partial_sum = 0;
+    pos = const_params::nThreads*blockIdx.x + threadIdx.x;
+    for(int i = 0; i < nHarmonicsFactor; i++) {
+        int harm = (1<<i);
+        
+        // 1st Harmonic
+        float fundamental_frac = ((double) pos)*(1.0/((double) harm));
+        int fundamental_pos = (int) (fundamental_frac + 0.5);
+        fundamental = 0;
+        if(fundamental_pos > 1 && (fundamental_pos + 2) < nTimesamples){
+            int block_pos = blockIdx.y*nTimesamples + fundamental_pos;
+            get_frequency_bin_value<const_params>(&fundamental, d_input, block_pos);
+        }
+        partial_sum = fundamental;
+        
+        // higher harmonics
+        for(int f = 2; f <= harm; f = f + 2){
+            int new_pos = (int) ( ((float) f)*fundamental_frac + 0.5);
+            frequency_bin = 0;
+            if( new_pos > 1 && (new_pos + 2) < nTimesamples ) {
+                int block_pos = blockIdx.y*nTimesamples + new_pos;
+                get_frequency_bin_value<const_params>(&frequency_bin, d_input, block_pos);
+            }
+            partial_sum = partial_sum + frequency_bin;
+        }
+        
+        SNR = fdividef( (partial_sum - s_MSD[2*(harm/2)]), s_MSD[2*(harm/2) + 1]);
+        if(SNR>maxSNR) {
+            maxSNR = SNR;
+            maxHarmonics = harm-1;
+        }
+    }
+    //----------------------------------------------
+    
+    __syncthreads();
+    
+    pos = const_params::nThreads*blockIdx.x + threadIdx.x;
+    if( pos < nTimesamples ){
+        int block_pos = blockIdx.y*nTimesamples + pos;
+        d_maxSNR[block_pos] = maxSNR;
+        d_maxHarmonics[block_pos] = maxHarmonics;
+    }
+}
 
 
 
@@ -269,7 +329,7 @@ __global__ void presto_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
       bool enable_scalloping_loss_removal
   ) {
     if(enable_scalloping_loss_removal) {
-      presto_harmonic_sum_GPU_kernel<HRMS_remove_scalloping_loss><<<grid_size, block_size>>>(
+      presto_plus_harmonic_sum_GPU_kernel<HRMS_remove_scalloping_loss><<<grid_size, block_size>>>(
           d_output_SNR,
           d_output_harmonics,
           d_input,
@@ -280,7 +340,7 @@ __global__ void presto_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
       );
     }
     else {
-      presto_harmonic_sum_GPU_kernel<HRMS_normal><<<grid_size, block_size>>>(
+      presto_plus_harmonic_sum_GPU_kernel<HRMS_normal><<<grid_size, block_size>>>(
           d_output_SNR,
           d_output_harmonics,
           d_input,
@@ -291,6 +351,44 @@ __global__ void presto_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
       );
     }
   }
+  
+  /** \brief Kernel wrapper function for presto_harmonic_sum_GPU_kernel kernel function. */
+  void call_kernel_presto_harmonic_sum_GPU_kernel(
+      const dim3 &grid_size,
+      const dim3 &block_size,
+      float const *const d_input,
+      float *const d_output_SNR,
+      ushort *const d_output_harmonics,
+      float *const d_MSD,
+      const int &nTimesamples,
+      const int &nDMs,
+      const int &nHarmonicsFactor,
+      bool enable_scalloping_loss_removal
+  ) {
+    if(enable_scalloping_loss_removal) {
+      presto_harmonic_sum_GPU_kernel<HRMS_remove_scalloping_loss><<<grid_size, block_size>>>(
+          d_output_SNR,
+          d_output_harmonics,
+          d_input,
+          d_MSD,
+          nTimesamples,
+          nDMs,
+          nHarmonicsFactor
+      );
+    }
+    else {
+      presto_harmonic_sum_GPU_kernel<HRMS_normal><<<grid_size, block_size>>>(
+          d_output_SNR,
+          d_output_harmonics,
+          d_input,
+          d_MSD,
+          nTimesamples,
+          nDMs,
+          nHarmonicsFactor
+      );
+    }
+  }
+  
 } //namespace astroaccelerate
 
 

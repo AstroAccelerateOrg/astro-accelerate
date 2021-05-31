@@ -3,6 +3,7 @@
 
 #include "aa_params.hpp"
 #include "aa_device_harmonic_summing_kernel.hpp"
+#include <stdio.h>
 
 namespace astroaccelerate {
 
@@ -46,12 +47,14 @@ namespace astroaccelerate {
       int nHarmonics,
       int enable_scalloping_loss_removal
   ){
+    int nThreads = HRMS_ConstParams::nThreads;
+    
     //---------> Task specific
     int nBlocks_x, nBlocks_y;
-    nBlocks_x = (nTimesamples + GHRMS_NTHREADS - 1)/GHRMS_NTHREADS;
+    nBlocks_x = (nTimesamples + nThreads - 1)/nThreads;
     nBlocks_y = nDMs;
     dim3 gridSize(nBlocks_x, nBlocks_y, 1);
-    dim3 blockSize(GHRMS_NTHREADS, 1, 1);
+    dim3 blockSize(nThreads, 1, 1);
     
     #ifdef HS_DEBUG
     if(DEBUG) printf("Data dimensions: %zu x %zu;\n",nDMs, nTimesamples);
@@ -88,12 +91,14 @@ namespace astroaccelerate {
       int nHarmonics,
       int enable_scalloping_loss_removal
   ) {
+    int nThreads = HRMS_ConstParams::nThreads;
+    
     //---------> Task specific
     int nBlocks_x, nBlocks_y;
-    nBlocks_x = (nTimesamples + GHRMS_NTHREADS - 1)/GHRMS_NTHREADS;
+    nBlocks_x = (nTimesamples + nThreads - 1)/nThreads;
     nBlocks_y = nDMs;
     dim3 gridSize(nBlocks_x, nBlocks_y, 1);
-    dim3 blockSize(GHRMS_NTHREADS, 1, 1);
+    dim3 blockSize(nThreads, 1, 1);
     
     #ifdef HS_DEBUG
     if(DEBUG) printf("Data dimensions: %zu x %zu;\n",nDMs, nTimesamples);
@@ -120,7 +125,6 @@ namespace astroaccelerate {
     return(0);
   }
   
-  /*
   int periodicity_presto_harmonic_summing(
       float *d_input,
       float *d_output_SNR,
@@ -131,12 +135,15 @@ namespace astroaccelerate {
       int nHarmonics,
       int enable_scalloping_loss_removal
   ) {
+    int nThreads = HRMS_ConstParams::nThreads;
+    
     //---------> Task specific
     int nBlocks_x, nBlocks_y;
-    nBlocks_x = (nTimesamples + GHRMS_NTHREADS - 1)/GHRMS_NTHREADS;
+    nBlocks_x = (nTimesamples + nThreads - 1)/nThreads;
     nBlocks_y = nDMs;
     dim3 gridSize(nBlocks_x, nBlocks_y, 1);
-    dim3 blockSize(GHRMS_NTHREADS, 1, 1);
+    dim3 blockSize(nThreads, 1, 1);
+    int nHarmonicsFactor = (int) (log(nHarmonics)/log(2.0)) + 1;
     
     #ifdef HS_DEBUG
     if(DEBUG) printf("Data dimensions: %zu x %zu;\n",nDMs, nTimesamples);
@@ -156,12 +163,11 @@ namespace astroaccelerate {
         d_MSD,
         nTimesamples,
         nDMs,
-        nHarmonics,
+        nHarmonicsFactor,
         enable_scalloping_loss_removal
     );
     
     return(0);
   }
-  */
   
 } //namespace astroaccelerate
