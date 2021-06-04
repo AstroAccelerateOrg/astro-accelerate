@@ -398,7 +398,7 @@ class aa_py_pipeline_component_options (ctypes.Structure):
         ("output_dmt",                ctypes.c_bool),
         ("output_ffdot_plan",         ctypes.c_bool),
         ("output_fdas_list",          ctypes.c_bool),
-        ("candidate_algorithm",       ctypes.c_int),
+        ("candidate_algorithm",       ctypes.c_bool),
         ("fdas_custom_fft",           ctypes.c_bool),
         ("fdas_inbin",                ctypes.c_bool),
         ("fdas_norm",                 ctypes.c_bool)
