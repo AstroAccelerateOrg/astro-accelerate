@@ -21,6 +21,8 @@ analysis
 -w_step 20
 -output_ffdot_plan
 -output_fdas_list
+-set_bandpass_average
+output_DDTR_normalization
 -periodicity
 -output_dmt
 -dered

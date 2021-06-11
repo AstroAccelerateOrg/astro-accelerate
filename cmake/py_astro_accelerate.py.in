@@ -230,6 +230,11 @@ class aa_py_ddtr_plan:
         lib.aa_py_ddtr_plan_enable_msd_baseline_noise.restype = ctypes.c_bool
         self.m_set_enable_msd_baseline_noise = ctypes.c_float(lib.aa_py_ddtr_plan_enable_msd_baseline_noise).value
         return self.m_enable_msd_baseline_noise
+	
+    def bind_bandpass_normalization(self, data: ctypes.c_float, data_size: ctypes.c_int):
+        lib.aa_py_ddtr_plan_bind_bandpass_normalization.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
+        lib.aa_py_ddtr_plan_bind_bandpass_normalization.restype = ctypes.c_bool
+        return lib.aa_py_ddtr_plan_bind_bandpass_normalization(self.m_obj, data.ctypes.data_as(PFLOAT), data_size)
 
     def print_info(self):
         print("AA_PY_DDTR_PLAN INFORMATION:")
@@ -382,18 +387,21 @@ class aa_py_pipeline_components (ctypes.Structure):
 #
 class aa_py_pipeline_component_options (ctypes.Structure):
     _fields_ = [
-        ("zero_dm",               ctypes.c_bool),
-        ("zero_dm_with_outliers", ctypes.c_bool),
-        ("old_rfi",               ctypes.c_bool),
-        ("copy_ddtr_data_to_host",ctypes.c_bool),
-        ("msd_baseline_noise",    ctypes.c_bool),
-        ("output_dmt",            ctypes.c_bool),
-        ("output_ffdot_plan",     ctypes.c_bool),
-        ("output_fdas_list",      ctypes.c_bool),
-        ("candidate_algorithm",   ctypes.c_int),
-        ("fdas_custom_fft",       ctypes.c_bool),
-        ("fdas_inbin",            ctypes.c_bool),
-        ("fdas_norm",             ctypes.c_bool)
+        ("zero_dm",                   ctypes.c_bool),
+        ("zero_dm_with_outliers",     ctypes.c_bool),
+        ("input_DDTR_normalization",  ctypes.c_bool),
+        ("output_DDTR_normalization", ctypes.c_bool),
+        ("set_bandpass_average",      ctypes.c_bool),
+        ("old_rfi",                   ctypes.c_bool),
+        ("copy_ddtr_data_to_host",    ctypes.c_bool),
+        ("msd_baseline_noise",        ctypes.c_bool),
+        ("output_dmt",                ctypes.c_bool),
+        ("output_ffdot_plan",         ctypes.c_bool),
+        ("output_fdas_list",          ctypes.c_bool),
+        ("candidate_algorithm",       ctypes.c_bool),
+        ("fdas_custom_fft",           ctypes.c_bool),
+        ("fdas_inbin",                ctypes.c_bool),
+        ("fdas_norm",                 ctypes.c_bool)
     ]    
     
 ##

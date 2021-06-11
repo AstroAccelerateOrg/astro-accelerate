@@ -51,8 +51,7 @@ namespace astroaccelerate {
 #define ACCEL_STEP (float)(2.0) //1 //default acceleration step
 #define ACCEL_STEP_R (float)(1.0f/ACCEL_STEP)
 #define ZMAX 96
-#define NKERN (int)(2*ZMAX/(ACCEL_STEP)+1) //NKERN must be calculated from 2*ZMAX/(ACCEL_STEP)+1
-
+#define NKERN (int)(2*ZMAX/(ACCEL_STEP)+1) //NKERN must be calculated from 2*ZMAX/(ACCEL_STEP)+1 
 //#define ZLO  -(int)((ZMAX/ACCEL_STEP) )
 #define TBSIZEX 32
 #define TBSIZEY 1
@@ -82,29 +81,21 @@ namespace astroaccelerate {
 #define PPF_PEAKS_PER_BLOCK 10
 #define PPF_DPB 128
 //radius of search for peak filtering in miliseconds
-#define	PPF_SEARCH_RANGE_IN_MS 15
+#define PPF_SEARCH_RANGE_IN_MS 15
 
 #define PPF_L1_THREADS_PER_BLOCK 256
 #define PPF_L1_SPECTRA_PER_BLOCK 5
 
-
-  //Either "TITAN V" or  "Usual" can be selected
-  // TITAN V
-  //#define UNROLLS 4
-  //#define SNUMREG 16
-  //#define SDIVINT 8
-  //#define SDIVINDM 60
-  //#define SFDIVINDM 60.0f
-
-  // Usual
-
+// The namespace and header guard are not enclosed.
+// The profiling script is responsible for adding a closing brace for the namespace,
+// and an #endif stement to enclose the header guard.
+// This file must end in a new empty line so that the first definition that the profile
+// script adds is not on the line of this comment.
 #define UNROLLS 4
 #define SNUMREG 14
 #define SDIVINT 8
 #define SDIVINDM 64
 #define SFDIVINDM 64.0f
 
-
 } // namespace astroaccelerate
-  
-#endif // ASTRO_ACCELERATE_AA_PARAMS_HPP
+#endif

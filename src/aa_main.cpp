@@ -97,6 +97,12 @@ int main(int argc, char *argv[]) {
 	}
 
 	ddtr_plan.set_enable_msd_baseline_noise(msd_baseline_noise);
+	
+	// adding custom bandpass for zero_dm filtering.
+	// if used does not provide custom bandpass a default value is used
+	//std::vector<float> custom_bandpass_normalization;
+	//custom_bandpass_normalization.resize(filterbank_metadata.nchans(), 127.5);
+	//ddtr_plan.bind_bandpass_normalization(custom_bandpass_normalization.data(), custom_bandpass_normalization.size());
 
 	if (pipeline_manager.bind(ddtr_plan)) {
 		LOG(log_level::notice, "ddtr_plan bound successfully.");

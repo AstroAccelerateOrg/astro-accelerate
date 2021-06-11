@@ -187,7 +187,7 @@ __device__ __inline__ void MSD_block_outlier_rejection(unsigned short *d_input, 
 }
 
 
-__global__ void zero_dm_outliers_kernel_channels(unsigned short *d_input, int nchans, float outlier_sigma, int nbits, float normalization_factor) {
+__global__ void zero_dm_outliers_kernel_channels(unsigned short *d_input, int nchans, float outlier_sigma, int nbits, float *normalization_factor) {
 	__shared__ float s_par_MSD[256];
 	__shared__ int s_par_nElements[128];
 	float mean, stdev, old_mean;
@@ -203,12 +203,10 @@ __global__ void zero_dm_outliers_kernel_channels(unsigned short *d_input, int nc
 		if(old_mean-mean < ACC) break;
 	}
 	
-	float shift = mean - normalization_factor;
-	
 	for(int c = 0; c < x_steps; c++){
 		if ((c*blockDim.x + threadIdx.x) < nchans) {
 			unsigned short value;
-			float result = (float)d_input[blockIdx.x*nchans + c*blockDim.x + threadIdx.x] - shift;
+			float result = (float)d_input[blockIdx.x*nchans + c*blockDim.x + threadIdx.x] - mean + normalization_factor[c*blockDim.x + threadIdx.x];
 			if( nbits == 4 ){
 				if(result<0) value = 0;
 				else if(result>15) value = 15;
@@ -483,7 +481,7 @@ void call_kernel_zero_dm_outliers_kernel_channels(
 	const int &nchans, 
 	const float &outlier_sigma, 
 	const int &nbits, 
-	const float &normalization_factor) {
+	float *normalization_factor) {
 		if (block_size.x<=0 || block_size.y<=0 || block_size.z<=0 || grid_size.x<=0 || grid_size.y<=0 || grid_size.z<=0){
 			LOG(log_level::error, "Zero DM kernel is configured incorrectly. grid_size=[" + std::to_string(grid_size.x) + "; " + std::to_string(grid_size.y) + "; " + std::to_string(grid_size.z) + "] block_size=[" + std::to_string(block_size.x) + "; " + std::to_string(block_size.y) + "; " + std::to_string(block_size.z) + "]");
 		}

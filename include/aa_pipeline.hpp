@@ -43,6 +43,9 @@ namespace astroaccelerate {
 		empty = 0, //< The trivial component.
 		zero_dm,                //< DDTR - performs zero DM normalization
 		zero_dm_with_outliers,  //< DDTR - performs zero DM normalization with outliers rejection
+		input_DDTR_normalization,    //< DDTR - normalizes input data in direction of time (channel is fixed)
+		output_DDTR_normalization,  //< DDTR - normalizes output DDTR data in direction of DM (time is fixed)
+		set_bandpass_average,   //< DDTR - sets bandpass values to average values of a channel
 		old_rfi,                //< DDTR - performs rfi mitigation
 		copy_ddtr_data_to_host, //< DDTR - switch to copy ddtr data to host
 		output_dmt,             //< DDTR - Switches on output of ddtr to disk.
@@ -97,6 +100,15 @@ namespace astroaccelerate {
 			case aa_pipeline::component_option::zero_dm_with_outliers:
 				return "DDTR will perform zero DM with outlier rejection";
 				break;	
+			case aa_pipeline::component_option::input_DDTR_normalization:
+				return "DDTR will normalize input data in direction of time (channel is fixed)";
+				break;
+			case aa_pipeline::component_option::output_DDTR_normalization:
+				return "DDTR will normalize output DDTR data in direction of DM (time is fixed)";
+				break;
+			case aa_pipeline::component_option::set_bandpass_average:
+				return "DDTR will set bandpass to average values of channels";
+				break;
 			case aa_pipeline::component_option::old_rfi:
 				return "DDTR will perform old rfi mitigation";
 				break;

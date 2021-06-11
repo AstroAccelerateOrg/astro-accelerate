@@ -76,6 +76,21 @@ namespace astroaccelerate {
     std::vector<float> dmshifts() const {
       return m_dmshifts;
     }
+	
+    /** \returns size of the custom bandpass normalization. */
+    size_t bandpass_normalization_size() const {
+      return m_bandpass_normalization.size();
+    }
+	
+    /** \returns size of the custom bandpass normalization. */
+    const float* bandpass_normalization_pointer() const {
+      return m_bandpass_normalization.data();
+    }
+	
+    /** \returns custom bandpass normalization as set by the user in ddtr plan. */
+    std::vector<float> bandpass_normalization() const {
+      return m_bandpass_normalization;
+    }
     
     /** \returns dm at an index in a std::vector of dm. */
     const aa_ddtr_plan::dm dm(const size_t &i) const {
@@ -156,17 +171,17 @@ namespace astroaccelerate {
       LOG(log_level::dev_debug, "ddtr+analysis:\t\t" +  (strategy.configured_for_analysis() ? std::string("true") : std::string("false")));
       LOG(log_level::dev_debug, "ddtr dm ranges:\t\t" + std::to_string(strategy.get_nRanges()));
       for(size_t i = 0; i < strategy.get_nRanges(); i++) {
-	const aa_ddtr_plan::dm tmp = strategy.dm(i);
-	LOG(log_level::dev_debug, "     dm (low,high,step,inBin,outBin) " +
-	    std::to_string(tmp.low) + "," + std::to_string(tmp.high) + "," + std::to_string(tmp.step)
-	    + "," + std::to_string(tmp.inBin) + "," + std::to_string(tmp.outBin)
+        const aa_ddtr_plan::dm tmp = strategy.dm(i);
+        LOG(log_level::dev_debug, "     dm (low,high,step,inBin,outBin) " +
+	      std::to_string(tmp.low) + "," + std::to_string(tmp.high) + "," + std::to_string(tmp.step)
+	      + "," + std::to_string(tmp.inBin) + "," + std::to_string(tmp.outBin)
 	    );
       }
 
       LOG(log_level::dev_debug, "ddtr max_ndms:\t\t" + std::to_string(strategy.max_ndms()));
       LOG(log_level::dev_debug, "ddtr ndms elements:");
       for(size_t i = 0; i < strategy.ndms_size(); i++) {
-	LOG(log_level::dev_debug, "     ndms[" + std::to_string(i) + "]:\t\t" + std::to_string(strategy.ndms(i)));
+        LOG(log_level::dev_debug, "     ndms[" + std::to_string(i) + "]:\t\t" + std::to_string(strategy.ndms(i)));
       }
       
       LOG(log_level::dev_debug, "ddtr maxshift:\t\t" + std::to_string(strategy.maxshift()));
@@ -175,9 +190,9 @@ namespace astroaccelerate {
       LOG(log_level::dev_debug, "t_processed size:\t" + std::to_string(strategy.t_processed().size()));
       LOG(log_level::dev_debug, "t_processed elements:");
       for(size_t i = 0; i < strategy.t_processed().size(); i++) {
-	for(size_t j = 0; j < strategy.t_processed().at(i).size(); j++) {
-	  LOG(log_level::dev_debug, "     t_processed[" + std::to_string(i) +"][" + std::to_string(j) + "]:\t" + std::to_string(strategy.t_processed()[i][j]));
-	}
+        for(size_t j = 0; j < strategy.t_processed().at(i).size(); j++) {
+          LOG(log_level::dev_debug, "     t_processed[" + std::to_string(i) +"][" + std::to_string(j) + "]:\t" + std::to_string(strategy.t_processed()[i][j]));
+        }
       }
       LOG(log_level::dev_debug, "power:\t\t\t" + std::to_string(strategy.power()));
 
@@ -208,6 +223,8 @@ namespace astroaccelerate {
     std::vector<std::vector<int>> m_t_processed; /**< Is allocated in this class, and used elsewhere in the pipeline. */
     float ***output_buffer; /**< \brief 3D array that contains the output. \deprecated Has been moved to permitted_pipeline classes. Remove from source and header files.*/
     bool m_enable_msd_baseline_noise; /** Flag that enables or disables the use of msd baseline noise. */
+	
+	std::vector<float> m_bandpass_normalization;
   };
 
 } // namespace astroaccelerate
