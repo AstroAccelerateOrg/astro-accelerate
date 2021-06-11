@@ -499,20 +499,10 @@ namespace astroaccelerate {
       aa_gpu_timer timer;
       timer.Start();
       const int *ndms =	m_ddtr_strategy.ndms_data();
-      GPU_periodicity(m_ddtr_strategy.get_nRanges(),
-		      inc,
-		      m_periodicity_strategy.sigma_cutoff(),
-		      m_output_buffer,
-		      ndms,
-		      inBin.data(),
-		      dm_low.data(),
-		      dm_high.data(),
-		      dm_step.data(),
-		      tsamp_original,
-		      m_periodicity_strategy.nHarmonics(),
-		      m_periodicity_strategy.candidate_algorithm(),
-		      m_periodicity_strategy.enable_msd_baseline_noise(),
-		      m_periodicity_strategy.sigma_constant());
+      GPU_periodicity(
+        m_periodicity_strategy,
+        m_output_buffer
+      );
       
       timer.Stop();
       float time = timer.Elapsed()/1000;

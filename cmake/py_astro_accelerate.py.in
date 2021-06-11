@@ -466,9 +466,9 @@ class aa_py_pipeline():
         return lib.aa_py_pipeline_api_bind_analysis_plan(self.m_obj, self.m_analysis_plan_ptr)
 
     def bind_periodicity_plan(self, plan: aa_py_periodicity_plan):
-        lib.aa_py_pipeline_api_bind_periodicity_plan.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_int, ctypes.c_int, ctypes.c_bool, ctypes.c_bool]
+        lib.aa_py_pipeline_api_bind_periodicity_plan.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_bool, ctypes.c_float, ctypes.c_int, ctypes.c_int]
         lib.aa_py_pipeline_api_bind_periodicity_plan.restype = ctypes.c_bool
-        return lib.aa_py_pipeline_api_bind_periodicity_plan(self.m_obj, ctypes.c_float(plan.sigma_cutoff()), ctypes.c_float(plan.sigma_constant()), ctypes.c_int(plan.nHarmonics()), ctypes.c_int(plan.export_powers()), ctypes.c_bool(plan.candidate_algorithm()), ctypes.c_bool(plan.enable_msd_baseline_noise()))
+        return lib.aa_py_pipeline_api_bind_periodicity_plan(self.m_obj, ctypes.c_float(plan.sigma_cutoff()), ctypes.c_bool(plan.enable_msd_baseline_noise()), ctypes.c_float(plan.sigma_constant()), ctypes.c_int(plan.nHarmonics()), ctypes.c_int(plan.candidate_selection_algorithm()))
         
     def bind_fdas_plan(self, plan: aa_py_fdas_plan):
         lib.aa_py_pipeline_api_bind_fdas_plan.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_bool]

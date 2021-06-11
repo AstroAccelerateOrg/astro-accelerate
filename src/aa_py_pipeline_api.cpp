@@ -76,9 +76,9 @@ namespace astroaccelerate {
 	return new aa_analysis_strategy(obj->analysis_strategy());
       }
 
-      bool aa_py_pipeline_api_bind_periodicity_plan(aa_pipeline_api<unsigned short> *const obj, const float sigma_cutoff, const float sigma_constant, const int nHarmonics, const int export_powers, const bool candidate_algorithm, const bool enable_msd_baseline_noise) {
-	aa_periodicity_plan plan(sigma_cutoff, sigma_constant, nHarmonics, export_powers, candidate_algorithm, enable_msd_baseline_noise);
-	return obj->bind(plan);
+      bool aa_py_pipeline_api_bind_periodicity_plan(aa_pipeline_api<unsigned short> *const obj, const float sigma_cutoff, const bool enable_outlier_rejection, const float sigma_outlier_rejection_threshold, const int nHarmonics, const int candidate_selection_algorithm) {
+          aa_periodicity_plan plan(obj->ddtr_strategy(), sigma_cutoff, enable_outlier_rejection, sigma_outlier_rejection_threshold, nHarmonics, candidate_selection_algorithm);
+          return obj->bind(plan);
       }
 
       bool aa_py_pipeline_api_bind_fdas_plan(aa_pipeline_api<unsigned short> *const obj, const float sigma_cutoff, const float sigma_constant, const bool enable_msd_baseline_noise) {

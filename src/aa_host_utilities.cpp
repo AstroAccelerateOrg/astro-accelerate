@@ -4,7 +4,12 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <cuda.h>
+#include <cuda_runtime.h>
 #include "aa_host_utilities.hpp"
+#include "aa_device_spectrum_whitening.hpp"
+#include "presto_funcs.hpp"
+#include "presto.hpp"
 
 namespace astroaccelerate {
 
@@ -234,6 +239,139 @@ void dered_with_MED(float2 *data, int nSamples, int *segment_sizes, int nSegment
 	}
 }
 
+void CPU_spectral_whitening(float* d_FFT_complex_output, float *d_dedispersed_data, float t_dm_step, float t_dm_low, size_t t_nTimesamples, size_t t_nTSamplesFFT, size_t t_nDMs_per_batch, size_t t_DM_shift){
+        
+    //---------> CPU spectral whitening
+    printf("full nTimesamples=%zu; half nTimesamples=%zu;\n", t_nTimesamples, t_nTSamplesFFT);
+    // Copy stuff to the host
+    cudaError_t err;
+    char filename[300];
+    size_t fft_input_size_bytes = t_nTSamplesFFT*t_nDMs_per_batch*sizeof(float2);
+    size_t fft_power_size_bytes = t_nTSamplesFFT*t_nDMs_per_batch*sizeof(float);
+    size_t fft_ddtr_size_bytes  = t_nTimesamples*t_nDMs_per_batch*sizeof(float);
+    float2 *h_fft_input;
+    float  *h_fft_power;
+    float  *h_ddtr_data;
+    printf("Data copied and power calculation...\n");
+    h_fft_input = (float2*) malloc(fft_input_size_bytes);
+    h_fft_power = (float*) malloc(fft_power_size_bytes);
+    h_ddtr_data = (float*) malloc(fft_ddtr_size_bytes);
+    
+    err = cudaMemcpy(h_fft_input, d_FFT_complex_output, fft_input_size_bytes, cudaMemcpyDeviceToHost);
+    if(err != cudaSuccess) printf("CUDA error\n");
+    err = cudaMemcpy(h_ddtr_data, d_dedispersed_data, fft_ddtr_size_bytes, cudaMemcpyDeviceToHost);
+    if(err != cudaSuccess) printf("CUDA error\n");
+    
+    for(size_t d=0; d<t_nDMs_per_batch; d++){
+        for(size_t s=0; s<t_nTSamplesFFT; s++){
+            size_t pos = d*t_nTSamplesFFT + s;
+            h_fft_power[pos] = h_fft_input[pos].x*h_fft_input[pos].x + h_fft_input[pos].y*h_fft_input[pos].y;
+        }
+    }
+    
+    
+    // Export data to file
+    printf("Exporting fft data to file...\n");
+    for(size_t d=0; d<t_nDMs_per_batch; d++){
+        sprintf(filename, "PSR_fft_data_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
+        size_t pos = d*t_nTSamplesFFT;
+        Export_data_to_file(&h_fft_input[pos], t_nTSamplesFFT, 1, filename);
+    }
+    printf("Exporting ddtr data to file...\n");
+    for(size_t d=0; d<t_nDMs_per_batch; d++){
+        sprintf(filename, "PSR_ddtr_data_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
+        size_t pos = d*t_nTimesamples;
+        Export_data_to_file(&h_ddtr_data[pos], t_nTimesamples, 1, filename);
+    }
+    
+    
+    // Create segments for de-redning
+    printf("Calculating segment sizes...\n");
+    int max_segment_length = 256;
+    int min_segment_length = 6;
+    std::vector<int> segment_sizes;
+    create_dered_segment_sizes_prefix_sum(&segment_sizes, min_segment_length, max_segment_length, t_nTSamplesFFT);
+    int nSegments = segment_sizes.size();
+    
+    // Calculate mean for segments and export_size
+    printf("Calculating MSD...\n");
+    size_t MSD_segmented_size_bytes = 2*nSegments*t_nDMs_per_batch*sizeof(float);
+    float *h_segmented_MSD;
+    h_segmented_MSD = (float*) malloc(MSD_segmented_size_bytes);
+    for(size_t d=0; d<t_nDMs_per_batch; d++){
+        for(int s=0; s<(nSegments - 1); s++){
+            size_t MSD_pos = d*nSegments + s;
+            double mean, stdev;
+            int range = segment_sizes[s + 1] - segment_sizes[s];
+            size_t pos = d*t_nTSamplesFFT + segment_sizes[s];
+            MSD_Kahan(&h_fft_power[pos], 1, range, 0, &mean, &stdev);
+            h_segmented_MSD[2*MSD_pos] = (float) mean;
+            h_segmented_MSD[2*MSD_pos + 1] = (float) stdev;
+        }
+        
+        sprintf(filename, "PSR_fft_data_means_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
+        Export_data_to_file((float2*) &h_segmented_MSD[d*nSegments], nSegments, 1, filename);
+    }
+    
+    // Calculate medians for segments
+    printf("Calculating median...\n");
+    size_t MED_segmented_size_bytes = nSegments*t_nDMs_per_batch*sizeof(float);
+    float *h_segmented_MED;
+    h_segmented_MED = (float*) malloc(MED_segmented_size_bytes);
+    for(size_t d=0; d<t_nDMs_per_batch; d++){
+        for(int s=0; s<(nSegments - 1); s++){
+            size_t MED_pos = d*nSegments + s;
+            int range = segment_sizes[s + 1] - segment_sizes[s];
+            size_t pos = d*t_nTSamplesFFT + segment_sizes[s];
+            h_segmented_MED[MED_pos] = Calculate_median(&h_fft_power[pos], range);
+        }
+        
+        sprintf(filename, "PSR_fft_data_median_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
+        Export_data_to_file(&h_segmented_MED[d*nSegments], nSegments, 1, filename);
+    }
+    
+    // Calculate medians for segments based on presto
+    printf("Calculating median using presto...\n");
+    float *h_segmented_MED_p;
+    h_segmented_MED_p = (float*) malloc(MED_segmented_size_bytes);
+    for(size_t d=0; d<t_nDMs_per_batch; d++){
+        for(int s=0; s<(nSegments - 1); s++){
+            size_t MED_pos = d*nSegments + s;
+            int range = segment_sizes[s + 1] - segment_sizes[s];
+            size_t pos = d*t_nTSamplesFFT + segment_sizes[s];
+            h_segmented_MED_p[MED_pos] = median(&h_fft_power[pos], range);
+        }
+        
+        sprintf(filename, "PSR_fft_data_median_p_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
+        Export_data_to_file(&h_segmented_MED_p[d*nSegments], nSegments, 1, filename);
+    }
+    
+    // Deredning by presto
+    printf("De-redning...\n");
+    for(size_t d=0; d<t_nDMs_per_batch; d++){
+        float2 *presto_dered, *MSD_dered, *MED_dered;
+        presto_dered = new float2[t_nTSamplesFFT];
+        MSD_dered    = new float2[t_nTSamplesFFT];
+        MED_dered    = new float2[t_nTSamplesFFT];
+        for(size_t s=0; s<t_nTSamplesFFT; s++){
+            size_t pos = d*t_nTSamplesFFT + s;
+            presto_dered[s] = h_fft_input[pos];
+            MSD_dered[s]    = h_fft_input[pos];
+            MED_dered[s]    = h_fft_input[pos];
+        }
+        size_t MSD_pos = d*nSegments;
+        presto_dered_sig(presto_dered, t_nTSamplesFFT);
+        dered_with_MSD(MSD_dered, t_nTSamplesFFT, segment_sizes.data(), nSegments, (float*) &h_segmented_MSD[MSD_pos]);
+        dered_with_MED(MED_dered, t_nTSamplesFFT, segment_sizes.data(), nSegments, &h_segmented_MED[MSD_pos]);
+        sprintf(filename, "PSR_fft_dered_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
+        Export_data_to_file(presto_dered, MSD_dered, MED_dered, t_nTSamplesFFT, filename);
+    }
+    
+    free(h_fft_input);
+    free(h_fft_power);
+    free(h_segmented_MSD);
+    free(h_segmented_MED);
+}
 
 
 } //namespace astroaccelerate

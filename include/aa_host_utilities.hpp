@@ -24,6 +24,8 @@ void dered_with_MSD(float2 *data, int nSamples, int *segment_sizes, int nSegment
 
 void dered_with_MED(float2 *data, int nSamples, int *segment_sizes, int nSegments, float *MED);
 
+void CPU_spectral_whitening(float* d_FFT_complex_output, float *d_dedispersed_data, float t_dm_step, float t_dm_low, size_t t_nTimesamples, size_t t_nTSamplesFFT, size_t t_nDMs_per_batch, size_t t_DM_shift);
+
 
 } // namespace astroaccelerate
 

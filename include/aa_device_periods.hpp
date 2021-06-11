@@ -1,9 +1,10 @@
 #ifndef ASTRO_ACCELERATE_AA_DEVICE_PERIODS_HPP
 #define ASTRO_ACCELERATE_AA_DEVICE_PERIODS_HPP
+#include "aa_periodicity_strategy.hpp"
 
 namespace astroaccelerate {
 
-extern void GPU_periodicity(int range, int processed, float sigma_cutoff, float ***output_buffer, int const*const ndms, int *inBin, float *dm_low, float *dm_high, float *dm_step, float tsamp, int nHarmonics, bool candidate_algorithm, bool enable_msd_baseline_noise, float bln_sigma_constant);
+extern void GPU_periodicity(aa_periodicity_strategy &PSR_strategy, float ***output_buffer);
 
 } // namespace astroaccelerate
   

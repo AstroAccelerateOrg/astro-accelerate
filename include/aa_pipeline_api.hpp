@@ -233,8 +233,10 @@ namespace astroaccelerate {
 
 			//Does the pipeline actually need this plan?
 			if (required_plans.find(aa_pipeline::component::periodicity) != required_plans.end()) {
+				size_t free_mem, total_mem;
+				cudaMemGetInfo(&free_mem,&total_mem);
 				m_periodicity_plan = plan;
-				aa_periodicity_strategy periodicity_strategy(m_periodicity_plan);
+				aa_periodicity_strategy periodicity_strategy(m_periodicity_plan, free_mem);
 				if (periodicity_strategy.ready()) {
 					m_periodicity_strategy = std::move(periodicity_strategy);
 					m_all_strategy.push_back(&m_periodicity_strategy);

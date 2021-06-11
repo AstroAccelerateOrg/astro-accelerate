@@ -133,13 +133,22 @@ int main(int argc, char *argv[]) {
 	
 	if (pipeline.find(aa_pipeline::component::periodicity) != pipeline.end()) {
 		//If these settings come from the input_file, then move them into aa_config to be read from the file.
+		int harmonic_sum_algorithm = 1; // Greedy
+		bool enable_scalloping_loss_mitigation = true;
+		bool enable_interbinning = true;
+		bool enable_spectrum_whitening = true;
 		aa_periodicity_plan periodicity_plan(
+			pipeline_manager.ddtr_strategy(),
 			user_flags.periodicity_sigma_cutoff,
+			msd_baseline_noise,
 			user_flags.sigma_constant,
 			user_flags.periodicity_nHarmonics,
-			user_flags.power,
+			harmonic_sum_algorithm,
 			user_flags.candidate_algorithm,
-			msd_baseline_noise);
+			enable_scalloping_loss_mitigation,
+			enable_interbinning,
+			enable_spectrum_whitening
+		);
 		pipeline_manager.bind(periodicity_plan);
 	}
 
