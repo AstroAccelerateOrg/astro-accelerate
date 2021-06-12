@@ -480,7 +480,6 @@ namespace astroaccelerate {
     
     //---------> Calculate powers and interbinning
     timer.Start();
-    //simple_power_and_interbin( (float2 *) d_two_B, d_half_C, d_one_A, nTimesamples, t_nDMs_per_batch);
     simple_power_and_interbin( (float2 *) d_FFT_complex_output, d_frequency_power, d_frequency_interbin, t_nTimesamples, t_nDMs_per_batch);
     timer.Stop();
     time_log.adding("PSR","power spectrum",timer.Elapsed());
@@ -494,10 +493,8 @@ namespace astroaccelerate {
 
     double total_time, dit_time, MSD_time;
     MSD_plane_profile(gmem->d_MSD, d_frequency_power, gmem->d_previous_partials, d_MSD_workarea, true, (t_nTimesamples>>1), t_nDMs_per_batch, h_boxcar_widths, 0, 0, 0, PSR_strategy.sigma_outlier_rejection_threshold(), PSR_strategy.enable_outlier_rejection(), perform_continuous, &total_time, &dit_time, &MSD_time);
-    //printf("    MSD time: Total: %f ms; DIT: %f ms; MSD: %f ms;\n", total_time, dit_time, MSD_time);
     
     timer.Stop();
-    //printf("         -> MSD took %f ms\n", timer.Elapsed());
     time_log.adding("PSR","MSD",timer.Elapsed());
     (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
@@ -535,7 +532,6 @@ namespace astroaccelerate {
         //---------<
     }
     timer.Stop();
-    //printf("         -> harmonic summing took %f ms\n", timer.Elapsed());
     time_log.adding("PSR","harmonic sum",timer.Elapsed());
     (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
@@ -562,7 +558,6 @@ namespace astroaccelerate {
         //-------------- Peak finding
     }
     timer.Stop();
-    //printf("         -> Peak finding took %f ms\n", timer.Elapsed());
     time_log.adding("PSR","candidates",timer.Elapsed());
     (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
