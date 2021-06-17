@@ -29,7 +29,7 @@ Repository Conventions
    * Fill in the details of the pull request template. In particular, tag which issues are being fixed by using `fixes ##`, where `##` is the issue number of any issues being fixed. If multiple issues are being fixed, separate the issues with a comma, adding `fixes` for each one of them.
    * Add a meaningful description of the changes. For instance, detail each file that was changed and why it was changed. Provide simple instructions to test whether the changes work.
    * Assign the pull request to a relevant person (either the person who created the issue, or someone who has permissions to merge the branch). Tag relevant people for review, and/or tag people in the pull request description for commenting as needed.
-   * Prepend `[WIP]` and/or `[DO NOT MERGE]` if the branch is `Work In Progress` or if the branch should not be merged yet. Remove these flags when no longer needed.
+   * Use `Draft:` and/or `[Draft]` and/or mark a merge request as a draft if the branch should not be merged yet.
    * Once the branch is merged, the issue it relates to is either closed automatically if it was tagged, or it will be manually closed by the person who merged the branch.
    * The branch may only be deleted if the pull request has indicated this explicitly. If this is the case, the branch will be deleted by the person who merged the branch.
    
