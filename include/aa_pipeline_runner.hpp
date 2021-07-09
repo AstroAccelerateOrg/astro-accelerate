@@ -102,6 +102,36 @@ namespace astroaccelerate {
 			LOG(log_level::error, "The selected operation is not supported on this pipeline (nCandidates).");
 			return 0;
 		}
+		
+		// ----------------------- PSR -------------------------
+		virtual float *Get_PSR_candidates(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (current_range).");
+			return(NULL);
+		}
+		
+		virtual float *Get_PSR_interbin_candidates(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (current_range).");
+			return(NULL);
+		}
+		
+		virtual void Write_to_disk_PSR_candidates(const char *filename){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (current_range).");
+		}
+		
+		virtual void Write_to_disk_PSR_interbin_candidates(const char *filename){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (current_range).");
+		}
+		
+		virtual size_t get_PSR_nCandidates(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (current_range).");
+			return(0);
+		}
+
+		virtual size_t get_PSR_interbin_nCandidates(){
+			LOG(log_level::error, "The selected operation is not supported on this pipeline (current_range).");
+			return(0);
+		}
+		// ----------------------- PSR -------------------------
 
 		virtual int get_current_range(){
 			LOG(log_level::error, "The selected operation is not supported on this pipeline (current_range).");

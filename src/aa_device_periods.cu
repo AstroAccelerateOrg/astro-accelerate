@@ -13,6 +13,7 @@
 #include "aa_params.hpp"
 
 #include "aa_periodicity_strategy.hpp"
+#include "aa_periodicity_candidates.hpp"
 #include "aa_device_MSD_Configuration.hpp"
 #include "aa_device_MSD.hpp"
 #include "aa_device_MSD_plane_profile.hpp"
@@ -59,18 +60,6 @@ namespace astroaccelerate {
   class Candidate_List {
   private:
 
-    /**
-     * \brief Calculates the signal-to-noise ratio (SNR) using a linear approximation.
-     * \returns A linear approximation of the signal-to-noise ratio (SNR).
-     */
-    float linear_approximation(float value, int harmonic, float *MSD) {
-      float SNR;
-      float mean     = MSD[0];
-      float sd       = MSD[1];
-      float modifier = MSD[2];
-      SNR = (value - (harmonic+1)*mean)/(sd + harmonic*modifier);
-      return(SNR);
-    }
 
   public:
     static const int el=4; // number of columns in the candidate list
@@ -399,6 +388,7 @@ namespace astroaccelerate {
         d_interbin_SNR          = gmem->d_one_A;
         d_power_list            = &gmem->d_two_B[0];
         d_interbin_list         = &gmem->d_two_B[input_plane_size];
+        local_max_list_size = local_max_list_size/2;
     }
     else {
         d_frequency_power_CT    = NULL;
@@ -458,24 +448,6 @@ namespace astroaccelerate {
     time_log.adding("PSR","spectrum whitening",timer.Elapsed());
     (*compute_time) = (*compute_time) + timer.Elapsed();
     //---------<
-    
-    #ifdef CPU_SPECTRAL_WHITENING_DEBUG
-    printf("Data copied and power calculation...\n");
-    h_fft_input = (float2*) malloc(fft_input_size_bytes);
-    err = cudaMemcpy(h_fft_input, d_FFT_complex_output, fft_input_size_bytes, cudaMemcpyDeviceToHost);
-    if(err != cudaSuccess) printf("CUDA error\n");
-    // Export data to file
-    printf("Exporting fft data to file...\n");
-    for(int d=0; d<t_nDMs_per_batch; d++){
-        sprintf(filename, "PSR_fft_data_GPU_dered_%f.dat", t_dm_low + t_dm_step*(t_DM_shift + d));
-        size_t pos = d*t_nTSamplesFFT;
-        Export_data_to_file(&h_fft_input[pos], t_nTSamplesFFT, 1, filename);
-        printf(".");
-        fflush(stdout);
-    }
-    printf(" Finished!\n");
-    free(h_fft_input);
-    #endif
     
     
     //---------> Calculate powers and interbinning
@@ -591,7 +563,7 @@ namespace astroaccelerate {
 
 
   /** \brief Function that performs a GPU periodicity search. */
-  void GPU_periodicity(aa_periodicity_strategy &PSR_strategy, float ***output_buffer) {
+  void GPU_periodicity(aa_periodicity_strategy &PSR_strategy, float ***output_buffer, aa_periodicity_candidates &Power_Candidates, aa_periodicity_candidates &Interbin_Candidates) {
     TimeLog time_log;
     
     LOG(log_level::notice, "------------ STARTING PERIODICITY SEARCH ------------");
@@ -624,8 +596,8 @@ namespace astroaccelerate {
     
     for(int r=0; r<(int) PSR_strategy.nRanges(); r++) {
         aa_periodicity_range current_p_range = PSR_strategy.get_periodicity_range(r);
-        std::vector<Candidate_List> PowerCandidates;
-        std::vector<Candidate_List> InterbinCandidates;
+        //std::vector<Candidate_List> PowerCandidates;
+        //std::vector<Candidate_List> InterbinCandidates;
 
         GPU_memory.Reset_MSD();
         current_p_range.print();
@@ -654,68 +626,35 @@ namespace astroaccelerate {
           Periodicity_search(&GPU_memory, PSR_strategy, &calc_time_per_range, PSR_strategy.input_plane_size(), &current_p_range, &current_p_range.batches[b], &h_boxcar_widths, harmonic_sum_algorithm, enable_scalloping_loss_removal);
           //---------<
     
+          
+          GPU_memory.Get_MSD(h_MSD);
+          
           //---------> Copy candidates to the host
           timer.Start();
-    
-          cudaError_t e;
-          int last_entry;
-          int nPowerCandidates = GPU_memory.Get_Number_of_Power_Candidates();
-          PowerCandidates.push_back(*(new Candidate_List(r)));
-          last_entry = PowerCandidates.size()-1;
+          size_t nPowerCandidates = GPU_memory.Get_Number_of_Power_Candidates();
+          size_t nInterbinCandidates = GPU_memory.Get_Number_of_Interbin_Candidates();
           LOG(log_level::debug, " PSR: Total number of candidates found in this range is " + std::to_string(nPowerCandidates) + ";");
-          PowerCandidates[last_entry].Allocate(nPowerCandidates);
-          if(harmonic_sum_algorithm==0) {
-              e = cudaMemcpy( &PowerCandidates[last_entry].list[0], &GPU_memory.d_two_B[0], nPowerCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
-          }
-          else {
-              e = cudaMemcpy( &PowerCandidates[last_entry].list[0], GPU_memory.d_half_C, nPowerCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
-          }
-      
-          if(e != cudaSuccess) {
-            LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
-          }
-    
-          int nInterbinCandidates = GPU_memory.Get_Number_of_Interbin_Candidates();
-          InterbinCandidates.push_back(*(new Candidate_List(r)));
-          last_entry = InterbinCandidates.size()-1;
           LOG(log_level::debug, " PSR with inter-binning: Total number of candidates found in this range is " + std::to_string(nInterbinCandidates) + ";");
-          InterbinCandidates[last_entry].Allocate(nInterbinCandidates);
-          if(harmonic_sum_algorithm==0) {
-              e = cudaMemcpy( &InterbinCandidates[last_entry].list[0], &GPU_memory.d_two_B[PSR_strategy.input_plane_size()], nInterbinCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
-          }
-          else {
-            e = cudaMemcpy( &InterbinCandidates[last_entry].list[0], GPU_memory.d_one_A, nInterbinCandidates*Candidate_List::el*sizeof(float), cudaMemcpyDeviceToHost);
-          }
-      
-          if(e != cudaSuccess) {
-            LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
-          }
-      
+          
+          float  range_dm_low  = current_p_range.range.dm_low();
+          float  range_dm_step = current_p_range.range.dm_step();
+          int    range_id      = current_p_range.rangeid;
+          size_t range_nTimesamples = current_p_range.range.nTimesamples(); 
+          double range_sampling_time = current_p_range.range.sampling_time();
+          float  *pointer_to_candidate_data = NULL;
+          
+          if(harmonic_sum_algorithm==0) pointer_to_candidate_data = &GPU_memory.d_two_B[0];
+          else pointer_to_candidate_data = GPU_memory.d_half_C;
+          Power_Candidates.Add_Candidates(pointer_to_candidate_data, nPowerCandidates, range_id, h_MSD, range_dm_low, range_dm_step, range_sampling_time, range_nTimesamples, 1.0);
+          
+          if(harmonic_sum_algorithm==0) pointer_to_candidate_data = &GPU_memory.d_two_B[PSR_strategy.input_plane_size()];
+          else pointer_to_candidate_data = GPU_memory.d_one_A;
+          Interbin_Candidates.Add_Candidates(pointer_to_candidate_data, nInterbinCandidates, range_id, h_MSD, range_dm_low, range_dm_step, range_sampling_time, range_nTimesamples, 2.0);
+          
           timer.Stop();
           time_log.adding("PSR","Device-To-Host",timer.Elapsed());
           copy_time_per_range = copy_time_per_range + timer.Elapsed();
-          //---------<
-    
-          GPU_memory.Get_MSD(h_MSD);
-    
-          PowerCandidates[last_entry].Process(h_MSD, &current_p_range,  1.0);
-          InterbinCandidates[last_entry].Process(h_MSD, &current_p_range, 2.0);
       } //batches
-
-      // Export of the candidate list for inBin range;
-      char filename[100];
-      float range_dm_low  = current_p_range.range.dm_low();
-      float range_dm_high = current_p_range.range.dm_high(); 
-      sprintf(filename, "fourier-dm_%.2f-%.2f.dat", range_dm_low, range_dm_high);
-      Export_Data_To_File(PowerCandidates, filename);
-      sprintf(filename, "fourier_inter-dm_%.2f-%.2f.dat", range_dm_low, range_dm_high);
-      Export_Data_To_File(InterbinCandidates, filename);
-        
-      // Cleanup
-      for(int f=0; f<(int) PowerCandidates.size(); f++) PowerCandidates[f].list.clear();
-      PowerCandidates.clear();
-      for(int f=0; f<(int) InterbinCandidates.size(); f++) InterbinCandidates[f].list.clear();
-      InterbinCandidates.clear();
         
         
       Total_calc_time = Total_calc_time + calc_time_per_range;

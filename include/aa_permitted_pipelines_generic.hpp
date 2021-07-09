@@ -29,6 +29,7 @@
 #include "aa_analysis_plan.hpp"
 #include "aa_analysis_strategy.hpp"
 #include "aa_periodicity_strategy.hpp"
+#include "aa_periodicity_candidates.hpp"
 #include "aa_fdas_strategy.hpp"
 #include "aa_jerk_strategy.hpp"
 
@@ -106,6 +107,12 @@ namespace astroaccelerate {
 		unsigned int *h_SPD_candidate_list_BW;
 		size_t        SPD_max_peak_size;
 		size_t        SPD_nCandidates;
+		
+		// periodicity search output candidates
+		aa_periodicity_candidates c_PSR_power_candidates;
+		aa_periodicity_candidates c_PSR_interbin_candidates;
+		float *c_h_PSR_power_candidates;
+		float *c_h_PSR_interbin_candidates;
 		
 
 		// fdas acceleration search settings
@@ -459,6 +466,10 @@ namespace astroaccelerate {
 				allocate_cpu_memory_SPD(max_ndms, t_processed[0][0]);
 				allocate_gpu_memory_SPD(&m_d_MSD_workarea, &m_d_SPDT_output_taps, &m_d_MSD_interpolated, m_analysis_strategy.MSD_data_info(), m_analysis_strategy.MSD_profile_size_in_bytes());
 			}
+			
+			c_h_PSR_power_candidates = NULL;
+			c_h_PSR_interbin_candidates = NULL;
+			
 			//Allocate memory for CPU output for periodicity
 			if(pipeline_error==0) {
 				allocate_memory_cpu_output();
@@ -582,7 +593,7 @@ namespace astroaccelerate {
 				//------------------> Acceleration FDAS
 				if (!acceleration_did_run && do_fdas) {
 					bool acceleration_return_value = acceleration();
-					status_code = aa_pipeline_runner::status::finished;
+					status_code = aa_pipeline_runner::status::finished_component;
 					return acceleration_return_value;
 				}
 				//--------------------------------------------------------------------------------<
@@ -591,11 +602,12 @@ namespace astroaccelerate {
 				//------------------> JERK search
 				if (!jerk_did_run && do_jerk) {
 					bool jerk_return_value = jerk_search();
-					status_code = aa_pipeline_runner::status::finished;
+					status_code = aa_pipeline_runner::status::finished_component;
 					return jerk_return_value;
 				}
 				//--------------------------------------------------------------------------------<
-
+				
+				status_code = aa_pipeline_runner::status::finished;
 				return false; // In this case, there are no more chunks to process, and periodicity and acceleration both ran.
 			}
 			else if (current_time_chunk == 0 && current_range == 0) {
@@ -823,9 +835,18 @@ namespace astroaccelerate {
 			
 			GPU_periodicity(
 				m_periodicity_strategy,
-				m_output_buffer
+				m_output_buffer,
+				c_PSR_power_candidates,
+				c_PSR_interbin_candidates
 			);
-
+			
+			//debug
+			size_t nCandidates;
+			nCandidates = c_PSR_power_candidates.nCandidates();
+			printf("PSR DEBUG: Number of power candidates: %zu;\n", nCandidates);
+			nCandidates = c_PSR_interbin_candidates.nCandidates();
+			printf("PSR DEBUG: Number of interbin candidates: %zu;\n", nCandidates);
+			
 			timer.Stop();
 			time_log.adding("Periodicity", "total", timer.Elapsed());
 			time_log.adding("Total", "total", timer.Elapsed());
@@ -1061,6 +1082,38 @@ namespace astroaccelerate {
 		size_t get_SPD_nCandidates(){
 			return SPD_nCandidates;
 		}
+		
+		// ----------------------- PSR -------------------------
+		float *Get_PSR_candidates(){
+			size_t nCandidates = c_PSR_power_candidates.nCandidates();
+			c_h_PSR_power_candidates  = (float*) malloc(nCandidates*4*sizeof(float));
+			c_PSR_power_candidates.Copy_candidates(c_h_PSR_power_candidates);
+			return(c_h_PSR_power_candidates);
+		}
+		
+		float *Get_PSR_interbin_candidates(){
+			size_t nCandidates = c_PSR_interbin_candidates.nCandidates();
+			c_h_PSR_interbin_candidates  = (float*) malloc(nCandidates*4*sizeof(float));
+			c_PSR_power_candidates.Copy_candidates(c_h_PSR_interbin_candidates);
+			return(c_h_PSR_interbin_candidates);
+		}
+		
+		void Write_to_disk_PSR_candidates(const char *filename){
+			c_PSR_power_candidates.Export_candidates_to_file(filename);
+		}
+		
+		void Write_to_disk_PSR_interbin_candidates(const char *filename){
+			c_PSR_interbin_candidates.Export_candidates_to_file(filename);
+		}
+
+		size_t get_PSR_nCandidates(){
+			return c_PSR_power_candidates.nCandidates();
+		}
+
+		size_t get_PSR_interbin_nCandidates(){
+			return c_PSR_interbin_candidates.nCandidates();
+		}
+		// ----------------------- PSR -------------------------
 
 		int get_current_range(){
 			return (current_range>0 ? current_range-1:nRanges-1);
@@ -1094,6 +1147,21 @@ namespace astroaccelerate {
 						free(m_output_buffer[i]);
 					}
 					free(m_output_buffer);
+				}
+				
+				LOG(log_level::debug, "Generic Pipeline -> PSR Candidates cleanup");
+				if(do_periodicity_search && periodicity_did_run){
+					c_PSR_power_candidates.Free_candidates();
+					c_PSR_interbin_candidates.Free_candidates();
+					
+					if(c_h_PSR_power_candidates!=NULL)  {
+						free(c_h_PSR_power_candidates);
+						c_h_PSR_power_candidates = NULL;
+					}
+					if(c_h_PSR_interbin_candidates!=NULL)  {
+						free(c_h_PSR_interbin_candidates);
+						c_h_PSR_interbin_candidates = NULL;
+					}
 				}
 
 				memory_cleanup = true;

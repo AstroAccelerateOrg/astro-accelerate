@@ -11,6 +11,7 @@
 
 
 #include "aa_periodicity_strategy.hpp"
+#include "aa_periodicity_candidates.hpp"
 #include "aa_fdas_strategy.hpp"
 
 #include "aa_filterbank_metadata.hpp"
@@ -104,6 +105,9 @@ namespace astroaccelerate {
 	cudaFree(d_input);
 	cudaFree(d_output);
 	
+	c_PSR_power_candidates.Free_candidates();
+	c_PSR_interbin_candidates.Free_candidates();
+	
 	size_t t_processed_size = m_ddtr_strategy.t_processed().size();
 	for(size_t i = 0; i < t_processed_size; i++) {
 	  free(t_processed[i]);
@@ -140,6 +144,10 @@ namespace astroaccelerate {
 
     unsigned short     *d_input;
     float              *d_output;
+    
+    // periodicity search output candidates
+    aa_periodicity_candidates c_PSR_power_candidates;
+    aa_periodicity_candidates c_PSR_interbin_candidates;
     
     std::vector<float> dm_low;
     std::vector<float> dm_high;
@@ -413,7 +421,9 @@ namespace astroaccelerate {
       
       GPU_periodicity(
         m_periodicity_strategy,
-        m_output_buffer
+        m_output_buffer,
+        c_PSR_power_candidates,
+        c_PSR_interbin_candidates
       );
       
       timer.Stop();

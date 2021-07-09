@@ -213,6 +213,11 @@ int main(int argc, char *argv[]) {
 	// Run the pipeline
 	if (pipeline_manager.run()) {
 		LOG(log_level::notice, "The pipeline finished successfully.");
+		if (pipeline.find(aa_pipeline::component::periodicity) != pipeline.end()) {
+			LOG(log_level::notice, "Writing periodicity candidates to disk.");
+			pipeline_manager.Write_to_disk_PSR_candidates("PSR_candidate_list.dat");
+			pipeline_manager.Write_to_disk_PSR_interbin_candidates("PSR_interbin_candidate_list.dat");
+		}
 	}
 	else {
 		LOG(log_level::error, "The pipeline could not start or had errors.");
