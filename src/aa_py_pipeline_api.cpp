@@ -122,6 +122,20 @@ namespace astroaccelerate {
 	size_t aa_py_spd_nCandidates(aa_pipeline_api<unsigned short> *const obj){
 		return obj->SPD_nCandidates();
 	}
+	
+	// ----------------------- PSR -------------------------
+	size_t aa_py_get_psr_nCandidates(aa_pipeline_api<unsigned short> *const obj){
+		return obj->Get_PSR_candidates();
+	}
+	
+	size_t aa_py_get_psr_interbin_nCandidates(aa_pipeline_api<unsigned short> *const obj){
+		return obj->Get_PSR_interbin_candidates();
+	}
+	
+	void aa_py_write_to_disk_psr_candidates(aa_pipeline_api<unsigned short> *const obj, const char *filename){
+		obj->Write_to_disk_PSR_candidates(filename);
+	}
+	// ----------------------- PSR -------------------------
 
 	int aa_py_current_range(aa_pipeline_api<unsigned short> *const obj){
 		return obj->get_current_range();
