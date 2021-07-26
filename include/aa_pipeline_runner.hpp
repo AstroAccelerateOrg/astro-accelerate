@@ -114,11 +114,11 @@ namespace astroaccelerate {
 			return(NULL);
 		}
 		
-		virtual void Write_to_disk_PSR_candidates(const char *filename){
+		virtual void Write_to_disk_PSR_candidates(const char *){
 			LOG(log_level::error, "The selected operation is not supported on this pipeline (current_range).");
 		}
 		
-		virtual void Write_to_disk_PSR_interbin_candidates(const char *filename){
+		virtual void Write_to_disk_PSR_interbin_candidates(const char *){
 			LOG(log_level::error, "The selected operation is not supported on this pipeline (current_range).");
 		}
 		

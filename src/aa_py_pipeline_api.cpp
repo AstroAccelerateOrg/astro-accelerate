@@ -124,11 +124,11 @@ namespace astroaccelerate {
 	}
 	
 	// ----------------------- PSR -------------------------
-	size_t aa_py_get_psr_nCandidates(aa_pipeline_api<unsigned short> *const obj){
+	float* aa_py_get_psr_nCandidates(aa_pipeline_api<unsigned short> *const obj){
 		return obj->Get_PSR_candidates();
 	}
 	
-	size_t aa_py_get_psr_interbin_nCandidates(aa_pipeline_api<unsigned short> *const obj){
+	float* aa_py_get_psr_interbin_nCandidates(aa_pipeline_api<unsigned short> *const obj){
 		return obj->Get_PSR_interbin_candidates();
 	}
 	
