@@ -69,12 +69,35 @@ int main(int argc, char *argv[]) {
 	}
 	//-------------<
 	
+	// Allocate and acquire pointer with dedispersed data
 	float ***ddtr_output;
 	ddtr_output = pipeline_runner.output_buffer();
-	aa_ddtr_strategy plan = pipeline_runner.ddtr_strategy();
 	
-	//ddtr_output[pos_range][n_dms][samples_pos]*plan.dm(pos_range).inBin
-	LOG(log_level::notice, "DDDTR output[0][0][0]: " + std::to_string(ddtr_output[0][0][0]*plan.dm(0).inBin));
+	// Get aa_ddtr_strategy which contains plan and metadata of the output
+	aa_ddtr_strategy plan = pipeline_runner.ddtr_strategy();
+	size_t nProcessedTimesamples = plan.nProcessedTimesamples();
+	LOG(log_level::notice, "Number of dedispersed samples: " + std::to_string(nProcessedTimesamples) + ";");
+	
+	// Get number of ranges and range parameters; AstroAccelerate changes users plan to improve performance
+	size_t nRanges = plan.get_nRanges();
+	aa_ddtr_plan::dm DM_ranges_parameters;
+	for(size_t r=0; r<nRanges; r++){
+		size_t nDMs = (size_t) plan.ndms(r);
+		DM_ranges_parameters = plan.dm(r);
+		float dm_low  = DM_ranges_parameters.low;
+		float dm_high = DM_ranges_parameters.high;
+		float dm_step = DM_ranges_parameters.step;
+		int   dm_bin  = DM_ranges_parameters.inBin;
+		size_t dm_samples = nProcessedTimesamples/dm_bin;
+		LOG(log_level::notice, "Range parameters DM low: " + std::to_string(dm_low) + "; DM high: " + std::to_string(dm_high) + "; DM step: " + std::to_string(dm_step) + "; Number of DMs: " + std::to_string(nDMs) + "; Binning factor: " + std::to_string(dm_bin) + "; Number of dedispersed samples: " + std::to_string(dm_samples) + ";");
+		for(size_t d=0; d<nDMs; d++){
+			float first = ddtr_output[r][d][0];
+			float last  = ddtr_output[r][d][dm_samples-1];
+			LOG(log_level::notice, "First sample: " + std::to_string(first) + " and last sample: " + std::to_string(last) + " from range " + std::to_string(r) + " and dm " + std::to_string(d) + ";");
+		}
+	}
+	
+	
 
 	std::cout << "NOTICE: Finished." << std::endl;
 
