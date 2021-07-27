@@ -25,6 +25,7 @@ analysis
 output_DDTR_normalization
 -periodicity
 -output_dmt
+-copy_ddtr_data_to_host
 -dered
 -zero_dm
 -zero_dm_with_outliers

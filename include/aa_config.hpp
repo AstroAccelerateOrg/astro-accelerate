@@ -179,6 +179,8 @@ namespace astroaccelerate {
 						m_pipeline_options.insert(aa_pipeline::component_option::output_fdas_list);
 					if (strcmp(string, "output_dmt") == 0)
 						m_pipeline_options.insert(aa_pipeline::component_option::output_dmt);
+					if (strcmp(string, "copy_ddtr_data_to_host") == 0)
+						m_pipeline_options.insert(aa_pipeline::component_option::copy_ddtr_data_to_host);
 					if (strcmp(string, "dered") == 0)
 						m_pipeline_options.insert(aa_pipeline::component_option::dered);
 					if (strcmp(string, "zero_dm") == 0)
