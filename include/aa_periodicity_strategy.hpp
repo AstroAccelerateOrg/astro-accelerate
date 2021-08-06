@@ -24,18 +24,20 @@ namespace astroaccelerate {
 */
 class aa_periodicity_batch {
 public:
-	size_t nDMs_per_batch;
-	size_t nTimesamples;
-	size_t DM_shift;
-	MSD_Configuration MSD_conf;
+	size_t nDMs_per_batch;       /** Number of DM trials per batch */
+	size_t nTimesamples;         /** Number of time samples in the input to FFT */
+	size_t nTimesamples_to_copy; /** Number of time samples to copy from DM-trial. This could be different from nTimesamples because of padding */
+	size_t DM_shift;             /** Index of a starting DM-trial for this batch */
+	MSD_Configuration MSD_conf;  /** Configuration handle for MSD calculation */
 
 	/** \brief Constructor for aa_periodicity_batch. */
-	aa_periodicity_batch(size_t t_nDMs_per_batch, size_t t_DM_shift, size_t t_nTimesamples, int total_blocks) {
-		nDMs_per_batch = t_nDMs_per_batch;
-		nTimesamples   = t_nTimesamples;
-		DM_shift       = t_DM_shift;
+	aa_periodicity_batch(size_t t_nDMs_per_batch, size_t t_DM_shift, size_t t_nTimesamples, size_t t_nTimesamples_to_copy, int total_blocks) {
+		nDMs_per_batch       = t_nDMs_per_batch;
+		nTimesamples         = t_nTimesamples;
+		nTimesamples_to_copy = t_nTimesamples_to_copy;
+		DM_shift             = t_DM_shift;
 		
-		// We divide nTimesamples by 2 because MSD is determined from power spectra (or because of FFT R->C)
+		// We divide nTimesamples by 2 because MSD is calculated from power spectra that has a length N/2+1 (because of FFT R->C)
 		MSD_conf = *(new MSD_Configuration((nTimesamples>>1) + 1, nDMs_per_batch, 0, total_blocks));
 	}
 
@@ -46,7 +48,7 @@ public:
 	
 	/** \brief Method for printing member variable data for an instance. */
 	void print(int id) {
-		LOG(log_level::debug, "    Batch:" + std::to_string(id) + "; nDMs:" + std::to_string(nDMs_per_batch) + "; nTimesamples:" + std::to_string(nTimesamples) + "; DM shift:" + std::to_string(DM_shift) + ";");
+		LOG(log_level::debug, "    Batch:" + std::to_string(id) + "; nDMs:" + std::to_string(nDMs_per_batch) + "; nTimesamples:" + std::to_string(nTimesamples) + ";  nTimesamples to copy:" + std::to_string(nTimesamples_to_copy) + "; DM shift:" + std::to_string(DM_shift) + ";");
 	}
 };
 
@@ -63,6 +65,8 @@ public:
 	int rangeid;
 	std::vector<aa_periodicity_batch> batches;
 	size_t total_MSD_blocks;
+	size_t c_corrected_max_nTimesamples;
+	size_t c_nTimesamples_to_copy;
 
 	void Create_Batches(size_t max_nDMs_in_range) {
 		int nRepeats, nRest;
@@ -71,18 +75,18 @@ public:
 		nRepeats = range.nDMs()/max_nDMs_in_range;
 		nRest    = range.nDMs() - nRepeats*max_nDMs_in_range;
 		for(int f=0; f<nRepeats; f++) {
-			aa_periodicity_batch batch(max_nDMs_in_range, f*max_nDMs_in_range, range.nTimesamples(), 0);
+			aa_periodicity_batch batch(max_nDMs_in_range, f*max_nDMs_in_range, range.nTimesamples(), c_nTimesamples_to_copy, 0);
 			batches.push_back(batch);
 			if((size_t) batch.MSD_conf.nBlocks_total > total_MSD_blocks) total_MSD_blocks = batch.MSD_conf.nBlocks_total;
 		}
 		if(nRest>0) {
-			aa_periodicity_batch batch(nRest, nRepeats*max_nDMs_in_range, range.nTimesamples(), 0);
+			aa_periodicity_batch batch(nRest, nRepeats*max_nDMs_in_range, range.nTimesamples(), c_nTimesamples_to_copy, 0);
 			batches.push_back(batch);
 			if((size_t) batch.MSD_conf.nBlocks_total > total_MSD_blocks) total_MSD_blocks = batch.MSD_conf.nBlocks_total;
 		}
 	}
 
-	aa_periodicity_range(aa_dedispersion_range t_range, size_t corrected_c_max_nTimesamples, size_t max_nDMs_in_memory, int t_rangeid) {
+	aa_periodicity_range(aa_dedispersion_range t_range, size_t corrected_max_nTimesamples, size_t nTimesamples_to_copy, size_t max_nDMs_in_memory, int t_rangeid) {
 		double dm_low        = t_range.dm_low();
 		double dm_high       = t_range.dm_high();
 		double dm_step       = t_range.dm_step();
@@ -91,8 +95,9 @@ public:
 		size_t nDMs          = t_range.nDMs(); 
 		double sampling_time = t_range.sampling_time();
 		
-		nTimesamples  = corrected_c_max_nTimesamples/inBin;
-		sampling_time = sampling_time*inBin;
+		c_corrected_max_nTimesamples = corrected_max_nTimesamples/inBin;
+		c_nTimesamples_to_copy = nTimesamples_to_copy/inBin;
+		nTimesamples  = c_corrected_max_nTimesamples;
 		range.Assign(dm_low, dm_high, dm_step, inBin, nTimesamples, nDMs, sampling_time);
 		
 		size_t max_nDMs_in_range = max_nDMs_in_memory*inBin;
@@ -146,9 +151,9 @@ private:
 	float c_sigma_outlier_rejection_threshold; /** User selected sigma for outlier rejection. Any value with sigma greater than this will be rejected. */
 	int   c_nHarmonics;                        /** User selected number of harmonics performed by the periodicity search. */
 	int   c_harmonic_sum_algorithm;            /** Flag for selection of the harmonic sum algorithm */
-	int   c_candidate_selection_algorithm;               /** User selected flag to select reduction algorithm to select candidates. */
+	int   c_candidate_selection_algorithm;     /** User selected flag to select reduction algorithm to select candidates. */
 	bool  c_enable_outlier_rejection;          /** User selected flag to enable or disable outlier rejection when calculating mean and standard deviation. */
-	bool  c_enable_interbinning;              /** Enable or disable interpolation for periodicity search */
+	bool  c_enable_interbinning;               /** Enable or disable interpolation for periodicity search */
 	bool  c_enable_scalloping_loss_mitigation; /** Enable 5-point convolution which mitigates scalloping loss */
 	bool  c_enable_spectrum_whitening;         /** Enable or disable spectrum whitening (removal of the red noise) for periodicity search */
 	bool  c_pad_to_nearest_higher_pow2;        /** Whether the periodicity will pad data to the nearest power of two for the Fourier transform. True by default */
@@ -156,12 +161,13 @@ private:
 	size_t c_max_total_MSD_blocks;
 	size_t c_max_nTimesamples;
 	size_t corrected_c_max_nTimesamples;
+	size_t nTimesamples_to_copy;
 	size_t max_nDMs;
 	size_t max_nDMs_in_memory;
 	size_t c_input_plane_size;
 	size_t c_cuFFT_workarea_size;
 	double sampling_time;
-	//std::vector<aa_periodicity_range> P_ranges;
+	
 	std::vector<p_range_pointer> P_ranges;
 	std::vector<aa_dedispersion_range> DDTR_ranges;
 	
@@ -180,6 +186,8 @@ private:
 		c_enable_spectrum_whitening = p_plan.enable_spectrum_whitening();
 		c_pad_to_nearest_higher_pow2 = p_plan.pad_to_nearest_higher_pow2();
 		
+		c_pad_to_nearest_higher_pow2 = false;
+		
 		int nRanges = p_plan.nRanges();
 		for(int f=0; f<nRanges; f++){
 			DDTR_ranges.push_back(p_plan.get_range(f));
@@ -188,6 +196,7 @@ private:
 		max_nDMs = 0;
 		size_t t_timesamples, t_DMs;
 		
+		// Determining max_nTimesamples and max_nDMs for calculation of periodicity strategy
 		if(nRanges > 0) {
 			c_max_nTimesamples = DDTR_ranges[0].nTimesamples();
 			max_nDMs = DDTR_ranges[0].nDMs();
@@ -199,9 +208,19 @@ private:
 			if(t_timesamples > c_max_nTimesamples) c_max_nTimesamples = t_timesamples;
 			if(t_DMs > max_nDMs) max_nDMs = t_DMs;
 		}
+		float power_of_two_fraction = log2f((float) c_max_nTimesamples);
+		int nearest_lower  = (int) floorf(power_of_two_fraction);
+		int nearest_higher = (int) ceilf(power_of_two_fraction);
+		power_of_two_fraction = power_of_two_fraction - nearest_lower;
 		
-		int nearest = (int) floorf(log2f((float) c_max_nTimesamples));
-		corrected_c_max_nTimesamples = (size_t) powf(2.0, (float) nearest);
+		if(power_of_two_fraction>0.33 && c_pad_to_nearest_higher_pow2 == true) {
+			corrected_c_max_nTimesamples = (size_t) powf(2.0, (float) nearest_higher);
+			nTimesamples_to_copy = c_max_nTimesamples;
+		}
+		else {
+			corrected_c_max_nTimesamples = (size_t) powf(2.0, (float) nearest_lower);
+			nTimesamples_to_copy = corrected_c_max_nTimesamples;
+		}
 	}
 	
 	int Calculate_max_nDMs_in_memory(size_t memory_available, float multiple_float, float multiple_ushort) {
@@ -226,7 +245,7 @@ private:
 		c_max_total_MSD_blocks = 0;
 		int nRanges = DDTR_ranges.size();
 		for(int f = 0; f < nRanges; f++) {
-			P_ranges.push_back( (new aa_periodicity_range(DDTR_ranges[f], corrected_c_max_nTimesamples, max_nDMs_in_memory, f)) );
+			P_ranges.push_back( (new aa_periodicity_range(DDTR_ranges[f], corrected_c_max_nTimesamples, nTimesamples_to_copy, max_nDMs_in_memory, f)) );
 			int new_range_index = (int) P_ranges.size() - 1;
 			size_t temp = P_ranges[new_range_index]->total_MSD_blocks;
 			if(temp > c_max_total_MSD_blocks) c_max_total_MSD_blocks = temp;

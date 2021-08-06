@@ -265,8 +265,10 @@ namespace astroaccelerate {
     cudaStream_t stream_copy[16];
     cudaError_t e;
     float *h_small_dedispersed_data;
-    size_t data_size = batch->nTimesamples*sizeof(float);
-    cudaMallocHost((void **) &h_small_dedispersed_data, nStreams*data_size);
+    size_t FFT_data_size  = batch->nTimesamples*sizeof(float); // FFT size
+    size_t copy_data_size = batch->nTimesamples_to_copy*sizeof(float); // data size to copy
+    cudaMallocHost((void **) &h_small_dedispersed_data, nStreams*FFT_data_size);
+    memset(h_small_dedispersed_data, 0 , nStreams*FFT_data_size);
 
     for (int i = 0; i < nStreams; i++){
       e = cudaStreamCreate(&stream_copy[i]);
@@ -277,12 +279,12 @@ namespace astroaccelerate {
 
     size_t stream_offset = batch->nTimesamples;
 
-    #pragma omp parallel for num_threads(nStreams) shared(h_small_dedispersed_data, data_size, d_one_A, stream_copy, stream_offset)
+    #pragma omp parallel for num_threads(nStreams) shared(h_small_dedispersed_data, FFT_data_size, copy_data_size, d_one_A, stream_copy, stream_offset)
     for(int ff=0; ff<(int) batch->nDMs_per_batch; ff++){
       int id_stream = omp_get_thread_num();
-      memcpy(h_small_dedispersed_data + id_stream*stream_offset, dedispersed_data[batch->DM_shift + ff], data_size);
+      memcpy(h_small_dedispersed_data + id_stream*stream_offset, dedispersed_data[batch->DM_shift + ff], copy_data_size);
       //e = cudaMemcpy( &d_one_A[ff*batch->nTimesamples], dedispersed_data[batch->DM_shift + ff], batch->nTimesamples*sizeof(float), cudaMemcpyHostToDevice);      
-      e = cudaMemcpyAsync(&d_one_A[ff*batch->nTimesamples], h_small_dedispersed_data + id_stream*stream_offset, data_size, cudaMemcpyHostToDevice, stream_copy[id_stream]);      
+      e = cudaMemcpyAsync(&d_one_A[ff*batch->nTimesamples], h_small_dedispersed_data + id_stream*stream_offset, FFT_data_size, cudaMemcpyHostToDevice, stream_copy[id_stream]);      
       cudaStreamSynchronize(stream_copy[id_stream]);
       if(e != cudaSuccess) {
         LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
@@ -569,9 +571,9 @@ namespace astroaccelerate {
     LOG(log_level::notice, "------------ STARTING PERIODICITY SEARCH ------------");
     
     
-    // Determining available memory (temporary, it should be moved elsewhere)
-    size_t memory_available,total_mem;
-    cudaMemGetInfo(&memory_available,&total_mem);
+    // Determining available memory (temporary, it should be moved elsewhere) COULD BE DELETED
+    //size_t memory_available,total_mem;
+    //cudaMemGetInfo(&memory_available,&total_mem);
     
     std::vector<int> h_boxcar_widths; h_boxcar_widths.resize(PSR_strategy.nHarmonics()); 
     for(int f=0; f<PSR_strategy.nHarmonics(); f++) h_boxcar_widths[f]=f+1;
