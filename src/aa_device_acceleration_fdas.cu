@@ -106,7 +106,6 @@ namespace astroaccelerate {
     processed=samps;
     printf("\nsamps:\t%d", samps);
 
-
     params.nsamps = samps;
     params.tsamp = tsamp;
 
@@ -355,7 +354,7 @@ namespace astroaccelerate {
 	    gettimeofday(&t_end, NULL);
 	    t_gpu = (double) (t_end.tv_sec + (t_end.tv_usec / 1000000.0)  - t_start.tv_sec - (t_start.tv_usec/ 1000000.0)) * 1000.0;
 	    t_gpu_i = (t_gpu /(double)titer);
-	    printf("\n\nAverage vector transfer time of %d float samples (%.2f Mb) from 1000 iterations: %f ms\n\n", params.nsamps, (float)(gpuarrays.mem_insig)/mbyte, t_gpu_i);
+	    //printf("\n\nAverage vector transfer time of %d float samples (%.2f Mb) from 1000 iterations: %f ms\n\n", params.nsamps, (float)(gpuarrays.mem_insig)/mbyte, t_gpu_i);
 
 	    cudaProfilerStart(); //exclude cuda initialization ops
 	    if(cmdargs.basic) {
@@ -368,7 +367,7 @@ namespace astroaccelerate {
 	      gettimeofday(&t_end, NULL);
 	      t_gpu = (double) (t_end.tv_sec + (t_end.tv_usec / 1000000.0)  - t_start.tv_sec - (t_start.tv_usec/ 1000000.0)) * 1000.0;
 	      t_gpu_i = (t_gpu / (double)iter);
-	      printf("\n\nConvolution using basic algorithm with cuFFT\nTotal process took: %f ms per iteration \nTotal time %d iterations: %f ms\n", t_gpu_i, iter, t_gpu);
+	      //printf("\n\nConvolution using basic algorithm with cuFFT\nTotal process took: %f ms per iteration \nTotal time %d iterations: %f ms\n", t_gpu_i, iter, t_gpu);
 	    }
 
 #ifndef NOCUST
@@ -405,11 +404,9 @@ namespace astroaccelerate {
 
 	      //printf("Dimensions for BLN: ibin:%d; siglen:%d;\n", ibin, params.siglen);
 	      if(NKERN>=32){
-		printf("Block\n");
 		MSD_grid_outlier_rejection(d_MSD, gpuarrays.d_ffdot_pwr, 32, 32, ibin*params.siglen, NKERN, 0, sigma_constant);
 	      }
 	      else {
-		printf("Point\n");
 		Find_MSD(d_MSD, gpuarrays.d_ffdot_pwr, params.siglen/ibin, NKERN, 0, sigma_constant, 1);
 	      }
 	      //checkCudaErrors(cudaGetLastError());
@@ -440,19 +437,19 @@ namespace astroaccelerate {
 	      fdas_write_ffdot(&gpuarrays, &cmdargs, &params, dm_low[i], dm_count, dm_step[i]);
 	      exit(1);
 #endif	
-					
-	      if (enable_output_fdas_list)
-		{
-		  if(list_size>0)
-		    fdas_write_list(&gpuarrays, &cmdargs, &params, h_MSD, dm_low[i], dm_count, dm_step[i], list_size);
-		}
-	      cudaFree(d_MSD);
-	      cudaFree(gmem_fdas_peak_pos);
+		
+			if (enable_output_fdas_list) {
+				if(list_size>0){
+					fdas_write_list(&gpuarrays, &cmdargs, &params, h_MSD, dm_low[i], dm_count, dm_step[i], list_size);
+				}
+			}
+			cudaFree(d_MSD);
+			cudaFree(gmem_fdas_peak_pos);
 	    }
-	    if (enable_output_ffdot_plan)
-	      {
-		fdas_write_ffdot(&gpuarrays, &cmdargs, &params, dm_low[i], dm_count, dm_step[i]);
-	      }
+		
+	    if (enable_output_ffdot_plan) {
+			fdas_write_ffdot(&gpuarrays, &cmdargs, &params, dm_low[i], dm_count, dm_step[i]);
+		}
 	    // Call sofias code here pass...
 	    // output_buffer[i][dm_count],
 	  }
