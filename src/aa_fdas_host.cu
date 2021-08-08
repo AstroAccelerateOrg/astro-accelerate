@@ -409,12 +409,13 @@ namespace astroaccelerate {
     call_kernel_cuda_convolve_reg_1d_halftemps(cblocks, cthreads, gpuarrays->d_kernel, gpuarrays->d_ext_data, gpuarrays->d_ffdot_cpx, params->extlen, params->scale);
 
     //inverse fft
-    for (int k=0; k < ZMAX/2; k++){
+    int nTemplates = ((NKERN-1)/2);
+    for (int k=0; k < nTemplates; k++){
       cufftExecC2C(fftplans->forwardplan, gpuarrays->d_ffdot_cpx + k * params->extlen, gpuarrays->d_ffdot_cpx + k *params->extlen, CUFFT_INVERSE);
-      cufftExecC2C(fftplans->forwardplan, gpuarrays->d_ffdot_cpx + (ZMAX-k) * params->extlen, gpuarrays->d_ffdot_cpx + (ZMAX-k) *params->extlen, CUFFT_INVERSE);
+      cufftExecC2C(fftplans->forwardplan, gpuarrays->d_ffdot_cpx + (NKERN-1-k) * params->extlen, gpuarrays->d_ffdot_cpx + (NKERN-1-k) *params->extlen, CUFFT_INVERSE);
     }
     // z=0
-    cufftExecC2C(fftplans->forwardplan, gpuarrays->d_ffdot_cpx + ((ZMAX/2) * params->extlen), gpuarrays->d_ffdot_cpx + ((ZMAX/2) * params->extlen), CUFFT_INVERSE);
+    cufftExecC2C(fftplans->forwardplan, gpuarrays->d_ffdot_cpx + (nTemplates * params->extlen), gpuarrays->d_ffdot_cpx + (nTemplates * params->extlen), CUFFT_INVERSE);
 
     //power spectrum 
     if (cmdargs->inbin){
@@ -629,7 +630,7 @@ namespace astroaccelerate {
   
     mean = total / ((double)(params->ffdotlen)); 
 
-    printf("\ntotal ffdot:%lf\tmean ffdot: %lf", total, mean);
+    printf("\ntotal ffdot:%e\tmean ffdot: %e", total, mean);
       
     // Calculate standard deviation
     total = 0.0;
@@ -641,7 +642,7 @@ namespace astroaccelerate {
       }
     }
     stddev = sqrt(abs(total) / (double)(params->ffdotlen - 1)); 
-    printf("\nmean ffdot: %f\tstd ffdot: %lf\n", mean, stddev);
+    printf("\nmean ffdot: %e\tstd ffdot: %e\n", mean, stddev);
 
     //prepare file
     const char *dirname= "output_data";
@@ -665,7 +666,7 @@ namespace astroaccelerate {
       exit(1);
     }
     float pow, sigma;
-    double tobs = (double)params->tsamp * (double)params->nsamps*ibin;
+    double tobs = (double)params->tsamp * (double)(params->nsamps)*ibin;
     unsigned int numindep = params->siglen*(NKERN+1)*ACCEL_STEP/6.95; // taken from PRESTO
 
     //write to file
@@ -676,13 +677,13 @@ namespace astroaccelerate {
       for( int j = 0; j < ibin*params->siglen; j++){
 	pow =  h_ffdotpwr[a * ibin*params->siglen + j]; //(h_ffdotpwr[a * params->siglen + j]-mean)/stddev;
 		
-	if( pow > cmdargs->thresh) {
-	  sigma = candidate_sigma(pow, cmdargs->nharms, numindep);//power, number of harmonics, number of independed searches=1...2^harms
-	  //  sigma=1.0;
-	  double jfreq = (double)(j) / tobs;
-	  double acc1 = acc*SLIGHT / jfreq / tobs / tobs;
-	  fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, sigma);
-	}    
+		if( pow > cmdargs->thresh) {
+			sigma = candidate_sigma(pow, cmdargs->nharms, numindep);//power, number of harmonics, number of independed searches=1...2^harms
+			//  sigma=1.0;
+			double jfreq = (double)(j) / tobs;
+			double acc1 = acc*SLIGHT / jfreq / tobs / tobs;
+			fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, sigma);
+		}    
       }
     }
 

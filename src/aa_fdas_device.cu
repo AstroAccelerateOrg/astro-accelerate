@@ -1043,27 +1043,27 @@ namespace astroaccelerate {
     int tx = threadIdx.x;
     int bx = blockIdx.x;
     int tidx = bx* blockDim.x + tx;
-
-    float2 tempkern[ZMAX/2]; // half template array, 1 column per thread
-    for (int i=0; i < ZMAX/2; i++ )
+    
+    float2 tempkern[((NKERN-1)/2)]; // half template array, 1 column per thread
+    for (int i=0; i < ((NKERN-1)/2); i++ )
       tempkern[i] = __ldg(&d_kernel[i*KERNLEN + tidx]) ;
 
     for (int j = 0; j < sig_tot_convlen; j+=KERNLEN){
       float2 local_data = __ldg(&d_signal[tidx + j]);
 #pragma unroll
-      for (int i = 0; i < ZMAX/2; i++){
+      for (int i = 0; i < ((NKERN-1)/2); i++){
 	//upper half
 	d_ffdot_plane[i*sig_tot_convlen + j + tidx ].x = (local_data.x*tempkern[i].x - local_data.y*tempkern[i].y) * scale;
 	d_ffdot_plane[i*sig_tot_convlen + j + tidx ].y = (local_data.x*tempkern[i].y + local_data.y*tempkern[i].x) * scale;
 	//complex conjugate filter lower half
-	d_ffdot_plane[(ZMAX - i)*sig_tot_convlen + j + tidx ].x = (local_data.x*tempkern[i].x + local_data.y*tempkern[i].y) * scale;
-	d_ffdot_plane[(ZMAX - i)*sig_tot_convlen + j + tidx ].y = (-local_data.x*tempkern[i].y + local_data.y*tempkern[i].x) * scale;
+	d_ffdot_plane[(NKERN - 1 - i)*sig_tot_convlen + j + tidx ].x = (local_data.x*tempkern[i].x + local_data.y*tempkern[i].y) * scale;
+	d_ffdot_plane[(NKERN - 1 - i)*sig_tot_convlen + j + tidx ].y = (-local_data.x*tempkern[i].y + local_data.y*tempkern[i].x) * scale;
       }
 
       //do z=0
-      float2 tempz = __ldg(&d_kernel[(ZMAX/2)*KERNLEN + tidx]) ;
-      d_ffdot_plane[(ZMAX/2)*sig_tot_convlen + j + tidx ].x = (local_data.x*tempz.x - local_data.y*tempz.y) * scale;
-      d_ffdot_plane[(ZMAX/2)*sig_tot_convlen + j + tidx ].y = (local_data.x*tempz.y + local_data.y*tempz.x) * scale;
+      float2 tempz = __ldg(&d_kernel[((NKERN-1)/2)*KERNLEN + tidx]) ;
+      d_ffdot_plane[((NKERN-1)/2)*sig_tot_convlen + j + tidx ].x = (local_data.x*tempz.x - local_data.y*tempz.y) * scale;
+      d_ffdot_plane[((NKERN-1)/2)*sig_tot_convlen + j + tidx ].y = (local_data.x*tempz.y + local_data.y*tempz.x) * scale;
     }
   }
 
@@ -1278,7 +1278,7 @@ namespace astroaccelerate {
 
     //complex multiplication power calculation loop over template columns
 #pragma unroll 
-    for (int i = 0; i < ZMAX/2; i++){
+    for (int i = 0; i < ((NKERN-1)/2); i++){
       //__syncthreads();
       // fourier domain convolution
       one = local_data.x*__ldg(&d_kernel[i*KERNLEN + tx].x);
@@ -1435,15 +1435,15 @@ namespace astroaccelerate {
       if(tx >= offset && tx < sigblock + offset){
 	d_ffdot_pw[i*sig_totlen + index - offset] = pwcalc(s_input[tx]);
 
-	d_ffdot_pw[(ZMAX - i )*sig_totlen + index - offset] = pwcalc(s_input_trans[tx]);
+	d_ffdot_pw[(NKERN - 1 - i )*sig_totlen + index - offset] = pwcalc(s_input_trans[tx]);
       }
     }
 
     // now do z=0
-    one = local_data.x*__ldg(&d_kernel[(ZMAX/2)*KERNLEN + tx].x);
-    two = local_data.y*__ldg(&d_kernel[(ZMAX/2)*KERNLEN + tx].y);
-    three = local_data.x*__ldg(&d_kernel[(ZMAX/2)*KERNLEN + tx].y);
-    four = local_data.y*__ldg(&d_kernel[(ZMAX/2)*KERNLEN + tx].x);
+    one = local_data.x*__ldg(&d_kernel[((NKERN-1)/2)*KERNLEN + tx].x);
+    two = local_data.y*__ldg(&d_kernel[((NKERN-1)/2)*KERNLEN + tx].y);
+    three = local_data.x*__ldg(&d_kernel[((NKERN-1)/2)*KERNLEN + tx].y);
+    four = local_data.y*__ldg(&d_kernel[((NKERN-1)/2)*KERNLEN + tx].x);
   
     ffdotcpx.x = ((one - two) * scale);
     ffdotcpx.y = ((three + four) * scale);
@@ -1454,7 +1454,7 @@ namespace astroaccelerate {
 
     // write powers 
     if(tx < sigblock)
-      d_ffdot_pw[(ZMAX/2) * sig_totlen + index] = pwcalc(s_input[tx+offset]);
+      d_ffdot_pw[((NKERN-1)/2) * sig_totlen + index] = pwcalc(s_input[tx+offset]);
 
     //-------END
   }
@@ -1526,7 +1526,7 @@ namespace astroaccelerate {
 
     //complex multiplication power calculation loop over template columns
 #pragma unroll 
-    for (int i = 0; i < ZMAX/2; i++){
+    for (int i = 0; i < ((NKERN-1)/2); i++){
       //   __syncthreads();
       one = local_data.x*__ldg(&d_kernel[i*KERNLEN + tx].x);
       two = local_data.y*__ldg(&d_kernel[i*KERNLEN + tx].y);
@@ -1707,17 +1707,17 @@ namespace astroaccelerate {
 	d_ffdot_pw[(i*sig_inbin_len + index + sigblock)] = s_output_ip[tx + sigblock];
       
 	// 2nd tempalte
-	d_ffdot_pw[(unsigned int)((ZMAX - i)*sig_inbin_len + index)] = s_output_ip_trans[tx];
-	d_ffdot_pw[(unsigned int)((ZMAX - i)*sig_inbin_len + index + sigblock)] = s_output_ip_trans[tx + sigblock];
+	d_ffdot_pw[(unsigned int)((NKERN - 1 - i)*sig_inbin_len + index)] = s_output_ip_trans[tx];
+	d_ffdot_pw[(unsigned int)((NKERN - 1 - i)*sig_inbin_len + index + sigblock)] = s_output_ip_trans[tx + sigblock];
       }
     }
     //-------END OF SYMMETRIC TEMPLATES
 
     // now do z=0
-    one = local_data.x*__ldg(&d_kernel[(ZMAX/2)*KERNLEN + tx].x);
-    two = local_data.y*__ldg(&d_kernel[(ZMAX/2)*KERNLEN + tx].y);
-    three = local_data.x*__ldg(&d_kernel[(ZMAX/2)*KERNLEN + tx].y);
-    four = local_data.y*__ldg(&d_kernel[(ZMAX/2)*KERNLEN + tx].x);
+    one = local_data.x*__ldg(&d_kernel[((NKERN-1)/2)*KERNLEN + tx].x);
+    two = local_data.y*__ldg(&d_kernel[((NKERN-1)/2)*KERNLEN + tx].y);
+    three = local_data.x*__ldg(&d_kernel[((NKERN-1)/2)*KERNLEN + tx].y);
+    four = local_data.y*__ldg(&d_kernel[((NKERN-1)/2)*KERNLEN + tx].x);
   
     ffdotcpx.x = ((one - two) * scale);
     ffdotcpx.y = ((three + four) * scale);
@@ -1743,8 +1743,8 @@ namespace astroaccelerate {
     }
     // write powers 
     if(tx < sigblock){
-      d_ffdot_pw[((ZMAX/2)*sig_inbin_len + index)] = s_output_ip[tx];
-      d_ffdot_pw[((ZMAX/2)*sig_inbin_len + index + sigblock)] = s_output_ip[tx + sigblock];
+      d_ffdot_pw[(((NKERN-1)/2)*sig_inbin_len + index)] = s_output_ip[tx];
+      d_ffdot_pw[(((NKERN-1)/2)*sig_inbin_len + index + sigblock)] = s_output_ip[tx + sigblock];
     }
     //--------END
   }
@@ -1772,7 +1772,7 @@ namespace astroaccelerate {
     signal[0]=s_input_1[threadIdx.x];
     signal[1]=s_input_1[threadIdx.x + (KERNLEN>>1)];
 	
-    for(t=0; t<ZMAX/2; t++){
+    for(t=0; t<((NKERN-1)/2); t++){
       // Loading templates
       pos = t*KERNLEN + threadIdx.x;
       r_templates_1[0]=__ldg(&d_templates[pos]);
@@ -1807,7 +1807,7 @@ namespace astroaccelerate {
       if( (threadIdx.x+(KERNLEN>>1))>=offset && (threadIdx.x+(KERNLEN>>1))<(useful_part_size+offset) ) {
 	d_output_plane_reduced[pos + (KERNLEN>>1) - offset] = pwcalc(s_input_1[threadIdx.x + (KERNLEN>>1)]);
       }
-      pos = (ZMAX-t)*useful_part_size*nConvolutions + blockIdx.x*useful_part_size + threadIdx.x;
+      pos = (NKERN-1-t)*useful_part_size*nConvolutions + blockIdx.x*useful_part_size + threadIdx.x;
       if( threadIdx.x>=offset && threadIdx.x<(useful_part_size+offset) ) {
 	d_output_plane_reduced[pos - offset] = pwcalc(s_input_2[threadIdx.x]);
       }
@@ -1817,7 +1817,7 @@ namespace astroaccelerate {
     }
 	
     // now do z=0
-    pos = (ZMAX>>1)*KERNLEN + threadIdx.x;
+    pos = ((NKERN-1)/2)*KERNLEN + threadIdx.x;
     r_templates_1[0]=__ldg(&d_templates[pos]);
     r_templates_1[1]=__ldg(&d_templates[pos + (KERNLEN>>1)]);
 	
@@ -1831,7 +1831,7 @@ namespace astroaccelerate {
     //call inverse fft
     do_IFFT_mk11_2elem_no_reorder(s_input_1);
 	
-    pos = (ZMAX/2)*useful_part_size*nConvolutions + blockIdx.x*useful_part_size + threadIdx.x;
+    pos = ((NKERN-1)/2)*useful_part_size*nConvolutions + blockIdx.x*useful_part_size + threadIdx.x;
     if( threadIdx.x>=offset && threadIdx.x<(useful_part_size+offset) ) {
       d_output_plane_reduced[pos - offset] = pwcalc(s_input_1[threadIdx.x]);
     }
@@ -1868,7 +1868,7 @@ namespace astroaccelerate {
     d_output_plane_reduced[threadIdx.x] = s_input_1[threadIdx.x].x;
 	
 	
-    for(t=0; t<ZMAX/2; t++){
+    for(t=0; t<((NKERN-1)/2); t++){
       // Loading templates
       pos = t*KERNLEN + threadIdx.x;
       r_templates_1[0] = __ldg(&d_templates[pos]);
@@ -1941,7 +1941,7 @@ namespace astroaccelerate {
       }
 		
 		
-      pos = (ZMAX-t)*useful_part_size*nConvolutions + blockIdx.x*useful_part_size + threadIdx.x;
+      pos = (NKERN-1-t)*useful_part_size*nConvolutions + blockIdx.x*useful_part_size + threadIdx.x;
       if( threadIdx.x>=offset && threadIdx.x<(useful_part_size+offset) ) {
 	d_output_plane_reduced[pos - offset] = pwcalc(s_input_2[threadIdx.x]);
       }
@@ -1957,7 +1957,7 @@ namespace astroaccelerate {
     }
 	
     // now do z=0
-    pos = (ZMAX>>1)*KERNLEN + threadIdx.x;
+    pos = ((NKERN-1)/2)*KERNLEN + threadIdx.x;
     r_templates_1[0]=__ldg(&d_templates[pos]);
     r_templates_1[1]=__ldg(&d_templates[pos + (KERNLEN>>2)]);
     r_templates_1[2]=__ldg(&d_templates[pos + (KERNLEN>>1)]);
@@ -1977,7 +1977,7 @@ namespace astroaccelerate {
     //call inverse fft
     do_IFFT_mk11_4elem_no_reorder(s_input_1);
 	
-    pos = (ZMAX/2)*useful_part_size*nConvolutions + blockIdx.x*useful_part_size + threadIdx.x;
+    pos = ((NKERN-1)/2)*useful_part_size*nConvolutions + blockIdx.x*useful_part_size + threadIdx.x;
     if( threadIdx.x>=offset && threadIdx.x<(useful_part_size+offset) ) {
       d_output_plane_reduced[pos - offset] = pwcalc(s_input_1[threadIdx.x]);
     }
