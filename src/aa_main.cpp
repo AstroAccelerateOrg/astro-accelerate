@@ -134,7 +134,7 @@ int main(int argc, char *argv[]) {
 	if (pipeline.find(aa_pipeline::component::periodicity) != pipeline.end()) {
 		//If these settings come from the input_file, then move them into aa_config to be read from the file.
 		int harmonic_sum_algorithm = 1; // Greedy
-		bool enable_scalloping_loss_mitigation = true;
+		bool enable_scalloping_loss_mitigation = false;
 		bool enable_interbinning = true;
 		bool enable_spectrum_whitening = true;
 		aa_periodicity_plan periodicity_plan(
