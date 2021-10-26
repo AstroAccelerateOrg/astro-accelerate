@@ -215,8 +215,8 @@ int main(int argc, char *argv[]) {
 		LOG(log_level::notice, "The pipeline finished successfully.");
 		if (pipeline.find(aa_pipeline::component::periodicity) != pipeline.end()) {
 			LOG(log_level::notice, "Writing periodicity candidates to disk.");
-			pipeline_manager.Write_to_disk_PSR_candidates("PSR_candidate_list.dat");
-			pipeline_manager.Write_to_disk_PSR_interbin_candidates("PSR_interbin_candidate_list.dat");
+			pipeline_manager.Write_to_disk_PSR_candidates("global_periods.dat");
+			pipeline_manager.Write_to_disk_PSR_interbin_candidates("global_interbin.dat");
 		}
 	}
 	else {
