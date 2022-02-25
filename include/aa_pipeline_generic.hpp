@@ -29,9 +29,8 @@ namespace astroaccelerate {
 			   const float &analysis_max_boxcar_width_in_sec = 0.0,
 			   const bool  &analysis_enable_msd_baseline_noise_algorithm = false,
 			   const float &periodicity_sigma_cutoff = 0.0,
-			   const float &periodicity_sigma_constant = 0.0,
+			   const float &periodicity_sigma_outlier_rejection_threshold = 0.0,
 			   const int   &periodicity_nHarmonics = 0.0,
-			   const int   &periodicity_export_powers = 0,
 			   const bool  &periodicity_candidate_algorithm = false,
 			   const bool  &periodicity_enable_outlier_rejection = false) {
     /**
@@ -118,12 +117,13 @@ namespace astroaccelerate {
 				   analysis_enable_msd_baseline_noise_algorithm);
     pipeline_manager.bind(analysis_plan);
 
-    aa_periodicity_plan periodicity_plan(periodicity_sigma_cutoff,
-					 periodicity_sigma_constant,
+    aa_periodicity_plan periodicity_plan(
+					 pipeline_manager.ddtr_strategy(),
+					 periodicity_sigma_cutoff,
+					 periodicity_enable_outlier_rejection,
+					 periodicity_sigma_outlier_rejection_threshold,
 					 periodicity_nHarmonics,
-					 periodicity_export_powers,
-					 periodicity_candidate_algorithm,
-					 periodicity_enable_outlier_rejection);
+					 periodicity_candidate_algorithm);
     pipeline_manager.bind(periodicity_plan);
     
     // Bind further plans as necessary

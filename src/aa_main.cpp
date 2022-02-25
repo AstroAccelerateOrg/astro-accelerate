@@ -140,13 +140,22 @@ int main(int argc, char *argv[]) {
 	
 	if (pipeline.find(aa_pipeline::component::periodicity) != pipeline.end()) {
 		//If these settings come from the input_file, then move them into aa_config to be read from the file.
+		int harmonic_sum_algorithm = 1; // Greedy
+		bool enable_scalloping_loss_mitigation = false;
+		bool enable_interbinning = true;
+		bool enable_spectrum_whitening = true;
 		aa_periodicity_plan periodicity_plan(
+			pipeline_manager.ddtr_strategy(),
 			user_flags.periodicity_sigma_cutoff,
+			msd_baseline_noise,
 			user_flags.sigma_constant,
 			user_flags.periodicity_nHarmonics,
-			user_flags.power,
+			harmonic_sum_algorithm,
 			user_flags.candidate_algorithm,
-			msd_baseline_noise);
+			enable_scalloping_loss_mitigation,
+			enable_interbinning,
+			enable_spectrum_whitening
+		);
 		pipeline_manager.bind(periodicity_plan);
 	}
 
@@ -211,6 +220,11 @@ int main(int argc, char *argv[]) {
 	// Run the pipeline
 	if (pipeline_manager.run()) {
 		LOG(log_level::notice, "The pipeline finished successfully.");
+		if (pipeline.find(aa_pipeline::component::periodicity) != pipeline.end()) {
+			LOG(log_level::notice, "Writing periodicity candidates to disk.");
+			pipeline_manager.Write_to_disk_PSR_candidates("global_periods.dat");
+			pipeline_manager.Write_to_disk_PSR_interbin_candidates("global_interbin.dat");
+		}
 	}
 	else {
 		LOG(log_level::error, "The pipeline could not start or had errors.");

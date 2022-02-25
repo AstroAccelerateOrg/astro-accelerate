@@ -11,6 +11,7 @@
 
 
 #include "aa_periodicity_strategy.hpp"
+#include "aa_periodicity_candidates.hpp"
 #include "aa_fdas_strategy.hpp"
 
 #include "aa_filterbank_metadata.hpp"
@@ -38,7 +39,7 @@ namespace astroaccelerate {
    * \class aa_permitted_pipelines_5_0 aa_permitted_pipelines_5_0.hpp "include/aa_permitted_pipelines_5_0.hpp"
    * \brief Templated class to run dedispersion and periodicity and acceleration.
    * \details The class is templated over the zero_dm_type (aa_pipeline::component_option::zero_dm or aa_pipeline::component_option::zero_dm_with_outliers).
-   * \author Cees Carels.
+   * \author AstroAccelerate
    * \date 3 December 2018.
    */
   
@@ -104,6 +105,9 @@ namespace astroaccelerate {
 	cudaFree(d_input);
 	cudaFree(d_output);
 	
+	c_PSR_power_candidates.Free_candidates();
+	c_PSR_interbin_candidates.Free_candidates();
+	
 	size_t t_processed_size = m_ddtr_strategy.t_processed().size();
 	for(size_t i = 0; i < t_processed_size; i++) {
 	  free(t_processed[i]);
@@ -140,6 +144,10 @@ namespace astroaccelerate {
 
     unsigned short     *d_input;
     float              *d_output;
+    
+    // periodicity search output candidates
+    aa_periodicity_candidates c_PSR_power_candidates;
+    aa_periodicity_candidates c_PSR_interbin_candidates;
     
     std::vector<float> dm_low;
     std::vector<float> dm_high;
@@ -410,23 +418,13 @@ namespace astroaccelerate {
       cleanup();
       aa_gpu_timer timer;
       timer.Start();
-      const int *ndms =	m_ddtr_strategy.ndms_data();
-      GPU_periodicity(m_ddtr_strategy.get_nRanges(),
-		      m_ddtr_strategy.metadata().nsamples(),
-		      max_ndms,
-		      inc,
-		      m_periodicity_strategy.sigma_cutoff(),
-		      m_output_buffer,
-		      ndms,
-		      inBin.data(),
-		      dm_low.data(),
-		      dm_high.data(),
-		      dm_step.data(),
-		      tsamp_original,
-		      m_periodicity_strategy.nHarmonics(),
-		      m_periodicity_strategy.candidate_algorithm(),
-		      m_periodicity_strategy.enable_msd_baseline_noise(),
-		      m_periodicity_strategy.sigma_constant());
+      
+      GPU_periodicity(
+        m_periodicity_strategy,
+        m_output_buffer,
+        c_PSR_power_candidates,
+        c_PSR_interbin_candidates
+      );
       
       timer.Stop();
       float time = timer.Elapsed()/1000;

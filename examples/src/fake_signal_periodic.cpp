@@ -17,6 +17,8 @@
 #include "aa_periodicity_plan.hpp"
 #include "aa_periodicity_strategy.hpp"
 
+#include <cufft.h>
+
 using namespace astroaccelerate;
 
 int main() {
@@ -64,15 +66,18 @@ int main() {
     return 0;
   }
 
-  const float periodicity_sigma_cutoff = 0.0;
-  const float periodicity_sigma_constant = sigma_constant;
-  const int   nHarmonics = 3;
-  const int   export_powers = 0;
-  const bool  candidate_algorithm = true;
-  const bool  enable_outlier_rejection = false;
+  const float periodicity_sigma_cutoff = 10.0;
+  const float periodicity_sigma_outlier_rejection_threshold = 3.0;
+  const int   nHarmonics = 32;
+  const int   candidate_algorithm = 0;
+  const bool  enable_outlier_rejection = true;
+  
+  size_t free = 0;
+  size_t total = 0;
+  cudaMemGetInfo(&free, &total);
 
-  aa_periodicity_plan periodicity_plan(periodicity_sigma_cutoff, periodicity_sigma_constant, nHarmonics, export_powers, candidate_algorithm, enable_outlier_rejection);
-  aa_periodicity_strategy periodicity_strategy(periodicity_plan);
+  aa_periodicity_plan periodicity_plan(strategy, periodicity_sigma_cutoff, enable_outlier_rejection, periodicity_sigma_outlier_rejection_threshold, nHarmonics, candidate_algorithm);
+  aa_periodicity_strategy periodicity_strategy(periodicity_plan, free);
 
   if(!periodicity_strategy.ready()) {
     std::cout << "ERROR: periodicity_strategy not ready." << std::endl;

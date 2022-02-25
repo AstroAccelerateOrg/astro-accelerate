@@ -466,13 +466,14 @@ void presto_place_complex_kernel(cufftComplex * kernel, int numkernel, cufftComp
     newbuflen = initialbuflen * log(newoffset);
     if (newbuflen > maxbuflen)
       newbuflen = maxbuflen;
-
+	
     while (newoffset + newbuflen < numamps) {
-      /* Calculate the next mean */
+      //printf("newoffset=%d; lastbuflen=%d; newbuflen=%d;\n", newoffset, lastbuflen, newbuflen);
+	  /* Calculate the next mean */
       mean_new = median(powers + newoffset, newbuflen) / log(2.0);
       //slope = (mean_new-mean_old)/(0.5*(newbuflen+lastbuflen));
       slope = (mean_new - mean_old) / (newbuflen + lastbuflen);
-
+		//printf("mean_old=%e; mean_new=%e; slope=%e\n", mean_old, mean_new, slope);
       /* Correct the previous segment */
       lineoffset = 0.5 * (newbuflen + lastbuflen);
       for (ii = 0; ii < lastbuflen; ii++) {

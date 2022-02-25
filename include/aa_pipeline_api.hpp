@@ -233,8 +233,10 @@ namespace astroaccelerate {
 
 			//Does the pipeline actually need this plan?
 			if (required_plans.find(aa_pipeline::component::periodicity) != required_plans.end()) {
+				size_t free_mem, total_mem;
+				cudaMemGetInfo(&free_mem,&total_mem);
 				m_periodicity_plan = plan;
-				aa_periodicity_strategy periodicity_strategy(m_periodicity_plan);
+				aa_periodicity_strategy periodicity_strategy(m_periodicity_plan, free_mem);
 				if (periodicity_strategy.ready()) {
 					m_periodicity_strategy = std::move(periodicity_strategy);
 					m_all_strategy.push_back(&m_periodicity_strategy);
@@ -1123,6 +1125,32 @@ namespace astroaccelerate {
 		size_t SPD_nCandidates(){
 			return m_runner->get_SPD_nCandidates();
 		}
+		
+		// ----------------------- PSR -------------------------
+		float *Get_PSR_candidates(){
+			return m_runner->Get_PSR_candidates();
+		}
+		
+		float *Get_PSR_interbin_candidates(){
+			return m_runner->Get_PSR_interbin_candidates();
+		}
+		
+		void Write_to_disk_PSR_candidates(const char *filename){
+			m_runner->Write_to_disk_PSR_candidates(filename);
+		}
+		
+		void Write_to_disk_PSR_interbin_candidates(const char *filename){
+			m_runner->Write_to_disk_PSR_interbin_candidates(filename);
+		}
+		
+		size_t get_PSR_nCandidates(){
+			return m_runner->get_PSR_nCandidates();
+		}
+		
+		size_t get_PSR_interbin_nCandidates(){
+			return m_runner->get_PSR_interbin_nCandidates();
+		}
+		// ----------------------- PSR -------------------------
 
 		int get_current_range(){
 			return m_runner->get_current_range();

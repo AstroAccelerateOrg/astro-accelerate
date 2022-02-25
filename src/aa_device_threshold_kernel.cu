@@ -40,45 +40,41 @@ namespace astroaccelerate {
     }
   }
 
-  __global__ void GPU_Threshold_for_periodicity_kernel_old(float const* __restrict__ d_input, ushort *d_input_harms, float *d_output_list, int *gmem_pos, float *d_MSD, float threshold, int primary_size, int secondary_size, int DM_shift, int max_list_size, int DIT_value) {
-    int pos_p, pos_s, pos, list_pos, mask, leader;
+  __global__ void GPU_Threshold_for_periodicity_normal_kernel(float const* __restrict__ d_input, ushort *d_input_harms, float *d_output_list, int *gmem_pos, float const* __restrict__ d_MSD, float threshold, int nTimesamples, int nDMs, int DM_shift, int max_list_size, int DIT_value) {
+    int pos_x, pos_y, pos, list_pos, mask, leader;
     float R;
-    float hrms;
-    float mean = d_MSD[0];
-    float sd   = d_MSD[1];
-	
-    pos_p = blockIdx.x*blockDim.x*THR_ELEM_PER_THREAD + threadIdx.x;
-    pos_s = blockIdx.y*blockDim.y + threadIdx.y;
-	
-	
+    int hrms;
+    
+    pos_x = blockIdx.x*blockDim.x + threadIdx.x; // timesamples
+    pos_y = blockIdx.y*THR_ELEM_PER_THREAD; // DM-trials
+    
     for(int i=0; i<THR_ELEM_PER_THREAD; i++){
-      if( (pos_p<primary_size) && (pos_s<secondary_size)){
-	pos = pos_s*primary_size + pos_p;
-			
-	//--------> Thresholding
-	R = __ldg(&d_input[pos]);
-	if(R > threshold) {
-	  mask=aa_ballot(AA_ASSUME_MASK,1);
-	  leader=__ffs(mask)-1;
-	  if(threadIdx.x==leader) list_pos=atomicAdd(gmem_pos,__popc(mask));
-	  list_pos=aa_shfl(AA_ASSUME_MASK,list_pos,leader);
-	  list_pos=list_pos+__popc(mask&((1<<threadIdx.x)-1));
-	  if(list_pos<max_list_size){
-	    d_output_list[4*list_pos]   = pos_p + DM_shift;
-	    d_output_list[4*list_pos+1] = pos_s/DIT_value;
-	    hrms = (float) d_input_harms[pos];
-	    d_output_list[4*list_pos+3] = hrms;
-	    d_output_list[4*list_pos+2] = inverse_white_noise(&R,&hrms,&mean,&sd);
-	  }
-	}
-	//-------------------------<
-			
-      }
-      pos_p = pos_p + blockDim.x;
+        if( (pos_x<nTimesamples) && (pos_y<nDMs)){
+            pos = pos_y*nTimesamples + pos_x;
+            
+            //--------> Thresholding
+            R = __ldg(&d_input[pos]);
+            if(R > threshold) {
+                mask=aa_ballot(AA_ASSUME_MASK,1);
+                leader=__ffs(mask)-1;
+                if(threadIdx.x==leader) list_pos=atomicAdd(gmem_pos,__popc(mask));
+                list_pos=aa_shfl(AA_ASSUME_MASK,list_pos,leader);
+                list_pos=list_pos+__popc(mask&((1<<threadIdx.x)-1));
+                if(list_pos<max_list_size){
+                    d_output_list[4*list_pos]   = pos_y + DM_shift;
+                    d_output_list[4*list_pos+1] = pos_x/DIT_value;
+                    hrms = (int) d_input_harms[pos];
+                    d_output_list[4*list_pos+3] = (float) hrms;
+                    d_output_list[4*list_pos+2] = R*__ldg(&d_MSD[2*hrms+1]) + __ldg(&d_MSD[2*hrms]);
+                }
+            }
+            //-------------------------<
+        }
+        pos_y++;
     }
   }
 
-  __global__ void GPU_Threshold_for_periodicity_kernel(float const* __restrict__ d_input, ushort *d_input_harms, float *d_output_list, int *gmem_pos, float const* __restrict__ d_MSD, float threshold, int primary_size, int secondary_size, int DM_shift, int max_list_size, int DIT_value) {
+  __global__ void GPU_Threshold_for_periodicity_transposed_kernel(float const* __restrict__ d_input, ushort *d_input_harms, float *d_output_list, int *gmem_pos, float const* __restrict__ d_MSD, float threshold, int primary_size, int secondary_size, int DM_shift, int max_list_size, int DIT_value) {
     int pos_p, pos_s, pos, list_pos, mask, leader;
     float R;
     int hrms;
@@ -89,65 +85,126 @@ namespace astroaccelerate {
 	
     for(int i=0; i<THR_ELEM_PER_THREAD; i++){
       if( (pos_p<primary_size) && (pos_s<secondary_size)){
-	pos = pos_s*primary_size + pos_p;
-			
-	//--------> Thresholding
-	R = __ldg(&d_input[pos]);
-	if(R > threshold) {
-	  mask=aa_ballot(AA_ASSUME_MASK,1);
-	  leader=__ffs(mask)-1;
-	  if(threadIdx.x==leader) list_pos=atomicAdd(gmem_pos,__popc(mask));
-	  list_pos=aa_shfl(AA_ASSUME_MASK,list_pos,leader);
-	  list_pos=list_pos+__popc(mask&((1<<threadIdx.x)-1));
-	  if(list_pos<max_list_size){
-	    d_output_list[4*list_pos]   = pos_p + DM_shift;
-	    d_output_list[4*list_pos+1] = pos_s/DIT_value;
-	    hrms = (int) d_input_harms[pos];
-	    d_output_list[4*list_pos+3] = hrms;
-	    d_output_list[4*list_pos+2] = R*__ldg(&d_MSD[2*hrms+1]) + __ldg(&d_MSD[2*hrms]);
-	  }
-	}
-	//-------------------------<
-			
+        pos = pos_s*primary_size + pos_p;
+        
+        //--------> Thresholding
+        R = __ldg(&d_input[pos]);
+        if(R > threshold) {
+          mask=aa_ballot(AA_ASSUME_MASK,1);
+          leader=__ffs(mask)-1;
+          if(threadIdx.x==leader) list_pos=atomicAdd(gmem_pos,__popc(mask));
+          list_pos=aa_shfl(AA_ASSUME_MASK,list_pos,leader);
+          list_pos=list_pos+__popc(mask&((1<<threadIdx.x)-1));
+          if(list_pos<max_list_size){
+            d_output_list[4*list_pos]   = pos_p + DM_shift;
+            d_output_list[4*list_pos+1] = pos_s/DIT_value;
+            hrms = (int) d_input_harms[pos];
+            d_output_list[4*list_pos+3] = hrms;
+            d_output_list[4*list_pos+2] = R*__ldg(&d_MSD[2*hrms+1]) + __ldg(&d_MSD[2*hrms]);
+          }
+        }
+        //-------------------------<
+    
       }
       pos_p = pos_p + blockDim.x;
     }
   }
 
   /** \brief Kernel wrapper function for THR_GPU_WARP kernel function. */
-  void call_kernel_THR_GPU_WARP(const dim3 &grid_size, const dim3 &block_size,
-				float const *const d_input, ushort *const d_input_taps,
-				unsigned int *const d_output_list_DM, unsigned int *const d_output_list_TS,
-				float *const d_output_list_SNR, unsigned int *const d_output_list_BW,
-				int *const gmem_pos, const float &threshold, const int &nTimesamples, const int &offset,
-				const int &shift, const int &max_list_size, const int &DIT_value) {
-    THR_GPU_WARP<<<grid_size, block_size>>>(d_input, d_input_taps, d_output_list_DM, d_output_list_TS,
-					    d_output_list_SNR, d_output_list_BW,
-					    gmem_pos, threshold, nTimesamples, offset,
-					    shift, max_list_size, DIT_value);
+  void call_kernel_THR_GPU_WARP(
+      const dim3 &grid_size,
+      const dim3 &block_size,
+      float const *const d_input,
+      ushort *const d_input_taps,
+      unsigned int *const d_output_list_DM,
+      unsigned int *const d_output_list_TS,
+      float *const d_output_list_SNR,
+      unsigned int *const d_output_list_BW,
+      int *const gmem_pos,
+      const float &threshold,
+      const int &nTimesamples,
+      const int &offset,
+      const int &shift,
+      const int &max_list_size,
+      const int &DIT_value
+  ) {
+      THR_GPU_WARP<<<grid_size, block_size>>>(
+          d_input,
+          d_input_taps,
+          d_output_list_DM,
+          d_output_list_TS,
+          d_output_list_SNR,
+          d_output_list_BW,
+          gmem_pos,
+          threshold,
+          nTimesamples,
+          offset,
+          shift,
+          max_list_size,
+          DIT_value
+      );
   }
 
   /** \brief Kernel wrapper function for GPU_Threshold_for_periodicity_kernel_old kernel function. */
-  void call_kernel_GPU_Threshold_for_periodicity_kernel_old(const dim3 &grid_size, const dim3 &block_size,
-							    float const *const d_input, ushort *const d_input_harms,
-							    float *const d_output_list, int *const gmem_pos, float *const d_MSD,
-							    const float &threshold, const int &primary_size, const int &secondary_size,
-							    const int &DM_shift, const int &max_list_size, const int &DIT_value) {
-    GPU_Threshold_for_periodicity_kernel_old<<<grid_size, block_size>>>(d_input, d_input_harms, d_output_list,
-									gmem_pos, d_MSD, threshold, primary_size,
-									secondary_size, DM_shift, max_list_size, DIT_value);
+  void call_kernel_GPU_Threshold_for_periodicity_normal_kernel(
+      const dim3 &grid_size,
+      const dim3 &block_size,
+      float const *const d_input,
+      ushort *const d_input_harms,
+      float *const d_output_list,
+      int *const gmem_pos,
+      float const *const d_MSD,
+      const float &threshold,
+      const int &nTimesamples,
+      const int &nDMs,
+      const int &DM_shift,
+      const int &max_list_size,
+      const int &DIT_value
+  ) {
+      GPU_Threshold_for_periodicity_normal_kernel<<<grid_size, block_size>>>(
+          d_input,
+          d_input_harms,
+          d_output_list,
+          gmem_pos,
+          d_MSD,
+          threshold,
+          nTimesamples,
+          nDMs,
+          DM_shift,
+          max_list_size,
+          DIT_value
+      );
 
   }
 
   /** \brief Kernel wrapper function for GPU_Threshold_for_periodicity_kernel kernel function. */
-  void call_kernel_GPU_Threshold_for_periodicity_kernel(const dim3 &grid_size, const dim3 &block_size,
-							float const *const d_input, ushort *const d_input_harms,
-							float *const d_output_list, int *const gmem_pos, float const *const d_MSD,
-							const float &threshold, const int &primary_size,
-							const int &secondary_size, const int &DM_shift, const int &max_list_size, const int &DIT_value) {
-    GPU_Threshold_for_periodicity_kernel<<<grid_size, block_size>>>(d_input, d_input_harms,
-								    d_output_list, gmem_pos, d_MSD,
-								    threshold, primary_size,
-								    secondary_size, DM_shift, max_list_size, DIT_value);
+  void call_kernel_GPU_Threshold_for_periodicity_transposed_kernel(
+      const dim3 &grid_size,
+      const dim3 &block_size,
+      float const *const d_input,
+      ushort *const d_input_harms,
+      float *const d_output_list,
+      int *const gmem_pos,
+      float const *const d_MSD,
+      const float &threshold,
+      const int &primary_size,
+      const int &secondary_size,
+      const int &DM_shift,
+      const int &max_list_size,
+      const int &DIT_value
+  ) {
+      GPU_Threshold_for_periodicity_transposed_kernel<<<grid_size, block_size>>>(
+          d_input,
+          d_input_harms,
+          d_output_list,
+          gmem_pos,
+          d_MSD,
+          threshold,
+          primary_size,
+          secondary_size,
+          DM_shift,
+          max_list_size,
+          DIT_value
+      );
   }
 } //namespace astroaccelerate
