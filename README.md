@@ -13,15 +13,14 @@ If you use AstroAccelerate, please cite the code using the following DOI
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1212487.svg)](https://doi.org/10.5281/zenodo.1212487)
 
+If you use de-dispersion please also cite:
+* https://ui.adsabs.harvard.edu/abs/2012ASPC..461...33A/abstract
 
-Please cite the following journal article
-* https://ui.adsabs.harvard.edu/#abs/arXiv:1804.05335
+If you use single-pulse detection please also cite
 * https://ui.adsabs.harvard.edu/abs/2020ApJS..247...56A/abstract
 
-and the proceedings
-* https://arxiv.org/abs/1812.02647
-* https://arxiv.org/abs/1711.10855
-* https://arxiv.org/abs/1511.07343
+If you use Fourier domain acceleration search please also cite:
+* https://ui.adsabs.harvard.edu/#abs/arXiv:1804.05335
 
 Features
 ===
