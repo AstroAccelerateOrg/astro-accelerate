@@ -71,6 +71,7 @@ int swap_content(inType *const d_destination, inType *const d_source, const size
     dim3 gridSize(nBlocks_x, nBlocks_y, 1);
     dim3 blockSize(nThreads, 1, 1);
     call_kernel_swap_content(gridSize, blockSize, d_destination, d_source, primary_size, secondary_size);
+    return(0);
 }
 
 template<typename inType>
@@ -102,20 +103,20 @@ int corner_turn_SM_wrapper(inType *const d_input, inType *const d_output, const 
     return(0);
 }
 
-int corner_turn_SM(float *const d_input, float *const d_output, const size_t primary_size, const size_t secondary_size){
+void corner_turn_SM(float *const d_input, float *const d_output, const size_t primary_size, const size_t secondary_size){
     corner_turn_SM_wrapper(d_input, d_output, primary_size, secondary_size);
 }
 
-int corner_turn_SM(unsigned short *const d_input, unsigned short *const d_output, const size_t primary_size, const size_t secondary_size){
+void corner_turn_SM(unsigned short *const d_input, unsigned short *const d_output, const size_t primary_size, const size_t secondary_size){
     corner_turn_SM_wrapper(d_input, d_output, primary_size, secondary_size);
 }
 
-int corner_turn_SM_inplace(float *const d_input, float *const d_temporary, const size_t primary_size, const size_t secondary_size){
+void corner_turn_SM_inplace(float *const d_input, float *const d_temporary, const size_t primary_size, const size_t secondary_size){
     corner_turn_SM_wrapper(d_input, d_temporary, primary_size, secondary_size);
     swap_content(d_input, d_temporary, secondary_size, primary_size);
 }
 
-int corner_turn_SM_inplace(unsigned short *const d_input, unsigned short *const d_temporary, const size_t primary_size, const size_t secondary_size){
+void corner_turn_SM_inplace(unsigned short *const d_input, unsigned short *const d_temporary, const size_t primary_size, const size_t secondary_size){
     corner_turn_SM_wrapper(d_input, d_temporary, primary_size, secondary_size);
     swap_content(d_input, d_temporary, secondary_size, primary_size);
 }
