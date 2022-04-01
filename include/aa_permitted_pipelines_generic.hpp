@@ -738,7 +738,8 @@ namespace astroaccelerate {
 				//-------------------------<
 				//---------> Corner turn
 				m_local_timer.Start();
-				corner_turn(d_DDTR_input, d_DDTR_output, nchans, t_processed[0][current_time_chunk] + maxshift_original);
+				//corner_turn(d_DDTR_input, d_DDTR_output, nchans, t_processed[0][current_time_chunk] + maxshift_original);
+				corner_turn_SM_inplace(d_DDTR_input, (unsigned short *) d_DDTR_output, (size_t) nchans, (size_t) (t_processed[0][current_time_chunk] + maxshift_original));
 				m_local_timer.Stop();
 				time_log.adding("DDTR", "Corner_Turn", m_local_timer.Elapsed());
 				
