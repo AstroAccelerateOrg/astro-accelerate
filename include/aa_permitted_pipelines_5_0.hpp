@@ -353,8 +353,8 @@ namespace astroaccelerate {
       }
 
       //checkCudaErrors(cudaGetLastError());
-
-      corner_turn(d_input, d_output, nchans, t_processed[0][t] + maxshift);
+      
+      corner_turn_SM_inplace((unsigned short *) d_input, (unsigned short *) d_output, (size_t) nchans, (size_t) (t_processed[0][t] + maxshift));
 
       //checkCudaErrors(cudaGetLastError());
 

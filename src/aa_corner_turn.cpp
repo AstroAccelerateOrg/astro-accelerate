@@ -61,17 +61,28 @@ int corner_turn(float *const d_input, float *const d_output, const int primary_s
     return(0);
 }
 
-int corner_turn_SM(float *const d_input, float *const d_output, const int primary_size, const int secondary_size) {
+template<typename inType>
+int swap_content(inType *const d_destination, inType *const d_source, const size_t primary_size, const size_t secondary_size){
+    int nBlocks_x, nBlocks_y, nThreads;
+    nThreads = 1024;
+    nBlocks_x = (primary_size + nThreads - 1)/nThreads;
+    nBlocks_y = (secondary_size + WARP - 1)/WARP;
+    
+    dim3 gridSize(nBlocks_x, nBlocks_y, 1);
+    dim3 blockSize(nThreads, 1, 1);
+    call_kernel_swap_content(gridSize, blockSize, d_destination, d_source, primary_size, secondary_size);
+    return(0);
+}
+
+template<typename inType>
+int corner_turn_SM_wrapper(inType *const d_input, inType *const d_output, const size_t primary_size, const size_t secondary_size) {
     //---------> Task specific
-    int nBlocks_x, nBlocks_y, nRest, Elements_per_block;
+    size_t nBlocks_x, nBlocks_y, Elements_per_block;
     
-    Elements_per_block=CT_CORNER_BLOCKS*WARP;
-    nBlocks_x=primary_size/Elements_per_block;
-    nRest=primary_size - nBlocks_x*Elements_per_block;
-    if(nRest>0) nBlocks_x++;
+    Elements_per_block = CT_CORNER_BLOCKS*WARP;
+    nBlocks_x = (primary_size + Elements_per_block - 1)/Elements_per_block;
     
-    nBlocks_y = secondary_size/WARP;
-    if( secondary_size%WARP != 0 ) nBlocks_y++;
+    nBlocks_y = (secondary_size + WARP - 1)/WARP;
     
     //---------> CUDA block and CUDA grid parameters
     dim3 gridSize(nBlocks_x, nBlocks_y, 1);
@@ -82,7 +93,6 @@ int corner_turn_SM(float *const d_input, float *const d_output, const int primar
     printf("\n-------------- CORNER TURN DEBUG (corner_turn_SM) ----------------\n");
     printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
     printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
-    printf("nRest:%d;\n", nRest);
     printf("Shared memory: %d bytes; %d floats\n", SM_size, SM_size/4);
 #endif
     
@@ -90,7 +100,25 @@ int corner_turn_SM(float *const d_input, float *const d_output, const int primar
     cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeFourByte);
     call_kernel_corner_turn_SM_kernel(gridSize, blockSize, d_input, d_output, primary_size, secondary_size);
     
-    return(nRest);
+    return(0);
+}
+
+void corner_turn_SM(float *const d_input, float *const d_output, const size_t primary_size, const size_t secondary_size){
+    corner_turn_SM_wrapper(d_input, d_output, primary_size, secondary_size);
+}
+
+void corner_turn_SM(unsigned short *const d_input, unsigned short *const d_output, const size_t primary_size, const size_t secondary_size){
+    corner_turn_SM_wrapper(d_input, d_output, primary_size, secondary_size);
+}
+
+void corner_turn_SM_inplace(float *const d_input, float *const d_temporary, const size_t primary_size, const size_t secondary_size){
+    corner_turn_SM_wrapper(d_input, d_temporary, primary_size, secondary_size);
+    swap_content(d_input, d_temporary, secondary_size, primary_size);
+}
+
+void corner_turn_SM_inplace(unsigned short *const d_input, unsigned short *const d_temporary, const size_t primary_size, const size_t secondary_size){
+    corner_turn_SM_wrapper(d_input, d_temporary, primary_size, secondary_size);
+    swap_content(d_input, d_temporary, secondary_size, primary_size);
 }
 
 } //namespace astroaccelerate
