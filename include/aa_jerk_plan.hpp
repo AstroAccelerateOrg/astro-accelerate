@@ -87,7 +87,8 @@ public:
 			bool do_outlier_rejection,
 			float outlier_rejection_sigma_cutoff,
 			bool always_choose_next_power_of_2,
-			bool spectrum_whitening){
+			bool spectrum_whitening
+	){
 		c_nTimesamples = nTimesamples;
 		c_nDMs         = nDMs;
 		c_available_memory = available_memory;

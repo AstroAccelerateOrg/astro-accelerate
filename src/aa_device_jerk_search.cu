@@ -1,8 +1,10 @@
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <float.h>
 #include <cufft.h>
 #include <cuda_profiler_api.h>
 #include <iostream>
+#include <fstream> 
 #include <vector>
 
 #include "aa_params.hpp"
@@ -13,6 +15,7 @@
 
 #include "aa_jerk_plan.hpp"
 #include "aa_jerk_strategy.hpp"
+#include "aa_device_spectrum_whitening.hpp"
 
 #include "aa_jerk_CandidateList.hpp"
 
@@ -28,6 +31,8 @@
 #include "aa_device_peak_find.hpp"
 
 #define VERBOSE 1
+//#define EXPORT_FILTERS
+//#define EXPORT_PLANE
 
 namespace astroaccelerate {
 
@@ -63,7 +68,6 @@ namespace astroaccelerate {
 		int interbinned_samples = jerk_strategy->interbinned_samples();
 		float z_step = jerk_strategy->z_search_step();
 		float w_step = jerk_strategy->w_search_step();
-		//printf("filter generation: nFilters_z_half=%d; nFilters_z=%d; nFilters_w_half=%d; nFilters_w=%d; Total=%d; \n", nFilters_z_half, nFilters_z, nFilters_w_half, nFilters_w, nFilters_z*nFilters_w);
 		
 		#ifdef EXPORT_FILTERS
 		std::ofstream FILEOUT;
@@ -79,12 +83,12 @@ namespace astroaccelerate {
 				double w = ((float) ws)*w_step;			
 				int halfwidth = presto_w_resp_halfwidth(z, w, jerk_strategy->high_precision());
 				int filter_size = 2*halfwidth*interbinned_samples;
-				int pos = (ws + nFilters_w_half)*nFilters_z*convolution_size + (zs + nFilters_z_half)*convolution_size;
+				size_t pos = (ws + nFilters_w_half)*nFilters_z*convolution_size + (zs + nFilters_z_half)*convolution_size;
 				
 				tempfilter = presto_gen_w_response(0.0, interbinned_samples, z, w, filter_size);
 				
 				#ifdef EXPORT_FILTERS
-				sprintf(filename, "filter_z%d_w%d.dat", zs, ws);
+				sprintf(filename, "filter_z%0.1f_w%0.1f.dat", z, w);
 				FILEOUT.open(filename);
 				for(int c=0; c<filter_size; c++){
 					FILEOUT << tempfilter[c].x*tempfilter[c].x + tempfilter[c].y*tempfilter[c].y << " " << tempfilter[c].x << " " << tempfilter[c].y << std::endl;
@@ -100,14 +104,16 @@ namespace astroaccelerate {
 			nFz++;
 		}
 		
-		//printf("nFz=%d; nFw=%d;\n",nFz, nFw);
+		#ifdef EXPORT_FILTERS
+		FILEOUT.close();
+		#endif
 		
 		#ifdef EXPORT_FILTERS
 		FILEOUT.open("jerk_filters.dat");
-		for(int ws=-nFilters_w_half; ws<nFilters_w_half; ws++){
+		for(int ws=-nFilters_w_half; ws<=nFilters_w_half; ws++){
 			for(int zs=-nFilters_z_half; zs<=nFilters_z_half; zs++){
 				for(int c=0; c<convolution_size; c++){
-					int pos = (zs+nFilters_z_half)*nFilters_w*convolution_size + (ws+nFilters_w_half)*convolution_size + c;
+					size_t pos = (ws + nFilters_w_half)*nFilters_z*convolution_size + (zs + nFilters_z_half)*convolution_size + c;
 					FILEOUT << jerk_filters[pos].x << " " << jerk_filters[pos].y << std::endl;
 				}
 				FILEOUT << std::endl;
@@ -281,7 +287,7 @@ namespace astroaccelerate {
 		if(VERBOSE>0) aa_jerk_strategy::print_info(jerk_strategy);
 		
 		//---------> Generating filters
-		float2 *h_jerk_filters;	
+		float2 *h_jerk_filters;
 		float2 *d_jerk_filters;
 		h_jerk_filters = new float2[jerk_strategy.filter_padded_size()];
 		if ( cudaSuccess != cudaMalloc((void **) &d_jerk_filters,  sizeof(float2)*jerk_strategy.filter_padded_size() )) {
@@ -385,10 +391,13 @@ namespace astroaccelerate {
 				//-------> FFT of the DM-trial
 				cufftExecR2C(cuFFT_plan, d_DM_trial, (cufftComplex *) d_DM_trial_ffted);
 				
+				//---------> Spectrum whitening
+				cudaStream_t stream; stream = NULL;
+				spectrum_whitening_SGP2((float2 *) d_DM_trial_ffted, jerk_strategy.nSamples_freq_dom(), 1, true, stream);
+				//---------<
+				
 				//---------> Candidates
 				int ZW_planes_shift = 0; //this is for filters
-				//TODO: container for candidates!
-				
 				JERK_CandidateList allcandidates(jerk_strategy.nFilters_w());
 				if(VERBOSE>3) printf("nSublists: %zu\n", allcandidates.getNumberOfSubLists());
 				
@@ -400,7 +409,8 @@ namespace astroaccelerate {
 					timer.Start();
 					if(VERBOSE>3) printf("JERK DEBUG: Convolution: position of the filters = %d; nTimesamples = %zu; conv_size = %d; useful_part_size = %d; offset = %d; nSegments = %d; nFilters = %d;\n", jerk_strategy.nFilters_z()*ZW_planes_shift, jerk_strategy.output_size_one_DM(), jerk_strategy.conv_size(), jerk_strategy.useful_part_size(), jerk_strategy.filter_halfwidth(), jerk_strategy.nSegments(), jerk_strategy.nFilters_z()*nZW_planes);
 					
-					conv_OLS_customFFT(d_DM_trial_ffted, d_ZW_planes, &d_jerk_filters[jerk_strategy.nFilters_z()*ZW_planes_shift*jerk_strategy.conv_size()], jerk_strategy.nSamples_freq_dom(), jerk_strategy.conv_size(), jerk_strategy.useful_part_size(), jerk_strategy.filter_halfwidth(), jerk_strategy.nSegments(), jerk_strategy.nFilters_z()*nZW_planes, 1.0f);
+					float scale = 1.0/( ((float) jerk_strategy.nSamples_freq_dom()) );
+					conv_OLS_customFFT(d_DM_trial_ffted, d_ZW_planes, &d_jerk_filters[jerk_strategy.nFilters_z()*ZW_planes_shift*jerk_strategy.conv_size()], jerk_strategy.nSamples_freq_dom(), jerk_strategy.conv_size(), jerk_strategy.useful_part_size(), jerk_strategy.filter_halfwidth(), jerk_strategy.nSegments(), jerk_strategy.nFilters_z()*nZW_planes, scale);
 					timer.Stop(); 
 					if(VERBOSE>2) printf("JERK SEARCH -> Convolution took: %g ms\n", timer.Elapsed());
 					Convolution_time += timer.Elapsed();
@@ -408,25 +418,30 @@ namespace astroaccelerate {
 					
 					for(int zp=0; zp<nZW_planes; zp++){
 						unsigned int nCandidates = 0;
-						char filename[200];
 						std::ofstream FILEOUT;
 						float w = ((float) (ZW_planes_shift + zp))*jerk_strategy.w_search_step() - jerk_strategy.w_max_search_limit();
 						
-						/*
+						
+						#ifdef EXPORT_PLANE
 						//-------------------- DIRECT PLANE OUTPUT
 						if(active_DM<4){
+							char filename[200];
 							float *h_ZW_planes;
 							h_ZW_planes = (float *)malloc(ZW_planes_size_bytes);
-							checkCudaErrors(cudaMemcpy(h_ZW_planes, d_ZW_planes, ZW_planes_size_bytes, cudaMemcpyDeviceToHost));
+							cudaMemcpy(h_ZW_planes, d_ZW_planes, ZW_planes_size_bytes, cudaMemcpyDeviceToHost);
 							
 							printf("---> Exporting plane:"); fflush(stdout);
-							sprintf(filename, "TEST_conv_plane_dm%d-w%d.dat", active_DM, (int) ZW_planes_shift + zp);
+							sprintf(filename, "TEST_conv_plane_dm%d-w%d.dat", (int) active_DM, (int) ZW_planes_shift + zp);
 							FILEOUT.open(filename);
-							for(int f=0; f<jerk_strategy.nFilters_z; f++){
-								float z_pos = (f-jerk_strategy.nFilters_z_half)*jerk_strategy.z_search_step;
-								for(int s=0; s<jerk_strategy.output_size_one_DM; s++){
-									int pos = f*jerk_strategy.output_size_one_DM + s;
-									FILEOUT << z_pos << " " << (float) (s/(local_plan.nTimesamples*sampling_time*inBin[active_range])) << " " << h_ZW_planes[pos] << std::endl;
+							for(int f=0; f<jerk_strategy.nFilters_z(); f++){
+								float z_pos = (f-jerk_strategy.nFilters_z_half())*jerk_strategy.z_search_step();
+								for(size_t s=0; s<jerk_strategy.output_size_one_DM(); s++){
+									size_t pos = f*jerk_strategy.output_size_one_DM() + s;
+									
+									if( isinf(h_ZW_planes[pos]) ) printf("INF detected!\n");
+									if( isnan(h_ZW_planes[pos]) ) printf("NAN detected!\n");
+									
+									FILEOUT << z_pos << " " << (float) (s/(jerk_strategy.output_size_one_DM()*sampling_time*inBin[active_range])) << " " << h_ZW_planes[pos] << std::endl;
 								}
 								printf(".");
 								fflush(stdout);
@@ -436,7 +451,8 @@ namespace astroaccelerate {
 							free(h_ZW_planes);
 						}
 						//-------------------- DIRECT PLANE OUTPUT
-						*/
+						#endif
+						
 						
 						//------------> Calculation of the mean and standard deviation
 						timer.Start();
@@ -444,6 +460,14 @@ namespace astroaccelerate {
 						Find_MSD(d_MSD, &d_ZW_planes[pos], d_MSD_workarea, &MSD_conf, jerk_strategy.OR_sigma_cutoff(), jerk_strategy.MSD_outlier_rejection());
 						timer.Stop(); 
 						if(VERBOSE>2) printf("JERK SEARCH -> MSD took: %g ms\n", timer.Elapsed());
+						if(VERBOSE>3){
+							float *h_MSD;
+							h_MSD = (float *) malloc(MSD_PARTIAL_SIZE*jerk_strategy.nHarmonics()*sizeof(float));
+							cudaMemcpy(h_MSD, d_MSD, MSD_PARTIAL_SIZE*jerk_strategy.nHarmonics()*sizeof(float), cudaMemcpyDeviceToHost);
+							printf("JERK SEARCH -> mean=%f; stdev=%f;\n", h_MSD[0], h_MSD[1]);
+							free(h_MSD);
+						}
+							
 						MSD_time += timer.Elapsed();
 						
 						//------------> Candidate selection
@@ -462,8 +486,10 @@ namespace astroaccelerate {
 							printf("ERROR: Cannot copy the number of candidates to the host!\n");
 						}
 						
+						#ifdef EXPORT_CANDIDATES
 						//-------------------- DIRECT CANDIDATE OUTPUT
 						if(nCandidates>0){
+							char filename[200];
 							float *h_candidates;
 							h_candidates = new float [nCandidates*4];
 							cudaMemcpy(h_candidates, d_ZW_candidates, nCandidates*4*sizeof(float), cudaMemcpyDeviceToHost);
@@ -474,7 +500,7 @@ namespace astroaccelerate {
 							}
 							
 							FILE *fp_out;
-							sprintf(filename, "jerk_search-dm%d-w%d.dat", (int) active_DM, (int) (ZW_planes_shift + zp));
+							sprintf(filename, "jerk_search-dm%d-w%d.dat", active_DM, (int) (ZW_planes_shift + zp));
 							if (( fp_out = fopen(filename, "wb") ) == NULL)	{
 								fprintf(stderr, "Error opening output file!\n");
 								exit(0);
@@ -485,6 +511,7 @@ namespace astroaccelerate {
 							delete [] h_candidates;
 						}
 						//-------------------- DIRECT CANDIDATE OUTPUT
+						#endif
 						
 						
 						float DM = dm_low[active_range] + ((float) active_DM)*dm_step[active_range];
@@ -496,7 +523,8 @@ namespace astroaccelerate {
 				}
 				//------->
 				char str[100];
-				sprintf(str, "jerk_results_r%d_dm%d.dat", (int) active_range, (int) active_DM);
+				float DM = dm_low[active_range] + ((float) active_DM)*dm_step[active_range];
+				sprintf(str, "jerk_results_r%d_dm%f.dat", (int) active_range, DM);
 				size_t nCandidates_for_current_DM = allcandidates.ExportToFile(str);
 				
 				//Save candidates to disc
@@ -504,7 +532,6 @@ namespace astroaccelerate {
 				timer_DM.Elapsed();
 				time_per_range = time_per_range + timer_DM.Elapsed();
 				if(VERBOSE>2) printf("JERK SEARCH -> Time per DM trial %fms\n", timer_DM.Elapsed());
-				float DM = dm_low[active_range] + ((float) active_DM)*dm_step[active_range];
 				if(VERBOSE>1) printf("JERK search: current DM=%f; Time taken %fms; Candidates found: %zu;\n", DM, timer_DM.Elapsed(), nCandidates_for_current_DM);
 			}
 			

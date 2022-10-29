@@ -186,7 +186,7 @@ int main(int argc, char *argv[]) {
 			user_flags.w_step,
 			interbinning,
 			high_precision_filters,
-			user_flags.sigma_cutoff,
+			user_flags.periodicity_sigma_cutoff,
 			user_flags.periodicity_nHarmonics,
 			msd_baseline_noise,
 			user_flags.sigma_constant,

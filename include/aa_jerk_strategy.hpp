@@ -199,21 +199,24 @@ public:
 		
 		c_nTimesamples      = plan.nTimesamples();
 		c_nSamples_time_dom = next_power_2(c_nTimesamples);
-		if( (c_nTimesamples/c_nSamples_time_dom)<0.65 && !c_always_choose_next_power_of_2) c_nSamples_time_dom = (c_nSamples_time_dom>>1);
+		if(!c_always_choose_next_power_of_2) 
+			c_nSamples_time_dom = (c_nSamples_time_dom>>1);
 		c_nSamples_freq_dom = (c_nSamples_time_dom>>1) + 1; //because R2C FFT
 		c_nDMs              = plan.nDMs();
 		
 		// Calculate number of filters
 		// number of filters must also account for negative accelerations and w=z=0;
-		if(plan.z_search_step()>0) c_nFilters_z_half = plan.z_max_search_limit()/plan.z_search_step();
+		if(plan.z_search_step()>0) 
+			c_nFilters_z_half = plan.z_max_search_limit()/plan.z_search_step();
 		else c_nFilters_z_half = 0;
 		c_nFilters_z        = c_nFilters_z_half + c_nFilters_z_half + 1; 
 		
-		if(plan.w_search_step()>0) c_nFilters_w_half = plan.w_max_search_limit()/plan.w_search_step();
-		c_nFilters_w_half = 0;
-		c_nFilters_w        = c_nFilters_w_half + c_nFilters_w_half + 1;
+		if(plan.w_search_step()>0) 
+			c_nFilters_w_half = plan.w_max_search_limit()/plan.w_search_step();
+		else c_nFilters_w_half = 0;
+		c_nFilters_w      = c_nFilters_w_half + c_nFilters_w_half + 1;
 		
-		c_nFilters_total    = c_nFilters_z*c_nFilters_w;
+		c_nFilters_total  = c_nFilters_z*c_nFilters_w;
 		
 		// recompute maximum z and w values based on step
 		c_z_max_search_limit  = c_nFilters_z_half*plan.z_search_step();
@@ -378,7 +381,7 @@ public:
 		printf("Convolution size: %d\n", strategy.conv_size());
 		printf("Number of filters in positive half z=%d; w=%d\n", strategy.nFilters_z_half(), strategy.nFilters_w_half());
 		printf("Number of filters in z=%d; w=%d\n", strategy.nFilters_z(), strategy.nFilters_w());
-		printf("Number of filters: %d\n", strategy.nFilters_total());
+		printf("Total number of filters: %d\n", strategy.nFilters_total());
 		printf("Halfwidth of the widest filter: %d\n", strategy.filter_halfwidth());
 		printf("Useful part of the segment: %d\n", strategy.useful_part_size());
 		printf("nSegments: %d\n", strategy.nSegments());
