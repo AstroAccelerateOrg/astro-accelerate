@@ -83,7 +83,7 @@ namespace astroaccelerate {
 				double w = ((float) ws)*w_step;			
 				int halfwidth = presto_w_resp_halfwidth(z, w, jerk_strategy->high_precision());
 				int filter_size = 2*halfwidth*interbinned_samples;
-				size_t pos = (ws + nFilters_w_half)*nFilters_z*convolution_size + (zs + nFilters_z_half)*convolution_size;
+				size_t pos = (ws + nFilters_w_half)*nFilters_z*convolution_size + (nFilters_z_half - zs)*convolution_size;
 				
 				tempfilter = presto_gen_w_response(0.0, interbinned_samples, z, w, filter_size);
 				
