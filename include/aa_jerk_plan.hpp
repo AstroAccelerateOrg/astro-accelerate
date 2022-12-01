@@ -16,22 +16,22 @@ namespace astroaccelerate {
 class aa_jerk_plan {
 private:
 	// input parameters
-	unsigned long int c_nTimesamples;
-	unsigned long int c_nDMs;
-	unsigned long int c_available_memory;
+	int64_t c_nTimesamples;
+	int64_t c_nDMs;
+	int64_t c_available_memory;
 	
 	// filter parameters
-	float c_z_max_search_limit;
-	float c_z_search_step;
-	float c_w_max_search_limit;
-	float c_w_search_step;
-	int   c_interbinned_samples;
-	int   c_high_precision;
+	float   c_z_max_search_limit;
+	float   c_z_search_step;
+	float   c_w_max_search_limit;
+	float   c_w_search_step;
+	int64_t c_interbinned_samples;
+	int64_t c_high_precision;
 
 	// Candidate selection
-	float c_CS_sigma_threshold;
-	int   c_CS_algorithm;
-	int   c_nHarmonics;
+	float   c_CS_sigma_threshold;
+	int64_t c_CS_algorithm;
+	int64_t c_nHarmonics;
 	
 	// MSD
 	bool  c_MSD_outlier_rejection;
@@ -73,21 +73,21 @@ public:
 	}
 	
 	aa_jerk_plan(
-			unsigned long int nTimesamples, 
-			unsigned long int nDMs,
-			unsigned long int available_memory,
-			float z_max_search_limit, 
-			float z_search_step, 
-			float w_max_search_limit, 
-			float w_search_step, 
-			bool do_interbinning,
-			bool do_high_precision,
-			float candidate_selection_sigma_threshold,
-			int nHarmonics,
-			bool do_outlier_rejection,
-			float outlier_rejection_sigma_cutoff,
-			bool always_choose_next_power_of_2,
-			bool spectrum_whitening
+			int64_t nTimesamples, 
+			int64_t nDMs,
+			int64_t available_memory,
+			float   z_max_search_limit, 
+			float   z_search_step, 
+			float   w_max_search_limit, 
+			float   w_search_step, 
+			bool    do_interbinning,
+			bool    do_high_precision,
+			float   candidate_selection_sigma_threshold,
+			int64_t nHarmonics,
+			bool    do_outlier_rejection,
+			float   outlier_rejection_sigma_cutoff,
+			bool    always_choose_next_power_of_2,
+			bool    spectrum_whitening
 	){
 		c_nTimesamples = nTimesamples;
 		c_nDMs         = nDMs;
@@ -153,19 +153,19 @@ public:
 		c_CS_sigma_threshold = sigma;
 	}
 	
-	unsigned long int nTimesamples() {return(c_nTimesamples);}
-	unsigned long int nDMs() {return(c_nDMs);}
-	unsigned long int available_memory() {return(c_available_memory);}
+	int64_t nTimesamples() {return(c_nTimesamples);}
+	int64_t nDMs() {return(c_nDMs);}
+	int64_t available_memory() {return(c_available_memory);}
 	float z_max_search_limit(){return(c_z_max_search_limit);}
 	float z_search_step() {return(c_z_search_step);}
 	float w_max_search_limit() {return(c_w_max_search_limit);}
 	float w_search_step() {return(c_w_search_step);}
-	int interbinned_samples() {return(c_interbinned_samples);}
-	int high_precision() {return(c_high_precision);}
+	int64_t interbinned_samples() {return(c_interbinned_samples);}
+	int64_t high_precision() {return(c_high_precision);}
 	
 	float CS_sigma_threshold() {return(c_CS_sigma_threshold);}
-	int CS_algorithm() {return(c_CS_algorithm);}
-	int nHarmonics() {return(c_nHarmonics);}
+	int64_t CS_algorithm() {return(c_CS_algorithm);}
+	int64_t nHarmonics() {return(c_nHarmonics);}
 	
 	bool MSD_outlier_rejection() {return(c_MSD_outlier_rejection);}
 	float OR_sigma_cutoff() {return(c_OR_sigma_cuttoff);}
@@ -175,9 +175,9 @@ public:
 	
 	void PrintPlan(){
 		printf("Input parameters for FDAS/JERK search:\n");
-		printf("    Number of time samples: %zu\n", c_nTimesamples);
-		printf("    Number of DM trials:    %zu\n", c_nDMs);
-		printf("    Available memory:       %zu\n", c_available_memory);
+		printf("    Number of time samples: %ld\n", c_nTimesamples);
+		printf("    Number of DM trials:    %ld\n", c_nDMs);
+		printf("    Available memory:       %ld\n", c_available_memory);
 		
 		printf("Filter parameters:\n");
 		printf("    z max:             %f;\n", c_z_max_search_limit);
@@ -191,7 +191,7 @@ public:
 		if(c_high_precision==1) printf("Yes.\n"); else printf("No.\n");
 		
 		printf("    CS sigma thresh:   %f;\n", c_CS_sigma_threshold);
-		printf("    Number harmonics:  %d;\n", c_nHarmonics);
+		printf("    Number harmonics:  %ld;\n", c_nHarmonics);
 		printf("    Algoriths:         ");
 		if(c_CS_algorithm==0) printf("threshold\n");
 		else if(c_CS_algorithm==1) printf("peak finding\n");

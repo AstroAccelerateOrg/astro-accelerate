@@ -16,13 +16,13 @@ namespace astroaccelerate {
 			float2 *d_input_signal, 
 			float *d_output_plane, 
 			float2 *d_filters, 
-			int signal_length, 
-			int useful_part_size, 
-			int offset, 
-			int nConvolutions, 
-			int nFilters,
+			int64_t signal_length, 
+			int64_t useful_part_size, 
+			int64_t offset, 
+			int64_t nConvolutions, 
+			int64_t nFilters,
 			float scale,
-			int convolution_length);
+			int64_t convolution_length);
 } // namespace astroaccelerate
 
 #endif // ASTRO_ACCELERATE_AA_DEVICE_CONVOLUTION_KERNEL_HPP

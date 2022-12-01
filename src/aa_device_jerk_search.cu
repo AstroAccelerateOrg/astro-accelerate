@@ -34,6 +34,7 @@
 //#define EXPORT_FILTERS
 //#define EXPORT_PLANE
 
+
 namespace astroaccelerate {
 
 	class GPU_Memory_for_JERK_Search {
@@ -80,7 +81,7 @@ namespace astroaccelerate {
 		for(int ws=-nFilters_w_half; ws<=nFilters_w_half; ws++){
 			for(int zs=-nFilters_z_half; zs<=nFilters_z_half; zs++){
 				double z = ((float) zs)*z_step;
-				double w = ((float) ws)*w_step;			
+				double w = ((float) ws)*w_step;
 				int halfwidth = presto_w_resp_halfwidth(z, w, jerk_strategy->high_precision());
 				int filter_size = 2*halfwidth*interbinned_samples;
 				size_t pos = (ws + nFilters_w_half)*nFilters_z*convolution_size + (nFilters_z_half - zs)*convolution_size;
@@ -297,7 +298,7 @@ namespace astroaccelerate {
 		
 		jerk_create_acc_filters(h_jerk_filters, &jerk_strategy);
 		if ( cudaSuccess != cudaMemcpy(d_jerk_filters, h_jerk_filters, jerk_strategy.filter_padded_size_bytes(), cudaMemcpyHostToDevice) ) {
-			printf("Error occured during host -> device transfer!\n");
+			printf("Error occurred during host -> device transfer!\n");
 			return(2);
 		}
 		
@@ -335,21 +336,21 @@ namespace astroaccelerate {
 		float *d_MSD_workarea  = NULL;
 		//-----------------------------------------------------------<
 		
-		size_t default_nTimesamples = jerk_strategy.nTimesamples();
+		int64_t default_nTimesamples = jerk_strategy.nTimesamples();
 		double MSD_time = 0, Candidate_time = 0, Convolution_time = 0;
-		for(int active_range=0; active_range<nRanges; active_range++){
-			size_t DM_trial_samples = default_nTimesamples/inBin[active_range];
-			size_t nDMs = list_of_ndms[active_range];
+		for(int64_t active_range=0; active_range<nRanges; active_range++){
+			int64_t DM_trial_samples = default_nTimesamples/inBin[active_range];
+			int64_t nDMs = list_of_ndms[active_range];
 			
 			jerk_strategy.recalculate(DM_trial_samples,nDMs);
 			if(VERBOSE>2) aa_jerk_strategy::print_info(jerk_strategy);
 			
 			//---------> Allocation of the output Z-planes and candidates
-			size_t ZW_plane_size              = jerk_strategy.output_size_z_plane();
-			unsigned int max_nZWCandidates    = (ZW_plane_size/4);
-			size_t single_ZW_plane_size_bytes = jerk_strategy.output_size_z_plane()*sizeof(float);
-			std::vector<int> ZW_chunks        = jerk_strategy.ZW_chunks();
-			size_t ZW_planes_size_bytes       = ZW_chunks[0]*single_ZW_plane_size_bytes;
+			int64_t ZW_plane_size              = jerk_strategy.output_size_z_plane();
+			int64_t max_nZWCandidates    = (ZW_plane_size/4);
+			int64_t single_ZW_plane_size_bytes = jerk_strategy.output_size_z_plane()*sizeof(float);
+			std::vector<int64_t> ZW_chunks        = jerk_strategy.ZW_chunks();
+			int64_t ZW_planes_size_bytes       = ZW_chunks[0]*single_ZW_plane_size_bytes;
 			
 			
 			if(VERBOSE>3) printf("JERK SEARCH -> ZW single plane size: %zu elements = %f MB\n", single_ZW_plane_size_bytes, ((float) single_ZW_plane_size_bytes)/(1024.0*1024.0));
@@ -378,10 +379,18 @@ namespace astroaccelerate {
 			}
 			
 
-			for(size_t active_DM = 0; active_DM<nDMs; active_DM++){
+			for(int64_t active_DM = 0; active_DM<nDMs; active_DM++){
 				timer_DM.Start();
 				
 				//-------> Copy DM-trial
+				// MemSet d_DM_trial to zero to ensure that if we perform padding the rest of the array is 0
+				cudaError = cudaMemset((void*) d_DM_trial, 0, jerk_strategy.nSamples_time_dom()*sizeof(float));
+				if ( cudaError != cudaSuccess) {
+					printf("ERROR while setting DM-trial to zero!\n");
+					printf("Error %s\n", cudaGetErrorString(cudaError));
+				}
+				// If we padding make sure we copy the number of timesamples and if we cutting timesamples make sure we do not copy more than we should.
+				int64_t nSamples_to_copy = jerk_strategy.nTimesamples() < jerk_strategy.nSamples_time_dom()? jerk_strategy.nTimesamples() : jerk_strategy.nSamples_time_dom();
 				cudaError = cudaMemcpy(d_DM_trial, dedispersed_data[active_range][active_DM], jerk_strategy.nSamples_time_dom()*sizeof(float), cudaMemcpyHostToDevice);
 				if ( cudaError != cudaSuccess) {
 					printf("ERROR while copying DM-trial to the device!\n");
@@ -389,34 +398,58 @@ namespace astroaccelerate {
 				}
 				
 				//-------> FFT of the DM-trial
-				cufftExecR2C(cuFFT_plan, d_DM_trial, (cufftComplex *) d_DM_trial_ffted);
+				cuFFT_error = cufftExecR2C(cuFFT_plan, d_DM_trial, (cufftComplex *) d_DM_trial_ffted);
+				if (cuFFT_error!=CUFFT_SUCCESS) {
+					printf("ERROR while calculating cuFFT plan\n");
+				}
 				
 				//---------> Spectrum whitening
 				cudaStream_t stream; stream = NULL;
 				spectrum_whitening_SGP2((float2 *) d_DM_trial_ffted, jerk_strategy.nSamples_freq_dom(), 1, true, stream);
+				cudaError = cudaGetLastError();
+				if (cudaError != cudaSuccess) {
+					std::cerr << "CUDA Runtime Error at spectrum_whitening_SGP2" << std::endl;
+					std::cerr << cudaGetErrorString(cudaError) << std::endl;
+				}
 				//---------<
 				
 				//---------> Candidates
-				int ZW_planes_shift = 0; //this is for filters
+				int64_t ZW_planes_shift = 0; //this is for filters
 				JERK_CandidateList allcandidates(jerk_strategy.nFilters_w());
-				if(VERBOSE>3) printf("nSublists: %zu\n", allcandidates.getNumberOfSubLists());
+				if(VERBOSE>3) printf("JERK SEARCH -> nSublists: %zu\n", allcandidates.getNumberOfSubLists());
 				
-				std::vector<int> ZW_chunks = jerk_strategy.ZW_chunks();
-				for(int f=0; f<(int) ZW_chunks.size(); f++){
-					int nZW_planes = ZW_chunks[f];
+				std::vector<int64_t> ZW_chunks = jerk_strategy.ZW_chunks();
+				for(size_t f=0; f<ZW_chunks.size(); f++){
+					int64_t nZW_planes = ZW_chunks[f];
 					
 					// Convolution
 					timer.Start();
-					if(VERBOSE>3) printf("JERK DEBUG: Convolution: position of the filters = %d; nTimesamples = %zu; conv_size = %d; useful_part_size = %d; offset = %d; nSegments = %d; nFilters = %d;\n", jerk_strategy.nFilters_z()*ZW_planes_shift, jerk_strategy.output_size_one_DM(), jerk_strategy.conv_size(), jerk_strategy.useful_part_size(), jerk_strategy.filter_halfwidth(), jerk_strategy.nSegments(), jerk_strategy.nFilters_z()*nZW_planes);
+					if(VERBOSE>3) printf("JERK SEARCH -> Convolution: position of the filters = %ld; nTimesamples = %ld; conv_size = %ld; useful_part_size = %ld; offset = %ld; nSegments = %ld; nFilters = %ld;\n", jerk_strategy.nFilters_z()*ZW_planes_shift, jerk_strategy.output_size_one_DM(), jerk_strategy.conv_size(), jerk_strategy.useful_part_size(), jerk_strategy.filter_halfwidth(), jerk_strategy.nSegments(), jerk_strategy.nFilters_z()*nZW_planes);
 					
 					float scale = 1.0/( ((float) jerk_strategy.nSamples_freq_dom()) );
-					conv_OLS_customFFT(d_DM_trial_ffted, d_ZW_planes, &d_jerk_filters[jerk_strategy.nFilters_z()*ZW_planes_shift*jerk_strategy.conv_size()], jerk_strategy.nSamples_freq_dom(), jerk_strategy.conv_size(), jerk_strategy.useful_part_size(), jerk_strategy.filter_halfwidth(), jerk_strategy.nSegments(), jerk_strategy.nFilters_z()*nZW_planes, scale);
+					conv_OLS_customFFT(
+						d_DM_trial_ffted, // pointer to input array
+						d_ZW_planes, // pointer to output array
+						&d_jerk_filters[jerk_strategy.nFilters_z()*ZW_planes_shift*jerk_strategy.conv_size()], // pointer to filter array
+						jerk_strategy.nSamples_freq_dom(), // signal length
+						jerk_strategy.conv_size(), // convolution length
+						jerk_strategy.useful_part_size(), // useful part size
+						jerk_strategy.filter_halfwidth(), // offset
+						jerk_strategy.nSegments(), // Number of convolution
+						jerk_strategy.nFilters_z()*nZW_planes, // Number of filters
+						scale // scale
+					);
+					cudaError = cudaGetLastError();
+					if (cudaError != cudaSuccess) {
+						std::cerr << "CUDA Runtime Error at convolution kernel" << std::endl;
+						std::cerr << cudaGetErrorString(cudaError) << std::endl;
+					}
 					timer.Stop(); 
 					if(VERBOSE>2) printf("JERK SEARCH -> Convolution took: %g ms\n", timer.Elapsed());
 					Convolution_time += timer.Elapsed();
 					
 					
-					for(int zp=0; zp<nZW_planes; zp++){
+					for(int64_t zp=0; zp<nZW_planes; zp++){
 						unsigned int nCandidates = 0;
 						std::ofstream FILEOUT;
 						float w = ((float) (ZW_planes_shift + zp))*jerk_strategy.w_search_step() - jerk_strategy.w_max_search_limit();
@@ -479,11 +512,12 @@ namespace astroaccelerate {
 						timer.Stop();
 						if(VERBOSE>2) printf("JERK SEARCH -> Candidate selection took: %g ms\n", timer.Elapsed());
 						Candidate_time += timer.Elapsed();
-						if(VERBOSE>3) printf("JERK SEARCH -> W Coordinate: %e [%d;%d] \n", w, ZW_planes_shift, zp);
+						if(VERBOSE>3) printf("JERK SEARCH -> W Coordinate: %e [%ld;%ld] \n", w, ZW_planes_shift, zp);
 					
 						//------------> Export to host
 						if ( cudaSuccess != cudaMemcpy(&nCandidates, gmem_peak_pos, sizeof(unsigned int), cudaMemcpyDeviceToHost)) {
 							printf("ERROR: Cannot copy the number of candidates to the host!\n");
+							exit(1);
 						}
 						
 						#ifdef EXPORT_CANDIDATES
@@ -544,7 +578,7 @@ namespace astroaccelerate {
 			d_ZW_planes = NULL;
 			if ( cudaSuccess != cudaFree(d_MSD_workarea)) printf("ERROR while deallocating d_MSD_workarea!\n");
 			d_MSD_workarea = NULL;
-			if(VERBOSE>0) printf("JERK search: range %d DMs[%f--%f] finished in %fms;\n", active_range, dm_low[active_range], dm_low[active_range] + (nDMs-1)*dm_step[active_range], time_per_range);
+			if(VERBOSE>0) printf("JERK search: range %ld DMs[%f--%f] finished in %fms;\n", active_range, dm_low[active_range], dm_low[active_range] + (nDMs-1)*dm_step[active_range], time_per_range);
 			time_per_range = 0;
 		}
 		
