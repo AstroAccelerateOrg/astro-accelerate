@@ -58,7 +58,7 @@ namespace astroaccelerate {
 		std::vector<aa_strategy*>              m_all_strategy; /** Base class pointers to all strategies bound to the pipeline. */
 		aa_pipeline::pipeline                  m_requested_pipeline; /** The user requested pipeline that was bound to the aa_pipeline_api instance on construction. */
 		const aa_pipeline::pipeline_option     m_pipeline_options; /** The user requested pipeline details containing component options for the aa_pipeline_api instance. */
-		aa_device_info				           m_selected_device; /** The user provided GPU card information for the aa_pipeline_api instance. */
+		aa_device_info                         m_selected_device; /** The user provided GPU card information for the aa_pipeline_api instance. */
 		std::unique_ptr<aa_pipeline_runner>    m_runner; /** A std::unique_ptr that will point to the correct class instantation of the selected aa_permitted_pipelines_ when the pipeline must be made ready to run. */
 
 		aa_filterbank_metadata      m_filterbank_metadata; /** The filterbank file metadata that the user provided for the aa_pipeline_api instance on construction. */

@@ -1180,7 +1180,7 @@ namespace astroaccelerate {
 		float *Get_PSR_interbin_candidates(){
 			size_t nCandidates = c_PSR_interbin_candidates.nCandidates();
 			c_h_PSR_interbin_candidates  = (float*) malloc(nCandidates*4*sizeof(float));
-			c_PSR_power_candidates.Copy_candidates(c_h_PSR_interbin_candidates);
+			c_PSR_interbin_candidates.Copy_candidates(c_h_PSR_interbin_candidates);
 			return(c_h_PSR_interbin_candidates);
 		}
 		
