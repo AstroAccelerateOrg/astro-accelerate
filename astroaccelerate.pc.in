@@ -1,0 +1,10 @@
+prefix=@DEST_DIR@
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: astroaccelerate
+Description:  AstroAccelerate is a many-core accelerated software package for processing time-domain radio-astronomy data. 
+Version: @VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_PATCH@
+
+Libs: -L${libdir} -lastroaccelerate
+Cflags: -I${includedir}
