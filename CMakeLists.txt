@@ -221,10 +221,13 @@ install(EXPORT ${PROJECT_NAME}Config DESTINATION cmake)
 export(TARGETS ${PROJECT_NAME} FILE ${PROJECT_NAME}Config.cmake)
 
 # Create pkg_config
-set(DEST_DIR "${CMAKE_INSTALL_PREFIX}")
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/astroaccelerate.pc.in"
-               "${CMAKE_CURRENT_BINARY_DIR}/astroaccelerate.pc" @ONLY)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/astroaccelerate.pc" DESTINATION lib/pkgconfig)
+join_paths(lib\pkgconfig "\${prefix}" "${CMAKE_INSTALL_LIBDIR}")
+set(DEST_DIR "${CMAKE_INSTALL_LIBDIR}")
+configure_file(
+  "${PROJECT_SOURCE_DIR}/astroaccelerate.pc.in"
+  "${PROJECT_BINARY_DIR}/astroaccelerate.pc"
+  @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/astroaccelerate.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 
 # Add tests/ directory
 option(ENABLE_TESTS "Enable tests" OFF)
