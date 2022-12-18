@@ -16,7 +16,6 @@ add_project_arguments(comp_flags, language : ['c', 'cpp', 'cuda'])
 # Instead, we use file generated from command: ls src/*.cpp > meson_srclist.txt
 fs = import('fs') 
 srcs = fs.read('meson_srclist.txt').strip().split('\n')
-examples = fs.read('meson_examplelist.txt').strip().split('\n')
 
 # Dependencies: CUDA
 cuda_dep = dependency('cuda', version : '>=11', modules : ['cudart', 'nvrtc', 'cufft', 'curand'])
@@ -28,6 +27,7 @@ astroac_lib = library('astroaccelerate', srcs,
                      dependencies: [cuda_dep, openmp_dep],
                      install: true
                     )
+                    
 # Build executable (astro-accelerate)
 astroac_exe = executable('astro-accelerate', 'src/aa_main.cpp',
                 include_directories: ['src', 'include'],
