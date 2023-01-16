@@ -6,7 +6,8 @@ set(PROJECT_NAME astro-accelerate)
 set(PROJECT_VERSION 1.3.1)	# Tagged release version
 set(PROJECT_LIB_NAME ASTRO_ACCELERATE)
 
-
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(JoinPaths)
 
 if(POLICY CMP0076)
     cmake_policy(SET CMP0076 NEW)
@@ -172,6 +173,7 @@ else()
 endif()
 
 # Configure file
+list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/cmake")
 configure_file("${PROJECT_SOURCE_DIR}/cmake/version.h.in" "${PROJECT_SOURCE_DIR}/include/aa_version.hpp")
 add_definitions("-DASTRO_ACCELERATE_VERSION_H_DEFINED=1")
 
@@ -221,7 +223,8 @@ install(EXPORT ${PROJECT_NAME}Config DESTINATION cmake)
 export(TARGETS ${PROJECT_NAME} FILE ${PROJECT_NAME}Config.cmake)
 
 # Create pkg_config
-join_paths(lib\pkgconfig "\${prefix}" "${CMAKE_INSTALL_LIBDIR}")
+join_paths(CMAKE_INSTALL_LIBDIR "lib/pkgconfig" "${prefix}")
+
 set(DEST_DIR "${CMAKE_INSTALL_LIBDIR}")
 configure_file(
   "${PROJECT_SOURCE_DIR}/astroaccelerate.pc.in"
