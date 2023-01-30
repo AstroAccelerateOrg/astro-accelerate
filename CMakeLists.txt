@@ -1,11 +1,24 @@
 # Check if cmake has the required version
 CMAKE_MINIMUM_REQUIRED(VERSION 3.9.0 FATAL_ERROR)
+
+project(astro-accelerate)
 set(PROJECT_NAME astro-accelerate)
 set(PROJECT_VERSION 1.3.1)	# Tagged release version
 set(PROJECT_LIB_NAME ASTRO_ACCELERATE)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(JoinPaths)
+
 if(POLICY CMP0076)
     cmake_policy(SET CMP0076 NEW)
+endif()
+
+if(POLICY CMP0074)
+    cmake_policy(SET CMP0074 NEW)
+endif()
+
+if(POLICY CMP0126)
+    cmake_policy(SET CMP0126 NEW)
 endif()
 
 
@@ -160,6 +173,7 @@ else()
 endif()
 
 # Configure file
+list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/cmake")
 configure_file("${PROJECT_SOURCE_DIR}/cmake/version.h.in" "${PROJECT_SOURCE_DIR}/include/aa_version.hpp")
 add_definitions("-DASTRO_ACCELERATE_VERSION_H_DEFINED=1")
 
@@ -194,7 +208,29 @@ file(GLOB_RECURSE SOURCE_FILES "src/aa_main.cpp")
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} PRIVATE astroaccelerate)
 
-install(TARGETS astroaccelerate DESTINATION bin)
+install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Config
+	ARCHIVE DESTINATION lib
+	LIBRARY DESTINATION lib
+	RUNTIME DESTINATION bin
+)
+
+# copy header files
+install(DIRECTORY include/ DESTINATION include/aa
+FILES_MATCHING PATTERN "*.hpp")
+
+# Create/export CMAKE config file for dependency
+install(EXPORT ${PROJECT_NAME}Config DESTINATION cmake)
+export(TARGETS ${PROJECT_NAME} FILE ${PROJECT_NAME}Config.cmake)
+
+# Create pkg_config
+join_paths(CMAKE_INSTALL_LIBDIR "lib/pkgconfig" "${prefix}")
+
+set(DEST_DIR "${CMAKE_INSTALL_LIBDIR}")
+configure_file(
+  "${PROJECT_SOURCE_DIR}/astroaccelerate.pc.in"
+  "${PROJECT_BINARY_DIR}/astroaccelerate.pc"
+  @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/astroaccelerate.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 
 # Add tests/ directory
 option(ENABLE_TESTS "Enable tests" OFF)
