@@ -227,18 +227,18 @@ __global__ void peak_find_list2(const float *d_input, const int width, const int
       my_value = block.y2;
     }
     
-    if(my_value == dilated_value){ // this means there is a peak
-      SNR = (my_value-d_MSD[0])/d_MSD[1]; // calculation of SNR
-      if(SNR > threshold) {
-	list_pos=atomicAdd(gmem_pos, 1);
-	if(list_pos<max_peak_size){
-	  d_peak_list[4*list_pos]   = idxY; // frequency
-	  d_peak_list[4*list_pos+1] = idxX; // acceleration
-	  d_peak_list[4*list_pos+2] = my_value; // SNR
-	  d_peak_list[4*list_pos+3] = DM_trial; //  DM_trial
+	if(my_value == dilated_value){ // this means there is a peak
+		SNR = (my_value-d_MSD[0])/d_MSD[1]; // calculation of SNR
+		if(SNR > threshold) {
+		list_pos=atomicAdd(gmem_pos, 1);
+			if(list_pos<max_peak_size){
+				d_peak_list[4*list_pos]   = idxY; // frequency
+				d_peak_list[4*list_pos+1] = idxX; // acceleration
+				d_peak_list[4*list_pos+2] = my_value; // power
+				d_peak_list[4*list_pos+3] = DM_trial; //  DM_trial
+			}
+		}
 	}
-      }
-    }
 	
     //d_output[idxY*width+idxX] = peak;
   }

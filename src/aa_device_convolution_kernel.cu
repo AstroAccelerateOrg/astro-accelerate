@@ -440,7 +440,7 @@ namespace astroaccelerate {
 	template<class const_params>
 	__global__ void k_customFFT_GPU_forward(float2 *d_input, float2* d_output) {
 		__shared__ float2 s_input[const_params::fft_length];
-		s_input[threadIdx.x]                                            = d_input[threadIdx.x + blockIdx.x*const_params::fft_length];
+		s_input[threadIdx.x]                                           = d_input[threadIdx.x + blockIdx.x*const_params::fft_length];
 		s_input[threadIdx.x + const_params::fft_length_quarter]        = d_input[threadIdx.x + blockIdx.x*const_params::fft_length + const_params::fft_length_quarter];
 		s_input[threadIdx.x + const_params::fft_length_half]           = d_input[threadIdx.x + blockIdx.x*const_params::fft_length + const_params::fft_length_half];
 		s_input[threadIdx.x + const_params::fft_length_three_quarters] = d_input[threadIdx.x + blockIdx.x*const_params::fft_length + const_params::fft_length_three_quarters];
@@ -449,7 +449,7 @@ namespace astroaccelerate {
 		CT_DIF_FFT_4way<const_params>(s_input);
 		
 		__syncthreads();
-		d_output[threadIdx.x + blockIdx.x*const_params::fft_length]                                            = s_input[threadIdx.x];
+		d_output[threadIdx.x + blockIdx.x*const_params::fft_length]                                           = s_input[threadIdx.x];
 		d_output[threadIdx.x + blockIdx.x*const_params::fft_length + const_params::fft_length_quarter]        = s_input[threadIdx.x + const_params::fft_length_quarter];
 		d_output[threadIdx.x + blockIdx.x*const_params::fft_length + const_params::fft_length_half]           = s_input[threadIdx.x + const_params::fft_length_half];
 		d_output[threadIdx.x + blockIdx.x*const_params::fft_length + const_params::fft_length_three_quarters] = s_input[threadIdx.x + const_params::fft_length_three_quarters];
@@ -458,8 +458,14 @@ namespace astroaccelerate {
 
 	/* Loads segment in correct way */
 	template<class const_params>
-	__device__ __inline__ void prepare_signal_4elem(float2* s_signal, float2 const* __restrict__ d_input_signal, int signal_length, int useful_part_size, int offset) {
-		int pos = blockIdx.x*useful_part_size;
+	__device__ __inline__ void prepare_signal_4elem(
+		float2* s_signal, 
+		float2 const* __restrict__ d_input_signal, 
+		size_t signal_length, 
+		size_t useful_part_size, 
+		size_t offset
+	) {
+		int64_t pos = blockIdx.x*useful_part_size;
 		
 		pos = blockIdx.x*useful_part_size + threadIdx.x - offset;
 		s_signal[threadIdx.x].x                                           = 0;
@@ -488,19 +494,20 @@ namespace astroaccelerate {
 	/* Convolution via overlap and save using custom FFT */
 	template<class const_params>
 	__global__ void k_GPU_conv_OLS_via_customFFT(
-				float2 const* __restrict__ d_input_signal, 
-				float *d_output_plane, 
-				float2 const* __restrict__ d_filters, 
-				int signal_length, 
-				int useful_part_size, 
-				int offset, 
-				int nConvolutions, 
-				int nFilters,
-				float scale) {
+			float2 const* __restrict__ d_input_signal, 
+			float *d_output_plane, 
+			float2 const* __restrict__ d_filters, 
+			int64_t signal_length, 
+			int64_t useful_part_size, 
+			int64_t offset, 
+			int64_t nConvolutions, 
+			int64_t nFilters,
+			float scale
+	) {
 		__shared__ float2 s_input_1[const_params::fft_length];
 		float2 r_filter_1[4];
 		float2 signal[4];
-		int pos, t;
+		int64_t pos, t;
 		
 		// Loading signal segment
 		prepare_signal_4elem<const_params>(s_input_1, d_input_signal, signal_length, useful_part_size, offset);
@@ -605,13 +612,13 @@ namespace astroaccelerate {
 			float2 *d_input_signal, 
 			float *d_output_plane, 
 			float2 *d_filters, 
-			int signal_length, 
-			int useful_part_size, 
-			int offset, 
-			int nConvolutions, 
-			int nFilters,
+			int64_t signal_length, 
+			int64_t useful_part_size, 
+			int64_t offset, 
+			int64_t nConvolutions, 
+			int64_t nFilters,
 			float scale,
-			int convolution_length)
+			int64_t convolution_length)
 		{
 			
 		switch(convolution_length) {

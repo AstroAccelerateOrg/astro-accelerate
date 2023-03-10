@@ -8,8 +8,28 @@ namespace astroaccelerate {
 
 	extern void forwardCustomFFT(float2 *d_filters, int FFT_size, int nFilters);
 
-	extern void conv_OLS_customFFT(float2 *d_input_signal, float *d_output_plane, float2 *d_filters, int signal_length, int convolution_length, int useful_part_size, int offset, int nConvolutions, int nFilters, float scale);
+	extern void conv_OLS_customFFT(
+			float2 *d_input_signal, 
+			float *d_output_plane, 
+			float2 *d_filters, 
+			int64_t signal_length, 
+			int64_t convolution_length, 
+			int64_t useful_part_size, 
+			int64_t offset, 
+			int64_t nConvolutions, 
+			int64_t nFilters, 
+			float scale
+	);
 
-	extern void convolve_signal_C2C(float2 *d_input_signal, float *d_output_plane, float2 *d_filters, int signal_length, int nFilters, int filter_halfwidth, int convolution_length, float scale);
+	extern void convolve_signal_C2C(
+			float2 *d_input_signal, 
+			float *d_output_plane, 
+			float2 *d_filters, 
+			int64_t signal_length, 
+			int64_t nFilters, 
+			int64_t filter_halfwidth, 
+			int64_t convolution_length, 
+			float scale
+	);
 }
 #endif

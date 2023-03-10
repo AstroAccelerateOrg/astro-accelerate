@@ -548,7 +548,7 @@ namespace astroaccelerate {
     double tobs = (double)params->tsamp* (double)params->nsamps*ibin;
 	
     if( !isnan(h_MSD[0]) || !isinf(h_MSD[0]) || !isnan(h_MSD[1]) || !isinf(h_MSD[1]) ){
-      printf("Number of peaks:%d; mean:%f; strdev:%f\n", list_size, h_MSD[0], h_MSD[1]);
+      //printf("Number of peaks:%d; mean:%f; strdev:%f\n", list_size, h_MSD[0], h_MSD[1]);
 		
       float *h_fdas_peak_list = (float*)malloc(list_size*4*sizeof(float));
       cudaError_t e = cudaMemcpy(h_fdas_peak_list, gpuarrays->d_fdas_peak_list, list_size*4*sizeof(float), cudaMemcpyDeviceToHost);
