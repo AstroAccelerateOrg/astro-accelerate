@@ -29,7 +29,7 @@ namespace astroaccelerate {
     FILEOUT << secondary_dimension << std::endl;
     FILEOUT << sd_per_file << std::endl;
     FILEOUT << (int) chunk_size.size() << std::endl;
-    FILEOUT.close();	
+    FILEOUT.close();
 
     inner_sec_dim_shift = 0;
     for(int i=0; i<(int) chunk_size.size(); i++){

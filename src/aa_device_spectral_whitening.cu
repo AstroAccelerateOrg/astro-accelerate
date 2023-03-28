@@ -15,16 +15,19 @@
 namespace astroaccelerate {
 
 	void create_dered_segment_sizes_prefix_sum(std::vector<int> *segment_sizes, int min_segment_length, int max_segment_length, size_t nSamples){
-		segment_sizes->push_back(0);
+		segment_sizes->push_back(1);
 		
 		int seg_length = min_segment_length;
 		int seg_sum = 1 + seg_length;
+		int new_seg_length = min_segment_length*log(seg_sum);
+		if(new_seg_length > max_segment_length) new_seg_length = max_segment_length;
 		segment_sizes->push_back(seg_sum);
 		
 		while( (size_t) (seg_sum + seg_length) < nSamples) {
+			seg_length = new_seg_length;
 			seg_sum = seg_sum + seg_length;
-			seg_length = min_segment_length*log(seg_sum);
-			if(seg_length > max_segment_length) seg_length = max_segment_length;
+			new_seg_length = min_segment_length*log(seg_sum);
+			if(new_seg_length > max_segment_length) new_seg_length = max_segment_length;
 			segment_sizes->push_back(seg_sum);
 		}
 		segment_sizes->push_back(nSamples);
@@ -58,7 +61,7 @@ namespace astroaccelerate {
 	}
 	
 	void spectrum_whitening_SGP2(float2 *d_input, size_t nSamples, int nDMs, bool enable_median, cudaStream_t &stream) {
-		int max_segment_length = 250;
+		int max_segment_length = 200;
 		int min_segment_length = 6;
 		
 		std::vector<int> segment_sizes; // must be a prefix sum!
@@ -109,7 +112,7 @@ namespace astroaccelerate {
 		
 		//------------ Call kernel for spectral whitening
 		size_t smem_size = 0;
-		dim3 grid_size(nSegments, nDMs , 1);
+		dim3 grid_size(nSegments-1, nDMs , 1);
 		dim3 block_size(256, 1, 1);
 		call_kernel_spectrum_whitening_SGP2(block_size, grid_size, smem_size, stream, d_MSD_segments, d_input, d_segment_sizes, nSamples, nSegments);
 		

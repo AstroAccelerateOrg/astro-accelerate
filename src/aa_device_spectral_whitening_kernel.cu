@@ -334,6 +334,7 @@ __global__ void GPU_kernel_segmented_MSD(float *d_segmented_MSD, float2 *d_input
 	}
 }
 
+
 template<class const_params>
 __global__ void GPU_kernel_segmented_median(float *d_segmented_MSD, float2 *d_input, int *d_segment_sizes, size_t nSamples, int nSegments){
 	__shared__ float s_values[2*const_params::nThreads];
@@ -361,68 +362,57 @@ __global__ void GPU_kernel_segmented_median(float *d_segmented_MSD, float2 *d_in
 	
 	int nZeros = const_params::nThreads*2 - active_range;
 	int median_pos = nZeros + (active_range>>1);
-	
 	if( threadIdx.x == 0 ){
+		float median = 0;
 		if( (active_range&1)==0 ){ // even
-			float median = (s_values[median_pos] + s_values[median_pos + 1])*0.5f;
-			d_segmented_MSD[blockIdx.y*nSegments  + blockIdx.x] = median;
+			//median = ((s_values[median_pos] + s_values[median_pos - 1])*0.5f);
+			// to align with presto
+			median = s_values[median_pos - 1];
 		}
 		else {
-			float median = s_values[median_pos];
-			d_segmented_MSD[blockIdx.y*nSegments  + blockIdx.x] = median;
+			median = (s_values[median_pos]);
 		}
+		// to align with presto
+		median = median/0.69314718f;
+		d_segmented_MSD[blockIdx.y*nSegments  + blockIdx.x] = median;
 	}
+	
 }
 
 
+
 __global__ void GPU_kernel_spectrum_whitening_SGP2(float *d_segmented_MSD, float2 *d_input, int *d_segment_sizes, size_t nSamples, int nSegments){
-	if(blockIdx.x==0){
-		// First segment cannot calculate slope thus it is normalized by mean only
-		int f0_pos = d_segment_sizes[blockIdx.x + 0];
-		int fp1_pos = d_segment_sizes[blockIdx.x + 1];
-		int current_range  = fp1_pos - f0_pos;
-		float current_mean  = d_segmented_MSD[blockIdx.y*nSegments + blockIdx.x]*1.44269504088896;
-		float norm = 1.0/sqrt(current_mean);
-		size_t global_pos = blockIdx.y*nSamples + threadIdx.x;
-		if(threadIdx.x<(current_range>>1)){
-			d_input[global_pos].x *= norm;
-			d_input[global_pos].y *= norm;
-		}
-		if(threadIdx.x==0){
-			d_input[global_pos].x = 1.0;
-			d_input[global_pos].y = 0.0;
-		}
+	if(threadIdx.x==0 && blockIdx.x==0){
+		d_input[blockIdx.y*nSamples].x = 1.0;
+		d_input[blockIdx.y*nSamples].y = 0.0;
+	}
+	// This is presto deredning scheme
+	int fm1_pos = d_segment_sizes[blockIdx.x + 0];
+	int f0_pos  = d_segment_sizes[blockIdx.x + 1];
+	int fp1_pos = d_segment_sizes[blockIdx.x + 2];
+	int previous_range = f0_pos - fm1_pos;
+	int current_range  = fp1_pos - f0_pos;
+	
+	float previous_mean = 0;
+	float current_mean  = 0;
+	if(blockIdx.x == gridDim.x-1){
+		previous_mean = d_segmented_MSD[blockIdx.y*nSegments + blockIdx.x - 1];
+		current_mean  = d_segmented_MSD[blockIdx.y*nSegments + blockIdx.x];
 	}
 	else {
-		// This is presto deredning scheme
-		int fm1_pos = d_segment_sizes[blockIdx.x - 1];
-		int f0_pos  = d_segment_sizes[blockIdx.x + 0];
-		int fp1_pos = d_segment_sizes[blockIdx.x + 1];
-		int previous_range = f0_pos - fm1_pos;
-		int current_range  = fp1_pos - f0_pos;
-		float previous_mean = d_segmented_MSD[blockIdx.y*nSegments + blockIdx.x - 1]*1.44269504088896;
-		float current_mean  = d_segmented_MSD[blockIdx.y*nSegments + blockIdx.x]*1.44269504088896;
-		
-		int range = ((previous_range + current_range + 1)>>1);
-		int i = range - threadIdx.x;
-		float slope = (current_mean - previous_mean) / ((float) range);
-		float norm  = 1.0/sqrt(previous_mean + slope*i);
-		int local_pos = fm1_pos + (previous_range>>1) + i;
-		
-		if( i >= 0 && i<range && local_pos < nSamples){
-			size_t global_pos = blockIdx.y*nSamples + local_pos;
-			d_input[global_pos].x *= norm;
-			d_input[global_pos].y *= norm;
-		}
-		
-		if(blockIdx.x == (gridDim.x - 2)){
-			int local_pos = fm1_pos + (previous_range>>1) + range + threadIdx.x;
-			if(local_pos < nSamples){
-				size_t global_pos = blockIdx.y*nSamples + local_pos;
-				d_input[global_pos].x *= norm;
-				d_input[global_pos].y *= norm;
-			}
-		}
+		previous_mean = d_segmented_MSD[blockIdx.y*nSegments + blockIdx.x];
+		current_mean  = d_segmented_MSD[blockIdx.y*nSegments + blockIdx.x + 1];
+	}
+	
+	double slope = (current_mean - previous_mean) / ((float) (current_range + previous_range));
+	double lineoffset = 0.5*((float) (current_range + previous_range));
+	double norm = 1.0/sqrt(previous_mean + slope*(lineoffset - threadIdx.x));
+	
+	int local_pos = fm1_pos + threadIdx.x;
+	if(threadIdx.x<previous_range && local_pos < nSamples){
+		size_t global_pos = blockIdx.y*nSamples + (size_t) local_pos;
+		d_input[global_pos].x *= norm;
+		d_input[global_pos].y *= norm;
 	}
 }
 
