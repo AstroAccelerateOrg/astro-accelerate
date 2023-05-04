@@ -24,6 +24,19 @@ extern int periodicity_greedy_harmonic_summing(
   int enable_scalloping_loss_removal
 );
 
+extern int periodicity_two_dimensional_greedy_harmonic_summing(
+  float *d_input,
+  float *d_output_SNR,
+  ushort *d_output_harmonics,
+  float *d_mean,
+  float *d_stdev,
+  size_t N_f,
+  size_t N_fdot,
+  size_t max_f_idx,
+  size_t max_fdot_idx,
+  size_t nHarmonics
+);
+
 extern int periodicity_presto_plus_harmonic_summing(
   float *d_input,
   float *d_output_SNR,
