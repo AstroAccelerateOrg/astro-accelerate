@@ -54,7 +54,7 @@ namespace astroaccelerate {
     astroaccelerate::fdas_cufftplan fftplans;
     //float *acc_signal = NULL;
     struct timeval t_start, t_end;
-    double t_gpu = 0.0, t_gpu_i = 0.0;
+    //double t_gpu = 0.0, t_gpu_i = 0.0;
 
     //set default arguments
     cmdargs.nharms = 1; //
@@ -118,7 +118,7 @@ namespace astroaccelerate {
 
     //
     params.sigblock = KERNLEN - 2 * params.offset + 1;
-    params.scale = 1.0f / (float) (KERNLEN);
+    params.scale = sqrt(2) / (float) (KERNLEN);
     params.rfftlen = params.nsamps / 2 + 1;
     params.nblocks = params.rfftlen / params.sigblock;
     params.siglen = params.nblocks * params.sigblock;
@@ -244,8 +244,8 @@ namespace astroaccelerate {
 	//cudaGetLastError(); //reset errors
 	printf("\n\nStarting main acceleration search\n\n");
 
-	int iter=cmdargs.iter;
-	int titer=1;
+	//int iter=cmdargs.iter;
+	//int titer=1;
 
 	/*
 	 * for (int ii = 0; ii < number_dm_concurrently; ++ii)
@@ -352,8 +352,8 @@ namespace astroaccelerate {
 
 	    cudaDeviceSynchronize();
 	    gettimeofday(&t_end, NULL);
-	    t_gpu = (double) (t_end.tv_sec + (t_end.tv_usec / 1000000.0)  - t_start.tv_sec - (t_start.tv_usec/ 1000000.0)) * 1000.0;
-	    t_gpu_i = (t_gpu /(double)titer);
+	    //t_gpu = (double) (t_end.tv_sec + (t_end.tv_usec / 1000000.0)  - t_start.tv_sec - (t_start.tv_usec/ 1000000.0)) * 1000.0;
+	    //t_gpu_i = (t_gpu /(double)titer);
 	    //printf("\n\nAverage vector transfer time of %d float samples (%.2f Mb) from 1000 iterations: %f ms\n\n", params.nsamps, (float)(gpuarrays.mem_insig)/mbyte, t_gpu_i);
 
 	    cudaProfilerStart(); //exclude cuda initialization ops
@@ -365,14 +365,14 @@ namespace astroaccelerate {
 	       */
 	      cudaDeviceSynchronize();
 	      gettimeofday(&t_end, NULL);
-	      t_gpu = (double) (t_end.tv_sec + (t_end.tv_usec / 1000000.0)  - t_start.tv_sec - (t_start.tv_usec/ 1000000.0)) * 1000.0;
-	      t_gpu_i = (t_gpu / (double)iter);
-	      //printf("\n\nConvolution using basic algorithm with cuFFT\nTotal process took: %f ms per iteration \nTotal time %d iterations: %f ms\n", t_gpu_i, iter, t_gpu);
+	      //t_gpu = (double) (t_end.tv_sec + (t_end.tv_usec / 1000000.0)  - t_start.tv_sec - (t_start.tv_usec/ 1000000.0)) * 1000.0;
+	      //t_gpu_i += (t_gpu / (double)iter);
+	      //printf("Convolution using basic algorithm with cuFFT: Total process took: %f ms per iteration; Total time %d iterations: %f ms;\n", t_gpu_i, iter, t_gpu);
 	    }
 
 #ifndef NOCUST
 	    if (cmdargs.kfft) {
-	      printf("\nMain: running FDAS with custom fft\n");
+	      //printf("\nMain: running FDAS with custom fft\n");
 	      gettimeofday(&t_start, NULL); //don't time transfer
 	      fdas_cuda_customfft(&fftplans, &gpuarrays, &cmdargs, &params);
 	      /*
@@ -380,9 +380,9 @@ namespace astroaccelerate {
 	       */
 	      cudaDeviceSynchronize();
 	      gettimeofday(&t_end, NULL);
-	      t_gpu = (double) (t_end.tv_sec + (t_end.tv_usec / 1000000.0)  - t_start.tv_sec - (t_start.tv_usec/ 1000000.0)) * 1000.0;
-	      t_gpu_i = (t_gpu / (double)iter);
-	      printf("\n\nConvolution using custom FFT:\nTotal process took: %f ms\n per iteration \nTotal time %d iterations: %f ms\n", t_gpu_i, iter, t_gpu);
+	      //t_gpu = (double) (t_end.tv_sec + (t_end.tv_usec / 1000000.0)  - t_start.tv_sec - (t_start.tv_usec/ 1000000.0)) * 1000.0;
+	      //t_gpu_i += (t_gpu / (double)iter);
+	      //printf("Convolution using custom FFT: Total process took: %f ms per iteration; Total time %d iterations: %f ms;\n", t_gpu_i, iter, t_gpu);
 	    }
 #endif
 	    // Calculating base level noise and peak find

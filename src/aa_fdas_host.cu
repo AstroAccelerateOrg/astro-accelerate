@@ -1,7 +1,12 @@
 #include <iostream>
+#include <fstream>
 
 #include "aa_fdas_host.hpp"
 #include "aa_log.hpp"
+#include "aa_device_spectrum_whitening.hpp"
+
+#define ENABLE_HOST_DERED false
+#define ENABLE_HOST_BLOCK_MEDIAN_NORM false
 
 namespace astroaccelerate {
 
@@ -308,6 +313,14 @@ namespace astroaccelerate {
     printf("\ncuFFT plans done \n");
   }
 
+	void export_fft_data(float2* data, size_t data_size, const char* file){
+		std::ofstream FILEOUT;
+		FILEOUT.open (file, std::ofstream::out);
+		for(size_t f = 0; f < data_size; f++){
+			FILEOUT << data[f].x << " " << data[f].y << " " << sqrt(data[f].x*data[f].x + data[f].y*data[f].y) << std::endl;
+		}
+		FILEOUT.close();
+	}
 
   /** \brief Perform basic fourier domain accelerated search (fdas). */
   void fdas_cuda_basic(fdas_cufftplan *fftplans, fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params)
@@ -355,52 +368,58 @@ namespace astroaccelerate {
     free(f2temp);
 #endif
 
-    if (cmdargs->norm){
-      //  PRESTO deredden - remove red noise.
-      // TODO: replace with GPU version
-      float2 *fftsig;
-      fftsig = (float2*)malloc((params->rfftlen)*sizeof(float2)); 
-    
-      cudaError_t e = cudaMemcpy(fftsig, gpuarrays->d_fft_signal, (params->rfftlen)*sizeof(float2), cudaMemcpyDeviceToHost);
-
-      if(e != cudaSuccess) {
-	LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
-      }
-      
-      presto_dered_sig(fftsig, params->rfftlen);
-      e = cudaMemcpy(gpuarrays->d_fft_signal, fftsig, (params->rfftlen)*sizeof(float2), cudaMemcpyHostToDevice);
-
-      if(e != cudaSuccess) {
-	LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
-      }
-      
-      free(fftsig);
-    }
+	if (cmdargs->norm){
+		if(ENABLE_HOST_DERED){
+			// doing deredning on the host
+			float2 *fftsig;
+			fftsig = (float2*)malloc((params->rfftlen)*sizeof(float2)); 
+			
+			cudaError_t e = cudaMemcpy(fftsig, gpuarrays->d_fft_signal, (params->rfftlen)*sizeof(float2), cudaMemcpyDeviceToHost);
+			
+			if(e != cudaSuccess) {
+				LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
+			}
+			
+			presto_dered_sig(fftsig, params->rfftlen);
+			e = cudaMemcpy(gpuarrays->d_fft_signal, fftsig, (params->rfftlen)*sizeof(float2), cudaMemcpyHostToDevice);
+			
+			if(e != cudaSuccess) {
+				LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
+			}
+			
+			free(fftsig);
+		}
+		else {
+			// doing deedning on GPU
+			cudaStream_t stream; stream = NULL;
+			spectrum_whitening_SGP2((float2 *) gpuarrays->d_fft_signal, params->rfftlen, 1, true, stream);
+		}
+	}
 
     //overlap-copy
     call_kernel_cuda_overlap_copy(gpuarrays->d_ext_data, gpuarrays->d_fft_signal, params->sigblock, params->rfftlen, params->extlen, params->offset, params->nblocks );
 
-    if (cmdargs->norm){
-      //  PRESTO block median normalization
-      // TODO: replace with GPU version
-      float2 *extsig;
-      extsig = (float2*)malloc((params->extlen)*sizeof(float2));
-      cudaError_t e = cudaMemcpy(extsig, gpuarrays->d_ext_data, (params->extlen)*sizeof(float2), cudaMemcpyDeviceToHost);
-
-      if(e != cudaSuccess) {
-	LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
-      }
-      
-      for(int b=0; b<params->nblocks; ++b)
-	presto_norm(extsig+b*KERNLEN, KERNLEN);
-      e = cudaMemcpy(gpuarrays->d_ext_data, extsig, (params->extlen)*sizeof(float2), cudaMemcpyHostToDevice);
-
-      if(e != cudaSuccess) {
-	LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
-      }
-      
-      free(extsig);
-    }
+	if (cmdargs->norm && ENABLE_HOST_BLOCK_MEDIAN_NORM){
+		//  PRESTO block median normalization
+		// TODO: replace with GPU version
+		float2 *extsig;
+		extsig = (float2*)malloc((params->extlen)*sizeof(float2));
+		cudaError_t e = cudaMemcpy(extsig, gpuarrays->d_ext_data, (params->extlen)*sizeof(float2), cudaMemcpyDeviceToHost);
+	
+		if(e != cudaSuccess) {
+			LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
+		}
+		
+		for(int b=0; b<params->nblocks; ++b)
+			presto_norm(extsig+b*KERNLEN, KERNLEN);
+		e = cudaMemcpy(gpuarrays->d_ext_data, extsig, (params->extlen)*sizeof(float2), cudaMemcpyHostToDevice);
+	
+		if(e != cudaSuccess) {
+			LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
+		}
+		
+		free(extsig);
+	}
 
     //complex block fft
     cufftExecC2C(fftplans->forwardplan, gpuarrays->d_ext_data, gpuarrays->d_ext_data, CUFFT_FORWARD);
@@ -462,74 +481,75 @@ namespace astroaccelerate {
 #endif
   
 
-    if (cmdargs->norm){
-      //  PRESTO deredden - remove red noise.
-      // TODO: replace with GPU version
-      float2 *fftsig;
-      fftsig = (float2*)malloc((params->rfftlen)*sizeof(float2)); 
-    
-      cudaError_t e = cudaMemcpy(fftsig, gpuarrays->d_fft_signal, (params->rfftlen)*sizeof(float2), cudaMemcpyDeviceToHost);
-      
-      if(e != cudaSuccess) {
-	LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
-      }
-      
-      presto_dered_sig(fftsig, params->rfftlen);
-      e = cudaMemcpy(gpuarrays->d_fft_signal, fftsig, (params->rfftlen)*sizeof(float2), cudaMemcpyHostToDevice);
-
-      if(e != cudaSuccess) {
-	LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
-      }
-      
-      free(fftsig);
-    }
+	if (cmdargs->norm){
+		if(ENABLE_HOST_DERED){
+			// doing deredning on the host
+			float2 *fftsig;
+			fftsig = (float2*)malloc((params->rfftlen)*sizeof(float2)); 
+			
+			cudaError_t e = cudaMemcpy(fftsig, gpuarrays->d_fft_signal, (params->rfftlen)*sizeof(float2), cudaMemcpyDeviceToHost);
+			if(e != cudaSuccess) {
+				LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
+			}
+			
+			presto_dered_sig(fftsig, params->rfftlen);
+			//export_fft_data(fftsig, params->rfftlen, "presto_dered_sig.dat");
+			
+			e = cudaMemcpy(gpuarrays->d_fft_signal, fftsig, (params->rfftlen)*sizeof(float2), cudaMemcpyHostToDevice);
+			if(e != cudaSuccess) {
+				LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
+			}
+			
+			free(fftsig);
+		}
+		else {
+			// doing deredning on GPU
+			cudaStream_t stream; stream = NULL;
+			spectrum_whitening_SGP2((float2 *) gpuarrays->d_fft_signal, params->rfftlen, 1, true, stream);
+			
+			//float2 *GPU_norm;
+			//GPU_norm = (float2*)malloc((params->rfftlen)*sizeof(float2));
+			//cudaMemcpy(GPU_norm, gpuarrays->d_fft_signal, (params->rfftlen)*sizeof(float2), cudaMemcpyDeviceToHost);
+			//export_fft_data(GPU_norm, params->rfftlen, "gpu_dered_sig.dat");
+			//free(GPU_norm);
+		}
+	}
 
     //overlap-copy
     call_kernel_cuda_overlap_copy_smallblk(params->nblocks, gpuarrays->d_ext_data, gpuarrays->d_fft_signal, params->sigblock, params->rfftlen, params->extlen, params->offset, params->nblocks );
 
-    if (cmdargs->norm){
-      //  PRESTO block median normalization
-      // TODO: replace with GPU version
-      float2 *extsig;
-      extsig = (float2*)malloc((params->extlen)*sizeof(float2));
-      cudaError_t e = cudaMemcpy(extsig, gpuarrays->d_ext_data, (params->extlen)*sizeof(float2), cudaMemcpyDeviceToHost);
-
-      if(e != cudaSuccess) {
-	LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
-      }
-      
-      for(int b=0; b<params->nblocks; ++b)
-	presto_norm(extsig+b*KERNLEN, KERNLEN);
-      e = cudaMemcpy(gpuarrays->d_ext_data, extsig, (params->extlen)*sizeof(float2), cudaMemcpyHostToDevice);
-
-      if(e != cudaSuccess) {
-	LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
-      }
-      
-      free(extsig);
-    }
+	if (cmdargs->norm && ENABLE_HOST_BLOCK_MEDIAN_NORM){
+		// PRESTO block median normalization
+		// TODO: replace with GPU version
+		float2 *extsig;
+		extsig = (float2*)malloc((params->extlen)*sizeof(float2));
+		cudaError_t e = cudaMemcpy(extsig, gpuarrays->d_ext_data, (params->extlen)*sizeof(float2), cudaMemcpyDeviceToHost);
+		
+		if(e != cudaSuccess) {
+			LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
+		}
+		
+		for(int b=0; b<params->nblocks; ++b) {
+			presto_norm(extsig+b*KERNLEN, KERNLEN);
+		}
+		
+		e = cudaMemcpy(gpuarrays->d_ext_data, extsig, (params->extlen)*sizeof(float2), cudaMemcpyHostToDevice);
+		if(e != cudaSuccess) {
+			LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
+		}
+		
+		free(extsig);
+	}
 
     // Custom FFT convolution kernel
     if(cmdargs->inbin){
       call_kernel_cuda_convolve_customfft_wes_no_reorder02_inbin(params->nblocks, gpuarrays->d_kernel, gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, params->sigblock, params->extlen, params->siglen, params->offset, params->scale, gpuarrays->ip_edge_points);
     }
     else{
-      //cuda_convolve_customfft_wes_no_reorder02<<< params->nblocks, KERNLEN >>>( gpuarrays->d_kernel, gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, params->sigblock, params->extlen, params->siglen, params->offset, params->scale);
-		
       //-------------------------------------------
       dim3 gridSize(1, 1, 1);
       dim3 blockSize(1, 1, 1);
-		
-      /*
-      //-------------------------------------------
-      //Two elements per thread
-      gridSize.x = params->nblocks;
-      gridSize.y = 1;
-      gridSize.z = 1;
-      blockSize.x = KERNLEN/2;
-      GPU_CONV_kFFT_mk11_2elem_2v<<<gridSize,blockSize>>>(gpuarrays->d_ext_data, gpuarrays->d_ffdot_pwr, gpuarrays->d_kernel, params->sigblock, params->offset, params->nblocks, params->scale);
-      */
-		
+      
       //-------------------------------------------
       //Four elements per thread
       gridSize.x = params->nblocks;
