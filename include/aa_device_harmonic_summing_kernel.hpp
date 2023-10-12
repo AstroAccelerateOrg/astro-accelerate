@@ -19,6 +19,22 @@ namespace astroaccelerate {
   };
 
   /** \brief Kernel wrapper function for PHS_GPU_kernel kernel function. */
+  void call_two_dimensional_greedy_harmonic_sum_GPU_kernel(
+      const dim3 &grid_size,
+      const dim3 &block_size,
+      float const *const d_input,
+      float *const d_output_max, 
+      float *const d_output_SNR,
+      ushort *const d_output_harmonics,
+      float *const d_mean,
+      float *const d_stdev,
+      size_t const &N_f,
+      size_t const &N_fdot,
+      size_t const &max_f_idx,
+      size_t const &max_fdot_idx,
+      size_t const nHarmonics
+  );
+  
   void call_kernel_simple_harmonic_sum_GPU_kernel(
       const dim3 &grid_size,
       const dim3 &block_size,

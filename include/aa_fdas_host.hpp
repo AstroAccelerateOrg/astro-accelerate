@@ -52,7 +52,9 @@ namespace astroaccelerate {
     float2  *d_ext_data;
     float2 *d_kernel;
     float *d_ffdot_pwr;
-    float *d_ffdot_summed;
+    float *d_ffdot_max;
+    float *d_ffdot_SNR;
+    ushort *d_ffdot_Harmonics;
     float2 *d_ffdot_cpx;
     float2 *ip_edge_points;// edge points for interbinning in kfft
     float *d_fdas_peak_list; // added by KA
@@ -116,7 +118,13 @@ namespace astroaccelerate {
 
   void fdas_write_list(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float *h_MSD, float dm_low, int dm_count, float dm_step, unsigned int list_size);
 
-  void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step );
+  void fdas_write_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step);
+
+  void fdas_write_ffdot_max(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step);
+
+  void fdas_write_ffdot_SNR(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step);
+
+  void fdas_write_ffdot_Harmonics(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step);
 
   void fdas_write_test_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step );
 

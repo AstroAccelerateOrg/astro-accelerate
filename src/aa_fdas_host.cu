@@ -86,9 +86,44 @@ namespace astroaccelerate {
     if(e != cudaSuccess) {
       LOG(log_level::error, "Could not cudaMalloc in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
     }
+
+    e = cudaMalloc((void**)&arrays->d_ffdot_max, arrays->mem_ffdot );
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMalloc in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+
+    e = cudaMalloc((void**)&arrays->d_ffdot_SNR, arrays->mem_ffdot);
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMalloc in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+
+    e = cudaMalloc((void**)&arrays->d_ffdot_Harmonics, arrays->mem_ffdot);
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMalloc in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
     
     //initialise array
     e = cudaMemset(arrays->d_ffdot_pwr, 0, arrays->mem_ffdot);
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMemset in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+
+    e = cudaMemset(arrays->d_ffdot_max, 0, arrays->mem_ffdot);
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMemset in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+
+    e = cudaMemset(arrays->d_ffdot_SNR, 0, arrays->mem_ffdot);
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaMemset in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");     
+    }
+
+    e = cudaMemset(arrays->d_ffdot_Harmonics, 0, arrays->mem_ffdot);
 
     if(e != cudaSuccess) {
       LOG(log_level::error, "Could not cudaMemset in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
@@ -149,6 +184,24 @@ namespace astroaccelerate {
     }
     
     e = cudaFree(arrays->d_ffdot_pwr);
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaFree in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+
+    e = cudaFree(arrays->d_ffdot_max);
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaFree in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+
+    e = cudaFree(arrays->d_ffdot_SNR);
+
+    if(e != cudaSuccess) {
+      LOG(log_level::error, "Could not cudaFree in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
+    }
+
+    e = cudaFree(arrays->d_ffdot_Harmonics);
 
     if(e != cudaSuccess) {
       LOG(log_level::error, "Could not cudaFree in aa_fdas_host.cu (" + std::string(cudaGetErrorString(e)) + ")");
@@ -697,9 +750,8 @@ namespace astroaccelerate {
       for( int j = 0; j < ibin*params->siglen; j++){
 	pow =  h_ffdotpwr[a * ibin*params->siglen + j]; //(h_ffdotpwr[a * params->siglen + j]-mean)/stddev;
 		
-		if( pow > cmdargs->thresh) {
-			sigma = candidate_sigma(pow, cmdargs->nharms, numindep);//power, number of harmonics, number of independed searches=1...2^harms
-			//  sigma=1.0;
+		if( pow > 0) {
+			sigma=1.0;
 			double jfreq = (double)(j) / tobs;
 			double acc1 = acc*SLIGHT / jfreq / tobs / tobs;
 			fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, sigma);

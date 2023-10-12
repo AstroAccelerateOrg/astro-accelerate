@@ -81,8 +81,9 @@ namespace astroaccelerate {
     return(0);
   }
 
-  int periodicity_two_dimensional_greedy_harmonic_summing(
+int periodicity_two_dimensional_greedy_harmonic_summing(
       float *d_input,
+      float *d_output_max,
       float *d_output_SNR,
       ushort *d_output_harmonics,
       float *d_mean,
@@ -105,6 +106,7 @@ namespace astroaccelerate {
         gridSize,
         blockSize,
         d_input,
+        d_output_max,
         d_output_SNR,
         d_output_harmonics,
         d_mean,

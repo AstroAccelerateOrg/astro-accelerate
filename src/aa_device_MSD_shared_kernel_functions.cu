@@ -122,7 +122,7 @@ namespace astroaccelerate {
 	//                (*StDev) = StDev1 + (distance_in_StDev/distance_in_width)*((float) desired_width - width1);
 	d_MSD_interpolated[tid*2] = mean1 + (distance_in_mean/distance_in_width)*((float) desired_width - width1);
 	d_MSD_interpolated[tid*2+1] = StDev1 + (distance_in_StDev/distance_in_width)*((float) desired_width - width1);
-
+  
       }
     }
   }
