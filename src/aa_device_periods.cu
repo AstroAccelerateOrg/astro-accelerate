@@ -152,8 +152,8 @@ namespace astroaccelerate {
     ushort *d_interbin_harmonics;
     
     // Candidate list
-    int *gmem_power_peak_pos;
-    int *gmem_interbin_peak_pos;
+    unsigned int *gmem_power_peak_pos;
+    unsigned int *gmem_interbin_peak_pos;
     
     // MSD
     float *d_MSD;
@@ -176,8 +176,8 @@ namespace astroaccelerate {
       if ( cudaSuccess != cudaMalloc((void **) &d_power_harmonics, sizeof(ushort)*t_input_plane_size )) printf("Periodicity Allocation error! d_harmonics\n");
       if ( cudaSuccess != cudaMalloc((void **) &d_interbin_harmonics, sizeof(ushort)*t_input_plane_size )) printf("Periodicity Allocation error! d_harmonics\n");
         
-      if ( cudaSuccess != cudaMalloc((void**) &gmem_power_peak_pos, 1*sizeof(int)) )  printf("Periodicity Allocation error! gmem_power_peak_pos\n");
-      if ( cudaSuccess != cudaMalloc((void**) &gmem_interbin_peak_pos, 1*sizeof(int)) )  printf("Periodicity Allocation error! gmem_interbin_peak_pos\n");
+      if ( cudaSuccess != cudaMalloc((void**) &gmem_power_peak_pos, 1*sizeof(unsigned int)) )  printf("Periodicity Allocation error! gmem_power_peak_pos\n");
+      if ( cudaSuccess != cudaMalloc((void**) &gmem_interbin_peak_pos, 1*sizeof(unsigned int)) )  printf("Periodicity Allocation error! gmem_interbin_peak_pos\n");
         
       if ( cudaSuccess != cudaMalloc((void**) &d_MSD, sizeof(float)*MSD_interpolated_size*2)) {printf("Periodicity Allocation error! d_MSD\n");}
       
@@ -193,13 +193,13 @@ namespace astroaccelerate {
     }
     
     void Reset_Candidate_List(){
-      cudaMemset(gmem_power_peak_pos, 0, sizeof(int));
-      cudaMemset(gmem_interbin_peak_pos, 0, sizeof(int));
+      cudaMemset(gmem_power_peak_pos, 0, sizeof(unsigned int));
+      cudaMemset(gmem_interbin_peak_pos, 0, sizeof(unsigned int));
     }
     
     int Get_Number_of_Power_Candidates(){
-      int temp;
-      cudaError_t e = cudaMemcpy(&temp, gmem_power_peak_pos, sizeof(int), cudaMemcpyDeviceToHost);
+      unsigned int temp;
+      cudaError_t e = cudaMemcpy(&temp, gmem_power_peak_pos, sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
       if(e != cudaSuccess) {
         LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
@@ -209,8 +209,8 @@ namespace astroaccelerate {
     }
     
     int Get_Number_of_Interbin_Candidates(){
-      int temp;
-      cudaError_t e = cudaMemcpy(&temp, gmem_interbin_peak_pos, sizeof(int), cudaMemcpyDeviceToHost);
+      unsigned int temp;
+      cudaError_t e = cudaMemcpy(&temp, gmem_interbin_peak_pos, sizeof(unsigned int), cudaMemcpyDeviceToHost);
       
       if(e != cudaSuccess) {
         LOG(log_level::error, "Could not cudaMemcpy in aa_device_periods.cu (" + std::string(cudaGetErrorString(e)) + ")");
@@ -372,7 +372,7 @@ namespace astroaccelerate {
     }
     TimeLog time_log;
     
-    int local_max_list_size = (input_plane_size)/4;
+    unsigned int local_max_list_size = (input_plane_size)/4;
     if(local_max_list_size > 1073741824) local_max_list_size = 1073741824;
     
     

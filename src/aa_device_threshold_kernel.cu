@@ -7,13 +7,14 @@
 
 namespace astroaccelerate {
 
-  __global__ void THR_GPU_WARP(float const* __restrict__ d_input, ushort *d_input_taps, unsigned int *d_output_list_DM, unsigned int *d_output_list_TS, float *d_output_list_SNR, unsigned int *d_output_list_BW, int *gmem_pos, float threshold, int nTimesamples, int offset, int shift, int max_list_size, int DIT_value) {
+  __global__ void THR_GPU_WARP(float const* __restrict__ d_input, ushort *d_input_taps, unsigned int *d_output_list_DM, unsigned int *d_output_list_TS, float *d_output_list_SNR, unsigned int *d_output_list_BW, unsigned int *gmem_pos, float threshold, int nTimesamples, int offset, int shift, unsigned int max_list_size, int DIT_value) {
     int local_id;
     local_id = threadIdx.x & (WARP - 1);
     int warp_id;
     warp_id = threadIdx.x>>5;
 	
-    int pos_x, pos_y, list_pos, mask, leader;
+    int pos_x, pos_y, mask, leader;
+    unsigned int list_pos;
     float R;
 	
     pos_y = (blockIdx.y*THR_WARPS_PER_BLOCK + warp_id)*nTimesamples;
@@ -40,8 +41,9 @@ namespace astroaccelerate {
     }
   }
 
-  __global__ void GPU_Threshold_for_periodicity_normal_kernel(float const* __restrict__ d_input, ushort *d_input_harms, float *d_output_list, int *gmem_pos, float const* __restrict__ d_MSD, float threshold, int nTimesamples, int nDMs, int DM_shift, int max_list_size, int DIT_value) {
-    int pos_x, pos_y, pos, list_pos, mask, leader;
+  __global__ void GPU_Threshold_for_periodicity_normal_kernel(float const* __restrict__ d_input, ushort *d_input_harms, float *d_output_list, unsigned int *gmem_pos, float const* __restrict__ d_MSD, float threshold, int nTimesamples, int nDMs, int DM_shift, unsigned int max_list_size, int DIT_value) {
+    int pos_x, pos_y, pos, mask, leader;
+    unsigned int list_pos;
     float R;
     int hrms;
     
@@ -74,8 +76,9 @@ namespace astroaccelerate {
     }
   }
 
-  __global__ void GPU_Threshold_for_periodicity_transposed_kernel(float const* __restrict__ d_input, ushort *d_input_harms, float *d_output_list, int *gmem_pos, float const* __restrict__ d_MSD, float threshold, int primary_size, int secondary_size, int DM_shift, int max_list_size, int DIT_value) {
-    int pos_p, pos_s, pos, list_pos, mask, leader;
+  __global__ void GPU_Threshold_for_periodicity_transposed_kernel(float const* __restrict__ d_input, ushort *d_input_harms, float *d_output_list, unsigned int *gmem_pos, float const* __restrict__ d_MSD, float threshold, int primary_size, int secondary_size, int DM_shift, unsigned int max_list_size, int DIT_value) {
+    int pos_p, pos_s, pos, mask, leader;
+    unsigned int list_pos;
     float R;
     int hrms;
 	
@@ -120,12 +123,12 @@ namespace astroaccelerate {
       unsigned int *const d_output_list_TS,
       float *const d_output_list_SNR,
       unsigned int *const d_output_list_BW,
-      int *const gmem_pos,
+      unsigned int *const gmem_pos,
       const float &threshold,
       const int &nTimesamples,
       const int &offset,
       const int &shift,
-      const int &max_list_size,
+      const unsigned int &max_list_size,
       const int &DIT_value
   ) {
       THR_GPU_WARP<<<grid_size, block_size>>>(
@@ -152,13 +155,13 @@ namespace astroaccelerate {
       float const *const d_input,
       ushort *const d_input_harms,
       float *const d_output_list,
-      int *const gmem_pos,
+      unsigned int *const gmem_pos,
       float const *const d_MSD,
       const float &threshold,
       const int &nTimesamples,
       const int &nDMs,
       const int &DM_shift,
-      const int &max_list_size,
+      const unsigned int &max_list_size,
       const int &DIT_value
   ) {
       GPU_Threshold_for_periodicity_normal_kernel<<<grid_size, block_size>>>(
@@ -184,13 +187,13 @@ namespace astroaccelerate {
       float const *const d_input,
       ushort *const d_input_harms,
       float *const d_output_list,
-      int *const gmem_pos,
+      unsigned int *const gmem_pos,
       float const *const d_MSD,
       const float &threshold,
       const int &primary_size,
       const int &secondary_size,
       const int &DM_shift,
-      const int &max_list_size,
+      const unsigned int &max_list_size,
       const int &DIT_value
   ) {
       GPU_Threshold_for_periodicity_transposed_kernel<<<grid_size, block_size>>>(

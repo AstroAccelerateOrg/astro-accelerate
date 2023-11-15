@@ -10,7 +10,7 @@ namespace astroaccelerate {
 				    float *const d_input, ushort *const d_input_taps,  unsigned int *const d_peak_list_DM,
 				    unsigned int *const d_peak_list_TS, float *const d_peak_list_SNR, unsigned int *const d_peak_list_BW,
 				    const int &width, const int &height, const int &offset, const float &threshold,
-				    const int &max_peak_size, int *const gmem_pos, const int &shift, const int &DIT_value);
+				    const unsigned int &max_peak_size, unsigned int *const gmem_pos, const int &shift, const int &DIT_value);
 
   /** \brief Kernel wrapper function for dilate_peak_find_for_fdas kernel function. */
   void call_kernel_dilate_peak_find_for_fdas(const dim3 &grid_size, const dim3 &block_size,
@@ -29,8 +29,8 @@ namespace astroaccelerate {
       const int &nDMs,
       const int &offset,
       const float &threshold,
-      const int &max_peak_size,
-      int *const gmem_pos,
+      const unsigned int &max_peak_size,
+      unsigned int *const gmem_pos,
       float const *const d_MSD,
       const int &DM_shift,
       const int &DIT_value
@@ -47,16 +47,16 @@ namespace astroaccelerate {
       const int &height,
       const int &offset,
       const float &threshold,
-      const int &max_peak_size,
-      int *const gmem_pos,
+      const unsigned int &max_peak_size,
+      unsigned int *const gmem_pos,
       float const *const d_MSD,
       const int &DM_shift,
       const int &DIT_value
   );
 
-  void call_kernel_peak_find_list(const dim3 &grid_size, const dim3 &block_size, float *const d_input, const int width, const int height, const float &threshold, int *const gmem_pos, const int &shift, const int &DIT_value, ushort *const d_input_taps, const int &max_peak_size, unsigned int *const d_peak_list_DM, unsigned int *const d_peak_list_TS, float *const d_peak_list_SNR, unsigned int *const d_peak_list_BW);
+  void call_kernel_peak_find_list(const dim3 &grid_size, const dim3 &block_size, float *const d_input, const int width, const int height, const float &threshold, unsigned int *const gmem_pos, const int &shift, const int &DIT_value, ushort *const d_input_taps, const unsigned int &max_peak_size, unsigned int *const d_peak_list_DM, unsigned int *const d_peak_list_TS, float *const d_peak_list_SNR, unsigned int *const d_peak_list_BW);
 
-  void call_gpu_Filter_peaks(unsigned int *new_peak_list_DM, unsigned int *new_peak_list_TS, unsigned int *new_peak_list_BW, float *new_peak_list_SNR, unsigned int *d_peak_list_DM, unsigned int *d_peak_list_TS, unsigned int *d_peak_list_BW, float *d_peak_list_SNR, unsigned int nElements, unsigned int max_distance, int max_list_pos, int *gmem_pos);
+  void call_gpu_Filter_peaks(unsigned int *new_peak_list_DM, unsigned int *new_peak_list_TS, unsigned int *new_peak_list_BW, float *new_peak_list_SNR, unsigned int *d_peak_list_DM, unsigned int *d_peak_list_TS, unsigned int *d_peak_list_BW, float *d_peak_list_SNR, unsigned int nElements, unsigned int max_distance, unsigned int max_list_pos, unsigned int *gmem_pos);
 
 } // namespace astroaccelerate
 

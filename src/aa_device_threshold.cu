@@ -16,7 +16,7 @@ namespace astroaccelerate {
     cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
   }
 
-  int SPDT_threshold(float *d_input, ushort *d_input_taps, unsigned int *d_output_list_DM, unsigned int *d_output_list_TS, float *d_output_list_SNR, unsigned int *d_output_list_BW, int *gmem_pos, float threshold, int nDMs, int nTimesamples, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration, int max_list_size) {
+  int SPDT_threshold(float *d_input, ushort *d_input_taps, unsigned int *d_output_list_DM, unsigned int *d_output_list_TS, float *d_output_list_SNR, unsigned int *d_output_list_BW, unsigned int *gmem_pos, float threshold, int nDMs, int nTimesamples, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration, unsigned int max_list_size) {
     //---------> Task specific
     int nBlocks, nRest, Elements_per_block, output_offset, decimated_timesamples, local_offset;
     int nCUDAblocks_x, nCUDAblocks_y;
@@ -55,7 +55,7 @@ namespace astroaccelerate {
   }
 
 
-int Threshold_for_periodicity_transposed(float *d_input, ushort *d_input_harms, float *d_output_list,  int *gmem_pos, float *d_MSD, float threshold, int primary_size, int secondary_size, int DM_shift, int inBin, int max_list_size) {
+int Threshold_for_periodicity_transposed(float *d_input, ushort *d_input_harms, float *d_output_list,  unsigned int *gmem_pos, float *d_MSD, float threshold, int primary_size, int secondary_size, int DM_shift, int inBin, unsigned int max_list_size) {
     //---------> Nvidia stuff
     cudaDeviceProp deviceProp;
     cudaGetDeviceProperties(&deviceProp, CARD);
@@ -119,7 +119,7 @@ int Threshold_for_periodicity_transposed(float *d_input, ushort *d_input_harms, 
   
   
   
-int Threshold_for_periodicity_normal(float *d_input_SNR, ushort *d_input_harms, float *d_output_list,  int *gmem_pos, float *d_MSD, float threshold, int nTimesamples, int nDMs, int DM_shift, int inBin, int max_list_size) {
+int Threshold_for_periodicity_normal(float *d_input_SNR, ushort *d_input_harms, float *d_output_list, unsigned int *gmem_pos, float *d_MSD, float threshold, int nTimesamples, int nDMs, int DM_shift, int inBin, unsigned int max_list_size) {
     //---------> Nvidia stuff
     cudaDeviceProp deviceProp;
     cudaGetDeviceProperties(&deviceProp, CARD);

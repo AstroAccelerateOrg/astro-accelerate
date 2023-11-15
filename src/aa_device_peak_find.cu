@@ -6,7 +6,7 @@
 
 namespace astroaccelerate {
   
-	void SPDT_peak_find_stencil_7x7(float *d_output_SNR, ushort *d_output_taps, unsigned int *d_peak_list_DM, unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW, int nDMs, int nTimesamples, float threshold, int max_peak_size, int *gmem_peak_pos, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration){
+	void SPDT_peak_find_stencil_7x7(float *d_output_SNR, ushort *d_output_taps, unsigned int *d_peak_list_DM, unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW, int nDMs, int nTimesamples, float threshold, unsigned int max_peak_size, unsigned int *gmem_peak_pos, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration){
 
 		int decimated_timesamples, local_offset;
 
@@ -23,7 +23,7 @@ namespace astroaccelerate {
 		} //for max_iteration
 	}
 
-  void SPDT_peak_find(float *d_output_SNR, ushort *d_output_taps, unsigned int *d_peak_list_DM, unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW, int nDMs, int nTimesamples, float threshold, int max_peak_size, int *gmem_peak_pos, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration){
+  void SPDT_peak_find(float *d_output_SNR, ushort *d_output_taps, unsigned int *d_peak_list_DM, unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW, int nDMs, int nTimesamples, float threshold, unsigned int max_peak_size, unsigned int *gmem_peak_pos, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration){
     int decimated_timesamples, local_offset;
 	
     dim3 blockDim(32, 2, 1);
@@ -50,7 +50,7 @@ namespace astroaccelerate {
     call_kernel_dilate_peak_find_for_fdas(gridSize, blockDim, d_ffdot_plane, d_peak_list, d_MSD, nTimesamples, nDMs, 0, threshold, max_peak_size, gmem_peak_pos, DM_trial);
   }
 
-  int Peak_find_for_periodicity_search(float *d_input_SNR, ushort *d_input_harmonics, float *d_peak_list, int nTimesamples, int nDMs, float threshold, int max_peak_size, int *gmem_peak_pos, float *d_MSD, int DM_shift, int inBin, bool transposed_data){
+  int Peak_find_for_periodicity_search(float *d_input_SNR, ushort *d_input_harmonics, float *d_peak_list, int nTimesamples, int nDMs, float threshold, unsigned int max_peak_size, unsigned int *gmem_peak_pos, float *d_MSD, int DM_shift, int inBin, bool transposed_data){
       // nTimesamples = secondary_size
       // nDMs = primary_size
       //---------> Nvidia stuff

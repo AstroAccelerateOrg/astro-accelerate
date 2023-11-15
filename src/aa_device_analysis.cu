@@ -1,4 +1,4 @@
-//#define GPU_ANALYSIS_DEBUG
+#define GPU_ANALYSIS_DEBUG
 //#define MSD_BOXCAR_TEST
 //#define GPU_PARTIAL_TIMER
 #define GPU_TIMER
@@ -133,7 +133,7 @@ namespace astroaccelerate {
     int max_width_performed=0;
     int nTimesamples = t_processed;
     int nDMs = ndms[i];
-    int temp_peak_pos;
+    unsigned int temp_peak_pos;
 
     TimeLog time_log;
 	
@@ -158,14 +158,20 @@ namespace astroaccelerate {
     std::vector<PulseDetection_plan> PD_plan;	
     std::vector<int> DM_list;
     int DMs_per_cycle = maxTimeSamples/nTimesamples;
-    int nRepeats, nRest, DM_shift, itemp, local_max_list_size;
+    int nRepeats, nRest, DM_shift, itemp;
+    unsigned int local_max_list_size;
 	
     itemp = (int) (DMs_per_cycle/THR_WARPS_PER_BLOCK);
     DMs_per_cycle = itemp*THR_WARPS_PER_BLOCK;
 	
     nRepeats = nDMs/DMs_per_cycle;
     nRest = nDMs - nRepeats*DMs_per_cycle;
-    local_max_list_size = (DMs_per_cycle*nTimesamples)/4;
+    int64_t temp_local_max_list_size = (int64_t)((DMs_per_cycle*nTimesamples)/4);
+    if (temp_local_max_list_size >= UINT_MAX){
+	local_max_list_size = UINT_MAX;
+    } else {
+	local_max_list_size = (unsigned int)(temp_local_max_list_size);
+    }
 	
     for(int f=0; f<nRepeats; f++) DM_list.push_back(DMs_per_cycle);
     if(nRest>0) DM_list.push_back(nRest);
@@ -242,13 +248,13 @@ namespace astroaccelerate {
 		
       // check if we are in limits of allocated memory
 		
-      int *gmem_peak_pos;
-      cudaMalloc((void**) &gmem_peak_pos, 1*sizeof(int));
-      cudaMemset((void*) gmem_peak_pos, 0, sizeof(int));
+      unsigned int *gmem_peak_pos;
+      cudaMalloc((void**) &gmem_peak_pos, 1*sizeof(unsigned int));
+      cudaMemset((void*) gmem_peak_pos, 0, sizeof(unsigned int));
 
-      int *gmem_filteredPeak_pos;
-      cudaMalloc((void**) &gmem_filteredPeak_pos, 1*sizeof(int));
-      cudaMemset((void*) gmem_filteredPeak_pos, 0, sizeof(int));
+      unsigned int *gmem_filteredPeak_pos;
+      cudaMalloc((void**) &gmem_filteredPeak_pos, 1*sizeof(unsigned int));
+      cudaMemset((void*) gmem_filteredPeak_pos, 0, sizeof(unsigned int));
 		
       DM_shift = 0;
       int DM_list_size = (int)DM_list.size();
@@ -307,7 +313,7 @@ namespace astroaccelerate {
 			
 	//checkCudaErrors(cudaGetLastError());
 			
-	cudaError_t e = cudaMemcpy(&temp_peak_pos, gmem_peak_pos, sizeof(int), cudaMemcpyDeviceToHost);
+	cudaError_t e = cudaMemcpy(&temp_peak_pos, gmem_peak_pos, sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
 	if(e != cudaSuccess) {
 	  LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu -- temp_peak_pos (" + std::string(cudaGetErrorString(e)) + ")");
@@ -315,13 +321,13 @@ namespace astroaccelerate {
 	}
 	
 #ifdef GPU_ANALYSIS_DEBUG
-	printf("    temp_peak_pos:%d; host_pos:%zu; max:%zu; local_max:%d;\n", temp_peak_pos, (*peak_pos), max_peak_size, local_max_list_size);
+	printf("    temp_peak_pos:%u; host_pos:%zu; max:%zu; local_max:%u;\n", temp_peak_pos, (*peak_pos), max_peak_size, local_max_list_size);
 #endif
 	if( temp_peak_pos>=local_max_list_size ) {
 	  printf("    Maximum list size reached! Increase list size or increase sigma cutoff.\n");
 	  temp_peak_pos=local_max_list_size;
 	}
-	if( ((*peak_pos) + temp_peak_pos)<max_peak_size){
+	if( ((*peak_pos) + (size_t)temp_peak_pos)<max_peak_size){
 	  cudaError_t e = cudaMemcpy(&h_peak_list_DM[(*peak_pos)],  d_peak_list_DM,  temp_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
 	  if(e != cudaSuccess) {
@@ -346,12 +352,12 @@ namespace astroaccelerate {
 	    LOG(log_level::error, "Could not cudaMemcpy in aa_device_analysis.cu -- peak_list_BW (" + std::string(cudaGetErrorString(e)) + ")");
 	  }
 	  
-	  *peak_pos = (*peak_pos) + temp_peak_pos;
+	  *peak_pos = (*peak_pos) + (size_t)temp_peak_pos;
 	}
 	else printf("Error peak list is too small!\n");
 
 	DM_shift = DM_shift + DM_list[f];
-	cudaMemset((void*) gmem_peak_pos, 0, sizeof(int));
+	cudaMemset((void*) gmem_peak_pos, 0, sizeof(unsigned int));
       }
 
 	if(candidate_algorithm==2) { //peak filtering
@@ -396,9 +402,9 @@ namespace astroaccelerate {
 			}
 			
 			int filter_size = (int)(PPF_SEARCH_RANGE_IN_MS*0.001/tsamp);
-			call_gpu_Filter_peaks(d_peak_list_DM, d_peak_list_TS, d_peak_list_BW, d_peak_list_SNR, d_peak_list_DM2, d_peak_list_TS2, d_peak_list_BW2, d_peak_list_SNR2, local_peak_pos, filter_size, (int)d_peak_list_size, gmem_filteredPeak_pos);
+			call_gpu_Filter_peaks(d_peak_list_DM, d_peak_list_TS, d_peak_list_BW, d_peak_list_SNR, d_peak_list_DM2, d_peak_list_TS2, d_peak_list_BW2, d_peak_list_SNR2, local_peak_pos, filter_size, (unsigned int)d_peak_list_size, gmem_filteredPeak_pos);
 
-			cudaMemcpy(&temp_peak_pos, gmem_filteredPeak_pos, sizeof(int), cudaMemcpyDeviceToHost);
+			cudaMemcpy(&temp_peak_pos, gmem_filteredPeak_pos, sizeof(unsigned int), cudaMemcpyDeviceToHost);
 			local_peak_pos = temp_peak_pos;
 
 			cudaMemcpy(h_peak_list_DM, d_peak_list_DM, local_peak_pos*sizeof(unsigned int), cudaMemcpyDeviceToHost);
@@ -421,9 +427,9 @@ namespace astroaccelerate {
       //------------------------> Output
 	float *h_peak_list;
 	h_peak_list = new float[4*(*peak_pos)];
-	int i_peak_pos = (int)(*peak_pos);
+	unsigned int i_peak_pos = (unsigned int)(*peak_pos);
 
-	for (int count = 0; count < i_peak_pos; count++){
+	for (unsigned int count = 0; count < i_peak_pos; count++){
 		h_peak_list[4*count]     = ((double) h_peak_list_DM[count])*dm_step[i] + dm_low[i];
 		h_peak_list[4*count + 1] = ((double) h_peak_list_TS[count])*tsamp + tstart;
 		h_peak_list[4*count + 2] = ((double) h_peak_list_SNR[count]);
@@ -448,7 +454,7 @@ namespace astroaccelerate {
 	    output.dm_low  = dm_low [i];
 	    output.dm_high = dm_high[i];
 	    std::vector<analysis_pulse> pulses;
-	    for(auto count = 0; count < i_peak_pos; count++) {
+	    for(unsigned int count = 0; count < i_peak_pos; count++) {
 	      analysis_pulse tmp = {h_peak_list[4*count], h_peak_list[4*count + 1], h_peak_list[4*count + 2], h_peak_list[4*count + 3]};
 	      pulses.push_back(std::move(tmp));
 	    }
@@ -472,7 +478,7 @@ namespace astroaccelerate {
 	    output.dm_low  = dm_low [i];
 	    output.dm_high = dm_high[i];
 	    std::vector<analysis_pulse> pulses;
-            for(auto count = 0; count < i_peak_pos; count++) {
+            for(unsigned int count = 0; count < i_peak_pos; count++) {
               analysis_pulse tmp = {h_peak_list[4*count], h_peak_list[4*count + 1], h_peak_list[4*count + 2], h_peak_list[4*count + 3]};
               pulses.push_back(std::move(tmp));
             }

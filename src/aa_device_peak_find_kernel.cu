@@ -7,10 +7,10 @@
 
 namespace astroaccelerate {
 
-__global__ void peak_find_list2(const float *d_input, const int width, const int height, float threshold, int *gmem_pos, int shift, int DIT_value, ushort* d_input_taps, int max_peak_size, unsigned int *const d_peak_list_DM, unsigned int *const d_peak_list_TS, float *const d_peak_list_SNR, unsigned int *const d_peak_list_BW){
+__global__ void peak_find_list2(const float *d_input, const int width, const int height, float threshold, unsigned int *gmem_pos, int shift, int DIT_value, ushort* d_input_taps, unsigned int max_peak_size, unsigned int *const d_peak_list_DM, unsigned int *const d_peak_list_TS, float *const d_peak_list_SNR, unsigned int *const d_peak_list_BW){
 
         int global_idx = blockDim.x*blockIdx.x + threadIdx.x;
-        int list_pos;
+        unsigned int list_pos;
 	if (global_idx >= width*height) return;
         if (    (global_idx > 3*width - 1) && (global_idx < (height - 3)*width) &&
                 ((global_idx % width > 2) && (global_idx % width < (width - 3)) ) ){
@@ -69,7 +69,7 @@ __global__ void peak_find_list2(const float *d_input, const int width, const int
 } // kernel end
 
 
-  __global__ void dilate_peak_find(const float *d_input, ushort* d_input_taps,  unsigned int *d_peak_list_DM,  unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW, const int width, const int height, const int offset, const float threshold, int max_peak_size, int *gmem_pos, int shift, int DIT_value) {
+  __global__ void dilate_peak_find(const float *d_input, ushort* d_input_taps,  unsigned int *d_peak_list_DM,  unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW, const int width, const int height, const int offset, const float threshold, unsigned int max_peak_size, unsigned int *gmem_pos, int shift, int DIT_value) {
     int idxX = blockDim.x * blockIdx.x + threadIdx.x;
     int idxY = blockDim.y * blockIdx.y + threadIdx.y;
     if (idxX >= width-offset) return;
@@ -78,7 +78,7 @@ __global__ void peak_find_list2(const float *d_input, const int width, const int
     float dilated_value = 0.0f;
     float my_value = 0.0f;
     unsigned short peak = 0u;
-    int list_pos;
+    unsigned int list_pos;
     //handle boundary conditions - top edge
     if (idxY == 0) {
       //Special case for width of 1
@@ -164,7 +164,7 @@ __global__ void peak_find_list2(const float *d_input, const int width, const int
     float dilated_value = 0.0f;
     float my_value = 0.0f;
     float SNR;
-    int list_pos;
+    unsigned int list_pos;
     //handle boundary conditions - top edge
     if (idxY == 0) {
       //Special case for width of 1
@@ -246,7 +246,7 @@ __global__ void peak_find_list2(const float *d_input, const int width, const int
 
   // width DM
   // height time
-  __global__ void dilate_peak_find_for_periods_old(const float *d_input, ushort* d_input_taps, float *d_peak_list, const int width, const int height, const int offset, const float threshold, int max_peak_size, int *gmem_pos, float *d_MSD, int DM_shift, int DIT_value) {
+  __global__ void dilate_peak_find_for_periods_old(const float *d_input, ushort* d_input_taps, float *d_peak_list, const int width, const int height, const int offset, const float threshold, unsigned int max_peak_size, unsigned int *gmem_pos, float *d_MSD, int DM_shift, int DIT_value) {
     int idxX = blockDim.x * blockIdx.x + threadIdx.x;
     int idxY = blockDim.y * blockIdx.y + threadIdx.y;
     if (idxX >= width-offset) return;
@@ -255,7 +255,7 @@ __global__ void peak_find_list2(const float *d_input, const int width, const int
     float dilated_value = 0.0f;
     float my_value = 0.0f;
     unsigned short peak = 0u;
-    int list_pos;
+    unsigned int list_pos;
     float mean = d_MSD[0];
     float sd   = d_MSD[1];
     //handle boundary conditions - top edge
@@ -337,13 +337,13 @@ __global__ void peak_find_list2(const float *d_input, const int width, const int
 
 
  //TODO: Improve performance of the peak find by using shared memory atomics and then storing data to device memory?
-  __global__ void peak_find_for_periodicity_normal_kernel(const float *d_input, ushort* d_input_taps, float *d_peak_list, const int nTimesamples, const int nDMs, const int offset, const float threshold, int max_peak_size, int *gmem_pos, float const* __restrict__ d_MSD, int DM_shift, int DIT_value) {
+  __global__ void peak_find_for_periodicity_normal_kernel(const float *d_input, ushort* d_input_taps, float *d_peak_list, const int nTimesamples, const int nDMs, const int offset, const float threshold, unsigned int max_peak_size, unsigned int *gmem_pos, float const* __restrict__ d_MSD, int DM_shift, int DIT_value) {
     int idxX = blockDim.x*blockIdx.x + threadIdx.x;
     int idxY = blockDim.y*blockIdx.y + threadIdx.y;
     if (idxX >= nTimesamples - offset) return;
     if (idxY >= nDMs) return;
     
-    int list_pos;
+    unsigned int list_pos;
     float my_value = 0.0f;
     unsigned short peak = does_thread_contains_peak(&my_value, d_input, idxX, idxY, nTimesamples, nDMs, threshold, offset);
     
@@ -360,13 +360,13 @@ __global__ void peak_find_list2(const float *d_input, const int width, const int
   }
 
 
-  __global__ void peak_find_for_periodicity_transposed_kernel(const float *d_input, ushort* d_input_taps, float *d_peak_list, const int width, const int height, const int offset, const float threshold, int max_peak_size, int *gmem_pos, float const* __restrict__ d_MSD, int DM_shift, int DIT_value) {
+  __global__ void peak_find_for_periodicity_transposed_kernel(const float *d_input, ushort* d_input_taps, float *d_peak_list, const int width, const int height, const int offset, const float threshold, unsigned int max_peak_size, unsigned int *gmem_pos, float const* __restrict__ d_MSD, int DM_shift, int DIT_value) {
     int idxX = blockDim.x*blockIdx.x + threadIdx.x;
     int idxY = blockDim.y*blockIdx.y + threadIdx.y;
     if (idxX >= width-offset) return;
     if (idxY >= height) return;
     
-    int list_pos;
+    unsigned int list_pos;
     float my_value = 0.0f;
     unsigned short peak = does_thread_contains_peak(&my_value, d_input, idxX, idxY, width, height, threshold, offset);
     
@@ -386,7 +386,7 @@ __global__ void peak_find_list2(const float *d_input, const int width, const int
 #define PPF_NTHREADS 64 
 __global__ void gpu_Filter_peaks_kernel(unsigned int *d_new_peak_list_DM, unsigned int *d_new_peak_list_TS, unsigned int *d_new_peak_list_BW, float *d_new_peak_list_SNR, 
 					unsigned int *d_peak_list_DM, unsigned int *d_peak_list_TS, unsigned int *d_peak_list_BW, float *d_peak_list_SNR,
-					unsigned int nElements, unsigned int max_distance, int nLoops, int max_list_pos, int *gmem_pos){
+					unsigned int nElements, unsigned int max_distance, int nLoops, unsigned int max_list_pos, unsigned int *gmem_pos){
 	// PPF_DPB = 128 //this is because I set nThreads to 64
 	// PPF_PEAKS_PER_BLOCK = something small like 10
 	__shared__ float s_data_snr[PPF_DPB];
@@ -475,7 +475,7 @@ __global__ void gpu_Filter_peaks_kernel(unsigned int *d_new_peak_list_DM, unsign
 	elements_pos = blockIdx.x*PPF_PEAKS_PER_BLOCK;
 	if(threadIdx.x < PPF_PEAKS_PER_BLOCK){
 		if( (s_flag[threadIdx.x] == 1) && ((elements_pos + threadIdx.x) < nElements)){
-			int list_pos=atomicAdd(gmem_pos, 1);
+			unsigned int list_pos=atomicAdd(gmem_pos, 1);
 			if(list_pos<max_list_pos){
 				d_new_peak_list_DM[list_pos]  = d_peak_list_DM[elements_pos  + threadIdx.x];
 				d_new_peak_list_TS[list_pos]  = d_peak_list_TS[elements_pos  + threadIdx.x];
@@ -497,7 +497,7 @@ __global__ void gpu_Filter_peaks_kernel(unsigned int *d_new_peak_list_DM, unsign
 				    float *const d_input, ushort *const d_input_taps,  unsigned int *const d_peak_list_DM,
 				    unsigned int *const d_peak_list_TS, float *const d_peak_list_SNR, unsigned int *const d_peak_list_BW,
 				    const int &width, const int &height, const int &offset, const float &threshold,
-				    const int &max_peak_size, int *const gmem_pos, const int &shift, const int &DIT_value) {
+				    const unsigned int &max_peak_size, unsigned int *const gmem_pos, const int &shift, const int &DIT_value) {
     dilate_peak_find<<<grid_size, block_size>>>(d_input, d_input_taps, d_peak_list_DM,
 						d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW,
 						width, height, offset, threshold,
@@ -519,7 +519,7 @@ __global__ void gpu_Filter_peaks_kernel(unsigned int *d_new_peak_list_DM, unsign
 						    float *const d_input, ushort *const d_input_taps, float *const d_peak_list,
 						    const int &width, const int &height, const int &offset,
 						    const float &threshold,
-						    const int &max_peak_size, int *const gmem_pos, float *const d_MDF,
+						    const unsigned int &max_peak_size, unsigned int *const gmem_pos, float *const d_MDF,
 						    const int &DM_shift, const int &DIT_value) {
     dilate_peak_find_for_periods_old<<<grid_size, block_size>>>(d_input, d_input_taps, d_peak_list,
 								width, height, offset,
@@ -539,8 +539,8 @@ __global__ void gpu_Filter_peaks_kernel(unsigned int *d_new_peak_list_DM, unsign
       const int &nDMs,
       const int &offset,
       const float &threshold,
-      const int &max_peak_size,
-      int *const gmem_pos,
+      const unsigned int &max_peak_size,
+      unsigned int *const gmem_pos,
       float const *const d_MSD,
       const int &DM_shift,
       const int &DIT_value
@@ -572,8 +572,8 @@ __global__ void gpu_Filter_peaks_kernel(unsigned int *d_new_peak_list_DM, unsign
       const int &height,
       const int &offset,
       const float &threshold,
-      const int &max_peak_size,
-      int *const gmem_pos,
+      const unsigned int &max_peak_size,
+      unsigned int *const gmem_pos,
       float const *const d_MSD,
       const int &DM_shift,
       const int &DIT_value
@@ -594,11 +594,11 @@ __global__ void gpu_Filter_peaks_kernel(unsigned int *d_new_peak_list_DM, unsign
     );
   }
 
-	void call_kernel_peak_find_list(const dim3 &grid_size, const dim3 &block_size, float *const d_input, const int width, const int height, const float &threshold, int *const gmem_pos, const int &shift, const int &DIT_value, ushort *const d_input_taps, const int &max_peak_size, unsigned int *const d_peak_list_DM, unsigned int *const d_peak_list_TS, float *const d_peak_list_SNR, unsigned int *const d_peak_list_BW){
+	void call_kernel_peak_find_list(const dim3 &grid_size, const dim3 &block_size, float *const d_input, const int width, const int height, const float &threshold, unsigned int *const gmem_pos, const int &shift, const int &DIT_value, ushort *const d_input_taps, const unsigned int &max_peak_size, unsigned int *const d_peak_list_DM, unsigned int *const d_peak_list_TS, float *const d_peak_list_SNR, unsigned int *const d_peak_list_BW){
 		peak_find_list2<<<grid_size,block_size>>>(d_input, width, height, threshold, gmem_pos, shift, DIT_value, d_input_taps, max_peak_size, d_peak_list_DM, d_peak_list_TS, d_peak_list_SNR, d_peak_list_BW);
 	}
 
-	void call_gpu_Filter_peaks(unsigned int *new_peak_list_DM, unsigned int *new_peak_list_TS, unsigned int *new_peak_list_BW, float *new_peak_list_SNR, unsigned int *d_peak_list_DM, unsigned int *d_peak_list_TS, unsigned int *d_peak_list_BW, float *d_peak_list_SNR, unsigned int nElements, unsigned int max_distance, int max_list_pos, int *gmem_pos){
+	void call_gpu_Filter_peaks(unsigned int *new_peak_list_DM, unsigned int *new_peak_list_TS, unsigned int *new_peak_list_BW, float *new_peak_list_SNR, unsigned int *d_peak_list_DM, unsigned int *d_peak_list_TS, unsigned int *d_peak_list_BW, float *d_peak_list_SNR, unsigned int nElements, unsigned int max_distance, unsigned int max_list_pos, unsigned int *gmem_pos){
 		int nThreads, nBlocks_x, nLoops;
 		nThreads = 64;
 		nBlocks_x = (nElements + PPF_PEAKS_PER_BLOCK - 1)/PPF_PEAKS_PER_BLOCK; //10

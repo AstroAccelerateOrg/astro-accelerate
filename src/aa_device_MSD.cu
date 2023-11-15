@@ -3,7 +3,7 @@
 #include <string>
 #include "aa_log.hpp"
 
-//#define MSD_DEBUG
+#define MSD_DEBUG
 
 // \todo Remove MSD_legacy
 

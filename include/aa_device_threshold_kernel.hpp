@@ -17,12 +17,12 @@ namespace astroaccelerate {
       unsigned int *const d_output_list_TS,
       float *const d_output_list_SNR,
       unsigned int *const d_output_list_BW,
-      int *const gmem_pos,
+      unsigned int *const gmem_pos,
       const float &threshold,
       const int &nTimesamples,
       const int &offset,
       const int &shift,
-      const int &max_list_size,
+      const unsigned int &max_list_size,
       const int &DIT_value
   );
 
@@ -33,13 +33,13 @@ namespace astroaccelerate {
       float const *const d_input,
       ushort *const d_input_harms,
       float *const d_output_list,
-      int *const gmem_pos,
+      unsigned int *const gmem_pos,
       float const *const d_MSD,
       const float &threshold,
       const int &nTimesamples,
       const int &nDMs,
       const int &DM_shift,
-      const int &max_list_size,
+      const unsigned int &max_list_size,
       const int &DIT_value
   );
 
@@ -50,13 +50,13 @@ namespace astroaccelerate {
       float const *const d_input,
       ushort *const d_input_harms,
       float *const d_output_list,
-      int *const gmem_pos,
+      unsigned int *const gmem_pos,
       float const *const d_MSD,
       const float &threshold,
       const int &primary_size,
       const int &secondary_size,
       const int &DM_shift,
-      const int &max_list_size,
+      const unsigned int &max_list_size,
       const int &DIT_value
   );
 
