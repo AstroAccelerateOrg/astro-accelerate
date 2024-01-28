@@ -164,7 +164,9 @@ int main(int argc, char *argv[]) {
 		aa_fdas_plan fdas_plan(
 			user_flags.sigma_cutoff,
 			user_flags.sigma_constant,
-			msd_baseline_noise);
+			msd_baseline_noise,
+			user_flags.fdas_nHarmonics
+		);
 		pipeline_manager.bind(fdas_plan);
 	}
 	

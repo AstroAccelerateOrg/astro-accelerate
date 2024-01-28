@@ -26,28 +26,31 @@
 
 namespace astroaccelerate {
 
-  /**
-   * \brief Function that performs a fourier domain accelerated search (fdas).
-   * \brief Users should not interact with this function directly. Instead they should use aa_fdas_plan and aa_fdas_strategy.
-   */
-  void acceleration_fdas(int range,
-			 int nsamp,
-			 int max_ndms,
-			 int processed,
-			 float cutoff,
-			 float ***output_buffer,
-			 int const*const ndms,
-			 int *inBin,
-			 float *dm_low,
-			 float *dm_high,
-			 float *dm_step,
-			 float tsamp,
-			 const bool enable_custom_fft,
-			 const bool enable_inbin,
-			 const bool enable_norm,
-			 float sigma_constant,
-			 const bool enable_output_ffdot_plan,
-			 const bool enable_output_fdas_list) {
+/**
+* \brief Function that performs a fourier domain accelerated search (fdas).
+* \brief Users should not interact with this function directly. Instead they should use aa_fdas_plan and aa_fdas_strategy.
+*/
+void acceleration_fdas(int range,
+    int nsamp,
+    int max_ndms,
+    int processed,
+    float cutoff,
+    float ***output_buffer,
+    int const*const ndms,
+    int *inBin,
+    float *dm_low,
+    float *dm_high,
+    float *dm_step,
+    float tsamp,
+    const int fdas_max_nHarmonics,
+    const bool enable_custom_fft,
+    const bool enable_inbin,
+    const bool enable_norm,
+    float sigma_constant,
+    const bool enable_output_ffdot_plan,
+    const bool enable_output_fdas_list,
+    const bool enable_harmonic_sum
+) {
 
     astroaccelerate::fdas_params params;
     // fdas_new_acc_sig acc_sig;
@@ -59,7 +62,7 @@ namespace astroaccelerate {
     //double t_gpu = 0.0, t_gpu_i = 0.0;
 
     //set default arguments
-    cmdargs.nharms = 1; //
+    cmdargs.nharms = fdas_max_nHarmonics; //
     cmdargs.nsig = 0; //
     cmdargs.duty = 0.10; //
     cmdargs.iter = 1; //
@@ -424,24 +427,223 @@ namespace astroaccelerate {
 		double MSD_time = 0;
 		float *d_MSD_DIT = NULL;
 		
+		// d_MSD_interpolated memory structure is as follows: 
+		// mean[n] and std[n] represent mean and standard deviation for partial sum of n elements
+		// Structure: { mean[1], std[1], mean[2], std[2], ... , mean[last], std[last]}
 		MSD_plane_profile(d_MSD_interpolated, gpuarrays.d_ffdot_pwr, d_MSD_DIT, d_workarea, false, ibin*params.siglen, NKERN, &boxcarwidths, 0, dm_low[i], dm_high[i], sigma_constant, 1, false, &total_time, &dit_time, &MSD_time);
 
-		 e = cudaMemcpy(h_MSD_interpolated, d_MSD_interpolated, 3*sizeof(float), cudaMemcpyDeviceToHost);
-	      
-	      if(e != cudaSuccess) {
-		LOG(log_level::error, "Could not cudaMemcpy in aa_device_acceleration_fdas.cu (" + std::string(cudaGetErrorString(e)) + ")");
-	      }
+		e = cudaMemcpy(h_MSD_interpolated, d_MSD_interpolated, 3*sizeof(float), cudaMemcpyDeviceToHost);
+		if(e != cudaSuccess) {
+			LOG(log_level::error, "Could not cudaMemcpy in aa_device_acceleration_fdas.cu (" + std::string(cudaGetErrorString(e)) + ")");
+		}
+		
+		// Structure of the gpuarrays.d_ffdot_pwr is as follows
+		// Max negative acceleration
+		// Zero acceleration; start of the zero acceleration is: 
+		// Max positive acceleration
 		
 		// Call the 2D Harmonic Sum kernel
-		periodicity_two_dimensional_greedy_harmonic_summing(gpuarrays.d_ffdot_pwr,gpuarrays.d_ffdot_max,gpuarrays.d_ffdot_SNR,gpuarrays.d_ffdot_Harmonics,&d_MSD_interpolated[0], &d_MSD_interpolated[1],ibin*params.siglen, NKERN, ibin*params.siglen/32,NKERN-1,32);
-	
+		// TODO: Fix input that is going into harmonic sum and related number of NKERN
+		// TODO: create a working code for negative accelerations (that are at the begining of the array)
+		// TODO: update output of fdas to contain harmonically summed values.
+		// Output of the harmonic sum is 2d data frequency x acceleration where frequency is fastest changing
+		// Size of the output is max_f_idx x max_fdot_idx
+		if(enable_harmonic_sum){
+			size_t zero_position = ((NKERN-1)/2)*ibin*params.siglen;
+			size_t nFreqBins = ibin*params.siglen;
+			float pos_in_dm = dm_count*dm_step[i] + dm_low[i];
+			size_t max_f_idx = ibin*params.siglen/cmdargs.nharms;
+			size_t max_fdot_idx = ((NKERN-1)/2) + 1;
+			size_t max_half_plane_pos = (((NKERN-1)/2)+1)*max_f_idx;
+			
+			// Positive half
+			periodicity_two_dimensional_greedy_harmonic_summing(
+				&gpuarrays.d_ffdot_pwr[zero_position], 
+				&gpuarrays.d_ffdot_max[max_half_plane_pos], 
+				&gpuarrays.d_ffdot_SNR[max_half_plane_pos], 
+				&gpuarrays.d_ffdot_Harmonics[max_half_plane_pos], 
+				d_MSD_interpolated, 
+				nFreqBins, 
+				max_fdot_idx, 
+				max_f_idx, 
+				max_fdot_idx, 
+				cmdargs.nharms
+			);
+			
+			//char filename[200];
+			//if(pos_in_dm>99.0 && pos_in_dm<101.0){
+			//	sprintf(filename, "acc_fdas_2d_harm_%f.dat", dm_count*dm_step[i] + dm_low[i]);
+			//	fdas_write_test_ffdot_harmonic(
+			//		&gpuarrays.d_ffdot_max[max_half_plane_pos], 
+			//		&gpuarrays.d_ffdot_SNR[max_half_plane_pos], 
+			//		&gpuarrays.d_ffdot_Harmonics[max_half_plane_pos], 
+			//		max_f_idx, 
+			//		max_fdot_idx, 
+			//		0,
+			//		filename
+			//	);
+			//	
+			//	sprintf(filename, "acc_fdas_ffdot_%f.dat", dm_count*dm_step[i] + dm_low[i]);
+			//	fdas_write_test_ffdot_limited(
+			//		&gpuarrays.d_ffdot_pwr[zero_position], 
+			//		max_f_idx, 
+			//		max_fdot_idx, 
+			//		nFreqBins, 
+			//		max_fdot_idx, 
+			//		0,
+			//		h_MSD_interpolated,
+			//		filename
+			//	);
+			//}
+			
+			
+			//Negative half
+			size_t nNegative_acc = ((NKERN-1)/2);
+			float *d_ffdot_negative_acc;
+			cudaError_t cuda_error;
+			cuda_error = cudaMalloc((void**)&d_ffdot_negative_acc, sizeof(float)*(nNegative_acc+1)*nFreqBins);
+			if(cuda_error != cudaSuccess) {
+				LOG(log_level::error, "Could not allocate GPU memory for Negative accelerations (" + std::string(cudaGetErrorString(cuda_error)) + ")");
+			}
+			
+			cuda_error = cudaMemset(gpuarrays.d_ffdot_max, 0, max_half_plane_pos*sizeof(float));
+			cuda_error = cudaMemset(gpuarrays.d_ffdot_SNR, 0, max_half_plane_pos*sizeof(float));
+			cuda_error = cudaMemset(gpuarrays.d_ffdot_Harmonics, 0, max_half_plane_pos*sizeof(ushort));
+			
+			flip_negative_ffdot_plane(
+				d_ffdot_negative_acc,
+				gpuarrays.d_ffdot_pwr, 
+				zero_position, 
+				nNegative_acc, 
+				nFreqBins
+			);
+			
+			periodicity_two_dimensional_greedy_harmonic_summing(
+				d_ffdot_negative_acc, 
+				gpuarrays.d_ffdot_max, 
+				gpuarrays.d_ffdot_SNR, 
+				gpuarrays.d_ffdot_Harmonics, 
+				d_MSD_interpolated, 
+				nFreqBins, 
+				max_fdot_idx, 
+				max_f_idx, 
+				max_fdot_idx, 
+				cmdargs.nharms
+			);
+			
+			
+			//if(pos_in_dm>99.0 && pos_in_dm<101.0){
+			//	sprintf(filename, "acc_fdas_neg_2d_harm_%f.dat", dm_count*dm_step[i] + dm_low[i]);
+			//	fdas_write_test_ffdot_harmonic(
+			//		gpuarrays.d_ffdot_max, 
+			//		gpuarrays.d_ffdot_SNR, 
+			//		gpuarrays.d_ffdot_Harmonics, 
+			//		max_f_idx, 
+			//		max_fdot_idx, 
+			//		0,
+			//		filename
+			//	);
+			//	
+			//	sprintf(filename, "acc_fdas_neg_ffdot_%f.dat", dm_count*dm_step[i] + dm_low[i]);
+			//	fdas_write_test_ffdot_limited(
+			//		d_ffdot_negative_acc, 
+			//		max_f_idx, 
+			//		max_fdot_idx, 
+			//		nFreqBins, 
+			//		max_fdot_idx, 
+			//		0,
+			//		h_MSD_interpolated,
+			//		filename
+			//	);
+			//}
+			
+			
+			cudaFree(d_ffdot_negative_acc);
+			
+			combine_2d_harmonics_planes(
+				gpuarrays.d_ffdot_max,
+				max_f_idx,
+				max_fdot_idx,
+				max_half_plane_pos
+			);
+			combine_2d_harmonics_planes(
+				gpuarrays.d_ffdot_SNR,
+				max_f_idx,
+				max_fdot_idx,
+				max_half_plane_pos
+			);
+			combine_2d_harmonics_planes_ushort(
+				gpuarrays.d_ffdot_Harmonics,
+				max_f_idx,
+				max_fdot_idx,
+				max_half_plane_pos
+			);
+			
+			
+			//if(pos_in_dm>99.0 && pos_in_dm<101.0){
+			//	sprintf(filename, "acc_fdas_2d_harm_whole_plane_%f.dat", dm_count*dm_step[i] + dm_low[i]);
+			//	fdas_write_test_ffdot_harmonic(
+			//		gpuarrays.d_ffdot_max, 
+			//		gpuarrays.d_ffdot_SNR, 
+			//		gpuarrays.d_ffdot_Harmonics, 
+			//		max_f_idx, 
+			//		NKERN, 
+			//		((NKERN-1)/2),
+			//		filename
+			//	);
+			//	
+			//	sprintf(filename, "acc_fdas_ffdot_%f.dat", dm_count*dm_step[i] + dm_low[i]);
+			//	fdas_write_test_ffdot_limited(
+			//		gpuarrays.d_ffdot_pwr, 
+			//		max_f_idx, 
+			//		NKERN, 
+			//		ibin*params.siglen, 
+			//		NKERN, 
+			//		((NKERN-1)/2),
+			//		h_MSD_interpolated,
+			//		filename
+			//	);
+			//}
+			
+			// Peak find for harmonic summed values!
+			peak_find_fdas_harm(
+				gpuarrays.d_fdas_peak_list,
+				gpuarrays.d_ffdot_max, 
+				gpuarrays.d_ffdot_SNR, 
+				gpuarrays.d_ffdot_Harmonics, 
+				max_f_idx, 
+				NKERN, 
+				((NKERN-1)/2),
+				cmdargs.thresh, 
+				params.max_list_length,
+				gmem_fdas_peak_pos,
+				dm_count*dm_step[i] + dm_low[i]
+			);
+			
+			cuda_error = cudaMemcpy(&list_size, gmem_fdas_peak_pos, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+			if(cuda_error != cudaSuccess) {
+				LOG(log_level::error, "Cannot perform cudaMemcpyDeviceToHost for gmem_fdas_peak_pos (" + std::string(cudaGetErrorString(cuda_error)) + ")");
+			}
+			
+			fdas_write_list_harm(&gpuarrays, &cmdargs, &params, dm_count*dm_step[i] + dm_low[i], list_size);
+			
+			cuda_error = cudaMemset(gpuarrays.d_fdas_peak_list, 0, mem_max_list_size);
+			if(cuda_error != cudaSuccess) {
+				LOG(log_level::error, "Error setting d_fdas_peak_list to 0 (" + std::string(cudaGetErrorString(cuda_error)) + ")");
+			};
+			cuda_error = cudaMemset(gmem_fdas_peak_pos, 0, sizeof(unsigned int));
+			if(cuda_error != cudaSuccess) {
+				LOG(log_level::error, "Error setting gmem_fdas_peak_pos to 0 (" + std::string(cudaGetErrorString(cuda_error)) + ")");
+			};
+		}
+		//============= END OF HARMONIC SUMMING ============
 		
-	      //!TEST!: do not perform peak find instead export the thing to file.
-#ifdef FDAS_CONV_TEST
-	      fdas_write_test_ffdot(&gpuarrays, &cmdargs, &params, dm_low[i], dm_count, dm_step[i]);
-	      exit(1);
-#endif				
-	      //!TEST!: do not perform peak find instead export the thing to file.
+		//!TEST!: do not perform peak find instead export the thing to file.
+		#ifdef FDAS_CONV_TEST
+			fdas_write_test_ffdot(&gpuarrays, &cmdargs, &params, dm_low[i], dm_count, dm_step[i]);
+			exit(1);
+		#endif
+		//!TEST!: do not perform peak find instead export the thing to file.
 					
 	      PEAK_FIND_FOR_FDAS(gpuarrays.d_ffdot_pwr, gpuarrays.d_fdas_peak_list, d_MSD, NKERN, ibin*params.siglen, cmdargs.thresh, params.max_list_length, gmem_fdas_peak_pos, dm_count*dm_step[i] + dm_low[i]);
 					

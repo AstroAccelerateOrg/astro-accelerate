@@ -22,27 +22,33 @@ namespace astroaccelerate {
     float m_sigma_cutoff; /**< The strategy determined sigma_cutoff setting. */
     float m_sigma_constant; /**< The strategy determined sigma_constant setting. */
     bool  m_enable_msd_baseline_noise; /** Flag for enabling/disabling msd_baseline_noise reduction algorithm. */
+    int   m_max_nHarmonics; /**< User selected maximum number of harmonics. */
     
     bool m_ready; /** The ready state of the instance of the fdas_strategy. */
   public:
     /** Trivial constructor for aa_fdas_strategy. */
-    aa_fdas_strategy() : m_sigma_cutoff(0.0),
-			 m_sigma_constant(0.0),
-			 m_enable_msd_baseline_noise(false),
-			 m_ready(false) {
-      
+    aa_fdas_strategy() : 
+        m_sigma_cutoff(0.0),
+        m_sigma_constant(0.0),
+        m_enable_msd_baseline_noise(false),
+        m_max_nHarmonics(0),
+        m_ready(false) 
+    {
+        
     }
     
     /** Constructor aa_fdas_strategy that initialises al member variables. */
-    aa_fdas_strategy(const aa_fdas_plan &fdas_plan) : m_sigma_cutoff(fdas_plan.sigma_cutoff()),
-						      m_sigma_constant(fdas_plan.sigma_constant()),
-						      m_enable_msd_baseline_noise(fdas_plan.enable_msd_baseline_noise()),
-						      m_ready(false) {
-
-      /** Parse input. Invalid input means the ready state will not be set to true. */
-		if((m_sigma_cutoff > 0) && (m_sigma_constant > 0)) {
-			m_ready = true;
-		}
+    aa_fdas_strategy(const aa_fdas_plan &fdas_plan) : 
+        m_sigma_cutoff(fdas_plan.sigma_cutoff()),
+        m_sigma_constant(fdas_plan.sigma_constant()),
+        m_enable_msd_baseline_noise(fdas_plan.enable_msd_baseline_noise()),
+        m_max_nHarmonics(fdas_plan.max_nHarmonics()),
+        m_ready(false) 
+    {
+        /** Parse input. Invalid input means the ready state will not be set to true. */
+        if((m_sigma_cutoff > 0) && (m_sigma_constant > 0) && (m_max_nHarmonics > 0)) {
+            m_ready = true;
+        }
     }
 
     /** \returns The name of this mdoule. */
@@ -68,6 +74,13 @@ namespace astroaccelerate {
       return (m_enable_msd_baseline_noise) ? 1 : 0;
     }
     
+    /**
+    * \returns maximum number of harmonics to be summed during fdas harmonic sum.
+    */
+    int max_nHarmonics() const {
+        return m_max_nHarmonics;
+    }
+    
     /** \brief Performs any setup still needed for the strategy.
      * \returns A boolean indicating whether the setup was successful.
      */
@@ -88,6 +101,7 @@ namespace astroaccelerate {
       LOG(log_level::dev_debug, "FDAS STRATEGY INFORMATION");
       LOG(log_level::dev_debug, "fdas sigma_cutoff:\t\t\t" + std::to_string(strategy.sigma_cutoff()));
       LOG(log_level::dev_debug, "fdas_sigma_constant:\t\t\t" + std::to_string(strategy.sigma_constant()));
+      LOG(log_level::dev_debug, "fdas_max_nHarmonics:\t\t\t" + std::to_string(strategy.max_nHarmonics()));
       LOG(log_level::dev_debug, "\t\tNEXP:\t\t\t" + std::to_string(NEXP));
       LOG(log_level::dev_debug, "\t\tPOTWO:\t\t\t" + std::to_string(POTWO));
       LOG(log_level::dev_debug, "\t\tKERNLEN:\t\t" + std::to_string(KERNLEN));

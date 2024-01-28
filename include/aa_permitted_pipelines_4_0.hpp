@@ -420,6 +420,9 @@ namespace astroaccelerate {
       aa_gpu_timer timer;
       timer.Start();
       const int *ndms = m_ddtr_strategy.ndms_data();
+      
+      const int fdas_max_nHarmonics = 32;
+      const bool m_fdas_enable_harmonic_sum = true;
       acceleration_fdas(m_ddtr_strategy.get_nRanges(),
 					m_ddtr_strategy.metadata().nsamples(),
 					max_ndms,
@@ -432,12 +435,15 @@ namespace astroaccelerate {
 					dm_high.data(),
 					dm_step.data(),
 					tsamp_original,
+					fdas_max_nHarmonics,
 					m_fdas_enable_custom_fft,
 					m_fdas_enable_inbin,
 					m_fdas_enable_norm,
 					m_fdas_strategy.sigma_constant(),
 					m_fdas_enable_output_ffdot_plan,
-					m_fdas_enable_output_list);
+					m_fdas_enable_output_list,
+					m_fdas_enable_harmonic_sum
+		);
       
       timer.Stop();
       float time = timer.Elapsed()/1000;

@@ -243,6 +243,91 @@ __global__ void peak_find_list2(const float *d_input, const int width, const int
     //d_output[idxY*width+idxX] = peak;
   }
 
+	__global__ void dilate_peak_find_for_fdas_harm(float *d_peak_list, const float *d_ffdot_max, const float *d_ffdot_SNR, const ushort *d_ffdot_harm, const size_t width, const size_t height, const int offset, const float threshold, unsigned int max_peak_size, unsigned int *gmem_pos, float DM_trial){
+		int idxX = blockDim.x * blockIdx.x + threadIdx.x;
+		int idxY = blockDim.y * blockIdx.y + threadIdx.y;
+		if (idxX >= width-offset) return;
+		if (idxY >= height) return;
+
+		float dilated_value = 0.0f;
+		float my_value = 0.0f;
+		int list_pos;
+		//handle boundary conditions - top edge
+		if (idxY == 0) {
+			//Special case for width of 1
+			if (width == 1) {
+			my_value = dilated_value = d_ffdot_max[0];
+		}
+		//Top left corner case
+		else if (idxX == 0) {
+			float4 block = load_block_2x2(d_ffdot_max, width);
+			dilated_value = dilate4(block);
+			my_value = block.x;
+		} 
+		//Top right corner case
+		else if (idxX == (width-offset-1)) {
+			float4 block = load_block_2x2(d_ffdot_max+width-offset-2, width);
+			dilated_value = dilate4(block);
+			my_value = block.y;
+		} else {
+			float3x3 block = load_block_top(d_ffdot_max, idxX, idxY, width);
+			dilated_value = dilate3x3_top(block);
+			my_value = block.y2;
+		}
+		//bottom edge
+		} else if (idxY == height-1) {
+			//Special case for width of 1
+			if (width == 1) {
+				my_value = dilated_value = d_ffdot_max[width*(height-1)];
+			}
+			//Bottom left corner
+			else if (idxX == 0) {
+				float4 block = load_block_2x2(d_ffdot_max+width*(height-2), width);
+				dilated_value = dilate4(block);
+				my_value = block.z;
+			}
+			//Bottom right corner
+			else if (idxX == (width-offset-1)) {
+				float4 block = load_block_2x2(d_ffdot_max+width*(height-2)+width-offset-2, width);
+				dilated_value = dilate4(block);
+				my_value = block.w;
+			} else {
+				float3x3 block = load_block_bottom(d_ffdot_max, idxX, idxY, width);        
+				dilated_value = dilate3x3_bottom(block);
+				my_value = block.y2;
+			}
+		//Left edge
+		} else if (idxX == 0) {
+			float3x3 block = load_block_left(d_ffdot_max, idxX, idxY, width);        
+			dilated_value = dilate3x3_left(block);
+			my_value = block.y2;
+		
+		  //right edge
+		} else if (idxX == (width-offset-1)) {
+			float3x3 block = load_block_right(d_ffdot_max, idxX, idxY, width);        
+			dilated_value = dilate3x3_right(block);
+			my_value = block.y2;
+
+		} else {
+			float3x3 block = load_block(d_ffdot_max, idxX, idxY, width);
+			dilated_value = dilate3x3(block);
+			my_value = block.y2;
+		}
+		
+		if(my_value == dilated_value){ // this means there is a peak
+			if(my_value > threshold) {
+				list_pos=atomicAdd(gmem_pos, 1);
+				if(list_pos<max_peak_size){
+					d_peak_list[4*list_pos]   = idxY; // frequency
+					d_peak_list[4*list_pos+1] = idxX; // acceleration
+					d_peak_list[4*list_pos+2] = my_value; // power
+					d_peak_list[4*list_pos+3] = (float) d_ffdot_harm[idxY*width + idxX]; //  harmonic sum
+				}
+			}
+		}
+		
+		//d_output[idxY*width+idxX] = peak;
+	}
 
   // width DM
   // height time
@@ -513,6 +598,36 @@ __global__ void gpu_Filter_peaks_kernel(unsigned int *d_new_peak_list_DM, unsign
 							  height, offset, threshold,
 							  max_peak_size, gmem_pos, DM_trial);
   }
+  
+	void call_kernel_dilate_peak_find_for_fdas_harm(
+		const dim3 &grid_size, 
+		const dim3 &block_size, 
+		float *d_peak_list, 
+		float *d_ffdot_max, 
+		float *d_ffdot_SNR, 
+		ushort *d_ffdot_harm, 
+		size_t nFreq, 
+		size_t nAcc, 
+		int half_plane, 
+		float threshold, 
+		unsigned int max_peak_size, 
+		unsigned int *const gmem_peak_pos, 
+		float DM_trial
+	) {
+		dilate_peak_find_for_fdas_harm<<<grid_size, block_size>>>( 
+			d_peak_list, 
+			d_ffdot_max,
+			d_ffdot_SNR,
+			d_ffdot_harm, 
+			nFreq, 
+			nAcc, 
+			half_plane,
+			threshold,
+			max_peak_size, 
+			gmem_peak_pos, 
+			DM_trial
+		);
+	}
 
   /** \brief Kernel wrapper function for dilate_peak_find_for_periods_old kernel function. */
   void call_kernel_dilate_peak_find_for_periods_old(const dim3 &grid_size, const dim3 &block_size,

@@ -46,16 +46,18 @@ namespace astroaccelerate {
   template<aa_pipeline::component_option zero_dm_type, bool enable_old_rfi>
   class aa_permitted_pipelines_5_0 : public aa_pipeline_runner {
   public:
-    aa_permitted_pipelines_5_0(const aa_ddtr_strategy &ddtr_strategy,
-			       const aa_periodicity_strategy &periodicity_strategy,
-			       const aa_fdas_strategy &fdas_strategy,
-			       const bool &fdas_enable_custom_fft,
-			       const bool &fdas_enable_inbin,
-			       const bool &fdas_enable_norm,
-			       const bool &fdas_enable_output_ffdot_plan,
-			       const bool &fdas_enable_output_list,
-			       unsigned short const*const input_buffer) {
-      
+    aa_permitted_pipelines_5_0(
+			const aa_ddtr_strategy &ddtr_strategy,
+			const aa_periodicity_strategy &periodicity_strategy,
+			const aa_fdas_strategy &fdas_strategy,
+			const bool &fdas_enable_custom_fft,
+			const bool &fdas_enable_inbin,
+			const bool &fdas_enable_norm,
+			const bool &fdas_enable_output_ffdot_plan,
+			const bool &fdas_enable_output_list,
+			unsigned short const*const input_buffer
+    ) {
+     
     }
     
     ~aa_permitted_pipelines_5_0() {
@@ -446,6 +448,8 @@ namespace astroaccelerate {
       timer.Start();
       const int *ndms = m_ddtr_strategy.ndms_data();
       
+      const int fdas_max_nHarmonics = 32;
+      const bool m_fdas_enable_harmonic_sum = true;
       acceleration_fdas(m_ddtr_strategy.get_nRanges(),
 			m_ddtr_strategy.metadata().nsamples(),
 			max_ndms,
@@ -458,12 +462,15 @@ namespace astroaccelerate {
 			dm_high.data(),
 			dm_step.data(),
 			tsamp_original,
+			fdas_max_nHarmonics,
 			m_fdas_enable_custom_fft,
 			m_fdas_enable_inbin,
 			m_fdas_enable_norm,
 			m_fdas_strategy.sigma_constant(),
 			m_fdas_enable_output_ffdot_plan,
-			m_fdas_enable_output_list);
+			m_fdas_enable_output_list,
+			m_fdas_enable_harmonic_sum
+		);
       
       timer.Stop();
       float time = timer.Elapsed()/1000;

@@ -120,17 +120,19 @@ __global__ void greedy_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
     }
 }
 
-__global__ void two_dimensional_greedy_harmonic_sum_GPU_kernel(float *d_maxSum, float *d_maxSNR, ushort *d_maxHarmonics, float const* __restrict__ d_input,
-    size_t const N_f, size_t const N_fdot, size_t const max_f_idx, size_t const max_fdot_idx, size_t const nHarmonics,
-    float const* __restrict__ d_mean, float const* __restrict__ d_stdev) {
+
+
+__global__ void two_dimensional_greedy_harmonic_sum_GPU_kernel(float *d_maxSum, float *d_maxSNR, ushort *d_maxHarmonics, float const* __restrict__ d_input, size_t const N_f, size_t const N_fdot, size_t const max_f_idx, size_t const max_fdot_idx, size_t const nHarmonics, float const* __restrict__ d_MSD) {
     int pos = blockIdx.x * blockDim.x + threadIdx.x;
     // d_input is flattened, one dimensional array of f-fdot plane, need to calculate 2D indices for bound checking
     size_t fdot_idx = (pos / N_f);
     size_t f_idx = (pos % N_f);
 
     if (fdot_idx < max_fdot_idx && f_idx < max_f_idx) {
-        double SNR = 0.0;
-        size_t harmonic_order = 0;
+        float SNR = 0.0;
+        float max_SNR = 0.0;
+        int max_h = 0;
+        float max_sum = 0.0;
 
         size_t fdot_drift = 0;
         size_t f_drift = 0;
@@ -169,21 +171,22 @@ __global__ void two_dimensional_greedy_harmonic_sum_GPU_kernel(float *d_maxSum, 
                 ++f_drift;
             }
 
-            double partial_sum = maxVal;
-            SNR = fdividef((partial_sum - d_mean[0]), d_stdev[0]);
+            float partial_sum = maxVal;
+            SNR = fdividef((partial_sum - d_MSD[0]), d_MSD[1]);
 
             // update output arrays
-            if (SNR > d_maxSNR[output_pos]) {
-                d_maxSNR[output_pos] = SNR;
-                d_maxHarmonics[output_pos] = harmonic_order;
+            if (SNR > max_SNR) {
+                max_SNR = SNR;
+                max_sum = partial_sum;
+                max_h = 0;
             }
 
             // higher harmonics
-            for (size_t h = 1; (h <= nHarmonics) && (((h) * fdot_idx + fdot_drift + 1) * N_f + ((h) * f_idx + f_drift + 1)) < (N_f * N_fdot); ++h) {
-                dd_pos = ((h) * fdot_idx + fdot_drift) * N_f + ((h) * f_idx + f_drift);
-                ds_pos = ((h) * fdot_idx + fdot_drift) * N_f + ((h) * f_idx + f_drift + 1);
-                sd_pos = ((h) * fdot_idx + fdot_drift + 1) * N_f + ((h) * f_idx + f_drift);
-                ss_pos = ((h) * fdot_idx + fdot_drift + 1) * N_f + ((h) * f_idx + f_drift + 1);
+            for (size_t h = 2; (h <= nHarmonics) && ((h * fdot_idx + fdot_drift + 1) * N_f + (h * f_idx + f_drift + 1)) < (N_f * N_fdot); ++h) {
+                dd_pos = (h * fdot_idx + fdot_drift) * N_f + (h * f_idx + f_drift);
+                ds_pos = (h * fdot_idx + fdot_drift) * N_f + (h * f_idx + f_drift + 1);
+                sd_pos = (h * fdot_idx + fdot_drift + 1) * N_f + (h * f_idx + f_drift);
+                ss_pos = (h * fdot_idx + fdot_drift + 1) * N_f + (h * f_idx + f_drift + 1);
 
                 dd_power = d_input[dd_pos];
                 ds_power = d_input[ds_pos];
@@ -211,17 +214,22 @@ __global__ void two_dimensional_greedy_harmonic_sum_GPU_kernel(float *d_maxSum, 
                 }
 
                 partial_sum += maxVal;
-                SNR = fdividef((partial_sum - d_mean[h]), d_stdev[h]);
+                SNR = fdividef((partial_sum - d_MSD[2*(h-1)]), d_MSD[2*(h-1)+1]);
                 // update output arrays
-                if (SNR > d_maxSNR[output_pos]) {
-                    d_maxSum[output_pos] = partial_sum;
-                    d_maxSNR[output_pos] = SNR;
-                    d_maxHarmonics[output_pos] = (ushort) h;
+                if (SNR > max_SNR) {
+                    max_sum = partial_sum;
+                    max_SNR = SNR;
+                    max_h = h;
                 }
             }
         }
+        d_maxSum[output_pos] = max_sum;
+        d_maxSNR[output_pos] = max_SNR;
+        d_maxHarmonics[output_pos] = (ushort) max_h;
     }
 }
+
+
 
 template<class const_params>
 __inline__ __device__ void get_frequency_bin_value(float *frequency_bin, float const* __restrict__ data, int pos){
@@ -425,8 +433,7 @@ __global__ void presto_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
       float *const d_output_max, 
       float *const d_output_SNR,
       ushort *const d_output_harmonics,
-      float *const d_mean,
-      float *const d_stdev,
+      float *const d_MSD,
       size_t const &N_f,
       size_t const &N_fdot,
       size_t const &max_f_idx,
@@ -443,8 +450,7 @@ __global__ void presto_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
           max_f_idx,
           max_fdot_idx,
           nHarmonics,
-          d_mean,
-          d_stdev
+          d_MSD
       );
   }
 

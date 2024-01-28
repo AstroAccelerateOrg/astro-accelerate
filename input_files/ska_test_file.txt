@@ -11,6 +11,7 @@ sigma_constant  3.0
 max_boxcar_width_in_sec 0.5
 periodicity_sigma_cutoff 20
 periodicity_harmonics 32
+fdas_harmonics 32
 selected_card_id 0
 analysis
 -acceleration
@@ -36,6 +37,7 @@ baselinenoise
 -fdas_custom_fft
 -fdas_inbin
 -fdas_norm
+-fdas_harm
 debug
 -analysis_debug
 -failsafe

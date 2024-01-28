@@ -127,6 +127,57 @@ namespace astroaccelerate {
   void fdas_write_ffdot_Harmonics(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step);
 
   void fdas_write_test_ffdot(fdas_gpuarrays *gpuarrays, cmd_args *cmdargs, fdas_params *params, float dm_low, int dm_count, float dm_step );
+  
+void fdas_write_test_ffdot_harmonic(
+        float *d_ffdot_max, 
+        float *d_ffdot_SNR, 
+        ushort *d_ffdot_harm, 
+        size_t nFrequency_bins, 
+        size_t nAcceleration_steps, 
+        int half_plane,
+        const char *pfname
+);
+  
+void fdas_write_test_ffdot_limited(
+        float *d_ffdot_max, 
+        size_t nExpFre, 
+        size_t nExpAcc, 
+        size_t nFreq, 
+        size_t nAcc, 
+        int half_plane, 
+        float *h_MSD,
+        const char *pfname
+);
+
+void flip_negative_ffdot_plane(
+        float *d_ffdot_negative, 
+        float *d_ffdot, 
+        size_t zero_pos, 
+        size_t nNegative_acc, 
+        size_t nFreq
+);
+
+void combine_2d_harmonics_planes(
+        float* d_plane,
+        size_t nFreq,
+        size_t nAcc,
+        size_t positive_position
+);
+
+void combine_2d_harmonics_planes_ushort(
+    ushort* d_plane,
+    size_t nFreq,
+    size_t nAcc,
+    size_t positive_position
+);
+
+void fdas_write_list_harm(
+    fdas_gpuarrays *gpuarrays, 
+    cmd_args *cmdargs, 
+    fdas_params *params, 
+    float DM,
+    unsigned int list_size
+);
 
 } // namespace astroaccelerate
   

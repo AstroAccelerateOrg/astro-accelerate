@@ -23,11 +23,17 @@ namespace astroaccelerate {
     /**
      * Constructor for aa_fdas_plan that initialises all member variables.
      */
-    aa_fdas_plan(const float &sigma_cutoff,
-		 const float &sigma_constant,
-		 const bool  &enable_msd_baseline_noise) : m_sigma_cutoff(sigma_cutoff),
-							   m_sigma_constant(sigma_constant),
-							   m_enable_msd_baseline_noise(enable_msd_baseline_noise) {
+    aa_fdas_plan(
+		const float &sigma_cutoff,
+		const float &sigma_constant,
+		const bool  &enable_msd_baseline_noise,
+		const int   &max_nHarmonics
+	) :
+		m_sigma_cutoff(sigma_cutoff),
+		m_sigma_constant(sigma_constant),
+		m_enable_msd_baseline_noise(enable_msd_baseline_noise),
+		m_max_nHarmonics(max_nHarmonics)
+	{
       
     }
 
@@ -49,10 +55,18 @@ namespace astroaccelerate {
       return m_enable_msd_baseline_noise;
     }
     
+    /**
+    * \returns maximum number of harmonics to be summed during fdas harmonic sum.
+    */
+    int max_nHarmonics() const {
+        return m_max_nHarmonics;
+    }
+    
   private:
     float m_sigma_cutoff; /**< User selected sigma_cutoff. */
     float m_sigma_constant; /**< User selected sigma_constant. */
     bool  m_enable_msd_baseline_noise; /**< User selected flag for enabling / disabling msd_baseline_noise. */
+    int   m_max_nHarmonics; /**< User selected maximum number of harmonics. */
   };
 
 } // namespace astroaccelerate

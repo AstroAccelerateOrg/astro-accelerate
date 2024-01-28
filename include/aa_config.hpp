@@ -47,6 +47,7 @@ namespace astroaccelerate {
 		int nb_selected_dm;             /**< Incremented to be the total number of user selected dm ranges. Looks like a legacy duplicate of range. */
 		int failsafe;                   /**< Flag to select the failsafe algorithm for dedispersion. */
 		int periodicity_nHarmonics;     /**< Number of harmonics setting for periodicity. */
+		int fdas_nHarmonics;            /**< Number of harmonics to be summed in harmonic summing for fdas. */
 		int selected_card_id;           /**< Selected card id on this machine. */
 		int dered;                      /** Enable deredning. */
 		bool rfi;                       /**< Enable (true) or disable (false) host RFI reduction of the input data. */
@@ -71,6 +72,7 @@ namespace astroaccelerate {
 			nb_selected_dm = 0;
 			failsafe = 0;
 			periodicity_nHarmonics = 0;
+			fdas_nHarmonics = 0;
 			selected_card_id = 0;
 			dered = 0;
 			rfi = false;
@@ -209,6 +211,8 @@ namespace astroaccelerate {
 						m_pipeline_options.insert(aa_pipeline::component_option::fdas_inbin);
 					if (strcmp(string, "fdas_norm") == 0)
 						m_pipeline_options.insert(aa_pipeline::component_option::fdas_norm);
+					if (strcmp(string, "fdas_harm") == 0)
+						m_pipeline_options.insert(aa_pipeline::component_option::fdas_harm);
 					if (strcmp(string, "multi_file") == 0)
 						flg.multi_file = 1;
 					if (strcmp(string, "analysis_debug") == 0)
@@ -235,6 +239,12 @@ namespace astroaccelerate {
 					}
 					if (strcmp(string, "periodicity_harmonics") == 0) {
 						if (fscanf(fp_in, "%d", &flg.periodicity_nHarmonics) == 0) {
+							fprintf(stderr, "failed to read input\n");
+							return false;
+						}
+					}
+					if (strcmp(string, "fdas_harmonics") == 0) {
+						if (fscanf(fp_in, "%d", &flg.fdas_nHarmonics) == 0) {
 							fprintf(stderr, "failed to read input\n");
 							return false;
 						}

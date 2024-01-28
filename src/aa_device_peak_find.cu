@@ -44,11 +44,30 @@ namespace astroaccelerate {
   }
 
   void PEAK_FIND_FOR_FDAS(float *d_ffdot_plane, float *d_peak_list, float *d_MSD, int nDMs, int nTimesamples, float threshold, unsigned int max_peak_size, unsigned int *gmem_peak_pos, float DM_trial) {
-    dim3 blockDim(32, 2, 1);
+    dim3 blockDim(32, 32, 1);
     dim3 gridSize(1 + ((nTimesamples-1)/blockDim.x), 1 + ((nDMs-1)/blockDim.y), 1);
 	
     call_kernel_dilate_peak_find_for_fdas(gridSize, blockDim, d_ffdot_plane, d_peak_list, d_MSD, nTimesamples, nDMs, 0, threshold, max_peak_size, gmem_peak_pos, DM_trial);
   }
+  
+	void peak_find_fdas_harm(
+		float *d_peak_list,
+		float *d_ffdot_max,
+		float *d_ffdot_SNR,
+		ushort *d_ffdot_harm,
+		size_t nFreq, 
+		size_t nAcc,
+		int half_plane, 
+		float threshold, 
+		unsigned int max_peak_size, 
+		unsigned int *gmem_peak_pos,
+		float DM_trial
+	) {
+		dim3 blockDim(32, 32, 1);
+		dim3 gridSize(1 + ((nFreq-1)/blockDim.x), 1 + ((nAcc-1)/blockDim.y), 1);
+		
+		call_kernel_dilate_peak_find_for_fdas_harm(gridSize, blockDim, d_peak_list, d_ffdot_max, d_ffdot_SNR, d_ffdot_harm, nFreq, nAcc, half_plane, threshold, max_peak_size, gmem_peak_pos, DM_trial);
+	}
 
   int Peak_find_for_periodicity_search(float *d_input_SNR, ushort *d_input_harmonics, float *d_peak_list, int nTimesamples, int nDMs, float threshold, int max_peak_size, int *gmem_peak_pos, float *d_MSD, int DM_shift, int inBin, bool transposed_data){
       // nTimesamples = secondary_size

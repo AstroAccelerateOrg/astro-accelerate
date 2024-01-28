@@ -479,9 +479,9 @@ class aa_py_pipeline():
         return lib.aa_py_pipeline_api_bind_periodicity_plan(self.m_obj, ctypes.c_float(plan.sigma_cutoff()), ctypes.c_bool(plan.enable_msd_baseline_noise()), ctypes.c_float(plan.sigma_constant()), ctypes.c_int(plan.nHarmonics()), ctypes.c_int(plan.candidate_selection_algorithm()))
         
     def bind_fdas_plan(self, plan: aa_py_fdas_plan):
-        lib.aa_py_pipeline_api_bind_fdas_plan.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_bool]
+        lib.aa_py_pipeline_api_bind_fdas_plan.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_bool, ctypes.c_int]
         lib.aa_py_pipeline_api_bind_fdas_plan.restype = ctypes.c_bool
-        return lib.aa_py_pipeline_api_bind_fdas_plan(self.m_obj, ctypes.c_float(plan.sigma_cutoff()), ctypes.c_float(plan.sigma_constant()), ctypes.c_bool(plan.enable_msd_baseline_noise()))
+        return lib.aa_py_pipeline_api_bind_fdas_plan(self.m_obj, ctypes.c_float(plan.sigma_cutoff()), ctypes.c_float(plan.sigma_constant()), ctypes.c_bool(plan.enable_msd_baseline_noise()), ctypes.c_bool(plan.max_nHarmonics()))
     
     ## \brief Runs the pipeline step by step. Also provides a status code. #
     def run(self):

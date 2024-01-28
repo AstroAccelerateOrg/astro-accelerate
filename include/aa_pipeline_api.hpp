@@ -586,6 +586,7 @@ namespace astroaccelerate {
 			bool fdas_enable_custom_fft = false;
 			bool fdas_enable_inbin = false;
 			bool fdas_enable_norm = false;
+			bool fdas_enable_harmonic_sum = false;
 			bool fdas_enable_output_ffdot_plan = false;
 			bool fdas_enable_output_list = false;
 
@@ -599,6 +600,10 @@ namespace astroaccelerate {
 
 			if (m_pipeline_options.find(aa_pipeline::component_option::fdas_norm) != m_pipeline_options.end()) {
 				fdas_enable_norm = true;
+			}
+			
+			if (m_pipeline_options.find(aa_pipeline::component_option::fdas_harm) != m_pipeline_options.end()) {
+				fdas_enable_harmonic_sum = true;
 			}
 
 			if (m_pipeline_options.find(aa_pipeline::component_option::output_ffdot_plan) != m_pipeline_options.end()) {
@@ -649,6 +654,7 @@ namespace astroaccelerate {
 					fdas_enable_norm, 
 					fdas_enable_output_ffdot_plan, 
 					fdas_enable_output_list, 
+					fdas_enable_harmonic_sum, 
 					ptr_data_in));
 			bool is_pipeline_set_to_runner = true;
 

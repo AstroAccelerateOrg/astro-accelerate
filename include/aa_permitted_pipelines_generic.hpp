@@ -124,6 +124,7 @@ namespace astroaccelerate {
 		bool m_fdas_enable_norm;
 		bool m_fdas_enable_output_ffdot_plan;
 		bool m_fdas_enable_output_list;
+		bool m_fdas_enable_harmonic_sum;
 
 		// Pipeline flags
 		bool do_dedispersion;
@@ -966,12 +967,15 @@ namespace astroaccelerate {
 				dm_high.data(),
 				dm_step.data(),
 				tsamp_original,
+				m_fdas_strategy.max_nHarmonics(),
 				m_fdas_enable_custom_fft,
 				m_fdas_enable_inbin,
 				m_fdas_enable_norm,
 				m_fdas_strategy.sigma_constant(),
 				m_fdas_enable_output_ffdot_plan,
-				m_fdas_enable_output_list);
+				m_fdas_enable_output_list,
+				m_fdas_enable_harmonic_sum
+			);
 
 			timer.Stop();
 			time_log.adding("FDAS", "total", timer.Elapsed());
@@ -1029,6 +1033,7 @@ namespace astroaccelerate {
 		const bool &fdas_enable_norm,
 		const bool &fdas_enable_output_ffdot_plan,
 		const bool &fdas_enable_output_list,
+		const bool &fdas_enable_harmonic_sum,
 		unsigned short const*const input_buffer)
 		:
 		m_pipeline_components(pipeline_components),
@@ -1044,6 +1049,7 @@ namespace astroaccelerate {
 		m_fdas_enable_norm(fdas_enable_norm),
 		m_fdas_enable_output_ffdot_plan(fdas_enable_output_ffdot_plan),
 		m_fdas_enable_output_list(fdas_enable_output_list),
+		m_fdas_enable_harmonic_sum(fdas_enable_harmonic_sum),
 		memory_allocated(false),
 		memory_cleanup(false),
 		periodicity_did_run(false),

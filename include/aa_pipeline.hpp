@@ -57,7 +57,8 @@ namespace astroaccelerate {
 		output_fdas_list,       //< FDAS - Switches on output of fdas_list to disk.
 		fdas_custom_fft,        //< FDAS - Switches on output of custom_fft.
 		fdas_inbin,             //< FDAS - Switches on inbin for fdas.
-		fdas_norm,              //< FDAS - Switches on norm for fdas.
+		fdas_norm,              //< FDAS - Switches on deredning and normalisation for fdas.
+		fdas_harm,              //< FDAS - Switches on harmonic sum for fdas.
 		timelog_export_to_file  //< FDAS - Switches on norm for fdas.
     };
     
@@ -144,6 +145,9 @@ namespace astroaccelerate {
 				break;
 			case aa_pipeline::component_option::fdas_norm:
 				return "FDAS will perform spectrum whitening (red noise normalization)";
+				break;
+			case aa_pipeline::component_option::fdas_harm:
+				return "FDAS will perform harmonic sum";
 				break;
 			case aa_pipeline::component_option::timelog_export_to_file:
 				return "TimeLog will export measured execution time to the file 'time.log'";

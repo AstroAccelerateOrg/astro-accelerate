@@ -84,8 +84,8 @@ namespace astroaccelerate {
           return obj->bind(plan);
       }
 
-      bool aa_py_pipeline_api_bind_fdas_plan(aa_pipeline_api<unsigned short> *const obj, const float sigma_cutoff, const float sigma_constant, const bool enable_msd_baseline_noise) {
-	aa_fdas_plan plan(sigma_cutoff, sigma_constant, enable_msd_baseline_noise);
+      bool aa_py_pipeline_api_bind_fdas_plan(aa_pipeline_api<unsigned short> *const obj, const float sigma_cutoff, const float sigma_constant, const bool enable_msd_baseline_noise, const int fdas_max_nHarmonics) {
+	aa_fdas_plan plan(sigma_cutoff, sigma_constant, enable_msd_baseline_noise, fdas_max_nHarmonics);
 	return obj->bind(plan);
       }
   
