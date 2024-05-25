@@ -9,18 +9,20 @@ Please also refer to the [wiki pages](https://github.com/AstroAccelerateOrg/astr
 
 Publications
 ===
-If you use AstroAccelerate, please cite the code using the following DOI
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1212487.svg)](https://doi.org/10.5281/zenodo.1212487)
+If you use AstroAccelerate, please cite the code using the following DOI and the relevant papers:
+* W. Armour, „AstroAccelerate". Zenodo, lis. 20, 2020. doi: [10.5281/zenodo.4282748](https://doi.org/10.5281/zenodo.1212487).
 
 If you use de-dispersion please also cite:
-* https://ui.adsabs.harvard.edu/abs/2012ASPC..461...33A/abstract
+* Novotný, J., Adámek, K., Clark, M. A., Giles, M., and Armour, W., “Accelerating Dedispersion Using Many-core Architectures”, *The Astrophysical Journal Supplement Series*, vol. 269, no. 1, IOP, 2023. doi:10.3847/1538-4365/acfef6. Accessible from: https://iopscience.iop.org/article/10.3847/1538-4365/acfef6.
 
-If you use single-pulse detection please also cite
-* https://ui.adsabs.harvard.edu/abs/2020ApJS..247...56A/abstract
+If you use single-pulse detection please also cite:
+* Adámek, K. and Armour, W., “Single-pulse Detection Algorithms for Real-time Fast Radio Burst Searches Using GPUs”, *The Astrophysical Journal Supplement Series*, vol. 247, no. 2, IOP, 2020. doi:10.3847/1538-4365/ab7994. Accessible from: https://iopscience.iop.org/article/10.3847/1538-4365/ab7994
 
 If you use Fourier domain acceleration search please also cite:
-* https://ui.adsabs.harvard.edu/#abs/arXiv:1804.05335
+* Dimoudi, S., Adamek, K., Thiagaraj, P., Ransom, S. M., Karastergiou, A., and Armour, W., “A GPU Implementation of the Correlation Technique for Real-time Fourier Domain Pulsar Acceleration Searches”, *The Astrophysical Journal Supplement Series*, vol. 239, no. 2, IOP, 2018. doi:10.3847/1538-4365/aabe88. Accessible from: https://iopscience.iop.org/article/10.3847/1538-4365/aabe88
+
+Other:
+* Armour, W., “A GPU-based Survey for Millisecond Radio Transients Using ARTEMIS”, in *Astronomical Data Analysis Software and Systems XXI*, 2012, vol. 461, p. 33. doi:10.48550/arXiv.1111.6399. Accessible from: https://aspbooks.org/custom/publications/paper/461-0033.html
 
 Features
 ===
