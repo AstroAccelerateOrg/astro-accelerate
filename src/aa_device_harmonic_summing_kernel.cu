@@ -120,6 +120,228 @@ __global__ void greedy_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
     }
 }
 
+__global__ void neg_two_dimensional_greedy_harmonic_sum_GPU_kernel(float *d_maxSum, float *d_maxSNR, ushort *d_maxHarmonics,
+    float const* __restrict__ d_input, size_t const N_f, size_t const N_fdot, size_t const max_f_idx, size_t const min_fdot_idx, 
+    size_t const nHarmonics, float const* __restrict__ d_MSD) {
+    int pos = blockIdx.x * blockDim.x + threadIdx.x;
+    // d_input is flattened, one dimensional array of f-fdot plane, need to calculate 2D indices for bound checking
+    size_t z_acc_temp =   (pos / N_f) ;
+    size_t shift  =  (NKERN>>1); 
+    size_t fdot_idx = shift - z_acc_temp;
+    size_t f_idx = (pos % N_f);
+
+    if (fdot_idx > min_fdot_idx && f_idx < max_f_idx) {
+        float SNR = 0.0;
+        float max_SNR = 0.0;
+        int max_h = 0;
+        float max_sum = 0.0;
+
+        size_t fdot_drift = 0;
+        size_t f_drift = 0;
+
+        // index for storing elements into output arrays, d_maxSNR and d_maxHarmonics
+        const size_t output_pos = fdot_idx * max_f_idx + f_idx;
+
+        size_t dd_pos = fdot_idx * N_f + f_idx;
+        size_t ds_pos = fdot_idx * N_f + (f_idx + 1);
+        size_t sd_pos = (fdot_idx - 1) * N_f + f_idx;
+        size_t ss_pos = (fdot_idx - 1) * N_f + (f_idx + 1);
+
+        // bound checking to make sure no invalid memory access
+        if (ss_pos < (N_f * N_fdot)) {
+            float dd_power = d_input[dd_pos];
+            float ds_power = d_input[ds_pos];
+            float sd_power = d_input[sd_pos];
+            float ss_power = d_input[ss_pos];
+
+            // Find max power out of all four powers
+            float quad[4] = {dd_power, ds_power, sd_power, ss_power};
+            float maxVal = 0.0;
+            float *p_maxVal = quad;
+            for (int i = 0; i < 4; ++i) {
+                if (quad[i] > maxVal) {
+                    maxVal = quad[i];
+                    p_maxVal = quad + i;
+                }
+            }
+            if (p_maxVal == quad + 1) {
+                ++f_drift;
+            } else if (p_maxVal == quad + 2) {
+                ++fdot_drift;
+            } else if (p_maxVal == quad + 3) {
+                ++fdot_drift;
+                ++f_drift;
+            }
+
+            float partial_sum = maxVal;
+            SNR = fdividef((partial_sum - d_MSD[0]), d_MSD[1]);
+
+            // update output arrays
+            if (SNR > max_SNR) {
+                max_SNR = SNR;
+                max_sum = partial_sum;
+                max_h = 0;
+            }
+
+
+
+            // higher harmonics
+            for (size_t h = 2; h <= nHarmonics; ++h) {
+                size_t acc_coord = (shift - h * z_acc_temp - fdot_drift);
+                size_t freq_coord = (h * f_idx + f_drift);
+                if (acc_coord < NKERN && acc_coord - 1 >= 0 && freq_coord + 1 < N_f) break;
+                dd_pos = acc_coord * N_f + freq_coord;
+                ds_pos = acc_coord * N_f + freq_coord + 1;
+                sd_pos = (acc_coord - 1) * N_f + freq_coord;
+                ss_pos = (acc_coord -1) * N_f + freq_coord + 1;
+
+                dd_power = d_input[dd_pos];
+                ds_power = d_input[ds_pos];
+                sd_power = d_input[sd_pos];
+                ss_power = d_input[ss_pos];
+
+
+                float quad[4] = {dd_power, ds_power, sd_power, ss_power};
+                float maxVal = 0.0;
+                float *p_maxVal = quad;
+                for (int i = 0; i < 4; ++i) {
+                    if (quad[i] > maxVal) {
+                        maxVal = quad[i];
+                        p_maxVal = quad + i;
+                    }
+                }
+
+                if (p_maxVal == quad + 1) {
+                    ++f_drift;
+                } else if (p_maxVal == quad + 2) {
+                    ++fdot_drift;
+                } else if (p_maxVal == quad + 3) {
+                    ++fdot_drift;
+                    ++f_drift;
+                }
+
+                partial_sum += maxVal;
+                SNR = fdividef((partial_sum - d_MSD[2*(h-1)]), d_MSD[2*(h-1)+1]);
+                // update output arrays
+                if (SNR > max_SNR) {
+                    max_sum = partial_sum;
+                    max_SNR = SNR;
+                    max_h = h;
+                }
+            }
+        }
+        d_maxSum[output_pos] = max_sum;
+        d_maxSNR[output_pos] = max_SNR;
+        d_maxHarmonics[output_pos] = (ushort) max_h;
+    }
+}
+
+__global__ void pos_two_dimensional_greedy_harmonic_sum_GPU_kernel(float *d_maxSum, float *d_maxSNR, ushort *d_maxHarmonics, float const* __restrict__ d_input, size_t const N_f, size_t const N_fdot, size_t const max_f_idx, size_t const max_fdot_idx, size_t const nHarmonics, float const* __restrict__ d_MSD) {
+    int pos = blockIdx.x * blockDim.x + threadIdx.x;
+    // d_input is flattened, one dimensional array of f-fdot plane, need to calculate 2D indices for bound checking
+    size_t fdot_idx = (pos / N_f) + (NKERN>>1);
+    size_t f_idx = (pos % N_f);
+
+    if (fdot_idx < max_fdot_idx && f_idx < max_f_idx) {
+        float SNR = 0.0;
+        float max_SNR = 0.0;
+        int max_h = 0;
+        float max_sum = 0.0;
+
+        size_t fdot_drift = 0;
+        size_t f_drift = 0;
+
+        // index for storing elements into output arrays, d_maxSNR and d_maxHarmonics
+        const size_t output_pos = fdot_idx * max_f_idx + f_idx;
+
+        size_t dd_pos = fdot_idx * N_f + f_idx;
+        size_t ds_pos = fdot_idx * N_f + (f_idx + 1);
+        size_t sd_pos = (fdot_idx + 1) * N_f + f_idx;
+        size_t ss_pos = (fdot_idx + 1) * N_f + (f_idx + 1);
+
+        // bound checking to make sure no invalid memory access
+        if (ss_pos < (N_f * N_fdot)) {
+            float dd_power = d_input[dd_pos];
+            float ds_power = d_input[ds_pos];
+            float sd_power = d_input[sd_pos];
+            float ss_power = d_input[ss_pos];
+
+            // Find max power out of all four powers
+            float quad[4] = {dd_power, ds_power, sd_power, ss_power};
+            float maxVal = 0.0;
+            float *p_maxVal = quad;
+            for (int i = 0; i < 4; ++i) {
+                if (quad[i] > maxVal) {
+                    maxVal = quad[i];
+                    p_maxVal = quad + i;
+                }
+            }
+            if (p_maxVal == quad + 1) {
+                ++f_drift;
+            } else if (p_maxVal == quad + 2) {
+                ++fdot_drift;
+            } else if (p_maxVal == quad + 3) {
+                ++fdot_drift;
+                ++f_drift;
+            }
+
+            float partial_sum = maxVal;
+            SNR = fdividef((partial_sum - d_MSD[0]), d_MSD[1]);
+
+            // update output arrays
+            if (SNR > max_SNR) {
+                max_SNR = SNR;
+                max_sum = partial_sum;
+                max_h = 0;
+            }
+
+            // higher harmonics
+            for (size_t h = 2; (h <= nHarmonics) && ((h * fdot_idx + fdot_drift + 1) * N_f + (h * f_idx + f_drift + 1)) < (N_f * N_fdot); ++h) {
+                dd_pos = (h * fdot_idx + fdot_drift) * N_f + (h * f_idx + f_drift);
+                ds_pos = (h * fdot_idx + fdot_drift) * N_f + (h * f_idx + f_drift + 1);
+                sd_pos = (h * fdot_idx + fdot_drift + 1) * N_f + (h * f_idx + f_drift);
+                ss_pos = (h * fdot_idx + fdot_drift + 1) * N_f + (h * f_idx + f_drift + 1);
+
+                dd_power = d_input[dd_pos];
+                ds_power = d_input[ds_pos];
+                sd_power = d_input[sd_pos];
+                ss_power = d_input[ss_pos];
+
+
+                float quad[4] = {dd_power, ds_power, sd_power, ss_power};
+                float maxVal = 0.0;
+                float *p_maxVal = quad;
+                for (int i = 0; i < 4; ++i) {
+                    if (quad[i] > maxVal) {
+                        maxVal = quad[i];
+                        p_maxVal = quad + i;
+                    }
+                }
+
+                if (p_maxVal == quad + 1) {
+                    ++f_drift;
+                } else if (p_maxVal == quad + 2) {
+                    ++fdot_drift;
+                } else if (p_maxVal == quad + 3) {
+                    ++fdot_drift;
+                    ++f_drift;
+                }
+
+                partial_sum += maxVal;
+                SNR = fdividef((partial_sum - d_MSD[2*(h-1)]), d_MSD[2*(h-1)+1]);
+                // update output arrays
+                if (SNR > max_SNR) {
+                    max_sum = partial_sum;
+                    max_SNR = SNR;
+                    max_h = h;
+                }
+            }
+        }
+        d_maxSum[output_pos] = max_sum;
+        d_maxSNR[output_pos] = max_SNR;
+        d_maxHarmonics[output_pos] = (ushort) max_h;
+    }
+}
 
 template<class const_params>
 __inline__ __device__ void get_frequency_bin_value(float *frequency_bin, float const* __restrict__ data, int pos){
@@ -351,6 +573,51 @@ __global__ void presto_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
       );
     }
   }
+
+  /** \brief Kernel wrapper function for two_dimensional_greedy_harmonic_sum_GPU_kernel kernel function. */
+  void call_two_dimensional_greedy_harmonic_sum_GPU_kernel(
+      const dim3 &grid_size,
+      const dim3 &block_size,
+      float const *const d_input,
+      float *const d_output_max, 
+      float *const d_output_SNR,
+      ushort *const d_output_harmonics,
+      float *const d_MSD,
+      size_t const &N_f,
+      size_t const &N_fdot,
+      size_t const &max_f_idx,
+      size_t const &max_fdot_idx,
+      size_t const &min_fdot_idx,
+      size_t const nHarmonics
+  ) {
+      pos_two_dimensional_greedy_harmonic_sum_GPU_kernel<<<grid_size, block_size>>>(
+          d_output_max,
+          d_output_SNR,
+          d_output_harmonics,
+          d_input,
+          N_f,
+          N_fdot,
+          max_f_idx,
+          max_fdot_idx,
+          nHarmonics,
+          d_MSD
+      );
+
+      neg_two_dimensional_greedy_harmonic_sum_GPU_kernel<<<grid_size, block_size>>>(
+        d_output_max,
+        d_output_SNR,
+        d_output_harmonics,
+        d_input,
+        N_f,
+        N_fdot,
+        max_f_idx,
+        min_fdot_idx,
+        nHarmonics,
+        d_MSD
+      );
+  }
+
+
   
   /** \brief Kernel wrapper function for presto_harmonic_sum_GPU_kernel kernel function. */
   void call_kernel_presto_harmonic_sum_GPU_kernel(
