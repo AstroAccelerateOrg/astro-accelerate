@@ -11,6 +11,7 @@
 #include <sys/time.h>
 #include <cuda_profiler_api.h>
 
+#include "aa_device_harmonic_summing.hpp"
 #include "aa_log.hpp"
 #include "aa_params.hpp"
 #include "aa_fdas_test_parameters.hpp"
@@ -18,6 +19,7 @@
 #include "aa_fdas_util.hpp"
 #include "aa_fdas_host.hpp"
 #include "aa_device_MSD.hpp"
+#include "aa_device_MSD_plane_profile.hpp"
 #include "aa_device_peak_find.hpp"
 #include "presto_funcs.hpp"
 #include "presto.hpp"
@@ -410,6 +412,27 @@ namespace astroaccelerate {
 		Find_MSD(d_MSD, gpuarrays.d_ffdot_pwr, params.siglen/ibin, NKERN, 0, sigma_constant, 1);
 	      }
 	      //checkCudaErrors(cudaGetLastError());
+		float h_MSD_interpolated[3];
+		float *d_workarea;
+		if (cudaSuccess != cudaMalloc((void**) &d_workarea, sizeof(float)*NKERN*params.siglen*ibin)) LOG(log_level::error, "Allocation error! W " + std::string(cudaGetErrorString(e)));
+		float *d_MSD_interpolated;
+		if (cudaSuccess != cudaMalloc((void**) &d_MSD_interpolated, sizeof(float)*3)) printf("Allocation error! N \n");
+		std::vector<int> boxcarwidths{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32};
+		double total_time = 0;
+		double dit_time = 0;
+		double MSD_time = 0;
+		float *d_MSD_DIT = NULL;
+
+		MSD_plane_profile(d_MSD_interpolated, gpuarrays.d_ffdot_pwr, d_MSD_DIT, d_workarea, false, ibin*params.siglen, NKERN, &boxcarwidths, 0, dm_low[i], dm_high[i], sigma_constant, 1, false, &total_time, &dit_time, &MSD_time);
+
+		 e = cudaMemcpy(h_MSD_interpolated, d_MSD_interpolated, 3*sizeof(float), cudaMemcpyDeviceToHost);
+
+	      if(e != cudaSuccess) {
+		LOG(log_level::error, "Could not cudaMemcpy in aa_device_acceleration_fdas.cu (" + std::string(cudaGetErrorString(e)) + ")");
+	      }
+
+		// Call the 2D Harmonic Sum kernel
+		periodicity_two_dimensional_greedy_harmonic_summing(gpuarrays.d_ffdot_pwr,gpuarrays.d_ffdot_max,gpuarrays.d_ffdot_SNR,gpuarrays.d_ffdot_Harmonics,d_MSD_interpolated,ibin*params.siglen, NKERN, ibin*params.siglen/32,NKERN-1,1,32);
 					
 	      //!TEST!: do not perform peak find instead export the thing to file.
 #ifdef FDAS_CONV_TEST
@@ -440,10 +463,12 @@ namespace astroaccelerate {
 		
 			if (enable_output_fdas_list) {
 				if(list_size>0){
-					fdas_write_list(&gpuarrays, &cmdargs, &params, h_MSD, dm_low[i], dm_count, dm_step[i], list_size);
+					fdas_write_list(&gpuarrays, &cmdargs, &params, h_MSD_interpolated, dm_low[i], dm_count, dm_step[i], list_size);
 				}
 			}
 			cudaFree(d_MSD);
+			cudaFree(d_MSD_interpolated);
+			cudaFree(d_workarea);
 			cudaFree(gmem_fdas_peak_pos);
 	    }
 		

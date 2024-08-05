@@ -70,6 +70,22 @@ namespace astroaccelerate {
       bool enable_scalloping_loss_removal
   );
 
+  void call_two_dimensional_greedy_harmonic_sum_GPU_kernel(
+      const dim3 &grid_size,
+      const dim3 &block_size,
+      float const *const d_input,
+      float *const d_output_max, 
+      float *const d_output_SNR,
+      ushort *const d_output_harmonics,
+      float *const d_MSD,
+      size_t const &N_f,
+      size_t const &N_fdot,
+      size_t const &max_f_idx,
+      size_t const &max_fdot_idx,
+      size_t const &min_fdot_idx,
+      size_t const nHarmonics
+    );
+
 } // namespace astroaccelerate
   
 #endif // ASTRO_ACCELERATE_AA_DEVICE_HARMONIC_SUMMING_KERNEL_HPP

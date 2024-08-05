@@ -51,6 +51,10 @@ namespace astroaccelerate {
     float2* d_fft_signal;
     float2  *d_ext_data;
     float2 *d_kernel;
+    float *d_ffdot_max;
+    float *d_ffdot_min;
+    float *d_ffdot_SNR;
+    ushort *d_ffdot_Harmonics;
     float *d_ffdot_pwr;
     float *d_ffdot_summed;
     float2 *d_ffdot_cpx;
