@@ -165,8 +165,10 @@ namespace astroaccelerate {
 	
     nRepeats = nDMs/DMs_per_cycle;
     nRest = nDMs - nRepeats*DMs_per_cycle;
-    local_max_list_size = (DMs_per_cycle*nTimesamples)/4;
-	
+    size_t temp_max_list_size = (((size_t) DMs_per_cycle)*((size_t) nTimesamples))/4;
+    if (temp_max_list_size>=2147483647) local_max_list_size = 2147483640;
+    else local_max_list_size = (int) temp_max_list_size;
+    
     for(int f=0; f<nRepeats; f++) DM_list.push_back(DMs_per_cycle);
     if(nRest>0) DM_list.push_back(nRest);
 	
@@ -176,7 +178,8 @@ namespace astroaccelerate {
       printf("  SPS will run %d batch containing %d DM trials.\n", (int) DM_list.size(), nRest);
 	
     max_iteration = Get_max_iteration(max_boxcar_width/inBin, &BC_widths, &max_width_performed);
-    printf("  Selected iteration:%d; maximum boxcar width requested:%d; maximum boxcar width performed:%d;\n", max_iteration, max_boxcar_width/inBin, max_width_performed);
+    printf("  Selected iteration:%d; maximum boxcar width requested:%d; maximum boxcar width performed:%d; Memory allocated for %d candidates;\n", max_iteration, max_boxcar_width/inBin, max_width_performed, local_max_list_size);
+	
     Create_PD_plan(&PD_plan, &BC_widths, 1, nTimesamples);
     std::vector<int> h_boxcar_widths;
     Create_list_of_boxcar_widths(&h_boxcar_widths, &BC_widths, max_width_performed);
