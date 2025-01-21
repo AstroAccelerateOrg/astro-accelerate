@@ -748,14 +748,14 @@ namespace astroaccelerate {
     for(int a = 0; a < NKERN; a++) {
       double acc = (double) (ZMAX - a* ACCEL_STEP);
       for( int j = 0; j < ibin*params->siglen; j++){
-	pow =  h_ffdotpwr[a * ibin*params->siglen + j]; //(h_ffdotpwr[a * params->siglen + j]-mean)/stddev;
+	      pow =  h_ffdotpwr[a * ibin*params->siglen + j]; //(h_ffdotpwr[a * params->siglen + j]-mean)/stddev;
 		
-		if( pow > 0) {
-			sigma=1.0;
-			double jfreq = (double)(j) / tobs;
-			double acc1 = acc*SLIGHT / jfreq / tobs / tobs;
-			fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, sigma);
-		}    
+        if( pow > 0) {
+          sigma=1.0;
+          double jfreq = (double)(j) / tobs;
+          double acc1 = acc*SLIGHT / jfreq / tobs / tobs;
+          fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, sigma);
+        }    
       }
     }
 
@@ -818,6 +818,8 @@ void fdas_write_test_ffdot_harmonic(
         size_t nFrequency_bins, 
         size_t nAcceleration_steps, 
         int half_plane,
+        fdas_params *params, 
+        cmd_args *cmdargs,
         const char *pfname
 ) {
     printf("Writing data from 2D harmonic sum\n");
@@ -833,7 +835,10 @@ void fdas_write_test_ffdot_harmonic(
     if(cuda_error != cudaSuccess) LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(cuda_error)) + ")");
     cuda_error = cudaMemcpy(h_ffdot_harm, d_ffdot_harm, data_size*sizeof(ushort), cudaMemcpyDeviceToHost);
     if(cuda_error != cudaSuccess) LOG(log_level::error, "Could not cudaMemcpy in aa_fdas_host.cu (" + std::string(cudaGetErrorString(cuda_error)) + ")");
-    
+
+    int ibin=1;
+    if (cmdargs->inbin) ibin=2; 
+    double tobs = (double)params->tsamp* (double)params->nsamps*ibin;
     
     FILE *fp_c;
     printf("Writing results to file %s\n", pfname);
@@ -845,11 +850,18 @@ void fdas_write_test_ffdot_harmonic(
     //write to file
     printf("Writing ffdot data to file...\n");
     for(int a = 0; a < (int) nAcceleration_steps; a++) {
-        for( int f = 0; f < (int) nFrequency_bins; f++){
+        float acc = (double) (ZMAX - a* ACCEL_STEP);
+        for( int f = 1; f < (int) nFrequency_bins; f++){
+            float acc = (float) (ZMAX - a* ACCEL_STEP);
+            float jfreq = ((double) f) / tobs;
+            float acc1 = acc*SLIGHT / jfreq / tobs / tobs;
             float pow =  h_ffdot_max[a*nFrequency_bins + f];
             float SNR =  h_ffdot_SNR[a*nFrequency_bins + f];
             float hrm =  h_ffdot_harm[a*nFrequency_bins + f];
-            fprintf(fp_c, "%d %d %f %f %f\n", a - half_plane, f, pow, SNR, hrm); 
+			if(isinf(acc1) || isinf(jfreq) || isinf(pow) || isinf(SNR)){
+				printf("INFINITY detected:  %.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\t%.3f\n", acc, acc1, f , jfreq, pow, SNR, hrm);
+			}
+            fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\t%.3f\n", acc, acc1, f , jfreq, pow, SNR, hrm);
         }
     }
 
@@ -944,13 +956,14 @@ void combine_2d_harmonics_planes(
     size_t positive_position
 ){
     int64_t data_size = nFreq*nAcc;
+	int64_t pos_data_size = nFreq*(nAcc-1);
     float *h_plane_negative = (float*) malloc(data_size*sizeof(float));
-    float *h_plane_positive = (float*) malloc(data_size*sizeof(float));
+    float *h_plane_positive = (float*) malloc(pos_data_size*sizeof(float));
     
     cudaError_t cuda_error;
     cuda_error = cudaMemcpy(h_plane_negative, d_plane, data_size*sizeof(float), cudaMemcpyDeviceToHost);
     if(cuda_error != cudaSuccess) LOG(log_level::error, "Could not cudaMemcpy in combine_2d_harmonics_planes (" + std::string(cudaGetErrorString(cuda_error)) + ")");
-    cuda_error = cudaMemcpy(h_plane_positive, &d_plane[positive_position], data_size*sizeof(float), cudaMemcpyDeviceToHost);
+    cuda_error = cudaMemcpy(h_plane_positive, &d_plane[positive_position], pos_data_size*sizeof(float), cudaMemcpyDeviceToHost);
     if(cuda_error != cudaSuccess) LOG(log_level::error, "Could not cudaMemcpy in combine_2d_harmonics_planes (" + std::string(cudaGetErrorString(cuda_error)) + ")");
     
     // Negative
@@ -962,7 +975,7 @@ void combine_2d_harmonics_planes(
     }
     
     // Positive
-    cuda_error = cudaMemcpy(&d_plane[nFreq*(nAcc-1)], h_plane_positive, data_size*sizeof(float), cudaMemcpyHostToDevice);
+    cuda_error = cudaMemcpy(&d_plane[nFreq*(nAcc-1)], h_plane_positive, pos_data_size*sizeof(float), cudaMemcpyHostToDevice);
     if(cuda_error != cudaSuccess) LOG(log_level::error, "Cannot copy positive acceleration (" + std::string(cudaGetErrorString(cuda_error)) + ")");
     
     free(h_plane_negative);
@@ -982,7 +995,7 @@ void combine_2d_harmonics_planes_ushort(
     cudaError_t cuda_error;
     cuda_error = cudaMemcpy(h_plane_negative, d_plane, data_size*sizeof(ushort), cudaMemcpyDeviceToHost);
     if(cuda_error != cudaSuccess) LOG(log_level::error, "Could not cudaMemcpy in combine_2d_harmonics_planes (" + std::string(cudaGetErrorString(cuda_error)) + ")");
-    cuda_error = cudaMemcpy(h_plane_positive, &d_plane[positive_position], data_size*sizeof(ushort), cudaMemcpyDeviceToHost);
+    cuda_error = cudaMemcpy(h_plane_positive, &d_plane[positive_position], nFreq*(nAcc-1)*sizeof(ushort), cudaMemcpyDeviceToHost);
     if(cuda_error != cudaSuccess) LOG(log_level::error, "Could not cudaMemcpy in combine_2d_harmonics_planes (" + std::string(cudaGetErrorString(cuda_error)) + ")");
     
     // Negative
@@ -994,7 +1007,7 @@ void combine_2d_harmonics_planes_ushort(
     }
     
     // Positive
-    cuda_error = cudaMemcpy(&d_plane[nFreq*(nAcc-1)], h_plane_positive, data_size*sizeof(ushort), cudaMemcpyHostToDevice);
+    cuda_error = cudaMemcpy(&d_plane[nFreq*(nAcc-1)], h_plane_positive, nFreq*(nAcc-1)*sizeof(ushort), cudaMemcpyHostToDevice);
     if(cuda_error != cudaSuccess) LOG(log_level::error, "Cannot copy positive acceleration (" + std::string(cudaGetErrorString(cuda_error)) + ")");
     
     free(h_plane_negative);
@@ -1006,6 +1019,7 @@ void fdas_write_list_harm(
         fdas_gpuarrays *gpuarrays, 
         cmd_args *cmdargs, 
         fdas_params *params, 
+        float *h_MSD_interpolated,
         float DM,
         unsigned int list_size
 ) {
@@ -1029,15 +1043,16 @@ void fdas_write_list_harm(
     int i_list_size = (int)list_size;
     for(int f=0; f<i_list_size; f++){
         int j;
-        double a, acc, acc1, jfreq, pow, harm;
+        double a, acc, acc1, jfreq, pow, SNR, harm;
         a   = h_fdas_peak_list[4*f];
         j   = (int) h_fdas_peak_list[4*f + 1];
         pow = h_fdas_peak_list[4*f + 2];
         harm = h_fdas_peak_list[4*f + 3];
+        SNR = (pow-h_MSD_interpolated[2*((int) harm)])/(h_MSD_interpolated[2*((int) harm) + 1]);
         jfreq = ((double) j) / tobs;
         acc = (double) (ZMAX - a*ACCEL_STEP);
         acc1 = acc*SLIGHT / jfreq / tobs / tobs;
-        fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, harm);
+        fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, SNR, harm);
     }
     
     fclose(fp_c);

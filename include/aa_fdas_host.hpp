@@ -135,6 +135,8 @@ void fdas_write_test_ffdot_harmonic(
         size_t nFrequency_bins, 
         size_t nAcceleration_steps, 
         int half_plane,
+        fdas_params *params,
+        cmd_args *cmdargs,
         const char *pfname
 );
   
@@ -172,11 +174,12 @@ void combine_2d_harmonics_planes_ushort(
 );
 
 void fdas_write_list_harm(
-    fdas_gpuarrays *gpuarrays, 
-    cmd_args *cmdargs, 
-    fdas_params *params, 
-    float DM,
-    unsigned int list_size
+        fdas_gpuarrays *gpuarrays, 
+        cmd_args *cmdargs, 
+        fdas_params *params, 
+        float *h_MSD_interpolated,
+        float DM,
+        unsigned int list_size
 );
 
 } // namespace astroaccelerate

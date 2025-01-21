@@ -1205,7 +1205,7 @@ namespace astroaccelerate {
     }
   }
 
-#ifndef NOCUST
+
   __global__ void customfft_fwd_temps_no_reorder(float2* d_signal)
   {
     int tx = threadIdx.x;
@@ -1997,7 +1997,63 @@ namespace astroaccelerate {
   void call_kernel_GPU_CONV_kFFT_mk11_4elem_2v(const dim3 &grid_size, const dim3 &block_size, float2 const*const d_input_signal, float *const d_output_plane_reduced, float2 const*const d_templates, const int &useful_part_size, const int &offset, const int &nConvolutions, const float &scale) {
     GPU_CONV_kFFT_mk11_4elem_2v<<<grid_size, block_size>>>(d_input_signal, d_output_plane_reduced, d_templates, useful_part_size, offset, nConvolutions, scale);
   }
+  
+  __global__ void flip_negative_ffdot_inplace_float(
+    float *d_ffdot,
+    size_t nNeg_z, 
+    size_t nFreqBins
+  ) {
+    size_t idx_x = blockDim.x*blockIdx.x + threadIdx.x;
+    size_t input_pos = blockIdx.y*nFreqBins;
+    size_t output_pos = (nNeg_z - 1 - blockIdx.y)*nFreqBins;
+    float input_value = 0;
+    float output_value = 0;
+    
+    if(idx_x < nFreqBins){
+        input_value = d_ffdot[input_pos + idx_x];
+        output_value = d_ffdot[output_pos + idx_x];
+        
+        d_ffdot[output_pos + idx_x] = input_value;
+        d_ffdot[input_pos + idx_x] = output_value;
+    }
+  }
+
+  void call_kernel_flip_negative_ffdot_inplace_float(const dim3 &grid_size, const dim3 &block_size, float *d_ffdot, const size_t nNeg_z, const size_t nFreqBins) {
+    flip_negative_ffdot_inplace_float<<<grid_size, block_size>>>(
+        d_ffdot, 
+        nNeg_z, 
+        nFreqBins
+    );
+  }
+  
+  __global__ void flip_negative_ffdot_inplace_ushort(
+    ushort *d_ffdot,
+    size_t nNeg_z, 
+    size_t nFreqBins
+  ) {
+    size_t idx_x = blockDim.x*blockIdx.x + threadIdx.x;
+    size_t input_pos = blockIdx.y*nFreqBins;
+    size_t output_pos = (nNeg_z - 1 - blockIdx.y)*nFreqBins;
+    ushort input_value = 0;
+    ushort output_value = 0;
+    
+    if(idx_x < nFreqBins){
+        input_value = d_ffdot[input_pos + idx_x];
+        output_value = d_ffdot[output_pos + idx_x];
+        
+        d_ffdot[output_pos + idx_x] = input_value;
+        d_ffdot[input_pos + idx_x] = output_value;
+    }
+  }
+
+  void call_kernel_flip_negative_ffdot_inplace_ushort(const dim3 &grid_size, const dim3 &block_size, ushort *d_ffdot, const size_t nNeg_z, const size_t nFreqBins) {
+    flip_negative_ffdot_inplace_ushort<<<grid_size, block_size>>>(
+        d_ffdot, 
+        nNeg_z, 
+        nFreqBins
+    );
+  }
 
 } //namespace astroaccelerate
   
-#endif
+

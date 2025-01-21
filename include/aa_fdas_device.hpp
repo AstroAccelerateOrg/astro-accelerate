@@ -59,6 +59,28 @@ namespace astroaccelerate {
 
   /** \brief Kernel wrapper function for customfft_fwd_temps_no_reorder kernel function. */
   void call_kernel_customfft_fwd_temps_no_reorder(float2 *const d_signal);
+  __global__ void flip_negative_ffdot_inplace_float(
+    float *d_ffdot,
+    size_t nNeg_z, 
+    size_t nFreqBins
+  );
+
+  
+  __global__ void flip_negative_ffdot_inplace_float(
+    float *d_ffdot,
+    size_t nNeg_z, 
+    size_t nFreqBins
+  );
+
+  void call_kernel_flip_negative_ffdot_inplace_float(const dim3 &grid_size, const dim3 &block_size, float *d_ffdot, const size_t nNeg_z, const size_t nFreqBins);
+
+  __global__ void flip_negative_ffdot_inplace_ushort(
+    ushort *d_ffdot,
+    size_t nNeg_z, 
+    size_t nFreqBins
+  );
+
+  void call_kernel_flip_negative_ffdot_inplace_ushort(const dim3 &grid_size, const dim3 &block_size, ushort *d_ffdot, const size_t nNeg_z, const size_t nFreqBins);
 
 } // namespace astroaccelerate
   
