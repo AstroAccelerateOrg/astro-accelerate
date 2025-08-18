@@ -64,7 +64,8 @@ __global__ void greedy_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
     __shared__ float s_MSD[64];
     float SNR;
     float partial_sum, maxSNR;
-    int maxHarmonics;
+    ushort maxHarmonics;
+    ushort maxdata_shift;
     
     if(threadIdx.x<nHarmonics) {
         s_MSD[2*threadIdx.x]      = d_MSD[2*threadIdx.x];
@@ -73,6 +74,7 @@ __global__ void greedy_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
     
     __syncthreads();
     
+    maxdata_shift = 0;
     int data_shift=0;
     float data_down = 0, data_step = 0;
     int pos = const_params::nThreads*blockIdx.x + threadIdx.x;
@@ -110,13 +112,14 @@ __global__ void greedy_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
         if( SNR > maxSNR ) {
             maxSNR = SNR;
             maxHarmonics = h;
+            maxdata_shift = data_shift;
         }
     }
     
     pos = const_params::nThreads*blockIdx.x + threadIdx.x;
     if(pos < nTimesamples) {
         d_maxSNR[blockIdx.y*nTimesamples + pos] = maxSNR;
-        d_maxHarmonics[blockIdx.y*nTimesamples + pos] = (ushort) maxHarmonics;
+        d_maxHarmonics[blockIdx.y*nTimesamples + pos] = (ushort) (maxHarmonics + maxdata_shift*100);
     }
 }
 

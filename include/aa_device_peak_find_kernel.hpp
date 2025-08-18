@@ -33,7 +33,8 @@ namespace astroaccelerate {
       int *const gmem_pos,
       float const *const d_MSD,
       const int &DM_shift,
-      const int &DIT_value
+      const int &DIT_value,
+      const int &enable_greedy_postprocessing
   );
 
   /** \brief Kernel wrapper function for peak_find_for_periods kernel function. */

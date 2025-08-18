@@ -11,7 +11,7 @@ namespace astroaccelerate {
 
   extern int Threshold_for_periodicity_transposed(float *d_input, ushort *d_input_harms, float *d_output_list,  int *gmem_pos, float *d_MSD, float threshold, int primary_size, int secondary_size, int DM_shift, int inBin, int max_list_size);
 
-  extern int Threshold_for_periodicity_normal(float *d_input_SNR, ushort *d_input_harms, float *d_output_list,  int *gmem_pos, float *d_MSD, float threshold, int nTimesamples, int nDMs, int DM_shift, int inBin, int max_list_size);
+  extern int Threshold_for_periodicity_normal(float *d_input_SNR, ushort *d_input_harms, float *d_output_list,  int *gmem_pos, float *d_MSD, float threshold, int nTimesamples, int nDMs, int DM_shift, int inBin, int max_list_size, int enable_greedy_postprocessing);
 
 } // namespace astroaccelerate
   
