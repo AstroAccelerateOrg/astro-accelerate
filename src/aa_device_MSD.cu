@@ -13,7 +13,6 @@ namespace astroaccelerate {
 void MSD_init(void) {
   //---------> Specific nVidia stuff
   cudaDeviceSetCacheConfig (cudaFuncCachePreferShared);
-  cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
 }
 
 

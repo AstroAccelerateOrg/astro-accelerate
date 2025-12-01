@@ -10,7 +10,6 @@ namespace astroaccelerate {
   {
     //---------> Specific nVidia stuff
     cudaDeviceSetCacheConfig (cudaFuncCachePreferShared);
-    cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeEightByte);
   }
 
   int PD_SEARCH(float *d_input, float *d_output, float *d_output_taps, float *d_MSD, int maxTaps, int nDMs, int nTimesamples)

@@ -13,7 +13,6 @@ namespace astroaccelerate {
   void THR_init(void) {
     //---------> Specific nVidia stuff
     cudaDeviceSetCacheConfig (cudaFuncCachePreferShared);
-    cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
   }
 
   int SPDT_threshold(float *d_input, ushort *d_input_taps, unsigned int *d_output_list_DM, unsigned int *d_output_list_TS, float *d_output_list_SNR, unsigned int *d_output_list_BW, int *gmem_pos, float threshold, int nDMs, int nTimesamples, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration, int max_list_size) {
