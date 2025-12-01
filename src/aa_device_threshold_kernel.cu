@@ -40,7 +40,7 @@ namespace astroaccelerate {
     }
   }
 
-  __global__ void GPU_Threshold_for_periodicity_normal_kernel(float const* __restrict__ d_input, ushort *d_input_harms, float *d_output_list, int *gmem_pos, float const* __restrict__ d_MSD, float threshold, int nTimesamples, int nDMs, int DM_shift, int max_list_size, int DIT_value) {
+  __global__ void GPU_Threshold_for_periodicity_normal_kernel(float const* __restrict__ d_input, ushort *d_input_harms, float *d_output_list, int *gmem_pos, float const* __restrict__ d_MSD, float threshold, int nTimesamples, int nDMs, int DM_shift, int max_list_size, ushort DIT_value, ushort enable_greedy_postprocessing) {
     int pos_x, pos_y, pos, list_pos, mask, leader;
     float R;
     int hrms;
@@ -64,7 +64,11 @@ namespace astroaccelerate {
                     d_output_list[4*list_pos]   = pos_y + DM_shift;
                     d_output_list[4*list_pos+1] = pos_x/DIT_value;
                     hrms = (int) d_input_harms[pos];
-                    d_output_list[4*list_pos+3] = (float) hrms;
+                    if(enable_greedy_postprocessing){
+                        int temp = (int) (hrms/100);
+                        hrms = hrms - 100*temp;
+                    }
+                    d_output_list[4*list_pos+3] = (float) d_input_harms[pos];
                     d_output_list[4*list_pos+2] = R*__ldg(&d_MSD[2*hrms+1]) + __ldg(&d_MSD[2*hrms]);
                 }
             }
@@ -159,7 +163,8 @@ namespace astroaccelerate {
       const int &nDMs,
       const int &DM_shift,
       const int &max_list_size,
-      const int &DIT_value
+      const int &DIT_value,
+      const int &enable_greedy_postprocessing
   ) {
       GPU_Threshold_for_periodicity_normal_kernel<<<grid_size, block_size>>>(
           d_input,
@@ -172,7 +177,8 @@ namespace astroaccelerate {
           nDMs,
           DM_shift,
           max_list_size,
-          DIT_value
+          (ushort) DIT_value,
+          (ushort) enable_greedy_postprocessing
       );
 
   }

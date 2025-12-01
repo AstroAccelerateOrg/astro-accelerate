@@ -50,7 +50,7 @@ namespace astroaccelerate {
     call_kernel_dilate_peak_find_for_fdas(gridSize, blockDim, d_ffdot_plane, d_peak_list, d_MSD, nTimesamples, nDMs, 0, threshold, max_peak_size, gmem_peak_pos, DM_trial);
   }
 
-  int Peak_find_for_periodicity_search(float *d_input_SNR, ushort *d_input_harmonics, float *d_peak_list, int nTimesamples, int nDMs, float threshold, int max_peak_size, int *gmem_peak_pos, float *d_MSD, int DM_shift, int inBin, bool transposed_data){
+  int Peak_find_for_periodicity_search(float *d_input_SNR, ushort *d_input_harmonics, float *d_peak_list, int nTimesamples, int nDMs, float threshold, int max_peak_size, int *gmem_peak_pos, float *d_MSD, int DM_shift, int inBin, bool transposed_data, int enable_greedy_postprocessing){
       // nTimesamples = secondary_size
       // nDMs = primary_size
       //---------> Nvidia stuff
@@ -124,7 +124,7 @@ namespace astroaccelerate {
         }
         else {
             dim3 gridSize(nBlocks_p, nBlocks_s, 1);
-            call_kernel_peak_find_for_periodicity_normal(gridSize, blockDim, &d_input_SNR[shift*primary_size], d_input_harmonics, d_peak_list, primary_size, secondary_size, 0, threshold, max_peak_size, gmem_peak_pos, d_MSD, DM_shift, inBin);
+            call_kernel_peak_find_for_periodicity_normal(gridSize, blockDim, &d_input_SNR[shift*primary_size], d_input_harmonics, d_peak_list, primary_size, secondary_size, 0, threshold, max_peak_size, gmem_peak_pos, d_MSD, DM_shift, inBin, enable_greedy_postprocessing);
         }
         shift = shift + secondary_size_per_chunk[f];
       }

@@ -337,7 +337,7 @@ __global__ void peak_find_list2(const float *d_input, const int width, const int
 
 
  //TODO: Improve performance of the peak find by using shared memory atomics and then storing data to device memory?
-  __global__ void peak_find_for_periodicity_normal_kernel(const float *d_input, ushort* d_input_taps, float *d_peak_list, const int nTimesamples, const int nDMs, const int offset, const float threshold, int max_peak_size, int *gmem_pos, float const* __restrict__ d_MSD, int DM_shift, int DIT_value) {
+  __global__ void peak_find_for_periodicity_normal_kernel(const float *d_input, ushort* d_input_taps, float *d_peak_list, const int nTimesamples, const int nDMs, const int offset, const float threshold, int max_peak_size, int *gmem_pos, float const* __restrict__ d_MSD, int DM_shift, ushort DIT_value, ushort enable_greedy_postprocessing) {
     int idxX = blockDim.x*blockIdx.x + threadIdx.x;
     int idxY = blockDim.y*blockIdx.y + threadIdx.y;
     if (idxX >= nTimesamples - offset) return;
@@ -353,7 +353,11 @@ __global__ void peak_find_list2(const float *d_input, const int width, const int
         d_peak_list[4*list_pos]   = idxY + DM_shift; // DM coordinate (y)
         d_peak_list[4*list_pos+1] = idxX/DIT_value; // frequency coordinate (x)
         int hrms = (int) d_input_taps[idxY*nTimesamples+idxX];
-        d_peak_list[4*list_pos+3] = hrms; // width of the boxcar
+        if(enable_greedy_postprocessing){
+            int temp = (int) (hrms/100);
+            hrms = hrms - 100*temp;
+        }
+        d_peak_list[4*list_pos+3] = (float) d_input_taps[idxY*nTimesamples+idxX]; // width of the boxcar
         d_peak_list[4*list_pos+2] = my_value*__ldg(&d_MSD[2*hrms+1]) + __ldg(&d_MSD[2*hrms]); // SNR value
       }
     }
@@ -543,7 +547,8 @@ __global__ void gpu_Filter_peaks_kernel(unsigned int *d_new_peak_list_DM, unsign
       int *const gmem_pos,
       float const *const d_MSD,
       const int &DM_shift,
-      const int &DIT_value
+      const int &DIT_value,
+	  const int &enable_greedy_postprocessing
   ) {
     peak_find_for_periodicity_normal_kernel<<<grid_size, block_size>>>(
         d_input,
@@ -557,7 +562,8 @@ __global__ void gpu_Filter_peaks_kernel(unsigned int *d_new_peak_list_DM, unsign
         gmem_pos,
         d_MSD,
         DM_shift,
-        DIT_value
+        (ushort) DIT_value,
+        (ushort) enable_greedy_postprocessing
     );
   }
 
