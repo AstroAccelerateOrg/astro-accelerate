@@ -6,7 +6,6 @@ namespace astroaccelerate {
 	void CONV_init(){
 		//---------> Specific nVidia stuff
 		cudaDeviceSetCacheConfig(cudaFuncCachePreferShared);
-		cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeEightByte);
 	}
 
 

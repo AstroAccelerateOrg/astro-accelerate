@@ -31,7 +31,6 @@ namespace astroaccelerate {
     #endif
     
     cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
-    cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeFourByte);
     call_kernel_simple_harmonic_sum_GPU_kernel(gridSize, blockSize, d_input, d_output_SNR, d_output_harmonics, d_MSD, nTimesamples, nDMs, nHarmonics);
     
     return(0);
@@ -64,7 +63,6 @@ namespace astroaccelerate {
     
     //---------> Greedy harmonic sum
     cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
-    cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeFourByte);
     call_kernel_greedy_harmonic_sum_GPU_kernel(
         gridSize,
         blockSize,
@@ -108,7 +106,6 @@ namespace astroaccelerate {
     
     //---------> PRESTO harmonic sum
     cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
-    cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeFourByte);
     call_kernel_presto_plus_harmonic_sum_GPU_kernel(
         gridSize,
         blockSize,
@@ -153,7 +150,6 @@ namespace astroaccelerate {
     
     //---------> PRESTO harmonic sum
     cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
-    cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeFourByte);
     call_kernel_presto_harmonic_sum_GPU_kernel(
         gridSize,
         blockSize,

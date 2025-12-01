@@ -9,7 +9,6 @@ namespace astroaccelerate {
   {
     //---------> Specific nVidia stuff
     cudaDeviceSetCacheConfig (cudaFuncCachePreferShared);
-    cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeEightByte);
   }
 
   int PD_FIR(float *d_input, float *d_output, int nTaps, int nDMs, int nTimesamples)
@@ -55,7 +54,6 @@ namespace astroaccelerate {
 	
     //---------> Pulse detection FIR
     cudaDeviceSetCacheConfig(cudaFuncCachePreferShared);
-    cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeEightByte);
     call_kernel_PD_FIR_GPUv1(gridSize,blockSize, SM_size, d_input, d_output, nTaps, nLoops, nTimesamples);
 
     // --------> Measured part (Pulse detection FIR)

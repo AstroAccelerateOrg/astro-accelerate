@@ -8,6 +8,7 @@
 #include "aa_log.hpp"
 #include "aa_device_analysis.hpp"
 
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
 
 namespace astroaccelerate {
 
