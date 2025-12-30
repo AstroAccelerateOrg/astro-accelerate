@@ -136,13 +136,11 @@ namespace astroaccelerate {
 
 
       case 12 : 
-	args->afname=optarg; 
 	sprintf(args->afname,"%s",optarg);
 	printf("\n accelerated signal filename : %s \n",args->afname); 
 	break;
 
       case 13 : 
-	args->nfname=optarg; 
 	sprintf(args->nfname,"%s",optarg);
 	printf("\n noise filename : %s \n",args->nfname); 
 	break;
@@ -245,18 +243,17 @@ namespace astroaccelerate {
       fd = fileno(data);
       ret = fstat(fd,&fs);
       if(ret == -1){
-	perror("\nfstat() error");
-	exit(-1);
+        perror("\nfstat() error");
+        exit(-1);
       }
       len = fs.st_size/sizeof(float2);
       if (fread (array, sizeof(float2), len, data)!= len){
-	printf("\nError reading file %s : %s\n", fname, strerror(errno));
-	exit(1);
+        printf("\nError reading file %s : %s\n", fname, strerror(errno));
+        exit(1);
       }
     }
     else{
       printf("\nError opening file %s for reading: %s\nRun with -wsig to create file and try again\n", fname, strerror(errno));
-      fclose(data);
       exit(1);
     }
     printf("\nFile read successful\n");

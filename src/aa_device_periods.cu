@@ -512,6 +512,8 @@ namespace astroaccelerate {
     
     
     //---------> Peak finding
+    int enable_greedy_postprocessing = 0;
+    if(harmonic_sum_algorithm == 1) enable_greedy_postprocessing = 1;
     timer.Start();
     if(PSR_strategy.candidate_selection_algorithm()==1){
         //-------------- Thresholding
@@ -520,15 +522,15 @@ namespace astroaccelerate {
             Threshold_for_periodicity_transposed(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, gmem->gmem_interbin_peak_pos, gmem->d_MSD, PSR_strategy.sigma_cutoff(), t_nDMs_per_batch, t_nTimesamples, t_DM_shift, t_inBin, local_max_list_size);
         }
         else {
-            Threshold_for_periodicity_normal(d_power_SNR, gmem->d_power_harmonics, d_power_list, gmem->gmem_power_peak_pos, gmem->d_MSD, PSR_strategy.sigma_cutoff(), (t_nTimesamples>>1), t_nDMs_per_batch, t_DM_shift, t_inBin, local_max_list_size);
-            Threshold_for_periodicity_normal(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, gmem->gmem_interbin_peak_pos, gmem->d_MSD, PSR_strategy.sigma_cutoff(), t_nTimesamples, t_nDMs_per_batch, t_DM_shift, t_inBin, local_max_list_size);
+            Threshold_for_periodicity_normal(d_power_SNR, gmem->d_power_harmonics, d_power_list, gmem->gmem_power_peak_pos, gmem->d_MSD, PSR_strategy.sigma_cutoff(), (t_nTimesamples>>1), t_nDMs_per_batch, t_DM_shift, t_inBin, local_max_list_size, enable_greedy_postprocessing);
+            Threshold_for_periodicity_normal(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, gmem->gmem_interbin_peak_pos, gmem->d_MSD, PSR_strategy.sigma_cutoff(), t_nTimesamples, t_nDMs_per_batch, t_DM_shift, t_inBin, local_max_list_size, enable_greedy_postprocessing);
         }
         //-------------- Thresholding
     }
     else {
         //-------------- Peak finding
-        Peak_find_for_periodicity_search(d_power_SNR, gmem->d_power_harmonics, d_power_list, (t_nTimesamples>>1), t_nDMs_per_batch, PSR_strategy.sigma_cutoff(), local_max_list_size, gmem->gmem_power_peak_pos, gmem->d_MSD, t_DM_shift, t_inBin, transposed_data);
-        Peak_find_for_periodicity_search(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, t_nTimesamples, t_nDMs_per_batch, PSR_strategy.sigma_cutoff(), local_max_list_size, gmem->gmem_interbin_peak_pos, gmem->d_MSD, t_DM_shift, t_inBin, transposed_data);
+        Peak_find_for_periodicity_search(d_power_SNR, gmem->d_power_harmonics, d_power_list, (t_nTimesamples>>1), t_nDMs_per_batch, PSR_strategy.sigma_cutoff(), local_max_list_size, gmem->gmem_power_peak_pos, gmem->d_MSD, t_DM_shift, t_inBin, transposed_data, enable_greedy_postprocessing);
+        Peak_find_for_periodicity_search(d_interbin_SNR, gmem->d_interbin_harmonics, d_interbin_list, t_nTimesamples, t_nDMs_per_batch, PSR_strategy.sigma_cutoff(), local_max_list_size, gmem->gmem_interbin_peak_pos, gmem->d_MSD, t_DM_shift, t_inBin, transposed_data, enable_greedy_postprocessing);
         //-------------- Peak finding
     }
     timer.Stop();
@@ -644,14 +646,18 @@ namespace astroaccelerate {
           size_t range_nTimesamples = current_p_range.range.nTimesamples(); 
           double range_sampling_time = current_p_range.range.sampling_time();
           float  *pointer_to_candidate_data = NULL;
+          int enable_greedy_postprocessing = 0;
+          if(harmonic_sum_algorithm == 1) enable_greedy_postprocessing = 1;
           
-          if(harmonic_sum_algorithm==0) pointer_to_candidate_data = &GPU_memory.d_two_B[0];
+          // Power candidates
+          if(harmonic_sum_algorithm == 0) pointer_to_candidate_data = &GPU_memory.d_two_B[0];
           else pointer_to_candidate_data = GPU_memory.d_half_C;
-          Power_Candidates.Add_Candidates(pointer_to_candidate_data, nPowerCandidates, range_id, h_MSD, range_dm_low, range_dm_step, range_sampling_time, range_nTimesamples, 1.0);
+          Power_Candidates.Add_Candidates(pointer_to_candidate_data, nPowerCandidates, range_id, h_MSD, range_dm_low, range_dm_step, range_sampling_time, range_nTimesamples, 1.0, enable_greedy_postprocessing);
           
-          if(harmonic_sum_algorithm==0) pointer_to_candidate_data = &GPU_memory.d_two_B[PSR_strategy.input_plane_size()];
+          // Interbin candidates
+          if(harmonic_sum_algorithm == 0) pointer_to_candidate_data = &GPU_memory.d_two_B[PSR_strategy.input_plane_size()];
           else pointer_to_candidate_data = GPU_memory.d_one_A;
-          Interbin_Candidates.Add_Candidates(pointer_to_candidate_data, nInterbinCandidates, range_id, h_MSD, range_dm_low, range_dm_step, range_sampling_time, range_nTimesamples, 2.0);
+          Interbin_Candidates.Add_Candidates(pointer_to_candidate_data, nInterbinCandidates, range_id, h_MSD, range_dm_low, range_dm_step, range_sampling_time, range_nTimesamples, 2.0, enable_greedy_postprocessing);
           
           timer.Stop();
           time_log.adding("PSR","Device-To-Host",timer.Elapsed());

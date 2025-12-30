@@ -27,6 +27,8 @@
 
 #include "aa_log.hpp"
 
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
+
 //#define EXPORT_DD_DATA
 
 namespace astroaccelerate {

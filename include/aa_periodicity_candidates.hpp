@@ -72,14 +72,25 @@ public:
 	}
 	
 	/** \brief Processes the periodicity inBin data group. */
-	void Process(float *MSD, double dm_low, double dm_step, double sampling_time, size_t nTimesamples, float mod) {
+	void Process(float *MSD, double dm_low, double dm_step, double sampling_time, size_t nTimesamples, float mod, int enable_greedy_postprocessing) {
 		#pragma omp parallel for
 		for(size_t c = 0; c < c_nCandidates; c++) {
 			int harmonics = (int) all[c*c_nElements+3];
-			all[c*c_nElements+0] = all[c*c_nElements+0]*dm_step + dm_low;
-			all[c*c_nElements+1] = all[c*c_nElements+1]*(1.0/(sampling_time*nTimesamples*mod));
+			float freq_correction = 0;
+			
+			if(enable_greedy_postprocessing){
+				int datashift = (int) (all[c*c_nElements+3]/100.0);
+				harmonics = harmonics - datashift*100;
+				if(harmonics>0) {
+					float bin_width = (1.0/sampling_time)/(nTimesamples*mod);
+					float fraction = ((double) datashift)/((double) harmonics);
+					freq_correction = bin_width*fraction;
+				}
+			}
+			all[c*c_nElements+0] = all[c*c_nElements+0]*dm_step + dm_low; 
+			all[c*c_nElements+1] = all[c*c_nElements+1]*(1.0/(sampling_time*nTimesamples*mod)) + freq_correction;
 			all[c*c_nElements+2] = (all[c*c_nElements+2] - MSD[2*harmonics])/(MSD[2*harmonics+1]);
-			all[c*c_nElements+3] = all[c*c_nElements+3];
+			all[c*c_nElements+3] = harmonics; 
 		}
 	}
 	
@@ -113,7 +124,7 @@ public:
 		
 	}
 	
-	bool Add_Candidates(float *d_all, size_t nCandidates, int rangeid, float *MSD, double dm_low, double dm_step, double sampling_time, size_t nTimesamples, float mod){
+	bool Add_Candidates(float *d_all, size_t nCandidates, int rangeid, float *MSD, double dm_low, double dm_step, double sampling_time, size_t nTimesamples, float mod, int enable_greedy_postprocessing){
 		int last = 0;
 		bool passed = false;
 		candidate_data.push_back( (new aa_periodicity_candidates_data()) );
@@ -121,7 +132,7 @@ public:
 		if(last >= 0){
 			passed = candidate_data[last]->Add_candidates(d_all, nCandidates, rangeid);
 			if(passed==true) {
-				candidate_data[last]->Process(MSD, dm_low, dm_step, sampling_time, nTimesamples, mod);
+				candidate_data[last]->Process(MSD, dm_low, dm_step, sampling_time, nTimesamples, mod, enable_greedy_postprocessing);
 				return(true);
 			}
 			else {

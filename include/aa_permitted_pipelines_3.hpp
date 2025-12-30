@@ -31,6 +31,8 @@
 
 #include "aa_gpu_timer.hpp"
 
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
+
 namespace astroaccelerate {
 
   /**

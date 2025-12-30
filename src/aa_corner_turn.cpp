@@ -97,7 +97,6 @@ int corner_turn_SM_wrapper(inType *const d_input, inType *const d_output, const 
 #endif
     
     cudaDeviceSetCacheConfig(cudaFuncCachePreferShared);
-    cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeFourByte);
     call_kernel_corner_turn_SM_kernel(gridSize, blockSize, d_input, d_output, primary_size, secondary_size);
     
     return(0);

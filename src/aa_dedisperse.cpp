@@ -32,7 +32,6 @@ int dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sho
 	      dim3 threads_per_block(divisions_in_t, divisions_in_dm);
 	      dim3 num_blocks(num_blocks_t, num_blocks_dm);
 
-	      cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
 	      //cudaFuncSetCacheConfig(shared_dedisperse_kernel_16, cudaFuncCachePreferShared); //Subsume in call_kernel_*
 	      if(nchans>8192){
 			  call_kernel_shared_dedisperse_kernel_16_nchan8192p(num_blocks, threads_per_block, inBin[i], d_input, d_output, d_dm_shifts, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
@@ -74,7 +73,6 @@ int dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sho
 			dim3 threads_per_block(divisions_in_t, divisions_in_dm);
 			dim3 num_blocks(num_blocks_t, num_blocks_dm);
 
-			cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeFourByte);
 			if (nchans>4096) {
 				call_kernel_shared_dedisperse_kernel_4bit_4096chan(num_blocks, threads_per_block, d_input, d_output, d_dm_shifts, (float)(startdm/(*tsamp)), (float)(dm_step[i]/(*tsamp)), nchans);
 			}
@@ -117,7 +115,6 @@ int dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sho
 	      dim3 threads_per_block(divisions_in_t, divisions_in_dm);
 	      dim3 num_blocks(num_blocks_t, num_blocks_dm);
 
-	      cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
 	      //cudaFuncSetCacheConfig(shared_dedisperse_kernel, cudaFuncCachePreferShared); //Subsume in call_kernel_*
 	      if(nchans>8192) {
 			  call_kernel_shared_dedisperse_kernel_nchan8192p(num_blocks, threads_per_block, inBin[i], d_input, d_output, d_dm_shifts, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));

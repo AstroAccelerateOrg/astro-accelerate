@@ -30,7 +30,21 @@ namespace astroaccelerate {
 		float DM_trial
 	);
 
-  extern int Peak_find_for_periodicity_search(float *d_input_SNR, ushort *d_input_harmonics, float *d_peak_list, int nDMs, int nTimesamples, float threshold, int max_peak_size, int *gmem_peak_pos, float* d_MSD, int DM_shift, int inBin, bool transposed_data);
+	extern int Peak_find_for_periodicity_search(
+		float *d_input_SNR, 
+		ushort *d_input_harmonics, 
+		float *d_peak_list, 
+		int nDMs, 
+		int nTimesamples, 
+		float threshold, 
+		int max_peak_size, 
+		int *gmem_peak_pos, 
+		float* d_MSD, 
+		int DM_shift, 
+		int inBin, 
+		bool transposed_data, 
+		int enable_greedy_postprocessing
+	);
 
   extern void SPDT_peak_find_stencil_7x7(float *d_output_SNR, ushort *d_output_taps, unsigned int *d_peak_list_DM, unsigned int *d_peak_list_TS, float *d_peak_list_SNR, unsigned int *d_peak_list_BW, int nDMs, int nTimesamples, float threshold, int max_peak_size, int *gmem_peak_pos, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration);
 

@@ -40,7 +40,8 @@ namespace astroaccelerate {
       const int &nDMs,
       const int &DM_shift,
       const int &max_list_size,
-      const int &DIT_value
+      const int &DIT_value,
+      const int &enable_greedy_postprocessing
   );
 
   /** Kernel wrapper function for GPU_Threshold_for_periodicity_kernel kernel function. */

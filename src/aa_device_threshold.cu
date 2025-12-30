@@ -13,7 +13,6 @@ namespace astroaccelerate {
   void THR_init(void) {
     //---------> Specific nVidia stuff
     cudaDeviceSetCacheConfig (cudaFuncCachePreferShared);
-    cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
   }
 
   int SPDT_threshold(float *d_input, ushort *d_input_taps, unsigned int *d_output_list_DM, unsigned int *d_output_list_TS, float *d_output_list_SNR, unsigned int *d_output_list_BW, int *gmem_pos, float threshold, int nDMs, int nTimesamples, int shift, std::vector<PulseDetection_plan> *PD_plan, int max_iteration, int max_list_size) {
@@ -119,7 +118,7 @@ int Threshold_for_periodicity_transposed(float *d_input, ushort *d_input_harms, 
   
   
   
-int Threshold_for_periodicity_normal(float *d_input_SNR, ushort *d_input_harms, float *d_output_list,  int *gmem_pos, float *d_MSD, float threshold, int nTimesamples, int nDMs, int DM_shift, int inBin, int max_list_size) {
+int Threshold_for_periodicity_normal(float *d_input_SNR, ushort *d_input_harms, float *d_output_list,  int *gmem_pos, float *d_MSD, float threshold, int nTimesamples, int nDMs, int DM_shift, int inBin, int max_list_size, int enable_greedy_postprocessing) {
     //---------> Nvidia stuff
     cudaDeviceProp deviceProp;
     cudaGetDeviceProperties(&deviceProp, CARD);
@@ -143,8 +142,8 @@ int Threshold_for_periodicity_normal(float *d_input_SNR, ushort *d_input_harms, 
 	
     if(nBlocks_x > max_x) return(1);
     if(nBlocks_y > max_y) return(2);
-
-    call_kernel_GPU_Threshold_for_periodicity_normal_kernel(gridSize, blockSize, d_input_SNR, d_input_harms, d_output_list, gmem_pos, d_MSD, threshold, nTimesamples, nDMs, DM_shift, max_list_size, inBin);
+	printf("In thresholding\n");
+    call_kernel_GPU_Threshold_for_periodicity_normal_kernel(gridSize, blockSize, d_input_SNR, d_input_harms, d_output_list, gmem_pos, d_MSD, threshold, nTimesamples, nDMs, DM_shift, max_list_size, inBin, enable_greedy_postprocessing);
 
     return (0);
   }

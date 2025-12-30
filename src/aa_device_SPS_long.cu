@@ -26,7 +26,6 @@ namespace astroaccelerate {
   void PD_SEARCH_LONG_init() {
     //---------> Specific nVidia stuff
     cudaDeviceSetCacheConfig (cudaFuncCachePreferShared);
-    cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeEightByte);
   }
 
 

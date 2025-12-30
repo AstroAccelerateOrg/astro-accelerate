@@ -30,7 +30,6 @@ namespace astroaccelerate {
   void SNR_limited_init() {
     //---------> Specific nVidia stuff
     cudaDeviceSetCacheConfig (cudaFuncCachePreferShared);
-    cudaDeviceSetSharedMemConfig (cudaSharedMemBankSizeFourByte);
   }
 
   int SNR_limited(float *d_FIR_input, float *d_SNR_output, ushort *d_SNR_taps, float *d_MSD, int nTaps, int nDMs, int nTimesamples, int offset) {
