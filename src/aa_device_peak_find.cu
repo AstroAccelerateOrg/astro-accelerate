@@ -54,19 +54,35 @@ namespace astroaccelerate {
 		float *d_peak_list,
 		float *d_ffdot_max,
 		float *d_ffdot_SNR,
-		ushort *d_ffdot_harm,
+		short int *d_ffdot_harm,
+		short int *d_ffdot_shift,
 		size_t nFreq, 
 		size_t nAcc,
-		int half_plane, 
 		float threshold, 
 		unsigned int max_peak_size, 
 		unsigned int *gmem_peak_pos,
-		float DM_trial
+		float sampling_time,
+		float acceleration_step
 	) {
 		dim3 blockDim(32, 32, 1);
 		dim3 gridSize(1 + ((nFreq-1)/blockDim.x), 1 + ((nAcc-1)/blockDim.y), 1);
 		
-		call_kernel_dilate_peak_find_for_fdas_harm(gridSize, blockDim, d_peak_list, d_ffdot_max, d_ffdot_SNR, d_ffdot_harm, nFreq, nAcc, half_plane, threshold, max_peak_size, gmem_peak_pos, DM_trial);
+		call_kernel_dilate_peak_find_for_fdas_harm(
+			gridSize, 
+			blockDim, 
+			d_peak_list, 
+			d_ffdot_max, 
+			d_ffdot_SNR, 
+			d_ffdot_harm, 
+			d_ffdot_shift, 
+			nFreq, 
+			nAcc, 
+			threshold, 
+			max_peak_size, 
+			gmem_peak_pos, 
+			sampling_time, 
+			acceleration_step
+		);
 	}
 
   int Peak_find_for_periodicity_search(float *d_input_SNR, ushort *d_input_harmonics, float *d_peak_list, int nTimesamples, int nDMs, float threshold, int max_peak_size, int *gmem_peak_pos, float *d_MSD, int DM_shift, int inBin, bool transposed_data, int enable_greedy_postprocessing){

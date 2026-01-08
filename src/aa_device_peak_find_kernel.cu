@@ -243,7 +243,21 @@ __global__ void peak_find_list2(const float *d_input, const int width, const int
     //d_output[idxY*width+idxX] = peak;
   }
 
-	__global__ void dilate_peak_find_for_fdas_harm(float *d_peak_list, const float *d_ffdot_max, const float *d_ffdot_SNR, const ushort *d_ffdot_harm, const size_t width, const size_t height, const int offset, const float threshold, unsigned int max_peak_size, unsigned int *gmem_pos, float DM_trial){
+	__global__ void dilate_peak_find_for_fdas_harm(
+		float *d_peak_list, 
+		const float *d_ffdot_max, 
+		const float *d_ffdot_SNR, 
+		const short int *d_ffdot_harm, 
+		const short int *d_ffdot_shift, 
+		const size_t width,  // num_r_bins, 
+		const size_t height, // num_z_bins, 
+		const float threshold, 
+		unsigned int max_peak_size, 
+		unsigned int *gmem_pos, 
+		float sampling_time,
+		float acceleration_step
+	){
+		int offset = 0;
 		int idxX = blockDim.x * blockIdx.x + threadIdx.x;
 		int idxY = blockDim.y * blockIdx.y + threadIdx.y;
 		if (idxX >= width-offset) return;
@@ -256,21 +270,21 @@ __global__ void peak_find_list2(const float *d_input, const int width, const int
 		if (idxY == 0) {
 			//Special case for width of 1
 			if (width == 1) {
-			my_value = dilated_value = d_ffdot_max[0];
+			my_value = dilated_value = d_ffdot_SNR[0];
 		}
 		//Top left corner case
 		else if (idxX == 0) {
-			float4 block = load_block_2x2(d_ffdot_max, width);
+			float4 block = load_block_2x2(d_ffdot_SNR, width);
 			dilated_value = dilate4(block);
 			my_value = block.x;
 		} 
 		//Top right corner case
 		else if (idxX == (width-offset-1)) {
-			float4 block = load_block_2x2(d_ffdot_max+width-offset-2, width);
+			float4 block = load_block_2x2(d_ffdot_SNR+width-offset-2, width);
 			dilated_value = dilate4(block);
 			my_value = block.y;
 		} else {
-			float3x3 block = load_block_top(d_ffdot_max, idxX, idxY, width);
+			float3x3 block = load_block_top(d_ffdot_SNR, idxX, idxY, width);
 			dilated_value = dilate3x3_top(block);
 			my_value = block.y2;
 		}
@@ -278,38 +292,38 @@ __global__ void peak_find_list2(const float *d_input, const int width, const int
 		} else if (idxY == height-1) {
 			//Special case for width of 1
 			if (width == 1) {
-				my_value = dilated_value = d_ffdot_max[width*(height-1)];
+				my_value = dilated_value = d_ffdot_SNR[width*(height-1)];
 			}
 			//Bottom left corner
 			else if (idxX == 0) {
-				float4 block = load_block_2x2(d_ffdot_max+width*(height-2), width);
+				float4 block = load_block_2x2(d_ffdot_SNR+width*(height-2), width);
 				dilated_value = dilate4(block);
 				my_value = block.z;
 			}
 			//Bottom right corner
 			else if (idxX == (width-offset-1)) {
-				float4 block = load_block_2x2(d_ffdot_max+width*(height-2)+width-offset-2, width);
+				float4 block = load_block_2x2(d_ffdot_SNR+width*(height-2)+width-offset-2, width);
 				dilated_value = dilate4(block);
 				my_value = block.w;
 			} else {
-				float3x3 block = load_block_bottom(d_ffdot_max, idxX, idxY, width);        
+				float3x3 block = load_block_bottom(d_ffdot_SNR, idxX, idxY, width);
 				dilated_value = dilate3x3_bottom(block);
 				my_value = block.y2;
 			}
 		//Left edge
 		} else if (idxX == 0) {
-			float3x3 block = load_block_left(d_ffdot_max, idxX, idxY, width);        
+			float3x3 block = load_block_left(d_ffdot_SNR, idxX, idxY, width);
 			dilated_value = dilate3x3_left(block);
 			my_value = block.y2;
 		
 		  //right edge
 		} else if (idxX == (width-offset-1)) {
-			float3x3 block = load_block_right(d_ffdot_max, idxX, idxY, width);        
+			float3x3 block = load_block_right(d_ffdot_SNR, idxX, idxY, width);
 			dilated_value = dilate3x3_right(block);
 			my_value = block.y2;
 
 		} else {
-			float3x3 block = load_block(d_ffdot_max, idxX, idxY, width);
+			float3x3 block = load_block(d_ffdot_SNR, idxX, idxY, width);
 			dilated_value = dilate3x3(block);
 			my_value = block.y2;
 		}
@@ -318,15 +332,28 @@ __global__ void peak_find_list2(const float *d_input, const int width, const int
 			if(my_value > threshold) {
 				list_pos=atomicAdd(gmem_pos, 1);
 				if(list_pos<max_peak_size){
-					d_peak_list[4*list_pos]   = idxY; // frequency
-					d_peak_list[4*list_pos+1] = idxX; // acceleration
-					d_peak_list[4*list_pos+2] = my_value; // power
+					// We must correct frequency and acceleration using shifts
+					short int harmonics = d_ffdot_harm[idxY*width + idxX];
+					short int rz_drift = d_ffdot_shift[idxY*width + idxX];
+					short int z_drift = (int) (rz_drift/100.0);
+					short int r_drift = abs(rz_drift - (z_drift*100));
+					
+					float freq_correction = 0;
+					float acc_correction = 0;
+					if(harmonics>0) {
+						float fr_fraction = ((float) r_drift)/((float) harmonics);
+						freq_correction = fr_fraction;
+						float ac_fraction = ((float) z_drift)/((float) harmonics);
+						acc_correction = ac_fraction;
+					}
+					
+					d_peak_list[4*list_pos]   = idxY + acc_correction;   // acceleration
+					d_peak_list[4*list_pos+1] = idxX + freq_correction;  // frequency
+					d_peak_list[4*list_pos+2] = my_value;                // SNR
 					d_peak_list[4*list_pos+3] = (float) d_ffdot_harm[idxY*width + idxX]; //  harmonic sum
 				}
 			}
 		}
-		
-		//d_output[idxY*width+idxX] = peak;
 	}
 
   // width DM
@@ -604,32 +631,34 @@ __global__ void gpu_Filter_peaks_kernel(unsigned int *d_new_peak_list_DM, unsign
   }
   
 	void call_kernel_dilate_peak_find_for_fdas_harm(
-		const dim3 &grid_size, 
-		const dim3 &block_size, 
+		const dim3 &gridSize, 
+		const dim3 &blockDim, 
 		float *d_peak_list, 
 		float *d_ffdot_max, 
 		float *d_ffdot_SNR, 
-		ushort *d_ffdot_harm, 
+		short int *d_ffdot_harm, 
+		short int *d_ffdot_shift, 
 		size_t nFreq, 
 		size_t nAcc, 
-		int half_plane, 
 		float threshold, 
 		unsigned int max_peak_size, 
 		unsigned int *const gmem_peak_pos, 
-		float DM_trial
+		float sampling_time,
+		float acceleration_step
 	) {
-		dilate_peak_find_for_fdas_harm<<<grid_size, block_size>>>( 
+		dilate_peak_find_for_fdas_harm<<<gridSize, blockDim>>>( 
 			d_peak_list, 
 			d_ffdot_max,
 			d_ffdot_SNR,
 			d_ffdot_harm, 
+			d_ffdot_shift, 
 			nFreq, 
 			nAcc, 
-			half_plane,
 			threshold,
 			max_peak_size, 
 			gmem_peak_pos, 
-			DM_trial
+			sampling_time, 
+			acceleration_step
 		);
 	}
 

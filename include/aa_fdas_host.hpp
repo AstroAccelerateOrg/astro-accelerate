@@ -47,17 +47,18 @@ namespace astroaccelerate {
    * \brief Struct to hold the device data.
    */
   typedef struct{
-    float* d_in_signal; 
-    float2* d_fft_signal;
-    float2  *d_ext_data;
-    float2 *d_kernel;
-    float *d_ffdot_pwr;
-    float *d_ffdot_max;
-    float *d_ffdot_SNR;
-    ushort *d_ffdot_Harmonics;
-    float2 *d_ffdot_cpx;
-    float2 *ip_edge_points;// edge points for interbinning in kfft
-    float *d_fdas_peak_list; // added by KA
+    float* d_in_signal;        // stores dedispersed time-series
+    float2* d_fft_signal;      
+    float2  *d_ext_data;       
+    float2 *d_kernel;          
+    float *d_ffdot_pwr;        
+    float *d_ffdot_max;        
+    float *d_ffdot_SNR;        
+    short int *d_ffdot_Harmonics; 
+    short int *d_ffdot_shifts;    
+    float2 *d_ffdot_cpx;       
+    float2 *ip_edge_points;    // edge points for interbinning in kfft
+    float *d_fdas_peak_list;   // added by KA
     size_t mem_insig;
     size_t mem_rfft;
     size_t mem_extsig;
@@ -82,19 +83,19 @@ namespace astroaccelerate {
    * \brief Struct to hold fdas parameter metadata.
    */
   typedef struct{
-    int  nsamps;
-    int rfftlen;
-    int sigblock;
-    int nblocks; 
-    int offset; 
-    int siglen;
-    int extlen;
-    int max_list_length; // maximum number of rows in the list
-    unsigned int ffdotlen;
-    unsigned int ffdotlen_cpx;
-    float scale;
-    float tsamp;
-  }fdas_params;
+    int nsamps;   // Number of timesamples in dedispersed time-series
+    int rfftlen;  // Number of frequency bins in spectra after realFFT
+    int sigblock; // Number of clean (uncorrupted) samples in the output segment.
+    int nblocks;  // Number of segments (blocks) used for Overlap-and-Save algorithm.
+    int offset;   // Half of the length of the convolution template (filter) and also number of corrupted samples in the output from each side.
+    int siglen;   // Total number of clean (uncorrupted) samples. This may not be equal to >rfftlen< as the >rfftlen< may not be divisible by >KERNLEN< without remainder.
+    int extlen;   // Total size of an array required for Overlap-and-Save algorithm.
+    int max_list_length; // Determines maximum number of candidates per DM trial that will be saved
+    unsigned int ffdotlen; // Size of an array that contains f-fdot plane of clean (uncorrupted) samples
+    unsigned int ffdotlen_cpx; // Size of an array containing f-fdot plane of all segments.
+    float scale;  // Normalisation factor for FFT
+    float tsamp;  // Time sampling in seconds
+  } fdas_params;
 
   //function declarations
 
@@ -131,7 +132,7 @@ namespace astroaccelerate {
 void fdas_write_test_ffdot_harmonic(
         float *d_ffdot_max, 
         float *d_ffdot_SNR, 
-        ushort *d_ffdot_harm, 
+        short int *d_ffdot_harm, 
         size_t nFrequency_bins, 
         size_t nAcceleration_steps, 
         int half_plane,

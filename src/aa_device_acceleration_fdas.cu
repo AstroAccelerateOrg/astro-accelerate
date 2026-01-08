@@ -55,7 +55,10 @@ void acceleration_fdas(
 	const bool enable_output_fdas_list,
 	const bool enable_harmonic_sum
 ) {
-
+    printf("\n");
+    printf(" === PERFORMING FOURIER DOMAIN ACCELERATION SEARCH (FDAS) === \n");
+    printf("\n");
+    
     astroaccelerate::fdas_params params;
     // fdas_new_acc_sig acc_sig;
     astroaccelerate::cmd_args cmdargs;
@@ -110,24 +113,21 @@ void acceleration_fdas(
       acc_sig.sigamp = cmdargs.sigamp; //
     */
     int nearest = (int) floorf(log2f((float) processed));
-    printf("\nnearest:\t%d", nearest);
     int samps = (int) powf(2.0, nearest);
     processed=samps;
-    printf("\nsamps:\t%d", samps);
-
-    params.nsamps = samps;
-    params.tsamp = tsamp;
+    printf("Nearest power of two: %d; Number of samples: %d;\n", nearest, samps);
 
     /// Print params.h
     astroaccelerate::fdas_print_params_h();
-
-    // prepare signal
-    params.offset = presto_z_resp_halfwidth((double) ZMAX, 0); //array offset when we pick signal points for the overlp-save method
-    printf(" Calculated overlap-save offsets: %d\n", params.offset);
-
-    //
+    
+    // Range invariant variables
+    params.offset = presto_z_resp_halfwidth((double) ZMAX, 0);
+    printf("Calculated overlap-save offsets: %d\n", params.offset);
     params.sigblock = KERNLEN - 2 * params.offset + 1;
     params.scale = sqrt(2) / (float) (KERNLEN);
+    
+    params.nsamps = processed;
+    params.tsamp = tsamp;
     params.rfftlen = params.nsamps / 2 + 1;
     params.nblocks = params.rfftlen / params.sigblock;
     params.siglen = params.nblocks * params.sigblock;
@@ -135,12 +135,14 @@ void acceleration_fdas(
     params.ffdotlen = (unsigned int)params.siglen * (unsigned int)NKERN; // total size of ffdot complex plane in fourier bins
     params.ffdotlen_cpx = params.extlen * NKERN; // total size of ffdot powers plane in fourier bins
     params.max_list_length = params.ffdotlen/4;
-	
-    if (cmdargs.inbin)
-      params.ffdotlen = params.ffdotlen * 2;
+    if (cmdargs.inbin){
+        params.ffdotlen = params.ffdotlen * 2;
+    }
+    
+    cudaError_t e;
 
     if (cmdargs.search) {
-		printf("\nnumber of convolution templates NKERN = %d, template length = %d, acceleration step in bins = %f, zmax = %d, template size power of 2 = %d, scale=%f \n",
+		printf("\nnumber of convolution templates NKERN = %d\ntemplate length = %d\nacceleration step in bins = %f\nzmax = %d\ntemplate size power of 2 = %d\nscale=%f \n",
 			NKERN, KERNLEN, ACCEL_STEP, ZMAX, NEXP, params.scale);
 
 		if (cmdargs.basic)
@@ -149,7 +151,7 @@ void acceleration_fdas(
 		else if (cmdargs.kfft)
 		printf("\nCustom algorithm:\n-------\n");
 
-		printf("\nnsamps = %d\ncpx signal length = %d\ntotal length: initial = %d, extended = %d\nconvolution signal segment length = %d\ntemplate length = %d\n# convolution blocks = %d\nffdot length = %u\n",
+		printf("nsamps = %d\ncpx signal length = %d\ntotal length: initial = %d, extended = %d\nconvolution signal segment length = %d\ntemplate length = %d\n# convolution blocks = %d\nffdot length = %u\n",
 			params.nsamps, params.rfftlen, params.siglen, params.extlen,
 			params.sigblock, KERNLEN, params.nblocks, params.ffdotlen);
 		//
@@ -169,18 +171,20 @@ void acceleration_fdas(
 		float mbyte = gbyte / 1024.0;
 		size_t mfree, mtotal;
 
-		if (cmdargs.basic)
-		mem_tot_needed = mem_ffdot + mem_ffdot_cpx + mem_kern_array + mem_signals + mem_max_list_size; // KA added + mem_max_list_size
-		if (cmdargs.kfft)
-		mem_tot_needed = mem_ffdot + mem_kern_array + mem_signals + mem_max_list_size; // KA added + mem_max_list_size
-		cudaError_t e = cudaMemGetInfo(&mfree, &mtotal);
+		if (cmdargs.basic){
+			mem_tot_needed = mem_ffdot + mem_ffdot_cpx + mem_kern_array + mem_signals + mem_max_list_size;
+		}
+		if (cmdargs.kfft){
+			mem_tot_needed = mem_ffdot + mem_kern_array + mem_signals + mem_max_list_size;
+		}
+		e = cudaMemGetInfo(&mfree, &mtotal);
 
 		if(e != cudaSuccess) {
 		LOG(log_level::error, "Could not cudaMemGetInfo in aa_device_acceleration_fdas.cu (" + std::string(cudaGetErrorString(e)) + ")");
 		}
 
 		// get available memory info
-		printf( "Total memory for this device: %.2f GB\nAvailable memory on this device for data upload: %.2f GB \n", mtotal / gbyte, mfree / gbyte);
+		printf("Total memory for this device: %.2f GB\nAvailable memory on this device for data upload: %.2f GB \n", mtotal / gbyte, mfree / gbyte);
 
 		//Allocating gpu arrays
 		gpuarrays.mem_insig = params.nsamps * sizeof(float);
@@ -195,17 +199,14 @@ void acceleration_fdas(
 			(double) mem_tot_needed / gbyte, (double) (mem_ffdot) / gbyte, (double) mem_kern_array / gbyte, (double) mem_signals / gbyte, gbyte);
 		//
 		if (mem_tot_needed >= (mfree - gbyte / 10)) {
-		printf("\nNot enough memory available on the device to process this array\nPlease use a shorter signal\nExiting program...\n\n");
-		exit(1);
+			printf("\nNot enough memory available on the device to process this array\nPlease use a shorter signal\nExiting program...\n\n");
+			exit(1);
 		}
-		//getLastCudaError("\nCuda Error\n");
 
 		fdas_alloc_gpu_arrays(&gpuarrays, &cmdargs);
-		//getLastCudaError("\nCuda Error\n");
 
 		// Calculate kernel templates on CPU and upload-fft on GPU
-		printf("\nCreating acceleration templates with KERNLEN=%d, NKERN = %d zmax=%d... ",	KERNLEN, NKERN, ZMAX);
-
+		printf("\nCreating acceleration templates with KERNLEN=%d, NKERN = %d zmax=%d... ", KERNLEN, NKERN, ZMAX);
 		fdas_create_acc_kernels(gpuarrays.d_kernel, &cmdargs);
 		printf(" done.\n");
 		//getLastCudaError("\nCuda Error\n");
@@ -213,18 +214,40 @@ void acceleration_fdas(
 		//Create cufft plans
 		fdas_cuda_create_fftplans(&fftplans, &params);
 		//getLastCudaError("\nCuda Error\n");
-
-		printf("\n\nStarting main acceleration search\n\n");
-
+		
+		printf("\n\nStarting main acceleration search\n");
+		printf("---------------------------------\n\n");
+		
+		// Allocate some memory for harmonic summed
+		if(enable_harmonic_sum){
+			// TODO: Allocate workarea
+			
+		}
 		// FFT
 		for (int i = 0; i < range; i++) {
 			processed=samps/inBin[i];
+			// Setting some params variables for given DM range
+			params.nsamps = processed;
+			params.tsamp = tsamp*inBin[i];
+			params.rfftlen = params.nsamps / 2 + 1;
+			params.nblocks = params.rfftlen / params.sigblock;
+			params.siglen = params.nblocks * params.sigblock;
+			params.extlen = params.nblocks * KERNLEN; //signal array extended to array of separate N=KERNLEN segments
+			params.ffdotlen = (unsigned int)params.siglen * (unsigned int)NKERN; // total size of ffdot complex plane in fourier bins
+			params.ffdotlen_cpx = params.extlen * NKERN; // total size of ffdot powers plane in fourier bins
+			params.max_list_length = params.ffdotlen/4;
+			if (cmdargs.inbin){
+				params.ffdotlen = params.ffdotlen * 2;
+			}
+			// What is missing is to correct values in gpuarrays which is a total mess
+			// This needs rewrite in the future
+			
 			printf("Processing range %d containing %d DM steps.\n", range, ndms[i]);
 			for (int dm_count = 0; dm_count < ndms[i] - 1; ++dm_count) {
-
+				
 				//first time PCIe transfer and print timing
 				gettimeofday(&t_start, NULL); //don't time transfer
-						
+				
 				//!TEST!: put test signal here
 				#ifdef FDAS_CONV_TEST
 				printf("\n************** TEST FOR FDAS ***********************\n");
@@ -264,18 +287,18 @@ void acceleration_fdas(
 				}
 				FILEOUT.close();
 				#endif
-						
+				
 				#ifdef FDAS_ACC_SIG_TEST
 				double acc_sig_snr = 1.0;
 				fdas_new_acc_sig acc_sig;
-						
+				
 				acc_sig.freq0 = FDAS_TEST_FREQUENCY;
 				acc_sig.nsamps = processed;
 				acc_sig.zval = FDAS_TEST_ZVALUE;
 				acc_sig.nharms = FDAS_TEST_HAMONICS;
 				acc_sig.duty = FDAS_TEST_DUTY_CYCLE/100.0;
 				acc_sig.sigamp = FDAS_TEST_SIGNAL_AMPLITUDE;
-						
+				
 				double t0, tau;
 				double omega = 2*M_PI*acc_sig.freq0;
 				double accel;
@@ -300,14 +323,13 @@ void acceleration_fdas(
 						output_buffer[i][dm_count][sd] += (2.0/(j*M_PI)*sin(j*M_PI*acc_sig.duty))*acc_sig.sigamp*cos(j*omega*tau); 
 					}
 				}
-						
 				#endif
 				//!TEST!: put test signal here
-						
+				
 				e = cudaMemcpy(gpuarrays.d_in_signal, output_buffer[i][dm_count], processed*sizeof(float), cudaMemcpyHostToDevice);
 
 				if(e != cudaSuccess) {
-				LOG(log_level::error, "Could not cudaMemcpy in aa_device_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
+					LOG(log_level::error, "Could not cudaMemcpy in aa_device_acceleration.cu (" + std::string(cudaGetErrorString(e)) + ")");
 				}
 
 				cudaDeviceSynchronize();
@@ -361,6 +383,7 @@ void acceleration_fdas(
 					// Output of the harmonic sum is 2d data frequency x acceleration where frequency is fastest changing
 					// Size of the output is max_f_idx x max_fdot_idx
 					if(enable_harmonic_sum){
+						// This needs increasing up to nHarmonics not to 32
 						std::vector<int> boxcarwidths{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32};
 						float *h_MSD_interpolated = (float*) malloc(boxcarwidths.size()*2*sizeof(float));
 						float *d_workarea;
@@ -377,7 +400,8 @@ void acceleration_fdas(
 						// mean[n] and std[n] represent mean and standard deviation for partial sum of n elements
 						// Structure: { mean[1], std[1], mean[2], std[2], ... , mean[last], std[last]}
 						MSD_plane_profile(d_MSD_interpolated, gpuarrays.d_ffdot_pwr, d_MSD_DIT, d_workarea, false, ibin*params.siglen, NKERN, &boxcarwidths, 0, dm_low[i], dm_high[i], sigma_constant, 0, false, &total_time, &dit_time, &MSD_time);
-
+						
+						// Is this copy necessary?
 						e = cudaMemcpy(h_MSD_interpolated, d_MSD_interpolated, boxcarwidths.size()*2*sizeof(float), cudaMemcpyDeviceToHost);
 						if(e != cudaSuccess) {
 							LOG(log_level::error, "Could not cudaMemcpy d_MSD_interpolated in aa_device_acceleration_fdas.cu (" + std::string(cudaGetErrorString(e)) + ")");
@@ -387,128 +411,57 @@ void acceleration_fdas(
 							printf("boxcar size: %d; MSD=[%f; %f].\n", f, h_MSD_interpolated[2*f], h_MSD_interpolated[2*f+1]);
 						}
 						#endif
-
-
-						size_t zero_position = ((NKERN-1)/2)*ibin*params.siglen;
-						size_t nFreqBins = ibin*params.siglen;
+						
+						//size_t zero_position = ((NKERN-1)/2)*ibin*params.siglen;
+						size_t num_r_bins = ibin*params.siglen;
+						size_t num_z_bins = NKERN;
 						float pos_in_dm = dm_count*dm_step[i] + dm_low[i];
-						size_t max_f_idx = ibin*params.siglen/cmdargs.nharms;
-						size_t max_fdot_idx = ((NKERN-1)/2) + 1;
-						size_t max_half_plane_pos = (((NKERN-1)/2)+1)*max_f_idx;
+						//size_t max_half_plane_pos = (((NKERN-1)/2)+1)*max_f_idx;
 						
-						// Positive half
-						periodicity_two_dimensional_greedy_harmonic_summing(
-							&gpuarrays.d_ffdot_pwr[zero_position], 
-							&gpuarrays.d_ffdot_max[max_half_plane_pos], 
-							&gpuarrays.d_ffdot_SNR[max_half_plane_pos], 
-							&gpuarrays.d_ffdot_Harmonics[max_half_plane_pos], 
-							d_MSD_interpolated, 
-							nFreqBins, 
-							max_fdot_idx, 
-							max_f_idx, 
-							max_fdot_idx, 
+						// 2D Harmonic sum
+						fdas_greedy_harmonic_summing_2d(
+							gpuarrays.d_ffdot_max,
+							gpuarrays.d_ffdot_SNR,
+							gpuarrays.d_ffdot_Harmonics,
+							gpuarrays.d_ffdot_shifts,
+							gpuarrays.d_ffdot_pwr,
+							d_MSD_interpolated,
+							num_r_bins,
+							num_z_bins,
 							cmdargs.nharms
 						);
 						
-						//Negative half
-						int nBlocks_x, nBlocks_y, nThreads;
-						dim3 gridSize, blockSize;
-						nThreads = 256;
-						size_t nNegative_acc = ((NKERN-1)/2);
-						cudaError_t cuda_error;
-						
-						cuda_error = cudaMemset(gpuarrays.d_ffdot_max, 0, max_half_plane_pos*sizeof(float));
-						cuda_error = cudaMemset(gpuarrays.d_ffdot_SNR, 0, max_half_plane_pos*sizeof(float));
-						cuda_error = cudaMemset(gpuarrays.d_ffdot_Harmonics, 0, max_half_plane_pos*sizeof(ushort));
-						
-						// Negative half plane
-						gridSize.x = (nFreqBins + nThreads - 1)/nThreads;
-						gridSize.y = (nNegative_acc + 1)/2;
-						gridSize.z = 1;
-						blockSize.x = nThreads;
-						blockSize.y = 1;
-						blockSize.z = 1;
-						
-						call_kernel_flip_negative_ffdot_inplace_float(
-							gridSize, 
-							blockSize, 
-							gpuarrays.d_ffdot_pwr, 
-							nNegative_acc + 1, 
-							nFreqBins
-						);
-						
-						periodicity_two_dimensional_greedy_harmonic_summing(
-							gpuarrays.d_ffdot_pwr, 
-							gpuarrays.d_ffdot_max, 
-							gpuarrays.d_ffdot_SNR, 
-							gpuarrays.d_ffdot_Harmonics, 
-							d_MSD_interpolated, 
-							nFreqBins, 
-							max_fdot_idx, 
-							max_f_idx, 
-							max_fdot_idx, 
-							cmdargs.nharms
-						);
-
-						// Correction of the output power, SNR and harm planes
-						// So they are compatible with peak-finding.
-						gridSize.x = (max_f_idx + nThreads - 1)/nThreads;
-						gridSize.y = (max_fdot_idx)/2;
-						gridSize.z = 1;
-						blockSize.x = nThreads;
-						blockSize.y = 1;
-						blockSize.z = 1;
-						
-						call_kernel_flip_negative_ffdot_inplace_float(
-							gridSize, 
-							blockSize, 
-							gpuarrays.d_ffdot_max, 
-							max_fdot_idx, 
-							max_f_idx
-						);
-						call_kernel_flip_negative_ffdot_inplace_float(
-							gridSize, 
-							blockSize, 
-							gpuarrays.d_ffdot_SNR, 
-							max_fdot_idx, 
-							max_f_idx
-						);
-						call_kernel_flip_negative_ffdot_inplace_ushort(
-							gridSize, 
-							blockSize, 
-							gpuarrays.d_ffdot_Harmonics, 
-							max_fdot_idx, 
-							max_f_idx
-						);
-						
-						// Peak find for harmonic summed values!
 						peak_find_fdas_harm(
 							gpuarrays.d_fdas_peak_list,
 							gpuarrays.d_ffdot_max, 
 							gpuarrays.d_ffdot_SNR, 
 							gpuarrays.d_ffdot_Harmonics, 
-							max_f_idx, 
-							NKERN, 
-							((NKERN-1)/2),
+							gpuarrays.d_ffdot_shifts, 
+							num_r_bins, 
+							num_z_bins, 
 							cmdargs.thresh, 
 							params.max_list_length,
 							gmem_fdas_peak_pos,
-							dm_count*dm_step[i] + dm_low[i]
+							params.tsamp,
+							ACCEL_STEP
 						);
 						
-						cuda_error = cudaMemcpy(&list_size, gmem_fdas_peak_pos, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-						if(cuda_error != cudaSuccess) {
-							LOG(log_level::error, "Cannot perform cudaMemcpyDeviceToHost for gmem_fdas_peak_pos (" + std::string(cudaGetErrorString(cuda_error)) + ")");
+						e = cudaMemcpy(&list_size, gmem_fdas_peak_pos, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+						if(e != cudaSuccess) {
+							LOG(log_level::error, "Cannot perform cudaMemcpyDeviceToHost for gmem_fdas_peak_pos (" + std::string(cudaGetErrorString(e)) + ")");
 						}
 						
-						fdas_write_list_harm(
-							&gpuarrays, 
-							&cmdargs, 
-							&params, 
-							h_MSD_interpolated,
-							dm_count*dm_step[i] + dm_low[i], 
-							list_size
-						);
+						float DM_value = dm_low[i] + dm_count*dm_step[i];
+						if(list_size>0 && ((DM_value > 49.75 && DM_value < 50.25) || (DM_value >129.75 && DM_value < 130.25)) ){
+							fdas_write_list_harm(
+								&gpuarrays, 
+								&cmdargs, 
+								&params, 
+								h_MSD_interpolated,
+								dm_count*dm_step[i] + dm_low[i], 
+								list_size
+							);
+						}
 						
 						#ifdef FDAS_ACC_SIG_TEST
 						{
@@ -518,9 +471,9 @@ void acceleration_fdas(
 								gpuarrays.d_ffdot_max, 
 								gpuarrays.d_ffdot_SNR, 
 								gpuarrays.d_ffdot_Harmonics, 
-								max_f_idx, 
-								NKERN, 
-								((NKERN-1)/2),
+								num_r_bins, 
+								num_z_bins, 
+								0,
 								&params,
 								&cmdargs,
 								filename
@@ -529,15 +482,6 @@ void acceleration_fdas(
 						}
 						#endif
 						
-						cuda_error = cudaMemset(gpuarrays.d_fdas_peak_list, 0, mem_max_list_size);
-						if(cuda_error != cudaSuccess) {
-							LOG(log_level::error, "Error setting d_fdas_peak_list to 0 (" + std::string(cudaGetErrorString(cuda_error)) + ")");
-						};
-						cuda_error = cudaMemset(gmem_fdas_peak_pos, 0, sizeof(unsigned int));
-						if(cuda_error != cudaSuccess) {
-							LOG(log_level::error, "Error setting gmem_fdas_peak_pos to 0 (" + std::string(cudaGetErrorString(cuda_error)) + ")");
-						};
-
 						free(h_MSD_interpolated);
 						cudaFree(d_MSD_interpolated);
 						cudaFree(d_workarea);
@@ -557,7 +501,7 @@ void acceleration_fdas(
 							LOG(log_level::error, "Could not cudaMemcpy in aa_device_acceleration_fdas.cu (" + std::string(cudaGetErrorString(e)) + ")");
 						}
 						#ifdef FDAS_DEBUG
-							printf("FDAS: Mean and standard deviation h_MSD=[%f; %f; %f]\n", h_MSD[0], h_MSD[1], h_MSD[2]);
+							printf("  FDAS DEBUG: Mean and standard deviation h_MSD=[%f; %f; %f]; ", h_MSD[0], h_MSD[1], h_MSD[2]);
 						#endif
 						
 						e = cudaMemcpy(&list_size, gmem_fdas_peak_pos, sizeof(unsigned int), cudaMemcpyDeviceToHost);
@@ -565,7 +509,7 @@ void acceleration_fdas(
 							LOG(log_level::error, "Could not cudaMemcpy in aa_device_acceleration_fdas.cu (" + std::string(cudaGetErrorString(e)) + ")");
 						}
 						#ifdef FDAS_DEBUG
-							printf("FDAS: Number of peaks found %u.", list_size);
+							printf(" Number of peaks found %u.\n", list_size);
 						#endif
 						
 						#ifdef FDAS_ACC_SIG_TEST
@@ -574,13 +518,14 @@ void acceleration_fdas(
 							exit(1);
 						#endif
 						
-						if (enable_output_fdas_list) {
-							if(list_size>0){
-								fdas_write_list(&gpuarrays, &cmdargs, &params, h_MSD, dm_low[i], dm_count, dm_step[i], list_size);
-							}
+						// Temporary for testing
+						float DM_value = dm_low[i] + dm_count*dm_step[i];
+						if(list_size>0 && ((DM_value > 49.75 && DM_value < 50.25) || (DM_value >129.75 && DM_value < 130.25)) ){
+							fdas_write_list(&gpuarrays, &cmdargs, &params, h_MSD, dm_low[i], dm_count, dm_step[i], list_size);
 						}
 						cudaFree(d_MSD);
 					}
+					//============= END OF NO HARMONIC SUMMING ============
 					
 					//!TEST!: do not perform peak find instead export the thing to file.
 					#ifdef FDAS_CONV_TEST
@@ -589,9 +534,14 @@ void acceleration_fdas(
 					#endif
 					//!TEST!: do not perform peak find instead export the thing to file.
 					
+					// Preparation for the next DM trial, but it is not necessary
+					e = cudaMemset(gpuarrays.d_fdas_peak_list, 0, mem_max_list_size);
+					if(e != cudaSuccess) {
+						LOG(log_level::error, "Error setting d_fdas_peak_list to 0 (" + std::string(cudaGetErrorString(e)) + ")");
+					};
 					
 					cudaFree(gmem_fdas_peak_pos);
-				}
+				}  
 				
 				//Output ffdot planea
 				if (enable_output_ffdot_plan) {
@@ -601,10 +551,13 @@ void acceleration_fdas(
 		} // for loop -> range
 	} // if search
 
-    if (cmdargs.search) {
+	if (cmdargs.search) {
 		cufftDestroy(fftplans.realplan);
 		cufftDestroy(fftplans.forwardplan);
 		fdas_free_gpu_arrays(&gpuarrays, &cmdargs);
+	}
+	if(enable_harmonic_sum){
+		// TODO: de-allocate workarea
 	}
 
 } // acceleration_fdas

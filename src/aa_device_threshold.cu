@@ -124,12 +124,12 @@ int Threshold_for_periodicity_normal(float *d_input_SNR, ushort *d_input_harms, 
     cudaGetDeviceProperties(&deviceProp, CARD);
     size_t max_x = deviceProp.maxGridSize[0], max_y = deviceProp.maxGridSize[1];
     THR_init();
-	
+    
     //---------> Task specific
     size_t nBlocks_x, nBlocks_y;
     int nThreads = 32; // this must be 32 because of the way how threshold is pooling candidates
-	nBlocks_x = (int) ((nTimesamples + nThreads - 1)/nThreads);
-	nBlocks_y = (int) ((nDMs + THR_ELEM_PER_THREAD - 1)/THR_ELEM_PER_THREAD);
+    nBlocks_x = (int) ((nTimesamples + nThreads - 1)/nThreads);
+    nBlocks_y = (int) ((nDMs + THR_ELEM_PER_THREAD - 1)/THR_ELEM_PER_THREAD);
     
     dim3 gridSize(nBlocks_x, nBlocks_y, 1);
     dim3 blockSize(nThreads, 1, 1);
@@ -139,10 +139,10 @@ int Threshold_for_periodicity_normal(float *d_input_SNR, ushort *d_input_harms, 
     printf("gridSize: [%d; %d; %d]\n", gridSize.x, gridSize.y, gridSize.z);
     printf("blockSize: [%d; %d; %d]\n", blockSize.x, blockSize.y, blockSize.z);
     #endif
-	
+    
     if(nBlocks_x > max_x) return(1);
     if(nBlocks_y > max_y) return(2);
-	printf("In thresholding\n");
+    
     call_kernel_GPU_Threshold_for_periodicity_normal_kernel(gridSize, blockSize, d_input_SNR, d_input_harms, d_output_list, gmem_pos, d_MSD, threshold, nTimesamples, nDMs, DM_shift, max_list_size, inBin, enable_greedy_postprocessing);
 
     return (0);

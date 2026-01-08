@@ -20,14 +20,15 @@ namespace astroaccelerate {
 		float *d_peak_list,
 		float *d_ffdot_max,
 		float *d_ffdot_SNR,
-		ushort *d_ffdot_harm,
+		short int *d_ffdot_harm,
+		short int *d_ffdot_shift,
 		size_t nFreq, 
 		size_t nAcc,
-		int half_plane, 
 		float threshold, 
 		unsigned int max_peak_size, 
 		unsigned int *gmem_peak_pos,
-		float DM_trial
+		float sampling_time,
+		float acceleration_step
 	);
 
 	extern int Peak_find_for_periodicity_search(

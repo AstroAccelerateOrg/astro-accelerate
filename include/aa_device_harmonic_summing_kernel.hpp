@@ -85,6 +85,19 @@ namespace astroaccelerate {
       bool enable_scalloping_loss_removal
   );
 
+  void call_greedy_harmonic_sum_2d_kernel(
+      const dim3 &grid_size,
+      const dim3 &block_size,
+      float *const d_summed_power, 
+      float *const d_maxSNR, 
+      short int *const d_maxHarmonics, 
+      short int *const d_shifts,
+      float const *const d_input, 
+      float const *const d_MSD, 
+      int const num_r_bins, 
+      int const num_z_bins, 
+      int const nHarmonics
+  );
 } // namespace astroaccelerate
   
 #endif // ASTRO_ACCELERATE_AA_DEVICE_HARMONIC_SUMMING_KERNEL_HPP

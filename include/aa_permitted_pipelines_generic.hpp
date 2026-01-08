@@ -981,7 +981,7 @@ namespace astroaccelerate {
 			time_log.adding("FDAS", "total", timer.Elapsed());
 			time_log.adding("Total", "total", timer.Elapsed());
 			float time = timer.Elapsed()/1000;
-			printf("\n\n === OVERALL TDAS THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
+			printf("\n\n === OVERALL FDAS THROUGHPUT INCLUDING SYNCS AND DATA TRANSFERS ===\n");
 
 			printf("\nPerformed Acceleration Location: %lf (GPU estimate)", time);
 			printf("\nAmount of telescope time processed: %f", tstart_local);

@@ -59,6 +59,18 @@ extern int periodicity_presto_harmonic_summing(
   int enable_scalloping_loss_removal
 );
 
+extern int fdas_greedy_harmonic_summing_2d(
+    float *d_output_power,
+    float *d_output_SNR,
+    short int *d_output_harmonics,
+    short int *d_output_shifts,
+    float *d_input,
+    float *d_MSD,
+    int num_r_bins,
+    int num_z_bins,
+    int nHarmonics
+);
+
 } // namespace astroaccelerate
   
 #endif // ASTRO_ACCELERATE_AA_DEVICE_HARMONIC_SUMMING_HPP

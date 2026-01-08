@@ -72,10 +72,12 @@ namespace astroaccelerate {
 			nb_selected_dm = 0;
 			failsafe = 0;
 			periodicity_nHarmonics = 0;
-			fdas_nHarmonics = 0;
 			selected_card_id = 0;
 			dered = 0;
 			rfi = false;
+			// FDAS
+			fdas_nHarmonics = 0;
+			
 			user_debug = std::vector<aa_pipeline::debug>();
 		}
 		

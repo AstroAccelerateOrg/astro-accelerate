@@ -124,7 +124,226 @@ __global__ void greedy_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
 }
 
 
+__inline__ __device__ void compare_2dhrms(float rd, float rs, float zd, float zs, short int *r_drift, short int *z_drift, float *max_value){
+	if(zs > zd && zs > rd && zs > rs) {(*r_drift)++; (*z_drift)++; (*max_value) = zs;}
+	else if(zd > zs && zd > rd && zd > rs) {(*z_drift)++; (*max_value) = zd;}
+	else if(rd > rs && rd > zd && rd > zs){(*r_drift)++; (*max_value) = rd;}
+	else {(*max_value) = rs;}
+}
 
+__device__ void positive_part_2d_greedy_hrms(float *max_power, float *max_SNR, short int *max_harmonics, short int *rz_drift, float *s_MSD, float const* __restrict__ d_input, int const num_r_bins, int const num_z_bins, int const nHarmonics, int pos_r_0, int pos_z_0, int zero_pos){
+	short int r_drift, z_drift, l_max_harmonics, max_r_drift, max_z_drift;
+	float partial_sum = 0, l_max_SNR = 0, l_max_power = 0;
+	int h = 0;
+	size_t pos = 0;
+	
+	float rd = 0, rs = 0, zd = 0, zs = 0;
+	r_drift = 0; z_drift = 0;
+	int pos_z = (h+1)*pos_z_0 + z_drift + zero_pos;
+	int pos_r = (h+1)*pos_r_0 + r_drift;
+	if( (pos_z + 1) < num_z_bins && (pos_r + 1) < num_r_bins ){
+		pos = pos_z*num_r_bins + pos_r;
+		rs = d_input[pos];
+		rd = d_input[pos + 1];
+		zd = d_input[pos + num_r_bins];
+		zs = d_input[pos + num_r_bins + 1];
+	}
+	
+	float max_value = 0;
+	compare_2dhrms(rd, rs, zd, zs, &r_drift, &z_drift, &max_value);
+	partial_sum = max_value;
+	l_max_power = partial_sum;
+	l_max_SNR = fdividef( (partial_sum - s_MSD[2*h]), s_MSD[2*h+1] );
+	l_max_harmonics = h;
+	max_r_drift = r_drift;
+	max_z_drift = z_drift;
+	
+	for(int h=1; h<nHarmonics; h++){
+		float rd = 0, rs = 0, zd = 0, zs = 0;
+		int pos_z = (h+1)*pos_z_0 + z_drift + zero_pos;
+		int pos_r = (h+1)*pos_r_0 + r_drift;
+		if( (pos_z + 1) < num_z_bins && (pos_r + 1) < num_r_bins ){
+			pos = pos_z*num_r_bins + pos_r;
+			rs = d_input[pos];
+			rd = d_input[pos + 1];
+			zd = d_input[pos + num_r_bins];
+			zs = d_input[pos + num_r_bins + 1];
+		}
+		
+		// Select the maximum from suspected position of the peak and return associated drift in r and z
+		float max_value = 0;
+		compare_2dhrms(rd, rs, zd, zs, &r_drift, &z_drift, &max_value);
+		// Accumulate power and calculate SNR
+		partial_sum = partial_sum + max_value;
+		float SNR = fdividef( (partial_sum - s_MSD[2*h]), s_MSD[2*h+1] );
+		if( SNR > l_max_SNR ) {
+			l_max_power = partial_sum;
+			l_max_SNR = SNR;
+			l_max_harmonics = (h+1);
+			max_r_drift = r_drift;
+			max_z_drift = z_drift;
+		}
+	}
+	
+	*max_power = l_max_power;
+	*max_SNR = l_max_SNR;
+	*max_harmonics = l_max_harmonics;
+	*rz_drift = (short int) (max_r_drift + max_z_drift*100);
+}
+
+__device__ void negative_part_2d_greedy_hrms(float *max_power, float *max_SNR, short int *max_harmonics, short int *rz_drift, float *s_MSD, float const* __restrict__ d_input, int const num_r_bins, int const num_z_bins, int const nHarmonics, int pos_r_0, int pos_z_0, int zero_pos){
+	short int r_drift, z_drift, l_max_harmonics, max_r_drift, max_z_drift;
+	float partial_sum = 0, l_max_SNR = 0, l_max_power = 0;
+	int h = 0;
+	size_t pos = 0;
+	
+	float rd = 0, rs = 0, zd = 0, zs = 0;
+	r_drift = 0; z_drift = 0;
+	int pos_z = (h+1)*pos_z_0 - z_drift + zero_pos;
+	int pos_r = (h+1)*pos_r_0 + r_drift;
+	if( (pos_z - 1) >= 0 && (pos_r + 1) < num_r_bins ) {
+		pos = pos_z*num_r_bins + pos_r;
+		rs = d_input[pos];
+		rd = d_input[pos + 1];
+		zd = d_input[pos - num_r_bins];
+		zs = d_input[pos - num_r_bins + 1];
+	}
+	
+	float max_value = 0;
+	compare_2dhrms(rd, rs, zd, zs, &r_drift, &z_drift, &max_value);
+	partial_sum = max_value;
+	l_max_power = partial_sum;
+	l_max_SNR = fdividef( (partial_sum - s_MSD[2*h]), s_MSD[2*h+1] );
+	l_max_harmonics = h;
+	max_r_drift = r_drift;
+	max_z_drift = z_drift;
+	
+	for(int h=1; h<nHarmonics; h++){
+		float rd = 0, rs = 0, zd = 0, zs = 0;
+		int pos_z = (h+1)*pos_z_0 - z_drift + zero_pos;
+		int pos_r = (h+1)*pos_r_0 + r_drift;
+		if( (pos_z - 1) >= 0 && (pos_r + 1) < num_r_bins ) {
+			pos = pos_z*num_r_bins + pos_r;
+			rs = d_input[pos];
+			rd = d_input[pos + 1];
+			zd = d_input[pos - num_r_bins];
+			zs = d_input[pos - num_r_bins + 1];
+		}
+		// Select the maximum from suspected position of the peak and return associated drift in r and z
+		float max_value = 0;
+		compare_2dhrms(rd, rs, zd, zs, &r_drift, &z_drift, &max_value);
+		// Accumulate power and calculate SNR
+		partial_sum = partial_sum + max_value;
+		float SNR = fdividef( (partial_sum - s_MSD[2*h]), s_MSD[2*h+1] );
+		if( SNR > l_max_SNR ) {
+			l_max_power = partial_sum;
+			l_max_SNR = SNR;
+			l_max_harmonics = (h+1);
+			max_r_drift = r_drift;
+			max_z_drift = z_drift;
+		}
+	}
+	
+	*max_power  = l_max_power;
+	*max_SNR = l_max_SNR;
+	*max_harmonics = l_max_harmonics;
+	*rz_drift = (short int) ((-1)*(max_r_drift + max_z_drift*100));
+}
+
+
+__global__ void greedy_harmonic_sum_2d_GPU_kernel(
+	float *d_summed_power, 
+	float *d_maxSNR, 
+	short int *d_maxHarmonics, 
+	short int *d_shifts,
+	float const* __restrict__ d_input, 
+	float const* __restrict__ d_MSD, 
+	int const num_r_bins, 
+	int const num_z_bins, 
+	int const nHarmonics
+){
+	__shared__ float s_MSD[64];
+	const int zero_pos = ((NKERN-1)/2);
+	
+	// cache mean and standard deviation values
+	if(threadIdx.x<nHarmonics) {
+		s_MSD[2*threadIdx.x]     = d_MSD[2*threadIdx.x];
+		s_MSD[2*threadIdx.x + 1] = d_MSD[2*threadIdx.x + 1];
+	}
+	__syncthreads();
+	
+	// We need to change strategies depending on where is the fundamental frequency
+	// If we are in the negative part of the f-fdot plane that is blockIdx.y < zero_pos we must reduce to the y position to look for increasing acceleration
+	// If we are in the positive part of f-fdot that is blockIdx.y > zero_pos we must add to the y position to look for increasing acceleration
+	// if blockIdx.y == zero_pos we need to look at both positive and negative accelerations
+	// -----------
+	// | zd | zs | <- higher acceleration
+	// -----------
+	// | rd | rs | <- lower acceleration
+	// -----------
+	// rd = start 
+	
+	
+	// Initialisation of fundamental frequency
+	int pos_r_0 = blockDim.x*blockIdx.x + threadIdx.x;
+	int pos_z_0 = blockIdx.y - zero_pos;
+	size_t pos = 0;
+	
+	
+	if(pos_z_0 > 0){ // positive acceleration
+		float max_power, max_SNR;
+		short int max_harmonics, rz_drift;
+		positive_part_2d_greedy_hrms(&max_power, &max_SNR, &max_harmonics, &rz_drift, s_MSD, d_input, num_r_bins, num_z_bins, nHarmonics, pos_r_0, pos_z_0, zero_pos);
+		
+		pos = (pos_z_0 + zero_pos)*num_r_bins + pos_r_0;
+		if( (pos_z_0 + zero_pos) < num_z_bins && (pos_r_0) < num_r_bins ){
+			d_summed_power[pos] = max_power;
+			d_maxSNR[pos] = max_SNR;
+			d_maxHarmonics[pos] = max_harmonics;
+			d_shifts[pos] = rz_drift;
+		}
+	}
+	else if(pos_z_0 < 0){ // negative acceleration
+		float max_power, max_SNR;
+		short int max_harmonics, rz_drift;
+		negative_part_2d_greedy_hrms(&max_power, &max_SNR, &max_harmonics, &rz_drift, s_MSD, d_input, num_r_bins, num_z_bins, nHarmonics, pos_r_0, pos_z_0, zero_pos);
+		
+		pos = (pos_z_0 + zero_pos)*num_r_bins + pos_r_0;
+		if( (pos_z_0 + zero_pos) < num_z_bins && (pos_r_0) < num_r_bins ){
+			d_summed_power[pos] = max_power;
+			d_maxSNR[pos] = max_SNR;
+			d_maxHarmonics[pos] = max_harmonics;
+			d_shifts[pos] = rz_drift;
+		}
+	}
+	else { // low either positive/negative or zero acceleration 
+		float max_power_p, max_SNR_p, max_power_n, max_SNR_n;
+		short int max_harmonics_p, rz_drift_p, max_harmonics_n, rz_drift_n;
+		negative_part_2d_greedy_hrms(&max_power_n, &max_SNR_n, &max_harmonics_n, &rz_drift_n, s_MSD, d_input, num_r_bins, num_z_bins, nHarmonics, pos_r_0, pos_z_0, zero_pos);
+		
+		positive_part_2d_greedy_hrms(&max_power_p, &max_SNR_p, &max_harmonics_p, &rz_drift_p, s_MSD, d_input, num_r_bins, num_z_bins, nHarmonics, pos_r_0, pos_z_0, zero_pos);
+		
+		pos = (pos_z_0 + zero_pos)*num_r_bins + pos_r_0;
+		if( (pos_z_0 + zero_pos) < num_z_bins && (pos_r_0) < num_r_bins ){
+			if(max_SNR_p > max_SNR_n){
+				d_summed_power[pos] = max_power_p;
+				d_maxSNR[pos] = max_SNR_p;
+				d_maxHarmonics[pos] = max_harmonics_p;
+				d_shifts[pos] = rz_drift_p;
+			}
+			else {
+				d_summed_power[pos] = max_power_n;
+				d_maxSNR[pos] = max_SNR_n;
+				d_maxHarmonics[pos] = max_harmonics_n;
+				d_shifts[pos] = rz_drift_n;
+			}
+		}
+	}
+}
+
+
+
+// This is old version and needs to be removed when new version is proven correct (if)
 __global__ void two_dimensional_greedy_harmonic_sum_GPU_kernel(float *d_maxSum, float *d_maxSNR, ushort *d_maxHarmonics, float const* __restrict__ d_input, size_t const N_f, size_t const N_fdot, size_t const max_f_idx, size_t const max_fdot_idx, size_t const nHarmonics, float const* __restrict__ d_MSD) {
     int pos = blockIdx.x * blockDim.x + threadIdx.x;
     // d_input is flattened, one dimensional array of f-fdot plane, need to calculate 2D indices for bound checking
@@ -530,6 +749,36 @@ __global__ void presto_harmonic_sum_GPU_kernel(float *d_maxSNR, ushort *d_maxHar
       );
     }
   }
+  
+  /** \brief Kernel wrapper function for two_dimensional_greedy_harmonic_sum_GPU_kernel kernel function. */
+  void call_greedy_harmonic_sum_2d_kernel(
+      const dim3 &grid_size,
+      const dim3 &block_size,
+      float *const d_summed_power, 
+      float *const d_maxSNR, 
+      short int *const d_maxHarmonics, 
+      short int *const d_shifts,
+      float const *const d_input, 
+      float const *const d_MSD, 
+      int const num_r_bins, 
+      int const num_z_bins, 
+      int const nHarmonics
+  ) {
+      greedy_harmonic_sum_2d_GPU_kernel<<<grid_size, block_size>>>(
+          d_summed_power, 
+          d_maxSNR, 
+          d_maxHarmonics, 
+          d_shifts,
+          d_input, 
+          d_MSD, 
+          num_r_bins, 
+          num_z_bins, 
+          nHarmonics
+      );
+  }
+  
+  
+  
   
 } //namespace astroaccelerate
 
