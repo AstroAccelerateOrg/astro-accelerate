@@ -19,6 +19,7 @@ profile_results/
 
 # Directories
 build/
+build-tests/
 output/
 
 # Other
@@ -38,6 +39,7 @@ output/
 global_pulscan_candidates.csv
 pulscan_fft_dm*.bin
 pulscan_fft_dumps/
+input_files/pulscan_gpu.cu
 
 *.txt
 include/aa_version.hpp
