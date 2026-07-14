@@ -452,7 +452,7 @@ void acceleration_fdas(
 						}
 						
 						float DM_value = dm_low[i] + dm_count*dm_step[i];
-						if(list_size>0 && ((DM_value > 49.75 && DM_value < 50.25) || (DM_value >129.75 && DM_value < 130.25)) ){
+						if(list_size>0){
 							fdas_write_list_harm(
 								&gpuarrays, 
 								&cmdargs, 
