@@ -33,6 +33,33 @@ int main() {
     }
   }
 
+  struct series_length_case {
+    size_t available_samples;
+    size_t planned_samples;
+    size_t expected;
+  };
+
+  const series_length_case series_length_cases[] = {
+      {0, 0, 0},
+      {0, 4096, 0},
+      {4096, 0, 4096},
+      {4096, 8192, 4096},
+      {4096, 4096, 4096},
+      {4096, 2048, 2048},
+      {28256704, 16777216, 16777216},
+  };
+
+  for(const auto& test : series_length_cases) {
+    const size_t actual = pulscan_select_samples_per_series(
+        test.available_samples, test.planned_samples);
+    if(actual != test.expected) {
+      std::cout << "select_samples_per_series(" << test.available_samples
+                << ", " << test.planned_samples << ") expected "
+                << test.expected << " but got " << actual << std::endl;
+      return 1;
+    }
+  }
+
   std::cout << "Runs" << std::endl;
   return 0;
 }

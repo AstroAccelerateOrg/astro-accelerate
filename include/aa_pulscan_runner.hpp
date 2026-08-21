@@ -49,6 +49,14 @@ inline size_t pulscan_truncate_fft_bins(size_t num_complex_bins) {
   return (num_complex_bins / 4096) * 4096;
 }
 
+inline size_t pulscan_select_samples_per_series(size_t available_samples,
+                                                size_t planned_samples) {
+  if(planned_samples == 0 || planned_samples > available_samples) {
+    return available_samples;
+  }
+  return planned_samples;
+}
+
 inline bool pulscan_ensure_directory_exists(const std::string& path) {
   if(path.empty() || path == ".") {
     return true;
@@ -224,10 +232,10 @@ struct pulscan_workspace {
     return true;
   }
 
-  bool ensure_fft_plan(int length, int batch) {
+  cufftResult ensure_fft_plan(int length, int batch) {
     if(fft_plan_valid && static_cast<size_t>(length) == fft_length &&
        batch == fft_batch) {
-      return true;
+      return CUFFT_SUCCESS;
     }
     if(fft_plan_valid) {
       cufftDestroy(fft_plan);
@@ -238,12 +246,12 @@ struct pulscan_workspace {
       fft_plan = 0;
       fft_length = 0;
       fft_batch = 0;
-      return false;
+      return plan_status;
     }
     fft_length = static_cast<size_t>(length);
     fft_batch = batch;
     fft_plan_valid = true;
-    return true;
+    return CUFFT_SUCCESS;
   }
 
   bool ensure_real(size_t elements) {
@@ -569,12 +577,18 @@ public:
           continue;
         }
 
+        // The periodicity batch size is budgeted against this corrected
+        // length, not the full dedispersed series length.
+        const size_t samples_for_series =
+            pulscan_select_samples_per_series(samples_per_dm,
+                                              batch.nTimesamples_to_copy);
+
         pulscan_batch_plan plan_entry{};
         plan_entry.range_index = r;
         plan_entry.batch_index = static_cast<int>(b);
         plan_entry.dm_offset = static_cast<int>(batch.DM_shift);
         plan_entry.dm_count = dm_count;
-        plan_entry.samples_per_series = samples_per_dm;
+        plan_entry.samples_per_series = samples_for_series;
         plan_entry.dm_low = current_range.range.dm_low();
         plan_entry.dm_step = current_range.range.dm_step();
         plan_entry.sampling_time = current_range.range.sampling_time();
@@ -583,9 +597,9 @@ public:
 
         total_dm_series += static_cast<size_t>(dm_count);
         min_samples_per_series =
-            std::min(min_samples_per_series, samples_per_dm);
+            std::min(min_samples_per_series, samples_for_series);
         max_samples_per_series =
-            std::max(max_samples_per_series, samples_per_dm);
+            std::max(max_samples_per_series, samples_for_series);
       }
     }
 
@@ -594,7 +608,7 @@ public:
                 total_dm_series);
     if(!batch_plan.empty()) {
       std::printf(
-          "Pulscan series length range: [%zu, %zu] samples (dedispersed).\n",
+          "Pulscan series length range: [%zu, %zu] samples (bin-corrected).\n",
           min_samples_per_series,
           max_samples_per_series);
     }
@@ -661,11 +675,14 @@ public:
         continue;
       }
 
-      if(!m_workspace.ensure_fft_plan(fft_length, fft_batch)) {
+      const cufftResult plan_status =
+          m_workspace.ensure_fft_plan(fft_length, fft_batch);
+      if(plan_status != CUFFT_SUCCESS) {
         LOG(log_level::error,
             "Pulscan: failed to create cuFFT plan (length=" +
                 std::to_string(fft_length) + ", batch=" +
-                std::to_string(fft_batch) + ")");
+                std::to_string(fft_batch) + ", status=" +
+                std::to_string(static_cast<int>(plan_status)) + ")");
         pipeline_error = PIPELINE_ERROR_GENERAL_GPU_ERROR;
         break;
       }
