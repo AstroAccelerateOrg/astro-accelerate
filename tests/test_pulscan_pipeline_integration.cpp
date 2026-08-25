@@ -17,8 +17,10 @@ int main() {
 
   aa_ddtr_plan ddtr_plan;
   const float dm_low = 0.0f;
-  const float dm_high = 20.0f;
-  const float dm_step = 1.0f;
+  const float dm_high = 10.0f;
+  // Keep the shared-memory line within bounds so this exercises the fast
+  // dedispersion kernel rather than its automatic failsafe fallback.
+  const float dm_step = 0.25f;
   const int in_bin = 1;
   const int out_bin = 1;
   ddtr_plan.add_dm(dm_low, dm_high, dm_step, in_bin, out_bin);

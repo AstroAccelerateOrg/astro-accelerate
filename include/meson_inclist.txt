@@ -6,6 +6,7 @@ aa_corner_turn.hpp
 aa_ddtr_plan.hpp
 aa_ddtr_strategy.hpp
 aa_dedisperse.hpp
+aa_dedispersion_index.hpp
 aa_dedispersion_range.hpp
 aa_device_BC_plan.hpp
 aa_device_MSD.hpp

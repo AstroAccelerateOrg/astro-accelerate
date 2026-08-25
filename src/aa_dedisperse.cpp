@@ -60,7 +60,11 @@ int dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sho
 		// is long enough for the algorithm to run without an out of bounds
 		// access...
 
-		if (( ( SDIVINT - 1 ) + ( ( SDIVINDM - 1 ) * SDIVINT ) - 1 ) > lineshift) {
+		if(nchans % UNROLLS != 0) {
+			printf("\nFast dedispersion requires the channel count to be a multiple of %d.\n", UNROLLS);
+			failsafe = 1;
+		}
+		else if (( ( SDIVINT - 1 ) + ( ( SDIVINDM - 1 ) * SDIVINT ) - 1 ) > lineshift) {
 			printf("\nUsing fast shared memory kernel 4-bit\n");
 
 			float startdm = dm_low[i];
@@ -100,7 +104,11 @@ int dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sho
 	  // Check to see if the threadblock will load a shared memory line that
 	  // is long enough for the algorithm to run without an out of bounds
 	  // access...
-	  if (( ( SDIVINT - 1 ) + ( ( SDIVINDM - 1 ) * SDIVINT ) - 1 ) > lineshift) {
+	  if(nchans % UNROLLS != 0) {
+	      printf("\nFast dedispersion requires the channel count to be a multiple of %d.\n", UNROLLS);
+	      failsafe = 1;
+	  }
+	  else if (( ( SDIVINT - 1 ) + ( ( SDIVINDM - 1 ) * SDIVINT ) - 1 ) > lineshift) {
 
 	      printf("\nUsing fast shared memory kernel 8-bit\n");
 
@@ -149,7 +157,8 @@ int dedisperse(int i, int t_processed, int *inBin, float *dmshifts, unsigned sho
       dim3 num_blocks(num_blocks_t, num_blocks_dm);
 
       //cudaFuncSetCacheConfig(cache_dedisperse_kernel, cudaFuncCachePreferL1); //Subsume in call_kernel_*
-	if(nchans>8192) {
+      if((nbits == 4 && nchans > 4096) ||
+         (nbits != 4 && nchans > 8192)) {
 		call_kernel_cache_dedisperse_kernel_nchan8192p(num_blocks, threads_per_block, inBin[i], d_input, d_output, d_dm_shifts, (float) ( startdm / ( *tsamp ) ), (float) ( dm_step[i] / ( *tsamp ) ));
 	}
 	else {

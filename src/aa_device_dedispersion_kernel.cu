@@ -1,4 +1,5 @@
 #include "aa_device_dedispersion_kernel.hpp"
+#include "aa_dedispersion_index.hpp"
 
 #include "float.h"
 #include <stdio.h>
@@ -26,8 +27,11 @@ namespace astroaccelerate {
 
         float findex = ((threadIdx.x*4) + 3); // + 1 
 
-        int idx           = (threadIdx.x + (threadIdx.y*SDIVINT));
-        int nsamp_counter = (idx + (blockIdx.x*(4*SNUMREG*SDIVINT)));
+        int idx = (threadIdx.x + (threadIdx.y*SDIVINT));
+        size_t nsamp_counter =
+          dedispersion_flattened_index((size_t)blockIdx.x,
+                                       4*SNUMREG*SDIVINT,
+                                       (size_t)idx);
 
         float shift_two = (mstartdm + (__int2float_rz(blockIdx.y)*SFDIVINDM*mdmstep));
         float shift_one = (__int2float_rz(threadIdx.y)*mdmstep);
@@ -51,7 +55,7 @@ namespace astroaccelerate {
 
                 for (j = 0; j < UNROLLS; j++)
                 {
-                        temp_f = (unsigned char)(__ldg((d_input + (__float2int_rz(d_dm_shifts[c + j]*shift_two))) + (nsamp_counter + (j*i_nsamp))));
+                        temp_f = (unsigned char)(__ldg((d_input + (__float2int_rz(d_dm_shifts[c + j]*shift_two))) + dedispersion_flattened_index((size_t)j, (size_t)i_nsamp, nsamp_counter)));
 
                         test[j][idx + 3].x = temp_f;
                         test[j][idx + 2].y = temp_f;
@@ -61,7 +65,8 @@ namespace astroaccelerate {
                         shift[j] = __float2int_rz(shift_one*d_dm_shifts[c + j] + findex);
                 }
 
-                nsamp_counter = (nsamp_counter + (UNROLLS*i_nsamp));
+                nsamp_counter = dedispersion_flattened_index(
+                  UNROLLS, (size_t)i_nsamp, nsamp_counter);
 
                 __syncthreads();
 
@@ -90,11 +95,14 @@ namespace astroaccelerate {
 
 
         // Write the accumulators to the output array.
-        local = ((((blockIdx.y*SDIVINDM ) + threadIdx.y)*(i_t_processed_s)) + (blockIdx.x*4*SNUMREG*SDIVINT)) + 4*threadIdx.x;
+        size_t big_local = dedispersion_flattened_index(
+          (size_t)blockIdx.y*SDIVINDM + threadIdx.y,
+          (size_t)i_t_processed_s,
+          (size_t)blockIdx.x*(4*SNUMREG*SDIVINT) + 4*threadIdx.x);
 
         #pragma unroll
         for (i = 0; i < SNUMREG; i++){
-                *((float4*)(d_output + local + (i*4*SDIVINT ))) = make_float4((float)(sum_results[0][i])/i_nchans,
+                *((float4*)(d_output + big_local + (i*4*SDIVINT ))) = make_float4((float)(sum_results[0][i])/i_nchans,
                                                                               (float)(sum_results[1][i])/i_nchans,
                                                                               (float)(sum_results[2][i])/i_nchans,
                                                                               (float)(sum_results[3][i])/i_nchans);
@@ -120,8 +128,11 @@ namespace astroaccelerate {
                 local_kernel_two[i] = 0;
         }
 
-        int idx           = (threadIdx.x + (threadIdx.y*SDIVINT));
-        int nsamp_counter = (idx + (blockIdx.x*(4*SNUMREG*SDIVINT)));
+        int idx = (threadIdx.x + (threadIdx.y*SDIVINT));
+        size_t nsamp_counter =
+          dedispersion_flattened_index((size_t)blockIdx.x,
+                                       4*SNUMREG*SDIVINT,
+                                       (size_t)idx);
 
         float shift_two = (mstartdm + (__int2float_rz(blockIdx.y)*SFDIVINDM*mdmstep));
         float shift_one = (__int2float_rz(threadIdx.y)*mdmstep);
@@ -132,7 +143,7 @@ namespace astroaccelerate {
 
                 for (j = 0; j < UNROLLS; j++)
                 {
-                        temp_f = (unsigned char)(__ldg((d_input + (__float2int_rz(dm_shifts[c + j]*shift_two))) + (nsamp_counter + (j*i_nsamp))));
+                        temp_f = (unsigned char)(__ldg((d_input + (__float2int_rz(dm_shifts[c + j]*shift_two))) + dedispersion_flattened_index((size_t)j, (size_t)i_nsamp, nsamp_counter)));
 
                         test[j][idx + 3].x = temp_f;
                         test[j][idx + 2].y = temp_f;
@@ -142,7 +153,8 @@ namespace astroaccelerate {
                         shift[j] = __float2int_rz(shift_one*dm_shifts[c + j] + findex);
                 }
 
-                nsamp_counter = (nsamp_counter + (UNROLLS*i_nsamp));
+                nsamp_counter = dedispersion_flattened_index(
+                  UNROLLS, (size_t)i_nsamp, nsamp_counter);
 
                 __syncthreads();
 
@@ -161,12 +173,15 @@ namespace astroaccelerate {
         }
 
         // Write the accumulators to the output array.
-        local = ((((blockIdx.y*SDIVINDM) + threadIdx.y)*(i_t_processed_s)) + (blockIdx.x*4*SNUMREG*SDIVINT)) + 4 * threadIdx.x;
+        size_t big_local = dedispersion_flattened_index(
+          (size_t)blockIdx.y*SDIVINDM + threadIdx.y,
+          (size_t)i_t_processed_s,
+          (size_t)blockIdx.x*(4*SNUMREG*SDIVINT) + 4*threadIdx.x);
 
         #pragma unroll
         for (i = 0; i < SNUMREG; i++)
         {
-                *( (float4*) ( d_output + local + ( i * 4 * SDIVINT ) ) ) = make_float4((float)(local_kernel_one[i] &0x0000FFFF) / i_nchans,
+                *( (float4*) ( d_output + big_local + ( i * 4 * SDIVINT ) ) ) = make_float4((float)(local_kernel_one[i] &0x0000FFFF) / i_nchans,
                                                                                         (float)( (local_kernel_two[i] &0x0000FFFF)) / i_nchans,
                                                                                         (float)( (local_kernel_one[i] &0xFFFF0000) >> 16) / i_nchans,
                                                                                         (float)( (local_kernel_two[i] &0xFFFF0000) >> 16) / i_nchans);
@@ -190,8 +205,11 @@ namespace astroaccelerate {
 	local_kernel_two[i] = 0;
       }
 
-    int idx 	  = ( threadIdx.x + ( threadIdx.y * SDIVINT ) );
-    int nsamp_counter = ( idx + ( blockIdx.x * ( 2 * SNUMREG * SDIVINT ) ) );
+    int idx = ( threadIdx.x + ( threadIdx.y * SDIVINT ) );
+    size_t nsamp_counter =
+      dedispersion_flattened_index((size_t)blockIdx.x,
+                                   2 * SNUMREG * SDIVINT,
+                                   (size_t)idx);
 
     float shift_two = ( mstartdm + ( __int2float_rz(blockIdx.y) * SFDIVINDM * mdmstep ) );
     float shift_one = ( __int2float_rz(threadIdx.y) * mdmstep );
@@ -203,7 +221,7 @@ namespace astroaccelerate {
 
 	for (j = 0; j < UNROLLS; j++)
 	  {
-	    temp_f = ( __ldg(( d_input + ( __float2int_rz(dm_shifts[c + j] * shift_two) ) )  + ( nsamp_counter + ( j * i_nsamp ) )) );
+	    temp_f = ( __ldg(( d_input + ( __float2int_rz(dm_shifts[c + j] * shift_two) ) )  + dedispersion_flattened_index((size_t)j, (size_t)i_nsamp, nsamp_counter) ) );
 
 	    f_line[j][idx + 1].x = temp_f;
 	    f_line[j][idx    ].y = temp_f;
@@ -211,7 +229,8 @@ namespace astroaccelerate {
 	    shift[j] = __float2int_rz(shift_one * dm_shifts[c + j] + findex);
 	  }
 
-	nsamp_counter = ( nsamp_counter + ( UNROLLS * i_nsamp ) );
+	nsamp_counter = dedispersion_flattened_index(
+	  UNROLLS, (size_t)i_nsamp, nsamp_counter);
 
 	__syncthreads();
 
@@ -256,8 +275,11 @@ namespace astroaccelerate {
 			local_kernel_two[i] = 0;
 		}
 		
-		int idx 	  = ( threadIdx.x + ( threadIdx.y * SDIVINT ) );
-		int nsamp_counter = ( idx + ( blockIdx.x * ( 2 * SNUMREG * SDIVINT ) ) );
+		int idx = ( threadIdx.x + ( threadIdx.y * SDIVINT ) );
+		size_t nsamp_counter =
+			dedispersion_flattened_index((size_t)blockIdx.x,
+			                             2 * SNUMREG * SDIVINT,
+			                             (size_t)idx);
 		
 		float shift_two = ( mstartdm + ( __int2float_rz(blockIdx.y) * SFDIVINDM * mdmstep ) );
 		float shift_one = ( __int2float_rz(threadIdx.y) * mdmstep );
@@ -266,7 +288,7 @@ namespace astroaccelerate {
 			
 			__syncthreads();
 			for (j = 0; j < UNROLLS; j++) {
-				temp_f = ( __ldg(( d_input + ( __float2int_rz(d_dm_shifts[c + j] * shift_two) ) )  + ( nsamp_counter + ( j * i_nsamp ) )) );
+				temp_f = ( __ldg(( d_input + ( __float2int_rz(d_dm_shifts[c + j] * shift_two) ) )  + dedispersion_flattened_index((size_t)j, (size_t)i_nsamp, nsamp_counter) ) );
 				
 				f_line[j][idx + 1].x = temp_f;
 				f_line[j][idx    ].y = temp_f;
@@ -274,7 +296,8 @@ namespace astroaccelerate {
 				shift[j] = __float2int_rz(shift_one * d_dm_shifts[c + j] + findex);
 			}
 			
-			nsamp_counter = ( nsamp_counter + ( UNROLLS * i_nsamp ) );
+			nsamp_counter = dedispersion_flattened_index(
+				UNROLLS, (size_t)i_nsamp, nsamp_counter);
 			
 			__syncthreads();
 		
@@ -318,7 +341,10 @@ namespace astroaccelerate {
       }
 
     int idx = ( threadIdx.x + ( threadIdx.y * SDIVINT ) );
-    int nsamp_counter = ( idx + ( blockIdx.x * ( 2 * SNUMREG * SDIVINT ) ) );
+    size_t nsamp_counter =
+      dedispersion_flattened_index((size_t)blockIdx.x,
+                                   2 * SNUMREG * SDIVINT,
+                                   (size_t)idx);
 
     float shift_two = ( mstartdm + ( __int2float_rz(blockIdx.y) * SFDIVINDM * mdmstep ) );
     float shift_one = ( __int2float_rz(threadIdx.y) * mdmstep );
@@ -337,7 +363,8 @@ namespace astroaccelerate {
 	  }
 	shift = __float2int_rz(shift_one * dm_shifts[c] + findex);
 
-	nsamp_counter = ( nsamp_counter + i_nsamp );
+	nsamp_counter = dedispersion_flattened_index(
+	  1, (size_t)i_nsamp, nsamp_counter);
 
 	__syncthreads();
 
@@ -352,7 +379,11 @@ namespace astroaccelerate {
 
     // Write the accumulators to the output array. 
 	size_t big_local;
-    big_local = ( (size_t)( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y )*( i_t_processed_s ) ) + (size_t)( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + (size_t)(2*threadIdx.x);
+    big_local = dedispersion_flattened_index(
+      (size_t)blockIdx.y * SDIVINDM + threadIdx.y,
+      (size_t)i_t_processed_s,
+      (size_t)blockIdx.x * 2 * SNUMREG * SDIVINT +
+        (size_t)(2*threadIdx.x));
 
 #pragma unroll
     for (i = 0; i < SNUMREG; i++)
@@ -379,7 +410,10 @@ namespace astroaccelerate {
 		}
 		
 		int idx = ( threadIdx.x + ( threadIdx.y * SDIVINT ) );
-		int nsamp_counter = ( idx + ( blockIdx.x * ( 2 * SNUMREG * SDIVINT ) ) );
+		size_t nsamp_counter =
+			dedispersion_flattened_index((size_t)blockIdx.x,
+			                             2 * SNUMREG * SDIVINT,
+			                             (size_t)idx);
 		
 		float shift_two = ( mstartdm + ( __int2float_rz(blockIdx.y) * SFDIVINDM * mdmstep ) );
 		float shift_one = ( __int2float_rz(threadIdx.y) * mdmstep );
@@ -396,7 +430,8 @@ namespace astroaccelerate {
 			}
 			shift = __float2int_rz(shift_one * d_dm_shifts[c] + findex);
 			
-			nsamp_counter = ( nsamp_counter + i_nsamp );
+			nsamp_counter = dedispersion_flattened_index(
+				1, (size_t)i_nsamp, nsamp_counter);
 			
 			__syncthreads();
 			
@@ -410,7 +445,11 @@ namespace astroaccelerate {
 		
 		// Write the accumulators to the output array. 
 		size_t big_local;
-		big_local = ( (size_t)( ( ( blockIdx.y * SDIVINDM ) + threadIdx.y ) * ( i_t_processed_s ) ) + (size_t)( blockIdx.x * 2 * SNUMREG * SDIVINT ) ) + (size_t)(2*threadIdx.x);
+		big_local = dedispersion_flattened_index(
+			(size_t)blockIdx.y * SDIVINDM + threadIdx.y,
+			(size_t)i_t_processed_s,
+			(size_t)blockIdx.x * 2 * SNUMREG * SDIVINT +
+				(size_t)(2*threadIdx.x));
 		
 		#pragma unroll
 		for (i = 0; i < SNUMREG; i++) {
@@ -517,7 +556,7 @@ namespace astroaccelerate {
         /** \brief Kernel wrapper function for dedispersion GPU kernel which works with 4-bit input data */
         void call_kernel_shared_dedisperse_kernel_4bit_4096chan(const dim3 &block_size, const dim3 &grid_size,
                                                   unsigned short *const d_input, float *const d_output, float *const d_dm_shifts, const float &mstartdm, const float &mdmstep, const int nchans){
-		unsigned int chan_counter = (int)(ceil(nchans/4096));
+			unsigned int chan_counter = (unsigned int)((nchans + 4095) / 4096);
                 cudaFuncSetCacheConfig(shared_dedisperse_kernel_4bit_4096p, cudaFuncCachePreferShared);
                 shared_dedisperse_kernel_4bit_4096p<<<block_size, grid_size>>>(d_input, d_output, d_dm_shifts, mstartdm, mdmstep, chan_counter);
         }
@@ -539,7 +578,7 @@ namespace astroaccelerate {
 	/** \brief Kernel wrapper function for dedispersion kernel which works with 16bit data and when number of channels is greater than 8192 kernel function. */
 	void call_kernel_shared_dedisperse_kernel_16_nchan8192p(const dim3 &block_size, const dim3 &grid_size, const int &bin, unsigned short *const d_input, float *const d_output, float *const d_dm_shifts, const float &mstartdm, const float &mdmstep) {
 		cudaFuncSetCacheConfig(shared_dedisperse_kernel_16_nchan8192p, cudaFuncCachePreferShared);
-		shared_dedisperse_kernel_16<<<block_size, grid_size>>>(bin, d_input, d_output, mstartdm, mdmstep);
+		shared_dedisperse_kernel_16_nchan8192p<<<block_size, grid_size>>>(bin, d_input, d_output, d_dm_shifts, mstartdm, mdmstep);
 	}
 
   /** \brief Kernel wrapper function for cache_dedisperse_kernel kernel function. */
