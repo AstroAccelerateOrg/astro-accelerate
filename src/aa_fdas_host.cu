@@ -653,7 +653,7 @@ namespace astroaccelerate {
 	jfreq = (double)(j) / tobs;
 	acc = (double) (ZMAX - a* ACCEL_STEP);
 	acc1 = acc*SLIGHT / jfreq / tobs / tobs;
-	fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, SNR);
+	fprintf(fp_c, "%f\t%f\t%u\t%f\t%f\t%f\n", acc, acc1, j , jfreq, pow, SNR);
       }
 
       fclose(fp_c);
@@ -750,7 +750,7 @@ namespace astroaccelerate {
           sigma=1.0;
           double jfreq = (double)(j) / tobs;
           double acc1 = acc*SLIGHT / jfreq / tobs / tobs;
-          fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, sigma);
+          fprintf(fp_c, "%f\t%f\t%u\t%f\t%f\t%f\n", acc, acc1, j , jfreq, pow, sigma);
         }    
       }
     }
@@ -855,9 +855,9 @@ void fdas_write_test_ffdot_harmonic(
             float SNR =  h_ffdot_SNR[a*nFrequency_bins + f];
             float hrm =  h_ffdot_harm[a*nFrequency_bins + f];
 			if(isinf(acc1) || isinf(jfreq) || isinf(pow) || isinf(SNR)){
-				printf("INFINITY detected:  %.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\t%.3f\n", acc, acc1, f , jfreq, pow, SNR, hrm);
+				printf("INFINITY detected:  %f\t%f\t%u\t%f\t%f\t%f\t%f\n", acc, acc1, f , jfreq, pow, SNR, hrm);
 			}
-            fprintf(fp_c, "%.2f\t%.3f\t%u\t%.3f\t%.3f\t%.3f\t%.3f\n", acc, acc1, f , jfreq, pow, SNR, hrm);
+            fprintf(fp_c, "%f\t%f\t%u\t%f\t%f\t%f\t%f\n", acc, acc1, f , jfreq, pow, SNR, hrm);
         }
     }
 
@@ -1048,7 +1048,7 @@ void fdas_write_list_harm(
         jfreq = ((double) j) / tobs;
         acc = (double) (ZMAX - a*ACCEL_STEP);
         acc1 = acc*SLIGHT / jfreq / tobs / tobs;
-        fprintf(fp_c, "%.2f\t%.3f\t%f\t%.3f\t%.3f\t%.3f\t%.3f\n", acc, acc1, j , jfreq, pow, SNR, harm);
+        fprintf(fp_c, "%f\t%f\t%f\t%f\t%f\t%f\t%f\n", acc, acc1, j , jfreq, pow, SNR, harm);
     }
     
     fclose(fp_c);
